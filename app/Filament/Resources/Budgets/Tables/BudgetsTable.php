@@ -1,0 +1,82 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources\Budgets\Tables;
+
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+
+class BudgetsTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('category.name')
+                    ->label('Category')
+                    ->default('Overall (All Categories)')
+                    ->searchable()
+                    ->sortable(),
+                
+                TextColumn::make('amount')
+                    ->money('MYR')
+                    ->sortable(),
+                
+                TextColumn::make('period')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'daily' => 'info',
+                        'weekly' => 'primary',
+                        'monthly' => 'success',
+                        'quarterly' => 'warning',
+                        'yearly' => 'danger',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                
+                TextColumn::make('quarter')
+                    ->label('Quarter')
+                    ->formatStateUsing(fn ($state) => $state ? 'Q' . $state : '-')
+                    ->sortable(),
+                
+                TextColumn::make('year')
+                    ->sortable(),
+                
+                TextColumn::make('alert_threshold')
+                    ->label('Threshold')
+                    ->suffix('%')
+                    ->sortable(),
+                
+                ToggleColumn::make('is_active')
+                    ->label('Active'),
+            ])
+            ->filters([
+                SelectFilter::make('period')
+                    ->options([
+                        'daily' => 'Daily',
+                        'weekly' => 'Weekly',
+                        'monthly' => 'Monthly',
+                        'quarterly' => 'Quarterly',
+                        'yearly' => 'Yearly',
+                    ])
+                    ->searchable(),
+            ])
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+}
