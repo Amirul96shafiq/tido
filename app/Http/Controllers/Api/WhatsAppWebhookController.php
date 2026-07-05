@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Services\WhatsAppNotificationService;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -21,7 +20,7 @@ class WhatsAppWebhookController extends Controller
         $token = $request->header('Authorization') ?? $request->query('token');
         $expectedToken = (string) config('services.evolution.api_key');
 
-        if ($token !== 'Bearer ' . $expectedToken && $token !== $expectedToken) {
+        if ($token !== 'Bearer '.$expectedToken && $token !== $expectedToken) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -55,6 +54,7 @@ class WhatsAppWebhookController extends Controller
 
         if ($messageType === 'conversation' || $messageType === 'extendedTextMessage') {
             $text = $message['conversation'] ?? ($message['extendedTextMessage']['text'] ?? '');
+
             return $this->handleTextMessage($text, $senderNumber, $waService);
         }
 
@@ -86,7 +86,8 @@ class WhatsAppWebhookController extends Controller
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
-                $waService->sendMessage($senderNumber, "❌ Failed to download receipt image from WhatsApp. Please try again.");
+                $waService->sendMessage($senderNumber, '❌ Failed to download receipt image from WhatsApp. Please try again.');
+
                 return response()->json(['error' => 'Failed to download media'], 500);
             }
 
@@ -95,6 +96,7 @@ class WhatsAppWebhookController extends Controller
 
             if (empty($base64Data)) {
                 Log::error('Evolution API media response did not contain base64', ['response' => $body]);
+
                 return response()->json(['error' => 'Empty media response'], 500);
             }
 
@@ -103,8 +105,8 @@ class WhatsAppWebhookController extends Controller
             }
 
             $binaryData = base64_decode($base64Data);
-            $filename = 'wa_' . $messageId . '.jpg';
-            $localPath = 'receipts/' . $filename;
+            $filename = 'wa_'.$messageId.'.jpg';
+            $localPath = 'receipts/'.$filename;
 
             Storage::put($localPath, $binaryData);
 
@@ -129,6 +131,7 @@ class WhatsAppWebhookController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
@@ -146,17 +149,18 @@ class WhatsAppWebhookController extends Controller
                 ->whereIn('status', ['parsed', 'reviewed'])
                 ->sum('total_amount');
 
-            $reply = sprintf("💰 Your total spending for this month (%s) is *RM %s*.", $now->format('F Y'), number_format($total, 2));
+            $reply = sprintf('💰 Your total spending for this month (%s) is *RM %s*.', $now->format('F Y'), number_format($total, 2));
             $waService->sendMessage($senderNumber, $reply);
 
             return response()->json(['status' => 'success', 'reply' => $reply]);
         }
 
-        $help = "🤖 *TrackAll Bot Help*\n\n"
-              . "- Send any *receipt image* to upload it.\n"
-              . "- Type *spend* or *total* to view your total expenses for this month.";
+        $help = "🤖 *Tido Bot Help*\n\n"
+              ."- Send any *receipt image* to upload it.\n"
+              .'- Type *spend* or *total* to view your total expenses for this month.';
 
         $waService->sendMessage($senderNumber, $help);
+
         return response()->json(['status' => 'success', 'reply' => $help]);
     }
 }

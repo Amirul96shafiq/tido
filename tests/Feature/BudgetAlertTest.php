@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 
@@ -57,13 +58,13 @@ test('budget alert service triggers alerts on threshold breach', function () {
 
     // Force environment setting for WhatsApp number so WhatsApp notification dispatches
     config([
-        'services.evolution.api_key' => 'trackall-secret-key',
+        'services.evolution.api_key' => 'tido-secret-key',
         'services.evolution.personal_number' => '60123456789',
     ]);
 
     $invoice->update(['status' => 'parsed']);
 
-    Http::assertSent(function (\Illuminate\Http\Client\Request $request) {
+    Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/')
             && str_contains((string) $request['text'], 'Budget Alert: Food & Dining')
             && str_contains((string) $request['text'], 'RM 90.00 / RM 100.00');

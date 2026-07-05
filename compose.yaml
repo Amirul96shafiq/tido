@@ -92,7 +92,7 @@ services:
         ports:
             - '${FORWARD_EVOLUTION_PORT:-8085}:8080'
         environment:
-            AUTHENTICATION_API_KEY: '${EVOLUTION_API_KEY:-trackall-secret-key}'
+            AUTHENTICATION_API_KEY: '${EVOLUTION_API_KEY:-tido-secret-key}'
         volumes:
             - 'sail-evolution:/evolution/instances'
         networks:

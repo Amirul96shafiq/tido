@@ -17,16 +17,16 @@ Once running, the service is accessible at `http://localhost:8085` (external por
 ---
 
 ## Step 2: Create a WhatsApp Instance
-You need to call the Evolution API endpoint to create a new WhatsApp connection instance named `trackall`.
+You need to call the Evolution API endpoint to create a new WhatsApp connection instance named `tido`.
 
 Using curl:
 ```bash
 curl -X POST http://localhost:8085/instance/create \
   -H "Content-Type: application/json" \
-  -H "apikey: trackall-secret-key" \
+  -H "apikey: tido-secret-key" \
   -d '{
-    "instanceName": "trackall",
-    "token": "trackall-secret-key",
+    "instanceName": "tido",
+    "token": "tido-secret-key",
     "qrcode": true
   }'
 ```
@@ -44,18 +44,18 @@ The response will contain a base64 encoded QR code string under the key `qrcode.
 ---
 
 ## Step 4: Register Webhook
-Register your local webhook URL with Evolution API so that it posts incoming messages back to TrackAll.
+Register your local webhook URL with Evolution API so that it posts incoming messages back to Tido.
 
 Using curl:
 ```bash
-curl -X POST http://localhost:8085/webhook/set/trackall \
+curl -X POST http://localhost:8085/webhook/set/tido \
   -H "Content-Type: application/json" \
-  -H "apikey: trackall-secret-key" \
+  -H "apikey: tido-secret-key" \
   -d '{
     "enabled": true,
     "url": "http://laravel.test/api/webhooks/whatsapp",
     "headers": {
-      "Authorization": "Bearer trackall-secret-key"
+      "Authorization": "Bearer tido-secret-key"
     },
     "events": [
       "messages.upsert"
@@ -65,10 +65,10 @@ curl -X POST http://localhost:8085/webhook/set/trackall \
 
 ---
 
-## Step 5: Configure TrackAll Environment
+## Step 5: Configure Tido Environment
 Ensure your `.env` contains matching keys:
 ```env
 EVOLUTION_API_URL=http://evolution-api:8080
-EVOLUTION_API_KEY=trackall-secret-key
-EVOLUTION_INSTANCE_NAME=trackall
+EVOLUTION_API_KEY=tido-secret-key
+EVOLUTION_INSTANCE_NAME=tido
 ```

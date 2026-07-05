@@ -44,7 +44,7 @@ Run Sail/Docker Compose to launch the stack:
 Ollama needs to download the `minicpm-v` (or `llava`) model to perform OCR on receipts.
 
 ```bash
-docker exec -it trackall-ollama-1 ollama pull minicpm-v
+docker exec -it tido-ollama-1 ollama pull minicpm-v
 ```
 
 ---

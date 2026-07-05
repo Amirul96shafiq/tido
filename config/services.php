@@ -43,8 +43,8 @@ return [
 
     'evolution' => [
         'api_url' => env('EVOLUTION_API_URL', 'http://evolution-api:8080'),
-        'api_key' => env('EVOLUTION_API_KEY', 'trackall-secret-key'),
-        'instance_name' => env('EVOLUTION_INSTANCE_NAME', 'trackall'),
+        'api_key' => env('EVOLUTION_API_KEY', 'tido-secret-key'),
+        'instance_name' => env('EVOLUTION_INSTANCE_NAME', 'tido'),
         'personal_number' => env('PERSONAL_WHATSAPP_NUMBER'),
     ],
 
