@@ -11,7 +11,7 @@
         @else
             <div class="flex flex-col gap-6 mt-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
                 @foreach($budgets as $budget)
-                    <div class="flex flex-col gap-2 group p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-all duration-300">
+                    <div class="flex flex-col gap-2 group p-3 rounded-xl transition-all duration-300">
                         <div class="flex justify-between items-center text-sm">
                             <div class="flex items-center gap-2">
                                 <span class="w-3 h-3 rounded-full shadow-sm" style="background-color: {{ $budget['color'] }}; box-shadow: 0 0 8px {{ $budget['color'] }}80;"></span>
