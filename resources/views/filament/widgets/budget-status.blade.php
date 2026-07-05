@@ -9,7 +9,7 @@
                 No active budgets configured.
             </div>
         @else
-            <div class="flex flex-col gap-6 mt-3">
+            <div class="flex flex-col gap-6 mt-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
                 @foreach($budgets as $budget)
                     <div class="flex flex-col gap-2 group p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-all duration-300">
                         <div class="flex justify-between items-center text-sm">

@@ -16,7 +16,7 @@ class CategorySeeder extends Seeder
             [
                 'name' => 'Food & Dining',
                 'icon' => 'heroicon-o-cake',
-                'color' => '#ef4444',
+                'color' => '#FFBE3B',
             ],
             [
                 'name' => 'Transportation & Fuel',
