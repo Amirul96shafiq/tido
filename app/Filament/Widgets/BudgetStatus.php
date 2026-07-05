@@ -45,7 +45,7 @@ class BudgetStatus extends Widget
                 'percentage' => min(100, $percentage),
                 'raw_percentage' => $percentage,
                 'period' => ucfirst($budget->period),
-                'color' => $budget->category ? $budget->category->color : '#1a73e8',
+                'color' => $budget->category ? $budget->category->color : '#FFD07D',
                 'status_color' => $percentage >= 100 ? 'red' : ($percentage >= $budget->alert_threshold ? 'amber' : 'emerald'),
             ];
         }

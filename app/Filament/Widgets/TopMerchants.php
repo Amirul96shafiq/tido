@@ -40,7 +40,7 @@ class TopMerchants extends ChartWidget
                 [
                     'label' => 'Total Spent (RM)',
                     'data' => $data,
-                    'backgroundColor' => '#1a73e8',
+                    'backgroundColor' => '#FFD07D',
                 ],
             ],
             'labels' => $labels,

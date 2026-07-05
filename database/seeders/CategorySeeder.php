@@ -21,42 +21,42 @@ class CategorySeeder extends Seeder
             [
                 'name' => 'Transportation & Fuel',
                 'icon' => 'heroicon-o-truck',
-                'color' => '#f97316',
+                'color' => '#FFAF24',
             ],
             [
                 'name' => 'Groceries & Household',
                 'icon' => 'heroicon-o-shopping-cart',
-                'color' => '#84cc16',
+                'color' => '#FFDCA1',
             ],
             [
                 'name' => 'Electronics & Gadgets',
                 'icon' => 'heroicon-o-cpu-chip',
-                'color' => '#3b82f6',
+                'color' => '#E09210',
             ],
             [
                 'name' => 'Utilities & Bills',
                 'icon' => 'heroicon-o-bolt',
-                'color' => '#eab308',
+                'color' => '#FFD07D',
             ],
             [
                 'name' => 'Healthcare & Medical',
                 'icon' => 'heroicon-o-heart',
-                'color' => '#ec4899',
+                'color' => '#B87307',
             ],
             [
                 'name' => 'Entertainment & Leisure',
                 'icon' => 'heroicon-o-film',
-                'color' => '#8b5cf6',
+                'color' => '#FFC154',
             ],
             [
                 'name' => 'Office Supplies',
                 'icon' => 'heroicon-o-briefcase',
-                'color' => '#6b7280',
+                'color' => '#8F5404',
             ],
             [
                 'name' => 'Subscriptions & Memberships',
                 'icon' => 'heroicon-o-credit-card',
-                'color' => '#14b8a6',
+                'color' => '#FFE7C2',
             ],
         ];
 

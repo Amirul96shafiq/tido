@@ -33,8 +33,12 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#FFD07D'),
+                'success' => Color::hex('#FFA524'),
+                'info' => Color::hex('#FFE2A3'),
                 'gray' => Color::Zinc,
+                'danger' => Color::Red,
+                'warning' => Color::Amber,
             ])
             ->font('Outfit', url: 'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap')
             ->brandLogo(asset('images/ptype_01_d.png'))

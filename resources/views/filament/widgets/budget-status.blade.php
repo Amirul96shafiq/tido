@@ -28,12 +28,12 @@
                                 $barColorClass = match($budget['status_color']) {
                                     'red' => 'bg-gradient-to-r from-red-500 to-rose-600',
                                     'amber' => 'bg-gradient-to-r from-amber-400 to-orange-500',
-                                    default => 'bg-gradient-to-r from-emerald-400 to-teal-500',
+                                    default => 'bg-gradient-to-r from-[#FFD07D] to-[#FFA524]',
                                 };
                                 $glowColor = match($budget['status_color']) {
                                     'red' => 'rgba(239, 68, 68, 0.4)',
                                     'amber' => 'rgba(245, 158, 11, 0.4)',
-                                    default => 'rgba(16, 185, 129, 0.4)',
+                                    default => 'rgba(255, 208, 125, 0.4)',
                                 };
                             @endphp
                             <div class="h-full rounded-full transition-all duration-1000 ease-out {{ $barColorClass }}"

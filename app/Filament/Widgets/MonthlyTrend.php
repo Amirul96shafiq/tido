@@ -42,8 +42,8 @@ class MonthlyTrend extends ChartWidget
                 [
                     'label' => 'Spent (RM)',
                     'data' => $data,
-                    'borderColor' => '#1a73e8',
-                    'backgroundColor' => 'rgba(26, 115, 232, 0.1)',
+                    'borderColor' => '#FFD07D',
+                    'backgroundColor' => 'rgba(255, 208, 125, 0.1)',
                     'fill' => true,
                 ],
             ],
