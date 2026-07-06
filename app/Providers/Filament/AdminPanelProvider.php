@@ -23,6 +23,8 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
+use Filament\Navigation\MenuItem;
+use App\Helpers\GitHelper;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -55,6 +57,27 @@ class AdminPanelProvider extends PanelProvider
             )
             ->databaseNotifications()
             ->spa()
+            ->userMenuItems([
+                MenuItem::make()
+                    ->label("What's New?")
+                    ->icon('heroicon-o-code-bracket')
+                    ->url('javascript:void(0)'),
+            ])
+            ->renderHook(
+                PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
+                function (): string {
+                    $gitVersion = GitHelper::getVersionString();
+                    return Blade::render('
+                        <div class="hidden sm:flex items-center justify-center h-9 px-3 text-xs font-mono text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-lg mr-3 border border-gray-200 dark:border-gray-700 select-none">
+                            <span>{{ $gitVersion }}</span>
+                        </div>
+                    ', ['gitVersion' => $gitVersion]);
+                }
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => Blade::render('<x-changelog-modal />'),
+            )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
