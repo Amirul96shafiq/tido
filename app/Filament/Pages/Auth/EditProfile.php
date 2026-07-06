@@ -70,6 +70,48 @@ class EditProfile extends BaseEditProfile
             ->visible(fn (Get $get): bool => (bool) $get('change_password') || ($get('email') !== $this->getUser()->getAttributeValue('email')));
     }
 
+    protected function handleRecordUpdate(Model $record, array $data): Model
+    {
+        $oldName = $record->name;
+        $oldAvatar = $record->avatar_url;
+        $oldEmail = $record->email;
+        $passwordChanged = filled($data['password'] ?? null);
+
+        $updatedRecord = parent::handleRecordUpdate($record, $data);
+
+        $changes = [];
+        if ($oldName !== $updatedRecord->name) {
+            $changes[] = 'Name';
+        }
+        if ($oldAvatar !== $updatedRecord->avatar_url) {
+            $changes[] = 'Profile photo';
+        }
+        if (array_key_exists('email', $data) && $oldEmail !== $data['email']) {
+            $changes[] = 'Email';
+        }
+        if ($passwordChanged) {
+            $changes[] = 'Password';
+        }
+
+        if (! empty($changes)) {
+            $changeList = implode(', ', $changes);
+
+            \Filament\Notifications\Notification::make()
+                ->title('Profile Settings Updated')
+                ->body("You updated your profile settings: {$changeList}.")
+                ->success()
+                ->actions([
+                    \Filament\Actions\Action::make('edit_profile')
+                        ->label('Edit Profile')
+                        ->button()
+                        ->url(static::getUrl()),
+                ])
+                ->sendToDatabase($record);
+        }
+
+        return $updatedRecord;
+    }
+
     /**
      * Override to:
      * 1. Use custom VerifyEmailChange notification with email-change-specific content and expiry info
