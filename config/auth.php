@@ -114,4 +114,18 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Email Verification Link Expiry
+    |--------------------------------------------------------------------------
+    |
+    | The number of minutes the email change verification link remains valid.
+    | For production use 4320 (3 days). Current value is for testing.
+    |
+    */
+
+    'verification' => [
+        'expire' => (int) env('AUTH_VERIFICATION_EXPIRE', 4320), // 3 minutes for testing; set to 4320 (3 days) in production
+    ],
+
 ];

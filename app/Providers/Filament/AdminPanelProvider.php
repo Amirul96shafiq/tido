@@ -8,6 +8,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -33,6 +34,8 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->passwordReset()
+            ->profile(EditProfile::class, isSimple: false)
+            ->emailChangeVerification()
             ->colors([
                 'primary' => Color::hex('#FFD07D'),
                 'success' => Color::hex('#FFA524'),
