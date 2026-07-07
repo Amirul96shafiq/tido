@@ -64,14 +64,46 @@ class AdminPanelProvider extends PanelProvider
                     ->url('javascript:void(0)'),
             ])
             ->renderHook(
-                PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
+                PanelsRenderHook::SIDEBAR_FOOTER,
                 function (): string {
                     $gitVersion = GitHelper::getVersionString();
+                    $shortVersion = substr(GitHelper::getLatestCommitSha(), 0, 7);
                     return Blade::render('
-                        <div class="hidden sm:flex items-center justify-center h-9 px-3 text-xs font-mono text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-lg mr-3 border border-gray-200 dark:border-gray-700 select-none">
-                            <span>{{ $gitVersion }}</span>
+                        <div x-data="{}" class="border-t border-gray-100 dark:border-zinc-800/60 transition-all duration-300" :class="$store.sidebar.isOpen ? \'px-6 py-4\' : \'px-2 py-4\'">
+                            <!-- Expanded state -->
+                            <div x-show="$store.sidebar.isOpen" class="flex items-center gap-2.5 px-3 py-2 text-[11px] font-mono text-gray-500 dark:text-zinc-400 bg-gray-50 dark:bg-zinc-900/40 rounded-lg border border-gray-100 dark:border-zinc-800/50 hover:bg-gray-100/50 dark:hover:bg-zinc-800/30 transition-all duration-200 select-none">
+                                <svg class="h-4 w-4 text-amber-500 dark:text-amber-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="6" y1="3" x2="6" y2="15"></line>
+                                    <circle cx="18" cy="6" r="3" fill="currentColor" fill-opacity="0.2"></circle>
+                                    <circle cx="6" cy="18" r="3" fill="currentColor" fill-opacity="0.2"></circle>
+                                    <path d="M18 9a9 9 0 0 1-9 9"></path>
+                                </svg>
+                                <span class="flex-1 truncate">{{ $gitVersion }}</span>
+                                <span class="relative flex h-2 w-2 flex-shrink-0">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                                </span>
+                            </div>
+                            <!-- Collapsed state -->
+                            <div x-show="!$store.sidebar.isOpen" class="flex items-center justify-center">
+                                <div class="group relative flex items-center justify-center w-10 h-10 rounded-lg text-gray-500 dark:text-zinc-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-gray-100 dark:hover:bg-zinc-800/60 transition-all duration-200 cursor-help select-none" title="{{ $gitVersion }}">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="6" y1="3" x2="6" y2="15"></line>
+                                        <circle cx="18" cy="6" r="3" fill="currentColor" fill-opacity="0.2"></circle>
+                                        <circle cx="6" cy="18" r="3" fill="currentColor" fill-opacity="0.2"></circle>
+                                        <path d="M18 9a9 9 0 0 1-9 9"></path>
+                                    </svg>
+                                    <span class="absolute top-1.5 right-1.5 flex h-2 w-2">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                    ', ['gitVersion' => $gitVersion]);
+                    ', [
+                        'gitVersion' => $gitVersion,
+                        'shortVersion' => $shortVersion,
+                    ]);
                 }
             )
             ->renderHook(
