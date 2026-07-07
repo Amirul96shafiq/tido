@@ -49,7 +49,8 @@ class AdminPanelProvider extends PanelProvider
             ->font('Outfit', url: 'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap')
             ->brandLogo(asset('images/ptype_01_d.png'))
             ->darkModeBrandLogo(asset('images/ptype_01_l.png'))
-            ->brandLogoHeight('2.5rem')
+            ->brandLogoHeight('2rem')
+            ->sidebarWidth('18rem')
             ->sidebarCollapsibleOnDesktop()
             ->renderHook(
                 PanelsRenderHook::HEAD_END,

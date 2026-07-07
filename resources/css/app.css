@@ -55,3 +55,29 @@
     background-color: rgba(82, 82, 91, 0.7);
 }
 
+/* Sidebar visual separation line */
+.fi-sidebar {
+    border-inline-end: 1px solid var(--color-gray-100) !important;
+    background-color: var(--color-white) !important;
+}
+
+.dark .fi-sidebar {
+    border-inline-end: 1px solid color-mix(in srgb, var(--color-zinc-800) 60%, transparent) !important;
+    background-color: var(--color-zinc-900) !important;
+}
+
+/* Header visual styles matching sidebar */
+.fi-topbar {
+    background-color: var(--color-white) !important;
+    border-bottom: 1px solid var(--color-gray-100) !important;
+    box-shadow: none !important;
+}
+
+.dark .fi-topbar {
+    background-color: var(--color-zinc-900) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-zinc-800) 60%, transparent) !important;
+    box-shadow: none !important;
+}
+
+
+
