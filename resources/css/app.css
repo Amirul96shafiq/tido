@@ -177,6 +177,76 @@
     }
 }
 
+/* Version-icon style — shared interactive icon treatment */
+.fi-version-icon-btn {
+    @apply relative flex items-center justify-center rounded-lg text-gray-500 dark:text-zinc-400 transition-all duration-200 select-none;
+}
+
+.fi-version-icon-btn:not(.fi-icon-btn) {
+    @apply size-10 cursor-pointer hover:text-amber-500 dark:hover:text-amber-400 hover:bg-gray-100 dark:hover:bg-zinc-800/60;
+}
+
+.fi-version-icon-btn.fi-icon-btn {
+    @apply !m-0 size-10;
+}
+
+.fi-version-icon-btn.fi-icon-btn:not(.fi-disabled):not([disabled]) {
+    @apply hover:text-amber-500 dark:hover:text-amber-400 hover:bg-gray-100 dark:hover:bg-zinc-800/60 focus-visible:ring-0;
+}
+
+.fi-version-icon-btn .fi-icon {
+    @apply text-current;
+}
+
+/* Sidebar navigation icons */
+.fi-sidebar-group-btn > .fi-icon,
+.fi-sidebar-item-btn > .fi-icon {
+    @apply text-gray-500 dark:text-zinc-400 transition-all duration-200;
+}
+
+.fi-sidebar-group-btn:hover > .fi-icon,
+.fi-sidebar-item.fi-sidebar-item-has-url > .fi-sidebar-item-btn:hover > .fi-icon {
+    @apply text-amber-500 dark:text-amber-400;
+}
+
+.fi-sidebar-group.fi-active .fi-sidebar-group-dropdown-trigger-btn .fi-icon,
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-icon {
+    @apply text-amber-500 dark:text-amber-400;
+}
+
+.fi-sidebar-item-btn {
+    @apply transition-all duration-200;
+}
+
+.fi-sidebar-item.fi-sidebar-item-has-url > .fi-sidebar-item-btn:hover {
+    @apply bg-gray-100 dark:bg-zinc-800/60;
+}
+
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
+    @apply bg-gray-100 dark:bg-zinc-800/60;
+}
+
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-sidebar-item-label {
+    @apply text-amber-600 dark:text-amber-400;
+}
+
+.fi-sidebar-group-dropdown-trigger-btn.fi-version-icon-btn {
+    @apply flex-none gap-0 p-0;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-group-dropdown-trigger-btn.fi-version-icon-btn,
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn {
+    @apply mx-auto size-10 p-0;
+}
+
+.fi-sidebar .fi-sidebar-item-btn > .fi-icon.fi-size-lg {
+    @apply size-5;
+}
+
+.fi-topbar .fi-user-menu-trigger {
+    @apply flex size-10 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-zinc-800/60;
+}
+
 
 
 

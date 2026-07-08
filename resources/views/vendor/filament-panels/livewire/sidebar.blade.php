@@ -54,12 +54,13 @@
                                     ]
                                     : \Filament\View\PanelsIconAlias::SIDEBAR_COLLAPSE_BUTTON
                                 "
-                                icon-size="lg"
+                                icon-size="md"
                                 :label="__('filament-panels::layout.actions.sidebar.collapse.label')"
+                                :tooltip="__('filament-panels::layout.actions.sidebar.collapse.label')"
                                 x-cloak
                                 x-show="$store.sidebar.isOpen"
                                 x-on:click="$store.sidebar.close()"
-                                class="fi-sidebar-close-collapse-sidebar-btn"
+                                class="fi-version-icon-btn fi-sidebar-close-collapse-sidebar-btn"
                             />
 
                             <x-filament::icon-button
@@ -73,12 +74,13 @@
                                     ]
                                     : \Filament\View\PanelsIconAlias::SIDEBAR_EXPAND_BUTTON
                                 "
-                                icon-size="lg"
+                                icon-size="md"
                                 :label="__('filament-panels::layout.actions.sidebar.expand.label')"
+                                :tooltip="__('filament-panels::layout.actions.sidebar.expand.label')"
                                 x-cloak
                                 x-show="! $store.sidebar.isOpen"
                                 x-on:click="$store.sidebar.open()"
-                                class="fi-sidebar-open-collapse-sidebar-btn"
+                                class="fi-version-icon-btn fi-sidebar-open-collapse-sidebar-btn"
                             />
                         </div>
                     @endif

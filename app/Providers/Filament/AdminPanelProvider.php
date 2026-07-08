@@ -112,7 +112,7 @@ class AdminPanelProvider extends PanelProvider
                                         placement: document.dir === \'rtl\' ? \'left\' : \'right\',
                                         theme: $store.theme,
                                     }"
-                                    class="group relative flex items-center justify-center w-10 h-10 rounded-lg text-gray-500 dark:text-zinc-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-gray-100 dark:hover:bg-zinc-800/60 transition-all duration-200 cursor-help select-none"
+                                    class="fi-version-icon-btn group cursor-help"
                                 >
                                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                         <line x1="6" y1="3" x2="6" y2="15"></line>

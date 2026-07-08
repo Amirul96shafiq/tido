@@ -39,7 +39,7 @@
             class="fi-sidebar-group-btn"
         >
             @if ($icon)
-                {{ \Filament\Support\generate_icon_html($icon, size: \Filament\Support\Enums\IconSize::Large) }}
+                {{ \Filament\Support\generate_icon_html($icon, size: \Filament\Support\Enums\IconSize::Medium) }}
             @endif
 
             <span class="fi-sidebar-group-label">
@@ -94,9 +94,9 @@
                               }
                     "
                     x-tooltip.html="tooltip"
-                    class="fi-sidebar-group-dropdown-trigger-btn"
+                    class="fi-version-icon-btn fi-sidebar-group-dropdown-trigger-btn"
                 >
-                    {{ \Filament\Support\generate_icon_html($icon, size: \Filament\Support\Enums\IconSize::Large) }}
+                    {{ \Filament\Support\generate_icon_html($icon, size: \Filament\Support\Enums\IconSize::Medium) }}
                 </button>
             </x-slot>
 
