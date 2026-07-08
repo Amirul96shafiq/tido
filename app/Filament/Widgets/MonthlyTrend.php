@@ -10,9 +10,11 @@ use Filament\Widgets\ChartWidget;
 class MonthlyTrend extends ChartWidget
 {
     protected static ?int $sort = 2;
-    protected int | string | array $columnSpan = 1;
+
+    protected int|string|array $columnSpan = 1;
+
     protected ?string $heading = 'Monthly Spending Trend';
-    
+
     public function getType(): string
     {
         return 'line';
@@ -23,7 +25,7 @@ class MonthlyTrend extends ChartWidget
         $months = [];
         $data = [];
 
-        for ($i = 11; $i >= 0; $i--) {
+        for ($i = 5; $i >= 0; $i--) {
             $month = now()->subMonths($i);
             $months[] = $month->format('M Y');
 
