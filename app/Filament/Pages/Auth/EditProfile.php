@@ -109,6 +109,12 @@ class EditProfile extends BaseEditProfile
                 ->sendToDatabase($record);
         }
 
+        // Auto-refresh the page when the profile photo changes so the
+        // sidebar / header avatar updates immediately.
+        if ($oldAvatar !== $updatedRecord->avatar_url) {
+            $this->js('window.location.reload()');
+        }
+
         return $updatedRecord;
     }
 
