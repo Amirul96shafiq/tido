@@ -15,6 +15,7 @@ use Filament\Navigation\MenuItem;
 use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Support\Assets\Js;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentIcon;
 use Filament\View\PanelsRenderHook;
@@ -26,6 +27,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -62,6 +64,12 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('2rem')
             ->sidebarWidth('18rem')
             ->sidebarCollapsibleOnDesktop()
+            ->assets([
+                Js::make(
+                    'chart-js-plugins',
+                    Vite::asset('resources/js/filament-chart-js-plugins.js'),
+                )->module(),
+            ])
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => Blade::render('@vite(\'resources/css/app.css\')'),
