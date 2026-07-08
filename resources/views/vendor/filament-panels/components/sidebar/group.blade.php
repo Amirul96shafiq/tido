@@ -63,7 +63,6 @@
             x-show="! $store.sidebar.isOpen"
             class="flex flex-col items-center justify-center py-2"
         >
-            <div class="w-8 h-[1px] bg-gray-200 dark:bg-zinc-800 mb-1"></div>
             <span
                 class="text-[9px] font-bold tracking-wider text-gray-400 uppercase dark:text-zinc-500 truncate max-w-[48px] text-center"
                 x-tooltip="{
