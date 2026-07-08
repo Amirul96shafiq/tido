@@ -1,4 +1,4 @@
-<div class="fi-topbar-ctn">
+<div class="fi-topbar-ctn" x-data="{}" :class="{ 'fi-topbar-ctn-collapsed': ! $store.sidebar.isOpen }">
     @php
         $isRtl = __('filament-panels::layout.direction') === 'rtl';
         $isSidebarCollapsibleOnDesktop = filament()->isSidebarCollapsibleOnDesktop();

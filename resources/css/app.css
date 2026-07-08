@@ -86,9 +86,48 @@
     box-shadow: none !important;
 }
 
-/* Move project logo from header (topbar) to sidebar top */
+/* Keep logo in sidebar when expanded; show a single themed logo in topbar when collapsed */
 .fi-topbar .fi-logo {
     display: none !important;
+}
+
+.fi-topbar-start {
+    display: none !important;
+}
+
+.fi-topbar-ctn-collapsed .fi-topbar-start {
+    display: flex !important;
+    align-items: center;
+    flex-shrink: 0;
+    margin-inline-start: 0.5rem;
+    margin-inline-end: 0.75rem;
+}
+
+.fi-topbar-ctn-collapsed .fi-topbar-start .fi-logo {
+    margin-inline-start: 0 !important;
+}
+
+.fi-topbar-ctn-collapsed .fi-topbar-start .fi-logo.fi-logo-light {
+    display: flex !important;
+}
+
+.dark .fi-topbar-ctn-collapsed .fi-topbar-start .fi-logo.fi-logo-light {
+    display: none !important;
+}
+
+.fi-topbar-ctn-collapsed .fi-topbar-start .fi-logo.fi-logo-dark {
+    display: none !important;
+}
+
+.dark .fi-topbar-ctn-collapsed .fi-topbar-start .fi-logo.fi-logo-dark {
+    display: flex !important;
+}
+
+@media (min-width: 1024px) {
+    .fi-topbar-ctn-collapsed .fi-topbar-start {
+        margin-inline-start: 0.75rem;
+        margin-inline-end: 1.5rem;
+    }
 }
 
 .fi-sidebar-header {
@@ -131,6 +170,10 @@
 
     .fi-topbar {
         padding-inline-start: var(--sidebar-width, 18rem) !important;
+    }
+
+    .fi-topbar-ctn-collapsed .fi-topbar {
+        padding-inline-start: var(--collapsed-sidebar-width, 4.5rem) !important;
     }
 }
 
