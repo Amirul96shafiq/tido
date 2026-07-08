@@ -1,12 +1,12 @@
 # Google Drive Integration Setup Guide
 
-This guide documents how to create a Google Cloud project, authorize a service account, and configure Tido to pull receipts from a Google Drive folder.
+This guide documents how to create a Google Cloud project, authorize a service account, and configure tido to pull receipts from a Google Drive folder.
 
 ---
 
 ## Step 1: Create a Google Cloud Project & Enable APIs
 1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
-2. Create a new project (e.g. `Tido`).
+2. Create a new project (e.g. `tido`).
 3. Search for the **Google Drive API** and click **Enable**.
 
 ---
@@ -22,13 +22,13 @@ This guide documents how to create a Google Cloud project, authorize a service a
 ---
 
 ## Step 3: Share the Google Drive Folder
-1. Create a folder in your Google Drive (e.g. `Tido Receipts`).
+1. Create a folder in your Google Drive (e.g. `tido Receipts`).
 2. Open the service account JSON key file you downloaded and find the `"client_email"` key (e.g., `tido-service-account@project.iam.gserviceaccount.com`).
 3. Share your Google Drive folder with this email address, giving it **Editor** permissions.
 
 ---
 
-## Step 4: Configure Tido Environment
+## Step 4: Configure tido Environment
 Open your `.env` file and populate the Google Drive keys:
 
 ```env

@@ -44,7 +44,7 @@ The response will contain a base64 encoded QR code string under the key `qrcode.
 ---
 
 ## Step 4: Register Webhook
-Register your local webhook URL with Evolution API so that it posts incoming messages back to Tido.
+Register your local webhook URL with Evolution API so that it posts incoming messages back to tido.
 
 Using curl:
 ```bash
@@ -65,7 +65,7 @@ curl -X POST http://localhost:8085/webhook/set/tido \
 
 ---
 
-## Step 5: Configure Tido Environment
+## Step 5: Configure tido Environment
 Ensure your `.env` contains matching keys:
 ```env
 EVOLUTION_API_URL=http://evolution-api:8080

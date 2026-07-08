@@ -155,7 +155,7 @@ class WhatsAppWebhookController extends Controller
             return response()->json(['status' => 'success', 'reply' => $reply]);
         }
 
-        $help = "🤖 *Tido Bot Help*\n\n"
+        $help = "🤖 *tido Bot Help*\n\n"
               ."- Send any *receipt image* to upload it.\n"
               .'- Type *spend* or *total* to view your total expenses for this month.';
 
