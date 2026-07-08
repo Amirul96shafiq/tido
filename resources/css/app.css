@@ -86,5 +86,54 @@
     box-shadow: none !important;
 }
 
+/* Move project logo from header (topbar) to sidebar top */
+.fi-topbar .fi-logo {
+    display: none !important;
+}
+
+.fi-sidebar-header {
+    display: flex !important;
+    border-bottom: 1px solid var(--color-gray-100) !important;
+}
+
+.dark .fi-sidebar-header {
+    border-bottom: 1px solid color-mix(in srgb, var(--color-zinc-800) 60%, transparent) !important;
+}
+
+.fi-sidebar-header-logo-ctn {
+    display: flex !important;
+}
+
+/* Hide logo when sidebar is collapsed, but keep sidebar header for expand button */
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-header-logo-ctn {
+    display: none !important;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-header {
+    padding-inline: 0.5rem !important;
+    justify-content: center !important;
+}
+
+/* Desktop layout overrides for full-height sidebar and static topbar */
+@media (min-width: 1024px) {
+    .fi-sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        height: 100vh !important;
+        z-index: 30 !important;
+    }
+
+    .fi-topbar-ctn {
+        margin-inline-start: 0 !important;
+        width: 100% !important;
+        z-index: 20 !important;
+    }
+
+    .fi-topbar {
+        padding-inline-start: var(--sidebar-width, 18rem) !important;
+    }
+}
+
+
 
 

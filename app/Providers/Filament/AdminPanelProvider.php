@@ -25,9 +25,18 @@ use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
 use Filament\Navigation\MenuItem;
 use App\Helpers\GitHelper;
+use Filament\Support\Facades\FilamentIcon;
 
 class AdminPanelProvider extends PanelProvider
 {
+    public function boot(): void
+    {
+        FilamentIcon::register([
+            'panels::sidebar.collapse-button' => 'heroicon-o-bars-3-bottom-left',
+            'panels::sidebar.expand-button' => 'heroicon-o-bars-3',
+        ]);
+    }
+
     public function panel(Panel $panel): Panel
     {
         return $panel
