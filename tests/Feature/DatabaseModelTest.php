@@ -21,6 +21,15 @@ test('labelings can be seeded and locked', function () {
     expect($labeling->type->value)->toBe('finance');
 });
 
+test('manually created labelings are not system locked', function () {
+    $labeling = Labeling::factory()->create([
+        'name' => 'Custom Category',
+        'slug' => 'custom-category',
+    ]);
+
+    expect($labeling->is_system)->toBeFalse();
+});
+
 test('invoices generate hash on creation and block duplicates', function () {
     $invoice = Invoice::create([
         'merchant_name' => 'McDonalds',

@@ -17,6 +17,10 @@ class Labeling extends Model
 {
     use HasFactory, LogsActivity, SoftDeletes;
 
+    protected $attributes = [
+        'is_system' => false,
+    ];
+
     protected $fillable = [
         'type',
         'name',
