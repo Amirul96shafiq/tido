@@ -4,15 +4,24 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Models\Invoice;
 use Filament\Widgets\ChartWidget;
+use Illuminate\Contracts\Support\Htmlable;
 
 class TopMerchants extends ChartWidget
 {
+    use InteractsWithDashboardMonth;
+
     protected static ?int $sort = 5;
-    protected int | string | array $columnSpan = 1;
-    protected ?string $heading = 'Top Merchants (This Month)';
-    
+
+    protected int|string|array $columnSpan = 1;
+
+    public function getHeading(): string|Htmlable|null
+    {
+        return 'Top Merchants ('.$this->formatSelectedMonth('F Y').')';
+    }
+
     public function getType(): string
     {
         return 'bar';
@@ -20,11 +29,9 @@ class TopMerchants extends ChartWidget
 
     protected function getData(): array
     {
-        $now = now();
-        $start = $now->copy()->startOfMonth();
-        $end = $now->copy()->endOfMonth();
+        $bounds = $this->getSelectedMonthBounds();
 
-        $merchants = Invoice::whereBetween('date_time', [$start, $end])
+        $merchants = Invoice::whereBetween('date_time', [$bounds['start'], $bounds['end']])
             ->whereIn('status', ['parsed', 'reviewed'])
             ->selectRaw('merchant_name, SUM(total_amount) as total')
             ->groupBy('merchant_name')

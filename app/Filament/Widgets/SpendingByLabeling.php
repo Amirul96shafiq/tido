@@ -4,16 +4,23 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Models\InvoiceItem;
 use Filament\Widgets\ChartWidget;
+use Illuminate\Contracts\Support\Htmlable;
 
 class SpendingByLabeling extends ChartWidget
 {
+    use InteractsWithDashboardMonth;
+
     protected static ?int $sort = 3;
 
     protected int|string|array $columnSpan = 1;
 
-    protected ?string $heading = 'Spending by Labeling (This Month)';
+    public function getHeading(): string|Htmlable|null
+    {
+        return 'Spending by Labeling ('.$this->formatSelectedMonth('F Y').')';
+    }
 
     public function getType(): string
     {
@@ -22,14 +29,12 @@ class SpendingByLabeling extends ChartWidget
 
     protected function getData(): array
     {
-        $now = now();
-        $thisMonthStart = $now->copy()->startOfMonth();
-        $thisMonthEnd = $now->copy()->endOfMonth();
+        $bounds = $this->getSelectedMonthBounds();
 
         $spending = InvoiceItem::query()
             ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
             ->join('labelings', 'invoice_items.labeling_id', '=', 'labelings.id')
-            ->whereBetween('invoices.date_time', [$thisMonthStart, $thisMonthEnd])
+            ->whereBetween('invoices.date_time', [$bounds['start'], $bounds['end']])
             ->whereIn('invoices.status', ['parsed', 'reviewed'])
             ->selectRaw('labelings.name, labelings.color, SUM(invoice_items.line_total) as total')
             ->groupBy('labelings.name', 'labelings.color')

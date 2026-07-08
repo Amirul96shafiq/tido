@@ -38,31 +38,33 @@ class Budget extends Model
         return $this->belongsTo(Labeling::class);
     }
 
-    public function getStartDate(): Carbon
+    public function getStartDate(?Carbon $reference = null): Carbon
     {
-        $currentYear = (int) ($this->year ?: now()->year);
+        $reference ??= now();
+        $currentYear = (int) ($this->year ?: $reference->year);
 
         return match ($this->period) {
-            'daily' => now()->startOfDay(),
-            'weekly' => now()->startOfWeek(),
-            'monthly' => now()->startOfMonth(),
+            'daily' => $reference->copy()->startOfDay(),
+            'weekly' => $reference->copy()->startOfWeek(),
+            'monthly' => $reference->copy()->startOfMonth(),
             'quarterly' => $this->getQuarterStartDate($currentYear),
             'yearly' => Carbon::create($currentYear, 1, 1)->startOfDay(),
-            default => now()->startOfMonth(),
+            default => $reference->copy()->startOfMonth(),
         };
     }
 
-    public function getEndDate(): Carbon
+    public function getEndDate(?Carbon $reference = null): Carbon
     {
-        $currentYear = (int) ($this->year ?: now()->year);
+        $reference ??= now();
+        $currentYear = (int) ($this->year ?: $reference->year);
 
         return match ($this->period) {
-            'daily' => now()->endOfDay(),
-            'weekly' => now()->endOfWeek(),
-            'monthly' => now()->endOfMonth(),
+            'daily' => $reference->copy()->endOfDay(),
+            'weekly' => $reference->copy()->endOfWeek(),
+            'monthly' => $reference->copy()->endOfMonth(),
             'quarterly' => $this->getQuarterEndDate($currentYear),
             'yearly' => Carbon::create($currentYear, 12, 31)->endOfDay(),
-            default => now()->endOfMonth(),
+            default => $reference->copy()->endOfMonth(),
         };
     }
 

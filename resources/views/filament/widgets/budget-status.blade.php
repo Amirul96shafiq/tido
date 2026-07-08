@@ -1,7 +1,7 @@
 <x-filament-widgets::widget class="h-full">
     <x-filament::section class="h-full">
         <x-slot name="heading">
-            Budget Performance
+            Budget Performance ({{ $monthLabel ?? now()->format('F Y') }})
         </x-slot>
 
         @if(empty($budgets))

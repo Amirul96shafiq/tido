@@ -4,16 +4,23 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Models\Invoice;
 use Filament\Widgets\ChartWidget;
+use Illuminate\Contracts\Support\Htmlable;
 
 class MonthlyTrend extends ChartWidget
 {
+    use InteractsWithDashboardMonth;
+
     protected static ?int $sort = 2;
 
     protected int|string|array $columnSpan = 1;
 
-    protected ?string $heading = 'Monthly Spending Trend';
+    public function getHeading(): string|Htmlable|null
+    {
+        return 'Monthly Spending Trend (6 months to '.$this->formatSelectedMonth().')';
+    }
 
     public function getType(): string
     {
@@ -24,9 +31,10 @@ class MonthlyTrend extends ChartWidget
     {
         $months = [];
         $data = [];
+        $endMonth = $this->getSelectedMonth();
 
         for ($i = 5; $i >= 0; $i--) {
-            $month = now()->subMonths($i);
+            $month = $endMonth->copy()->subMonths($i);
             $months[] = $month->format('M Y');
 
             $start = $month->copy()->startOfMonth();

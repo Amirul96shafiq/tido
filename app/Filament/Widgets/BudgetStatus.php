@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Models\Budget;
 use App\Models\InvoiceItem;
 use Filament\Widgets\Widget;
 
 class BudgetStatus extends Widget
 {
+    use InteractsWithDashboardMonth;
+
     protected static ?int $sort = 4;
 
     protected int|string|array $columnSpan = 1;
@@ -18,6 +21,8 @@ class BudgetStatus extends Widget
 
     protected function getViewData(): array
     {
+        $reference = $this->getMonthReferenceDate();
+
         $budgets = Budget::with('labeling')
             ->where('is_active', true)
             ->get();
@@ -25,8 +30,8 @@ class BudgetStatus extends Widget
         $budgetStates = [];
 
         foreach ($budgets as $budget) {
-            $start = $budget->getStartDate();
-            $end = $budget->getEndDate();
+            $start = $budget->getStartDate($reference);
+            $end = $budget->getEndDate($reference);
 
             $query = InvoiceItem::query()
                 ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
@@ -54,6 +59,7 @@ class BudgetStatus extends Widget
 
         return [
             'budgets' => $budgetStates,
+            'monthLabel' => $this->formatSelectedMonth('F Y'),
         ];
     }
 }
