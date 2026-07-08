@@ -247,6 +247,50 @@
     @apply flex size-10 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-zinc-800/60;
 }
 
+.fi-profile-photo-section .fi-section-content {
+    @apply flex justify-center;
+}
+
+.fi-profile-photo-section .fi-sc-flex {
+    @apply w-full justify-center;
+}
+
+.fi-profile-photo-section .fi-profile-photo-field {
+    @apply flex w-auto justify-center;
+}
+
+.fi-profile-photo-section .fi-fo-file-upload.fi-fo-file-upload-avatar {
+    @apply items-center;
+}
+
+.fi-profile-photo-section .fi-fo-file-upload-input-ctn,
+.fi-profile-photo-section .filepond--root[data-style-panel-layout='compact circle'] {
+    @apply mx-auto;
+}
+
+@media (max-width: 1023px) {
+    .fi-profile-page .fi-grid-col:has(.fi-profile-sidebar-sticky) {
+        order: 1;
+    }
+
+    .fi-profile-page .fi-grid-col:has(.fi-profile-main-column) {
+        order: 2;
+    }
+}
+
+@media (min-width: 1024px) {
+    /* overflow-x-clip on .fi-layout breaks position: sticky for descendants */
+    .fi-profile-page .fi-layout {
+        overflow-x: visible;
+    }
+
+    .fi-profile-page .fi-grid-col:has(.fi-profile-sidebar-sticky) {
+        position: sticky;
+        top: calc(4rem + 1.5rem);
+        align-self: start;
+    }
+}
+
 
 
 

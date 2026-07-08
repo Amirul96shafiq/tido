@@ -72,3 +72,56 @@ test('budget alert service triggers alerts on threshold breach', function () {
 
     $this->assertDatabaseCount('notifications', 1);
 });
+
+test('budget alert service skips users who opted out of budget alerts', function () {
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    User::factory()->create(['notify_budget_alerts' => true]);
+    User::factory()->create(['notify_budget_alerts' => false]);
+
+    $labeling = Labeling::factory()->create([
+        'name' => 'Food & Dining',
+        'slug' => 'food-dining',
+    ]);
+
+    Budget::create([
+        'labeling_id' => $labeling->id,
+        'amount' => 100.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+        'alert_threshold' => 80,
+        'is_active' => true,
+    ]);
+
+    $invoice = Invoice::create([
+        'merchant_name' => 'McDonalds',
+        'invoice_number' => 'INV-222',
+        'date_time' => now(),
+        'subtotal' => 90.00,
+        'total_tax' => 0.00,
+        'total_amount' => 90.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'pending',
+    ]);
+
+    InvoiceItem::create([
+        'invoice_id' => $invoice->id,
+        'labeling_id' => $labeling->id,
+        'description' => 'Burgers',
+        'quantity' => 1,
+        'unit_price' => 90.00,
+        'line_total' => 90.00,
+    ]);
+
+    config([
+        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.personal_number' => '60123456789',
+    ]);
+
+    $invoice->update(['status' => 'parsed']);
+
+    $this->assertDatabaseCount('notifications', 1);
+});

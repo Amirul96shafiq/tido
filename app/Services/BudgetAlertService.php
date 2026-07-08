@@ -67,6 +67,10 @@ class BudgetAlertService
                 $users = User::all();
 
                 foreach ($users as $user) {
+                    if (! $user->notify_budget_alerts) {
+                        continue;
+                    }
+
                     FilamentNotification::make()
                         ->title("Budget Alert: {$labelingName}")
                         ->body('Spent: RM '.number_format($spent, 2).' / RM '.number_format($budgetAmount, 2).' ('.round($percentage).'%)')

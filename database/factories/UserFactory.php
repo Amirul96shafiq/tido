@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Models\User;
@@ -30,6 +32,12 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'timezone' => 'Asia/Kuala_Lumpur',
+            'locale' => 'en',
+            'date_format' => 'd/m/Y',
+            'notify_budget_alerts' => true,
+            'notify_profile_updates' => true,
+            'notify_email_digest' => false,
         ];
     }
 
