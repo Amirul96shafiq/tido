@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\Category;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Labeling;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class SampleDataSeeder extends Seeder
 {
     public function run(): void
     {
         // Ensure categories exist first
-        $this->call(CategorySeeder::class);
+        $this->call(LabelingSeeder::class);
 
-        $categories = Category::all()->keyBy('name');
+        $labelings = Labeling::all()->keyBy('name');
 
         // Define realistic merchants with their typical categories and price ranges
         $merchants = [
@@ -134,7 +135,7 @@ class SampleDataSeeder extends Seeder
                 // Decide which items to include (1 to all items)
                 $itemCount = rand(1, count($merchant['items']));
                 $selectedItems = collect($merchant['items'])->random($itemCount);
-                if (! $selectedItems instanceof \Illuminate\Support\Collection) {
+                if (! $selectedItems instanceof Collection) {
                     $selectedItems = collect([$selectedItems]);
                 }
 
@@ -164,12 +165,12 @@ class SampleDataSeeder extends Seeder
 
                 $tax = round($subtotal * 0.06, 2);
                 $total = $subtotal + $tax;
-                $invoiceNum = 'INV-' . strtoupper(substr(md5((string) mt_rand()), 0, 8));
+                $invoiceNum = 'INV-'.strtoupper(substr(md5((string) mt_rand()), 0, 8));
 
                 $invoice = Invoice::create([
                     'merchant_name' => $merchant['name'],
                     'invoice_number' => $invoiceNum,
-                    'receipt_hash' => hash('sha256', $invoiceNum . $dateTime->format('Y-m-d H:i:s') . $total),
+                    'receipt_hash' => hash('sha256', $invoiceNum.$dateTime->format('Y-m-d H:i:s').$total),
                     'date_time' => $dateTime,
                     'subtotal' => $subtotal,
                     'total_tax' => $tax,
@@ -181,11 +182,11 @@ class SampleDataSeeder extends Seeder
                 ]);
 
                 foreach ($itemsData as $itemData) {
-                    $category = $categories->get($itemData['category']);
+                    $labeling = $labelings->get($itemData['category']);
 
                     InvoiceItem::create([
                         'invoice_id' => $invoice->id,
-                        'category_id' => $category?->id,
+                        'labeling_id' => $labeling?->id,
                         'description' => $itemData['description'],
                         'quantity' => $itemData['quantity'],
                         'unit_price' => $itemData['unit_price'],
@@ -195,6 +196,6 @@ class SampleDataSeeder extends Seeder
             }
         }
 
-        $this->command->info('✅ Sample data seeded: ~32 invoices for ' . $now->format('F Y'));
+        $this->command->info('✅ Sample data seeded: ~32 invoices for '.$now->format('F Y'));
     }
 }

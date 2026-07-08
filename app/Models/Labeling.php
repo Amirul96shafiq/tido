@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\LabelingType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,11 +13,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-class Category extends Model
+class Labeling extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity;
+    use HasFactory, LogsActivity, SoftDeletes;
 
     protected $fillable = [
+        'type',
         'name',
         'slug',
         'icon',
@@ -24,8 +27,18 @@ class Category extends Model
     ];
 
     protected $casts = [
+        'type' => LabelingType::class,
         'is_system' => 'boolean',
     ];
+
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
+    public function scopeOfType(Builder $query, LabelingType $type): Builder
+    {
+        return $query->where('type', $type);
+    }
 
     public function invoiceItems(): HasMany
     {

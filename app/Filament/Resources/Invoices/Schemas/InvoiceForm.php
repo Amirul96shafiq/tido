@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Invoices\Schemas;
 
+use App\Enums\LabelingType;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Schemas\Components\Grid;
 use Filament\Forms\Components\Repeater;
-use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class InvoiceForm
@@ -35,24 +36,24 @@ class InvoiceForm
                                     ->required()
                                     ->default(now()),
                             ]),
-                        
+
                         Grid::make(4)
                             ->schema([
                                 TextInput::make('subtotal')
                                     ->numeric()
                                     ->prefix('RM')
                                     ->required(),
-                                
+
                                 TextInput::make('total_tax')
                                     ->numeric()
                                     ->prefix('RM')
                                     ->default(0.00),
-                                
+
                                 TextInput::make('total_amount')
                                     ->numeric()
                                     ->prefix('RM')
                                     ->required(),
-                                
+
                                 Select::make('currency')
                                     ->options([
                                         'MYR' => 'MYR (Malaysian Ringgit)',
@@ -60,7 +61,7 @@ class InvoiceForm
                                     ->default('MYR')
                                     ->required(),
                             ]),
-                        
+
                         Grid::make(2)
                             ->schema([
                                 Select::make('source')
@@ -71,7 +72,7 @@ class InvoiceForm
                                     ])
                                     ->default('manual')
                                     ->required(),
-                                
+
                                 Select::make('status')
                                     ->options([
                                         'pending' => 'Pending Parsing',
@@ -84,7 +85,7 @@ class InvoiceForm
                                     ->required(),
                             ]),
                     ]),
-                
+
                 Section::make('Image & Uploads')
                     ->columnSpan('full')
                     ->schema([
@@ -94,7 +95,7 @@ class InvoiceForm
                             ->maxSize(10240)
                             ->directory('receipts')
                             ->visibility('public'),
-                        
+
                         Textarea::make('notes')
                             ->rows(3),
                     ]),
@@ -110,27 +111,32 @@ class InvoiceForm
                                         TextInput::make('description')
                                             ->required()
                                             ->columnSpan(2),
-                                        
-                                        Select::make('category_id')
-                                            ->relationship('category', 'name')
+
+                                        Select::make('labeling_id')
+                                            ->label('Labeling')
+                                            ->relationship(
+                                                name: 'labeling',
+                                                titleAttribute: 'name',
+                                                modifyQueryUsing: fn ($query) => $query->where('type', LabelingType::Finance),
+                                            )
                                             ->searchable()
                                             ->preload()
                                             ->required()
                                             ->columnSpan(2),
-                                        
+
                                         TextInput::make('quantity')
                                             ->numeric()
                                             ->default(1)
                                             ->required()
                                             ->columnSpan(1),
-                                        
+
                                         TextInput::make('unit_price')
                                             ->numeric()
                                             ->prefix('RM')
                                             ->required()
                                             ->columnSpan(1),
                                     ]),
-                                
+
                                 Grid::make(6)
                                     ->schema([
                                         TextInput::make('line_total')
@@ -138,10 +144,10 @@ class InvoiceForm
                                             ->prefix('RM')
                                             ->required()
                                             ->columnSpan(2),
-                                        
+
                                         DatePicker::make('warranty_expiry_date')
                                             ->columnSpan(2),
-                                        
+
                                         TextInput::make('serial_number')
                                             ->columnSpan(2),
                                     ]),

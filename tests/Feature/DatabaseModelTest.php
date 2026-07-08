@@ -3,19 +3,22 @@
 declare(strict_types=1);
 
 use App\Models\Budget;
-use App\Models\Category;
 use App\Models\Invoice;
+use App\Models\Labeling;
+use Database\Seeders\LabelingSeeder;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('categories can be seeded and locked', function () {
-    $this->seed(\Database\Seeders\CategorySeeder::class);
+test('labelings can be seeded and locked', function () {
+    $this->seed(LabelingSeeder::class);
 
-    $this->assertDatabaseCount('categories', 9);
-    $category = Category::where('slug', 'food-dining')->first();
-    $this->assertNotNull($category);
-    $this->assertTrue($category->is_system);
+    $this->assertDatabaseCount('labelings', 9);
+    $labeling = Labeling::where('slug', 'food-dining')->first();
+    $this->assertNotNull($labeling);
+    $this->assertTrue($labeling->is_system);
+    expect($labeling->type->value)->toBe('finance');
 });
 
 test('invoices generate hash on creation and block duplicates', function () {
@@ -32,9 +35,8 @@ test('invoices generate hash on creation and block duplicates', function () {
 
     $this->assertNotEmpty($invoice->receipt_hash);
 
-    // Expect exception on duplicate hash
-    $this->expectException(\Illuminate\Database\UniqueConstraintViolationException::class);
-    
+    $this->expectException(UniqueConstraintViolationException::class);
+
     Invoice::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-001',

@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Resources\Categories\Tables;
+namespace App\Filament\Resources\Labelings\Tables;
 
+use App\Enums\LabelingType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -13,35 +14,45 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\ColorColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
 
-class CategoriesTable
+class LabelingsTable
 {
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
+                TextColumn::make('type')
+                    ->badge()
+                    ->formatStateUsing(fn (LabelingType $state): string => $state->label())
+                    ->sortable(),
+
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                
+
                 TextColumn::make('slug')
                     ->searchable()
                     ->sortable(),
-                
+
                 TextColumn::make('icon')
                     ->sortable(),
-                
+
                 ColorColumn::make('color'),
-                
+
                 IconColumn::make('is_system')
                     ->boolean()
                     ->label('System Lock')
                     ->sortable(),
             ])
             ->filters([
+                SelectFilter::make('type')
+                    ->options(LabelingType::options())
+                    ->searchable(),
+
                 TrashedFilter::make()
                     ->searchable(),
             ])

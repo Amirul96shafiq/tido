@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use App\Models\Budget;
-use App\Models\Category;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Labeling;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -21,13 +21,13 @@ test('budget alert service triggers alerts on threshold breach', function () {
 
     $user = User::factory()->create();
 
-    $category = Category::factory()->create([
+    $labeling = Labeling::factory()->create([
         'name' => 'Food & Dining',
         'slug' => 'food-dining',
     ]);
 
     $budget = Budget::create([
-        'category_id' => $category->id,
+        'labeling_id' => $labeling->id,
         'amount' => 100.00,
         'period' => 'monthly',
         'year' => (int) now()->year,
@@ -49,7 +49,7 @@ test('budget alert service triggers alerts on threshold breach', function () {
 
     InvoiceItem::create([
         'invoice_id' => $invoice->id,
-        'category_id' => $category->id,
+        'labeling_id' => $labeling->id,
         'description' => 'Burgers',
         'quantity' => 1,
         'unit_price' => 90.00,

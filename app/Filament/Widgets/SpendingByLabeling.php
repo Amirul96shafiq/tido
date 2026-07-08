@@ -7,12 +7,14 @@ namespace App\Filament\Widgets;
 use App\Models\InvoiceItem;
 use Filament\Widgets\ChartWidget;
 
-class SpendingByCategory extends ChartWidget
+class SpendingByLabeling extends ChartWidget
 {
     protected static ?int $sort = 3;
-    protected int | string | array $columnSpan = 1;
-    protected ?string $heading = 'Spending by Category (This Month)';
-    
+
+    protected int|string|array $columnSpan = 1;
+
+    protected ?string $heading = 'Spending by Labeling (This Month)';
+
     public function getType(): string
     {
         return 'doughnut';
@@ -26,11 +28,11 @@ class SpendingByCategory extends ChartWidget
 
         $spending = InvoiceItem::query()
             ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-            ->join('categories', 'invoice_items.category_id', '=', 'categories.id')
+            ->join('labelings', 'invoice_items.labeling_id', '=', 'labelings.id')
             ->whereBetween('invoices.date_time', [$thisMonthStart, $thisMonthEnd])
             ->whereIn('invoices.status', ['parsed', 'reviewed'])
-            ->selectRaw('categories.name, categories.color, SUM(invoice_items.line_total) as total')
-            ->groupBy('categories.name', 'categories.color')
+            ->selectRaw('labelings.name, labelings.color, SUM(invoice_items.line_total) as total')
+            ->groupBy('labelings.name', 'labelings.color')
             ->get();
 
         $labels = $spending->pluck('name')->toArray();

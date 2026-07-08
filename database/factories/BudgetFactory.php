@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\Labeling;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Budget>
+ * @extends Factory<Budget>
  */
 class BudgetFactory extends Factory
 {
@@ -21,7 +21,7 @@ class BudgetFactory extends Factory
         $quarter = ($period === 'quarterly') ? $this->faker->numberBetween(1, 4) : null;
 
         return [
-            'category_id' => $this->faker->boolean(80) ? Category::factory() : null,
+            'labeling_id' => $this->faker->boolean(80) ? Labeling::factory() : null,
             'amount' => $this->faker->randomFloat(2, 50, 5000),
             'period' => $period,
             'quarter' => $quarter,

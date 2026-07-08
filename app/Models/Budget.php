@@ -16,7 +16,7 @@ class Budget extends Model
     use HasFactory, LogsActivity;
 
     protected $fillable = [
-        'category_id',
+        'labeling_id',
         'amount',
         'period',
         'quarter',
@@ -33,9 +33,9 @@ class Budget extends Model
         'is_active' => 'boolean',
     ];
 
-    public function category(): BelongsTo
+    public function labeling(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Labeling::class);
     }
 
     public function getStartDate(): Carbon
@@ -70,6 +70,7 @@ class Budget extends Model
     {
         $quarter = (int) ($this->quarter ?: 1);
         $month = (($quarter - 1) * 3) + 1;
+
         return Carbon::create($year, $month, 1)->startOfDay();
     }
 
@@ -77,6 +78,7 @@ class Budget extends Model
     {
         $quarter = (int) ($this->quarter ?: 1);
         $month = (($quarter - 1) * 3) + 3;
+
         return Carbon::create($year, $month, 1)->endOfMonth();
     }
 

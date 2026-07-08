@@ -12,7 +12,9 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 class MonthlySpendingOverview extends BaseWidget
 {
     protected static ?int $sort = 1;
-    protected int | string | array $columnSpan = 'full';
+
+    protected int|string|array $columnSpan = 'full';
+
     protected ?string $pollingInterval = '15s';
 
     protected function getStats(): array
@@ -33,7 +35,7 @@ class MonthlySpendingOverview extends BaseWidget
             ->sum('total_amount');
 
         $difference = $thisMonthTotal - $lastMonthTotal;
-        $description = 'RM ' . number_format(abs($difference), 2);
+        $description = 'RM '.number_format(abs($difference), 2);
 
         if ($lastMonthTotal > 0) {
             $percent = ($difference / $lastMonthTotal) * 100;
@@ -60,7 +62,7 @@ class MonthlySpendingOverview extends BaseWidget
 
         $projectedSpend = $thisMonthTotal + ($averageDailySpend * $remainingDays);
 
-        $overallMonthlyBudget = Budget::whereNull('category_id')
+        $overallMonthlyBudget = Budget::whereNull('labeling_id')
             ->where('period', 'monthly')
             ->where('is_active', true)
             ->value('amount');
@@ -82,23 +84,23 @@ class MonthlySpendingOverview extends BaseWidget
         }
 
         return [
-            Stat::make('Total Spent (This Month)', 'RM ' . number_format($thisMonthTotal, 2))
+            Stat::make('Total Spent (This Month)', 'RM '.number_format($thisMonthTotal, 2))
                 ->description($description)
                 ->descriptionIcon($descriptionIcon)
                 ->color($descriptionColor),
 
-            Stat::make('Spending Forecast (End of Month)', 'RM ' . number_format($projectedSpend, 2))
+            Stat::make('Spending Forecast (End of Month)', 'RM '.number_format($projectedSpend, 2))
                 ->description($forecastDesc)
                 ->descriptionIcon('heroicon-m-chart-bar')
                 ->color($forecastColor),
 
-            Stat::make('SST Tax Paid', 'RM ' . number_format($thisMonthTax, 2))
+            Stat::make('SST Tax Paid', 'RM '.number_format($thisMonthTax, 2))
                 ->description('Estimated 6% local taxation')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('gray'),
 
             Stat::make('Receipts Processed', (string) $processedCount)
-                ->description($pendingCount . ' pending parsing')
+                ->description($pendingCount.' pending parsing')
                 ->descriptionIcon('heroicon-m-document-text')
                 ->color($pendingCount > 0 ? 'warning' : 'success'),
         ];

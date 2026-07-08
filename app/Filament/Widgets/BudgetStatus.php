@@ -11,12 +11,14 @@ use Filament\Widgets\Widget;
 class BudgetStatus extends Widget
 {
     protected static ?int $sort = 4;
-    protected int | string | array $columnSpan = 1;
+
+    protected int|string|array $columnSpan = 1;
+
     protected string $view = 'filament.widgets.budget-status';
 
     protected function getViewData(): array
     {
-        $budgets = Budget::with('category')
+        $budgets = Budget::with('labeling')
             ->where('is_active', true)
             ->get();
 
@@ -31,21 +33,21 @@ class BudgetStatus extends Widget
                 ->whereBetween('invoices.date_time', [$start, $end])
                 ->whereIn('invoices.status', ['parsed', 'reviewed']);
 
-            if ($budget->category_id) {
-                $query->where('invoice_items.category_id', $budget->category_id);
+            if ($budget->labeling_id) {
+                $query->where('invoice_items.labeling_id', $budget->labeling_id);
             }
 
             $spent = (float) $query->sum('invoice_items.line_total');
             $percentage = $budget->amount > 0 ? ($spent / $budget->amount) * 100 : 0;
 
             $budgetStates[] = [
-                'name' => $budget->category ? $budget->category->name : 'Overall Budget',
+                'name' => $budget->labeling ? $budget->labeling->name : 'Overall Budget',
                 'amount' => (float) $budget->amount,
                 'spent' => $spent,
                 'percentage' => min(100, $percentage),
                 'raw_percentage' => $percentage,
                 'period' => ucfirst($budget->period),
-                'color' => $budget->category ? $budget->category->color : '#FFD07D',
+                'color' => $budget->labeling ? $budget->labeling->color : '#FFD07D',
                 'status_color' => $percentage >= 100 ? 'red' : ($percentage >= $budget->alert_threshold ? 'amber' : 'emerald'),
             ];
         }

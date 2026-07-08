@@ -4,21 +4,24 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Models\Category;
+use App\Enums\LabelingType;
+use App\Models\Labeling;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Category>
+ * @extends Factory<Labeling>
  */
-class CategoryFactory extends Factory
+class LabelingFactory extends Factory
 {
-    protected $model = Category::class;
+    protected $model = Labeling::class;
 
     public function definition(): array
     {
         $name = $this->faker->unique()->words(2, true);
+
         return [
+            'type' => LabelingType::Finance,
             'name' => $name,
             'slug' => Str::slug($name),
             'icon' => 'heroicon-o-briefcase',

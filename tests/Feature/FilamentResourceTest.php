@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Filament\Pages\ReceiptUploadPage;
+use App\Filament\Resources\Budgets\BudgetResource;
+use App\Filament\Resources\Invoices\InvoiceResource;
+use App\Filament\Resources\Labelings\LabelingResource;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -22,26 +26,26 @@ test('authenticated user can access dashboard', function () {
         ->assertSuccessful();
 });
 
-test('authenticated user can load categories list', function () {
+test('authenticated user can load labelings list', function () {
     $this->actingAs($this->admin)
-        ->get(\App\Filament\Resources\Categories\CategoryResource::getUrl('index'))
+        ->get(LabelingResource::getUrl('index'))
         ->assertSuccessful();
 });
 
 test('authenticated user can load invoices list', function () {
     $this->actingAs($this->admin)
-        ->get(\App\Filament\Resources\Invoices\InvoiceResource::getUrl('index'))
+        ->get(InvoiceResource::getUrl('index'))
         ->assertSuccessful();
 });
 
 test('authenticated user can load budgets list', function () {
     $this->actingAs($this->admin)
-        ->get(\App\Filament\Resources\Budgets\BudgetResource::getUrl('index'))
+        ->get(BudgetResource::getUrl('index'))
         ->assertSuccessful();
 });
 
 test('authenticated user can load upload page', function () {
     $this->actingAs($this->admin)
-        ->get(\App\Filament\Pages\ReceiptUploadPage::getUrl())
+        ->get(ReceiptUploadPage::getUrl())
         ->assertSuccessful();
 });

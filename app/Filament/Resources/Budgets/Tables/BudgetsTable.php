@@ -8,7 +8,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -20,16 +19,16 @@ class BudgetsTable
     {
         return $table
             ->columns([
-                TextColumn::make('category.name')
-                    ->label('Category')
+                TextColumn::make('labeling.name')
+                    ->label('Labeling')
                     ->default('Overall (All Categories)')
                     ->searchable()
                     ->sortable(),
-                
+
                 TextColumn::make('amount')
                     ->money('MYR')
                     ->sortable(),
-                
+
                 TextColumn::make('period')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -41,20 +40,20 @@ class BudgetsTable
                         default => 'gray',
                     })
                     ->sortable(),
-                
+
                 TextColumn::make('quarter')
                     ->label('Quarter')
-                    ->formatStateUsing(fn ($state) => $state ? 'Q' . $state : '-')
+                    ->formatStateUsing(fn ($state) => $state ? 'Q'.$state : '-')
                     ->sortable(),
-                
+
                 TextColumn::make('year')
                     ->sortable(),
-                
+
                 TextColumn::make('alert_threshold')
                     ->label('Threshold')
                     ->suffix('%')
                     ->sortable(),
-                
+
                 ToggleColumn::make('is_active')
                     ->label('Active'),
             ])

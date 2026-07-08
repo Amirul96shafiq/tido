@@ -5,14 +5,16 @@ declare(strict_types=1);
 use App\Jobs\ExtractReceiptDataJob;
 use App\Models\Invoice;
 use App\Services\OllamaService;
+use Database\Seeders\LabelingSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
 test('ollama service clean and decode json parses clean and fenced markdown', function () {
-    $service = new OllamaService();
+    $service = new OllamaService;
 
     $json = '{"merchant_name": "McDonalds", "total_amount": 10.60}';
     expect($service->cleanAndDecodeJson($json))->toBe([
@@ -20,7 +22,7 @@ test('ollama service clean and decode json parses clean and fenced markdown', fu
         'total_amount' => 10.60,
     ]);
 
-    $fenced = "```json\n" . $json . "\n```";
+    $fenced = "```json\n".$json."\n```";
     expect($service->cleanAndDecodeJson($fenced))->toBe([
         'merchant_name' => 'McDonalds',
         'total_amount' => 10.60,
@@ -28,7 +30,7 @@ test('ollama service clean and decode json parses clean and fenced markdown', fu
 });
 
 test('extract receipt data job processes mock response and updates status', function () {
-    \Illuminate\Support\Facades\Queue::fake();
+    Queue::fake();
 
     Storage::fake('local');
     Storage::put('receipts/mock.jpg', 'fake-image-content');
@@ -46,7 +48,7 @@ test('extract receipt data job processes mock response and updates status', func
         'original_filename' => 'mock.jpg',
     ]);
 
-    \Illuminate\Support\Facades\Queue::assertPushed(ExtractReceiptDataJob::class);
+    Queue::assertPushed(ExtractReceiptDataJob::class);
 
     Http::fake([
         '*/api/generate' => Http::response([
@@ -65,16 +67,16 @@ test('extract receipt data job processes mock response and updates status', func
                         'unit_price' => 20.00,
                         'line_total' => 20.00,
                         'suggested_category' => 'Food & Dining',
-                    ]
-                ]
-            ])
-        ])
+                    ],
+                ],
+            ]),
+        ]),
     ]);
 
-    $this->seed(\Database\Seeders\CategorySeeder::class);
+    $this->seed(LabelingSeeder::class);
 
     $job = new ExtractReceiptDataJob($invoice->id);
-    $job->handle(new OllamaService());
+    $job->handle(new OllamaService);
 
     $invoice->refresh();
 
@@ -84,5 +86,5 @@ test('extract receipt data job processes mock response and updates status', func
     expect($invoice->total_amount)->toBe('21.20');
     expect($invoice->invoiceItems)->toHaveCount(1);
     expect($invoice->invoiceItems->first()->description)->toBe('2-pc Chicken Meal');
-    expect($invoice->invoiceItems->first()->category->name)->toBe('Food & Dining');
+    expect($invoice->invoiceItems->first()->labeling->name)->toBe('Food & Dining');
 });

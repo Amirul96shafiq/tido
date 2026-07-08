@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\Category;
+use App\Enums\LabelingType;
+use App\Models\Labeling;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
-class CategorySeeder extends Seeder
+class LabelingSeeder extends Seeder
 {
     public function run(): void
     {
-        $categories = [
+        $labelings = [
             [
                 'name' => 'Food & Dining',
                 'icon' => 'heroicon-o-cake',
@@ -60,13 +61,16 @@ class CategorySeeder extends Seeder
             ],
         ];
 
-        foreach ($categories as $cat) {
-            Category::updateOrCreate(
-                ['slug' => Str::slug($cat['name'])],
+        foreach ($labelings as $labeling) {
+            Labeling::updateOrCreate(
                 [
-                    'name' => $cat['name'],
-                    'icon' => $cat['icon'],
-                    'color' => $cat['color'],
+                    'type' => LabelingType::Finance,
+                    'slug' => Str::slug($labeling['name']),
+                ],
+                [
+                    'name' => $labeling['name'],
+                    'icon' => $labeling['icon'],
+                    'color' => $labeling['color'],
                     'is_system' => true,
                 ]
             );

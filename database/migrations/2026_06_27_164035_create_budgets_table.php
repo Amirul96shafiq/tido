@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('budgets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete(); // null = overall budget
+            $table->foreignId('labeling_id')->nullable()->constrained('labelings')->nullOnDelete(); // null = overall budget
             $table->decimal('amount', 12, 2);
             $table->string('period', 20)->default('monthly'); // daily, weekly, monthly, quarterly, yearly
             $table->unsignedTinyInteger('quarter')->nullable(); // 1, 2, 3, 4 (only if period = quarterly)

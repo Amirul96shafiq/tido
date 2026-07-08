@@ -1,9 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
@@ -13,7 +10,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::table('categories')
+        DB::table('labelings')
+            ->where('type', 'finance')
             ->where('slug', 'food-dining')
             ->update(['color' => '#FFBE3B']);
     }
@@ -23,7 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::table('categories')
+        DB::table('labelings')
+            ->where('type', 'finance')
             ->where('slug', 'food-dining')
             ->update(['color' => '#ef4444']);
     }

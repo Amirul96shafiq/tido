@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Budgets\Schemas;
 
+use App\Enums\LabelingType;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Slider;
 use Filament\Forms\Components\TextInput;
@@ -16,17 +17,22 @@ class BudgetForm
     {
         return $schema
             ->components([
-                Select::make('category_id')
-                    ->relationship('category', 'name')
-                    ->placeholder('Overall (All Categories)')
+                Select::make('labeling_id')
+                    ->label('Labeling')
+                    ->relationship(
+                        name: 'labeling',
+                        titleAttribute: 'name',
+                        modifyQueryUsing: fn ($query) => $query->where('type', LabelingType::Finance),
+                    )
+                    ->placeholder('Overall (All Labelings)')
                     ->searchable()
                     ->preload(),
-                
+
                 TextInput::make('amount')
                     ->numeric()
                     ->prefix('RM')
                     ->required(),
-                
+
                 Select::make('period')
                     ->options([
                         'daily' => 'Daily',
@@ -38,7 +44,7 @@ class BudgetForm
                     ->default('monthly')
                     ->live()
                     ->required(),
-                
+
                 Select::make('quarter')
                     ->options([
                         1 => 'Q1 (Jan - Mar)',
@@ -48,12 +54,12 @@ class BudgetForm
                     ])
                     ->visible(fn (callable $get): bool => $get('period') === 'quarterly')
                     ->required(fn (callable $get): bool => $get('period') === 'quarterly'),
-                
+
                 TextInput::make('year')
                     ->numeric()
                     ->default((int) date('Y'))
                     ->required(),
-                
+
                 Slider::make('alert_threshold')
                     ->label('Alert Threshold (%)')
                     ->minValue(10)
@@ -61,7 +67,7 @@ class BudgetForm
                     ->step(5)
                     ->default(80)
                     ->required(),
-                
+
                 Toggle::make('is_active')
                     ->default(true)
                     ->required(),

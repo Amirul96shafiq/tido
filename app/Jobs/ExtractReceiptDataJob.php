@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Models\Category;
+use App\Enums\LabelingType;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Labeling;
 use App\Prompts\ReceiptExtractionPrompt;
 use App\Services\OllamaService;
 use Carbon\Carbon;
@@ -30,9 +31,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         return [30, 60, 120];
     }
 
-    public function __construct(public int $invoiceId)
-    {
-    }
+    public function __construct(public int $invoiceId) {}
 
     public function handle(OllamaService $ollama): void
     {
@@ -45,6 +44,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         if (empty($invoice->image_path) || ! Storage::exists($invoice->image_path)) {
             Log::error('Invoice image path does not exist', ['invoice_id' => $this->invoiceId]);
             $invoice->update(['status' => 'failed']);
+
             return;
         }
 
@@ -81,16 +81,19 @@ class ExtractReceiptDataJob implements ShouldQueue
         if (! empty($parsed['items']) && is_array($parsed['items'])) {
             foreach ($parsed['items'] as $item) {
                 $suggestedCat = $item['suggested_category'] ?? null;
-                $categoryId = null;
+                $labelingId = null;
 
                 if ($suggestedCat) {
                     $slug = Str::slug($suggestedCat);
-                    $categoryId = Category::where('slug', $slug)->first()?->id;
+                    $labelingId = Labeling::query()
+                        ->where('type', LabelingType::Finance)
+                        ->where('slug', $slug)
+                        ->first()?->id;
                 }
 
                 InvoiceItem::create([
                     'invoice_id' => $invoice->id,
-                    'category_id' => $categoryId,
+                    'labeling_id' => $labelingId,
                     'description' => $item['description'] ?? 'Line Item',
                     'quantity' => (float) ($item['quantity'] ?? 1.000),
                     'unit_price' => (float) ($item['unit_price'] ?? 0.00),

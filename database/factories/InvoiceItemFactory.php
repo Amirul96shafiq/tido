@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Models\Category;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Labeling;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\InvoiceItem>
+ * @extends Factory<InvoiceItem>
  */
 class InvoiceItemFactory extends Factory
 {
@@ -24,7 +24,7 @@ class InvoiceItemFactory extends Factory
 
         return [
             'invoice_id' => Invoice::factory(),
-            'category_id' => Category::factory(),
+            'labeling_id' => Labeling::factory(),
             'description' => $this->faker->words(3, true),
             'quantity' => $quantity,
             'unit_price' => $unitPrice,
