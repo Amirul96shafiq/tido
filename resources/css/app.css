@@ -66,6 +66,13 @@
     background-color: var(--color-zinc-900) !important;
 }
 
+/* Fix menu icons alignment in collapsed sidebar */
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav {
+    scrollbar-gutter: auto;
+    padding-inline: 0.75rem;
+    margin-left: 5px;
+}
+
 /* Header visual styles matching sidebar */
 .fi-topbar {
     background-color: var(--color-white) !important;
