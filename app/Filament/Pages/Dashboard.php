@@ -7,60 +7,97 @@ namespace App\Filament\Pages;
 use App\Filament\Support\DashboardMonthPeriod;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
-use Filament\Pages\Dashboard\Actions\FilterAction;
 use Filament\Pages\Dashboard as BaseDashboard;
-use Filament\Pages\Dashboard\Concerns\HasFiltersAction;
+use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
+use Filament\Schemas\Schema;
 
 class Dashboard extends BaseDashboard
 {
-    use HasFiltersAction;
+    use HasFiltersForm;
 
     protected static bool $shouldRegisterNavigation = false;
 
-    protected function getHeaderActions(): array
+    public function booted(): void
     {
-        return [
-            Action::make('previousMonth')
-                ->label('Previous month')
-                ->icon('heroicon-m-chevron-left')
-                ->action(function (): void {
-                    $this->filters = [
-                        'month' => DashboardMonthPeriod::fromFilters($this->filters)
-                            ->copy()
-                            ->subMonth()
-                            ->format('Y-m'),
-                    ];
+        if (! isset($this->filters['month'])) {
+            $this->filters = [
+                'month' => DashboardMonthPeriod::fromFilters($this->filters)->format('Y-m'),
+            ];
+        }
+    }
 
-                    $this->updatedFilters();
-                }),
+    public function updatedFiltersMonth(): void
+    {
+        $this->updatedFilters();
+    }
 
-            FilterAction::make()
-                ->label(fn (): string => DashboardMonthPeriod::labelFromFilters($this->filters))
-                ->schema([
-                    Select::make('month')
-                        ->label('Month')
-                        ->options(DashboardMonthPeriod::options())
-                        ->default(now()->format('Y-m'))
-                        ->required()
-                        ->native(false),
-                ]),
+    public function getFiltersForm(): Schema
+    {
+        if ((! $this->isCachingSchemas) && $this->hasCachedSchema('filtersForm')) {
+            return $this->getSchema('filtersForm');
+        }
 
-            Action::make('nextMonth')
-                ->label('Next month')
-                ->icon('heroicon-m-chevron-right')
-                ->disabled(fn (): bool => DashboardMonthPeriod::isCurrentMonth(
-                    DashboardMonthPeriod::fromFilters($this->filters),
-                ))
-                ->action(function (): void {
-                    $this->filters = [
-                        'month' => DashboardMonthPeriod::fromFilters($this->filters)
-                            ->copy()
-                            ->addMonth()
-                            ->format('Y-m'),
-                    ];
+        $schema = $this->makeSchema()
+            ->columns(1)
+            ->extraAttributes(['wire:partial' => 'table-filters-form'])
+            ->live()
+            ->statePath('filters');
 
-                    $this->updatedFilters();
-                }),
+        return $this->filtersForm($schema);
+    }
+
+    public function filtersForm(Schema $schema): Schema
+    {
+        return $schema
+            ->columns(1)
+            ->components([
+                Select::make('month')
+                    ->label('Month')
+                    ->options(DashboardMonthPeriod::options())
+                    ->searchable()
+                    ->native(false)
+                    ->required()
+                    ->selectablePlaceholder(false)
+                    ->prefixAction(
+                        Action::make('previousMonth')
+                            ->label('Previous month')
+                            ->tooltip('Previous month')
+                            ->icon('heroicon-m-chevron-left')
+                            ->iconButton()
+                            ->action(function (): void {
+                                $this->shiftDashboardMonth(-1);
+                            }),
+                        isInline: true,
+                    )
+                    ->suffixAction(
+                        Action::make('nextMonth')
+                            ->label('Next month')
+                            ->tooltip('Next month')
+                            ->icon('heroicon-m-chevron-right')
+                            ->iconButton()
+                            ->disabled(fn (): bool => DashboardMonthPeriod::isCurrentMonth(
+                                DashboardMonthPeriod::fromFilters($this->filters),
+                            ))
+                            ->action(function (): void {
+                                $this->shiftDashboardMonth(1);
+                            }),
+                        isInline: true,
+                    )
+                    ->extraFieldWrapperAttributes([
+                        'class' => 'fi-dashboard-month-filter w-full max-w-[18rem]',
+                    ]),
+            ]);
+    }
+
+    protected function shiftDashboardMonth(int $months): void
+    {
+        $this->filters = [
+            'month' => DashboardMonthPeriod::fromFilters($this->filters)
+                ->copy()
+                ->addMonths($months)
+                ->format('Y-m'),
         ];
+
+        $this->updatedFilters();
     }
 }
