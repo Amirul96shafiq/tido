@@ -47,7 +47,13 @@ class LabelingsTable
                     ->boolean()
                     ->label('System Lock')
                     ->sortable(),
+
+                TextColumn::make('created_at')
+                    ->label('Created At')
+                    ->dateTime()
+                    ->sortable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('type')
                     ->options(LabelingType::options())

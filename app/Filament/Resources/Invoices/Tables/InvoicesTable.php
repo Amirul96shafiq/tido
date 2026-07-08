@@ -24,19 +24,19 @@ class InvoicesTable
                 TextColumn::make('merchant_name')
                     ->searchable()
                     ->sortable(),
-                
+
                 TextColumn::make('invoice_number')
                     ->searchable()
                     ->sortable(),
-                
+
                 TextColumn::make('date_time')
                     ->dateTime()
                     ->sortable(),
-                
+
                 TextColumn::make('total_amount')
                     ->money('MYR')
                     ->sortable(),
-                
+
                 TextColumn::make('source')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -45,7 +45,7 @@ class InvoicesTable
                         'google_drive' => 'warning',
                         default => 'gray',
                     }),
-                
+
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -57,7 +57,13 @@ class InvoicesTable
                         default => 'gray',
                     })
                     ->sortable(),
+
+                TextColumn::make('created_at')
+                    ->label('Created At')
+                    ->dateTime()
+                    ->sortable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('status')
                     ->options([
@@ -68,7 +74,7 @@ class InvoicesTable
                         'failed' => 'Parsing Failed',
                     ])
                     ->searchable(),
-                
+
                 SelectFilter::make('source')
                     ->options([
                         'manual' => 'Manual',
@@ -76,7 +82,7 @@ class InvoicesTable
                         'google_drive' => 'Google Drive',
                     ])
                     ->searchable(),
-                
+
                 TrashedFilter::make()
                     ->searchable(),
             ])

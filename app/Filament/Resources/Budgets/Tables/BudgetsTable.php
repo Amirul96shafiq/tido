@@ -56,7 +56,13 @@ class BudgetsTable
 
                 ToggleColumn::make('is_active')
                     ->label('Active'),
+
+                TextColumn::make('created_at')
+                    ->label('Created At')
+                    ->dateTime()
+                    ->sortable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('period')
                     ->options([
