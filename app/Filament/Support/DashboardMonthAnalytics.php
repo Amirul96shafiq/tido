@@ -1,0 +1,170 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Support;
+
+use App\Models\Invoice;
+use App\Models\InvoiceItem;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+
+final class DashboardMonthAnalytics
+{
+    /**
+     * @param  array{start: Carbon, end: Carbon, previous_start: Carbon, previous_end: Carbon}  $bounds
+     */
+    public function __construct(
+        private readonly array $bounds,
+    ) {}
+
+    /**
+     * @return array{
+     *     current_total: float,
+     *     previous_total: float,
+     *     current_tax: float,
+     *     pending_count: int,
+     *     processed_count: int,
+     * }
+     */
+    public function summary(): array
+    {
+        $start = $this->bounds['start'];
+        $end = $this->bounds['end'];
+        $previousStart = $this->bounds['previous_start'];
+        $previousEnd = $this->bounds['previous_end'];
+
+        $row = Invoice::query()
+            ->whereBetween('date_time', [$previousStart, $end])
+            ->selectRaw(
+                'SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN total_amount ELSE 0 END) as current_total,
+                SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN total_amount ELSE 0 END) as previous_total,
+                SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN total_tax ELSE 0 END) as current_tax,
+                SUM(CASE WHEN date_time BETWEEN ? AND ? AND status = ? THEN 1 ELSE 0 END) as pending_count,
+                SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN 1 ELSE 0 END) as processed_count',
+                [
+                    $start, $end, 'parsed', 'reviewed',
+                    $previousStart, $previousEnd, 'parsed', 'reviewed',
+                    $start, $end, 'parsed', 'reviewed',
+                    $start, $end, 'pending',
+                    $start, $end, 'parsed', 'reviewed',
+                ],
+            )
+            ->first();
+
+        return [
+            'current_total' => (float) ($row->current_total ?? 0),
+            'previous_total' => (float) ($row->previous_total ?? 0),
+            'current_tax' => (float) ($row->current_tax ?? 0),
+            'pending_count' => (int) ($row->pending_count ?? 0),
+            'processed_count' => (int) ($row->processed_count ?? 0),
+        ];
+    }
+
+    /**
+     * @return array{labels: list<string>, data: list<float>, selected_index: int}
+     */
+    public function trend(int $months = 6): array
+    {
+        $endMonth = $this->bounds['start'];
+        $rangeStart = $endMonth->copy()->subMonths($months - 1)->startOfMonth();
+        $rangeEnd = $endMonth->copy()->endOfMonth();
+
+        $monthExpression = $this->monthTruncExpression('invoices.date_time');
+
+        $totals = Invoice::query()
+            ->processed()
+            ->whereBetween('date_time', [$rangeStart, $rangeEnd])
+            ->selectRaw("{$monthExpression} as month_key, SUM(total_amount) as total")
+            ->groupBy('month_key')
+            ->pluck('total', 'month_key');
+
+        $labels = [];
+        $data = [];
+
+        for ($i = $months - 1; $i >= 0; $i--) {
+            $month = $endMonth->copy()->subMonths($i);
+            $key = $month->format('Y-m');
+            $labels[] = $month->format('M Y');
+            $data[] = (float) ($totals[$key] ?? 0);
+        }
+
+        return [
+            'labels' => $labels,
+            'data' => $data,
+            'selected_index' => $months - 1,
+        ];
+    }
+
+    /**
+     * @return Collection<int, object{name: string, color: string|null, total: float, labeling_id: int|null}>
+     */
+    public function spentByLabeling(): Collection
+    {
+        return InvoiceItem::query()
+            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->join('labelings', 'invoice_items.labeling_id', '=', 'labelings.id')
+            ->whereBetween('invoices.date_time', [$this->bounds['start'], $this->bounds['end']])
+            ->whereIn('invoices.status', ['parsed', 'reviewed'])
+            ->selectRaw('labelings.id as labeling_id, labelings.name, labelings.color, SUM(invoice_items.line_total) as total')
+            ->groupBy('labelings.id', 'labelings.name', 'labelings.color')
+            ->get()
+            ->map(fn ($row): object => (object) [
+                'labeling_id' => (int) $row->labeling_id,
+                'name' => (string) $row->name,
+                'color' => $row->color,
+                'total' => (float) $row->total,
+            ]);
+    }
+
+    /**
+     * @return Collection<int, object{merchant_name: string, total: float}>
+     */
+    public function topMerchants(int $limit = 5): Collection
+    {
+        return Invoice::query()
+            ->processed()
+            ->inPeriod($this->bounds['start'], $this->bounds['end'])
+            ->selectRaw('merchant_name, SUM(total_amount) as total')
+            ->groupBy('merchant_name')
+            ->orderByDesc('total')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($row): object => (object) [
+                'merchant_name' => (string) $row->merchant_name,
+                'total' => (float) $row->total,
+            ]);
+    }
+
+    /**
+     * @return array<int, float>
+     */
+    public function spentTotalsByLabelingId(): array
+    {
+        $totals = [];
+
+        foreach ($this->spentByLabeling() as $row) {
+            $totals[$row->labeling_id] = $row->total;
+        }
+
+        $overall = InvoiceItem::query()
+            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->whereBetween('invoices.date_time', [$this->bounds['start'], $this->bounds['end']])
+            ->whereIn('invoices.status', ['parsed', 'reviewed'])
+            ->sum('invoice_items.line_total');
+
+        $totals[0] = (float) $overall;
+
+        return $totals;
+    }
+
+    private function monthTruncExpression(string $column): string
+    {
+        return match (DB::connection()->getDriverName()) {
+            'pgsql' => "TO_CHAR(DATE_TRUNC('month', {$column}), 'YYYY-MM')",
+            'sqlite' => "strftime('%Y-%m', {$column})",
+            default => "DATE_FORMAT({$column}, '%Y-%m')",
+        };
+    }
+}

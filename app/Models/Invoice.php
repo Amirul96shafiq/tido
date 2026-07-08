@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,7 +15,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Invoice extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity;
+    use HasFactory, LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'merchant_name',
@@ -44,6 +46,22 @@ class Invoice extends Model
     public function invoiceItems(): HasMany
     {
         return $this->hasMany(InvoiceItem::class);
+    }
+
+    /**
+     * @param  Builder<Invoice>  $query
+     */
+    public function scopeProcessed(Builder $query): void
+    {
+        $query->whereIn('status', ['parsed', 'reviewed']);
+    }
+
+    /**
+     * @param  Builder<Invoice>  $query
+     */
+    public function scopeInPeriod(Builder $query, CarbonInterface $start, CarbonInterface $end): void
+    {
+        $query->whereBetween('date_time', [$start, $end]);
     }
 
     public function getActivitylogOptions(): LogOptions

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Filament\Widgets;
 
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
-use App\Models\Invoice;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Contracts\Support\Htmlable;
 
@@ -29,35 +28,30 @@ class MonthlyTrend extends ChartWidget
 
     protected function getData(): array
     {
-        $months = [];
-        $data = [];
-        $endMonth = $this->getSelectedMonth();
-
-        for ($i = 5; $i >= 0; $i--) {
-            $month = $endMonth->copy()->subMonths($i);
-            $months[] = $month->format('M Y');
-
-            $start = $month->copy()->startOfMonth();
-            $end = $month->copy()->endOfMonth();
-
-            $total = Invoice::whereBetween('date_time', [$start, $end])
-                ->whereIn('status', ['parsed', 'reviewed'])
-                ->sum('total_amount');
-
-            $data[] = (float) $total;
-        }
+        $trend = $this->analytics()->trend();
+        $selectedIndex = $trend['selected_index'];
+        $pointColors = array_map(
+            fn (int $index): string => $index === $selectedIndex ? '#FFA524' : '#FFD07D',
+            array_keys($trend['data']),
+        );
 
         return [
             'datasets' => [
                 [
                     'label' => 'Spent (RM)',
-                    'data' => $data,
+                    'data' => $trend['data'],
                     'borderColor' => '#FFD07D',
                     'backgroundColor' => 'rgba(255, 208, 125, 0.1)',
+                    'pointBackgroundColor' => $pointColors,
+                    'pointBorderColor' => $pointColors,
+                    'pointRadius' => array_map(
+                        fn (int $index): int => $index === $selectedIndex ? 6 : 4,
+                        array_keys($trend['data']),
+                    ),
                     'fill' => true,
                 ],
             ],
-            'labels' => $months,
+            'labels' => $trend['labels'],
         ];
     }
 }

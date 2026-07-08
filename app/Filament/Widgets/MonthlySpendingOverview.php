@@ -6,7 +6,6 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Models\Budget;
-use App\Models\Invoice;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -18,44 +17,33 @@ class MonthlySpendingOverview extends BaseWidget
 
     protected int|string|array $columnSpan = 'full';
 
-    protected ?string $pollingInterval = '15s';
+    protected ?string $pollingInterval = null;
+
+    protected function getPollingInterval(): ?string
+    {
+        return $this->isCurrentMonthSelected() ? '15s' : null;
+    }
 
     protected function getStats(): array
     {
         $bounds = $this->getSelectedMonthBounds();
         $monthLabel = $this->formatSelectedMonth('F Y');
+        $summary = $this->analytics()->summary();
 
-        $thisMonthTotal = (float) Invoice::whereBetween('date_time', [$bounds['start'], $bounds['end']])
-            ->whereIn('status', ['parsed', 'reviewed'])
-            ->sum('total_amount');
-
-        $lastMonthTotal = (float) Invoice::whereBetween('date_time', [$bounds['previous_start'], $bounds['previous_end']])
-            ->whereIn('status', ['parsed', 'reviewed'])
-            ->sum('total_amount');
-
+        $thisMonthTotal = $summary['current_total'];
+        $lastMonthTotal = $summary['previous_total'];
         $difference = $thisMonthTotal - $lastMonthTotal;
         $description = 'RM '.number_format(abs($difference), 2);
 
         if ($lastMonthTotal > 0) {
             $percent = ($difference / $lastMonthTotal) * 100;
             $description .= sprintf(' (%s%.1f%%)', $difference >= 0 ? '+' : '-', abs($percent));
-        } else {
-            $description .= ' vs last month';
         }
+
+        $description .= ' vs '.$this->previousMonthLabel();
 
         $descriptionIcon = $difference >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down';
         $descriptionColor = $difference >= 0 ? 'danger' : 'success';
-
-        $thisMonthTax = (float) Invoice::whereBetween('date_time', [$bounds['start'], $bounds['end']])
-            ->sum('total_tax');
-
-        $pendingCount = Invoice::where('status', 'pending')
-            ->whereBetween('date_time', [$bounds['start'], $bounds['end']])
-            ->count();
-
-        $processedCount = Invoice::whereIn('status', ['parsed', 'reviewed'])
-            ->whereBetween('date_time', [$bounds['start'], $bounds['end']])
-            ->count();
 
         $stats = [
             Stat::make('Total Spent ('.$monthLabel.')', 'RM '.number_format($thisMonthTotal, 2))
@@ -63,15 +51,15 @@ class MonthlySpendingOverview extends BaseWidget
                 ->descriptionIcon($descriptionIcon)
                 ->color($descriptionColor),
 
-            Stat::make('SST Tax Paid', 'RM '.number_format($thisMonthTax, 2))
+            Stat::make('SST Tax Paid', 'RM '.number_format($summary['current_tax'], 2))
                 ->description('Estimated 6% local taxation')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('gray'),
 
-            Stat::make('Receipts Processed', (string) $processedCount)
-                ->description($pendingCount.' pending parsing')
+            Stat::make('Receipts Processed', (string) $summary['processed_count'])
+                ->description($summary['pending_count'].' pending parsing')
                 ->descriptionIcon('heroicon-m-document-text')
-                ->color($pendingCount > 0 ? 'warning' : 'success'),
+                ->color($summary['pending_count'] > 0 ? 'warning' : 'success'),
         ];
 
         if ($this->isCurrentMonthSelected()) {
@@ -96,7 +84,7 @@ class MonthlySpendingOverview extends BaseWidget
                 $budgetStatus = ($projectedSpend / $overallMonthlyBudget) * 100;
 
                 if ($budgetStatus > 100) {
-                    $forecastDesc = sprintf('⚠️ Projected to EXCEED budget (%.0f%%)', $budgetStatus);
+                    $forecastDesc = sprintf('Projected to EXCEED budget (%.0f%%)', $budgetStatus);
                     $forecastColor = 'danger';
                 } else {
                     $forecastDesc = sprintf('Projected at %.0f%% of budget (RM %.2f)', $budgetStatus, $overallMonthlyBudget);
@@ -109,6 +97,16 @@ class MonthlySpendingOverview extends BaseWidget
                     ->description($forecastDesc)
                     ->descriptionIcon('heroicon-m-chart-bar')
                     ->color($forecastColor),
+            ]);
+        } else {
+            $daysInMonth = $bounds['start']->daysInMonth;
+            $dailyAverage = $daysInMonth > 0 ? $thisMonthTotal / $daysInMonth : 0;
+
+            array_splice($stats, 1, 0, [
+                Stat::make('Daily Average ('.$monthLabel.')', 'RM '.number_format($dailyAverage, 2))
+                    ->description(sprintf('Across %d days in month', $daysInMonth))
+                    ->descriptionIcon('heroicon-m-calculator')
+                    ->color('info'),
             ]);
         }
 

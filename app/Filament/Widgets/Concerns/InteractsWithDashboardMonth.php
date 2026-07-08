@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets\Concerns;
 
+use App\Filament\Support\DashboardMonthAnalytics;
 use App\Filament\Support\DashboardMonthPeriod;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -39,5 +40,15 @@ trait InteractsWithDashboardMonth
     protected function getMonthReferenceDate(): CarbonInterface
     {
         return $this->getSelectedMonth()->copy()->startOfMonth();
+    }
+
+    protected function analytics(): DashboardMonthAnalytics
+    {
+        return new DashboardMonthAnalytics($this->getSelectedMonthBounds());
+    }
+
+    protected function previousMonthLabel(): string
+    {
+        return DashboardMonthPeriod::previousMonthLabelFromFilters($this->pageFilters);
     }
 }

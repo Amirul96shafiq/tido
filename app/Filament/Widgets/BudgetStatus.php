@@ -6,7 +6,6 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Models\Budget;
-use App\Models\InvoiceItem;
 use Filament\Widgets\Widget;
 
 class BudgetStatus extends Widget
@@ -21,7 +20,7 @@ class BudgetStatus extends Widget
 
     protected function getViewData(): array
     {
-        $reference = $this->getMonthReferenceDate();
+        $spentTotals = $this->analytics()->spentTotalsByLabelingId();
 
         $budgets = Budget::with('labeling')
             ->where('is_active', true)
@@ -30,19 +29,8 @@ class BudgetStatus extends Widget
         $budgetStates = [];
 
         foreach ($budgets as $budget) {
-            $start = $budget->getStartDate($reference);
-            $end = $budget->getEndDate($reference);
-
-            $query = InvoiceItem::query()
-                ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-                ->whereBetween('invoices.date_time', [$start, $end])
-                ->whereIn('invoices.status', ['parsed', 'reviewed']);
-
-            if ($budget->labeling_id) {
-                $query->where('invoice_items.labeling_id', $budget->labeling_id);
-            }
-
-            $spent = (float) $query->sum('invoice_items.line_total');
+            $labelingKey = $budget->labeling_id ?? 0;
+            $spent = $spentTotals[$labelingKey] ?? 0.0;
             $percentage = $budget->amount > 0 ? ($spent / $budget->amount) * 100 : 0;
 
             $budgetStates[] = [

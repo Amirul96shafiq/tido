@@ -27,9 +27,10 @@ class RecentReceipts extends BaseWidget
             ->query(
                 Invoice::query()
                     ->whereBetween('date_time', [$bounds['start'], $bounds['end']])
-                    ->latest()
-                    ->limit(5)
+                    ->latest('date_time'),
             )
+            ->defaultPaginationPageOption(10)
+            ->paginated([10, 25, 50])
             ->columns([
                 TextColumn::make('merchant_name')
                     ->label('Merchant'),

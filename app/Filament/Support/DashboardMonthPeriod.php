@@ -21,6 +21,11 @@ final class DashboardMonthPeriod
         return self::fromFilters($filters)->format('F Y');
     }
 
+    public static function previousMonthLabelFromFilters(?array $filters): string
+    {
+        return self::fromFilters($filters)->copy()->subMonth()->format('F Y');
+    }
+
     /**
      * @return array<string, string>
      */
