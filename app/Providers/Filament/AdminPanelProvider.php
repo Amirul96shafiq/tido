@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Pages\Dashboard;
+use App\Helpers\GitHelper;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use App\Filament\Pages\Auth\EditProfile;
-use App\Filament\Pages\Dashboard;
+use Filament\Navigation\MenuItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Facades\FilamentIcon;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -20,12 +24,8 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
-use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
-use Filament\Navigation\MenuItem;
-use App\Helpers\GitHelper;
-use Filament\Support\Facades\FilamentIcon;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -78,10 +78,19 @@ class AdminPanelProvider extends PanelProvider
                 function (): string {
                     $gitVersion = GitHelper::getVersionString();
                     $shortVersion = substr(GitHelper::getLatestCommitSha(), 0, 7);
+
                     return Blade::render('
                         <div x-data="{}" class="border-t border-gray-100 dark:border-zinc-800/60 transition-all duration-300" :class="$store.sidebar.isOpen ? \'px-6 py-4\' : \'px-2 py-4\'">
                             <!-- Expanded state -->
-                            <div x-show="$store.sidebar.isOpen" class="flex items-center gap-2.5 px-3 py-2 text-[11px] font-mono text-gray-500 dark:text-zinc-400 bg-gray-50 dark:bg-zinc-900/40 rounded-lg border border-gray-100 dark:border-zinc-800/50 hover:bg-gray-100/50 dark:hover:bg-zinc-800/30 transition-all duration-200 select-none">
+                            <div
+                                x-show="$store.sidebar.isOpen"
+                                x-tooltip="{
+                                    content: @js($gitVersion),
+                                    placement: document.dir === \'rtl\' ? \'left\' : \'right\',
+                                    theme: $store.theme,
+                                }"
+                                class="flex items-center gap-2.5 px-3 py-2 text-[11px] font-mono text-gray-500 dark:text-zinc-400 bg-gray-50 dark:bg-zinc-900/40 rounded-lg border border-gray-100 dark:border-zinc-800/50 hover:bg-gray-100/50 dark:hover:bg-zinc-800/30 transition-all duration-200 select-none cursor-help"
+                            >
                                 <svg class="h-4 w-4 text-amber-500 dark:text-amber-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="6" y1="3" x2="6" y2="15"></line>
                                     <circle cx="18" cy="6" r="3" fill="currentColor" fill-opacity="0.2"></circle>
@@ -96,7 +105,14 @@ class AdminPanelProvider extends PanelProvider
                             </div>
                             <!-- Collapsed state -->
                             <div x-show="!$store.sidebar.isOpen" class="flex items-center justify-center">
-                                <div class="group relative flex items-center justify-center w-10 h-10 rounded-lg text-gray-500 dark:text-zinc-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-gray-100 dark:hover:bg-zinc-800/60 transition-all duration-200 cursor-help select-none" title="{{ $gitVersion }}">
+                                <div
+                                    x-tooltip="{
+                                        content: @js($gitVersion),
+                                        placement: document.dir === \'rtl\' ? \'left\' : \'right\',
+                                        theme: $store.theme,
+                                    }"
+                                    class="group relative flex items-center justify-center w-10 h-10 rounded-lg text-gray-500 dark:text-zinc-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-gray-100 dark:hover:bg-zinc-800/60 transition-all duration-200 cursor-help select-none"
+                                >
                                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                         <line x1="6" y1="3" x2="6" y2="15"></line>
                                         <circle cx="18" cy="6" r="3" fill="currentColor" fill-opacity="0.2"></circle>
@@ -146,4 +162,3 @@ class AdminPanelProvider extends PanelProvider
             ]);
     }
 }
-
