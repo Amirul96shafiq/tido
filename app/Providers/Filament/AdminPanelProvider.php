@@ -8,11 +8,11 @@ use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Dashboard;
 use App\Helpers\GitHelper;
 use App\Http\Middleware\SetUserPreferences;
+use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Navigation\MenuItem;
 use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -77,10 +77,13 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->spa()
             ->userMenuItems([
-                MenuItem::make()
-                    ->label("What's New?")
+                // sort >= 0 places items after the theme switcher (theme → profile → changelogs → logout)
+                'profile' => fn (Action $action): Action => $action->sort(0),
+                Action::make('changelogs')
+                    ->label('Changelogs')
                     ->icon('heroicon-o-code-bracket')
-                    ->url('javascript:void(0)'),
+                    ->url('javascript:void(0)')
+                    ->sort(10),
             ])
             ->renderHook(
                 PanelsRenderHook::SIDEBAR_FOOTER,

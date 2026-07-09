@@ -89,7 +89,7 @@
                 </div>
                 <div>
                     <h2 id="changelog-heading" class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        What's New? (Changelogs)
+                        Changelogs
                     </h2>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5" x-text="totalCommits ? totalCommits + ' commits' : 'Loading...'">
                     </p>
@@ -288,11 +288,11 @@
         window.dispatchEvent(new CustomEvent('open-changelog-modal'));
     };
 
-    // Auto-intercept profile/sidebar menu item clicks for "What's New" or "Apa Yang Baru"
+    // Auto-intercept profile/sidebar menu item clicks for Changelogs
     document.addEventListener('click', function(event) {
         let element = event.target;
         while (element) {
-            if (element.textContent && (element.textContent.includes("What's New") || element.textContent.includes('Apa Yang Baru'))) {
+            if (element.textContent && (element.textContent.includes('Changelogs') || element.textContent.includes("What's New") || element.textContent.includes('Apa Yang Baru'))) {
                 // Ensure it is part of a menu or dropdown
                 if (element.closest('[role="menuitem"], .fi-menu-item, [data-filament-menu-item], a[href*="javascript"]')) {
                     event.preventDefault();
