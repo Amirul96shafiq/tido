@@ -25,13 +25,8 @@
             <header class="fi-sidebar-header flex items-center justify-between gap-4 px-6 py-4 min-h-[64px]">
                 {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_LOGO_BEFORE) }}
 
-                <div class="flex items-center justify-between w-full gap-2">
-                    <div
-                        @if ($isSidebarCollapsibleOnDesktop || $isSidebarFullyCollapsibleOnDesktop)
-                            x-show="$store.sidebar.isOpen"
-                        @endif
-                        class="fi-sidebar-header-logo-ctn flex-1"
-                    >
+                <div class="fi-sidebar-header-wrap flex items-center justify-between w-full gap-2">
+                    <div class="fi-sidebar-header-logo-ctn flex-1">
                         @if ($homeUrl = filament()->getHomeUrl())
                             <a {{ \Filament\Support\generate_href_html($homeUrl) }}>
                                 <x-filament-panels::logo />
@@ -42,7 +37,7 @@
                     </div>
 
                     @if ($isSidebarCollapsibleOnDesktop || $isSidebarFullyCollapsibleOnDesktop)
-                        <div class="flex items-center justify-center animate-fade-in" :class="{ 'w-full': ! $store.sidebar.isOpen }">
+                        <div class="fi-sidebar-collapse-btns flex shrink-0 items-center justify-center">
                             <x-filament::icon-button
                                 color="gray"
                                 :icon="$isRtl ? \Filament\Support\Icons\Heroicon::OutlinedChevronRight : \Filament\Support\Icons\Heroicon::OutlinedChevronLeft"
@@ -59,7 +54,14 @@
                                 :tooltip="__('filament-panels::layout.actions.sidebar.collapse.label')"
                                 x-cloak
                                 x-show="$store.sidebar.isOpen"
-                                x-on:click="$store.sidebar.close()"
+                                x-transition:enter="fi-transition-enter"
+                                x-transition:enter-start="fi-transition-enter-start"
+                                x-transition:enter-end="fi-transition-enter-end"
+                                x-on:click="
+                                    $el.blur();
+                                    document.querySelectorAll('[data-tippy-root]').forEach((node) => node.remove());
+                                    $store.sidebar.close();
+                                "
                                 class="fi-version-icon-btn fi-sidebar-close-collapse-sidebar-btn"
                             />
 
@@ -79,7 +81,14 @@
                                 :tooltip="__('filament-panels::layout.actions.sidebar.expand.label')"
                                 x-cloak
                                 x-show="! $store.sidebar.isOpen"
-                                x-on:click="$store.sidebar.open()"
+                                x-transition:enter="fi-transition-enter"
+                                x-transition:enter-start="fi-transition-enter-start"
+                                x-transition:enter-end="fi-transition-enter-end"
+                                x-on:click="
+                                    $el.blur();
+                                    document.querySelectorAll('[data-tippy-root]').forEach((node) => node.remove());
+                                    $store.sidebar.open();
+                                "
                                 class="fi-version-icon-btn fi-sidebar-open-collapse-sidebar-btn"
                             />
                         </div>

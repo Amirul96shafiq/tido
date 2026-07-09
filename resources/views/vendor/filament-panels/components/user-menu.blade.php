@@ -57,19 +57,18 @@
             >
                 <x-filament-panels::avatar.user :user="$user" loading="lazy" />
 
-                <span
-                    @if ($isSidebarCollapsibleOnDesktop)
-                        x-show="$store.sidebar.isOpen"
-                    @endif
-                    class="fi-user-menu-trigger-text"
-                >
+                <span class="fi-user-menu-trigger-text">
                     {{ filament()->getUserName($user) }}
                 </span>
 
                 {{
-                    \Filament\Support\generate_icon_html(\Filament\Support\Icons\Heroicon::ChevronUp, alias: \Filament\View\PanelsIconAlias::USER_MENU_TOGGLE_BUTTON, attributes: new \Illuminate\View\ComponentAttributeBag([
-                        'x-show' => $isSidebarCollapsibleOnDesktop ? '$store.sidebar.isOpen' : null,
-                    ]))
+                    \Filament\Support\generate_icon_html(
+                        \Filament\Support\Icons\Heroicon::ChevronUp,
+                        alias: \Filament\View\PanelsIconAlias::USER_MENU_TOGGLE_BUTTON,
+                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class([
+                            'fi-user-menu-trigger-chevron',
+                        ]),
+                    )
                 }}
             </button>
         @endif

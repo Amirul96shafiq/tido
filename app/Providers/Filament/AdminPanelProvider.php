@@ -74,6 +74,37 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::HEAD_END,
                 fn (): string => Blade::render('@vite(\'resources/css/app.css\')'),
             )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): string => <<<'HTML'
+                    <script>
+                        (function () {
+                            try {
+                                var desktopBreakpoint = 1024;
+                                var isDesktop = window.innerWidth >= desktopBreakpoint;
+                                var isOpenDesktop = JSON.parse(localStorage.getItem('isOpenDesktop') ?? 'true');
+                                var isOpen = JSON.parse(localStorage.getItem('isOpen') ?? 'true');
+                                var isCollapsed = isDesktop ? ! isOpenDesktop : ! isOpen;
+
+                                document.documentElement.classList.add('fi-sidebar-preload');
+
+                                if (isCollapsed) {
+                                    document.documentElement.classList.add('fi-sidebar-is-collapsed');
+                                }
+
+                                document.addEventListener('alpine:initialized', function () {
+                                    requestAnimationFrame(function () {
+                                        document.documentElement.classList.remove(
+                                            'fi-sidebar-preload',
+                                            'fi-sidebar-is-collapsed',
+                                        );
+                                    });
+                                });
+                            } catch (e) {}
+                        })();
+                    </script>
+                    HTML,
+            )
             ->databaseNotifications()
             ->spa()
             ->userMenuItems([
@@ -92,10 +123,17 @@ class AdminPanelProvider extends PanelProvider
                     $shortVersion = substr(GitHelper::getLatestCommitSha(), 0, 7);
 
                     return Blade::render('
-                        <div x-data="{}" class="border-t border-gray-100 dark:border-zinc-800/60 transition-all duration-300" :class="$store.sidebar.isOpen ? \'px-6 py-4\' : \'px-2 py-4\'">
+                        <div
+                            x-data="{}"
+                            class="fi-sidebar-version-footer"
+                            :class="$store.sidebar.isOpen ? \'px-6 py-4\' : \'px-0 py-4\'"
+                        >
                             <!-- Expanded state -->
                             <div
                                 x-show="$store.sidebar.isOpen"
+                                x-transition:enter="fi-transition-enter"
+                                x-transition:enter-start="fi-transition-enter-start"
+                                x-transition:enter-end="fi-transition-enter-end"
                                 x-tooltip="{
                                     content: @js($gitVersion),
                                     placement: document.dir === \'rtl\' ? \'left\' : \'right\',
@@ -116,7 +154,13 @@ class AdminPanelProvider extends PanelProvider
                                 </span>
                             </div>
                             <!-- Collapsed state -->
-                            <div x-show="!$store.sidebar.isOpen" class="flex items-center justify-center">
+                            <div
+                                x-show="!$store.sidebar.isOpen"
+                                x-transition:enter="fi-transition-enter"
+                                x-transition:enter-start="fi-transition-enter-start"
+                                x-transition:enter-end="fi-transition-enter-end"
+                                class="fi-sidebar-version-collapsed"
+                            >
                                 <div
                                     x-tooltip="{
                                         content: @js($gitVersion),

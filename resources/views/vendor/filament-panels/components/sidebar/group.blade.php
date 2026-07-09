@@ -30,12 +30,6 @@
             @if ($collapsible)
                 x-on:click="$store.sidebar.toggleCollapsedGroup(label)"
             @endif
-            @if ($sidebarCollapsible)
-                x-show="$store.sidebar.isOpen"
-                x-transition:enter="fi-transition-enter"
-                x-transition:enter-start="fi-transition-enter-start"
-                x-transition:enter-end="fi-transition-enter-end"
-            @endif
             class="fi-sidebar-group-btn"
         >
             @if ($icon)
@@ -60,8 +54,12 @@
         </div>
 
         <div
+            x-cloak
             x-show="! $store.sidebar.isOpen"
-            class="flex flex-col items-center justify-center py-2"
+            x-transition:enter="fi-transition-enter"
+            x-transition:enter-start="fi-transition-enter-start"
+            x-transition:enter-end="fi-transition-enter-end"
+            class="fi-sidebar-group-collapsed-label flex flex-col items-center justify-center py-2"
         >
             <span
                 class="text-[9px] font-bold tracking-wider text-gray-400 uppercase dark:text-zinc-500 truncate max-w-[48px] text-center"
@@ -175,11 +173,6 @@
                 x-show="! $store.sidebar.groupIsCollapsed(label)"
             @endif
             x-collapse.duration.200ms
-        @endif
-        @if ($sidebarCollapsible)
-            x-transition:enter="fi-transition-enter"
-            x-transition:enter-start="fi-transition-enter-start"
-            x-transition:enter-end="fi-transition-enter-end"
         @endif
         class="fi-sidebar-group-items"
     >
