@@ -291,6 +291,35 @@
     }
 }
 
+/*
+ * Database notifications slide-over: Filament applies -mx-6 and px-6 on the
+ * same .fi-modal-content, which widens past the modal and shows a horizontal
+ * scrollbar. Keep edge-to-edge rows without overflowing the window.
+ */
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window {
+    overflow-x: hidden;
+}
+
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window .fi-modal-content {
+    margin-inline: 0;
+    padding-inline: 0;
+    padding-block: 0;
+    row-gap: 0;
+    max-width: 100%;
+}
+
+.fi-no-database .fi-no-notification,
+.fi-no-database .fi-no-notification-main,
+.fi-no-database .fi-no-notification-text,
+.fi-no-database .fi-no-notification-body {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.fi-no-database .fi-no-notification-body {
+    overflow-wrap: anywhere;
+}
+
 
 
 
