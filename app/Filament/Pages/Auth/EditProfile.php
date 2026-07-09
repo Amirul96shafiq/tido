@@ -24,6 +24,7 @@ use Filament\Schemas\Schema;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\Rule;
 use League\Uri\Components\Query;
 
 class EditProfile extends BaseEditProfile
@@ -103,14 +104,17 @@ class EditProfile extends BaseEditProfile
                         Section::make('Regional Preferences')
                             ->description('Customize how dates and times are displayed.')
                             ->schema([
+                                Select::make('locale')
+                                ->label('Language')
+                                ->options(UserLocale::options())
+                                ->disableOptionWhen(fn (string $value): bool => $value !== UserLocale::En->value)
+                                ->helperText('Coming soon — only English is available for now.')
+                                ->searchable()
+                                ->required()
+                                ->rule(Rule::in([UserLocale::En->value])),
                                 Select::make('timezone')
                                     ->label('Timezone')
                                     ->options(static::timezoneOptions())
-                                    ->searchable()
-                                    ->required(),
-                                Select::make('locale')
-                                    ->label('Language')
-                                    ->options(UserLocale::options())
                                     ->searchable()
                                     ->required(),
                                 Select::make('date_format')
