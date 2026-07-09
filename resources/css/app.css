@@ -561,10 +561,14 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /*
- * Database notifications slide-over: Filament applies -mx-6 and px-6 on the
- * same .fi-modal-content, which widens past the modal and shows a horizontal
- * scrollbar. Keep edge-to-edge rows without overflowing the window.
+ * Database notifications slide-over: match changelog modal backdrop blur,
+ * and fix Filament's -mx-6 / px-6 on .fi-modal-content which widens past the
+ * modal and shows a horizontal scrollbar.
  */
+.fi-no-database > .fi-modal-close-overlay {
+    @apply backdrop-blur-md;
+}
+
 .fi-no-database .fi-modal-window-ctn > .fi-modal-window {
     overflow-x: hidden;
 }
