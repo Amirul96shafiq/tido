@@ -43,6 +43,7 @@ class BudgetForm
                     ])
                     ->default('monthly')
                     ->live()
+                    ->searchable()
                     ->required(),
 
                 Select::make('quarter')

@@ -59,6 +59,7 @@ class InvoiceForm
                                         'MYR' => 'MYR (Malaysian Ringgit)',
                                     ])
                                     ->default('MYR')
+                                    ->searchable()
                                     ->required(),
                             ]),
 
@@ -71,6 +72,7 @@ class InvoiceForm
                                         'google_drive' => 'Google Drive',
                                     ])
                                     ->default('manual')
+                                    ->searchable()
                                     ->required(),
 
                                 Select::make('status')
@@ -82,6 +84,7 @@ class InvoiceForm
                                         'failed' => 'Parsing Failed',
                                     ])
                                     ->default('pending')
+                                    ->searchable()
                                     ->required(),
                             ]),
                     ]),
