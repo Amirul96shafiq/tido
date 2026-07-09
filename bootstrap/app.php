@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Middleware\SetUserPreferences;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Exceptions\InvalidSignatureException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,9 +18,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/*',
         ]);
+
+        $middleware->web(append: [
+            SetUserPreferences::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (\Illuminate\Routing\Exceptions\InvalidSignatureException $e, \Illuminate\Http\Request $request) {
+        $exceptions->render(function (InvalidSignatureException $e, Request $request) {
             if (str_contains($request->getPathInfo(), '/email-change-verification/verify/')) {
                 return response()->view('errors.email-change-expired', [], 403);
             }

@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Enums\UserDateFormat;
+use App\Models\User;
 use Closure;
+use Filament\Support\Facades\FilamentTimezone;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -17,9 +20,19 @@ class SetUserPreferences
     {
         $user = $request->user();
 
-        if ($user !== null) {
-            config(['app.timezone' => $user->timezone ?? 'Asia/Kuala_Lumpur']);
+        if ($user instanceof User) {
+            config([
+                'app.timezone' => $user->preferredTimezone(),
+                'app.date_format' => $user->preferredDateFormat(),
+                'app.datetime_format' => $user->preferredDateTimeFormat(),
+            ]);
             app()->setLocale($user->preferredLocale());
+            FilamentTimezone::set($user->preferredTimezone());
+        } else {
+            config([
+                'app.date_format' => UserDateFormat::DmySlash->value,
+                'app.datetime_format' => UserDateFormat::DmySlash->value.' H:i',
+            ]);
         }
 
         return $next($request);

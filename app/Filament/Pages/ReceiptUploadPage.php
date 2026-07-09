@@ -25,7 +25,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-up-on-square';
 
     protected static ?string $navigationLabel = 'Upload Receipts';
-    
+
     protected static string|\UnitEnum|null $navigationGroup = 'Finances';
 
     protected static ?string $title = 'Upload Receipts';
@@ -90,15 +90,16 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
             ->columns([
                 TextColumn::make('original_filename')
                     ->label('Filename'),
-                
+
                 TextColumn::make('created_at')
                     ->label('Uploaded At')
-                    ->since(),
-                
+                    ->since()
+                    ->dateTimeTooltip(),
+
                 TextColumn::make('total_amount')
                     ->label('Total Amount')
                     ->money('MYR'),
-                
+
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {

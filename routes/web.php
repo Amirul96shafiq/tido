@@ -1,5 +1,7 @@
 <?php
 
+use App\Helpers\ChangelogHelper;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -8,7 +10,7 @@ Route::get('/', function () {
 
 Route::get('/changelog', function () {
     try {
-        $changelog = \App\Helpers\ChangelogHelper::getPaginatedChangelog(10, (int) request('page', 1));
+        $changelog = ChangelogHelper::getPaginatedChangelog(10, (int) request('page', 1));
 
         // Format commits for JSON response
         $commits = $changelog->map(function ($commit) {
@@ -21,11 +23,16 @@ Route::get('/changelog', function () {
             $dateRelative = str_replace([' days', ' weeks', ' months', ' years'], [' days', ' wks', ' mths', ' yrs'], $dateRelative);
             $dateRelative = str_replace([' day', ' week', ' month', ' year'], [' day', ' wk', ' mth', ' yr'], $dateRelative);
 
+            $user = request()->user();
+            $dateFormatted = $user instanceof User
+                ? $user->formatDateTime($commit['date'])
+                : $commit['date']->format(config('app.datetime_format', 'd/m/Y H:i'));
+
             return [
                 'short_hash' => $commit['short_hash'],
                 'full_hash' => $commit['full_hash'],
                 'date' => $commit['date']->toISOString(),
-                'date_formatted' => $commit['date']->format('M j, Y g:i A'),
+                'date_formatted' => $dateFormatted,
                 'date_relative' => $dateRelative,
                 'author_name' => $commit['author_name'],
                 'author_email' => $commit['author_email'],
@@ -50,7 +57,7 @@ Route::get('/changelog', function () {
                 'has_more_pages' => $changelog->hasMorePages(),
             ],
         ]);
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         return response()->json([
             'success' => false,
             'error' => $e->getMessage(),
