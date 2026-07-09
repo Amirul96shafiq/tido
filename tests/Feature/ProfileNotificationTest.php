@@ -140,16 +140,16 @@ test('updating phone and preferences persists values', function () {
     Livewire::test(EditProfile::class)
         ->set('data.phone', '+60123456789')
         ->set('data.timezone', 'Asia/Singapore')
-        ->set('data.locale', 'ms')
+        ->set('data.locale', 'en')
         ->set('data.date_format', 'Y-m-d')
         ->call('save')
         ->assertHasNoErrors();
 
     $user->refresh();
 
-    expect($user->phone)->toBe('+60123456789')
+    expect($user->phone)->toBe('60123456789')
         ->and($user->timezone)->toBe('Asia/Singapore')
-        ->and($user->locale)->toBe('ms')
+        ->and($user->locale)->toBe('en')
         ->and($user->date_format)->toBe('Y-m-d');
 });
 

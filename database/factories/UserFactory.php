@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -49,5 +50,23 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    /**
+     * Align the user phone with PERSONAL_WHATSAPP_NUMBER for panel access + OTP login.
+     */
+    public function withWhatsAppPhone(?string $phone = null): static
+    {
+        return $this->state(function () use ($phone): array {
+            $resolved = $phone
+                ?? (is_string(config('services.evolution.personal_number'))
+                    ? config('services.evolution.personal_number')
+                    : null)
+                ?? '60123456789';
+
+            return [
+                'phone' => PhoneNumber::normalize($resolved),
+            ];
+        });
     }
 }

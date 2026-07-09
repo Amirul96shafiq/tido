@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin User',
             'email' => 'admin@tido.local',
             'password' => bcrypt('password'),
+            'phone' => config('services.evolution.personal_number'),
         ]);
 
         Budget::factory(5)->create();

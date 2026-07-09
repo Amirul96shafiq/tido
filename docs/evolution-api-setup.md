@@ -71,4 +71,21 @@ Ensure your `.env` contains matching keys:
 EVOLUTION_API_URL=http://evolution-api:8080
 EVOLUTION_API_KEY=tido-secret-key
 EVOLUTION_INSTANCE_NAME=tido
+PERSONAL_WHATSAPP_NUMBER=60123456789
 ```
+
+`PERSONAL_WHATSAPP_NUMBER` must be digits only (Malaysia E.164 without `+`, e.g. `6012…`). Use the same value for:
+
+- Budget alert WhatsApp destination
+- Admin `User.phone` (seeded from this env when present)
+- Panel access allowlist (`User::canAccessPanel`)
+
+### Login OTP
+
+1. Pair Evolution (steps 1–4) and set `PERSONAL_WHATSAPP_NUMBER`.
+2. Ensure the admin user phone matches that number (re-seed or edit Profile).
+3. Verify delivery: `php artisan whatsapp:ping`
+4. Open `/admin/login`, enter the WhatsApp number, click **Send WhatsApp code**, then enter the 6-digit code.
+5. If Evolution is down, use **Use email & password instead** on the login page.
+
+Remember-me keeps you signed in; `SESSION_LIFETIME` defaults to 7 days in `.env.example`.

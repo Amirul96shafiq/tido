@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\UserDateFormat;
+use App\Support\PhoneNumber;
 use Carbon\CarbonInterface;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Illuminate\Contracts\Translation\HasLocalePreference;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -51,7 +53,27 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return true;
+        $allowedPhone = PhoneNumber::normalize(
+            is_string(config('services.evolution.personal_number'))
+                ? config('services.evolution.personal_number')
+                : null,
+        );
+
+        if ($allowedPhone === null) {
+            return true;
+        }
+
+        return PhoneNumber::normalize($this->phone) === $allowedPhone;
+    }
+
+    /**
+     * @return Attribute<string|null, string|null>
+     */
+    protected function phone(): Attribute
+    {
+        return Attribute::make(
+            set: fn (?string $value): ?string => PhoneNumber::normalize($value),
+        );
     }
 
     public function getFilamentAvatarUrl(): ?string

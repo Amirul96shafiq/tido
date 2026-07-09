@@ -12,7 +12,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->admin = User::factory()->create();
+    config([
+        'services.evolution.personal_number' => '60123456789',
+    ]);
+
+    $this->admin = User::factory()->withWhatsAppPhone('60123456789')->create();
 });
 
 test('filament admin page requires authentication', function () {

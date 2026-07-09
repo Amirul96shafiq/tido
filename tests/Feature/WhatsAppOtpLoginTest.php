@@ -1,0 +1,193 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Filament\Pages\Auth\Login;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Livewire\Livewire;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    Cache::flush();
+
+    config([
+        'services.evolution.api_url' => 'http://evolution.test',
+        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.instance_name' => 'tido',
+        'services.evolution.personal_number' => '60123456789',
+    ]);
+
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+});
+
+test('guest can open filament login page', function () {
+    $this->get('/admin/login')->assertSuccessful();
+});
+
+test('send otp advances to otp step and posts to evolution', function () {
+    User::factory()->withWhatsAppPhone('60123456789')->create([
+        'email' => 'admin@tido.local',
+    ]);
+
+    Livewire::test(Login::class)
+        ->assertSet('loginMode', 'phone')
+        ->set('data.phone', '0123456789')
+        ->call('sendOtp')
+        ->assertHasNoErrors()
+        ->assertSet('loginMode', 'otp')
+        ->assertSet('pendingPhone', '60123456789');
+
+    Http::assertSent(function (Request $request) {
+        return str_contains($request->url(), '/message/sendText/')
+            && str_contains((string) $request['number'], '60123456789');
+    });
+});
+
+test('send otp fails for unknown phone without revealing details', function () {
+    Livewire::test(Login::class)
+        ->set('data.phone', '0199999999')
+        ->call('sendOtp')
+        ->assertHasErrors(['data.phone'])
+        ->assertSet('loginMode', 'phone');
+
+    Http::assertNothingSent();
+});
+
+test('otp login authenticates with correct code after phone step', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'email' => 'admin@tido.local',
+    ]);
+
+    $component = Livewire::test(Login::class)
+        ->set('data.phone', '60123456789')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp')
+        ->assertSet('pendingPhone', '60123456789');
+
+    Cache::put('wa_login_otp:'.$user->id, [
+        'hash' => hash('sha256', '654321'),
+        'attempts' => 0,
+    ], 600);
+
+    $component
+        ->set('data.otp', '654321')
+        ->set('data.remember', true)
+        ->call('authenticate')
+        ->assertHasNoErrors()
+        ->assertRedirect('/admin');
+
+    $this->assertAuthenticatedAs($user);
+});
+
+test('otp login rejects wrong code', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $component = Livewire::test(Login::class)
+        ->set('data.phone', '60123456789')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp');
+
+    Cache::put('wa_login_otp:'.$user->id, [
+        'hash' => hash('sha256', '654321'),
+        'attempts' => 0,
+    ], 600);
+
+    $component
+        ->set('data.otp', '000000')
+        ->call('authenticate')
+        ->assertHasErrors(['data.otp']);
+
+    $this->assertGuest();
+});
+
+test('password login step authenticates with email and password', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'email' => 'admin@tido.local',
+        'password' => 'password',
+    ]);
+
+    Livewire::test(Login::class)
+        ->call('showPasswordStep')
+        ->assertSet('loginMode', 'password')
+        ->set('data.email', 'admin@tido.local')
+        ->set('data.password', 'password')
+        ->set('data.remember', true)
+        ->call('authenticate')
+        ->assertHasNoErrors()
+        ->assertRedirect('/admin');
+
+    $this->assertAuthenticatedAs($user);
+});
+
+test('can switch between whatsapp and password login steps', function () {
+    Livewire::test(Login::class)
+        ->assertSet('loginMode', 'phone')
+        ->assertSee('Send WhatsApp code')
+        ->assertDontSee('Verify code & sign in')
+        ->call('showPasswordStep')
+        ->assertSet('loginMode', 'password')
+        ->assertSee('Sign in')
+        ->assertDontSee('Verify code & sign in')
+        ->call('showPhoneStep')
+        ->assertSet('loginMode', 'phone')
+        ->assertSee('Send WhatsApp code')
+        ->assertDontSee('Verify code & sign in');
+});
+
+test('user without matching personal number cannot access panel after otp', function () {
+    $user = User::factory()->create([
+        'phone' => '60987654321',
+    ]);
+
+    $panel = filament()->getPanel('admin');
+
+    expect($user->canAccessPanel($panel))->toBeFalse();
+
+    // Bypass send (would require matching allowlist phone); plant OTP and pending phone via reflection-free path:
+    // use password allowlist mismatch by verifying through authenticate after manually advancing mode.
+    // Send is allowed for any matching User.phone; panel access is checked at login.
+    $component = Livewire::test(Login::class)
+        ->set('data.phone', '60987654321')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp');
+
+    Cache::put('wa_login_otp:'.$user->id, [
+        'hash' => hash('sha256', '111111'),
+        'attempts' => 0,
+    ], 600);
+
+    $component
+        ->set('data.otp', '111111')
+        ->call('authenticate')
+        ->assertHasErrors(['data.otp']);
+
+    $this->assertGuest();
+});
+
+test('otp service verify is used end to end after send', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $component = Livewire::test(Login::class)
+        ->set('data.phone', '+60123456789')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp');
+
+    Cache::put('wa_login_otp:'.$user->id, [
+        'hash' => hash('sha256', '222333'),
+        'attempts' => 0,
+    ], 600);
+
+    $component
+        ->set('data.otp', '222333')
+        ->call('authenticate')
+        ->assertRedirect('/admin');
+
+    $this->assertAuthenticatedAs($user);
+});

@@ -7,6 +7,7 @@ namespace App\Filament\Pages\Auth;
 use App\Enums\UserDateFormat;
 use App\Enums\UserLocale;
 use App\Notifications\VerifyEmailChange;
+use App\Support\PhoneNumber;
 use Filament\Actions\Action;
 use Filament\Auth\Notifications\NoticeOfEmailChangeRequest;
 use Filament\Auth\Pages\EditProfile as BaseEditProfile;
@@ -105,13 +106,13 @@ class EditProfile extends BaseEditProfile
                             ->description('Customize how dates and times are displayed.')
                             ->schema([
                                 Select::make('locale')
-                                ->label('Language')
-                                ->options(UserLocale::options())
-                                ->disableOptionWhen(fn (string $value): bool => $value !== UserLocale::En->value)
-                                ->helperText('Coming soon — only English is available for now.')
-                                ->searchable()
-                                ->required()
-                                ->rule(Rule::in([UserLocale::En->value])),
+                                    ->label('Language')
+                                    ->options(UserLocale::options())
+                                    ->disableOptionWhen(fn (string $value): bool => $value !== UserLocale::En->value)
+                                    ->helperText('Coming soon — only English is available for now.')
+                                    ->searchable()
+                                    ->required()
+                                    ->rule(Rule::in([UserLocale::En->value])),
                                 Select::make('timezone')
                                     ->label('Timezone')
                                     ->options(static::timezoneOptions())
@@ -161,14 +162,21 @@ class EditProfile extends BaseEditProfile
                             ->schema([
                                 $this->getNameFormComponent(),
                                 TextInput::make('phone')
-                                    ->label('Phone Number')
+                                    ->label('WhatsApp Number')
                                     ->tel()
                                     ->placeholder('+60123456789')
                                     ->maxLength(20)
-                                    ->regex('/^(\+60|0)[0-9]{8,11}$/')
-                                    ->validationMessages([
-                                        'regex' => 'Enter a valid Malaysian phone number (e.g. +60123456789 or 0123456789).',
-                                    ]),
+                                    ->helperText('Used for WhatsApp login OTP. Prefer the same number as PERSONAL_WHATSAPP_NUMBER.')
+                                    ->rule(fn (): \Closure => function (string $attribute, mixed $value, \Closure $fail): void {
+                                        if (blank($value)) {
+                                            return;
+                                        }
+
+                                        if (PhoneNumber::normalize(is_string($value) ? $value : null) === null) {
+                                            $fail('Enter a valid Malaysian WhatsApp number (e.g. +60123456789, 60123456789, or 0123456789).');
+                                        }
+                                    })
+                                    ->dehydrateStateUsing(fn (?string $state): ?string => PhoneNumber::normalize($state)),
                             ]),
                     ]),
             ]);
