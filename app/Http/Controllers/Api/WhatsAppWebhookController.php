@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Services\WhatsAppNotificationService;
+use App\Support\PhoneNumber;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -35,16 +36,23 @@ class WhatsAppWebhookController extends Controller
         $message = $data['message'] ?? [];
         $key = $data['key'] ?? [];
 
-        if ($key['fromMe'] ?? false) {
-            return response()->json(['status' => 'ignored_self']);
-        }
-
         $senderJid = $key['remoteJid'] ?? '';
-        $senderNumber = explode('@', $senderJid)[0] ?? '';
+        $senderNumber = explode('@', (string) $senderJid)[0] ?? '';
 
-        if (empty($senderNumber)) {
+        if ($senderNumber === '') {
             return response()->json(['error' => 'No sender JID found'], 400);
         }
+
+        if (! $this->isAllowedSender($senderNumber)) {
+            Log::info('WhatsApp webhook ignored non-allowlisted sender', [
+                'sender' => $senderNumber,
+            ]);
+
+            return response()->json(['status' => 'ignored_sender']);
+        }
+
+        // Self-chat ("Message yourself") often arrives as fromMe=true with remoteJid = your number.
+        // Allowlisted senders are processed either way; strangers never reach here.
 
         $messageType = $data['messageType'] ?? '';
 
@@ -59,6 +67,24 @@ class WhatsAppWebhookController extends Controller
         }
 
         return response()->json(['status' => 'ignored_type']);
+    }
+
+    /**
+     * Only PERSONAL_WHATSAPP_NUMBER may trigger bot replies / receipt import.
+     */
+    protected function isAllowedSender(string $senderNumber): bool
+    {
+        $allowed = PhoneNumber::normalize(
+            is_string(config('services.evolution.personal_number'))
+                ? config('services.evolution.personal_number')
+                : null,
+        );
+
+        if ($allowed === null) {
+            return false;
+        }
+
+        return PhoneNumber::normalize($senderNumber) === $allowed;
     }
 
     protected function handleImageMessage(array $data, string $senderNumber, WhatsAppNotificationService $waService): JsonResponse

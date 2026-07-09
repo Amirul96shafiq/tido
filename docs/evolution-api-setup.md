@@ -79,6 +79,7 @@ PERSONAL_WHATSAPP_NUMBER=60123456789
 - Budget alert WhatsApp destination
 - Admin `User.phone` (seeded from this env when present)
 - Panel access allowlist (`User::canAccessPanel`)
+- **WhatsApp webhook sender allowlist** — only this number can trigger bot replies / receipt import. Strangers get no auto-reply. Self-chat (“Message yourself”) is allowed when `remoteJid` matches this number (even if `fromMe` is true).
 
 ### Login OTP
 
