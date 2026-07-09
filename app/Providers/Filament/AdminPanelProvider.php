@@ -61,6 +61,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('images/ptype_01_d.png'))
             ->darkModeBrandLogo(asset('images/ptype_01_l.png'))
             ->brandLogoHeight('2rem')
+            ->favicon(asset('images/favicon.png'))
             ->sidebarWidth('18rem')
             ->sidebarCollapsibleOnDesktop()
             ->assets([
