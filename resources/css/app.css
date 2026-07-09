@@ -153,7 +153,7 @@ html.fi-sidebar-preload .fi-sidebar-nav,
 html.fi-sidebar-preload .fi-sidebar-version-footer,
 html.fi-sidebar-preload .fi-sidebar-item-btn,
 html.fi-sidebar-preload .fi-sidebar-group-dropdown-trigger-btn,
-html.fi-sidebar-preload .fi-transition-enter {
+html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     transition: none !important;
     animation: none !important;
 }
@@ -307,16 +307,21 @@ html.fi-sidebar-preload .fi-transition-enter {
         padding 300ms ease-in-out;
 }
 
-/* Enter fades for chrome that still toggles with Alpine (header buttons, footer) */
-.fi-transition-enter {
+/*
+ * Enter fades for sidebar Alpine chrome only (header buttons, footer, FIN/SET).
+ * Must stay scoped under .fi-sidebar — Filament modals/slide-overs reuse the same
+ * fi-transition-enter* class names for translate-x animations. Global !important
+ * opacity rules here previously killed the database notifications slide-in.
+ */
+.fi-sidebar .fi-transition-enter {
     transition: opacity 200ms ease-in-out 100ms !important;
 }
 
-.fi-transition-enter-start {
+.fi-sidebar .fi-transition-enter-start {
     opacity: 0 !important;
 }
 
-.fi-transition-enter-end {
+.fi-sidebar .fi-transition-enter-end {
     opacity: 1 !important;
 }
 
