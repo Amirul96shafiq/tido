@@ -89,6 +89,15 @@
     box-shadow: none !important;
 }
 
+/* Main content matches topbar/sidebar chrome */
+.fi-body {
+    background-color: var(--color-white) !important;
+}
+
+.dark .fi-body {
+    background-color: var(--color-zinc-900) !important;
+}
+
 /* Keep logo in sidebar when expanded; show a single themed logo in topbar when collapsed */
 .fi-topbar .fi-logo {
     display: none !important;
