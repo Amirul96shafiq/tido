@@ -19,6 +19,10 @@
     </form>
 
     <div class="mt-4">
+        <h2 class="mb-4 text-lg font-semibold tracking-tight text-gray-950 dark:text-white">
+            Recent Uploads & Processing Status
+        </h2>
+
         {{ $this->table }}
     </div>
 </x-filament-panels::page>

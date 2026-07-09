@@ -14,6 +14,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class ReceiptUploadPage extends Page implements HasForms, HasTable
@@ -83,22 +84,40 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->heading('Recent Uploads & Processing Status')
-            ->query(Invoice::query()->latest()->limit(10))
-            ->paginated(false)
+            ->query(Invoice::query())
+            ->defaultSort('created_at', 'desc')
             ->poll('5s')
             ->columns([
                 TextColumn::make('original_filename')
-                    ->label('Filename'),
+                    ->label('Filename')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('merchant_name')
+                    ->label('Merchant')
+                    ->searchable()
+                    ->sortable(),
 
                 TextColumn::make('created_at')
                     ->label('Uploaded At')
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->dateTimeTooltip()
+                    ->sortable(),
 
                 TextColumn::make('total_amount')
                     ->label('Total Amount')
-                    ->money('MYR'),
+                    ->money('MYR')
+                    ->sortable(),
+
+                TextColumn::make('source')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'manual' => 'info',
+                        'whatsapp' => 'success',
+                        'google_drive' => 'warning',
+                        default => 'gray',
+                    })
+                    ->sortable(),
 
                 TextColumn::make('status')
                     ->badge()
@@ -109,7 +128,27 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                         'requires_manual_review' => 'warning',
                         'failed' => 'danger',
                         default => 'gray',
-                    }),
+                    })
+                    ->sortable(),
+            ])
+            ->filters([
+                SelectFilter::make('status')
+                    ->options([
+                        'pending' => 'Pending Parsing',
+                        'parsed' => 'Parsed by AI',
+                        'reviewed' => 'Reviewed',
+                        'requires_manual_review' => 'Requires Manual Review',
+                        'failed' => 'Parsing Failed',
+                    ])
+                    ->searchable(),
+
+                SelectFilter::make('source')
+                    ->options([
+                        'manual' => 'Manual',
+                        'whatsapp' => 'WhatsApp',
+                        'google_drive' => 'Google Drive',
+                    ])
+                    ->searchable(),
             ]);
     }
 }
