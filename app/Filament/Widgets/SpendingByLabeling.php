@@ -18,7 +18,7 @@ class SpendingByLabeling extends ChartWidget
 
     public function getHeading(): string|Htmlable|null
     {
-        return 'Spending by Labeling ('.$this->formatSelectedMonth('F Y').')';
+        return 'Spending by Label ('.$this->formatSelectedMonth('F Y').')';
     }
 
     public function getType(): string

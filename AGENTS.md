@@ -5,7 +5,7 @@ Before coding, read **[docs/agent-onboarding.md](docs/agent-onboarding.md)** for
 - Cursor rules: `.cursor/rules/*.mdc` (auto-applied)
 - Domain skill: `.cursor/skills/tido-domain/` (activate for invoices, OCR, WhatsApp, Drive, budgets)
 - Architecture gate: do not contradict `docs/system-architecture.md` without warning the user
-- Product name: **tido** only · expense tags: **Labeling** (not Category)
+- Product name: **tido** only · expense tags: **Label** / **Labels** in UI (model: `Labeling`, not Category)
 
 <laravel-boost-guidelines>
 === foundation rules ===

@@ -20,11 +20,11 @@ class LabelingResource extends Resource
 {
     protected static ?string $model = Labeling::class;
 
-    protected static ?string $navigationLabel = 'Labelings';
+    protected static ?string $navigationLabel = 'Labels';
 
-    protected static ?string $modelLabel = 'Labeling';
+    protected static ?string $modelLabel = 'Label';
 
-    protected static ?string $pluralModelLabel = 'Labelings';
+    protected static ?string $pluralModelLabel = 'Labels';
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-tag';
 

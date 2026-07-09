@@ -116,7 +116,7 @@ class InvoiceForm
                                             ->columnSpan(2),
 
                                         Select::make('labeling_id')
-                                            ->label('Labeling')
+                                            ->label('Label')
                                             ->relationship(
                                                 name: 'labeling',
                                                 titleAttribute: 'name',

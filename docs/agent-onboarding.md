@@ -4,7 +4,7 @@ How this project works and how to change it safely. Cursor loads `.cursor/rules/
 
 ## 1. What you are building
 
-**tido** is a single-tenant personal finance app for **Malaysian Ringgit (MYR)**. It ingests receipt images, extracts structured data with a **local Ollama** vision model, categorizes line items as **Labelings**, tracks **Budgets**, and surfaces analytics in a **Filament v5** admin at `/admin`.
+**tido** is a single-tenant personal finance app for **Malaysian Ringgit (MYR)**. It ingests receipt images, extracts structured data with a **local Ollama** vision model, categorizes line items as **Labels** (model: `Labeling`), tracks **Budgets**, and surfaces analytics in a **Filament v5** admin at `/admin`.
 
 Primary ingestion paths:
 
@@ -55,7 +55,7 @@ docs/               architecture + integration setup + this file
 
 | Concept | Truth in code |
 |---------|----------------|
-| Category | **`Labeling`** model / `labelings` table |
+| Category | **`Labeling`** model / `labelings` table (UI: **Label** / **Labels**) |
 | Money | `decimal(12,2)`, cast `decimal:2`, currency `MYR`, UI `RM` |
 | Duplicate | `receipt_hash` SHA-256 of number + datetime + total |
 | Statuses | `pending`, `parsed`, `reviewed`, `requires_manual_review`, `failed` |
@@ -107,7 +107,7 @@ php artisan test --compact --filter=YourTest
 
 ## 7. Common pitfalls
 
-- Calling categories “Category” in new code — use **Labeling**
+- Calling categories “Category” in new code — use **Labeling** (UI: **Label** / **Labels**)
 - Hitting live Ollama in Pest — use `Http::fake()`
 - Forgetting `InvoiceObserver` side effects when creating invoices in tests — use `Queue::fake()` or `unsetEventDispatcher()` when appropriate
 - Assuming multi-user isolation — app is single-tenant

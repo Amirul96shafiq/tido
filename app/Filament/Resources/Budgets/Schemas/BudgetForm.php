@@ -18,13 +18,13 @@ class BudgetForm
         return $schema
             ->components([
                 Select::make('labeling_id')
-                    ->label('Labeling')
+                    ->label('Label')
                     ->relationship(
                         name: 'labeling',
                         titleAttribute: 'name',
                         modifyQueryUsing: fn ($query) => $query->where('type', LabelingType::Finance),
                     )
-                    ->placeholder('Overall (All Labelings)')
+                    ->placeholder('Overall (All Labels)')
                     ->searchable()
                     ->preload(),
 

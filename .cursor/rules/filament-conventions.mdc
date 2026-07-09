@@ -22,7 +22,7 @@ Use Filament `Schema` for forms (v5), not legacy Form API. Prefer native Form/Ta
 
 ## Navigation
 
-- Groups: **Finances** (Invoices, Budgets), **Settings** (Labelings)
+- Groups: **Finances** (Invoices, Budgets), **Settings** (Labels)
 - Theme: amber/zinc, Outfit font, SPA mode, collapsible sidebar, database notifications
 - Custom pages: `Dashboard`, `ReceiptUploadPage`, `Auth/EditProfile`
 

@@ -10,7 +10,7 @@ Personal MYR expense & receipt tracker. Ingest receipts (WhatsApp, Google Drive,
 ## Naming
 
 - Product / repo / runtime: **tido** only (`admin@tido.local`, WhatsApp “tido Bot”)
-- Expense categories in code/DB: **Labeling** (not “Category”)
+- Expense categories in code/DB: **Labeling** (not “Category”); UI copy: **Label** / **Labels**
 
 ## Stack (authoritative)
 
