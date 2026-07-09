@@ -1,0 +1,38 @@
+---
+description: tido product identity, stack, and agent entry points
+alwaysApply: true
+---
+
+# tido — Project Overview
+
+Personal MYR expense & receipt tracker. Ingest receipts (WhatsApp, Google Drive, Filament upload), parse with local Ollama vision, categorize line items, detect duplicates, show budgets/analytics.
+
+## Naming
+
+- Product / repo / runtime: **tido** only (`admin@tido.local`, WhatsApp “tido Bot”)
+- Expense categories in code/DB: **Labeling** (not “Category”)
+
+## Stack (authoritative)
+
+Laravel 12 · Filament v5 · Livewire 4 · Tailwind v4 · PostgreSQL 17 · Redis · Horizon · Ollama · Evolution API · Pest v3 · Sail
+
+Prefer this over older version numbers in `docs/system-architecture.md`.
+
+## Single-tenant
+
+No multi-tenancy, no roles/policies package. Any authenticated user can access `/admin`.
+
+## Agent entry points
+
+1. Read `docs/agent-onboarding.md` for the full map
+2. Activate skills under `.cursor/skills/` / `.agents/skills/` when in that domain
+3. Use Laravel Boost MCP (`search-docs`, `database-schema`, `database-query`) before inventing APIs
+4. If a request contradicts `docs/system-architecture.md`, halt and warn the user
+
+## Do not
+
+- Hit real Ollama/Evolution in tests — use `Http::fake()` / `Queue::fake()`
+- Add new top-level `app/` folders without approval
+- Change dependencies without approval
+- Treat stock `README.md` as product docs
+- Call the product anything other than **tido**

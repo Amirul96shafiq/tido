@@ -1,0 +1,45 @@
+---
+description: Receipt ingestion, Ollama parsing, WhatsApp, and Google Drive rules
+globs: app/Services/**/*.php, app/Jobs/**/*.php, app/Observers/**/*.php, app/Http/Controllers/Api/**/*.php, app/Prompts/**/*.php
+alwaysApply: false
+---
+
+# Receipt Pipeline Rules
+
+## Flow
+
+```
+Image → Invoice (pending) → InvoiceObserver → ExtractReceiptDataJob
+  → OllamaService + ReceiptExtractionPrompt
+  → Invoice (parsed) + InvoiceItems → BudgetAlertService
+```
+
+Statuses: `pending` → `parsed` → `reviewed` | `requires_manual_review` | `failed`  
+Sources: `manual` | `whatsapp` | `google_drive`
+
+## Ollama (mandatory)
+
+- POST with `"format": "json"`
+- Strip markdown fences with regex before `json_decode` (`OllamaService::cleanAndDecodeJson`)
+- Prompt/schema lives in `app/Prompts/ReceiptExtractionPrompt.php`
+- Map AI `suggested_category` slug → `Labeling` where `type = Finance`
+
+## Duplicate detection
+
+`receipt_hash = sha256(invoice_number + date_time + total_amount)` on create (`InvoiceObserver`). Unique DB constraint — handle collisions gracefully.
+
+## WhatsApp (Evolution API)
+
+- `POST /api/webhooks/whatsapp` — Bearer token from `config('services.evolution.api_key')`
+- Validate auth/payload first; heavy work via queue/jobs
+- Images → store → pending Invoice; text keywords (`spend`/`total`) → monthly total reply
+
+## Google Drive
+
+- `GoogleDriveService` via `Storage::disk('google')`
+- `SyncGoogleDriveJob` every 15 min (`routes/console.php`)
+- Copy image locally, create pending Invoice, delete remote file
+
+## Queues
+
+Horizon monitors Redis queues `default`, `receipts`, `whatsapp`. New long AI work should use retries + `failed()` → `requires_manual_review`.

@@ -1,5 +1,8 @@
 # System Architecture: Local Expense & Receipt Tracking Platform
 
+> **Agents:** Start with [agent-onboarding.md](agent-onboarding.md). Cursor rules live in `.cursor/rules/`. Domain skill: `.cursor/skills/tido-domain/`.  
+> **Stack note:** Runtime is **Laravel 12**, **PostgreSQL 17**, Filament v5, Livewire 4 (see `AGENTS.md`). Prefer those versions if this blueprint lists older ones.
+
 ## Quick Summary
 This document defines the architectural blueprint for a localized, highly automated expense tracking system. The primary objective is to ingest, parse, and analyze financial receipts with zero manual data entry. The stack utilizes Laravel for robust API and queue management, FilamentPHP v5 for rapid dashboard generation, and localized AI models (Ollama) for zero-cost, private OCR data extraction.
 
@@ -9,12 +12,12 @@ This document defines the architectural blueprint for a localized, highly automa
 
 | Component | Technology | Purpose |
 | :--- | :--- | :--- |
-| **Backend Framework** | Laravel 11 | API routing, ORM, queued jobs, and task scheduling. Must follow PSR-12 coding standards. |
+| **Backend Framework** | Laravel 12 | API routing, ORM, queued jobs, and task scheduling. Must follow PSR-12 coding standards. |
 | **Admin Panel / UI** | FilamentPHP v5 | Auto-generation of data tables, upload widgets, and analytical dashboards. Built on Livewire v4. |
 | **Cloud Storage** | `masbug/flysystem-google-drive-ext` | Direct integration of Google Drive folders as Laravel `Storage` disks. |
 | **AI Parsing Engine** | Ollama (Local) | Zero-cost execution of vision models (e.g., LLaVA, MiniCPM-V) for OCR and data extraction. |
 | **Messaging API** | Evolution API | Headless receipt ingestion and system alert broadcasting via WhatsApp. |
-| **Database** | PostgreSQL 16 | Relational data storage optimized for JSON operations and strict indexing. |
+| **Database** | PostgreSQL 17 | Relational data storage optimized for JSON operations and strict indexing. |
 
 ---
 

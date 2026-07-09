@@ -1,0 +1,44 @@
+---
+description: Pest testing patterns for tido feature and unit tests
+globs: tests/**/*.php
+alwaysApply: false
+---
+
+# Testing Conventions
+
+Use Pest v3. Activate `.cursor/skills/pest-testing` when writing/editing tests.
+
+## Baseline
+
+```php
+uses(RefreshDatabase::class);
+
+$this->actingAs(User::factory()->create());
+```
+
+Create tests with `php artisan make:test --pest {Name} --no-interaction`.
+
+## Always mock externals
+
+```php
+Http::fake([...]);      // Ollama, Evolution API
+Queue::fake();           // assert ExtractReceiptDataJob pushed
+Storage::fake('local');  // or 'google'
+```
+
+Never call real Ollama/Evolution in CI/tests.
+
+## Patterns in this repo
+
+- Filament: often HTTP `get(Resource::getUrl('index'))`; Livewire for interactive pages (`Livewire::test(EditProfile::class)`)
+- Analytics without jobs: `Invoice::unsetEventDispatcher()` when factories would dispatch extraction
+- Seed labelings when testing category mapping: `LabelingSeeder`
+- Factories for all models; MYR amounts and precomputed `receipt_hash` on Invoice
+
+## Run
+
+```bash
+php artisan test --compact --filter=RelevantTest
+```
+
+Every behavior change needs a new or updated test that passes.

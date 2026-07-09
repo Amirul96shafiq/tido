@@ -1,0 +1,42 @@
+---
+description: Filament v5 resource, page, and widget patterns for tido admin
+globs: app/Filament/**/*.php, resources/views/filament/**/*.blade.php
+alwaysApply: false
+---
+
+# Filament v5 Conventions
+
+Panel: `admin` at `/admin` — configured only in `AdminPanelProvider` (no `config/filament.php`).
+
+## Resource layout (required)
+
+```
+app/Filament/Resources/{Plural}/
+  {Singular}Resource.php
+  Schemas/{Singular}Form.php      # Form::configure(Schema $schema)
+  Tables/{Plural}Table.php        # Table::configure(Table $table)
+  Pages/List|Create|Edit{...}.php
+```
+
+Use Filament `Schema` for forms (v5), not legacy Form API. Prefer native Form/Table builders over custom Blade.
+
+## Navigation
+
+- Groups: **Finances** (Invoices, Budgets), **Settings** (Labelings)
+- Theme: amber/zinc, Outfit font, SPA mode, collapsible sidebar, database notifications
+- Custom pages: `Dashboard`, `ReceiptUploadPage`, `Auth/EditProfile`
+
+## Widgets
+
+Dashboard widgets live in `app/Filament/Widgets/`. Month filtering uses `InteractsWithDashboardMonth` + `DashboardMonthAnalytics` / `DashboardMonthPeriod`.
+
+## Prefer
+
+- `relationship()` for related selects
+- Notifications on user-facing actions
+- Soft-delete aware queries (`withoutGlobalScopes` on record binding when needed)
+
+## Avoid
+
+- Custom Blade unless native components cannot do the job
+- Putting business logic (Ollama, Drive sync, alerts) inside Resource classes — call Services/Jobs

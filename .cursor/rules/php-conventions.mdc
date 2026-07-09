@@ -1,0 +1,44 @@
+---
+description: PHP/Laravel coding conventions for tido
+globs: app/**/*.php, database/**/*.php, routes/**/*.php, tests/**/*.php
+alwaysApply: false
+---
+
+# PHP & Laravel Conventions
+
+## Required on every PHP file
+
+```php
+<?php
+
+declare(strict_types=1);
+```
+
+Typed params/returns, constructor property promotion, enums + `match` where appropriate. PSR-12. Run `vendor/bin/pint --dirty --format agent` after edits.
+
+## Models
+
+- Match sibling models: domain models use `protected $casts = [...]`; `User` uses `casts()` method
+- Money: `decimal(12,2)` columns, cast `'decimal:2'`, currency default `MYR`, UI as `RM {amount}`
+- SoftDeletes + Spatie `LogsActivity` on Invoice, InvoiceItem, Labeling, Budget
+- Prefer Eloquent/Query Builder — never raw user input in SQL
+
+## Enums
+
+Backed string enums with `label()` and `options()` helpers (`app/Enums/`).
+
+## Jobs
+
+`ShouldQueue`, promoted constructor props, inject services in `handle()`, implement `failed()` when status must update. Retries/backoff like `ExtractReceiptDataJob` (`$tries = 3`, backoff `[30, 60, 120]`).
+
+## Side effects
+
+Put hash generation, job dispatch, and budget alerts in observers/services — not Filament pages or controllers when possible.
+
+## Validation
+
+Prefer Form Requests for HTTP controllers. Filament forms validate via component rules. Webhooks: auth + payload validation first, then queue work.
+
+## Architecture gate
+
+Do not invent schema/workflows that contradict `docs/system-architecture.md` without warning the user.
