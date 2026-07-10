@@ -31,7 +31,8 @@ class InvoicesTable
 
                 TextColumn::make('invoice_number')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('date_time')
                     ->dateTime()
@@ -48,13 +49,7 @@ class InvoicesTable
 
                 TextColumn::make('payment_method')
                     ->badge()
-                    ->formatStateUsing(fn (?PaymentMethod $state): ?string => $state?->label())
-                    ->color(fn (?PaymentMethod $state): string => match ($state) {
-                        PaymentMethod::Mastercard, PaymentMethod::Visa => 'info',
-                        PaymentMethod::Mykasih => 'success',
-                        PaymentMethod::Cash => 'warning',
-                        default => 'gray',
-                    }),
+                    ->placeholder('-'),
 
                 TextColumn::make('source')
                     ->badge()
@@ -104,7 +99,7 @@ class InvoicesTable
                     ->searchable(),
 
                 SelectFilter::make('payment_method')
-                    ->options(PaymentMethod::options())
+                    ->options(PaymentMethod::class)
                     ->searchable(),
 
                 Filter::make('date_time')

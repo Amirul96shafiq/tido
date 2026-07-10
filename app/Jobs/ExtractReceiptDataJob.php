@@ -124,12 +124,6 @@ class ExtractReceiptDataJob implements ShouldQueue
 
     protected function resolvePaymentMethod(mixed $value): ?PaymentMethod
     {
-        if (! is_string($value) || blank($value)) {
-            return null;
-        }
-
-        $normalized = Str::lower(trim($value));
-
-        return PaymentMethod::tryFrom($normalized);
+        return PaymentMethod::tryFromAi($value);
     }
 }

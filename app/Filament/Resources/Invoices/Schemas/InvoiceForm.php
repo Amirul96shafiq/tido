@@ -81,7 +81,7 @@ class InvoiceForm
                                     ->required(),
 
                                 Select::make('payment_method')
-                                    ->options(PaymentMethod::options())
+                                    ->options(PaymentMethod::class)
                                     ->searchable(),
 
                                 Select::make('source')
