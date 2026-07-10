@@ -16,15 +16,22 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification as FilamentNotification;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Js;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use League\Uri\Components\Query;
 
@@ -97,6 +104,7 @@ class EditProfile extends BaseEditProfile
                                     ->label('Change Password')
                                     ->live()
                                     ->dehydrated(false),
+                                $this->getGenerateStrongPasswordActionComponent(),
                                 $this->getPasswordFormComponent(),
                                 $this->getPasswordConfirmationFormComponent(),
                                 $this->getCurrentPasswordFormComponent(),
@@ -182,6 +190,32 @@ class EditProfile extends BaseEditProfile
             ]);
     }
 
+    protected function getGenerateStrongPasswordActionComponent(): Component
+    {
+        return Actions::make([
+            Action::make('generateStrongPassword')
+                ->label('Generate Strong Password')
+                ->icon(Heroicon::OutlinedCodeBracketSquare)
+                ->color('gray')
+                ->action(function (Set $set, EditProfile $livewire): void {
+                    $password = Str::password(16);
+
+                    $set('password', $password);
+                    $set('passwordConfirmation', $password);
+
+                    $livewire->js('window.navigator.clipboard.writeText('.Js::from($password).')');
+
+                    FilamentNotification::make()
+                        ->title('Password copied to clipboard')
+                        ->success()
+                        ->send();
+                }),
+        ])
+            ->alignment(Alignment::End)
+            ->key('generateStrongPasswordActions')
+            ->visible(fn (Get $get): bool => (bool) $get('change_password'));
+    }
+
     protected function getPasswordFormComponent(): Component
     {
         return parent::getPasswordFormComponent()
@@ -257,7 +291,7 @@ class EditProfile extends BaseEditProfile
         if (! empty($changes) && $updatedRecord->notify_profile_updates) {
             $changeList = implode(', ', $changes);
 
-            \Filament\Notifications\Notification::make()
+            FilamentNotification::make()
                 ->title('Profile Settings Updated')
                 ->body("You updated your profile settings: {$changeList}.")
                 ->success()
