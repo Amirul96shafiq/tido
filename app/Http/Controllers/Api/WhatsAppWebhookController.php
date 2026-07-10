@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Services\WhatsAppNotificationService;
 use App\Support\PhoneNumber;
+use App\Support\WhatsAppMessage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -103,7 +104,14 @@ class WhatsAppWebhookController extends Controller
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
-                $waService->sendMessage($senderNumber, '❌ Failed to download receipt image from WhatsApp. Please try again.');
+                $waService->sendMessage(
+                    $senderNumber,
+                    WhatsAppMessage::compose(
+                        '❌',
+                        'Receipt upload failed',
+                        "We could not download the receipt image from WhatsApp.\n\nPlease send the photo again.",
+                    ),
+                );
 
                 return response()->json(['error' => 'Failed to download media'], 500);
             }
@@ -140,7 +148,14 @@ class WhatsAppWebhookController extends Controller
                 'original_filename' => $filename,
             ]);
 
-            $waService->sendMessage($senderNumber, "📥 Receipt received! AI is currently parsing it. We'll send you an update shortly.");
+            $waService->sendMessage(
+                $senderNumber,
+                WhatsAppMessage::compose(
+                    '📥',
+                    'Receipt received',
+                    "Your receipt is queued for AI parsing.\n\nWe will update you shortly.",
+                ),
+            );
 
             return response()->json(['status' => 'success', 'invoice_id' => $invoice->id]);
         } catch (\Throwable $e) {
@@ -166,15 +181,25 @@ class WhatsAppWebhookController extends Controller
                 ->whereIn('status', ['parsed', 'reviewed'])
                 ->sum('total_amount');
 
-            $reply = sprintf('💰 Your total spending for this month (%s) is *RM %s*.', $now->format('F Y'), number_format($total, 2));
+            $reply = WhatsAppMessage::compose(
+                '💰',
+                'Monthly spending',
+                sprintf(
+                    "Period: *%s*\n\nTotal: *RM %s*",
+                    $now->format('F Y'),
+                    number_format((float) $total, 2),
+                ),
+            );
             $waService->sendMessage($senderNumber, $reply);
 
             return response()->json(['status' => 'success', 'reply' => $reply]);
         }
 
-        $help = "🤖 *tido Bot Help*\n\n"
-              ."- Send any *receipt image* to upload it.\n"
-              .'- Type *spend* or *total* to view your total expenses for this month.';
+        $help = WhatsAppMessage::compose(
+            '🤖',
+            'Help',
+            "• Send a *receipt image* to upload it.\n• Type *spend* or *total* for this month's expenses.",
+        );
 
         $waService->sendMessage($senderNumber, $help);
 

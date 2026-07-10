@@ -11,6 +11,7 @@ use App\Services\EvolutionInstanceService;
 use App\Services\WhatsAppConnectionLogService;
 use App\Services\WhatsAppNotificationService;
 use App\Support\PhoneNumber;
+use App\Support\WhatsAppMessage;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Notifications\Notification;
@@ -239,7 +240,11 @@ class WhatsAppConnectionPage extends Page implements HasTable
         $sent = app(WhatsAppNotificationService::class)
             ->sendMessage(
                 $number,
-                'tido test ping ✅ Outbound WhatsApp is working. Send a receipt photo anytime to start tracking.',
+                WhatsAppMessage::compose(
+                    '✅',
+                    'Test ping',
+                    "Outbound WhatsApp is working.\n\nSend a receipt photo anytime to start tracking.",
+                ),
             );
 
         Notification::make()
@@ -634,7 +639,11 @@ class WhatsAppConnectionPage extends Page implements HasTable
 
         $sent = app(WhatsAppNotificationService::class)->sendMessage(
             $number,
-            'tido WhatsApp connected ✅ You can send receipt photos here.',
+            WhatsAppMessage::compose(
+                '✅',
+                'Connected',
+                "Your WhatsApp session is linked and ready.\n\nSend a receipt photo anytime to start tracking.",
+            ),
         );
 
         Notification::make()

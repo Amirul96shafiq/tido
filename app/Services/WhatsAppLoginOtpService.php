@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Support\PhoneNumber;
+use App\Support\WhatsAppMessage;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -60,7 +61,11 @@ class WhatsAppLoginOtpService
 
         $sent = $this->whatsApp->sendMessage(
             $phone,
-            "🔐 *tido login code*\n\nYour code is: *{$code}*\n\nIt expires in 10 minutes. If you did not request this, ignore this message.",
+            WhatsAppMessage::compose(
+                '🔐',
+                'Login code',
+                "Your code is: *{$code}*\n\nIt expires in 10 minutes.\n\nIf you did not request this, ignore this message.",
+            ),
         );
 
         if (! $sent) {
