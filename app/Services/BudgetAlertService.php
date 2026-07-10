@@ -55,7 +55,7 @@ class BudgetAlertService
                     '⚠️',
                     'Budget alert',
                     sprintf(
-                        "Label: *%s*\nSpent: *RM %s* / *RM %s* (%.1f%%)\nPeriod: *%s*",
+                        "Spending for this label has reached the alert threshold.\n\nLabel: *%s*\nSpent: *RM %s* / *RM %s* (%.1f%%)\nPeriod: *%s*",
                         $labelingName,
                         number_format($spent, 2),
                         number_format($budgetAmount, 2),

@@ -112,7 +112,7 @@ class WhatsAppWebhookController extends Controller
                 '💰',
                 'Monthly spending',
                 sprintf(
-                    "Period: *%s*\n\nTotal: *RM %s*",
+                    "Period: *%s*\n\nTotal spent: *RM %s*",
                     $now->format('F Y'),
                     number_format((float) $total, 2),
                 ),
@@ -125,7 +125,7 @@ class WhatsAppWebhookController extends Controller
         $help = WhatsAppMessage::compose(
             '🤖',
             'Help',
-            "• Send a *receipt image* to upload it.\n• Type *spend* or *total* for this month's expenses.",
+            "• Send a *document* to upload and parse it.\n• Type *spend* or *total* to view this month's expenses.",
         );
 
         $waService->sendMessage($senderNumber, $help);

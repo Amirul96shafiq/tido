@@ -64,7 +64,7 @@ class WhatsAppLoginOtpService
             WhatsAppMessage::compose(
                 '🔐',
                 'Login code',
-                "Your code is: *{$code}*\n\nIt expires in 10 minutes.\n\nIf you did not request this, ignore this message.",
+                "Code: *{$code}*\n\nThis code expires in 10 minutes and is valid for one login only.\n\nIgnore this message if this login was not requested.",
             ),
         );
 
