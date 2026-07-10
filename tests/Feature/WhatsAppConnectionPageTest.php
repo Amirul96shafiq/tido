@@ -218,8 +218,17 @@ test('send ping uses personal whatsapp number', function () {
         ->assertNotified();
 
     Http::assertSent(function (Request $request) {
-        return str_contains($request->url(), '/message/sendText/')
-            && str_contains((string) $request['number'], '60123456789');
+        if (! str_contains($request->url(), '/message/sendText/')) {
+            return false;
+        }
+
+        $text = (string) data_get($request->data(), 'text', '');
+
+        return str_contains((string) data_get($request->data(), 'number', ''), '60123456789')
+            && str_contains($text, '*Test ping*')
+            && str_contains($text, '— Powered by *tido*')
+            && str_contains($text, "\n\n")
+            && ! str_contains($text, '\n');
     });
 });
 
@@ -273,9 +282,17 @@ test('auto-registers webhook and sends welcome when status becomes open', functi
     });
 
     Http::assertSent(function (Request $request) {
-        return str_contains($request->url(), '/message/sendText/')
-            && str_contains((string) $request['number'], '60123456789')
-            && str_contains((string) $request['text'], 'tido WhatsApp connected');
+        if (! str_contains($request->url(), '/message/sendText/')) {
+            return false;
+        }
+
+        $text = (string) data_get($request->data(), 'text', '');
+
+        return str_contains((string) data_get($request->data(), 'number', ''), '60123456789')
+            && str_contains($text, '*Connected*')
+            && str_contains($text, '— Powered by *tido*')
+            && str_contains($text, "\n\n")
+            && ! str_contains($text, '\n');
     });
 
     $user->refresh();

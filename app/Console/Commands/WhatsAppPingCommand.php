@@ -6,11 +6,12 @@ namespace App\Console\Commands;
 
 use App\Services\WhatsAppNotificationService;
 use App\Support\PhoneNumber;
+use App\Support\WhatsAppMessage;
 use Illuminate\Console\Command;
 
 class WhatsAppPingCommand extends Command
 {
-    protected $signature = 'whatsapp:ping {--message=tido WhatsApp ping OK}';
+    protected $signature = 'whatsapp:ping {--message=}';
 
     protected $description = 'Send a test WhatsApp message to PERSONAL_WHATSAPP_NUMBER via Evolution API';
 
@@ -25,9 +26,19 @@ class WhatsAppPingCommand extends Command
             return self::FAILURE;
         }
 
+        $message = trim((string) $this->option('message'));
+
+        if ($message === '') {
+            $message = WhatsAppMessage::compose(
+                '✅',
+                'Test ping',
+                "Outbound WhatsApp is working.\n\nSend a receipt photo anytime to start tracking.",
+            );
+        }
+
         $this->info("Sending ping to {$phone}…");
 
-        $sent = $whatsApp->sendMessage($phone, (string) $this->option('message'));
+        $sent = $whatsApp->sendMessage($phone, $message);
 
         if (! $sent) {
             $this->error('Failed to send. Check Evolution API URL, key, instance pairing, and logs.');

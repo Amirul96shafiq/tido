@@ -36,7 +36,8 @@ test('send stores hashed otp and posts to evolution', function () {
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/tido')
             && str_contains((string) $request['number'], '60123456789')
-            && str_contains((string) $request['text'], 'tido login code');
+            && str_contains((string) $request['text'], 'Login code')
+            && str_contains((string) $request['text'], '— Powered by *tido*');
     });
 
     expect(Cache::has('wa_login_otp:'.$user->id))->toBeTrue();

@@ -117,7 +117,8 @@ test('whatsapp webhook handles text queries for monthly spent', function () {
 
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/')
-            && str_contains((string) $request['text'], 'Your total spending for this month');
+            && str_contains((string) $request['text'], 'Monthly spending')
+            && str_contains((string) $request['text'], 'Total:');
     });
 });
 
@@ -147,7 +148,8 @@ test('whatsapp webhook allows self-chat fromMe when sender is allowlisted', func
 
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/')
-            && str_contains((string) $request['text'], 'tido Bot Help');
+            && str_contains((string) $request['text'], '*Help*')
+            && str_contains((string) $request['text'], '— Powered by *tido*');
     });
 });
 
@@ -251,6 +253,7 @@ test('whatsapp webhook allows extra personal numbers to interact with the bot', 
 
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/')
-            && str_contains((string) $request['text'], 'tido Bot Help');
+            && str_contains((string) $request['text'], '*Help*')
+            && str_contains((string) $request['text'], '— Powered by *tido*');
     });
 });

@@ -66,8 +66,11 @@ test('budget alert service triggers alerts on threshold breach', function () {
 
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/')
-            && str_contains((string) $request['text'], 'Budget Alert: Food & Dining')
-            && str_contains((string) $request['text'], 'RM 90.00 / RM 100.00');
+            && str_contains((string) $request['text'], 'Budget alert')
+            && str_contains((string) $request['text'], 'Food & Dining')
+            && str_contains((string) $request['text'], 'RM 90.00')
+            && str_contains((string) $request['text'], 'RM 100.00')
+            && str_contains((string) $request['text'], '— Powered by *tido*');
     });
 
     $this->assertDatabaseCount('notifications', 1);

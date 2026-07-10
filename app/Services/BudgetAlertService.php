@@ -8,6 +8,7 @@ use App\Models\Budget;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\User;
+use App\Support\WhatsAppMessage;
 use Filament\Notifications\Notification as FilamentNotification;
 
 class BudgetAlertService
@@ -50,13 +51,17 @@ class BudgetAlertService
                 $labelingName = $budget->labeling ? (string) $budget->labeling->getAttribute('name') : 'Overall Budget';
                 $periodName = ucfirst($budget->period);
 
-                $message = sprintf(
-                    "⚠️ *Budget Alert: %s*\nSpent: RM %s / RM %s (%.1f%%)\nPeriod: %s",
-                    $labelingName,
-                    number_format($spent, 2),
-                    number_format($budgetAmount, 2),
-                    $percentage,
-                    $periodName
+                $message = WhatsAppMessage::compose(
+                    '⚠️',
+                    'Budget alert',
+                    sprintf(
+                        "Label: *%s*\nSpent: *RM %s* / *RM %s* (%.1f%%)\nPeriod: *%s*",
+                        $labelingName,
+                        number_format($spent, 2),
+                        number_format($budgetAmount, 2),
+                        $percentage,
+                        $periodName,
+                    ),
                 );
 
                 $personalNumber = config('services.evolution.personal_number');
