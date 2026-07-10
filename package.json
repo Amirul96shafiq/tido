@@ -5,7 +5,9 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "dev:full": "concurrently \"npm run dev\" \"php artisan serve --port=2000\" \"php artisan queue:listen --tries=3 --timeout=30\""
+        "dev:full": "concurrently -n vite,php,queue -c cyan,green,yellow \"npm run dev\" \"php artisan serve --port=2000\" \"php artisan queue:listen --tries=3 --timeout=30\"",
+        "evolution": "node scripts/run-evolution.mjs",
+        "dev:whatsapp": "concurrently -n vite,php,queue,evolution -c cyan,green,yellow,magenta \"npm run dev\" \"php artisan serve --port=2000\" \"php artisan queue:listen --tries=3 --timeout=30\" \"npm run evolution\""
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
