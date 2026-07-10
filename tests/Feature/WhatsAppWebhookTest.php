@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Jobs\ExtractReceiptDataJob;
+use App\Jobs\ProcessWhatsAppMediaJob;
 use App\Models\Invoice;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -153,16 +153,8 @@ test('whatsapp webhook allows self-chat fromMe when sender is allowlisted', func
     });
 });
 
-test('whatsapp webhook imports image message and triggers queue', function () {
-    Storage::fake('local');
+test('whatsapp webhook accepts image message and dispatches media job', function () {
     Queue::fake();
-
-    Http::fake([
-        '*/chat/retreiveMedia/*' => Http::response([
-            'base64' => base64_encode('fake-receipt-binary-image'),
-        ]),
-        '*/message/sendText/*' => Http::response(['status' => 'success']),
-    ]);
 
     $payload = [
         'event' => 'messages.upsert',
@@ -181,14 +173,18 @@ test('whatsapp webhook imports image message and triggers queue', function () {
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
         'Authorization' => 'Bearer tido-secret-key',
-    ])->assertSuccessful();
+    ])
+        ->assertSuccessful()
+        ->assertJson(['status' => 'accepted']);
 
-    $invoice = Invoice::first();
-    expect($invoice)->not->toBeNull();
-    expect($invoice->source)->toBe('whatsapp');
-    expect(Storage::exists($invoice->image_path))->toBeTrue();
+    Queue::assertPushed(ProcessWhatsAppMediaJob::class, function (ProcessWhatsAppMediaJob $job): bool {
+        return $job->senderNumber === '60123456789'
+            && $job->remoteJid === '60123456789@s.whatsapp.net'
+            && $job->messageId === 'MSG456'
+            && $job->fromMe === false;
+    });
 
-    Queue::assertPushed(ExtractReceiptDataJob::class);
+    expect(Invoice::count())->toBe(0);
 });
 
 test('whatsapp webhook denies all senders when personal number is unset', function () {

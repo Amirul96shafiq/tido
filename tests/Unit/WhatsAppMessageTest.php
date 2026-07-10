@@ -23,3 +23,22 @@ test('compose trims body and uses custom footer', function () {
 
     expect($message)->toBe("🔐 *Login code*\n\nYour code is: *123456*\n\nCustom footer");
 });
+
+test('receipt upload failed includes retry count for non-final attempts', function () {
+    $message = WhatsAppMessage::receiptUploadFailed(1, 3);
+
+    expect($message)
+        ->toContain('*Receipt upload failed (attempt 1 of 3)*')
+        ->toContain('retry automatically in about 60 seconds')
+        ->not->toContain('final attempt');
+});
+
+test('receipt upload failed informs user on final attempt', function () {
+    $message = WhatsAppMessage::receiptUploadFailed(3, 3);
+
+    expect($message)
+        ->toContain('*Receipt upload failed (attempt 3 of 3)*')
+        ->toContain('final attempt')
+        ->toContain('Please send the photo again.')
+        ->not->toContain('retry automatically');
+});
