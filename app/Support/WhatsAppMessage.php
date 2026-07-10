@@ -28,4 +28,19 @@ final class WhatsAppMessage
 
         return implode("\n\n", $sections);
     }
+
+    public static function receiptUploadFailed(int $attempt, int $maxAttempts = 3): string
+    {
+        $attempt = max(1, min($attempt, $maxAttempts));
+
+        $title = sprintf('Receipt upload failed (attempt %d of %d)', $attempt, $maxAttempts);
+
+        if ($attempt < $maxAttempts) {
+            $body = "We could not download the receipt image from WhatsApp.\n\nWe will retry automatically in about 60 seconds.";
+        } else {
+            $body = "This was our final attempt and we still could not download the receipt image from WhatsApp.\n\nPlease send the photo again.";
+        }
+
+        return self::compose('❌', $title, $body);
+    }
 }
