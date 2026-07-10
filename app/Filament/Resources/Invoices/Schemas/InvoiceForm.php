@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Invoices\Schemas;
 
 use App\Enums\LabelingType;
+use App\Enums\PaymentMethod;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
@@ -30,7 +31,8 @@ class InvoiceForm
                         Grid::make(3)
                             ->schema([
                                 TextInput::make('merchant_name')
-                                    ->required(),
+                                    ->required()
+                                    ->helperText('Prefer store brand and branch, e.g. FamilyMart Pinggiran Batu Caves'),
                                 TextInput::make('invoice_number'),
                                 DateTimePicker::make('date_time')
                                     ->required()
@@ -45,10 +47,26 @@ class InvoiceForm
                                     ->required(),
 
                                 TextInput::make('total_tax')
+                                    ->label('Tax / Service')
+                                    ->helperText('SST / service tax (include service charge if not split)')
                                     ->numeric()
                                     ->prefix('RM')
                                     ->default(0.00),
 
+                                TextInput::make('discount_total')
+                                    ->numeric()
+                                    ->prefix('RM')
+                                    ->default(0.00),
+
+                                TextInput::make('rounding_amount')
+                                    ->numeric()
+                                    ->prefix('RM')
+                                    ->default(0.00)
+                                    ->helperText('May be negative'),
+                            ]),
+
+                        Grid::make(4)
+                            ->schema([
                                 TextInput::make('total_amount')
                                     ->numeric()
                                     ->prefix('RM')
@@ -61,10 +79,11 @@ class InvoiceForm
                                     ->default('MYR')
                                     ->searchable()
                                     ->required(),
-                            ]),
 
-                        Grid::make(2)
-                            ->schema([
+                                Select::make('payment_method')
+                                    ->options(PaymentMethod::options())
+                                    ->searchable(),
+
                                 Select::make('source')
                                     ->options([
                                         'manual' => 'Manual Upload',
@@ -74,19 +93,19 @@ class InvoiceForm
                                     ->default('manual')
                                     ->searchable()
                                     ->required(),
-
-                                Select::make('status')
-                                    ->options([
-                                        'pending' => 'Pending Parsing',
-                                        'parsed' => 'Parsed by AI',
-                                        'reviewed' => 'Reviewed',
-                                        'requires_manual_review' => 'Requires Manual Review',
-                                        'failed' => 'Parsing Failed',
-                                    ])
-                                    ->default('pending')
-                                    ->searchable()
-                                    ->required(),
                             ]),
+
+                        Select::make('status')
+                            ->options([
+                                'pending' => 'Pending Parsing',
+                                'parsed' => 'Parsed by AI',
+                                'reviewed' => 'Reviewed',
+                                'requires_manual_review' => 'Requires Manual Review',
+                                'failed' => 'Parsing Failed',
+                            ])
+                            ->default('pending')
+                            ->searchable()
+                            ->required(),
                     ]),
 
                 Section::make('Image & Uploads')
@@ -129,8 +148,10 @@ class InvoiceForm
 
                                         TextInput::make('quantity')
                                             ->numeric()
+                                            ->step(0.001)
                                             ->default(1)
                                             ->required()
+                                            ->helperText('Supports kg / litres')
                                             ->columnSpan(1),
 
                                         TextInput::make('unit_price')

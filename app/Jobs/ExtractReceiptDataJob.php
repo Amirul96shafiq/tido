@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Enums\LabelingType;
+use App\Enums\PaymentMethod;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Labeling;
@@ -72,8 +73,11 @@ class ExtractReceiptDataJob implements ShouldQueue
 
         $invoice->subtotal = (float) ($parsed['subtotal'] ?? 0.00);
         $invoice->total_tax = (float) ($parsed['total_tax'] ?? 0.00);
+        $invoice->discount_total = (float) ($parsed['discount_total'] ?? 0.00);
+        $invoice->rounding_amount = (float) ($parsed['rounding_amount'] ?? 0.00);
         $invoice->total_amount = (float) ($parsed['total_amount'] ?? 0.00);
         $invoice->currency = $parsed['currency'] ?? 'MYR';
+        $invoice->payment_method = $this->resolvePaymentMethod($parsed['payment_method'] ?? null);
         $invoice->raw_ai_response = $parsed;
         $invoice->status = 'parsed';
         $invoice->save();
@@ -116,5 +120,16 @@ class ExtractReceiptDataJob implements ShouldQueue
             'invoice_id' => $this->invoiceId,
             'error' => $exception->getMessage(),
         ]);
+    }
+
+    protected function resolvePaymentMethod(mixed $value): ?PaymentMethod
+    {
+        if (! is_string($value) || blank($value)) {
+            return null;
+        }
+
+        $normalized = Str::lower(trim($value));
+
+        return PaymentMethod::tryFrom($normalized);
     }
 }

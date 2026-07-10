@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Enums\PaymentMethod;
 use App\Models\Invoice;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -118,6 +119,17 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                     ->money('MYR')
                     ->sortable(),
 
+                TextColumn::make('payment_method')
+                    ->badge()
+                    ->formatStateUsing(fn (?PaymentMethod $state): ?string => $state?->label())
+                    ->color(fn (?PaymentMethod $state): string => match ($state) {
+                        PaymentMethod::Mastercard, PaymentMethod::Visa => 'info',
+                        PaymentMethod::Mykasih => 'success',
+                        PaymentMethod::Cash => 'warning',
+                        default => 'gray',
+                    })
+                    ->placeholder('-'),
+
                 TextColumn::make('source')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -157,6 +169,10 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                         'whatsapp' => 'WhatsApp',
                         'google_drive' => 'Google Drive',
                     ])
+                    ->searchable(),
+
+                SelectFilter::make('payment_method')
+                    ->options(PaymentMethod::options())
                     ->searchable(),
             ]);
     }
