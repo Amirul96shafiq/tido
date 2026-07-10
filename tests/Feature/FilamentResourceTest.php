@@ -57,6 +57,8 @@ test('authenticated user can load budgets list', function () {
 });
 
 test('authenticated user can load upload page', function () {
+    expect(ReceiptUploadPage::getUrl())->toContain('/upload-receipts');
+
     $this->actingAs($this->admin)
         ->get(ReceiptUploadPage::getUrl())
         ->assertSuccessful();
