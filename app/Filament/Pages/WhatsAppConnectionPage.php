@@ -575,7 +575,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
     {
         $recipient = auth()->user();
 
-        if (! $recipient instanceof User) {
+        if (! $recipient instanceof User || ! $recipient->notify_whatsapp_connection) {
             return;
         }
 
@@ -598,7 +598,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
     {
         $recipient = auth()->user();
 
-        if (! $recipient instanceof User) {
+        if (! $recipient instanceof User || ! $recipient->notify_whatsapp_connection) {
             return;
         }
 

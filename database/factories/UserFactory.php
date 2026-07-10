@@ -39,6 +39,7 @@ class UserFactory extends Factory
             'notify_budget_alerts' => true,
             'notify_profile_updates' => true,
             'notify_email_digest' => false,
+            'notify_whatsapp_connection' => true,
         ];
     }
 
