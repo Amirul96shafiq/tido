@@ -62,7 +62,7 @@ Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`
 
 ## Config / env
 
-- `config/services.php` → `ollama.*`, `evolution.*`, `PERSONAL_WHATSAPP_NUMBER`
+- `config/services.php` → `ollama.*`, `evolution.*`, `PERSONAL_WHATSAPP_NUMBER`, `PERSONAL_WHATSAPP_EXTRA_NUMBERS`
 - `config/filesystems.php` → `google` disk
 - Setup guides: `docs/ollama-setup.md`, `docs/evolution-api-setup.md`, `docs/google-drive-setup.md`
 

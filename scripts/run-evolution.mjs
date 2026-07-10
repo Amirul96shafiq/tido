@@ -32,11 +32,27 @@ const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 console.log(`Starting Evolution API from ${evolutionPath}`);
 console.log('Using: npm run dev:server (fallback: start:prod if you change this script)');
 
+// WhatsApp Linked Devices label comes from Baileys DeviceProps:
+//   browser[0] (CLIENT) = os string shown to the user
+//   browser[1] (NAME)   = PlatformType (Chrome|Firefox|Desktop|…)
+// With NAME=Chrome, WhatsApp always prefixes "Google Chrome (…)" — so a custom
+// NAME like "tido App" is ignored (falls back to Chrome) and nothing changes.
+// Use Desktop + full label in CLIENT for "tido App (Evolution API)".
+const sessionPhoneClient =
+    process.env.CONFIG_SESSION_PHONE_CLIENT?.trim() || 'tido App (Evolution API)';
+const sessionPhoneName = process.env.CONFIG_SESSION_PHONE_NAME?.trim() || 'Desktop';
+
+console.log(`Linked device identity: browser=["${sessionPhoneClient}", "${sessionPhoneName}", …]`);
+
 const child = spawn(npmCmd, ['run', 'dev:server'], {
     cwd: evolutionPath,
     stdio: 'inherit',
     shell: process.platform === 'win32',
-    env: process.env,
+    env: {
+        ...process.env,
+        CONFIG_SESSION_PHONE_CLIENT: sessionPhoneClient,
+        CONFIG_SESSION_PHONE_NAME: sessionPhoneName,
+    },
 });
 
 child.on('error', (error) => {

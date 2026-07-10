@@ -16,6 +16,7 @@ beforeEach(function () {
     config([
         'services.evolution.api_key' => 'tido-secret-key',
         'services.evolution.personal_number' => '60123456789',
+        'services.evolution.personal_extra_numbers' => null,
     ]);
 });
 
@@ -189,7 +190,10 @@ test('whatsapp webhook imports image message and triggers queue', function () {
 });
 
 test('whatsapp webhook denies all senders when personal number is unset', function () {
-    config(['services.evolution.personal_number' => null]);
+    config([
+        'services.evolution.personal_number' => null,
+        'services.evolution.personal_extra_numbers' => null,
+    ]);
     Http::fake();
 
     $payload = [
@@ -214,4 +218,39 @@ test('whatsapp webhook denies all senders when personal number is unset', functi
         ->assertJson(['status' => 'ignored_sender']);
 
     Http::assertNothingSent();
+});
+
+test('whatsapp webhook allows extra personal numbers to interact with the bot', function () {
+    config([
+        'services.evolution.personal_number' => '60123456789',
+        'services.evolution.personal_extra_numbers' => '60111111111',
+    ]);
+
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    $payload = [
+        'event' => 'messages.upsert',
+        'data' => [
+            'key' => [
+                'remoteJid' => '60111111111@s.whatsapp.net',
+                'fromMe' => false,
+                'id' => 'MSG-EXTRA',
+            ],
+            'messageType' => 'conversation',
+            'message' => [
+                'conversation' => 'help',
+            ],
+        ],
+    ];
+
+    $this->postJson('/api/webhooks/whatsapp', $payload, [
+        'Authorization' => 'Bearer tido-secret-key',
+    ])->assertSuccessful();
+
+    Http::assertSent(function (Request $request) {
+        return str_contains($request->url(), '/message/sendText/')
+            && str_contains((string) $request['text'], 'tido Bot Help');
+    });
 });

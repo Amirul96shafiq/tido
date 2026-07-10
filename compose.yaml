@@ -93,6 +93,9 @@ services:
             - '${FORWARD_EVOLUTION_PORT:-8085}:8080'
         environment:
             AUTHENTICATION_API_KEY: '${EVOLUTION_API_KEY:-tido-secret-key}'
+            # WhatsApp Linked Devices: os=CLIENT, platform=NAME (use Desktop, not Chrome)
+            CONFIG_SESSION_PHONE_CLIENT: '${CONFIG_SESSION_PHONE_CLIENT:-tido App (Evolution API)}'
+            CONFIG_SESSION_PHONE_NAME: '${CONFIG_SESSION_PHONE_NAME:-Desktop}'
         volumes:
             - 'sail-evolution:/evolution/instances'
         networks:
