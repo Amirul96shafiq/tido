@@ -173,6 +173,12 @@ test('updating phone and preferences persists values', function () {
         ->and($user->timezone)->toBe('Asia/Singapore')
         ->and($user->locale)->toBe('en')
         ->and($user->date_format)->toBe('Y-m-d');
+
+    $notification = $user->notifications()->first();
+    expect($notification->data['body'])->toContain('WhatsApp Number')
+        ->and($notification->data['body'])->toContain('Timezone')
+        ->and($notification->data['body'])->toContain('Date format')
+        ->and($notification->data['body'])->not->toContain('Phone.');
 });
 
 test('updating profile with notify_profile_updates disabled does not trigger notification', function () {
@@ -193,4 +199,49 @@ test('updating profile with notify_profile_updates disabled does not trigger not
 
     expect($user->name)->toBe('New Name')
         ->and($user->notifications()->count())->toBe(0);
+});
+
+test('updating whatsapp connection notification preference persists value', function () {
+    $user = User::factory()->create([
+        'phone' => '60123456789',
+        'notify_whatsapp_connection' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->set('data.notify_whatsapp_connection', false)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $user->refresh();
+
+    expect($user->notify_whatsapp_connection)->toBeFalse()
+        ->and($user->phone)->toBe('60123456789')
+        ->and($user->notifications()->count())->toBe(1);
+
+    $notification = $user->notifications()->first();
+    expect($notification->data['body'])->toBe('You updated your profile settings: WhatsApp connection alerts.');
+});
+
+test('enabling whatsapp connection notification reports that change only', function () {
+    $user = User::factory()->create([
+        'phone' => '60123456789',
+        'notify_whatsapp_connection' => false,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->set('data.notify_whatsapp_connection', true)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $user->refresh();
+
+    expect($user->notify_whatsapp_connection)->toBeTrue()
+        ->and($user->notifications()->count())->toBe(1);
+
+    $notification = $user->notifications()->first();
+    expect($notification->data['body'])->toBe('You updated your profile settings: WhatsApp connection alerts.');
 });

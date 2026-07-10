@@ -311,6 +311,35 @@ test('auto-registers webhook and sends welcome when status becomes open', functi
         ->and($log->status)->toBe('open');
 });
 
+test('skips whatsapp connection database notifications when preference is disabled', function () {
+    auth()->user()->update(['notify_whatsapp_connection' => false]);
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::sequence()
+            ->push(['instance' => ['state' => 'connecting']])
+            ->push(['instance' => ['state' => 'open']])
+            ->push(['instance' => ['state' => 'close']]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+        '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
+        '*/instance/logout/*' => Http::response(['status' => 'success']),
+    ]);
+
+    $user = auth()->user();
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->call('refreshStatus')
+        ->assertSet('connectionStatus', 'open')
+        ->assertSet('welcomePingSent', true)
+        ->call('logoutSession')
+        ->assertSet('connectionStatus', 'close');
+
+    $user->refresh();
+
+    expect($user->notifications()->count())->toBe(0);
+    expect(WhatsAppConnectionLog::query()->count())->toBe(2);
+});
+
 test('welcome message and webhook are only sent once per connect session', function () {
     Http::fake([
         '*/instance/connectionState/*' => Http::sequence()
