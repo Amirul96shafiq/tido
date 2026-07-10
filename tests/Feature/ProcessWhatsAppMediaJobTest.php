@@ -57,7 +57,7 @@ test('process whatsapp media job stores receipt and sends success message', func
 
     Http::assertSent(function (Request $request): bool {
         return str_contains($request->url(), '/message/sendText/')
-            && str_contains((string) $request['text'], '*Receipt received*');
+            && str_contains((string) $request['text'], '*Document received*');
     });
 });
 
@@ -79,8 +79,8 @@ test('process whatsapp media job sends attempt 1 failure message and throws', fu
 
     Http::assertSent(function (Request $request): bool {
         return str_contains($request->url(), '/message/sendText/')
-            && str_contains((string) $request['text'], '*Receipt upload failed (attempt 1 of 3)*')
-            && str_contains((string) $request['text'], 'retry automatically in about 60 seconds');
+            && str_contains((string) $request['text'], '*Upload failed (attempt 1 of 3)*')
+            && str_contains((string) $request['text'], 'Automatic retry in about 60 seconds');
     });
 
     expect(Invoice::count())->toBe(0);
@@ -105,9 +105,9 @@ test('process whatsapp media job sends final attempt failure message', function 
 
     Http::assertSent(function (Request $request): bool {
         return str_contains($request->url(), '/message/sendText/')
-            && str_contains((string) $request['text'], '*Receipt upload failed (attempt 3 of 3)*')
+            && str_contains((string) $request['text'], '*Upload failed (attempt 3 of 3)*')
             && str_contains((string) $request['text'], 'final attempt')
-            && str_contains((string) $request['text'], 'Please send the photo again.');
+            && str_contains((string) $request['text'], 'Resend the document to try again.');
     });
 });
 

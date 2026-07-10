@@ -83,8 +83,8 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
             $this->senderNumber,
             WhatsAppMessage::compose(
                 '📥',
-                'Receipt received',
-                "Your receipt is queued for AI parsing.\n\nWe will update you shortly.",
+                'Document received',
+                "File saved and queued for AI parsing.\n\nA status update will follow once processing finishes.",
             ),
         );
 

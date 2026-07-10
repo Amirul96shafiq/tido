@@ -118,7 +118,7 @@ test('whatsapp webhook handles text queries for monthly spent', function () {
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/')
             && str_contains((string) $request['text'], 'Monthly spending')
-            && str_contains((string) $request['text'], 'Total:');
+            && str_contains((string) $request['text'], 'Total spent:');
     });
 });
 

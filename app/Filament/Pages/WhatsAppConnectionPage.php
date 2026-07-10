@@ -243,7 +243,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
                 WhatsAppMessage::compose(
                     '✅',
                     'Test ping',
-                    "Outbound WhatsApp is working.\n\nSend a receipt photo anytime to start tracking.",
+                    "Outbound WhatsApp delivery is working correctly.\n\nSend a document anytime to start tracking expenses.",
                 ),
             );
 
@@ -642,7 +642,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
             WhatsAppMessage::compose(
                 '✅',
                 'Connected',
-                "Your WhatsApp session is linked and ready.\n\nSend a receipt photo anytime to start tracking.",
+                "WhatsApp session is linked and ready for document uploads.\n\nSend a document anytime to start tracking expenses.",
             ),
         );
 

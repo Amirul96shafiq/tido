@@ -32,7 +32,7 @@ class WhatsAppPingCommand extends Command
             $message = WhatsAppMessage::compose(
                 '✅',
                 'Test ping',
-                "Outbound WhatsApp is working.\n\nSend a receipt photo anytime to start tracking.",
+                "Outbound WhatsApp delivery is working correctly.\n\nSend a document anytime to start tracking expenses.",
             );
         }
 

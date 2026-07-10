@@ -33,12 +33,12 @@ final class WhatsAppMessage
     {
         $attempt = max(1, min($attempt, $maxAttempts));
 
-        $title = sprintf('Receipt upload failed (attempt %d of %d)', $attempt, $maxAttempts);
+        $title = sprintf('Upload failed (attempt %d of %d)', $attempt, $maxAttempts);
 
         if ($attempt < $maxAttempts) {
-            $body = "We could not download the receipt image from WhatsApp.\n\nWe will retry automatically in about 60 seconds.";
+            $body = "Download failed. The file could not be retrieved from WhatsApp.\n\nAutomatic retry in about 60 seconds.";
         } else {
-            $body = "This was our final attempt and we still could not download the receipt image from WhatsApp.\n\nPlease send the photo again.";
+            $body = "Download failed after the final attempt. The file could not be retrieved from WhatsApp.\n\nResend the document to try again.";
         }
 
         return self::compose('❌', $title, $body);

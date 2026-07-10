@@ -8,28 +8,28 @@ test('compose joins header body and footer with blank lines', function () {
     $message = WhatsAppMessage::compose(
         '✅',
         'Test ping',
-        "Outbound WhatsApp is working.\n\nSend a receipt photo anytime to start tracking.",
+        "Outbound WhatsApp delivery is working correctly.\n\nSend a document anytime to start tracking expenses.",
     );
 
     expect($message)->toBe(
-        "✅ *Test ping*\n\nOutbound WhatsApp is working.\n\nSend a receipt photo anytime to start tracking.\n\n— Powered by *tido*",
+        "✅ *Test ping*\n\nOutbound WhatsApp delivery is working correctly.\n\nSend a document anytime to start tracking expenses.\n\n— Powered by *tido*",
     )
         ->and($message)->toContain("\n\n")
         ->and($message)->not->toContain('\n');
 });
 
 test('compose trims body and uses custom footer', function () {
-    $message = WhatsAppMessage::compose('🔐', 'Login code', '  Your code is: *123456*  ', 'Custom footer');
+    $message = WhatsAppMessage::compose('🔐', 'Login code', '  Code: *123456*  ', 'Custom footer');
 
-    expect($message)->toBe("🔐 *Login code*\n\nYour code is: *123456*\n\nCustom footer");
+    expect($message)->toBe("🔐 *Login code*\n\nCode: *123456*\n\nCustom footer");
 });
 
 test('receipt upload failed includes retry count for non-final attempts', function () {
     $message = WhatsAppMessage::receiptUploadFailed(1, 3);
 
     expect($message)
-        ->toContain('*Receipt upload failed (attempt 1 of 3)*')
-        ->toContain('retry automatically in about 60 seconds')
+        ->toContain('*Upload failed (attempt 1 of 3)*')
+        ->toContain('Automatic retry in about 60 seconds')
         ->not->toContain('final attempt');
 });
 
@@ -37,8 +37,8 @@ test('receipt upload failed informs user on final attempt', function () {
     $message = WhatsAppMessage::receiptUploadFailed(3, 3);
 
     expect($message)
-        ->toContain('*Receipt upload failed (attempt 3 of 3)*')
+        ->toContain('*Upload failed (attempt 3 of 3)*')
         ->toContain('final attempt')
-        ->toContain('Please send the photo again.')
-        ->not->toContain('retry automatically');
+        ->toContain('Resend the document to try again.')
+        ->not->toContain('Automatic retry');
 });
