@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Support\PhoneNumber;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
@@ -113,6 +114,90 @@ class EvolutionInstanceService
             'message' => $this->combineAuthHints($connect['message'], $create['message']),
             'raw' => null,
         ];
+    }
+
+    /**
+     * @return array{
+     *     ok: bool,
+     *     connectedNumber: string|null,
+     *     profileName: string|null,
+     *     instanceName: string|null,
+     *     instanceId: string|null,
+     *     integration: string|null,
+     *     connectionStatus: string|null,
+     *     messageCount: int|null,
+     *     contactCount: int|null,
+     *     chatCount: int|null,
+     *     updatedAt: string|null,
+     *     message: string,
+     *     raw: array<string, mixed>|null
+     * }
+     */
+    public function fetchInstanceDetails(): array
+    {
+        $empty = [
+            'ok' => false,
+            'connectedNumber' => null,
+            'profileName' => null,
+            'instanceName' => null,
+            'instanceId' => null,
+            'integration' => null,
+            'connectionStatus' => null,
+            'messageCount' => null,
+            'contactCount' => null,
+            'chatCount' => null,
+            'updatedAt' => null,
+            'message' => 'Instance details unavailable.',
+            'raw' => null,
+        ];
+
+        try {
+            $response = $this->client()
+                ->get("{$this->apiUrl}/instance/fetchInstances", [
+                    'instanceName' => $this->instanceName,
+                ])
+                ->throw()
+                ->json();
+
+            $instance = $this->firstInstanceFromFetchPayload($response);
+
+            if ($instance === null) {
+                return $empty;
+            }
+
+            $ownerJid = data_get($instance, 'ownerJid');
+            $numberFromOwner = is_string($ownerJid) && $ownerJid !== ''
+                ? explode('@', $ownerJid)[0]
+                : null;
+            $explicitNumber = data_get($instance, 'number');
+
+            $connectedNumber = PhoneNumber::normalize(
+                is_string($explicitNumber) && $explicitNumber !== ''
+                    ? $explicitNumber
+                    : (is_string($numberFromOwner) ? $numberFromOwner : null),
+            );
+
+            return [
+                'ok' => true,
+                'connectedNumber' => $connectedNumber,
+                'profileName' => $this->nullableString(data_get($instance, 'profileName')),
+                'instanceName' => $this->nullableString(data_get($instance, 'name') ?? $this->instanceName),
+                'instanceId' => $this->nullableString(data_get($instance, 'id')),
+                'integration' => $this->nullableString(data_get($instance, 'integration')),
+                'connectionStatus' => $this->nullableString(data_get($instance, 'connectionStatus')),
+                'messageCount' => $this->nullableInt(data_get($instance, '_count.Message')),
+                'contactCount' => $this->nullableInt(data_get($instance, '_count.Contact')),
+                'chatCount' => $this->nullableInt(data_get($instance, '_count.Chat')),
+                'updatedAt' => $this->nullableString(data_get($instance, 'updatedAt')),
+                'message' => 'Instance details loaded.',
+                'raw' => $instance,
+            ];
+        } catch (\Throwable $e) {
+            return [
+                ...$empty,
+                'message' => $this->friendlyError($e),
+            ];
+        }
     }
 
     /**
@@ -337,5 +422,53 @@ class EvolutionInstanceService
         }
 
         return $e->getMessage();
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function firstInstanceFromFetchPayload(mixed $payload): ?array
+    {
+        if (! is_array($payload) || $payload === []) {
+            return null;
+        }
+
+        if (array_is_list($payload)) {
+            $first = $payload[0] ?? null;
+
+            return is_array($first) ? $first : null;
+        }
+
+        $nested = data_get($payload, 'instance');
+
+        if (is_array($nested)) {
+            return $nested;
+        }
+
+        return $payload;
+    }
+
+    private function nullableString(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+
+        return $trimmed !== '' ? $trimmed : null;
+    }
+
+    private function nullableInt(mixed $value): ?int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_string($value) && is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return null;
     }
 }

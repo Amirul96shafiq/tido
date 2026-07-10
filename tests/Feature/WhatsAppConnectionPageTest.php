@@ -11,6 +11,29 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
+/**
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function fakeConnectedInstance(array $overrides = []): array
+{
+    return array_merge([
+        'id' => 'instance-uuid-tido',
+        'name' => 'tido',
+        'connectionStatus' => 'open',
+        'ownerJid' => '601115666887@s.whatsapp.net',
+        'profileName' => 'tido Bot',
+        'integration' => 'WHATSAPP-BAILEYS',
+        'number' => null,
+        'updatedAt' => '2026-07-10T07:46:09.433Z',
+        '_count' => [
+            'Message' => 12,
+            'Contact' => 4,
+            'Chat' => 3,
+        ],
+    ], $overrides);
+}
+
 beforeEach(function () {
     config([
         'app.url' => 'http://127.0.0.1:2000',
@@ -18,6 +41,8 @@ beforeEach(function () {
         'services.evolution.api_key' => 'tido-secret-key',
         'services.evolution.instance_name' => 'tido',
         'services.evolution.personal_number' => '60123456789',
+        'services.evolution.personal_extra_numbers' => '60111111111',
+        'services.evolution.device_label' => 'tido App (Evolution API)',
     ]);
 
     $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
@@ -34,6 +59,7 @@ test('whatsapp connection page loads for authenticated user', function () {
         '*/instance/connectionState/*' => Http::response([
             'instance' => ['state' => 'close'],
         ]),
+        '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
     Livewire::test(WhatsAppConnectionPage::class)
@@ -45,20 +71,38 @@ test('whatsapp connection page loads for authenticated user', function () {
         ->assertSee('Not connected');
 });
 
-test('connected status hides generate qr and shows logout', function () {
+test('connected status shows linked number and instance details', function () {
     Http::fake([
         '*/instance/connectionState/*' => Http::response([
             'instance' => ['state' => 'open'],
         ]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
     ]);
 
     Livewire::test(WhatsAppConnectionPage::class)
         ->assertSet('connectionStatus', 'open')
+        ->assertSet('connectedNumber', '601115666887')
+        ->assertSet('connectedProfileName', 'tido Bot')
+        ->assertSet('connectedInstanceId', 'instance-uuid-tido')
+        ->assertSet('connectedIntegration', 'WHATSAPP-BAILEYS')
+        ->assertSet('connectedMessageCount', 12)
+        ->assertSee('Connected number')
+        ->assertSee('601115666887')
+        ->assertSee('tido Bot')
+        ->assertSee('Bot allowlist')
+        ->assertSee('60123456789')
+        ->assertSee('60111111111')
+        ->assertSee('View details')
+        ->assertSee('Connection details')
+        ->assertSee('tido App (Evolution API)')
+        ->assertSee('instance-uuid-tido')
         ->assertActionVisible('refreshStatus')
         ->assertActionHidden('generateQr')
         ->assertActionVisible('logoutSession')
         ->assertActionVisible('registerWebhook')
         ->assertActionVisible('sendPing');
+
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/fetchInstances'));
 });
 
 test('generate qr prefers connect for a fresh code when instance exists', function () {
@@ -70,6 +114,7 @@ test('generate qr prefers connect for a fresh code when instance exists', functi
             'base64' => 'BBB',
             'instance' => ['state' => 'connecting'],
         ]),
+        '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
     Livewire::test(WhatsAppConnectionPage::class)
@@ -101,6 +146,7 @@ test('generate qr creates baileys instance when connect fails', function () {
                 'base64' => 'data:image/png;base64,AAA',
             ],
         ]),
+        '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
     Livewire::test(WhatsAppConnectionPage::class)
@@ -122,6 +168,7 @@ test('logout session calls evolution logout endpoint', function () {
             'instance' => ['state' => 'close'],
         ]),
         '*/instance/logout/*' => Http::response(['status' => 'success']),
+        '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
     Livewire::test(WhatsAppConnectionPage::class)
@@ -138,6 +185,7 @@ test('register webhook posts nested webhook payload', function () {
         '*/instance/connectionState/*' => Http::response([
             'instance' => ['state' => 'open'],
         ]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
     ]);
 
@@ -157,6 +205,7 @@ test('send ping uses personal whatsapp number', function () {
         '*/instance/connectionState/*' => Http::response([
             'instance' => ['state' => 'open'],
         ]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
 
@@ -175,6 +224,7 @@ test('does not auto-send welcome or webhook when page loads already connected', 
         '*/instance/connectionState/*' => Http::response([
             'instance' => ['state' => 'open'],
         ]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
         '*/message/sendText/*' => Http::response(['status' => 'success']),
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
     ]);
@@ -183,6 +233,7 @@ test('does not auto-send welcome or webhook when page loads already connected', 
 
     Livewire::test(WhatsAppConnectionPage::class)
         ->assertSet('connectionStatus', 'open')
+        ->assertSet('connectedNumber', '601115666887')
         ->assertSet('welcomePingSent', false)
         ->assertSet('webhookRegistered', false);
 
@@ -196,6 +247,7 @@ test('auto-registers webhook and sends welcome when status becomes open', functi
         '*/instance/connectionState/*' => Http::sequence()
             ->push(['instance' => ['state' => 'connecting']])
             ->push(['instance' => ['state' => 'open']]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
         '*/message/sendText/*' => Http::response(['status' => 'success']),
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
     ]);
@@ -206,6 +258,7 @@ test('auto-registers webhook and sends welcome when status becomes open', functi
         ->assertSet('connectionStatus', 'connecting')
         ->call('refreshStatus')
         ->assertSet('connectionStatus', 'open')
+        ->assertSet('connectedNumber', '601115666887')
         ->assertSet('welcomePingSent', true)
         ->assertSet('webhookRegistered', true)
         ->assertNotified();
@@ -235,6 +288,7 @@ test('welcome message and webhook are only sent once per connect session', funct
             ->push(['instance' => ['state' => 'connecting']])
             ->push(['instance' => ['state' => 'open']])
             ->push(['instance' => ['state' => 'open']]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
         '*/message/sendText/*' => Http::response(['status' => 'success']),
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
     ]);
@@ -266,6 +320,7 @@ test('logout resets connect flags and stores disconnected database notification'
             ->push(['instance' => ['state' => 'connecting']])
             ->push(['instance' => ['state' => 'open']])
             ->push(['instance' => ['state' => 'close']]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
         '*/message/sendText/*' => Http::response(['status' => 'success']),
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
         '*/instance/logout/*' => Http::response(['status' => 'success']),
@@ -277,9 +332,11 @@ test('logout resets connect flags and stores disconnected database notification'
         ->call('refreshStatus')
         ->assertSet('welcomePingSent', true)
         ->assertSet('webhookRegistered', true)
+        ->assertSet('connectedNumber', '601115666887')
         ->call('logoutSession')
         ->assertSet('welcomePingSent', false)
         ->assertSet('webhookRegistered', false)
+        ->assertSet('connectedNumber', null)
         ->assertNotified();
 
     $user->refresh();

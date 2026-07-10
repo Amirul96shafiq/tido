@@ -137,7 +137,7 @@
                         />
                     </div>
                 @elseif ($this->isConnectionOpen())
-                    <div class="flex w-full max-w-sm flex-col items-center px-4 py-6 text-center">
+                    <div class="flex w-full max-w-md flex-col items-center px-4 py-6 text-center">
                         <div class="relative mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-success-500/10">
                             <span
                                 class="pointer-events-none absolute inset-0 rounded-full border-2 border-success-500/30"
@@ -156,6 +156,79 @@
                         <p class="mt-4 text-sm leading-6 text-gray-500 dark:text-gray-400">
                             Your WhatsApp instance is linked and ready. The webhook is registered automatically — send a test ping anytime to confirm outbound messages.
                         </p>
+
+                        <dl class="mt-6 w-full divide-y divide-gray-200 rounded-xl border border-gray-200 text-left text-sm dark:divide-zinc-700 dark:border-zinc-700">
+                            <div class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                                <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Connected number</dt>
+                                <dd class="font-mono text-gray-950 dark:text-white">
+                                    {{ $connectedNumber ?? 'Unknown — refresh status' }}
+                                </dd>
+                            </div>
+
+                            @if (filled($connectedProfileName))
+                                <div class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                                    <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Profile</dt>
+                                    <dd class="text-gray-950 dark:text-white">
+                                        {{ $connectedProfileName }}
+                                    </dd>
+                                </div>
+                            @endif
+
+                            <div class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                                <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Bot allowlist</dt>
+                                <dd class="font-mono text-gray-950 dark:text-white">
+                                    @forelse ($this->allowedSenderNumbers() as $allowedNumber)
+                                        <span @class(['block' => ! $loop->first])>{{ $allowedNumber }}</span>
+                                    @empty
+                                        <span class="font-sans text-warning-600 dark:text-warning-400">Not set — set PERSONAL_WHATSAPP_NUMBER</span>
+                                    @endforelse
+                                </dd>
+                            </div>
+                        </dl>
+
+                        <div class="mt-5">
+                            <div class="fi-wa-connection-details">
+                                <x-filament::modal
+                                    id="whatsapp-connection-details"
+                                    width="md"
+                                    slide-over
+                                    sticky-header
+                                    teleport="body"
+                                    :close-button="true"
+                                    class="fi-wa-connection-details"
+                                >
+                                    <x-slot name="trigger">
+                                        <x-filament::button color="gray" size="sm" type="button">
+                                            View details
+                                        </x-filament::button>
+                                    </x-slot>
+
+                                    <x-slot name="header">
+                                        <div>
+                                            <h2 class="fi-modal-heading">
+                                                Connection details
+                                            </h2>
+                                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                                Full Evolution instance information for this linked WhatsApp session.
+                                            </p>
+                                        </div>
+                                    </x-slot>
+
+                                    @include('filament.pages.partials.whatsapp-connection-details', [
+                                        'connectedNumber' => $connectedNumber,
+                                        'connectedProfileName' => $connectedProfileName,
+                                        'connectedIntegration' => $connectedIntegration,
+                                        'connectedInstanceId' => $connectedInstanceId,
+                                        'connectedMessageCount' => $connectedMessageCount,
+                                        'connectedContactCount' => $connectedContactCount,
+                                        'connectedChatCount' => $connectedChatCount,
+                                        'connectedUpdatedAt' => $connectedUpdatedAt,
+                                        'deviceLabel' => $this->configuredDeviceLabel(),
+                                        'allowedSenderNumbers' => $this->allowedSenderNumbers(),
+                                    ])
+                                </x-filament::modal>
+                            </div>
+                        </div>
                     </div>
 
                     <style>
