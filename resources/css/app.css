@@ -282,6 +282,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     width: 2.5rem;
     height: 2.5rem;
     margin-inline: 0;
+    cursor: default;
 }
 
 .fi-sidebar-item-btn > .fi-icon,
