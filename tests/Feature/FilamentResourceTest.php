@@ -39,6 +39,8 @@ test('authenticated user can access dashboard', function () {
 });
 
 test('authenticated user can load labelings list', function () {
+    expect(LabelingResource::getUrl('index'))->toEndWith('/admin/labels');
+
     $this->actingAs($this->admin)
         ->get(LabelingResource::getUrl('index'))
         ->assertSuccessful();

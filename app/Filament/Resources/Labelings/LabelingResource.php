@@ -20,6 +20,8 @@ class LabelingResource extends Resource
 {
     protected static ?string $model = Labeling::class;
 
+    protected static ?string $slug = 'labels';
+
     protected static ?string $navigationLabel = 'Labels';
 
     protected static ?string $modelLabel = 'Label';
