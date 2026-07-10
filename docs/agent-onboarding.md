@@ -79,8 +79,9 @@ Relationships: Invoice `hasMany` InvoiceItems; InvoiceItem `belongsTo` Labeling;
 
 1. Follow nested Resource layout: `Resources/{Plural}/{Singular}Resource.php` + `Schemas/` + `Tables/` + `Pages/`
 2. Forms use Filament v5 `Schema`; prefer native components
-3. Nav groups: Finances / Settings
-4. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
+3. Resource tables must include `ViewAction::make()->slideOver()` in `recordActions` (before Edit/Delete); prefer slide-over over a View page
+4. Nav groups: Finances / Settings
+5. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
 
 ### Integrations
 
