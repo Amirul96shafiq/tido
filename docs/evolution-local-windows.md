@@ -44,6 +44,10 @@ Edit Evolution’s `.env` at minimum:
 - Database provider + connection string (Postgres/MySQL)
 - Redis URL if required
 - Server port `8080` (default)
+- Linked device label (optional; `npm run evolution` defaults these):
+  - `CONFIG_SESSION_PHONE_CLIENT="tido App (Evolution API)"` — os string WhatsApp shows
+  - `CONFIG_SESSION_PHONE_NAME=Desktop` — PlatformType (`Chrome` forces a “Google Chrome (…)” prefix)
+- After changing those values: **Log out** the linked device on your phone, restart Evolution, then generate and scan a **new** QR. Existing links keep the old name.
 
 Then:
 
@@ -135,7 +139,7 @@ curl -X POST http://127.0.0.1:8080/webhook/set/tido \
   -d "{\"enabled\":true,\"url\":\"http://127.0.0.1:2000/api/webhooks/whatsapp\",\"headers\":{\"Authorization\":\"Bearer tido-secret-key\"},\"events\":[\"messages.upsert\"]}"
 ```
 
-Only `PERSONAL_WHATSAPP_NUMBER` is allowlisted for bot replies. Self-chat (“Message yourself”) is supported when the JID matches that number.
+Only `PERSONAL_WHATSAPP_NUMBER` plus optional `PERSONAL_WHATSAPP_EXTRA_NUMBERS` are allowlisted for bot replies. Self-chat (“Message yourself”) is supported when the JID matches an allowlisted number. Extra numbers cannot OTP-login or access the panel.
 
 OTP login only needs outbound `sendText`; webhook is for inbound receipts/commands.
 

@@ -45,7 +45,11 @@ return [
         'api_url' => env('EVOLUTION_API_URL', 'http://evolution-api:8080'),
         'api_key' => env('EVOLUTION_API_KEY', 'tido-secret-key'),
         'instance_name' => env('EVOLUTION_INSTANCE_NAME', 'tido'),
+        // Primary: panel access, OTP, outbound alerts/ping (single number).
         'personal_number' => env('PERSONAL_WHATSAPP_NUMBER'),
+        // Extra senders allowed to talk to the bot / upload receipts (comma/space/semicolon separated).
+        // Does not grant panel or OTP login.
+        'personal_extra_numbers' => env('PERSONAL_WHATSAPP_EXTRA_NUMBERS'),
     ],
 
 ];

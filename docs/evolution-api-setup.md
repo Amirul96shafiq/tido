@@ -50,6 +50,8 @@ Or use Evolution’s Swagger UI / paste the base64 into a browser address bar.
 3. Open WhatsApp on your personal phone -> **Linked Devices** -> **Link a Device**.
 4. Scan the QR code. Once paired, your status will show as `CONNECTED`.
 
+Linked device name defaults to **tido App (Evolution API)** via `CONFIG_SESSION_PHONE_CLIENT` + `CONFIG_SESSION_PHONE_NAME=Desktop` (Sail `compose.yaml` / `npm run evolution`). Do **not** set `NAME=Chrome` if you want to avoid the “Google Chrome (…)” prefix. Re-pair (logout + new QR) after changing those values.
+
 ---
 
 ## Step 4: Register Webhook
@@ -81,6 +83,7 @@ EVOLUTION_API_URL=http://evolution-api:8080
 EVOLUTION_API_KEY=tido-secret-key
 EVOLUTION_INSTANCE_NAME=tido
 PERSONAL_WHATSAPP_NUMBER=60123456789
+PERSONAL_WHATSAPP_EXTRA_NUMBERS=
 ```
 
 `PERSONAL_WHATSAPP_NUMBER` must be digits only (Malaysia E.164 without `+`, e.g. `6012…`). Use the same value for:
@@ -88,7 +91,11 @@ PERSONAL_WHATSAPP_NUMBER=60123456789
 - Budget alert WhatsApp destination
 - Admin `User.phone` (seeded from this env when present)
 - Panel access allowlist (`User::canAccessPanel`)
-- **WhatsApp webhook sender allowlist** — only this number can trigger bot replies / receipt import. Strangers get no auto-reply. Self-chat (“Message yourself”) is allowed when `remoteJid` matches this number (even if `fromMe` is true).
+- OTP login destination
+
+Optional `PERSONAL_WHATSAPP_EXTRA_NUMBERS` (comma/space/semicolon separated) adds more senders that may trigger **bot replies / receipt import** only. Extra numbers do **not** grant panel or OTP login.
+
+**WhatsApp webhook sender allowlist** — primary + extras. Strangers get no auto-reply. Self-chat (“Message yourself”) is allowed when `remoteJid` matches an allowlisted number (even if `fromMe` is true).
 
 ### Login OTP
 

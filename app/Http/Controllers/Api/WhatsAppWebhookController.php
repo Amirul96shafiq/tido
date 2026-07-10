@@ -70,21 +70,12 @@ class WhatsAppWebhookController extends Controller
     }
 
     /**
-     * Only PERSONAL_WHATSAPP_NUMBER may trigger bot replies / receipt import.
+     * PERSONAL_WHATSAPP_NUMBER plus PERSONAL_WHATSAPP_EXTRA_NUMBERS may trigger
+     * bot replies / receipt import. Panel/OTP stay on the primary number only.
      */
     protected function isAllowedSender(string $senderNumber): bool
     {
-        $allowed = PhoneNumber::normalize(
-            is_string(config('services.evolution.personal_number'))
-                ? config('services.evolution.personal_number')
-                : null,
-        );
-
-        if ($allowed === null) {
-            return false;
-        }
-
-        return PhoneNumber::normalize($senderNumber) === $allowed;
+        return PhoneNumber::isAllowedWhatsAppSender($senderNumber);
     }
 
     protected function handleImageMessage(array $data, string $senderNumber, WhatsAppNotificationService $waService): JsonResponse
