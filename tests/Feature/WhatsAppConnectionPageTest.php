@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Enums\WhatsAppConnectionEvent;
 use App\Filament\Pages\WhatsAppConnectionPage;
 use App\Models\User;
+use App\Models\WhatsAppConnectionLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -68,7 +70,9 @@ test('whatsapp connection page loads for authenticated user', function () {
         ->assertActionVisible('refreshStatus')
         ->assertActionVisible('generateQr')
         ->assertActionHidden('logoutSession')
-        ->assertSee('Not connected');
+        ->assertSee('Not connected')
+        ->assertSee('Connection history')
+        ->assertSee('No connection events yet');
 });
 
 test('connected status shows linked number and instance details', function () {
@@ -280,6 +284,14 @@ test('auto-registers webhook and sends welcome when status becomes open', functi
     $notification = $user->notifications()->first();
     expect($notification->data['title'])->toBe('WhatsApp connected')
         ->and($notification->data['actions'][0]['url'])->toBe(WhatsAppConnectionPage::getUrl());
+
+    expect(WhatsAppConnectionLog::query()->count())->toBe(1);
+
+    $log = WhatsAppConnectionLog::query()->first();
+    expect($log->event)->toBe(WhatsAppConnectionEvent::Connected)
+        ->and($log->connected_number)->toBe('601115666887')
+        ->and($log->profile_name)->toBe('tido Bot')
+        ->and($log->status)->toBe('open');
 });
 
 test('welcome message and webhook are only sent once per connect session', function () {
@@ -312,6 +324,40 @@ test('welcome message and webhook are only sent once per connect session', funct
             ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), '/webhook/set/'))
             ->count()
     )->toBe(1);
+
+    expect(WhatsAppConnectionLog::query()->where('event', WhatsAppConnectionEvent::Connected)->count())->toBe(1);
+});
+
+test('refresh status logs disconnected when session closes', function () {
+    Http::fake([
+        '*/instance/connectionState/*' => Http::sequence()
+            ->push(['instance' => ['state' => 'connecting']])
+            ->push(['instance' => ['state' => 'open']])
+            ->push(['instance' => ['state' => 'close']]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+        '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->call('refreshStatus')
+        ->assertSet('connectionStatus', 'open')
+        ->call('refreshStatus')
+        ->assertSet('connectionStatus', 'close')
+        ->assertSee('Disconnected');
+
+    expect(WhatsAppConnectionLog::query()->latest('id')->pluck('event')->all())
+        ->toBe([
+            WhatsAppConnectionEvent::Disconnected,
+            WhatsAppConnectionEvent::Connected,
+        ]);
+
+    $disconnected = WhatsAppConnectionLog::query()
+        ->where('event', WhatsAppConnectionEvent::Disconnected)
+        ->first();
+
+    expect($disconnected->connected_number)->toBe('601115666887')
+        ->and($disconnected->status)->toBe('close');
 });
 
 test('logout resets connect flags and stores disconnected database notification', function () {
@@ -351,4 +397,46 @@ test('logout resets connect flags and stores disconnected database notification'
         ->first(fn ($notification): bool => $notification->data['title'] === 'WhatsApp disconnected');
 
     expect($disconnected->data['actions'][0]['url'])->toBe(WhatsAppConnectionPage::getUrl());
+
+    expect(WhatsAppConnectionLog::query()->latest('id')->pluck('event')->all())
+        ->toBe([
+            WhatsAppConnectionEvent::Logout,
+            WhatsAppConnectionEvent::Connected,
+        ]);
+
+    $logout = WhatsAppConnectionLog::query()
+        ->where('event', WhatsAppConnectionEvent::Logout)
+        ->first();
+
+    expect($logout->connected_number)->toBe('601115666887')
+        ->and($logout->meta['source'] ?? null)->toBe('logout');
+});
+
+test('connection history section lists previous logs', function () {
+    $connected = WhatsAppConnectionLog::factory()->connected()->create([
+        'connected_number' => '601115666887',
+        'message' => 'WhatsApp session connected (601115666887).',
+    ]);
+    $logout = WhatsAppConnectionLog::factory()->logout()->create([
+        'connected_number' => '601115666887',
+        'message' => 'WhatsApp session logged out (601115666887).',
+    ]);
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'close'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->assertSee('Connection history')
+        ->assertCanSeeTableRecords([$connected, $logout])
+        ->searchTable('logged out')
+        ->assertCanSeeTableRecords([$logout])
+        ->assertCanNotSeeTableRecords([$connected])
+        ->searchTable(null)
+        ->filterTable('event', WhatsAppConnectionEvent::Connected->value)
+        ->assertCanSeeTableRecords([$connected])
+        ->assertCanNotSeeTableRecords([$logout]);
 });

@@ -4,17 +4,28 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Enums\WhatsAppConnectionEvent;
 use App\Models\User;
+use App\Models\WhatsAppConnectionLog;
 use App\Services\EvolutionInstanceService;
+use App\Services\WhatsAppConnectionLogService;
 use App\Services\WhatsAppNotificationService;
 use App\Support\PhoneNumber;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Support\Enums\FontFamily;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 
-class WhatsAppConnectionPage extends Page
+class WhatsAppConnectionPage extends Page implements HasTable
 {
+    use InteractsWithTable;
+
     protected string $view = 'filament.pages.whatsapp-connection';
 
     protected static ?string $slug = 'whatsapp-connection';
@@ -97,9 +108,22 @@ class WhatsAppConnectionPage extends Page
             return;
         }
 
+        $previousNumber = $this->connectedNumber;
+        $previousProfile = $this->connectedProfileName;
+        $previousInstanceId = $this->connectedInstanceId;
+
         $this->clearConnectedInstanceDetails();
 
         if ($allowConnectSideEffects && $wasOpen && $this->isConnectionClosed()) {
+            $this->logConnectionEvent(WhatsAppConnectionEvent::Disconnected, [
+                'status' => $this->connectionStatus,
+                'connected_number' => $previousNumber,
+                'profile_name' => $previousProfile,
+                'meta' => [
+                    'source' => 'page',
+                    'instance_id' => $previousInstanceId,
+                ],
+            ]);
             $this->sendDisconnectedDatabaseNotification();
         }
 
@@ -153,6 +177,9 @@ class WhatsAppConnectionPage extends Page
     {
         $evolution = app(EvolutionInstanceService::class);
         $wasOpen = $this->isConnectionOpen();
+        $connectedNumber = $this->connectedNumber;
+        $profileName = $this->connectedProfileName;
+        $connectedInstanceId = $this->connectedInstanceId;
         $result = $evolution->logoutInstance();
 
         $this->qrBase64 = null;
@@ -162,6 +189,18 @@ class WhatsAppConnectionPage extends Page
         $this->clearConnectedInstanceDetails();
         $this->refreshStatus(allowConnectSideEffects: false);
         $this->statusMessage = $result['message'];
+
+        if ($result['ok']) {
+            $this->logConnectionEvent(WhatsAppConnectionEvent::Logout, [
+                'status' => $this->connectionStatus,
+                'connected_number' => $connectedNumber,
+                'profile_name' => $profileName,
+                'meta' => [
+                    'source' => 'logout',
+                    'instance_id' => $connectedInstanceId,
+                ],
+            ]);
+        }
 
         if ($result['ok'] && $wasOpen && $this->isConnectionClosed()) {
             $this->sendDisconnectedDatabaseNotification();
@@ -311,9 +350,81 @@ class WhatsAppConnectionPage extends Page
 
     private function handleSuccessfulConnect(): void
     {
+        $this->logConnectionEvent(WhatsAppConnectionEvent::Connected, [
+            'status' => $this->connectionStatus,
+            'connected_number' => $this->connectedNumber,
+            'profile_name' => $this->connectedProfileName,
+            'meta' => [
+                'source' => 'page',
+                'instance_id' => $this->connectedInstanceId,
+            ],
+        ]);
         $this->registerWebhookOnConnect();
         $this->sendWelcomePingOnConnect();
         $this->sendConnectedDatabaseNotification();
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->query(WhatsAppConnectionLog::query())
+            ->defaultSort('created_at', 'desc')
+            ->columns([
+                TextColumn::make('created_at')
+                    ->label('When')
+                    ->dateTime()
+                    ->sortable()
+                    ->timezone(config('app.timezone')),
+
+                TextColumn::make('event')
+                    ->badge()
+                    ->formatStateUsing(fn (WhatsAppConnectionEvent $state): string => $state->label())
+                    ->color(fn (WhatsAppConnectionEvent $state): string => $state->badgeColor())
+                    ->sortable()
+                    ->searchable(),
+
+                TextColumn::make('connected_number')
+                    ->label('Number')
+                    ->placeholder('—')
+                    ->fontFamily(FontFamily::Mono)
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('profile_name')
+                    ->label('Profile')
+                    ->placeholder('—')
+                    ->toggleable()
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('message')
+                    ->placeholder('—')
+                    ->wrap()
+                    ->searchable(),
+            ])
+            ->filters([
+                SelectFilter::make('event')
+                    ->label('Event')
+                    ->options(WhatsAppConnectionEvent::options())
+                    ->searchable(),
+            ])
+            ->emptyStateHeading('No connection events yet')
+            ->emptyStateDescription('Connect, disconnect, or log out to start the history.')
+            ->paginated([10, 25, 50]);
+    }
+
+    /**
+     * @param  array{
+     *     status?: string|null,
+     *     connected_number?: string|null,
+     *     profile_name?: string|null,
+     *     message?: string|null,
+     *     meta?: array<string, mixed>|null
+     * }  $context
+     */
+    private function logConnectionEvent(WhatsAppConnectionEvent $event, array $context = []): void
+    {
+        app(WhatsAppConnectionLogService::class)->log($event, $context);
     }
 
     private function registerWebhookOnConnect(): void
