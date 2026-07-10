@@ -11,6 +11,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\ColorColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -63,6 +64,7 @@ class LabelingsTable
                     ->searchable(),
             ])
             ->recordActions([
+                ViewAction::make()->slideOver(),
                 EditAction::make(),
                 DeleteAction::make()
                     ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false)),

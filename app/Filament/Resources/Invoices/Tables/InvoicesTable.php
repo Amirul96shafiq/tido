@@ -11,6 +11,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -123,6 +124,7 @@ class InvoicesTable
                     ->searchable(),
             ])
             ->recordActions([
+                ViewAction::make()->slideOver(),
                 EditAction::make(),
                 DeleteAction::make(),
             ])

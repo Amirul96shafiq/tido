@@ -35,8 +35,11 @@ Dashboard widgets live in `app/Filament/Widgets/`. Month filtering uses `Interac
 - `relationship()` for related selects
 - Notifications on user-facing actions
 - Soft-delete aware queries (`withoutGlobalScopes` on record binding when needed)
+- Every resource table includes `ViewAction::make()->slideOver()` in `recordActions` (before Edit/Delete)
+- Prefer slide-over view modals over dedicated View pages unless a full page is explicitly needed
 
 ## Avoid
 
 - Custom Blade unless native components cannot do the job
 - Putting business logic (Ollama, Drive sync, alerts) inside Resource classes — call Services/Jobs
+- Omitting View from resource table `recordActions`
