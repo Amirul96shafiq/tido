@@ -264,4 +264,15 @@
             </div>
         </x-filament::section>
     </div>
+
+    <x-filament::section class="mt-6">
+        <x-slot name="heading">
+            Connection history
+        </x-slot>
+        <x-slot name="description">
+            Previous Evolution session events for this tido instance.
+        </x-slot>
+
+        {{ $this->table }}
+    </x-filament::section>
 </x-filament-panels::page>
