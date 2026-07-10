@@ -1,0 +1,64 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Filament\Pages\ReceiptUploadPage;
+use App\Models\Invoice;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    config([
+        'services.evolution.personal_number' => '60123456789',
+    ]);
+
+    $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
+});
+
+test('receipt upload page lists recent invoices', function () {
+    $invoice = Invoice::factory()->create([
+        'original_filename' => 'wa_receipt_preview.jpg',
+        'image_path' => 'receipts/wa_receipt_preview.jpg',
+    ]);
+
+    Livewire::test(ReceiptUploadPage::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$invoice])
+        ->assertSee('wa_receipt_preview.jpg');
+});
+
+test('filename links to file in a new tab', function () {
+    Storage::fake();
+
+    $path = 'receipts/wa_receipt_preview.jpg';
+    Storage::put($path, 'fake-image-bytes');
+
+    $invoice = Invoice::factory()->create([
+        'original_filename' => 'wa_receipt_preview.jpg',
+        'image_path' => $path,
+    ]);
+
+    $url = Storage::temporaryUrl($path, now()->addMinutes(30));
+
+    Livewire::test(ReceiptUploadPage::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$invoice])
+        ->assertSeeHtml('target="_blank"')
+        ->assertSeeHtml(e($url));
+});
+
+test('filename without file path has no link', function () {
+    $invoice = Invoice::factory()->create([
+        'original_filename' => 'missing_file.jpg',
+        'image_path' => null,
+    ]);
+
+    Livewire::test(ReceiptUploadPage::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$invoice])
+        ->assertDontSeeHtml('missing_file.jpg</a>');
+});
