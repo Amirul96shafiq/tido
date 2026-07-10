@@ -5,7 +5,7 @@
                 Connection
             </x-slot>
             <x-slot name="description">
-                Pair Evolution with your personal WhatsApp (Linked Devices). Keep Evolution running on port 8080.
+                Pair Evolution with your personal WhatsApp (Linked Devices).
             </x-slot>
 
             <dl class="grid gap-4 text-sm">
