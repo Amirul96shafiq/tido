@@ -1,6 +1,13 @@
 # WhatsApp Integration Setup Guide (Evolution API)
 
-This guide documents how to set up the Evolution API container, pair your personal WhatsApp number using a QR code scan, and register the webhook URL to enable receipt ingestion and chatbot queries.
+Choose your environment:
+
+| Setup | Guide |
+|-------|--------|
+| **Sail / Docker** (Linux or working Docker Desktop) | This document |
+| **Windows host, no Docker** | [evolution-local-windows.md](evolution-local-windows.md) |
+
+This guide documents how to set up the Evolution API **container**, pair your personal WhatsApp number using a QR code scan, and register the webhook URL to enable receipt ingestion and chatbot queries.
 
 ---
 
@@ -31,7 +38,9 @@ curl -X POST http://localhost:8085/instance/create \
   }'
 ```
 
-The response will contain a base64 encoded QR code string under the key `qrcode.code`.
+After a successful create, the response includes `qrcode.base64` (a data-URI PNG). Easiest: open tido **Settings → WhatsApp** and click **Generate / refresh QR** to display it in the admin UI.
+
+Or use Evolution’s Swagger UI / paste the base64 into a browser address bar.
 
 ---
 
@@ -85,8 +94,8 @@ PERSONAL_WHATSAPP_NUMBER=60123456789
 
 1. Pair Evolution (steps 1–4) and set `PERSONAL_WHATSAPP_NUMBER`.
 2. Ensure the admin user phone matches that number (re-seed or edit Profile).
-3. Verify delivery: `php artisan whatsapp:ping`
+3. Verify delivery: `php artisan whatsapp:ping` (or `./vendor/bin/sail artisan whatsapp:ping` under Sail)
 4. Open `/admin/login`, enter the WhatsApp number, click **Send WhatsApp code**, then enter the 6-digit code.
-5. If Evolution is down, use **Use email & password instead** on the login page.
+5. If Evolution is down, use **Sign in with email & password** on the login page.
 
 Remember-me keeps you signed in; `SESSION_LIFETIME` defaults to 7 days in `.env.example`.

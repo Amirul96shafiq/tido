@@ -1,0 +1,468 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Pages;
+
+use App\Models\User;
+use App\Services\EvolutionInstanceService;
+use App\Services\WhatsAppNotificationService;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Notifications\Notification;
+use Filament\Pages\Page;
+
+class WhatsAppConnectionPage extends Page
+{
+    protected string $view = 'filament.pages.whatsapp-connection';
+
+    protected static ?string $slug = 'whatsapp-connection';
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-qr-code';
+
+    protected static ?string $navigationLabel = 'WhatsApp Connection';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
+
+    protected static ?string $title = 'WhatsApp Connection';
+
+    protected static ?int $navigationSort = 20;
+
+    public string $connectionStatus = 'unknown';
+
+    public ?string $qrBase64 = null;
+
+    public string $statusMessage = '';
+
+    public string $webhookUrl = '';
+
+    public int $qrGeneratedAt = 0;
+
+    public bool $welcomePingSent = false;
+
+    public bool $webhookRegistered = false;
+
+    public const QR_TTL_SECONDS = 20;
+
+    public function mount(EvolutionInstanceService $evolution): void
+    {
+        $this->webhookUrl = $evolution->defaultWebhookUrl();
+        // Skip side effects when opening the page while already connected/disconnected.
+        $this->refreshStatus(allowConnectSideEffects: false);
+    }
+
+    public function refreshStatus(bool $allowConnectSideEffects = true): void
+    {
+        $evolution = app(EvolutionInstanceService::class);
+        $wasOpen = $this->isConnectionOpen();
+
+        if (! $evolution->isConfigured()) {
+            $this->connectionStatus = 'unconfigured';
+            $this->statusMessage = 'Set EVOLUTION_API_URL and EVOLUTION_API_KEY in .env, then start Evolution.';
+
+            return;
+        }
+
+        $state = $evolution->connectionState();
+        $this->connectionStatus = $state['status'];
+        $this->statusMessage = $state['message'];
+
+        if ($this->isConnectionOpen()) {
+            $this->qrBase64 = null;
+            $this->qrGeneratedAt = 0;
+            $this->statusMessage = 'WhatsApp is connected.';
+
+            if ($allowConnectSideEffects && ! $wasOpen) {
+                $this->handleSuccessfulConnect();
+            }
+
+            return;
+        }
+
+        if ($allowConnectSideEffects && $wasOpen && $this->isConnectionClosed()) {
+            $this->sendDisconnectedDatabaseNotification();
+        }
+
+        // Evolution rotates QR codes often. Refresh when this page's QR TTL elapses
+        // so WhatsApp does not reject an expired code from the UI.
+        if ($this->qrBase64 !== null && $this->qrSecondsRemaining() <= 0) {
+            $this->refreshQrQuietly();
+        }
+    }
+
+    public function generateQr(): void
+    {
+        $evolution = app(EvolutionInstanceService::class);
+        $wasOpen = $this->isConnectionOpen();
+        $result = $evolution->createOrConnect();
+
+        $this->applyQrResult($result);
+
+        if ($result['ok'] && $this->qrBase64 !== null) {
+            Notification::make()
+                ->title('Fresh QR ready — scan now')
+                ->body('WhatsApp → Linked Devices → Link a Device. Scan before the timer hits 0 — this page auto-refreshes.')
+                ->success()
+                ->send();
+
+            return;
+        }
+
+        if ($result['ok'] && $this->isConnectionOpen()) {
+            if (! $wasOpen) {
+                $this->handleSuccessfulConnect();
+            }
+
+            Notification::make()
+                ->title('Already connected')
+                ->body('No QR needed. Webhook is registered automatically; you can send a test ping.')
+                ->success()
+                ->send();
+
+            return;
+        }
+
+        Notification::make()
+            ->title('Could not get QR')
+            ->body($result['message'])
+            ->danger()
+            ->send();
+    }
+
+    public function logoutSession(): void
+    {
+        $evolution = app(EvolutionInstanceService::class);
+        $wasOpen = $this->isConnectionOpen();
+        $result = $evolution->logoutInstance();
+
+        $this->qrBase64 = null;
+        $this->qrGeneratedAt = 0;
+        $this->welcomePingSent = false;
+        $this->webhookRegistered = false;
+        $this->refreshStatus(allowConnectSideEffects: false);
+        $this->statusMessage = $result['message'];
+
+        if ($result['ok'] && $wasOpen && $this->isConnectionClosed()) {
+            $this->sendDisconnectedDatabaseNotification();
+        }
+
+        Notification::make()
+            ->title($result['ok'] ? 'Session logged out' : 'Logout failed')
+            ->body($result['message'])
+            ->{$result['ok'] ? 'success' : 'danger'}()
+            ->send();
+    }
+
+    public function registerWebhook(): void
+    {
+        $result = $this->registerWebhookQuietly(notify: true);
+
+        if ($result['ok']) {
+            $this->webhookRegistered = true;
+        }
+    }
+
+    public function sendPing(): void
+    {
+        $number = config('services.evolution.personal_number');
+
+        if (! is_string($number) || $number === '') {
+            Notification::make()
+                ->title('Missing PERSONAL_WHATSAPP_NUMBER')
+                ->body('Set PERSONAL_WHATSAPP_NUMBER in .env first.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $sent = app(WhatsAppNotificationService::class)
+            ->sendMessage(
+                $number,
+                'tido test ping ✅ Outbound WhatsApp is working. Send a receipt photo anytime to start tracking.',
+            );
+
+        Notification::make()
+            ->title($sent ? 'Ping sent' : 'Ping failed')
+            ->body($sent
+                ? 'Check WhatsApp on '.$number.'.'
+                : 'Evolution sendText failed. Is the instance connected?')
+            ->{$sent ? 'success' : 'danger'}()
+            ->send();
+    }
+
+    /**
+     * @return array<Action | ActionGroup>
+     */
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('refreshStatus')
+                ->label('Refresh status')
+                ->color('gray')
+                ->action('refreshStatus'),
+            ActionGroup::make([
+                Action::make('generateQr')
+                    ->label('Generate / Refresh QR')
+                    ->icon('heroicon-o-qr-code')
+                    ->extraAttributes(['wire:key' => 'wa-action-generate-qr'])
+                    ->visible(fn (): bool => ! $this->isConnectionOpen())
+                    ->action(function (): void {
+                        $this->generateQr();
+                    }),
+                Action::make('registerWebhook')
+                    ->label('Register Webhook')
+                    ->icon('heroicon-o-globe-alt')
+                    ->extraAttributes(['wire:key' => 'wa-action-register-webhook'])
+                    ->action(function (): void {
+                        $this->registerWebhook();
+                    }),
+                Action::make('sendPing')
+                    ->label('Send Test Ping')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->extraAttributes(['wire:key' => 'wa-action-send-ping'])
+                    ->action(function (): void {
+                        $this->sendPing();
+                    }),
+                Action::make('logoutSession')
+                    ->label('Logout Current Session')
+                    ->icon('heroicon-o-arrow-right-start-on-rectangle')
+                    ->color('danger')
+                    ->extraAttributes(['wire:key' => 'wa-action-logout-session'])
+                    ->visible(fn (): bool => $this->isConnectionOpen())
+                    ->requiresConfirmation()
+                    ->action(function (): void {
+                        $this->logoutSession();
+                    }),
+            ])
+                ->label('')
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray')
+                ->button(),
+        ];
+    }
+
+    public function isConnectionOpen(): bool
+    {
+        return in_array(strtolower($this->connectionStatus), ['open', 'connected'], true);
+    }
+
+    public function isConnectionClosed(): bool
+    {
+        return in_array(strtolower($this->connectionStatus), ['close', 'closed', 'disconnected'], true);
+    }
+
+    public function getPollingInterval(): ?string
+    {
+        if ($this->qrBase64 !== null && ! $this->isConnectionOpen()) {
+            return '5s';
+        }
+
+        return null;
+    }
+
+    public function qrAgeSeconds(): int
+    {
+        if ($this->qrGeneratedAt <= 0) {
+            return 0;
+        }
+
+        return max(0, time() - $this->qrGeneratedAt);
+    }
+
+    public function qrSecondsRemaining(): int
+    {
+        if ($this->qrGeneratedAt <= 0 || $this->qrBase64 === null) {
+            return 0;
+        }
+
+        return max(0, self::QR_TTL_SECONDS - $this->qrAgeSeconds());
+    }
+
+    public function qrProgressPercent(): int
+    {
+        if ($this->qrGeneratedAt <= 0 || $this->qrBase64 === null) {
+            return 0;
+        }
+
+        return (int) round(($this->qrSecondsRemaining() / self::QR_TTL_SECONDS) * 100);
+    }
+
+    private function handleSuccessfulConnect(): void
+    {
+        $this->registerWebhookOnConnect();
+        $this->sendWelcomePingOnConnect();
+        $this->sendConnectedDatabaseNotification();
+    }
+
+    private function registerWebhookOnConnect(): void
+    {
+        if ($this->webhookRegistered) {
+            return;
+        }
+
+        $result = $this->registerWebhookQuietly(notify: false);
+
+        if ($result['ok']) {
+            $this->webhookRegistered = true;
+            $this->statusMessage = $result['message'];
+
+            Notification::make()
+                ->title('Webhook registered')
+                ->body($result['message'])
+                ->success()
+                ->send();
+
+            return;
+        }
+
+        Notification::make()
+            ->title('Connected — webhook registration failed')
+            ->body($result['message'].' Use Register Webhook from the menu to retry.')
+            ->warning()
+            ->send();
+    }
+
+    /**
+     * @return array{ok: bool, message: string}
+     */
+    private function registerWebhookQuietly(bool $notify): array
+    {
+        $evolution = app(EvolutionInstanceService::class);
+        $result = $evolution->registerWebhook($this->webhookUrl !== '' ? $this->webhookUrl : null);
+
+        $this->statusMessage = $result['message'];
+
+        if ($notify) {
+            Notification::make()
+                ->title($result['ok'] ? 'Webhook registered' : 'Webhook failed')
+                ->body($result['message'])
+                ->{$result['ok'] ? 'success' : 'danger'}()
+                ->send();
+        }
+
+        return $result;
+    }
+
+    private function refreshQrQuietly(): void
+    {
+        $wasOpen = $this->isConnectionOpen();
+        $result = app(EvolutionInstanceService::class)->connectInstance();
+
+        if (! $result['ok']) {
+            return;
+        }
+
+        $this->applyQrResult($result, quiet: true);
+
+        if (! $wasOpen && $this->isConnectionOpen()) {
+            $this->handleSuccessfulConnect();
+        }
+    }
+
+    /**
+     * @param  array{ok: bool, status: string, qrBase64: string|null, message: string, raw: array<string, mixed>|null}  $result
+     */
+    private function applyQrResult(array $result, bool $quiet = false): void
+    {
+        $this->connectionStatus = $result['status'];
+        $this->statusMessage = $result['message'];
+
+        if ($result['qrBase64'] !== null) {
+            $this->qrBase64 = $result['qrBase64'];
+            $this->qrGeneratedAt = time();
+
+            if (! $quiet) {
+                $this->statusMessage = 'Fresh QR ready — scan before the timer expires.';
+            }
+
+            return;
+        }
+
+        if ($this->isConnectionOpen()) {
+            $this->qrBase64 = null;
+            $this->qrGeneratedAt = 0;
+            $this->statusMessage = 'WhatsApp is connected.';
+        }
+    }
+
+    private function sendConnectedDatabaseNotification(): void
+    {
+        $recipient = auth()->user();
+
+        if (! $recipient instanceof User) {
+            return;
+        }
+
+        Notification::make()
+            ->title('WhatsApp connected')
+            ->body('Your WhatsApp instance is linked and ready. You can send receipt photos anytime.')
+            ->success()
+            ->icon('heroicon-o-check-badge')
+            ->actions([
+                Action::make('openWhatsAppConnection')
+                    ->label('Open WhatsApp Connection')
+                    ->button()
+                    ->url(static::getUrl())
+                    ->markAsRead(),
+            ])
+            ->sendToDatabase($recipient);
+    }
+
+    private function sendDisconnectedDatabaseNotification(): void
+    {
+        $recipient = auth()->user();
+
+        if (! $recipient instanceof User) {
+            return;
+        }
+
+        Notification::make()
+            ->title('WhatsApp disconnected')
+            ->body('Your WhatsApp session is closed or disconnected. Generate a new QR to reconnect.')
+            ->warning()
+            ->icon('heroicon-o-qr-code')
+            ->actions([
+                Action::make('openWhatsAppConnection')
+                    ->label('Open WhatsApp Connection')
+                    ->button()
+                    ->url(static::getUrl())
+                    ->markAsRead(),
+            ])
+            ->sendToDatabase($recipient);
+    }
+
+    private function sendWelcomePingOnConnect(): void
+    {
+        if ($this->welcomePingSent) {
+            return;
+        }
+
+        $number = config('services.evolution.personal_number');
+
+        if (! is_string($number) || $number === '') {
+            Notification::make()
+                ->title('Connected — welcome ping skipped')
+                ->body('Set PERSONAL_WHATSAPP_NUMBER in .env to auto-message yourself on connect.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $this->welcomePingSent = true;
+
+        $sent = app(WhatsAppNotificationService::class)->sendMessage(
+            $number,
+            'tido WhatsApp connected ✅ You can send receipt photos here.',
+        );
+
+        Notification::make()
+            ->title($sent ? 'Connected — welcome sent' : 'Connected — welcome ping failed')
+            ->body($sent
+                ? 'Sent a confirmation to '.$number.'.'
+                : 'Instance is open, but Evolution could not send the welcome message yet.')
+            ->{$sent ? 'success' : 'warning'}()
+            ->send();
+    }
+}
