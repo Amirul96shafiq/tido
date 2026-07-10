@@ -40,7 +40,8 @@ class LabelingsTable
                     ->sortable(),
 
                 TextColumn::make('icon')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 ColorColumn::make('color'),
 
