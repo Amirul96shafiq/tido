@@ -121,13 +121,6 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
 
                 TextColumn::make('payment_method')
                     ->badge()
-                    ->formatStateUsing(fn (?PaymentMethod $state): ?string => $state?->label())
-                    ->color(fn (?PaymentMethod $state): string => match ($state) {
-                        PaymentMethod::Mastercard, PaymentMethod::Visa => 'info',
-                        PaymentMethod::Mykasih => 'success',
-                        PaymentMethod::Cash => 'warning',
-                        default => 'gray',
-                    })
                     ->placeholder('-'),
 
                 TextColumn::make('source')
@@ -172,7 +165,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                     ->searchable(),
 
                 SelectFilter::make('payment_method')
-                    ->options(PaymentMethod::options())
+                    ->options(PaymentMethod::class)
                     ->searchable(),
             ]);
     }

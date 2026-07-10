@@ -23,7 +23,7 @@ The output JSON structure MUST match this exact schema:
   "rounding_amount": "Number - rounding adjustment, may be negative (0 if none)",
   "total_amount": "Number - final total paid amount",
   "currency": "String - default is 'MYR'",
-  "payment_method": "String or null - one of: mastercard, visa, mykasih, cash, other",
+  "payment_method": "String or null - one of: mastercard, visa, mykasih, cash, pay_with_qr, touchngo, other",
   "items": [
     {
       "description": "String - line item title",
