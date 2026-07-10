@@ -73,6 +73,14 @@ class BudgetsTable
                         'yearly' => 'Yearly',
                     ])
                     ->searchable(),
+
+                SelectFilter::make('is_active')
+                    ->label('Active')
+                    ->options([
+                        '1' => 'Active',
+                        '0' => 'Inactive',
+                    ])
+                    ->searchable(),
             ])
             ->recordActions([
                 EditAction::make(),

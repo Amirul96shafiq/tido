@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\PaymentMethod;
 use App\Jobs\ExtractReceiptDataJob;
 use App\Models\Invoice;
 use App\Services\OllamaService;
@@ -58,8 +59,11 @@ test('extract receipt data job processes mock response and updates status', func
                 'date_time' => '2026-06-27 12:00:00',
                 'subtotal' => 20.00,
                 'total_tax' => 1.20,
+                'discount_total' => 0.50,
+                'rounding_amount' => -0.01,
                 'total_amount' => 21.20,
                 'currency' => 'MYR',
+                'payment_method' => 'mastercard',
                 'items' => [
                     [
                         'description' => '2-pc Chicken Meal',
@@ -84,6 +88,9 @@ test('extract receipt data job processes mock response and updates status', func
     expect($invoice->merchant_name)->toBe('KFC');
     expect($invoice->invoice_number)->toBe('INV-999');
     expect($invoice->total_amount)->toBe('21.20');
+    expect($invoice->discount_total)->toBe('0.50');
+    expect($invoice->rounding_amount)->toBe('-0.01');
+    expect($invoice->payment_method)->toBe(PaymentMethod::Mastercard);
     expect($invoice->invoiceItems)->toHaveCount(1);
     expect($invoice->invoiceItems->first()->description)->toBe('2-pc Chicken Meal');
     expect($invoice->invoiceItems->first()->labeling->name)->toBe('Food & Dining');

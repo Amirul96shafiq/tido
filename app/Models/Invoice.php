@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\PaymentMethod;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,8 +25,11 @@ class Invoice extends Model
         'date_time',
         'subtotal',
         'total_tax',
+        'discount_total',
+        'rounding_amount',
         'total_amount',
         'currency',
+        'payment_method',
         'source',
         'status',
         'google_drive_file_id',
@@ -39,7 +43,10 @@ class Invoice extends Model
         'date_time' => 'datetime',
         'subtotal' => 'decimal:2',
         'total_tax' => 'decimal:2',
+        'discount_total' => 'decimal:2',
+        'rounding_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
+        'payment_method' => PaymentMethod::class,
         'raw_ai_response' => 'array',
     ];
 
