@@ -7,6 +7,7 @@ namespace App\Filament\Pages;
 use App\Models\User;
 use App\Services\EvolutionInstanceService;
 use App\Services\WhatsAppNotificationService;
+use App\Support\PhoneNumber;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Notifications\Notification;
@@ -42,6 +43,22 @@ class WhatsAppConnectionPage extends Page
 
     public bool $webhookRegistered = false;
 
+    public ?string $connectedNumber = null;
+
+    public ?string $connectedProfileName = null;
+
+    public ?string $connectedInstanceId = null;
+
+    public ?string $connectedIntegration = null;
+
+    public ?int $connectedMessageCount = null;
+
+    public ?int $connectedContactCount = null;
+
+    public ?int $connectedChatCount = null;
+
+    public ?string $connectedUpdatedAt = null;
+
     public const QR_TTL_SECONDS = 20;
 
     public function mount(EvolutionInstanceService $evolution): void
@@ -71,6 +88,7 @@ class WhatsAppConnectionPage extends Page
             $this->qrBase64 = null;
             $this->qrGeneratedAt = 0;
             $this->statusMessage = 'WhatsApp is connected.';
+            $this->loadConnectedInstanceDetails($evolution);
 
             if ($allowConnectSideEffects && ! $wasOpen) {
                 $this->handleSuccessfulConnect();
@@ -78,6 +96,8 @@ class WhatsAppConnectionPage extends Page
 
             return;
         }
+
+        $this->clearConnectedInstanceDetails();
 
         if ($allowConnectSideEffects && $wasOpen && $this->isConnectionClosed()) {
             $this->sendDisconnectedDatabaseNotification();
@@ -139,6 +159,7 @@ class WhatsAppConnectionPage extends Page
         $this->qrGeneratedAt = 0;
         $this->welcomePingSent = false;
         $this->webhookRegistered = false;
+        $this->clearConnectedInstanceDetails();
         $this->refreshStatus(allowConnectSideEffects: false);
         $this->statusMessage = $result['message'];
 
@@ -383,7 +404,55 @@ class WhatsAppConnectionPage extends Page
             $this->qrBase64 = null;
             $this->qrGeneratedAt = 0;
             $this->statusMessage = 'WhatsApp is connected.';
+            $this->loadConnectedInstanceDetails();
         }
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function allowedSenderNumbers(): array
+    {
+        return PhoneNumber::allowedWhatsAppSenders();
+    }
+
+    public function configuredDeviceLabel(): string
+    {
+        $label = config('services.evolution.device_label');
+
+        return is_string($label) && trim($label) !== ''
+            ? trim($label)
+            : 'tido App (Evolution API)';
+    }
+
+    private function loadConnectedInstanceDetails(?EvolutionInstanceService $evolution = null): void
+    {
+        $details = ($evolution ?? app(EvolutionInstanceService::class))->fetchInstanceDetails();
+
+        if (! $details['ok']) {
+            return;
+        }
+
+        $this->connectedNumber = $details['connectedNumber'];
+        $this->connectedProfileName = $details['profileName'];
+        $this->connectedInstanceId = $details['instanceId'];
+        $this->connectedIntegration = $details['integration'];
+        $this->connectedMessageCount = $details['messageCount'];
+        $this->connectedContactCount = $details['contactCount'];
+        $this->connectedChatCount = $details['chatCount'];
+        $this->connectedUpdatedAt = $details['updatedAt'];
+    }
+
+    private function clearConnectedInstanceDetails(): void
+    {
+        $this->connectedNumber = null;
+        $this->connectedProfileName = null;
+        $this->connectedInstanceId = null;
+        $this->connectedIntegration = null;
+        $this->connectedMessageCount = null;
+        $this->connectedContactCount = null;
+        $this->connectedChatCount = null;
+        $this->connectedUpdatedAt = null;
     }
 
     private function sendConnectedDatabaseNotification(): void

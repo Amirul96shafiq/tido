@@ -50,6 +50,8 @@ return [
         // Extra senders allowed to talk to the bot / upload receipts (comma/space/semicolon separated).
         // Does not grant panel or OTP login.
         'personal_extra_numbers' => env('PERSONAL_WHATSAPP_EXTRA_NUMBERS'),
+        // Intended WhatsApp Linked Devices label (must match Evolution CONFIG_SESSION_PHONE_CLIENT).
+        'device_label' => env('CONFIG_SESSION_PHONE_CLIENT', 'tido App (Evolution API)'),
     ],
 
 ];

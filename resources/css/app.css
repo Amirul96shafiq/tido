@@ -597,6 +597,33 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     overflow-wrap: anywhere;
 }
 
+/*
+ * WhatsApp connection details slide-over: match database notifications
+ * backdrop blur and content padding so the list aligns like notification rows.
+ */
+.fi-wa-connection-details > .fi-modal-close-overlay,
+.fi-modal.fi-wa-connection-details > .fi-modal-close-overlay {
+    @apply backdrop-blur-md;
+}
+
+.fi-modal.fi-wa-connection-details .fi-modal-window-ctn > .fi-modal-window {
+    overflow-x: hidden;
+}
+
+.fi-modal.fi-wa-connection-details .fi-modal-window-ctn > .fi-modal-window .fi-modal-content {
+    margin-inline: 0;
+    padding-inline: 0;
+    padding-block: 0;
+    row-gap: 0;
+    max-width: 100%;
+    text-align: start;
+}
+
+.fi-modal.fi-wa-connection-details .fi-wa-connection-details-list {
+    min-width: 0;
+    max-width: 100%;
+}
+
 
 
 
