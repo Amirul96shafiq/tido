@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 use App\Filament\Resources\Invoices\Pages\EditInvoice;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\User;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -66,4 +68,24 @@ test('invoice edit form serves receipt image via temporary url', function () {
         ->not->toBeNull()
         ->and($fileMeta['url'])->toBe($temporaryUrl)
         ->and($fileMeta['name'])->toBe('20260708_174004.jpg');
+});
+
+test('invoice line item repeater uses description and line total as item label', function () {
+    $invoice = Invoice::factory()->create();
+    $item = InvoiceItem::factory()->for($invoice)->create([
+        'description' => 'Nasi Lemak Special',
+        'line_total' => 10.00,
+    ]);
+
+    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+        ->assertSuccessful()
+        ->assertFormFieldExists(
+            'invoiceItems',
+            function (Repeater $field) use ($item): bool {
+                expect($field->hasItemLabels())->toBeTrue();
+                expect($field->getItemLabel("record-{$item->getKey()}"))->toBe('Nasi Lemak Special (RM10.00)');
+
+                return true;
+            },
+        );
 });

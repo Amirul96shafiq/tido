@@ -134,6 +134,7 @@ class InvoiceForm
                                     ->schema([
                                         TextInput::make('description')
                                             ->required()
+                                            ->live(onBlur: true)
                                             ->columnSpan(2),
 
                                         Select::make('labeling_id')
@@ -169,6 +170,7 @@ class InvoiceForm
                                             ->numeric()
                                             ->prefix('RM')
                                             ->required()
+                                            ->live(onBlur: true)
                                             ->columnSpan(2),
 
                                         DatePicker::make('warranty_expiry_date')
@@ -178,6 +180,21 @@ class InvoiceForm
                                             ->columnSpan(2),
                                     ]),
                             ])
+                            ->itemLabel(function (array $state): ?string {
+                                $description = $state['description'] ?? null;
+
+                                if (blank($description)) {
+                                    return null;
+                                }
+
+                                $lineTotal = $state['line_total'] ?? null;
+
+                                if ($lineTotal === null || $lineTotal === '') {
+                                    return $description;
+                                }
+
+                                return sprintf('%s (RM%s)', $description, number_format((float) $lineTotal, 2));
+                            })
                             ->columns(1),
                     ]),
             ]);
