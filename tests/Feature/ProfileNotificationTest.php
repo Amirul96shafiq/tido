@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Filament\Pages\Auth\EditProfile;
 use App\Models\User;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -82,6 +83,27 @@ test('updating password triggers database notification', function () {
 
     $notification = $user->notifications()->first();
     expect($notification->data['body'])->toContain('Password');
+});
+
+test('generate strong password fills new and confirm password fields', function () {
+    $user = User::factory()->create([
+        'password' => Hash::make('password'),
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(EditProfile::class)
+        ->set('data.change_password', true)
+        ->callAction(TestAction::make('generateStrongPassword')->schemaComponent('generateStrongPasswordActions', schema: 'form'))
+        ->assertNotified('Password copied to clipboard');
+
+    $password = $component->get('data.password');
+    $passwordConfirmation = $component->get('data.passwordConfirmation');
+
+    expect($password)->toBeString()
+        ->and($password)->not->toBeEmpty()
+        ->and(strlen($password))->toBe(16)
+        ->and($passwordConfirmation)->toBe($password);
 });
 
 test('updating email triggers database notification', function () {
