@@ -26,6 +26,8 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
 
     protected string $view = 'filament.pages.receipt-upload-page';
 
+    protected static ?string $slug = 'upload-receipts';
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-up-on-square';
 
     protected static ?string $navigationLabel = 'Upload Receipts';
