@@ -135,12 +135,7 @@ class AdminPanelProvider extends PanelProvider
                                 x-transition:enter="fi-transition-enter"
                                 x-transition:enter-start="fi-transition-enter-start"
                                 x-transition:enter-end="fi-transition-enter-end"
-                                x-tooltip="{
-                                    content: @js($gitVersion),
-                                    placement: document.dir === \'rtl\' ? \'left\' : \'right\',
-                                    theme: $store.theme,
-                                }"
-                                class="flex items-center gap-2.5 px-3 py-2 text-[11px] font-mono text-gray-500 dark:text-zinc-400 bg-gray-50 dark:bg-zinc-900/40 rounded-lg border border-gray-100 dark:border-zinc-800/50 hover:bg-gray-100/50 dark:hover:bg-zinc-800/30 transition-all duration-200 select-none cursor-help"
+                                class="flex items-center gap-2.5 px-3 py-2 text-[11px] font-mono text-gray-500 dark:text-zinc-400 bg-gray-50 dark:bg-zinc-900/40 rounded-lg border border-gray-100 dark:border-zinc-800/50 hover:bg-gray-100/50 dark:hover:bg-zinc-800/30 transition-all duration-200 select-none cursor-default"
                             >
                                 <svg class="h-4 w-4 text-amber-500 dark:text-amber-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="6" y1="3" x2="6" y2="15"></line>
@@ -168,7 +163,7 @@ class AdminPanelProvider extends PanelProvider
                                         placement: document.dir === \'rtl\' ? \'left\' : \'right\',
                                         theme: $store.theme,
                                     }"
-                                    class="fi-version-icon-btn group cursor-help"
+                                    class="fi-version-icon-btn group !cursor-default"
                                 >
                                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                         <line x1="6" y1="3" x2="6" y2="15"></line>
