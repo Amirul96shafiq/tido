@@ -76,8 +76,23 @@ test('send rate-limits resends within cooldown', function () {
 
     $service->send($user);
 
-    expect(fn () => $service->send($user))
-        ->toThrow(RuntimeException::class, 'Please wait before requesting another code.');
+    expect($service->cooldownRemainingSeconds($user))->toBeGreaterThan(0)
+        ->and($service->cooldownEndsAt($user))->toBeInt()
+        ->and(fn () => $service->send($user))
+        ->toThrow(RuntimeException::class, 'Please wait');
+});
+
+test('cooldown remaining drops to zero after cache expiry', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $service = app(WhatsAppLoginOtpService::class);
+
+    $service->send($user);
+    expect($service->cooldownRemainingSeconds($user))->toBeGreaterThan(0);
+
+    Cache::flush();
+
+    expect($service->cooldownRemainingSeconds($user))->toBe(0)
+        ->and($service->cooldownEndsAt($user))->toBeNull();
 });
 
 test('send fails safely when evolution returns an error', function () {

@@ -20,6 +20,7 @@ use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
+use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\RenderHook;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
@@ -42,6 +43,10 @@ class Login extends BaseLogin
 
     #[Locked]
     public ?string $pendingPhone = null;
+
+    public ?int $otpCooldownEndsAt = null;
+
+    public ?string $lastOtpPhone = null;
 
     public function getHeading(): string|Htmlable|null
     {
@@ -152,14 +157,16 @@ class Login extends BaseLogin
             $this->getVerifyOtpFormAction(),
             $this->getPasswordSignInFormAction(),
             $this->getResendOtpFormAction(),
-            $this->getChangePhoneFormAction(),
         ];
     }
 
     protected function getSendOtpFormAction(): Action
     {
         return Action::make('sendOtp')
-            ->label('Send WhatsApp code')
+            ->label(fn (): string|HtmlString => $this->isPhoneSendOnCooldown()
+                ? $this->otpCooldownActionLabelHtml('Send code in ', 'Send WhatsApp code')
+                : 'Send WhatsApp code')
+            ->disabled(fn (): bool => $this->isPhoneSendOnCooldown())
             ->submit('sendOtp')
             ->visible(fn (): bool => $this->loginMode === 'phone');
     }
@@ -167,18 +174,14 @@ class Login extends BaseLogin
     protected function getResendOtpFormAction(): Action
     {
         return Action::make('resendOtp')
-            ->label('Resend code')
+            ->label(fn (): string|HtmlString => $this->otpCooldownRemainingSeconds() > 0
+                ? $this->otpCooldownActionLabelHtml('Resend in ', 'Resend code')
+                : 'Resend code')
             ->color('gray')
-            ->action('resendOtp')
-            ->visible(fn (): bool => $this->loginMode === 'otp');
-    }
-
-    protected function getChangePhoneFormAction(): Action
-    {
-        return Action::make('changePhone')
-            ->label('Use a different number')
-            ->color('gray')
-            ->action('showPhoneStep')
+            ->disabled(fn (): bool => $this->otpCooldownRemainingSeconds() > 0)
+            ->action(function (): void {
+                $this->resendOtp();
+            })
             ->visible(fn (): bool => $this->loginMode === 'otp');
     }
 
@@ -212,8 +215,21 @@ class Login extends BaseLogin
         return Action::make('usePasswordLogin')
             ->link()
             ->label('Sign in with email & password')
-            ->action('showPasswordStep')
+            ->action(function (): void {
+                $this->showPasswordStep();
+            })
             ->visible(fn (): bool => in_array($this->loginMode, ['phone', 'otp'], true));
+    }
+
+    public function useDifferentNumberAction(): Action
+    {
+        return Action::make('useDifferentNumber')
+            ->link()
+            ->label('Use a different number')
+            ->action(function (): void {
+                $this->showPhoneStep();
+            })
+            ->visible(fn (): bool => $this->loginMode === 'otp');
     }
 
     public function useWhatsAppLoginAction(): Action
@@ -221,7 +237,9 @@ class Login extends BaseLogin
         return Action::make('useWhatsAppLogin')
             ->link()
             ->label('Sign in with WhatsApp code')
-            ->action('showPhoneStep')
+            ->action(function (): void {
+                $this->showPhoneStep();
+            })
             ->visible(fn (): bool => $this->loginMode === 'password');
     }
 
@@ -246,16 +264,116 @@ class Login extends BaseLogin
             ->components([
                 RenderHook::make(PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE),
                 $this->getFormContentComponent(),
+                $this->getOtpCooldownHintComponent(),
                 $this->getMultiFactorChallengeFormContentComponent(),
                 Actions::make([
                     $this->usePasswordLoginAction(),
+                ])
+                    ->alignment(Alignment::Center)
+                    ->fullWidth(false)
+                    ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
+                        && in_array($this->loginMode, ['phone', 'otp'], true)),
+                Actions::make([
+                    $this->useDifferentNumberAction(),
+                ])
+                    ->alignment(Alignment::Center)
+                    ->fullWidth(false)
+                    ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
+                        && $this->loginMode === 'otp'),
+                Actions::make([
                     $this->useWhatsAppLoginAction(),
                 ])
                     ->alignment(Alignment::Center)
                     ->fullWidth(false)
-                    ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)),
+                    ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
+                        && $this->loginMode === 'password'),
                 RenderHook::make(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER),
             ]);
+    }
+
+    protected function getOtpCooldownHintComponent(): Component
+    {
+        return Html::make(fn (): HtmlString => $this->otpCooldownHintHtml())
+            ->visible(fn (): bool => $this->shouldShowOtpCooldownHint());
+    }
+
+    public function otpCooldownRemainingSeconds(): int
+    {
+        if ($this->otpCooldownEndsAt === null) {
+            return 0;
+        }
+
+        return max(0, $this->otpCooldownEndsAt - time());
+    }
+
+    public function isPhoneSendOnCooldown(): bool
+    {
+        if ($this->otpCooldownRemainingSeconds() <= 0 || blank($this->lastOtpPhone)) {
+            return false;
+        }
+
+        $enteredPhone = PhoneNumber::normalize((string) ($this->data['phone'] ?? $this->lastOtpPhone));
+
+        return $enteredPhone !== null && $enteredPhone === $this->lastOtpPhone;
+    }
+
+    public function shouldShowOtpCooldownHint(): bool
+    {
+        if ($this->otpCooldownRemainingSeconds() <= 0) {
+            return false;
+        }
+
+        return match ($this->loginMode) {
+            'otp' => true,
+            'phone' => $this->isPhoneSendOnCooldown(),
+            default => false,
+        };
+    }
+
+    public function otpCooldownHintHtml(): HtmlString
+    {
+        $endsAt = (int) ($this->otpCooldownEndsAt ?? 0);
+        $prefix = $this->loginMode === 'otp'
+            ? 'Resend available in '
+            : 'You can request another code in ';
+
+        return new HtmlString(
+            '<div'
+            .' wire:key="otp-cooldown-timer-'.$endsAt.'-'.$this->loginMode.'"'
+            .' x-data="{ endsAt: '.$endsAt.', now: Math.floor(Date.now() / 1000), get remaining() { return Math.max(0, this.endsAt - this.now); } }"'
+            .' x-init="setInterval(() => { now = Math.floor(Date.now() / 1000) }, 250)"'
+            .' x-show="remaining > 0"'
+            .' class="fi-sc-text fi-color-gray text-sm text-gray-500 dark:text-gray-400"'
+            .' style="width:100%;text-align:center;margin-top:0.5rem;"'
+            .'>'
+            .e($prefix)
+            .'<span class="font-medium tabular-nums" x-text="remaining + \'s\'"></span>'
+            .'</div>'
+        );
+    }
+
+    public function otpCooldownActionLabelHtml(string $countingPrefix, string $readyLabel): HtmlString
+    {
+        $endsAt = (int) ($this->otpCooldownEndsAt ?? 0);
+
+        return new HtmlString(
+            '<span'
+            .' wire:key="otp-cooldown-action-'.$endsAt.'-'.$this->loginMode.'"'
+            .' x-data="{ endsAt: '.$endsAt.', now: Math.floor(Date.now() / 1000), refreshed: false, get remaining() { return Math.max(0, this.endsAt - this.now); } }"'
+            .' x-init="setInterval(() => { now = Math.floor(Date.now() / 1000); if (remaining === 0 && ! refreshed) { refreshed = true; $wire.$refresh(); } }, 250)"'
+            .'>'
+            .'<span x-show="remaining > 0" x-cloak>'
+            .e($countingPrefix)
+            .'<span class="tabular-nums" x-text="remaining + \'s\'"></span>'
+            .'</span>'
+            .'<span x-show="remaining <= 0" x-cloak>'.e($readyLabel).'</span>'
+            .'</span>'
+        );
+    }
+
+    protected function syncOtpCooldownFromUser(User $user): void
+    {
+        $this->otpCooldownEndsAt = app(WhatsAppLoginOtpService::class)->cooldownEndsAt($user);
     }
 
     public function showPasswordStep(): void
@@ -274,6 +392,11 @@ class Login extends BaseLogin
         $this->data['otp'] = null;
         $this->data['email'] = null;
         $this->data['password'] = null;
+
+        if (filled($this->lastOtpPhone)) {
+            $this->data['phone'] = $this->lastOtpPhone;
+        }
+
         $this->resetErrorBag();
         $this->dispatch('$refresh');
     }
@@ -308,15 +431,21 @@ class Login extends BaseLogin
             ]);
         }
 
+        $otpService = app(WhatsAppLoginOtpService::class);
+
         try {
-            app(WhatsAppLoginOtpService::class)->send($user);
+            $otpService->send($user);
         } catch (RuntimeException $exception) {
+            $this->syncOtpCooldownFromUser($user);
+
             throw ValidationException::withMessages([
                 'data.phone' => $exception->getMessage(),
             ]);
         }
 
         $this->pendingPhone = $phone;
+        $this->lastOtpPhone = $phone;
+        $this->syncOtpCooldownFromUser($user);
         $this->loginMode = 'otp';
         $this->data['otp'] = null;
         $this->resetErrorBag();
@@ -336,8 +465,60 @@ class Login extends BaseLogin
             return;
         }
 
-        $this->data['phone'] = $this->pendingPhone;
-        $this->sendOtp();
+        try {
+            $this->rateLimit(5);
+        } catch (TooManyRequestsException $exception) {
+            $this->getRateLimitedNotification($exception)?->send();
+
+            return;
+        }
+
+        $phone = PhoneNumber::normalize($this->pendingPhone);
+
+        if ($phone === null) {
+            $this->showPhoneStep();
+
+            throw ValidationException::withMessages([
+                'data.phone' => 'Enter a valid Malaysian WhatsApp number.',
+            ]);
+        }
+
+        $user = $this->findUserByPhone($phone);
+
+        if ($user === null) {
+            throw ValidationException::withMessages([
+                'data.otp' => 'Unable to resend a login code for this number.',
+            ]);
+        }
+
+        $otpService = app(WhatsAppLoginOtpService::class);
+
+        try {
+            $otpService->send($user);
+        } catch (RuntimeException $exception) {
+            $this->syncOtpCooldownFromUser($user);
+
+            Notification::make()
+                ->title('Could not resend code')
+                ->body($exception->getMessage())
+                ->warning()
+                ->send();
+
+            throw ValidationException::withMessages([
+                'data.otp' => $exception->getMessage(),
+            ]);
+        }
+
+        $this->lastOtpPhone = $phone;
+        $this->syncOtpCooldownFromUser($user);
+        $this->data['otp'] = null;
+        $this->resetErrorBag();
+
+        Notification::make()
+            ->title('WhatsApp code resent')
+            ->body('Check WhatsApp for your new 6-digit login code.')
+            ->success()
+            ->send();
     }
 
     public function authenticate(): ?LoginResponse
@@ -432,6 +613,9 @@ class Login extends BaseLogin
         if ($user instanceof FilamentUser && ! $user->canAccessPanel(Filament::getCurrentOrDefaultPanel())) {
             $this->throwOtpFailureValidationException();
         }
+
+        $this->otpCooldownEndsAt = null;
+        $this->lastOtpPhone = null;
 
         Filament::auth()->login($user, $remember);
 
