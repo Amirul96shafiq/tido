@@ -116,7 +116,9 @@ class InvoiceForm
                             ->image()
                             ->maxSize(10240)
                             ->directory('receipts')
-                            ->visibility('public'),
+                            ->visibility('private')
+                            ->openable()
+                            ->downloadable(),
 
                         Textarea::make('notes')
                             ->rows(3),
