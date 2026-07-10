@@ -16,7 +16,7 @@ class WhatsAppLoginOtpService
 
     private const MAX_VERIFY_ATTEMPTS = 5;
 
-    private const RESEND_COOLDOWN_SECONDS = 60;
+    public const RESEND_COOLDOWN_SECONDS = 60;
 
     private const MAX_SENDS_PER_HOUR = 10;
 
@@ -36,9 +36,9 @@ class WhatsAppLoginOtpService
             throw new RuntimeException('Evolution API is not configured.');
         }
 
-        $cooldownKey = $this->cooldownKey($user);
-        if (Cache::has($cooldownKey)) {
-            throw new RuntimeException('Please wait before requesting another code.');
+        $remaining = $this->cooldownRemainingSeconds($user);
+        if ($remaining > 0) {
+            throw new RuntimeException("Please wait {$remaining}s before requesting another code.");
         }
 
         $hourlyKey = $this->hourlyKey($user);
@@ -54,7 +54,8 @@ class WhatsAppLoginOtpService
             'attempts' => 0,
         ], self::OTP_TTL_SECONDS);
 
-        Cache::put($cooldownKey, true, self::RESEND_COOLDOWN_SECONDS);
+        $endsAt = time() + self::RESEND_COOLDOWN_SECONDS;
+        Cache::put($this->cooldownKey($user), $endsAt, self::RESEND_COOLDOWN_SECONDS);
         Cache::put($hourlyKey, $hourlyCount + 1, now()->addHour());
 
         $sent = $this->whatsApp->sendMessage(
@@ -64,6 +65,7 @@ class WhatsAppLoginOtpService
 
         if (! $sent) {
             Cache::forget($this->otpKey($user));
+            Cache::forget($this->cooldownKey($user));
             Log::warning('WhatsApp login OTP send failed', ['user_id' => $user->id]);
 
             throw new RuntimeException('Failed to send WhatsApp code. Try again or use password login.');
@@ -101,6 +103,30 @@ class WhatsAppLoginOtpService
         Cache::forget($this->cooldownKey($user));
 
         return true;
+    }
+
+    public function cooldownRemainingSeconds(User $user): int
+    {
+        $endsAt = Cache::get($this->cooldownKey($user));
+
+        if (! is_int($endsAt) && ! is_numeric($endsAt)) {
+            return 0;
+        }
+
+        return max(0, (int) $endsAt - time());
+    }
+
+    public function cooldownEndsAt(User $user): ?int
+    {
+        $endsAt = Cache::get($this->cooldownKey($user));
+
+        if (! is_int($endsAt) && ! is_numeric($endsAt)) {
+            return null;
+        }
+
+        $endsAt = (int) $endsAt;
+
+        return $endsAt > time() ? $endsAt : null;
     }
 
     private function otpKey(User $user): string

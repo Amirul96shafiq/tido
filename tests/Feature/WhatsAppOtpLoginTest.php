@@ -191,3 +191,113 @@ test('otp service verify is used end to end after send', function () {
 
     $this->assertAuthenticatedAs($user);
 });
+
+test('resend otp sends a new code after cooldown clears', function () {
+    User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $component = Livewire::test(Login::class)
+        ->set('data.phone', '60123456789')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp')
+        ->assertSet('pendingPhone', '60123456789')
+        ->assertSet('lastOtpPhone', '60123456789');
+
+    expect($component->get('otpCooldownEndsAt'))->toBeInt()
+        ->and($component->instance()->otpCooldownRemainingSeconds())->toBeGreaterThan(0);
+
+    expect(
+        collect(Http::recorded())
+            ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), '/message/sendText/'))
+            ->count()
+    )->toBe(1);
+
+    Cache::flush();
+    $component->set('otpCooldownEndsAt', null);
+
+    $component
+        ->call('resendOtp')
+        ->assertHasNoErrors()
+        ->assertSet('loginMode', 'otp')
+        ->assertNotified();
+
+    expect(
+        collect(Http::recorded())
+            ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), '/message/sendText/'))
+            ->count()
+    )->toBe(2);
+});
+
+test('resend otp shows cooldown on otp field instead of silent failure', function () {
+    User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    Livewire::test(Login::class)
+        ->set('data.phone', '60123456789')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp')
+        ->call('resendOtp')
+        ->assertHasErrors(['data.otp'])
+        ->assertNotified();
+});
+
+test('otp cooldown persists when returning to phone step for same number', function () {
+    User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $component = Livewire::test(Login::class)
+        ->set('data.phone', '60123456789')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp')
+        ->assertSee('Resend available in');
+
+    $endsAt = $component->get('otpCooldownEndsAt');
+
+    $component
+        ->call('showPhoneStep')
+        ->assertSet('loginMode', 'phone')
+        ->assertSet('otpCooldownEndsAt', $endsAt)
+        ->assertSet('lastOtpPhone', '60123456789')
+        ->assertSet('data.phone', '60123456789')
+        ->assertSee('You can request another code in');
+
+    expect($component->instance()->isPhoneSendOnCooldown())->toBeTrue();
+});
+
+test('otp cooldown clears after successful authentication', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $component = Livewire::test(Login::class)
+        ->set('data.phone', '60123456789')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp');
+
+    expect($component->get('otpCooldownEndsAt'))->toBeInt();
+
+    Cache::put('wa_login_otp:'.$user->id, [
+        'hash' => hash('sha256', '222333'),
+        'attempts' => 0,
+    ], 600);
+
+    $component
+        ->set('data.otp', '222333')
+        ->call('authenticate')
+        ->assertRedirect('/admin')
+        ->assertSet('otpCooldownEndsAt', null)
+        ->assertSet('lastOtpPhone', null);
+
+    $this->assertAuthenticatedAs($user);
+});
+
+test('otp step shows different number as text link under password login', function () {
+    User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    Livewire::test(Login::class)
+        ->set('data.phone', '60123456789')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp')
+        ->assertSee('Sign in with email & password')
+        ->assertSee('Use a different number')
+        ->assertSee('Resend in')
+        ->assertDontSeeHtml('>Use a different number</button>')
+        ->call('showPhoneStep')
+        ->assertSet('loginMode', 'phone')
+        ->assertDontSee('Use a different number');
+});
