@@ -82,7 +82,7 @@
                 @if ($this->getPollingInterval())
                     wire:poll.{{ $this->getPollingInterval() }}="refreshStatus"
                 @endif
-                class="flex min-h-72 flex-col items-center justify-center gap-4 rounded-xl bg-white p-6 dark:bg-zinc-900"
+                class="flex min-h-72 flex-col items-center justify-center gap-4 rounded-xl bg-white p-6 dark:bg-slate-800"
             >
                 @if (filled($qrBase64) && ! $this->isConnectionOpen())
                     <div
@@ -120,7 +120,7 @@
                             ></p>
                         </div>
 
-                        <div class="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-zinc-700">
+                        <div class="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
                             <div
                                 class="h-full rounded-full transition-[width] duration-200 ease-linear"
                                 :class="expired ? 'bg-danger-500' : (remaining <= 5 ? 'bg-warning-500' : 'bg-primary-500')"
@@ -131,7 +131,7 @@
                         <img
                             src="{{ $qrBase64 }}"
                             alt="WhatsApp QR code"
-                            class="h-64 w-64 rounded-lg border border-gray-200 object-contain dark:border-zinc-700"
+                            class="h-64 w-64 rounded-lg border border-gray-200 object-contain dark:border-slate-700"
                             :class="expired && 'opacity-40'"
                             wire:key="wa-qr-{{ md5($qrBase64) }}"
                         />
@@ -157,7 +157,7 @@
                             Your WhatsApp instance is linked and ready. The webhook is registered automatically — send a test ping anytime to confirm outbound messages.
                         </p>
 
-                        <dl class="mt-6 w-full divide-y divide-gray-200 rounded-xl border border-gray-200 text-left text-sm dark:divide-zinc-700 dark:border-zinc-700">
+                        <dl class="mt-6 w-full divide-y divide-gray-200 rounded-xl border border-gray-200 text-left text-sm dark:divide-slate-700 dark:border-slate-700">
                             <div class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
                                 <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Connected number</dt>
                                 <dd class="font-mono text-gray-950 dark:text-white">
@@ -245,7 +245,7 @@
                     </style>
                 @else
                     <div class="flex w-full max-w-sm flex-col items-center px-4 py-6 text-center">
-                        <div class="relative mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-gray-500/10 dark:bg-zinc-500/10">
+                        <div class="relative mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-gray-500/10 dark:bg-slate-500/10">
                             <x-filament::icon
                                 icon="heroicon-o-qr-code"
                                 class="relative h-10 w-10 text-gray-400 dark:text-gray-500"

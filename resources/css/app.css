@@ -44,15 +44,24 @@
 }
 
 .dark .custom-scrollbar {
-    scrollbar-color: rgba(63, 63, 70, 0.5) transparent;
+    scrollbar-color: rgba(51, 65, 85, 0.5) transparent;
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgba(63, 63, 70, 0.5);
+    background-color: rgba(51, 65, 85, 0.5);
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(82, 82, 91, 0.7);
+    background-color: rgba(71, 85, 105, 0.7);
+}
+
+/* Tippy default (dark) theme — lighter than slate-800 chrome */
+.tippy-box:not([data-theme~='light']) {
+    background-color: var(--color-slate-700);
+}
+
+.tippy-box:not([data-theme~='light']) > .tippy-arrow {
+    color: var(--color-slate-700);
 }
 
 /* Sidebar visual separation line */
@@ -62,8 +71,8 @@
 }
 
 .dark .fi-sidebar {
-    border-inline-end: 1px solid color-mix(in srgb, var(--color-zinc-800) 60%, transparent) !important;
-    background-color: var(--color-zinc-900) !important;
+    border-inline-end: 1px solid color-mix(in srgb, var(--color-slate-700) 60%, transparent) !important;
+    background-color: var(--color-slate-800) !important;
 }
 
 /* Collapsed nav: left-aligned icon rail with equal horizontal padding */
@@ -84,8 +93,8 @@
 }
 
 .dark .fi-topbar {
-    background-color: var(--color-zinc-900) !important;
-    border-bottom: 1px solid color-mix(in srgb, var(--color-zinc-800) 60%, transparent) !important;
+    background-color: var(--color-slate-800) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-slate-700) 60%, transparent) !important;
     box-shadow: none !important;
 }
 
@@ -95,7 +104,7 @@
 }
 
 .dark .fi-body {
-    background-color: var(--color-zinc-900) !important;
+    background-color: var(--color-slate-800) !important;
 }
 
 /* Keep logo in sidebar when expanded; show a single themed logo in topbar when collapsed */
@@ -173,7 +182,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .dark .fi-sidebar-header {
-    border-bottom: 1px solid color-mix(in srgb, var(--color-zinc-800) 60%, transparent) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-slate-700) 60%, transparent) !important;
 }
 
 .fi-sidebar-header-logo-ctn {
@@ -267,7 +276,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .dark .fi-sidebar-version-footer {
-    border-top-color: color-mix(in srgb, var(--color-zinc-800) 60%, transparent);
+    border-top-color: color-mix(in srgb, var(--color-slate-700) 60%, transparent);
 }
 
 .fi-sidebar-version-collapsed {
@@ -414,11 +423,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
 /* Version-icon style — shared interactive icon treatment */
 .fi-version-icon-btn {
-    @apply relative flex items-center justify-center rounded-lg text-gray-500 dark:text-zinc-400 transition-all duration-200 select-none;
+    @apply relative flex items-center justify-center rounded-lg text-gray-500 dark:text-slate-400 transition-all duration-200 select-none;
 }
 
 .fi-version-icon-btn:not(.fi-icon-btn) {
-    @apply size-10 cursor-pointer hover:text-amber-500 dark:hover:text-amber-400 hover:bg-gray-100 dark:hover:bg-zinc-800/60;
+    @apply size-10 cursor-pointer hover:text-amber-500 dark:hover:text-amber-400 hover:bg-gray-100 dark:hover:bg-slate-700/60;
 }
 
 .fi-version-icon-btn.fi-icon-btn {
@@ -426,7 +435,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .fi-version-icon-btn.fi-icon-btn:not(.fi-disabled):not([disabled]) {
-    @apply hover:text-amber-500 dark:hover:text-amber-400 hover:bg-gray-100 dark:hover:bg-zinc-800/60 focus-visible:ring-0;
+    @apply hover:text-amber-500 dark:hover:text-amber-400 hover:bg-gray-100 dark:hover:bg-slate-700/60 focus-visible:ring-0;
 }
 
 .fi-version-icon-btn .fi-icon {
@@ -436,7 +445,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 /* Sidebar navigation icons */
 .fi-sidebar-group-btn > .fi-icon,
 .fi-sidebar-item-btn > .fi-icon {
-    @apply text-gray-500 dark:text-zinc-400 transition-all duration-200;
+    @apply text-gray-500 dark:text-slate-400 transition-all duration-200;
 }
 
 .fi-sidebar-group-btn:hover > .fi-icon,
@@ -457,11 +466,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .fi-sidebar-item.fi-sidebar-item-has-url > .fi-sidebar-item-btn:hover {
-    @apply bg-gray-100 dark:bg-zinc-800/60;
+    @apply bg-gray-100 dark:bg-slate-700/60;
 }
 
 .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
-    @apply bg-gray-100 dark:bg-zinc-800/60;
+    @apply bg-gray-100 dark:bg-slate-700/60;
 }
 
 .fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-sidebar-item-label {
@@ -502,7 +511,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .fi-topbar .fi-user-menu-trigger {
-    @apply flex size-10 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-zinc-800/60;
+    @apply flex size-10 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60;
 }
 
 .fi-user-menu-profile-preview {

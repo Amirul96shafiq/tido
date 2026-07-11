@@ -108,7 +108,7 @@
         </div>
         
         {{-- Content - Scrollable --}}
-        <div class="overflow-y-auto px-6 py-4 flex-1 bg-white dark:bg-gray-900">
+        <div class="overflow-y-auto px-6 py-4 flex-1 bg-white dark:bg-gray-900 custom-scrollbar">
 
             {{-- Loading State --}}
             <div x-show="loading" class="flex flex-col items-center justify-center h-full min-h-[50vh] space-y-6">
