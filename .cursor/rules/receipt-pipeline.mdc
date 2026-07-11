@@ -22,7 +22,7 @@ Sources: `manual` | `whatsapp` | `google_drive`
 - POST with `"format": "json"`
 - Strip markdown fences with regex before `json_decode` (`OllamaService::cleanAndDecodeJson`)
 - Prompt/schema lives in `app/Prompts/ReceiptExtractionPrompt.php`
-- Map AI `suggested_category` slug → `Labeling` where `type = Finance`
+- Map AI `suggested_category` slug → `Label` where `type = Finance`
 
 ## Duplicate detection
 

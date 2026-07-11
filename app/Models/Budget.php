@@ -16,7 +16,7 @@ class Budget extends Model
     use HasFactory, LogsActivity;
 
     protected $fillable = [
-        'labeling_id',
+        'label_id',
         'amount',
         'period',
         'quarter',
@@ -33,9 +33,9 @@ class Budget extends Model
         'is_active' => 'boolean',
     ];
 
-    public function labeling(): BelongsTo
+    public function label(): BelongsTo
     {
-        return $this->belongsTo(Labeling::class);
+        return $this->belongsTo(Label::class);
     }
 
     public function getStartDate(?Carbon $reference = null): Carbon

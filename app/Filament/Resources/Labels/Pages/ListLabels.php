@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Resources\Labelings\Pages;
+namespace App\Filament\Resources\Labels\Pages;
 
-use App\Filament\Resources\Labelings\LabelingResource;
+use App\Filament\Resources\Labels\LabelResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
-class ListLabelings extends ListRecords
+class ListLabels extends ListRecords
 {
-    protected static string $resource = LabelingResource::class;
+    protected static string $resource = LabelResource::class;
 
     protected function getHeaderActions(): array
     {

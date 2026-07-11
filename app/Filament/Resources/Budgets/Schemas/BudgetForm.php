@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Budgets\Schemas;
 
-use App\Enums\LabelingType;
+use App\Enums\LabelType;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Slider;
 use Filament\Forms\Components\TextInput;
@@ -17,12 +17,12 @@ class BudgetForm
     {
         return $schema
             ->components([
-                Select::make('labeling_id')
+                Select::make('label_id')
                     ->label('Label')
                     ->relationship(
-                        name: 'labeling',
+                        name: 'label',
                         titleAttribute: 'name',
-                        modifyQueryUsing: fn ($query) => $query->where('type', LabelingType::Finance),
+                        modifyQueryUsing: fn ($query) => $query->where('type', LabelType::Finance),
                     )
                     ->placeholder('Overall (All Labels)')
                     ->searchable()

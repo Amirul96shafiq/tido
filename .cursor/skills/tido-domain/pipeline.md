@@ -11,7 +11,7 @@ InvoiceObserver::created → ExtractReceiptDataJob::dispatch(invoiceId)
         ↓
 OllamaService::parseReceipt(base64, ReceiptExtractionPrompt::get())
         ↓
-Update Invoice fields + create InvoiceItems (labeling by slug)
+Update Invoice fields + create InvoiceItems (label by slug)
 status = parsed
         ↓
 InvoiceObserver / BudgetAlertService (threshold WhatsApp + DB notifications)
@@ -23,7 +23,7 @@ InvoiceObserver / BudgetAlertService (threshold WhatsApp + DB notifications)
 - Skip if invoice missing or status ≠ `pending`
 - Missing image → `failed`
 - Empty Ollama parse → throw (retry); `failed()` → `requires_manual_review`
-- Category: match `suggested_category` to Finance `Labeling` slug; leave null if unknown
+- Category: match `suggested_category` to Finance `Label` slug; leave null if unknown
 
 ## Duplicate hash
 

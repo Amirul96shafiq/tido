@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Enums\LabelingType;
-use App\Models\Labeling;
+use App\Enums\LabelType;
+use App\Models\Label;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
-class LabelingSeeder extends Seeder
+class LabelSeeder extends Seeder
 {
     public function run(): void
     {
-        $labelings = [
+        $labels = [
             [
                 'name' => 'Food & Dining',
                 'icon' => 'heroicon-o-cake',
@@ -61,16 +61,16 @@ class LabelingSeeder extends Seeder
             ],
         ];
 
-        foreach ($labelings as $labeling) {
-            Labeling::updateOrCreate(
+        foreach ($labels as $label) {
+            Label::updateOrCreate(
                 [
-                    'type' => LabelingType::Finance,
-                    'slug' => Str::slug($labeling['name']),
+                    'type' => LabelType::Finance,
+                    'slug' => Str::slug($label['name']),
                 ],
                 [
-                    'name' => $labeling['name'],
-                    'icon' => $labeling['icon'],
-                    'color' => $labeling['color'],
+                    'name' => $label['name'],
+                    'icon' => $label['icon'],
+                    'color' => $label['color'],
                     'is_system' => true,
                 ]
             );

@@ -20,27 +20,27 @@ class BudgetStatus extends Widget
 
     protected function getViewData(): array
     {
-        $spentTotals = $this->analytics()->spentTotalsByLabelingId();
+        $spentTotals = $this->analytics()->spentTotalsByLabelId();
 
-        $budgets = Budget::with('labeling')
+        $budgets = Budget::with('label')
             ->where('is_active', true)
             ->get();
 
         $budgetStates = [];
 
         foreach ($budgets as $budget) {
-            $labelingKey = $budget->labeling_id ?? 0;
-            $spent = $spentTotals[$labelingKey] ?? 0.0;
+            $labelKey = $budget->label_id ?? 0;
+            $spent = $spentTotals[$labelKey] ?? 0.0;
             $percentage = $budget->amount > 0 ? ($spent / $budget->amount) * 100 : 0;
 
             $budgetStates[] = [
-                'name' => $budget->labeling ? $budget->labeling->name : 'Overall Budget',
+                'name' => $budget->label ? $budget->label->name : 'Overall Budget',
                 'amount' => (float) $budget->amount,
                 'spent' => $spent,
                 'percentage' => min(100, $percentage),
                 'raw_percentage' => $percentage,
                 'period' => ucfirst($budget->period),
-                'color' => $budget->labeling ? $budget->labeling->color : '#FFD07D',
+                'color' => $budget->label ? $budget->label->color : '#FFD07D',
                 'status_color' => $percentage >= 100 ? 'red' : ($percentage >= $budget->alert_threshold ? 'amber' : 'emerald'),
             ];
         }

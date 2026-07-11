@@ -4,30 +4,30 @@ declare(strict_types=1);
 
 use App\Models\Budget;
 use App\Models\Invoice;
-use App\Models\Labeling;
-use Database\Seeders\LabelingSeeder;
+use App\Models\Label;
+use Database\Seeders\LabelSeeder;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('labelings can be seeded and locked', function () {
-    $this->seed(LabelingSeeder::class);
+test('labels can be seeded and locked', function () {
+    $this->seed(LabelSeeder::class);
 
-    $this->assertDatabaseCount('labelings', 9);
-    $labeling = Labeling::where('slug', 'food-dining')->first();
-    $this->assertNotNull($labeling);
-    $this->assertTrue($labeling->is_system);
-    expect($labeling->type->value)->toBe('finance');
+    $this->assertDatabaseCount('labels', 9);
+    $label = Label::where('slug', 'food-dining')->first();
+    $this->assertNotNull($label);
+    $this->assertTrue($label->is_system);
+    expect($label->type->value)->toBe('finance');
 });
 
-test('manually created labelings are not system locked', function () {
-    $labeling = Labeling::factory()->create([
+test('manually created labels are not system locked', function () {
+    $label = Label::factory()->create([
         'name' => 'Custom Category',
         'slug' => 'custom-category',
     ]);
 
-    expect($labeling->is_system)->toBeFalse();
+    expect($label->is_system)->toBeFalse();
 });
 
 test('invoices generate hash on creation and block duplicates', function () {

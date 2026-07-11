@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Invoices\Schemas;
 
-use App\Enums\LabelingType;
+use App\Enums\LabelType;
 use App\Enums\PaymentMethod;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
@@ -137,12 +137,12 @@ class InvoiceForm
                                             ->live(onBlur: true)
                                             ->columnSpan(2),
 
-                                        Select::make('labeling_id')
+                                        Select::make('label_id')
                                             ->label('Label')
                                             ->relationship(
-                                                name: 'labeling',
+                                                name: 'label',
                                                 titleAttribute: 'name',
-                                                modifyQueryUsing: fn ($query) => $query->where('type', LabelingType::Finance),
+                                                modifyQueryUsing: fn ($query) => $query->where('type', LabelType::Finance),
                                             )
                                             ->searchable()
                                             ->preload()

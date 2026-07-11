@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\PaymentMethod;
 use App\Models\Invoice;
-use Database\Seeders\LabelingSeeder;
+use Database\Seeders\LabelSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
@@ -14,7 +14,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     Storage::fake();
-    $this->seed(LabelingSeeder::class);
+    $this->seed(LabelSeeder::class);
 
     $this->sourceDir = storage_path('framework/testing/receipts-source');
     File::deleteDirectory($this->sourceDir);

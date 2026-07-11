@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Resources\Labelings\Tables;
+namespace App\Filament\Resources\Labels\Tables;
 
-use App\Enums\LabelingType;
+use App\Enums\LabelType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -20,7 +20,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
 
-class LabelingsTable
+class LabelsTable
 {
     public static function configure(Table $table): Table
     {
@@ -28,7 +28,7 @@ class LabelingsTable
             ->columns([
                 TextColumn::make('type')
                     ->badge()
-                    ->formatStateUsing(fn (LabelingType $state): string => $state->label())
+                    ->formatStateUsing(fn (LabelType $state): string => $state->label())
                     ->sortable(),
 
                 TextColumn::make('name')
@@ -58,7 +58,7 @@ class LabelingsTable
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('type')
-                    ->options(LabelingType::options())
+                    ->options(LabelType::options())
                     ->searchable(),
 
                 TrashedFilter::make()

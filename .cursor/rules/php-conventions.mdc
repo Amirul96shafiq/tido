@@ -20,7 +20,7 @@ Typed params/returns, constructor property promotion, enums + `match` where appr
 
 - Match sibling models: domain models use `protected $casts = [...]`; `User` uses `casts()` method
 - Money: `decimal(12,2)` columns, cast `'decimal:2'`, currency default `MYR`, UI as `RM {amount}`
-- SoftDeletes + Spatie `LogsActivity` on Invoice, InvoiceItem, Labeling, Budget
+- SoftDeletes + Spatie `LogsActivity` on Invoice, InvoiceItem, Label, Budget
 - Prefer Eloquent/Query Builder — never raw user input in SQL
 
 ## Enums
