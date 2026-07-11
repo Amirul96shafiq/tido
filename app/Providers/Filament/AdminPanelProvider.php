@@ -60,9 +60,9 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Amber,
             ])
             ->font('Outfit', url: 'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap')
-            ->brandLogo(asset('images/ptype_01_d.png'))
-            ->darkModeBrandLogo(asset('images/ptype_01_l.png'))
-            ->brandLogoHeight('2rem')
+            ->brandLogo(asset('images/tido_dark_logo.png'))
+            ->darkModeBrandLogo(asset('images/tido_light_logo.png'))
+            ->brandLogoHeight('3rem')
             ->favicon(asset('images/favicon.png'))
             ->sidebarWidth('18rem')
             ->sidebarCollapsibleOnDesktop()
