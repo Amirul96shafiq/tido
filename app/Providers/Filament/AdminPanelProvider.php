@@ -107,6 +107,7 @@ class AdminPanelProvider extends PanelProvider
                     HTML,
             )
             ->databaseNotifications()
+            ->breadcrumbs(false)
             ->spa()
             ->userMenuItems([
                 // sort >= 0 places items after the theme switcher (theme → profile → changelogs → logout)

@@ -38,6 +38,10 @@ test('authenticated user can access dashboard', function () {
         ->assertSuccessful();
 });
 
+test('admin panel has breadcrumbs disabled', function () {
+    expect(filament()->getCurrentOrDefaultPanel()->hasBreadcrumbs())->toBeFalse();
+});
+
 test('authenticated user can load labelings list', function () {
     expect(LabelingResource::getUrl('index'))->toEndWith('/admin/labels');
 
