@@ -42,13 +42,13 @@ class ReceiptManualReviewNotifier
                     Action::make('view')
                         ->label('View')
                         ->button()
-                        ->url($viewUrl)
+                        ->url($viewUrl, shouldOpenInNewTab: true)
                         ->markAsRead(),
                     Action::make('edit')
                         ->label('Edit')
                         ->button()
                         ->color('gray')
-                        ->url($editUrl)
+                        ->url($editUrl, shouldOpenInNewTab: true)
                         ->markAsRead(),
                 ])
                 ->sendToDatabase($user);

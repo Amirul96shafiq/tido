@@ -306,7 +306,7 @@ class EditProfile extends BaseEditProfile
                     Action::make('edit_profile')
                         ->label('Edit Profile')
                         ->button()
-                        ->url(static::getUrl()),
+                        ->url(static::getUrl(), shouldOpenInNewTab: true),
                 ])
                 ->sendToDatabase($record);
         }
