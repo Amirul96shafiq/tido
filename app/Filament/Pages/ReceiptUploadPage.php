@@ -110,12 +110,6 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('created_at')
-                    ->label('Uploaded At')
-                    ->since()
-                    ->dateTimeTooltip()
-                    ->sortable(),
-
                 TextColumn::make('total_amount')
                     ->label('Total Amount')
                     ->money('MYR')
@@ -145,6 +139,12 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                         'failed' => 'danger',
                         default => 'gray',
                     })
+                    ->sortable(),
+
+                TextColumn::make('created_at')
+                    ->label('Uploaded At')
+                    ->since()
+                    ->dateTimeTooltip()
                     ->sortable(),
             ])
             ->filters([
