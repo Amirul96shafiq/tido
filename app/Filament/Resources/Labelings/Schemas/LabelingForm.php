@@ -9,6 +9,7 @@ use App\Filament\Forms\Components\IconPicker;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Resources\Pages\Page as ResourcePage;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -70,6 +71,11 @@ class LabelingForm
                                 ignoreRecord: true,
                                 modifyRuleUsing: fn (Unique $rule, Get $get) => $rule->where('type', $get('type')),
                             ),
+                            
+                            Textarea::make('description')
+                            ->label('Description')
+                            ->rows(3)
+                            ->columnSpanFull(),
                     ]),
             ]);
     }
