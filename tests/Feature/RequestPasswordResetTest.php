@@ -6,6 +6,7 @@ use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Auth\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -35,3 +36,20 @@ test('reset password page shows description below heading', function () {
     Livewire::test(ResetPassword::class)
         ->assertSee('Set a new password for the account.');
 });
+
+test('guest auth pages show theme switcher', function (string $url) {
+    $this->get($url)
+        ->assertSuccessful()
+        ->assertSee('fi-theme-switcher', false);
+})->with([
+    fn () => '/admin/login',
+    fn () => '/admin/password-reset/request',
+    fn () => URL::temporarySignedRoute(
+        'filament.admin.auth.password-reset.reset',
+        now()->addHour(),
+        [
+            'email' => 'admin@tido.local',
+            'token' => 'test-token',
+        ],
+    ),
+]);
