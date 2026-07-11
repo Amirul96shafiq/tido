@@ -269,21 +269,21 @@ class Login extends BaseLogin
                 Actions::make([
                     $this->usePasswordLoginAction(),
                 ])
-                    ->alignment(Alignment::Center)
+                    ->alignment(Alignment::Start)
                     ->fullWidth(false)
                     ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
                         && in_array($this->loginMode, ['phone', 'otp'], true)),
                 Actions::make([
                     $this->useDifferentNumberAction(),
                 ])
-                    ->alignment(Alignment::Center)
+                    ->alignment(Alignment::Start)
                     ->fullWidth(false)
                     ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
                         && $this->loginMode === 'otp'),
                 Actions::make([
                     $this->useWhatsAppLoginAction(),
                 ])
-                    ->alignment(Alignment::Center)
+                    ->alignment(Alignment::Start)
                     ->fullWidth(false)
                     ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
                         && $this->loginMode === 'password'),
@@ -344,7 +344,7 @@ class Login extends BaseLogin
             .' x-init="setInterval(() => { now = Math.floor(Date.now() / 1000) }, 250)"'
             .' x-show="remaining > 0"'
             .' class="fi-sc-text fi-color-gray text-sm text-gray-500 dark:text-gray-400"'
-            .' style="width:100%;text-align:center;margin-top:0.5rem;"'
+            .' style="width:100%;text-align:start;margin-top:1rem;"'
             .'>'
             .e($prefix)
             .'<span class="font-medium tabular-nums" x-text="remaining + \'s\'"></span>'
