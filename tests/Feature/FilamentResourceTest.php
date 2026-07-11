@@ -2,13 +2,17 @@
 
 declare(strict_types=1);
 
+use App\Enums\LabelingType;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Resources\Budgets\Pages\ListBudgets;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Invoices\Pages\ListInvoices;
 use App\Filament\Resources\Labelings\LabelingResource;
+use App\Filament\Resources\Labelings\Pages\CreateLabeling;
+use App\Filament\Resources\Labelings\Pages\EditLabeling;
 use App\Filament\Resources\Labelings\Pages\ListLabelings;
+use App\Filament\Resources\Labelings\Schemas\LabelingForm;
 use App\Models\Budget;
 use App\Models\Invoice;
 use App\Models\Labeling;
@@ -98,4 +102,44 @@ test('labelings table has view slide-over action', function () {
     Livewire::test(ListLabelings::class)
         ->assertSuccessful()
         ->assertActionExists(TestAction::make('view')->table($labeling));
+});
+
+test('labeling form exposes searchable heroicon options', function () {
+    $options = LabelingForm::iconOptions();
+
+    expect($options)
+        ->toHaveKey('heroicon-o-cake')
+        ->and($options['heroicon-o-cake'])->toBe('Cake')
+        ->and(count($options))->toBeGreaterThan(100);
+});
+
+test('authenticated user can load labeling create and edit forms', function () {
+    $this->actingAs($this->admin);
+
+    $labeling = Labeling::factory()->create([
+        'icon' => 'heroicon-o-cake',
+        'color' => '#dbb051',
+    ]);
+
+    Livewire::test(CreateLabeling::class)
+        ->assertSuccessful()
+        ->assertFormFieldExists('type')
+        ->assertFormFieldExists('name')
+        ->assertFormFieldExists('slug')
+        ->assertFormFieldExists('icon')
+        ->assertFormFieldExists('color')
+        ->assertSee(LabelingResource::getTitleCaseModelLabel().' Details')
+        ->assertSee(LabelingResource::getTitleCaseModelLabel().' Appearance');
+
+    Livewire::test(EditLabeling::class, ['record' => $labeling->getRouteKey()])
+        ->assertSuccessful()
+        ->assertFormSet([
+            'type' => $labeling->type instanceof LabelingType
+                ? $labeling->type->value
+                : $labeling->type,
+            'name' => $labeling->name,
+            'slug' => $labeling->slug,
+            'icon' => 'heroicon-o-cake',
+            'color' => '#dbb051',
+        ]);
 });
