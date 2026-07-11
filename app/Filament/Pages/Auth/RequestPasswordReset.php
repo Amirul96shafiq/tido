@@ -16,7 +16,7 @@ class RequestPasswordReset extends BaseRequestPasswordReset
 {
     public function getSubheading(): string|Htmlable|null
     {
-        return null;
+        return 'Enter the registered email address to receive a password reset link.';
     }
 
     public function content(Schema $schema): Schema

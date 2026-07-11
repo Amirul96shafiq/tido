@@ -65,6 +65,6 @@ Do **not** replace Filament’s built-in database-notifications empty modal (no 
 ## Agent checklist
 
 1. Prefer `<x-empty-state-panel>` over ad-hoc centered text  
-2. Match copy tone: calm, specific, one clear next action  
+2. Match copy tone: calm, specific, one clear next action — see [ui-copy-style.md](ui-copy-style.md)  
 3. After CSS changes to `.fi-no-empty-panel*`, run `npm run build` or `npm run dev`  
 4. Cover the empty path in a Pest feature test (`assertSee` heading + CTA label)

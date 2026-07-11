@@ -9,6 +9,7 @@
 | [google-drive-setup.md](google-drive-setup.md) | Ops | Drive folder sync credentials |
 | [ui-empty-states.md](ui-empty-states.md) | Agents + humans | Illustrated empty panels (email-change expiry pattern) |
 | [ui-dark-theme.md](ui-dark-theme.md) | Agents + humans | Dark mode Slate surfaces, tooltips, scrollbars, solid CTA text |
+| [ui-copy-style.md](ui-copy-style.md) | Agents + humans | Impersonal UI voice (no we/you); auth and panel copy |
 
 ## Cursor agent assets (outside `docs/`)
 
