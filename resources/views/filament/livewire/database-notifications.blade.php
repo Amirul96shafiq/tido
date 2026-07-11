@@ -157,7 +157,7 @@
                             </x-filament::input.wrapper>
 
                             <div
-                                class="fi-no-database-search-clear absolute end-1 top-1/2 z-10 -translate-y-1/2"
+                                class="fi-no-database-search-clear absolute inset-e-1 top-1/2 z-10 -translate-y-1/2"
                                 x-show="query.length > 0"
                                 x-cloak
                             >
