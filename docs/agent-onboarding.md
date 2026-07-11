@@ -84,6 +84,7 @@ Relationships: Invoice `hasMany` InvoiceItems; InvoiceItem `belongsTo` Label; Bu
 5. Nav groups: Finances / Settings
 6. Breadcrumbs are disabled panel-wide (`AdminPanelProvider` → `->breadcrumbs(false)`); do not re-enable on resources
 7. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
+8. Resource table `created_at` columns use `->since()->dateTimeTooltip()` (relative time + full datetime on hover), matching Receipt Upload “Uploaded At”
 
 ### Integrations
 

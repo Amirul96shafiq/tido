@@ -75,7 +75,8 @@ class InvoicesTable
 
                 TextColumn::make('created_at')
                     ->label('Created At')
-                    ->dateTime()
+                    ->since()
+                    ->dateTimeTooltip()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
