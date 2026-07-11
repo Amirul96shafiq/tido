@@ -18,6 +18,8 @@ use Illuminate\Support\Carbon;
 
 class DatabaseNotifications extends BaseDatabaseNotifications
 {
+    public const NOTIFICATIONS_PER_PAGE = 10;
+
     public string $search = '';
 
     public bool $filtersOpen = false;
@@ -72,8 +74,8 @@ class DatabaseNotifications extends BaseDatabaseNotifications
             return $this->getFilteredNotificationsQuery()->get();
         }
 
-        return $this->getFilteredNotificationsQuery()->simplePaginate(
-            50,
+        return $this->getFilteredNotificationsQuery()->paginate(
+            self::NOTIFICATIONS_PER_PAGE,
             pageName: 'database-notifications-page',
         );
     }
