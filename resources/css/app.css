@@ -571,8 +571,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /*
- * Do not set overflow-x on the modal window — in CSS that also clips
- * overflow-y and cuts off the unread count badge (absolute -top-1).
+ * Do not set overflow-x on the modal window or .fi-modal-content.
+ * CSS overflow pairing turns a lone overflow-x into overflow-y: auto, which
+ * nests a second scrollbar inside Filament's slide-over (already overflow-y-auto)
+ * and can clip the unread count badge (absolute -top-1).
+ * Horizontal bleed is fixed by zeroing Filament's -mx-6 / px-6 below.
  */
 .fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-header {
     overflow: visible;
@@ -595,7 +598,6 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     padding-block: 0;
     row-gap: 0;
     max-width: 100%;
-    overflow-x: hidden;
 }
 
 .fi-no-database .fi-modal-window-ctn > .fi-modal-window .fi-modal-content > :first-child {

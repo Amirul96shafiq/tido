@@ -7,6 +7,7 @@ use App\Filament\Livewire\DatabaseNotifications;
 use App\Models\User;
 use Filament\Notifications\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -58,6 +59,22 @@ function seedDatabaseNotifications(User $user): void
 test('database notifications component is registered on the panel', function () {
     expect(filament()->getDatabaseNotificationsLivewireComponent())
         ->toBe(DatabaseNotifications::class);
+});
+
+test('database notifications modal content does not create a nested scrollport', function () {
+    seedDatabaseNotifications($this->user);
+
+    Livewire::test(DatabaseNotifications::class)
+        ->assertDontSeeHtml('overflow-x: hidden');
+
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+    $databaseNotificationsBlock = Str::between(
+        $css,
+        '.fi-no-database > .fi-modal-close-overlay {',
+        '.fi-no-empty-panel {',
+    );
+
+    expect($databaseNotificationsBlock)->not->toContain('overflow-x: hidden');
 });
 
 test('can search database notifications by title', function () {

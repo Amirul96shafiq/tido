@@ -31,7 +31,7 @@
         }
 
         .fi-no-database .fi-modal-window-ctn > .fi-modal-window .fi-modal-content {
-            overflow-x: hidden;
+            /* No overflow-x here — it forces overflow-y:auto and a double scrollbar. */
             position: relative;
             z-index: 0;
         }
