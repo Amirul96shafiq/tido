@@ -18,6 +18,7 @@ use App\Models\Invoice;
 use App\Models\Label;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -119,6 +120,16 @@ test('resource table record actions are icon-only', function () {
 
         expect($action)->not->toBeNull()
             ->and($action->isIconButton())->toBeTrue();
+    }
+});
+
+test('resource list create actions have plus icon', function () {
+    $this->actingAs($this->admin);
+
+    foreach ([ListLabels::class, ListBudgets::class, ListInvoices::class] as $page) {
+        Livewire::test($page)
+            ->assertSuccessful()
+            ->assertActionHasIcon('create', Heroicon::Plus);
     }
 });
 

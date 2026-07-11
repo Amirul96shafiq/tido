@@ -37,6 +37,7 @@ Dashboard widgets live in `app/Filament/Widgets/`. Month filtering uses `Interac
 - Notifications on user-facing actions
 - Soft-delete aware queries (`withoutGlobalScopes` on record binding when needed)
 - Icon-only row actions (View/Edit/Delete): set globally in `AppServiceProvider` via `Table::configureUsing` → `modifyUngroupedRecordActionsUsing(fn (Action $action) => $action->iconButton())` — do not re-add visible labels per table
+- List-page “New …” CTAs: plus icon set globally via `CreateAction::configureUsing` → `->icon(Heroicon::Plus)` — new List pages only need `CreateAction::make()`; do not omit/override unless intentional
 - `created_at` (and similar upload timestamps) use `->since()->dateTimeTooltip()` — relative time in the cell, full date/time on hover (same as Receipt Upload “Uploaded At”)
 
 ## View records (required)

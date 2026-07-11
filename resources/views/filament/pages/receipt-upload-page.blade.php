@@ -11,7 +11,7 @@
             {{ $this->form }}
             
             <div style="margin-top: 1.5rem;" class="flex justify-start">
-                <x-filament::button type="submit" size="lg" wire:target="save">
+                <x-filament::button type="submit" size="lg" icon="heroicon-m-plus" wire:target="save">
                     Upload and Start AI Extraction
                 </x-filament::button>
             </div>

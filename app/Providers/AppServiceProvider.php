@@ -9,9 +9,11 @@ use App\Models\Invoice;
 use App\Models\User;
 use App\Observers\InvoiceObserver;
 use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Schemas\Schema;
 use Filament\Support\Facades\FilamentTimezone;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Google\Client;
 use Google\Service\Drive;
@@ -84,6 +86,10 @@ class AppServiceProvider extends ServiceProvider
                 ->defaultDateDisplayFormat(fn (): string => UserDateDisplay::dateFormat())
                 ->defaultDateTimeDisplayFormat(fn (): string => UserDateDisplay::dateTimeFormat())
                 ->modifyUngroupedRecordActionsUsing(fn (Action $action) => $action->iconButton());
+        });
+
+        CreateAction::configureUsing(function (CreateAction $action): void {
+            $action->icon(Heroicon::Plus);
         });
 
         Schema::configureUsing(function (Schema $schema): void {
