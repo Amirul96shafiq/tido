@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\LabelingType;
+use App\Filament\Forms\Components\IconPicker;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Resources\Budgets\Pages\ListBudgets;
@@ -12,7 +13,6 @@ use App\Filament\Resources\Labelings\LabelingResource;
 use App\Filament\Resources\Labelings\Pages\CreateLabeling;
 use App\Filament\Resources\Labelings\Pages\EditLabeling;
 use App\Filament\Resources\Labelings\Pages\ListLabelings;
-use App\Filament\Resources\Labelings\Schemas\LabelingForm;
 use App\Models\Budget;
 use App\Models\Invoice;
 use App\Models\Labeling;
@@ -105,12 +105,43 @@ test('labelings table has view slide-over action', function () {
 });
 
 test('labeling form exposes searchable heroicon options', function () {
-    $options = LabelingForm::iconOptions();
+    $options = IconPicker::iconOptions();
 
     expect($options)
         ->toHaveKey('heroicon-o-cake')
         ->and($options['heroicon-o-cake'])->toBe('Cake')
         ->and(count($options))->toBeGreaterThan(100);
+});
+
+test('labeling icon options are paginated with search across all icons', function () {
+    $page = IconPicker::iconOptionsPage(IconPicker::PAGE_SIZE);
+    $all = IconPicker::iconOptions();
+
+    expect($page)
+        ->toHaveCount(IconPicker::PAGE_SIZE)
+        ->and(count($all))->toBeGreaterThan(IconPicker::PAGE_SIZE);
+
+    $search = IconPicker::searchIconOptions('wallet');
+
+    expect($search)
+        ->toHaveKey('heroicon-o-wallet')
+        ->and(IconPicker::iconOptionLabel('heroicon-o-cake'))->toBe('Cake');
+});
+
+test('labeling create form uses modal icon picker', function () {
+    $this->actingAs($this->admin);
+
+    Livewire::test(CreateLabeling::class)
+        ->assertSuccessful()
+        ->assertSee('Choose icon')
+        ->assertSee('Quick picks')
+        ->assertSee('Load more')
+        ->fillForm([
+            'icon' => 'heroicon-o-wallet',
+        ])
+        ->assertFormSet([
+            'icon' => 'heroicon-o-wallet',
+        ]);
 });
 
 test('authenticated user can load labeling create and edit forms', function () {
