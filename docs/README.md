@@ -7,6 +7,7 @@
 | [ollama-setup.md](ollama-setup.md) | Ops | Local GPU Ollama / MiniCPM-V |
 | [evolution-api-setup.md](evolution-api-setup.md) | Ops | WhatsApp Evolution instance + webhook |
 | [google-drive-setup.md](google-drive-setup.md) | Ops | Drive folder sync credentials |
+| [ui-empty-states.md](ui-empty-states.md) | Agents + humans | Illustrated empty panels (email-change expiry pattern) |
 
 ## Cursor agent assets (outside `docs/`)
 

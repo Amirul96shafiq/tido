@@ -25,6 +25,7 @@ Default login (seeded): `admin@tido.local` / `password`.
 4. Domain skill: `.cursor/skills/tido-domain/SKILL.md` (+ `pipeline.md` when touching OCR/webhooks)
 5. Existing skills: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
 6. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-api-setup.md` (Sail/Docker) or `docs/evolution-local-windows.md` (host, no Docker), `docs/google-drive-setup.md`
+7. UI empty panels: `docs/ui-empty-states.md`
 
 Stock `README.md` is the Laravel skeleton — **not** product documentation.
 
@@ -85,6 +86,7 @@ Relationships: Invoice `hasMany` InvoiceItems; InvoiceItem `belongsTo` Label; Bu
 6. Breadcrumbs are disabled panel-wide (`AdminPanelProvider` → `->breadcrumbs(false)`); do not re-enable on resources
 7. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
 8. Resource table `created_at` columns use `->since()->dateTimeTooltip()` (relative time + full datetime on hover), matching Receipt Upload “Uploaded At”
+9. Illustrated empty panels (filtered lists, search misses): use `<x-empty-state-panel>` — see `docs/ui-empty-states.md` (pattern from `errors/email-change-expired.blade.php`)
 
 ### Integrations
 
