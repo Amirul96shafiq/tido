@@ -62,3 +62,11 @@ test('filename without file path has no link', function () {
         ->assertCanSeeTableRecords([$invoice])
         ->assertDontSeeHtml('missing_file.jpg</a>');
 });
+
+test('upload button shows loading spinner while saving', function () {
+    Livewire::test(ReceiptUploadPage::class)
+        ->assertSuccessful()
+        ->assertSeeHtml('wire:target="save"')
+        ->assertSeeHtml('wire:loading.delay')
+        ->assertSee('Upload and Start AI Extraction');
+});
