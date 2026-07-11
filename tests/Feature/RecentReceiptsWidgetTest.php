@@ -34,6 +34,7 @@ test('recent receipts widget shows upload table columns', function () {
 
     Livewire::test(RecentReceipts::class)
         ->assertSuccessful()
+        ->assertSeeHtml('fi-wi-recent-receipts')
         ->assertCanSeeTableRecords([$invoice])
         ->assertSee('dashboard_receipt.jpg')
         ->assertSee('Widget Merchant')
