@@ -78,6 +78,15 @@ class AdminPanelProvider extends PanelProvider
                 )->module(),
             ])
             ->renderHook(
+                PanelsRenderHook::SIMPLE_LAYOUT_START,
+                fn (): string => Blade::render('<x-auth-theme-switcher />'),
+                scopes: [
+                    Login::class,
+                    RequestPasswordReset::class,
+                    ResetPassword::class,
+                ],
+            )
+            ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => Blade::render('@vite(\'resources/css/app.css\')'),
             )
