@@ -429,6 +429,26 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     }
 }
 
+/*
+ * File upload image editor (profile avatar, etc.) is position:fixed inside
+ * .fi-main-ctn, while our desktop sidebar/topbar overrides use z-20–z-30.
+ * Lift the layout above chrome when the editor is open (Alpine x-show).
+ */
+.fi-layout:has(.fi-fo-file-upload-editor:not([style*='display: none'])) {
+    position: relative;
+    z-index: 40;
+    overflow: visible;
+}
+
+.fi-layout:has(.fi-fo-file-upload-editor:not([style*='display: none'])) .fi-main-ctn {
+    position: relative;
+    z-index: 35;
+}
+
+.fi-fo-file-upload-editor {
+    z-index: 50 !important;
+}
+
 /* Version-icon style — shared interactive icon treatment */
 .fi-version-icon-btn {
     @apply relative flex items-center justify-center rounded-lg text-gray-500 dark:text-slate-400 transition-all duration-200 select-none;
