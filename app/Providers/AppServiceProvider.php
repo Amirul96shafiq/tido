@@ -8,12 +8,14 @@ use App\Helpers\UserDateDisplay;
 use App\Models\Invoice;
 use App\Models\User;
 use App\Observers\InvoiceObserver;
+use App\View\Components\ButtonComponent;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Schemas\Schema;
 use Filament\Support\Facades\FilamentTimezone;
 use Filament\Support\Icons\Heroicon;
+use Filament\Support\View\Components\ButtonComponent as FilamentButtonComponent;
 use Filament\Tables\Table;
 use Google\Client;
 use Google\Service\Drive;
@@ -32,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(FilamentButtonComponent::class, ButtonComponent::class);
     }
 
     /**

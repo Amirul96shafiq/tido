@@ -7,6 +7,7 @@ tido’s Filament admin dark mode uses a **Slate** palette with **slate-800** as
 | Layer | File |
 |-------|------|
 | Filament gray palette | `app/Providers/Filament/AdminPanelProvider.php` → `->colors(['gray' => …])` |
+| Solid CTA button color map | `app/View/Components/ButtonComponent.php` (bound in `AppServiceProvider`) |
 | Panel chrome + Tippy + scrollbars | `resources/css/app.css` |
 | Chart.js tooltips | `resources/js/filament-chart-js-plugins.js` |
 
@@ -43,6 +44,27 @@ PHP’s array spread **reindexes integer keys** (`50` → `0`, etc.). Filament t
 
 Light mode is unchanged: white / gray surfaces; Tippy `light` theme stays white.
 
+## Solid CTA buttons (primary gold)
+
+Pale brand golds (`primary` `#FFD07D`, and similarly `success` / `info`) make Filament’s default solid-button map pick **white** text on `dark:bg` shade `600`. That fails WCAG AA and looks washed out on CTAs (Sign in, New budget, Upload, etc.).
+
+Light mode already resolves correctly: pale `bg` (`400`) + **dark primary** text (`950`).
+
+tido overrides Filament’s button color map so that when light mode chose dark text (`text >= 800`) but dark mode fell back to white (`dark:text === 0`), dark mode **mirrors** the light pairing:
+
+| Slot | Value |
+|------|--------|
+| `dark:bg` / `dark:hover:bg` | Same as light `bg` / `hover:bg` (typically `400` / `300`) |
+| `dark:text` / `dark:hover:text` | Same as light `text` / `hover:text` (typically `950` / `800`) |
+
+- Implementation: `App\View\Components\ButtonComponent` extends Filament’s `ButtonComponent`
+- Binding: `AppServiceProvider::register()` → `Filament\Support\View\Components\ButtonComponent` → app class
+- Covered by `tests/Unit/ButtonComponentColorMapTest.php`
+- Do **not** fix this with a CSS `color` override on `.fi-btn` — Filament drives label/icon color via `--dark-text` from the map
+- `danger` / vibrant colors stay white-on-color (their light `text` is already `0`)
+
+Custom solid buttons outside Filament should use `text-primary-950` (or `900`) on gold fills, matching changelog modal arrow buttons.
+
 ## Practical rules for new UI
 
 1. **Surfaces** — Prefer Filament `bg-white dark:bg-gray-900` (or section/table widgets). Remapped gray already lands on slate-800. Avoid hardcoding `dark:bg-zinc-*` or `dark:bg-gray-950` as a “darker card” unless you intentionally want contrast.
@@ -50,6 +72,7 @@ Light mode is unchanged: white / gray surfaces; Tippy `light` theme stays white.
 3. **Tooltips** — Do not use Tippy’s default `#333` or Chart.js `#333333`. Tippy is overridden in `app.css`; charts read `--color-slate-700` in `filament-chart-js-plugins.js`.
 4. **Scrollable panels** — Add `custom-scrollbar` on custom `overflow-y-auto` regions (e.g. changelogs modal). Filament `.fi-dropdown-panel` scrollbars are already themed in `app.css`.
 5. **Hardcoded utilities** — Prefer `slate-*` (or Filament `gray-*`) over `zinc-*` for new dark-mode classes in Blade/CSS.
+6. **Solid gold CTAs** — Rely on `ButtonComponent` for Filament buttons; do not reintroduce white label text on primary fills in dark mode.
 
 ## Hex / RGB cheatsheet
 

@@ -26,7 +26,7 @@ Default login (seeded): `admin@tido.local` / `password`.
 5. Existing skills: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
 6. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-api-setup.md` (Sail/Docker) or `docs/evolution-local-windows.md` (host, no Docker), `docs/google-drive-setup.md`
 7. UI empty panels: `docs/ui-empty-states.md`
-8. Dark theme (Slate surfaces / tooltips / scrollbars): `docs/ui-dark-theme.md`
+8. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
 
 Stock `README.md` is the Laravel skeleton — **not** product documentation.
 
@@ -89,7 +89,7 @@ Relationships: Invoice `hasMany` InvoiceItems; InvoiceItem `belongsTo` Label; Bu
 8. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
 9. Resource table `created_at` columns use `->since()->dateTimeTooltip()` (relative time + full datetime on hover), matching Receipt Upload “Uploaded At”
 10. Illustrated empty panels (filtered lists, search misses): use `<x-empty-state-panel>` — see `docs/ui-empty-states.md` (pattern from `errors/email-change-expired.blade.php`)
-11. Dark theme surfaces: Slate with slate-800 chrome — see `docs/ui-dark-theme.md` (do not reintroduce Zinc / `#333` tooltips)
+11. Dark theme surfaces: Slate with slate-800 chrome — see `docs/ui-dark-theme.md` (do not reintroduce Zinc / `#333` tooltips, or white text on solid gold CTAs)
 
 ### Integrations
 

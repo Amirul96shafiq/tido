@@ -18,9 +18,18 @@
             const startTime = Date.now();
             const minLoadingTime = 1000;
             
+            // #region agent log
+            fetch('http://127.0.0.1:7630/ingest/872a83a7-c278-4561-81ba-5cb19a834c46',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'8f1b08'},body:JSON.stringify({sessionId:'8f1b08',runId:'run2',hypothesisId:'H1',location:'changelog-modal.blade.php:loadCommits',message:'loadCommits start',data:{page:page},timestamp:Date.now()})}).catch(()=>{});
+            // #endregion
             try {
                 const response = await fetch(`/changelog?page=${page}`);
+                // #region agent log
+                fetch('http://127.0.0.1:7630/ingest/872a83a7-c278-4561-81ba-5cb19a834c46',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'8f1b08'},body:JSON.stringify({sessionId:'8f1b08',runId:'run2',hypothesisId:'H1-H2',location:'changelog-modal.blade.php:loadCommits',message:'response received',data:{status:response.status,ok:response.ok,elapsedMs:Date.now()-startTime},timestamp:Date.now()})}).catch(()=>{});
+                // #endregion
                 const data = await response.json();
+                // #region agent log
+                fetch('http://127.0.0.1:7630/ingest/872a83a7-c278-4561-81ba-5cb19a834c46',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'8f1b08'},body:JSON.stringify({sessionId:'8f1b08',runId:'run2',hypothesisId:'H2',location:'changelog-modal.blade.php:loadCommits',message:'data parsed',data:{success:data.success,total:data.total,commitCount:(data.commits||[]).length},timestamp:Date.now()})}).catch(()=>{});
+                // #endregion
                 
                 if (data.success) {
                     this.commits = data.commits;
@@ -32,6 +41,9 @@
                     this.totalCommits = 0;
                 }
             } catch (error) {
+                // #region agent log
+                fetch('http://127.0.0.1:7630/ingest/872a83a7-c278-4561-81ba-5cb19a834c46',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'8f1b08'},body:JSON.stringify({sessionId:'8f1b08',runId:'run2',hypothesisId:'H2',location:'changelog-modal.blade.php:loadCommits',message:'fetch error',data:{error:String(error),elapsedMs:Date.now()-startTime},timestamp:Date.now()})}).catch(()=>{});
+                // #endregion
                 console.error('Error loading commits:', error);
                 this.commits = [];
                 this.totalCommits = 0;

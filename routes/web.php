@@ -9,8 +9,15 @@ Route::get('/', function () {
 });
 
 Route::get('/changelog', function () {
+    // #region agent log
+    $agentLogStart = microtime(true);
+    file_put_contents(base_path('debug-8f1b08.log'), json_encode(['sessionId' => '8f1b08', 'runId' => 'run2', 'hypothesisId' => 'H3', 'location' => 'web.php:changelog-route', 'message' => 'route hit', 'data' => ['page' => (int) request('page', 1)], 'timestamp' => (int) (microtime(true) * 1000)]).PHP_EOL, FILE_APPEND);
+    // #endregion
     try {
         $changelog = ChangelogHelper::getPaginatedChangelog(10, (int) request('page', 1));
+        // #region agent log
+        file_put_contents(base_path('debug-8f1b08.log'), json_encode(['sessionId' => '8f1b08', 'runId' => 'run2', 'hypothesisId' => 'H3', 'location' => 'web.php:changelog-route', 'message' => 'changelog fetched', 'data' => ['elapsedMs' => (int) round((microtime(true) - $agentLogStart) * 1000), 'total' => $changelog->total(), 'count' => $changelog->count()], 'timestamp' => (int) (microtime(true) * 1000)]).PHP_EOL, FILE_APPEND);
+        // #endregion
 
         // Format commits for JSON response
         $commits = $changelog->map(function ($commit) {
@@ -58,6 +65,10 @@ Route::get('/changelog', function () {
             ],
         ]);
     } catch (Exception $e) {
+        // #region agent log
+        file_put_contents(base_path('debug-8f1b08.log'), json_encode(['sessionId' => '8f1b08', 'runId' => 'run2', 'hypothesisId' => 'H3', 'location' => 'web.php:changelog-route', 'message' => 'route exception', 'data' => ['error' => $e->getMessage()], 'timestamp' => (int) (microtime(true) * 1000)]).PHP_EOL, FILE_APPEND);
+
+        // #endregion
         return response()->json([
             'success' => false,
             'error' => $e->getMessage(),
