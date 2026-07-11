@@ -104,6 +104,24 @@ test('labels table has view slide-over action', function () {
         ->assertActionExists(TestAction::make('view')->table($label));
 });
 
+test('resource table record actions are icon-only', function () {
+    $this->actingAs($this->admin);
+
+    Label::factory()->create();
+
+    $table = Livewire::test(ListLabels::class)
+        ->assertSuccessful()
+        ->instance()
+        ->getTable();
+
+    foreach (['view', 'edit', 'delete'] as $actionName) {
+        $action = $table->getAction($actionName);
+
+        expect($action)->not->toBeNull()
+            ->and($action->isIconButton())->toBeTrue();
+    }
+});
+
 test('labels table renders icon as graphic not name', function () {
     $this->actingAs($this->admin);
 
