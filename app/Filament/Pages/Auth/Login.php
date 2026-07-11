@@ -266,18 +266,12 @@ class Login extends BaseLogin
                 $this->getMultiFactorChallengeFormContentComponent(),
                 Actions::make([
                     $this->usePasswordLoginAction(),
+                    $this->useDifferentNumberAction(),
                 ])
-                    ->alignment(Alignment::Start)
+                    ->alignment(fn (): Alignment => $this->loginMode === 'otp' ? Alignment::Between : Alignment::Start)
                     ->fullWidth(false)
                     ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
                         && in_array($this->loginMode, ['phone', 'otp'], true)),
-                Actions::make([
-                    $this->useDifferentNumberAction(),
-                ])
-                    ->alignment(Alignment::Start)
-                    ->fullWidth(false)
-                    ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
-                        && $this->loginMode === 'otp'),
                 Actions::make([
                     $this->useWhatsAppLoginAction(),
                 ])
