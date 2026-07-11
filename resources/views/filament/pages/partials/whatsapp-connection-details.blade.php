@@ -50,7 +50,7 @@
     @endif
 
     <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-        <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Bot allowlist</dt>
+        <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Contact allowlist</dt>
         <dd class="font-mono text-gray-950 dark:text-white">
             @forelse ($allowedSenderNumbers as $allowedNumber)
                 <span @class(['block' => ! $loop->first])>{{ $allowedNumber }}</span>
