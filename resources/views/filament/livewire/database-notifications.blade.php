@@ -61,7 +61,7 @@
         close-button
         :description="$hasAnyNotifications ? null : __('filament-notifications::database.modal.empty.description')"
         :heading="$hasAnyNotifications ? null : __('filament-notifications::database.modal.empty.heading')"
-        :icon="$hasAnyNotifications ? null : \Filament\Support\Icons\Heroicon::OutlinedBellSlash"
+        :icon="$hasAnyNotifications ? null : Heroicon::OutlinedBellSlash"
         :icon-alias="
             $hasAnyNotifications
                 ? null
@@ -76,7 +76,7 @@
         width="md"
         class="fi-no-database"
         :attributes="
-            new \Illuminate\View\ComponentAttributeBag([
+            new ComponentAttributeBag([
                 'wire:poll.' . $pollingInterval => $pollingInterval ? '' : false,
             ])
         "
