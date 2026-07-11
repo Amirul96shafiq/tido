@@ -34,7 +34,7 @@ The interface utilizes FilamentPHP's native Tailwind CSS theming engine to achie
 
 ### 2.2. Filament Panel Adjustments
 * **Navigation:** Configure `->sidebarCollapsibleOnDesktop()` in the Panel Provider to maximize horizontal workspace.
-* **Data Tables:** Implement borderless table designs. Use minimalist pagination and hide complex filter menus behind single icon buttons.
+* **Data Tables:** Implement borderless table designs. Use minimalist pagination and hide complex filter menus behind single icon buttons. Row record actions (View/Edit/Delete) are icon-only via global `Table::configureUsing` → `modifyUngroupedRecordActionsUsing` → `iconButton()`.
 
 ---
 

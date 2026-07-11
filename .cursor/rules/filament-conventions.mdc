@@ -38,9 +38,11 @@ Dashboard widgets live in `app/Filament/Widgets/`. Month filtering uses `Interac
 - Soft-delete aware queries (`withoutGlobalScopes` on record binding when needed)
 - Every resource table includes `ViewAction::make()->slideOver()` in `recordActions` (before Edit/Delete)
 - Prefer slide-over view modals over dedicated View pages unless a full page is explicitly needed
+- Icon-only row actions (View/Edit/Delete): set globally in `AppServiceProvider` via `Table::configureUsing` → `modifyUngroupedRecordActionsUsing(fn (Action $action) => $action->iconButton())` — do not re-add visible labels per table
 
 ## Avoid
 
 - Custom Blade unless native components cannot do the job
 - Putting business logic (Ollama, Drive sync, alerts) inside Resource classes — call Services/Jobs
 - Omitting View from resource table `recordActions`
+- Visible text labels on ungrouped table record actions (icons only; tooltips/a11y labels remain)

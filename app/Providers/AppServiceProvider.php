@@ -8,6 +8,7 @@ use App\Helpers\UserDateDisplay;
 use App\Models\Invoice;
 use App\Models\User;
 use App\Observers\InvoiceObserver;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Schemas\Schema;
 use Filament\Support\Facades\FilamentTimezone;
@@ -81,7 +82,8 @@ class AppServiceProvider extends ServiceProvider
         Table::configureUsing(function (Table $table): void {
             $table
                 ->defaultDateDisplayFormat(fn (): string => UserDateDisplay::dateFormat())
-                ->defaultDateTimeDisplayFormat(fn (): string => UserDateDisplay::dateTimeFormat());
+                ->defaultDateTimeDisplayFormat(fn (): string => UserDateDisplay::dateTimeFormat())
+                ->modifyUngroupedRecordActionsUsing(fn (Action $action) => $action->iconButton());
         });
 
         Schema::configureUsing(function (Schema $schema): void {
