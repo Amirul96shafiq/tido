@@ -20,38 +20,46 @@
     }
 }
 
-/* Custom scrollbar utility */
-.custom-scrollbar {
+/* Custom scrollbar — reusable class + Filament dropdown panels */
+.custom-scrollbar,
+.fi-dropdown-panel {
     scrollbar-width: thin;
     scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
+.custom-scrollbar::-webkit-scrollbar,
+.fi-dropdown-panel::-webkit-scrollbar {
     width: 6px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
+.custom-scrollbar::-webkit-scrollbar-track,
+.fi-dropdown-panel::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
+.custom-scrollbar::-webkit-scrollbar-thumb,
+.fi-dropdown-panel::-webkit-scrollbar-thumb {
     background-color: rgba(156, 163, 175, 0.3);
     border-radius: 9999px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.fi-dropdown-panel::-webkit-scrollbar-thumb:hover {
     background-color: rgba(156, 163, 175, 0.5);
 }
 
-.dark .custom-scrollbar {
+.dark .custom-scrollbar,
+.dark .fi-dropdown-panel {
     scrollbar-color: rgba(51, 65, 85, 0.5) transparent;
 }
 
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+.dark .custom-scrollbar::-webkit-scrollbar-thumb,
+.dark .fi-dropdown-panel::-webkit-scrollbar-thumb {
     background-color: rgba(51, 65, 85, 0.5);
 }
 
-.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.dark .fi-dropdown-panel::-webkit-scrollbar-thumb:hover {
     background-color: rgba(71, 85, 105, 0.7);
 }
 

@@ -39,7 +39,7 @@ PHP’s array spread **reindexes integer keys** (`50` → `0`, etc.). Filament t
 | Sidebar version badge (expanded) | `slate-700/60` → hover `slate-700` | Border `slate-600/50`; see `AdminPanelProvider` footer hook |
 | UI tooltips (Tippy default / dark) | `slate-700` | Lighter than chrome so they don’t disappear |
 | Chart tooltips (dark) | `slate-700` via `--color-slate-700` | Fallback hex `#334155` |
-| Custom scrollbar thumb (dark) | slate-700 @ 50% → hover slate-600 @ 70% | Class: `custom-scrollbar` |
+| Custom scrollbar thumb (dark) | slate-700 @ 50% → hover slate-600 @ 70% | `.custom-scrollbar` and `.fi-dropdown-panel` |
 
 Light mode is unchanged: white / gray surfaces; Tippy `light` theme stays white.
 
@@ -48,7 +48,7 @@ Light mode is unchanged: white / gray surfaces; Tippy `light` theme stays white.
 1. **Surfaces** — Prefer Filament `bg-white dark:bg-gray-900` (or section/table widgets). Remapped gray already lands on slate-800. Avoid hardcoding `dark:bg-zinc-*` or `dark:bg-gray-950` as a “darker card” unless you intentionally want contrast.
 2. **Chrome overrides** — If you force sidebar/topbar/body colors, use `var(--color-slate-800)` and borders with `var(--color-slate-700)`, matching existing blocks in `app.css`.
 3. **Tooltips** — Do not use Tippy’s default `#333` or Chart.js `#333333`. Tippy is overridden in `app.css`; charts read `--color-slate-700` in `filament-chart-js-plugins.js`.
-4. **Scrollable panels** — Add `custom-scrollbar` on `overflow-y-auto` regions (e.g. changelogs modal) so dark mode uses slate thumbs instead of the OS default.
+4. **Scrollable panels** — Add `custom-scrollbar` on custom `overflow-y-auto` regions (e.g. changelogs modal). Filament `.fi-dropdown-panel` scrollbars are already themed in `app.css`.
 5. **Hardcoded utilities** — Prefer `slate-*` (or Filament `gray-*`) over `zinc-*` for new dark-mode classes in Blade/CSS.
 
 ## Hex / RGB cheatsheet
