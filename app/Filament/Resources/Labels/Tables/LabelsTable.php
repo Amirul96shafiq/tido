@@ -36,12 +36,11 @@ class LabelsTable
                     ->sortable(),
 
                 TextColumn::make('slug')
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
 
-                TextColumn::make('icon')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                IconColumn::make('icon')
+                    ->icon(fn (?string $state): ?string => $state)
+                    ->toggleable(),
 
                 ColorColumn::make('color'),
 

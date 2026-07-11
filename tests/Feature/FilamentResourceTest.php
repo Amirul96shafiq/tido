@@ -104,6 +104,21 @@ test('labels table has view slide-over action', function () {
         ->assertActionExists(TestAction::make('view')->table($label));
 });
 
+test('labels table renders icon as graphic not name', function () {
+    $this->actingAs($this->admin);
+
+    $label = Label::factory()->create([
+        'icon' => 'heroicon-o-cake',
+        'name' => 'Dessert Label',
+    ]);
+
+    Livewire::test(ListLabels::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$label])
+        ->assertDontSee('heroicon-o-cake')
+        ->assertSeeHtml('<svg');
+});
+
 test('label form exposes searchable heroicon options', function () {
     $options = IconPicker::iconOptions();
 
