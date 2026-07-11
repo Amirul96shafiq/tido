@@ -36,15 +36,28 @@ Dashboard widgets live in `app/Filament/Widgets/`. Month filtering uses `Interac
 - `relationship()` for related selects
 - Notifications on user-facing actions
 - Soft-delete aware queries (`withoutGlobalScopes` on record binding when needed)
-- Every resource table includes `ViewAction::make()->slideOver()` in `recordActions` (before Edit/Delete)
-- Prefer slide-over view modals over dedicated View pages unless a full page is explicitly needed
 - Icon-only row actions (View/Edit/Delete): set globally in `AppServiceProvider` via `Table::configureUsing` → `modifyUngroupedRecordActionsUsing(fn (Action $action) => $action->iconButton())` — do not re-add visible labels per table
 - `created_at` (and similar upload timestamps) use `->since()->dateTimeTooltip()` — relative time in the cell, full date/time on hover (same as Receipt Upload “Uploaded At”)
+
+## View records (required)
+
+Always use slide-over view — never add a dedicated `ViewRecord` / `View{Model}` page.
+
+- Resource tables: `ViewAction::make()->slideOver()` in `recordActions` (before Edit/Delete)
+- Notification / deep-link “View” CTAs: open the resource list with Filament table-action query params so the same slide-over mounts:
+
+```php
+Resource::getUrl('index', [
+    'tableAction' => 'view',
+    'tableActionRecord' => $record->getRouteKey(),
+]);
+```
 
 ## Avoid
 
 - Custom Blade unless native components cannot do the job
 - Putting business logic (Ollama, Drive sync, alerts) inside Resource classes — call Services/Jobs
+- Dedicated View pages (`ViewRecord`, `make:filament-page --type=ViewRecord`, `getPages()` `view` routes)
 - Omitting View from resource table `recordActions`
 - Visible text labels on ungrouped table record actions (icons only; tooltips/a11y labels remain)
 - Raw `->dateTime()` alone on `created_at` resource columns — use `since()` + `dateTimeTooltip()` instead
