@@ -112,7 +112,9 @@ class AdminPanelProvider extends PanelProvider
             ->spa()
             ->userMenuItems([
                 // sort >= 0 places items after the theme switcher (theme → profile → changelogs → logout)
-                'profile' => fn (Action $action): Action => $action->sort(0),
+                'profile' => fn (Action $action): Action => $action
+                    ->icon('heroicon-o-user')
+                    ->sort(0),
                 Action::make('changelogs')
                     ->label('Changelogs')
                     ->icon('heroicon-o-code-bracket')
