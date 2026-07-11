@@ -177,13 +177,13 @@
 
                                 {{-- Tag Badges --}}
                                 <template x-for="tag in commit.tags" :key="tag">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-normal bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-200"
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-normal bg-primary-100 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400"
                                           x-text="tag">
                                     </span>
                                 </template>
                                 
                                 {{-- Commit Hash Badge --}}
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-normal bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-200"
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-normal bg-primary-100 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400"
                                       x-text="commit.short_hash">
                                 </span>
                                 
