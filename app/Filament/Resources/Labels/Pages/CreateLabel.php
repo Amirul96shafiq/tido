@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Resources\Labelings\Pages;
+namespace App\Filament\Resources\Labels\Pages;
 
-use App\Filament\Resources\Labelings\LabelingResource;
+use App\Filament\Resources\Labels\LabelResource;
 use Filament\Resources\Pages\CreateRecord;
 
-class CreateLabeling extends CreateRecord
+class CreateLabel extends CreateRecord
 {
-    protected static string $resource = LabelingResource::class;
+    protected static string $resource = LabelResource::class;
 
     /**
      * @param  array<string, mixed>  $data

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Enums\LabelingType;
+use App\Enums\LabelType;
 use App\Enums\PaymentMethod;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Models\Labeling;
-use Database\Seeders\LabelingSeeder;
+use App\Models\Label;
+use Database\Seeders\LabelSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -23,7 +23,7 @@ class SeedScannedReceiptsCommand extends Command
     public function handle(): int
     {
         $this->callSilent('db:seed', [
-            '--class' => LabelingSeeder::class,
+            '--class' => LabelSeeder::class,
             '--force' => true,
         ]);
 
@@ -78,18 +78,18 @@ class SeedScannedReceiptsCommand extends Command
                     ]);
 
                     foreach ($receipt['items'] as $item) {
-                        $labelingId = Labeling::query()
-                            ->where('type', LabelingType::Finance)
-                            ->where('slug', $item['labeling_slug'])
+                        $labelId = Label::query()
+                            ->where('type', LabelType::Finance)
+                            ->where('slug', $item['label_slug'])
                             ->value('id');
 
-                        if ($labelingId === null) {
-                            throw new \RuntimeException("Missing labeling slug [{$item['labeling_slug']}]");
+                        if ($labelId === null) {
+                            throw new \RuntimeException("Missing label slug [{$item['label_slug']}]");
                         }
 
                         InvoiceItem::create([
                             'invoice_id' => $invoice->id,
-                            'labeling_id' => $labelingId,
+                            'label_id' => $labelId,
                             'description' => $item['description'],
                             'quantity' => $item['quantity'],
                             'unit_price' => $item['unit_price'],

@@ -6,7 +6,7 @@ namespace Database\Factories;
 
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Models\Labeling;
+use App\Models\Label;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -24,7 +24,7 @@ class InvoiceItemFactory extends Factory
 
         return [
             'invoice_id' => Invoice::factory(),
-            'labeling_id' => Labeling::factory(),
+            'label_id' => Label::factory(),
             'description' => $this->faker->words(3, true),
             'quantity' => $quantity,
             'unit_price' => $unitPrice,

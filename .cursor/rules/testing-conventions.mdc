@@ -32,7 +32,7 @@ Never call real Ollama/Evolution in CI/tests.
 
 - Filament: often HTTP `get(Resource::getUrl('index'))`; Livewire for interactive pages (`Livewire::test(EditProfile::class)`)
 - Analytics without jobs: `Invoice::unsetEventDispatcher()` when factories would dispatch extraction
-- Seed labelings when testing category mapping: `LabelingSeeder`
+- Seed labels when testing category mapping: `LabelSeeder`
 - Factories for all models; MYR amounts and precomputed `receipt_hash` on Invoice
 
 ## Run

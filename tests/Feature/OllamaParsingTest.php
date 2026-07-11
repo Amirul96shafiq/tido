@@ -6,7 +6,7 @@ use App\Enums\PaymentMethod;
 use App\Jobs\ExtractReceiptDataJob;
 use App\Models\Invoice;
 use App\Services\OllamaService;
-use Database\Seeders\LabelingSeeder;
+use Database\Seeders\LabelSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -77,7 +77,7 @@ test('extract receipt data job processes mock response and updates status', func
         ]),
     ]);
 
-    $this->seed(LabelingSeeder::class);
+    $this->seed(LabelSeeder::class);
 
     $job = new ExtractReceiptDataJob($invoice->id);
     $job->handle(new OllamaService);
@@ -93,5 +93,5 @@ test('extract receipt data job processes mock response and updates status', func
     expect($invoice->payment_method)->toBe(PaymentMethod::Mastercard);
     expect($invoice->invoiceItems)->toHaveCount(1);
     expect($invoice->invoiceItems->first()->description)->toBe('2-pc Chicken Meal');
-    expect($invoice->invoiceItems->first()->labeling->name)->toBe('Food & Dining');
+    expect($invoice->invoiceItems->first()->label->name)->toBe('Food & Dining');
 });

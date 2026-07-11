@@ -1,9 +1,9 @@
 ---
 name: tido-domain
 description: >-
-  tido domain knowledge for expense receipts, invoices, labelings, budgets,
+  tido domain knowledge for expense receipts, invoices, labels, budgets,
   Ollama OCR, WhatsApp Evolution webhooks, and Google Drive sync. Use when
-  working on Invoice/InvoiceItem/Labeling/Budget models, receipt parsing,
+  working on Invoice/InvoiceItem/Label/Budget models, receipt parsing,
   ExtractReceiptDataJob, OllamaService, WhatsApp webhooks, Drive sync, budget
   alerts, dashboard analytics, or any MYR spending feature.
 ---
@@ -12,16 +12,16 @@ description: >-
 
 ## When to use
 
-Read this skill before changing receipt ingestion, AI parsing, categories (labelings), budgets, or spending analytics. For deeper pipeline detail see [pipeline.md](pipeline.md).
+Read this skill before changing receipt ingestion, AI parsing, categories (labels), budgets, or spending analytics. For deeper pipeline detail see [pipeline.md](pipeline.md).
 
 ## Domain model (5 models)
 
 | Model | Role |
 |-------|------|
 | `Invoice` | Receipt header: merchant, amounts, status, image, `raw_ai_response`, `receipt_hash` |
-| `InvoiceItem` | Line item → `belongsTo` Invoice + Labeling; optional warranty/serial |
-| `Labeling` | Expense category (`LabelingType` enum); system-seeded + user-created |
-| `Budget` | Cap per labeling/period (daily…yearly); threshold alerts |
+| `InvoiceItem` | Line item → `belongsTo` Invoice + Label; optional warranty/serial |
+| `Label` | Expense category (`LabelType` enum); system-seeded + user-created |
+| `Budget` | Cap per label/period (daily…yearly); threshold alerts |
 | `User` | Filament admin; locale/timezone/notification prefs |
 
 Money is always **MYR** (`decimal(12,2)`). Display as `RM …`.
@@ -34,11 +34,11 @@ Sources: `manual` | `whatsapp` | `google_drive`
 
 Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`.
 
-## Labelings (not categories)
+## Labels (not categories)
 
-- Table/model renamed from categories → **labelings**
-- AI maps `suggested_category` slug → `Labeling` with `LabelingType::Finance`
-- System defaults from `LabelingSeeder` (Food & Dining, Transport, etc.)
+- Table/model: **labels** (`Label`)
+- AI maps `suggested_category` slug → `Label` with `LabelType::Finance`
+- System defaults from `LabelSeeder` (Food & Dining, Transport, etc.)
 
 ## Key classes
 
@@ -56,7 +56,7 @@ Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`
 
 ## Filament map
 
-- Resources: Invoices, Budgets (Finances); Labels (Settings) — model still `Labeling`
+- Resources: Invoices, Budgets (Finances); Labels (Settings) — model `Label`
 - Upload UI: `ReceiptUploadPage` → creates pending invoices
 - Dashboard widgets use `DashboardMonthAnalytics` / month period helpers
 

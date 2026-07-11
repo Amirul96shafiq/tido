@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\Budget;
-use App\Models\Labeling;
+use App\Models\Label;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,7 +21,7 @@ class BudgetFactory extends Factory
         $quarter = ($period === 'quarterly') ? $this->faker->numberBetween(1, 4) : null;
 
         return [
-            'labeling_id' => $this->faker->boolean(80) ? Labeling::factory() : null,
+            'label_id' => $this->faker->boolean(80) ? Label::factory() : null,
             'amount' => $this->faker->randomFloat(2, 50, 5000),
             'period' => $period,
             'quarter' => $quarter,

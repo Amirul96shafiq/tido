@@ -98,20 +98,20 @@ final class DashboardMonthAnalytics
     }
 
     /**
-     * @return Collection<int, object{name: string, color: string|null, total: float, labeling_id: int|null}>
+     * @return Collection<int, object{name: string, color: string|null, total: float, label_id: int|null}>
      */
-    public function spentByLabeling(): Collection
+    public function spentByLabel(): Collection
     {
         return InvoiceItem::query()
             ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-            ->join('labelings', 'invoice_items.labeling_id', '=', 'labelings.id')
+            ->join('labels', 'invoice_items.label_id', '=', 'labels.id')
             ->whereBetween('invoices.date_time', [$this->bounds['start'], $this->bounds['end']])
             ->whereIn('invoices.status', ['parsed', 'reviewed'])
-            ->selectRaw('labelings.id as labeling_id, labelings.name, labelings.color, SUM(invoice_items.line_total) as total')
-            ->groupBy('labelings.id', 'labelings.name', 'labelings.color')
+            ->selectRaw('labels.id as label_id, labels.name, labels.color, SUM(invoice_items.line_total) as total')
+            ->groupBy('labels.id', 'labels.name', 'labels.color')
             ->get()
             ->map(fn ($row): object => (object) [
-                'labeling_id' => (int) $row->labeling_id,
+                'label_id' => (int) $row->label_id,
                 'name' => (string) $row->name,
                 'color' => $row->color,
                 'total' => (float) $row->total,
@@ -140,12 +140,12 @@ final class DashboardMonthAnalytics
     /**
      * @return array<int, float>
      */
-    public function spentTotalsByLabelingId(): array
+    public function spentTotalsByLabelId(): array
     {
         $totals = [];
 
-        foreach ($this->spentByLabeling() as $row) {
-            $totals[$row->labeling_id] = $row->total;
+        foreach ($this->spentByLabel() as $row) {
+            $totals[$row->label_id] = $row->total;
         }
 
         $overall = InvoiceItem::query()

@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Models\Budget;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Models\Labeling;
+use App\Models\Label;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -21,13 +21,13 @@ test('budget alert service triggers alerts on threshold breach', function () {
 
     $user = User::factory()->create();
 
-    $labeling = Labeling::factory()->create([
+    $label = Label::factory()->create([
         'name' => 'Food & Dining',
         'slug' => 'food-dining',
     ]);
 
     $budget = Budget::create([
-        'labeling_id' => $labeling->id,
+        'label_id' => $label->id,
         'amount' => 100.00,
         'period' => 'monthly',
         'year' => (int) now()->year,
@@ -49,7 +49,7 @@ test('budget alert service triggers alerts on threshold breach', function () {
 
     InvoiceItem::create([
         'invoice_id' => $invoice->id,
-        'labeling_id' => $labeling->id,
+        'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
         'unit_price' => 90.00,
@@ -84,13 +84,13 @@ test('budget alert service skips users who opted out of budget alerts', function
     User::factory()->create(['notify_budget_alerts' => true]);
     User::factory()->create(['notify_budget_alerts' => false]);
 
-    $labeling = Labeling::factory()->create([
+    $label = Label::factory()->create([
         'name' => 'Food & Dining',
         'slug' => 'food-dining',
     ]);
 
     Budget::create([
-        'labeling_id' => $labeling->id,
+        'label_id' => $label->id,
         'amount' => 100.00,
         'period' => 'monthly',
         'year' => (int) now()->year,
@@ -112,7 +112,7 @@ test('budget alert service skips users who opted out of budget alerts', function
 
     InvoiceItem::create([
         'invoice_id' => $invoice->id,
-        'labeling_id' => $labeling->id,
+        'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
         'unit_price' => 90.00,

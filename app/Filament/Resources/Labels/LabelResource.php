@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Resources\Labelings;
+namespace App\Filament\Resources\Labels;
 
-use App\Filament\Resources\Labelings\Pages\CreateLabeling;
-use App\Filament\Resources\Labelings\Pages\EditLabeling;
-use App\Filament\Resources\Labelings\Pages\ListLabelings;
-use App\Filament\Resources\Labelings\Schemas\LabelingForm;
-use App\Filament\Resources\Labelings\Tables\LabelingsTable;
-use App\Models\Labeling;
+use App\Filament\Resources\Labels\Pages\CreateLabel;
+use App\Filament\Resources\Labels\Pages\EditLabel;
+use App\Filament\Resources\Labels\Pages\ListLabels;
+use App\Filament\Resources\Labels\Schemas\LabelForm;
+use App\Filament\Resources\Labels\Tables\LabelsTable;
+use App\Models\Label;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class LabelingResource extends Resource
+class LabelResource extends Resource
 {
-    protected static ?string $model = Labeling::class;
+    protected static ?string $model = Label::class;
 
     protected static ?string $slug = 'labels';
 
@@ -36,12 +36,12 @@ class LabelingResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return LabelingForm::configure($schema);
+        return LabelForm::configure($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return LabelingsTable::configure($table);
+        return LabelsTable::configure($table);
     }
 
     public static function getRelations(): array
@@ -52,9 +52,9 @@ class LabelingResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListLabelings::route('/'),
-            'create' => CreateLabeling::route('/create'),
-            'edit' => EditLabeling::route('/{record}/edit'),
+            'index' => ListLabels::route('/'),
+            'create' => CreateLabel::route('/create'),
+            'edit' => EditLabel::route('/{record}/edit'),
         ];
     }
 

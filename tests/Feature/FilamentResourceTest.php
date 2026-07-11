@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-use App\Enums\LabelingType;
+use App\Enums\LabelType;
 use App\Filament\Forms\Components\IconPicker;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Resources\Budgets\Pages\ListBudgets;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Invoices\Pages\ListInvoices;
-use App\Filament\Resources\Labelings\LabelingResource;
-use App\Filament\Resources\Labelings\Pages\CreateLabeling;
-use App\Filament\Resources\Labelings\Pages\EditLabeling;
-use App\Filament\Resources\Labelings\Pages\ListLabelings;
+use App\Filament\Resources\Labels\LabelResource;
+use App\Filament\Resources\Labels\Pages\CreateLabel;
+use App\Filament\Resources\Labels\Pages\EditLabel;
+use App\Filament\Resources\Labels\Pages\ListLabels;
 use App\Models\Budget;
 use App\Models\Invoice;
-use App\Models\Labeling;
+use App\Models\Label;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -46,11 +46,11 @@ test('admin panel has breadcrumbs disabled', function () {
     expect(filament()->getCurrentOrDefaultPanel()->hasBreadcrumbs())->toBeFalse();
 });
 
-test('authenticated user can load labelings list', function () {
-    expect(LabelingResource::getUrl('index'))->toEndWith('/admin/labels');
+test('authenticated user can load labels list', function () {
+    expect(LabelResource::getUrl('index'))->toEndWith('/admin/labels');
 
     $this->actingAs($this->admin)
-        ->get(LabelingResource::getUrl('index'))
+        ->get(LabelResource::getUrl('index'))
         ->assertSuccessful();
 });
 
@@ -94,17 +94,17 @@ test('budgets table has view slide-over action', function () {
         ->assertActionExists(TestAction::make('view')->table($budget));
 });
 
-test('labelings table has view slide-over action', function () {
+test('labels table has view slide-over action', function () {
     $this->actingAs($this->admin);
 
-    $labeling = Labeling::factory()->create();
+    $label = Label::factory()->create();
 
-    Livewire::test(ListLabelings::class)
+    Livewire::test(ListLabels::class)
         ->assertSuccessful()
-        ->assertActionExists(TestAction::make('view')->table($labeling));
+        ->assertActionExists(TestAction::make('view')->table($label));
 });
 
-test('labeling form exposes searchable heroicon options', function () {
+test('label form exposes searchable heroicon options', function () {
     $options = IconPicker::iconOptions();
 
     expect($options)
@@ -113,7 +113,7 @@ test('labeling form exposes searchable heroicon options', function () {
         ->and(count($options))->toBeGreaterThan(100);
 });
 
-test('labeling icon options are paginated with search across all icons', function () {
+test('label icon options are paginated with search across all icons', function () {
     $page = IconPicker::iconOptionsPage(IconPicker::PAGE_SIZE);
     $all = IconPicker::iconOptions();
 
@@ -128,10 +128,10 @@ test('labeling icon options are paginated with search across all icons', functio
         ->and(IconPicker::iconOptionLabel('heroicon-o-cake'))->toBe('Cake');
 });
 
-test('labeling create form uses modal icon picker', function () {
+test('label create form uses modal icon picker', function () {
     $this->actingAs($this->admin);
 
-    Livewire::test(CreateLabeling::class)
+    Livewire::test(CreateLabel::class)
         ->assertSuccessful()
         ->assertSee('Choose icon')
         ->assertSee('Quick picks')
@@ -144,32 +144,32 @@ test('labeling create form uses modal icon picker', function () {
         ]);
 });
 
-test('authenticated user can load labeling create and edit forms', function () {
+test('authenticated user can load label create and edit forms', function () {
     $this->actingAs($this->admin);
 
-    $labeling = Labeling::factory()->create([
+    $label = Label::factory()->create([
         'icon' => 'heroicon-o-cake',
         'color' => '#dbb051',
     ]);
 
-    Livewire::test(CreateLabeling::class)
+    Livewire::test(CreateLabel::class)
         ->assertSuccessful()
         ->assertFormFieldExists('type')
         ->assertFormFieldExists('name')
         ->assertFormFieldExists('slug')
         ->assertFormFieldExists('icon')
         ->assertFormFieldExists('color')
-        ->assertSee(LabelingResource::getTitleCaseModelLabel().' Details')
-        ->assertSee(LabelingResource::getTitleCaseModelLabel().' Appearance');
+        ->assertSee(LabelResource::getTitleCaseModelLabel().' Details')
+        ->assertSee(LabelResource::getTitleCaseModelLabel().' Appearance');
 
-    Livewire::test(EditLabeling::class, ['record' => $labeling->getRouteKey()])
+    Livewire::test(EditLabel::class, ['record' => $label->getRouteKey()])
         ->assertSuccessful()
         ->assertFormSet([
-            'type' => $labeling->type instanceof LabelingType
-                ? $labeling->type->value
-                : $labeling->type,
-            'name' => $labeling->name,
-            'slug' => $labeling->slug,
+            'type' => $label->type instanceof LabelType
+                ? $label->type->value
+                : $label->type,
+            'name' => $label->name,
+            'slug' => $label->slug,
             'icon' => 'heroicon-o-cake',
             'color' => '#dbb051',
         ]);

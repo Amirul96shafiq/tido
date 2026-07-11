@@ -6,7 +6,7 @@ namespace Database\Seeders;
 
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Models\Labeling;
+use App\Models\Label;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -16,9 +16,9 @@ class SampleDataSeeder extends Seeder
     public function run(): void
     {
         // Ensure categories exist first
-        $this->call(LabelingSeeder::class);
+        $this->call(LabelSeeder::class);
 
-        $labelings = Labeling::all()->keyBy('name');
+        $labels = Label::all()->keyBy('name');
 
         // Define realistic merchants with their typical categories and price ranges
         $merchants = [
@@ -182,11 +182,11 @@ class SampleDataSeeder extends Seeder
                 ]);
 
                 foreach ($itemsData as $itemData) {
-                    $labeling = $labelings->get($itemData['category']);
+                    $label = $labels->get($itemData['category']);
 
                     InvoiceItem::create([
                         'invoice_id' => $invoice->id,
-                        'labeling_id' => $labeling?->id,
+                        'label_id' => $label?->id,
                         'description' => $itemData['description'],
                         'quantity' => $itemData['quantity'],
                         'unit_price' => $itemData['unit_price'],

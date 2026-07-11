@@ -18,7 +18,7 @@ declare(strict_types=1);
  *     total_amount: float,
  *     payment_method: string,
  *     notes: ?string,
- *     items: list<array{description: string, quantity: float, unit_price: float, line_total: float, labeling_slug: string}>
+ *     items: list<array{description: string, quantity: float, unit_price: float, line_total: float, label_slug: string}>
  * }>
  */
 return [
@@ -35,8 +35,8 @@ return [
         'payment_method' => 'mastercard',
         'notes' => null,
         'items' => [
-            ['description' => 'COCA COLA ZERO 500ML', 'quantity' => 1, 'unit_price' => 3.00, 'line_total' => 3.00, 'labeling_slug' => 'food-dining'],
-            ['description' => 'GARDENIA QUICKBITES CREAM ROLL', 'quantity' => 1, 'unit_price' => 1.20, 'line_total' => 1.20, 'labeling_slug' => 'food-dining'],
+            ['description' => 'COCA COLA ZERO 500ML', 'quantity' => 1, 'unit_price' => 3.00, 'line_total' => 3.00, 'label_slug' => 'food-dining'],
+            ['description' => 'GARDENIA QUICKBITES CREAM ROLL', 'quantity' => 1, 'unit_price' => 1.20, 'line_total' => 1.20, 'label_slug' => 'food-dining'],
         ],
     ],
     [
@@ -52,15 +52,15 @@ return [
         'payment_method' => 'mastercard',
         'notes' => 'Member promo on enoki mix pack reflected in line total',
         'items' => [
-            ['description' => 'AAA KUIH IKAN 220G', 'quantity' => 1, 'unit_price' => 3.60, 'line_total' => 3.60, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'CEK SITI TEMPE 100G', 'quantity' => 1, 'unit_price' => 1.50, 'line_total' => 1.50, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'LOBAK MERAH AUSTRALIA KG', 'quantity' => 1, 'unit_price' => 2.63, 'line_total' => 2.63, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'PLASTIC BAG', 'quantity' => 1, 'unit_price' => 0.20, 'line_total' => 0.20, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'UBI KENTANG / POTATO KG', 'quantity' => 1, 'unit_price' => 1.86, 'line_total' => 1.86, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'TOMATO KG', 'quantity' => 1, 'unit_price' => 5.24, 'line_total' => 5.24, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'CENDAWAN ENOKI 100G', 'quantity' => 3, 'unit_price' => 0.90, 'line_total' => 1.99, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'LOVEGREENS GREEN CORAL 1PC', 'quantity' => 1, 'unit_price' => 1.99, 'line_total' => 1.99, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'OAT KRUNCH BREAKFAST 384G CRANBERRY', 'quantity' => 1, 'unit_price' => 7.99, 'line_total' => 7.99, 'labeling_slug' => 'groceries-household'],
+            ['description' => 'AAA KUIH IKAN 220G', 'quantity' => 1, 'unit_price' => 3.60, 'line_total' => 3.60, 'label_slug' => 'groceries-household'],
+            ['description' => 'CEK SITI TEMPE 100G', 'quantity' => 1, 'unit_price' => 1.50, 'line_total' => 1.50, 'label_slug' => 'groceries-household'],
+            ['description' => 'LOBAK MERAH AUSTRALIA KG', 'quantity' => 1, 'unit_price' => 2.63, 'line_total' => 2.63, 'label_slug' => 'groceries-household'],
+            ['description' => 'PLASTIC BAG', 'quantity' => 1, 'unit_price' => 0.20, 'line_total' => 0.20, 'label_slug' => 'groceries-household'],
+            ['description' => 'UBI KENTANG / POTATO KG', 'quantity' => 1, 'unit_price' => 1.86, 'line_total' => 1.86, 'label_slug' => 'groceries-household'],
+            ['description' => 'TOMATO KG', 'quantity' => 1, 'unit_price' => 5.24, 'line_total' => 5.24, 'label_slug' => 'groceries-household'],
+            ['description' => 'CENDAWAN ENOKI 100G', 'quantity' => 3, 'unit_price' => 0.90, 'line_total' => 1.99, 'label_slug' => 'groceries-household'],
+            ['description' => 'LOVEGREENS GREEN CORAL 1PC', 'quantity' => 1, 'unit_price' => 1.99, 'line_total' => 1.99, 'label_slug' => 'groceries-household'],
+            ['description' => 'OAT KRUNCH BREAKFAST 384G CRANBERRY', 'quantity' => 1, 'unit_price' => 7.99, 'line_total' => 7.99, 'label_slug' => 'groceries-household'],
         ],
     ],
     [
@@ -76,8 +76,8 @@ return [
         'payment_method' => 'mastercard',
         'notes' => 'Ref #1000340005',
         'items' => [
-            ['description' => 'Parmesan Chicken Slice', 'quantity' => 1, 'unit_price' => 3.90, 'line_total' => 3.90, 'labeling_slug' => 'food-dining'],
-            ['description' => 'Spicy Crispy Chiki', 'quantity' => 1, 'unit_price' => 5.50, 'line_total' => 5.50, 'labeling_slug' => 'food-dining'],
+            ['description' => 'Parmesan Chicken Slice', 'quantity' => 1, 'unit_price' => 3.90, 'line_total' => 3.90, 'label_slug' => 'food-dining'],
+            ['description' => 'Spicy Crispy Chiki', 'quantity' => 1, 'unit_price' => 5.50, 'line_total' => 5.50, 'label_slug' => 'food-dining'],
         ],
     ],
     [
@@ -93,8 +93,8 @@ return [
         'payment_method' => 'mastercard',
         'notes' => null,
         'items' => [
-            ['description' => 'GARDENIA PUAZZ SAMBAL BILIS 60', 'quantity' => 1, 'unit_price' => 1.60, 'line_total' => 1.60, 'labeling_slug' => 'food-dining'],
-            ['description' => 'FN SEASONS ICE LEMON TEA 300ML', 'quantity' => 1, 'unit_price' => 2.20, 'line_total' => 2.20, 'labeling_slug' => 'food-dining'],
+            ['description' => 'GARDENIA PUAZZ SAMBAL BILIS 60', 'quantity' => 1, 'unit_price' => 1.60, 'line_total' => 1.60, 'label_slug' => 'food-dining'],
+            ['description' => 'FN SEASONS ICE LEMON TEA 300ML', 'quantity' => 1, 'unit_price' => 2.20, 'line_total' => 2.20, 'label_slug' => 'food-dining'],
         ],
     ],
     [
@@ -110,8 +110,8 @@ return [
         'payment_method' => 'mastercard',
         'notes' => null,
         'items' => [
-            ['description' => 'MARIGOLD HL LOW FAT MILK 200ML', 'quantity' => 1, 'unit_price' => 2.90, 'line_total' => 2.90, 'labeling_slug' => 'food-dining'],
-            ['description' => 'GARDENIA QUICKBITES CREAM ROLL', 'quantity' => 1, 'unit_price' => 1.20, 'line_total' => 1.20, 'labeling_slug' => 'food-dining'],
+            ['description' => 'MARIGOLD HL LOW FAT MILK 200ML', 'quantity' => 1, 'unit_price' => 2.90, 'line_total' => 2.90, 'label_slug' => 'food-dining'],
+            ['description' => 'GARDENIA QUICKBITES CREAM ROLL', 'quantity' => 1, 'unit_price' => 1.20, 'line_total' => 1.20, 'label_slug' => 'food-dining'],
         ],
     ],
     [
@@ -127,23 +127,23 @@ return [
         'payment_method' => 'mastercard',
         'notes' => null,
         'items' => [
-            ['description' => 'BAYAM MERAH KG', 'quantity' => 1, 'unit_price' => 1.97, 'line_total' => 1.97, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'DAUN SUP KG', 'quantity' => 1, 'unit_price' => 1.89, 'line_total' => 1.89, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'IKAN TONGKOL KG', 'quantity' => 1, 'unit_price' => 4.52, 'line_total' => 4.52, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'KACANG BENDI KG', 'quantity' => 1, 'unit_price' => 3.27, 'line_total' => 3.27, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'KAYU MANIS 25G', 'quantity' => 1, 'unit_price' => 3.50, 'line_total' => 3.50, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'LOVEGREENS LEMONGRASS 100G', 'quantity' => 1, 'unit_price' => 1.00, 'line_total' => 1.00, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'PACK N GO BABY WIPES 80S', 'quantity' => 1, 'unit_price' => 2.50, 'line_total' => 2.50, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'SAN REMO LA PASTA MACARONI CHEESE 120G', 'quantity' => 1, 'unit_price' => 4.50, 'line_total' => 4.50, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'SAN REMO LA PASTA MUSHROOM HERBS 120G', 'quantity' => 1, 'unit_price' => 4.50, 'line_total' => 4.50, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'TF HD SCOURING SPONGE WD008 5PCS', 'quantity' => 1, 'unit_price' => 3.90, 'line_total' => 3.90, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'INDIA SONAKA GRAPES GREEN 500G', 'quantity' => 1, 'unit_price' => 7.99, 'line_total' => 7.99, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'WHOLE CHICKEN / AYAM SEGAR KG', 'quantity' => 1, 'unit_price' => 19.02, 'line_total' => 19.02, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'IKAN CENCARU KG', 'quantity' => 1, 'unit_price' => 9.58, 'line_total' => 9.58, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'CILI API MERAH KG', 'quantity' => 1, 'unit_price' => 1.40, 'line_total' => 1.40, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'CINTAN NOODLES 5X76G CURRY', 'quantity' => 1, 'unit_price' => 4.99, 'line_total' => 4.99, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'KARA COCONUT CREAM 110ML', 'quantity' => 2, 'unit_price' => 1.99, 'line_total' => 3.98, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'HALIA TUA / OLD GINGER KG', 'quantity' => 1, 'unit_price' => 0.76, 'line_total' => 0.76, 'labeling_slug' => 'groceries-household'],
+            ['description' => 'BAYAM MERAH KG', 'quantity' => 1, 'unit_price' => 1.97, 'line_total' => 1.97, 'label_slug' => 'groceries-household'],
+            ['description' => 'DAUN SUP KG', 'quantity' => 1, 'unit_price' => 1.89, 'line_total' => 1.89, 'label_slug' => 'groceries-household'],
+            ['description' => 'IKAN TONGKOL KG', 'quantity' => 1, 'unit_price' => 4.52, 'line_total' => 4.52, 'label_slug' => 'groceries-household'],
+            ['description' => 'KACANG BENDI KG', 'quantity' => 1, 'unit_price' => 3.27, 'line_total' => 3.27, 'label_slug' => 'groceries-household'],
+            ['description' => 'KAYU MANIS 25G', 'quantity' => 1, 'unit_price' => 3.50, 'line_total' => 3.50, 'label_slug' => 'groceries-household'],
+            ['description' => 'LOVEGREENS LEMONGRASS 100G', 'quantity' => 1, 'unit_price' => 1.00, 'line_total' => 1.00, 'label_slug' => 'groceries-household'],
+            ['description' => 'PACK N GO BABY WIPES 80S', 'quantity' => 1, 'unit_price' => 2.50, 'line_total' => 2.50, 'label_slug' => 'groceries-household'],
+            ['description' => 'SAN REMO LA PASTA MACARONI CHEESE 120G', 'quantity' => 1, 'unit_price' => 4.50, 'line_total' => 4.50, 'label_slug' => 'groceries-household'],
+            ['description' => 'SAN REMO LA PASTA MUSHROOM HERBS 120G', 'quantity' => 1, 'unit_price' => 4.50, 'line_total' => 4.50, 'label_slug' => 'groceries-household'],
+            ['description' => 'TF HD SCOURING SPONGE WD008 5PCS', 'quantity' => 1, 'unit_price' => 3.90, 'line_total' => 3.90, 'label_slug' => 'groceries-household'],
+            ['description' => 'INDIA SONAKA GRAPES GREEN 500G', 'quantity' => 1, 'unit_price' => 7.99, 'line_total' => 7.99, 'label_slug' => 'groceries-household'],
+            ['description' => 'WHOLE CHICKEN / AYAM SEGAR KG', 'quantity' => 1, 'unit_price' => 19.02, 'line_total' => 19.02, 'label_slug' => 'groceries-household'],
+            ['description' => 'IKAN CENCARU KG', 'quantity' => 1, 'unit_price' => 9.58, 'line_total' => 9.58, 'label_slug' => 'groceries-household'],
+            ['description' => 'CILI API MERAH KG', 'quantity' => 1, 'unit_price' => 1.40, 'line_total' => 1.40, 'label_slug' => 'groceries-household'],
+            ['description' => 'CINTAN NOODLES 5X76G CURRY', 'quantity' => 1, 'unit_price' => 4.99, 'line_total' => 4.99, 'label_slug' => 'groceries-household'],
+            ['description' => 'KARA COCONUT CREAM 110ML', 'quantity' => 2, 'unit_price' => 1.99, 'line_total' => 3.98, 'label_slug' => 'groceries-household'],
+            ['description' => 'HALIA TUA / OLD GINGER KG', 'quantity' => 1, 'unit_price' => 0.76, 'line_total' => 0.76, 'label_slug' => 'groceries-household'],
         ],
     ],
     [
@@ -159,9 +159,9 @@ return [
         'payment_method' => 'mastercard',
         'notes' => 'FREE Americano min spend promo; Ref #1000340641',
         'items' => [
-            ['description' => 'Mini Vienna (2 In 1)', 'quantity' => 1, 'unit_price' => 3.00, 'line_total' => 3.00, 'labeling_slug' => 'food-dining'],
-            ['description' => 'Mini Vienna (2 In 1)', 'quantity' => 1, 'unit_price' => 3.00, 'line_total' => 3.00, 'labeling_slug' => 'food-dining'],
-            ['description' => 'Hot Americano (Reg)', 'quantity' => 1, 'unit_price' => 2.90, 'line_total' => 0.00, 'labeling_slug' => 'food-dining'],
+            ['description' => 'Mini Vienna (2 In 1)', 'quantity' => 1, 'unit_price' => 3.00, 'line_total' => 3.00, 'label_slug' => 'food-dining'],
+            ['description' => 'Mini Vienna (2 In 1)', 'quantity' => 1, 'unit_price' => 3.00, 'line_total' => 3.00, 'label_slug' => 'food-dining'],
+            ['description' => 'Hot Americano (Reg)', 'quantity' => 1, 'unit_price' => 2.90, 'line_total' => 0.00, 'label_slug' => 'food-dining'],
         ],
     ],
     [
@@ -177,7 +177,7 @@ return [
         'payment_method' => 'mastercard',
         'notes' => 'SST 6% inclusive in meal total (taxable 18.02)',
         'items' => [
-            ['description' => 'BBQ BF SG LM Meal (fries + lemon tea)', 'quantity' => 1, 'unit_price' => 19.10, 'line_total' => 19.10, 'labeling_slug' => 'food-dining'],
+            ['description' => 'BBQ BF SG LM Meal (fries + lemon tea)', 'quantity' => 1, 'unit_price' => 19.10, 'line_total' => 19.10, 'label_slug' => 'food-dining'],
         ],
     ],
     [
@@ -193,8 +193,8 @@ return [
         'payment_method' => 'mastercard',
         'notes' => null,
         'items' => [
-            ['description' => 'BAWANG KUNING', 'quantity' => 0.522, 'unit_price' => 2.99, 'line_total' => 1.56, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'CAMERON VEGETABLES GREEN CORAL 1 PCS', 'quantity' => 1, 'unit_price' => 2.90, 'line_total' => 2.90, 'labeling_slug' => 'groceries-household'],
+            ['description' => 'BAWANG KUNING', 'quantity' => 0.522, 'unit_price' => 2.99, 'line_total' => 1.56, 'label_slug' => 'groceries-household'],
+            ['description' => 'CAMERON VEGETABLES GREEN CORAL 1 PCS', 'quantity' => 1, 'unit_price' => 2.90, 'line_total' => 2.90, 'label_slug' => 'groceries-household'],
         ],
     ],
     [
@@ -210,7 +210,7 @@ return [
         'payment_method' => 'mykasih',
         'notes' => null,
         'items' => [
-            ['description' => 'FIESTA CHICKEN BALL 850G', 'quantity' => 1, 'unit_price' => 12.89, 'line_total' => 12.89, 'labeling_slug' => 'groceries-household'],
+            ['description' => 'FIESTA CHICKEN BALL 850G', 'quantity' => 1, 'unit_price' => 12.89, 'line_total' => 12.89, 'label_slug' => 'groceries-household'],
         ],
     ],
     [
@@ -226,9 +226,9 @@ return [
         'payment_method' => 'other',
         'notes' => 'Ticket #684 takeaway; card payment',
         'items' => [
-            ['description' => 'Ayam Goreng', 'quantity' => 2, 'unit_price' => 5.00, 'line_total' => 10.00, 'labeling_slug' => 'food-dining'],
-            ['description' => 'Nasi Putih', 'quantity' => 1, 'unit_price' => 2.50, 'line_total' => 2.50, 'labeling_slug' => 'food-dining'],
-            ['description' => 'Teh Ais', 'quantity' => 1, 'unit_price' => 2.50, 'line_total' => 2.50, 'labeling_slug' => 'food-dining'],
+            ['description' => 'Ayam Goreng', 'quantity' => 2, 'unit_price' => 5.00, 'line_total' => 10.00, 'label_slug' => 'food-dining'],
+            ['description' => 'Nasi Putih', 'quantity' => 1, 'unit_price' => 2.50, 'line_total' => 2.50, 'label_slug' => 'food-dining'],
+            ['description' => 'Teh Ais', 'quantity' => 1, 'unit_price' => 2.50, 'line_total' => 2.50, 'label_slug' => 'food-dining'],
         ],
     ],
     [
@@ -244,8 +244,8 @@ return [
         'payment_method' => 'mastercard',
         'notes' => 'FREE Americano min spend promo; Ref #1000341741',
         'items' => [
-            ['description' => 'Spicy Crispy Chiki', 'quantity' => 1, 'unit_price' => 5.50, 'line_total' => 5.50, 'labeling_slug' => 'food-dining'],
-            ['description' => 'Hot Americano (Reg)', 'quantity' => 1, 'unit_price' => 2.90, 'line_total' => 0.00, 'labeling_slug' => 'food-dining'],
+            ['description' => 'Spicy Crispy Chiki', 'quantity' => 1, 'unit_price' => 5.50, 'line_total' => 5.50, 'label_slug' => 'food-dining'],
+            ['description' => 'Hot Americano (Reg)', 'quantity' => 1, 'unit_price' => 2.90, 'line_total' => 0.00, 'label_slug' => 'food-dining'],
         ],
     ],
     [
@@ -261,8 +261,8 @@ return [
         'payment_method' => 'mastercard',
         'notes' => null,
         'items' => [
-            ['description' => '7E Mexican Bun 65g', 'quantity' => 1, 'unit_price' => 2.70, 'line_total' => 2.70, 'labeling_slug' => 'food-dining'],
-            ['description' => 'Gardenia Quick Bites', 'quantity' => 1, 'unit_price' => 1.20, 'line_total' => 1.20, 'labeling_slug' => 'food-dining'],
+            ['description' => '7E Mexican Bun 65g', 'quantity' => 1, 'unit_price' => 2.70, 'line_total' => 2.70, 'label_slug' => 'food-dining'],
+            ['description' => 'Gardenia Quick Bites', 'quantity' => 1, 'unit_price' => 1.20, 'line_total' => 1.20, 'label_slug' => 'food-dining'],
         ],
     ],
     [
@@ -278,7 +278,7 @@ return [
         'payment_method' => 'mastercard',
         'notes' => null,
         'items' => [
-            ['description' => 'Parmesan Chicken Slice', 'quantity' => 1, 'unit_price' => 3.90, 'line_total' => 3.90, 'labeling_slug' => 'food-dining'],
+            ['description' => 'Parmesan Chicken Slice', 'quantity' => 1, 'unit_price' => 3.90, 'line_total' => 3.90, 'label_slug' => 'food-dining'],
         ],
     ],
     [
@@ -294,7 +294,7 @@ return [
         'payment_method' => 'mastercard',
         'notes' => 'Flat price promo @2',
         'items' => [
-            ['description' => 'Fuze Tea H&E Mango G', 'quantity' => 1, 'unit_price' => 2.80, 'line_total' => 2.00, 'labeling_slug' => 'food-dining'],
+            ['description' => 'Fuze Tea H&E Mango G', 'quantity' => 1, 'unit_price' => 2.80, 'line_total' => 2.00, 'label_slug' => 'food-dining'],
         ],
     ],
     [
@@ -310,11 +310,11 @@ return [
         'payment_method' => 'mastercard',
         'notes' => 'Service charge 8% (5.14) + SST 6% (3.86) combined in tax',
         'items' => [
-            ['description' => 'F&N ICE LEMON TEA', 'quantity' => 1, 'unit_price' => 4.70, 'line_total' => 4.70, 'labeling_slug' => 'food-dining'],
-            ['description' => 'LATTE (Cold)', 'quantity' => 1, 'unit_price' => 9.90, 'line_total' => 9.90, 'labeling_slug' => 'food-dining'],
-            ['description' => 'STUFFED CHEESE BURGER BEEF', 'quantity' => 1, 'unit_price' => 20.90, 'line_total' => 20.90, 'labeling_slug' => 'food-dining'],
-            ['description' => 'CURLY FRIES', 'quantity' => 1, 'unit_price' => 6.90, 'line_total' => 6.90, 'labeling_slug' => 'food-dining'],
-            ['description' => 'BBQ BURGER CHICKEN', 'quantity' => 1, 'unit_price' => 21.90, 'line_total' => 21.90, 'labeling_slug' => 'food-dining'],
+            ['description' => 'F&N ICE LEMON TEA', 'quantity' => 1, 'unit_price' => 4.70, 'line_total' => 4.70, 'label_slug' => 'food-dining'],
+            ['description' => 'LATTE (Cold)', 'quantity' => 1, 'unit_price' => 9.90, 'line_total' => 9.90, 'label_slug' => 'food-dining'],
+            ['description' => 'STUFFED CHEESE BURGER BEEF', 'quantity' => 1, 'unit_price' => 20.90, 'line_total' => 20.90, 'label_slug' => 'food-dining'],
+            ['description' => 'CURLY FRIES', 'quantity' => 1, 'unit_price' => 6.90, 'line_total' => 6.90, 'label_slug' => 'food-dining'],
+            ['description' => 'BBQ BURGER CHICKEN', 'quantity' => 1, 'unit_price' => 21.90, 'line_total' => 21.90, 'label_slug' => 'food-dining'],
         ],
     ],
     [
@@ -330,7 +330,7 @@ return [
         'payment_method' => 'mykasih',
         'notes' => 'Reprint copy',
         'items' => [
-            ['description' => 'HL PAST LOW FAT MILK 200ML PLAIN', 'quantity' => 1, 'unit_price' => 2.69, 'line_total' => 2.69, 'labeling_slug' => 'groceries-household'],
+            ['description' => 'HL PAST LOW FAT MILK 200ML PLAIN', 'quantity' => 1, 'unit_price' => 2.69, 'line_total' => 2.69, 'label_slug' => 'groceries-household'],
         ],
     ],
     [
@@ -346,8 +346,8 @@ return [
         'payment_method' => 'mykasih',
         'notes' => null,
         'items' => [
-            ['description' => 'BUTTERCUP LUX SPRD SALTED PORTION 12X10G', 'quantity' => 1, 'unit_price' => 6.15, 'line_total' => 6.15, 'labeling_slug' => 'groceries-household'],
-            ['description' => 'MUNCHYS OAT KRUNCH NUTTY CHOC 390G', 'quantity' => 1, 'unit_price' => 11.00, 'line_total' => 8.29, 'labeling_slug' => 'groceries-household'],
+            ['description' => 'BUTTERCUP LUX SPRD SALTED PORTION 12X10G', 'quantity' => 1, 'unit_price' => 6.15, 'line_total' => 6.15, 'label_slug' => 'groceries-household'],
+            ['description' => 'MUNCHYS OAT KRUNCH NUTTY CHOC 390G', 'quantity' => 1, 'unit_price' => 11.00, 'line_total' => 8.29, 'label_slug' => 'groceries-household'],
         ],
     ],
     [
@@ -363,7 +363,7 @@ return [
         'payment_method' => 'mastercard',
         'notes' => null,
         'items' => [
-            ['description' => 'FN SARSI 500ML', 'quantity' => 1, 'unit_price' => 2.50, 'line_total' => 2.50, 'labeling_slug' => 'food-dining'],
+            ['description' => 'FN SARSI 500ML', 'quantity' => 1, 'unit_price' => 2.50, 'line_total' => 2.50, 'label_slug' => 'food-dining'],
         ],
     ],
     [
@@ -379,7 +379,7 @@ return [
         'payment_method' => 'mastercard',
         'notes' => null,
         'items' => [
-            ['description' => 'DAUN SALAD - KG (Local)', 'quantity' => 1, 'unit_price' => 6.67, 'line_total' => 6.67, 'labeling_slug' => 'groceries-household'],
+            ['description' => 'DAUN SALAD - KG (Local)', 'quantity' => 1, 'unit_price' => 6.67, 'line_total' => 6.67, 'label_slug' => 'groceries-household'],
         ],
     ],
     [
@@ -395,7 +395,7 @@ return [
         'payment_method' => 'mastercard',
         'notes' => 'BUDI95 subsidy; Blaze 95 @ RM1.990/L after subsidy',
         'items' => [
-            ['description' => 'Blaze 95', 'quantity' => 4.022, 'unit_price' => 1.99, 'line_total' => 8.00, 'labeling_slug' => 'transportation-fuel'],
+            ['description' => 'Blaze 95', 'quantity' => 4.022, 'unit_price' => 1.99, 'line_total' => 8.00, 'label_slug' => 'transportation-fuel'],
         ],
     ],
     [
@@ -411,7 +411,7 @@ return [
         'payment_method' => 'mastercard',
         'notes' => null,
         'items' => [
-            ['description' => 'FN SEASONS ICE LEMON TEA 300ML', 'quantity' => 1, 'unit_price' => 2.20, 'line_total' => 2.20, 'labeling_slug' => 'food-dining'],
+            ['description' => 'FN SEASONS ICE LEMON TEA 300ML', 'quantity' => 1, 'unit_price' => 2.20, 'line_total' => 2.20, 'label_slug' => 'food-dining'],
         ],
     ],
 ];

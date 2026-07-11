@@ -17,10 +17,10 @@ class BudgetAlertService
 
     public function checkAlertsForInvoice(Invoice $invoice): void
     {
-        $labelingIds = $invoice->invoiceItems()->pluck('labeling_id')->unique()->filter()->toArray();
+        $labelIds = $invoice->invoiceItems()->pluck('label_id')->unique()->filter()->toArray();
 
-        $budgets = Budget::whereIn('labeling_id', $labelingIds)
-            ->orWhereNull('labeling_id')
+        $budgets = Budget::whereIn('label_id', $labelIds)
+            ->orWhereNull('label_id')
             ->where('is_active', true)
             ->get();
 
@@ -33,8 +33,8 @@ class BudgetAlertService
                 ->whereBetween('invoices.date_time', [$start, $end])
                 ->whereIn('invoices.status', ['parsed', 'reviewed']);
 
-            if ($budget->labeling_id) {
-                $query->where('invoice_items.labeling_id', $budget->labeling_id);
+            if ($budget->label_id) {
+                $query->where('invoice_items.label_id', $budget->label_id);
             }
 
             $spent = (float) $query->sum('invoice_items.line_total');
@@ -48,7 +48,7 @@ class BudgetAlertService
             $threshold = (float) $budget->alert_threshold;
 
             if ($percentage >= $threshold) {
-                $labelingName = $budget->labeling ? (string) $budget->labeling->getAttribute('name') : 'Overall Budget';
+                $labelName = $budget->label ? (string) $budget->label->getAttribute('name') : 'Overall Budget';
                 $periodName = ucfirst($budget->period);
 
                 $message = WhatsAppMessage::compose(
@@ -56,7 +56,7 @@ class BudgetAlertService
                     'Budget alert',
                     sprintf(
                         "Spending for this label has reached the alert threshold.\n\nLabel: *%s*\nSpent: *RM %s* / *RM %s* (%.1f%%)\nPeriod: *%s*",
-                        $labelingName,
+                        $labelName,
                         number_format($spent, 2),
                         number_format($budgetAmount, 2),
                         $percentage,
@@ -77,7 +77,7 @@ class BudgetAlertService
                     }
 
                     FilamentNotification::make()
-                        ->title("Budget Alert: {$labelingName}")
+                        ->title("Budget Alert: {$labelName}")
                         ->body('Spent: RM '.number_format($spent, 2).' / RM '.number_format($budgetAmount, 2).' ('.round($percentage).'%)')
                         ->warning()
                         ->sendToDatabase($user);

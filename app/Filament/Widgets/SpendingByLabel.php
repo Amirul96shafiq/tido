@@ -8,7 +8,7 @@ use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Contracts\Support\Htmlable;
 
-class SpendingByLabeling extends ChartWidget
+class SpendingByLabel extends ChartWidget
 {
     use InteractsWithDashboardMonth;
 
@@ -28,7 +28,7 @@ class SpendingByLabeling extends ChartWidget
 
     protected function getData(): array
     {
-        $spending = $this->analytics()->spentByLabeling();
+        $spending = $this->analytics()->spentByLabel();
 
         $labels = $spending->pluck('name')->toArray();
         $data = $spending->pluck('total')->toArray();

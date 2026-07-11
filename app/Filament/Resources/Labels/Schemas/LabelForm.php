@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Resources\Labelings\Schemas;
+namespace App\Filament\Resources\Labels\Schemas;
 
-use App\Enums\LabelingType;
+use App\Enums\LabelType;
 use App\Filament\Forms\Components\IconPicker;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\Page as ResourcePage;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -19,7 +19,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Unique;
 use Livewire\Component as LivewireComponent;
 
-class LabelingForm
+class LabelForm
 {
     public static function configure(Schema $schema): Schema
     {
@@ -29,7 +29,7 @@ class LabelingForm
                 Section::make(fn (LivewireComponent $livewire): string => self::modelLabel($livewire).' Appearance')
                     ->columnSpan(1)
                     ->schema([
-                        View::make('filament.forms.components.labeling-icon-preview')
+                        View::make('filament.forms.components.label-icon-preview')
                             ->viewData(fn (Get $get, LivewireComponent $livewire): array => [
                                 'icon' => filled($get('icon')) ? (string) $get('icon') : 'heroicon-o-tag',
                                 'color' => filled($get('color')) ? (string) $get('color') : '#a1a1aa',
@@ -51,8 +51,8 @@ class LabelingForm
                     ->schema([
                         Select::make('type')
                             ->label('Type')
-                            ->options(LabelingType::options())
-                            ->default(LabelingType::Finance)
+                            ->options(LabelType::options())
+                            ->default(LabelType::Finance)
                             ->required()
                             ->disabled(fn ($record) => (bool) ($record?->is_system ?? false))
                             ->native(false),
@@ -66,13 +66,13 @@ class LabelingForm
                             ->required()
                             ->disabled(fn ($record) => (bool) ($record?->is_system ?? false))
                             ->unique(
-                                table: 'labelings',
+                                table: 'labels',
                                 column: 'slug',
                                 ignoreRecord: true,
                                 modifyRuleUsing: fn (Unique $rule, Get $get) => $rule->where('type', $get('type')),
                             ),
-                            
-                            Textarea::make('description')
+
+                        Textarea::make('description')
                             ->label('Description')
                             ->rows(3)
                             ->columnSpanFull(),

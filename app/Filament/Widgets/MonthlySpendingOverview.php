@@ -70,7 +70,7 @@ class MonthlySpendingOverview extends BaseWidget
             $remainingDays = $totalDays - $currentDay;
             $projectedSpend = $thisMonthTotal + ($averageDailySpend * $remainingDays);
 
-            $overallMonthlyBudget = Budget::whereNull('labeling_id')
+            $overallMonthlyBudget = Budget::whereNull('label_id')
                 ->where('period', 'monthly')
                 ->where('is_active', true)
                 ->value('amount');

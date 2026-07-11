@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\LabelingType;
+use App\Enums\LabelType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-class Labeling extends Model
+class Label extends Model
 {
     use HasFactory, LogsActivity, SoftDeletes;
 
@@ -31,7 +31,7 @@ class Labeling extends Model
     ];
 
     protected $casts = [
-        'type' => LabelingType::class,
+        'type' => LabelType::class,
         'is_system' => 'boolean',
     ];
 
@@ -39,7 +39,7 @@ class Labeling extends Model
      * @param  Builder<self>  $query
      * @return Builder<self>
      */
-    public function scopeOfType(Builder $query, LabelingType $type): Builder
+    public function scopeOfType(Builder $query, LabelType $type): Builder
     {
         return $query->where('type', $type);
     }

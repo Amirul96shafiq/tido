@@ -20,7 +20,7 @@ class BudgetsTable
     {
         return $table
             ->columns([
-                TextColumn::make('labeling.name')
+                TextColumn::make('label.name')
                     ->label('Label')
                     ->default('Overall (All Labels)')
                     ->searchable()

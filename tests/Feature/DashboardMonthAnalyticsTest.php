@@ -7,7 +7,7 @@ use App\Filament\Support\DashboardMonthPeriod;
 use App\Models\Budget;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Models\Labeling;
+use App\Models\Label;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -105,13 +105,13 @@ test('trend returns six buckets ending at selected month', function () {
     expect($trend['data'][5])->toBe(80.0);
 });
 
-test('spent by labeling sums line items for selected month', function () {
+test('spent by label sums line items for selected month', function () {
     Invoice::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
 
-    $labeling = Labeling::factory()->create([
+    $label = Label::factory()->create([
         'name' => 'Groceries',
         'slug' => 'groceries',
     ]);
@@ -131,7 +131,7 @@ test('spent by labeling sums line items for selected month', function () {
 
     InvoiceItem::create([
         'invoice_id' => $invoice->id,
-        'labeling_id' => $labeling->id,
+        'label_id' => $label->id,
         'description' => 'Vegetables',
         'quantity' => 1,
         'unit_price' => 45.00,
@@ -140,7 +140,7 @@ test('spent by labeling sums line items for selected month', function () {
 
     Invoice::setEventDispatcher(app('events'));
 
-    $spending = analyticsForMonth($targetMonth)->spentByLabeling();
+    $spending = analyticsForMonth($targetMonth)->spentByLabel();
 
     expect($spending)->toHaveCount(1);
     expect($spending->first()->name)->toBe('Groceries');
@@ -154,13 +154,13 @@ test('budget mapping uses calendar month bounds for weekly budgets', function ()
     $monthKey = $targetMonth->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $monthKey]);
 
-    $labeling = Labeling::factory()->create([
+    $label = Label::factory()->create([
         'name' => 'Transport',
         'slug' => 'transport',
     ]);
 
     Budget::create([
-        'labeling_id' => $labeling->id,
+        'label_id' => $label->id,
         'amount' => 500.00,
         'period' => 'weekly',
         'year' => (int) $targetMonth->year,
@@ -183,7 +183,7 @@ test('budget mapping uses calendar month bounds for weekly budgets', function ()
 
     InvoiceItem::create([
         'invoice_id' => $invoice->id,
-        'labeling_id' => $labeling->id,
+        'label_id' => $label->id,
         'description' => 'Fuel',
         'quantity' => 1,
         'unit_price' => 120.00,
@@ -192,7 +192,7 @@ test('budget mapping uses calendar month bounds for weekly budgets', function ()
 
     Invoice::setEventDispatcher(app('events'));
 
-    $totals = analyticsForMonth($monthKey)->spentTotalsByLabelingId();
+    $totals = analyticsForMonth($monthKey)->spentTotalsByLabelId();
 
-    expect($totals[$labeling->id])->toBe(120.0);
+    expect($totals[$label->id])->toBe(120.0);
 });

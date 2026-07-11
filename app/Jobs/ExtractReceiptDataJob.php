@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Enums\LabelingType;
+use App\Enums\LabelType;
 use App\Enums\PaymentMethod;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Models\Labeling;
+use App\Models\Label;
 use App\Prompts\ReceiptExtractionPrompt;
 use App\Services\OllamaService;
 use Carbon\Carbon;
@@ -85,19 +85,19 @@ class ExtractReceiptDataJob implements ShouldQueue
         if (! empty($parsed['items']) && is_array($parsed['items'])) {
             foreach ($parsed['items'] as $item) {
                 $suggestedCat = $item['suggested_category'] ?? null;
-                $labelingId = null;
+                $labelId = null;
 
                 if ($suggestedCat) {
                     $slug = Str::slug($suggestedCat);
-                    $labelingId = Labeling::query()
-                        ->where('type', LabelingType::Finance)
+                    $labelId = Label::query()
+                        ->where('type', LabelType::Finance)
                         ->where('slug', $slug)
                         ->first()?->id;
                 }
 
                 InvoiceItem::create([
                     'invoice_id' => $invoice->id,
-                    'labeling_id' => $labelingId,
+                    'label_id' => $labelId,
                     'description' => $item['description'] ?? 'Line Item',
                     'quantity' => (float) ($item['quantity'] ?? 1.000),
                     'unit_price' => (float) ($item['unit_price'] ?? 0.00),
