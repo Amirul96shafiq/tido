@@ -449,6 +449,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     z-index: 50 !important;
 }
 
+.fi-fo-file-upload-editor .fi-fo-file-upload-editor-overlay {
+    @apply backdrop-blur-md;
+}
+
 /* Version-icon style — shared interactive icon treatment */
 .fi-version-icon-btn {
     @apply relative flex items-center justify-center rounded-lg text-gray-500 dark:text-slate-400 transition-all duration-200 select-none;
