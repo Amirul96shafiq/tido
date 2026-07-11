@@ -7,6 +7,7 @@ use App\Filament\Livewire\DatabaseNotifications;
 use App\Models\User;
 use Filament\Notifications\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
@@ -209,4 +210,83 @@ test('reset filters clears applied filters', function () {
         ->call('resetFilters')
         ->assertSee('Profile Settings Updated')
         ->assertSee('Receipt requires manual review');
+});
+
+test('paginates database notifications with previous page numbers and next', function () {
+    $perPage = DatabaseNotifications::NOTIFICATIONS_PER_PAGE;
+
+    for ($index = 1; $index <= $perPage + 2; $index++) {
+        Notification::make()
+            ->title(sprintf('Paged Notification %02d', $index))
+            ->body("Body {$index}")
+            ->sendToDatabase($this->user);
+    }
+
+    $component = Livewire::test(DatabaseNotifications::class);
+
+    $notifications = $component->instance()->getNotifications();
+
+    expect($notifications)
+        ->toBeInstanceOf(LengthAwarePaginator::class)
+        ->and($notifications->perPage())->toBe($perPage)
+        ->and($notifications->total())->toBe($perPage + 2)
+        ->and($notifications->hasPages())->toBeTrue()
+        ->and($notifications->count())->toBe($perPage);
+
+    $firstPageTitles = $notifications->getCollection()
+        ->map(fn ($notification): string => (string) data_get($notification->data, 'title'))
+        ->all();
+
+    $component
+        ->assertSeeHtml('fi-pagination')
+        ->assertSeeHtml('fi-pagination-items')
+        ->assertSeeHtml('gotoPage(1,')
+        ->assertSeeHtml('gotoPage(2,')
+        ->assertSeeHtml("nextPage('database-notifications-page')")
+        ->call('nextPage', 'database-notifications-page');
+
+    $secondPage = $component->instance()->getNotifications();
+
+    expect($secondPage->currentPage())->toBe(2)
+        ->and($secondPage->count())->toBe(2);
+
+    $secondPageTitles = $secondPage->getCollection()
+        ->map(fn ($notification): string => (string) data_get($notification->data, 'title'))
+        ->all();
+
+    expect(array_intersect($firstPageTitles, $secondPageTitles))->toBeEmpty();
+
+    $component
+        ->assertSeeHtml("previousPage('database-notifications-page')")
+        ->call('previousPage', 'database-notifications-page');
+
+    expect($component->instance()->getNotifications()->currentPage())->toBe(1);
+
+    $component->call('gotoPage', 2, 'database-notifications-page');
+
+    expect($component->instance()->getNotifications()->currentPage())->toBe(2);
+});
+
+test('search resets database notifications pagination to the first page', function () {
+    $perPage = DatabaseNotifications::NOTIFICATIONS_PER_PAGE;
+
+    for ($index = 1; $index <= $perPage + 1; $index++) {
+        Notification::make()
+            ->title(sprintf('Reset Page Notification %02d', $index))
+            ->body("Body {$index}")
+            ->sendToDatabase($this->user);
+    }
+
+    $component = Livewire::test(DatabaseNotifications::class)
+        ->call('gotoPage', 2, 'database-notifications-page');
+
+    expect($component->instance()->getNotifications()->currentPage())->toBe(2);
+
+    $component->set('search', 'Reset Page Notification 01');
+
+    expect($component->instance()->getNotifications()->currentPage())->toBe(1);
+
+    $component
+        ->assertSee('Reset Page Notification 01')
+        ->assertDontSee('Reset Page Notification 11');
 });

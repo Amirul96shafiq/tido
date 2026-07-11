@@ -71,6 +71,7 @@
         id="database-notifications"
         slide-over
         :sticky-header="$hasAnyNotifications"
+        :sticky-footer="$isPaginated"
         teleport="body"
         width="md"
         class="fi-no-database"
@@ -303,7 +304,12 @@
 
             @if ($isPaginated)
                 <x-slot name="footer">
-                    <x-filament::pagination :paginator="$notifications" />
+                    <div
+                        wire:key="database-notifications-pagination-{{ $notifications->currentPage() }}"
+                        class="fi-no-database-pagination flex w-full justify-center"
+                    >
+                        <x-filament::pagination :paginator="$notifications" />
+                    </div>
                 </x-slot>
             @endif
         @endif

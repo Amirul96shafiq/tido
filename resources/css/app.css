@@ -768,6 +768,27 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /*
+ * Full pagination (prev + page numbers + next) in the narrow slide-over.
+ * Filament hides .fi-pagination-items until @4xl; force them here and drop
+ * the text Previous/Next buttons so the footer stays compact.
+ */
+.fi-no-database .fi-pagination:not(.fi-simple) {
+    display: flex;
+    justify-content: center;
+}
+
+.fi-no-database .fi-pagination:not(.fi-simple) .fi-pagination-previous-btn,
+.fi-no-database .fi-pagination:not(.fi-simple) .fi-pagination-next-btn,
+.fi-no-database .fi-pagination:not(.fi-simple) .fi-pagination-overview {
+    display: none;
+}
+
+.fi-no-database .fi-pagination:not(.fi-simple) .fi-pagination-items {
+    display: flex;
+    justify-self: center;
+}
+
+/*
  * WhatsApp connection details slide-over: match database notifications
  * backdrop blur and content padding so the list aligns like notification rows.
  */
