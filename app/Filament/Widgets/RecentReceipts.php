@@ -21,6 +21,8 @@ class RecentReceipts extends BaseWidget
 
     protected int|string|array $columnSpan = 'full';
 
+    protected string $view = 'filament.widgets.recent-receipts';
+
     public function table(Table $table): Table
     {
         $bounds = $this->getSelectedMonthBounds();
