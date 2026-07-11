@@ -18,7 +18,6 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Storage;
 
 class ReceiptUploadPage extends Page implements HasForms, HasTable
 {
@@ -101,7 +100,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                     ->color(fn (Invoice $record): ?string => filled($record->image_path) ? 'primary' : null)
                     ->tooltip(fn (Invoice $record): ?string => filled($record->image_path) ? 'View file' : null)
                     ->url(
-                        fn (Invoice $record): ?string => $this->receiptFileUrl($record),
+                        fn (Invoice $record): ?string => $record->fileUrl(),
                         shouldOpenInNewTab: true,
                     ),
 
@@ -170,22 +169,5 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                     ->options(PaymentMethod::class)
                     ->searchable(),
             ]);
-    }
-
-    protected function receiptFileUrl(Invoice $record): ?string
-    {
-        if (blank($record->image_path)) {
-            return null;
-        }
-
-        if (Storage::exists($record->image_path)) {
-            return Storage::temporaryUrl($record->image_path, now()->addMinutes(30));
-        }
-
-        if (Storage::disk('public')->exists($record->image_path)) {
-            return Storage::disk('public')->url($record->image_path);
-        }
-
-        return null;
     }
 }
