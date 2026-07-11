@@ -82,11 +82,12 @@ Relationships: Invoice `hasMany` InvoiceItems; InvoiceItem `belongsTo` Label; Bu
 2. Forms use Filament v5 `Schema`; prefer native components
 3. View is always a slide-over — never a dedicated View page. Tables: `ViewAction::make()->slideOver()` in `recordActions` (before Edit/Delete). Notification/deep-link View CTAs: `Resource::getUrl('index', ['tableAction' => 'view', 'tableActionRecord' => $record->getRouteKey()])`
 4. Record actions are icon-only panel-wide (`AppServiceProvider` → `Table::configureUsing` → `modifyUngroupedRecordActionsUsing` → `iconButton()`); do not add visible labels on View/Edit/Delete
-5. Nav groups: Finances / Settings
-6. Breadcrumbs are disabled panel-wide (`AdminPanelProvider` → `->breadcrumbs(false)`); do not re-enable on resources
-7. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
-8. Resource table `created_at` columns use `->since()->dateTimeTooltip()` (relative time + full datetime on hover), matching Receipt Upload “Uploaded At”
-9. Illustrated empty panels (filtered lists, search misses): use `<x-empty-state-panel>` — see `docs/ui-empty-states.md` (pattern from `errors/email-change-expired.blade.php`)
+5. List-page “New …” CTAs use a plus Heroicon panel-wide (`AppServiceProvider` → `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`); new List pages only need `CreateAction::make()`
+6. Nav groups: Finances / Settings
+7. Breadcrumbs are disabled panel-wide (`AdminPanelProvider` → `->breadcrumbs(false)`); do not re-enable on resources
+8. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
+9. Resource table `created_at` columns use `->since()->dateTimeTooltip()` (relative time + full datetime on hover), matching Receipt Upload “Uploaded At”
+10. Illustrated empty panels (filtered lists, search misses): use `<x-empty-state-panel>` — see `docs/ui-empty-states.md` (pattern from `errors/email-change-expired.blade.php`)
 
 ### Integrations
 
