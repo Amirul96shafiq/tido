@@ -50,6 +50,21 @@ test('send otp advances to otp step and posts to evolution', function () {
     });
 });
 
+test('otp step renders six digit input boxes', function () {
+    User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $html = Livewire::test(Login::class)
+        ->set('data.phone', '60123456789')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp')
+        ->html();
+
+    expect($html)
+        ->toContain('fi-one-time-code-input-ctn')
+        ->and(substr_count($html, 'fi-one-time-code-input-digit-field'))->toBe(6)
+        ->and($html)->not->toContain('placeholder="6-digit code"');
+});
+
 test('send otp fails for unknown phone without revealing details', function () {
     Livewire::test(Login::class)
         ->set('data.phone', '0199999999')
