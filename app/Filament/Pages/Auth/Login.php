@@ -13,6 +13,7 @@ use Filament\Actions\ActionGroup;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse;
 use Filament\Auth\Pages\Login as BaseLogin;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\OneTimeCodeInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Notifications\Notification;
@@ -105,12 +106,9 @@ class Login extends BaseLogin
 
     protected function getOtpFormComponent(): Component
     {
-        return TextInput::make('otp')
+        return OneTimeCodeInput::make('otp')
             ->label('WhatsApp code')
-            ->numeric()
             ->length(6)
-            ->placeholder('6-digit code')
-            ->autocomplete('one-time-code')
             ->autofocus(fn (): bool => $this->loginMode === 'otp')
             ->required(fn (): bool => $this->loginMode === 'otp')
             ->visible(fn (): bool => $this->loginMode === 'otp');

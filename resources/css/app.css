@@ -161,6 +161,34 @@
     border-radius: 0 !important;
 }
 
+/* OTP digit boxes — 1:1 ratio with spacing between cells */
+.fi-one-time-code-input-ctn {
+    --otp-digit-size: 2.75rem;
+    --otp-gap: 0.875rem;
+
+    @apply relative flex h-auto items-center;
+    gap: var(--otp-gap);
+}
+
+.fi-one-time-code-input-ctn > .fi-one-time-code-input-digit-field {
+    @apply inline-block shrink-0 rounded-lg border border-gray-950/10 bg-white dark:border-white/20 dark:bg-white/5;
+
+    width: var(--otp-digit-size);
+    height: var(--otp-digit-size);
+    aspect-ratio: 1 / 1;
+}
+
+.fi-one-time-code-input-ctn > .fi-one-time-code-input-digit-field.fi-active {
+    @apply border-2 border-primary-600 dark:border-primary-500;
+}
+
+input[type='text'].fi-one-time-code-input {
+    @apply inset-x-0 inset-y-0 text-lg;
+
+    letter-spacing: calc(var(--otp-digit-size) + var(--otp-gap) - 1ch);
+    padding-left: calc((var(--otp-digit-size) - 1ch) / 2);
+}
+
 /* Keep logo in sidebar when expanded; show a single themed logo in topbar when collapsed */
 .fi-topbar .fi-logo {
     display: none !important;
