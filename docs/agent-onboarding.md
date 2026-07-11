@@ -81,7 +81,8 @@ Relationships: Invoice `hasMany` InvoiceItems; InvoiceItem `belongsTo` Labeling;
 2. Forms use Filament v5 `Schema`; prefer native components
 3. Resource tables must include `ViewAction::make()->slideOver()` in `recordActions` (before Edit/Delete); prefer slide-over over a View page
 4. Nav groups: Finances / Settings
-5. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
+5. Breadcrumbs are disabled panel-wide (`AdminPanelProvider` → `->breadcrumbs(false)`); do not re-enable on resources
+6. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
 
 ### Integrations
 

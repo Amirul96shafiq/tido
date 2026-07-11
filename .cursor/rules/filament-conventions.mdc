@@ -24,6 +24,7 @@ Use Filament `Schema` for forms (v5), not legacy Form API. Prefer native Form/Ta
 
 - Groups: **Finances** (Invoices, Budgets), **Settings** (Labels)
 - Theme: amber/zinc, Outfit font, SPA mode, collapsible sidebar, database notifications
+- Breadcrumbs: disabled panel-wide via `->breadcrumbs(false)` in `AdminPanelProvider` — do not re-enable per resource
 - Custom pages: `Dashboard`, `ReceiptUploadPage`, `Auth/EditProfile`
 
 ## Widgets
