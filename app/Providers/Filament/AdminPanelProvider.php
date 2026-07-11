@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers\Filament;
 
+use App\Filament\Livewire\DatabaseNotifications;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Dashboard;
@@ -106,7 +107,7 @@ class AdminPanelProvider extends PanelProvider
                     </script>
                     HTML,
             )
-            ->databaseNotifications()
+            ->databaseNotifications(livewireComponent: DatabaseNotifications::class)
             ->breadcrumbs(false)
             ->spa()
             ->userMenuItems([

@@ -570,8 +570,23 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply backdrop-blur-md;
 }
 
-.fi-no-database .fi-modal-window-ctn > .fi-modal-window {
-    overflow-x: hidden;
+/*
+ * Do not set overflow-x on the modal window — in CSS that also clips
+ * overflow-y and cuts off the unread count badge (absolute -top-1).
+ */
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-header {
+    overflow: visible;
+    /* Extra top room so the heading badge is not flush/clipped */
+    padding-top: calc(var(--spacing) * 7);
+}
+
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window .fi-modal-heading {
+    overflow: visible;
+}
+
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window .fi-modal-heading .fi-badge {
+    /* Sit beside the title without hanging above the header edge */
+    top: 0;
 }
 
 .fi-no-database .fi-modal-window-ctn > .fi-modal-window .fi-modal-content {
@@ -580,10 +595,18 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     padding-block: 0;
     row-gap: 0;
     max-width: 100%;
+    overflow-x: hidden;
 }
 
 .fi-no-database .fi-modal-window-ctn > .fi-modal-window .fi-modal-content > :first-child {
     padding-top: calc(var(--spacing) * 4);
+}
+
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window .fi-modal-content > :first-child.fi-no-database-empty-filter {
+    /* Beat the generic :first-child rule; clear sticky header + pulse ring */
+    padding-top: calc(var(--spacing) * 12);
+    padding-bottom: calc(var(--spacing) * 10);
+    overflow: visible;
 }
 
 .fi-no-database .fi-no-notification,
@@ -596,6 +619,150 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
 .fi-no-database .fi-no-notification-body {
     overflow-wrap: anywhere;
+}
+
+.fi-no-database .fi-no-database-toolbar {
+    @apply mt-3 flex w-full items-center gap-3;
+}
+
+.fi-no-database .fi-no-database-search {
+    @apply min-w-0 flex-1;
+}
+
+.fi-no-database .fi-no-database-search-input::-webkit-search-cancel-button,
+.fi-no-database .fi-no-database-search-input::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none;
+}
+
+.fi-no-database .fi-no-database-search-clear {
+    @apply absolute end-1 top-1/2 z-10 -translate-y-1/2;
+}
+
+.fi-no-database .fi-ta-filters-trigger-action-ctn {
+    @apply ms-auto shrink-0;
+}
+
+.fi-no-database .fi-no-database-empty-filter {
+    @apply px-6;
+    overflow: visible;
+    /* Stay under sticky header popovers (DatePicker / Select) */
+    position: relative;
+    z-index: 0;
+}
+
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-header {
+    /* Above empty-state icon so filter date pickers are not covered */
+    z-index: 20;
+}
+
+/*
+ * Illustrated empty panel — same structure as errors/email-change-expired.blade.php
+ * (pulsing icon ring, heading, description, CTA). Reusable via <x-empty-state-panel>.
+ */
+.fi-no-empty-panel {
+    @apply flex flex-col items-center text-center;
+    animation: fi-no-empty-panel-slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fi-no-empty-panel-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(0.75rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fi-no-empty-panel-icon-ctn {
+    @apply relative mb-6 flex h-20 w-20 items-center justify-center rounded-full;
+}
+
+.fi-no-empty-panel-icon-ctn::after {
+    content: '';
+    @apply absolute inset-0 rounded-full border-2;
+    animation: fi-no-empty-panel-pulse 2s infinite;
+}
+
+.fi-no-empty-panel-icon-ctn-primary {
+    @apply bg-primary-500/10 text-primary-600 dark:text-primary-400;
+}
+
+.fi-no-empty-panel-icon-ctn-primary::after {
+    @apply border-primary-500/30;
+}
+
+.fi-no-empty-panel-icon-ctn-danger {
+    @apply bg-danger-500/10 text-danger-600 dark:text-danger-400;
+}
+
+.fi-no-empty-panel-icon-ctn-danger::after {
+    @apply border-danger-500/30;
+}
+
+.fi-no-empty-panel-icon-ctn-warning {
+    @apply bg-warning-500/10 text-warning-600 dark:text-warning-400;
+}
+
+.fi-no-empty-panel-icon-ctn-warning::after {
+    @apply border-warning-500/30;
+}
+
+.fi-no-empty-panel-icon-ctn-success {
+    @apply bg-success-500/10 text-success-600 dark:text-success-400;
+}
+
+.fi-no-empty-panel-icon-ctn-success::after {
+    @apply border-success-500/30;
+}
+
+.fi-no-empty-panel-icon-ctn-gray {
+    @apply bg-gray-500/10 text-gray-600 dark:text-gray-400;
+}
+
+.fi-no-empty-panel-icon-ctn-gray::after {
+    @apply border-gray-500/30;
+}
+
+@keyframes fi-no-empty-panel-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+}
+
+.fi-no-empty-panel-icon {
+    /* Keep below sticky header overlays (date pickers, selects) */
+    @apply relative z-0 h-10 w-10;
+}
+
+.fi-no-empty-panel-heading {
+    @apply mb-2 text-xl font-bold tracking-tight text-gray-950 dark:text-white;
+}
+
+.fi-no-empty-panel-description {
+    @apply mb-6 max-w-sm text-sm leading-relaxed text-gray-500 dark:text-gray-400;
+}
+
+.fi-no-empty-panel-actions {
+    @apply flex w-full max-w-xs flex-col items-stretch gap-2;
+}
+
+.fi-no-empty-panel-actions .fi-btn {
+    @apply w-full justify-center;
+}
+
+.fi-no-database .fi-no-database-filters-panel {
+    @apply bg-gray-50 dark:bg-white/5;
 }
 
 /*
