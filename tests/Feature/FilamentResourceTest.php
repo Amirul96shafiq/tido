@@ -122,6 +122,51 @@ test('resource table record actions are icon-only', function () {
     }
 });
 
+test('resource tables show created_at as relative time with datetime tooltip', function () {
+    $this->actingAs($this->admin);
+
+    $createdAt = now()->subHours(3);
+    $relative = $createdAt->diffForHumans();
+
+    $label = Label::factory()->create(['created_at' => $createdAt]);
+    $budget = Budget::factory()->create(['created_at' => $createdAt]);
+    $invoice = Invoice::factory()->create(['created_at' => $createdAt]);
+
+    Livewire::test(ListLabels::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$label])
+        ->assertSee($relative);
+
+    Livewire::test(ListBudgets::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$budget])
+        ->assertSee($relative);
+
+    Livewire::test(ListInvoices::class)
+        ->assertSuccessful()
+        ->toggleAllTableColumns()
+        ->assertCanSeeTableRecords([$invoice])
+        ->assertSee($relative);
+
+    foreach ([ListLabels::class, ListBudgets::class, ListInvoices::class] as $page) {
+        $column = Livewire::test($page)
+            ->instance()
+            ->getTable()
+            ->getColumn('created_at');
+
+        expect($column)->not->toBeNull();
+
+        $tooltip = $column->record(match ($page) {
+            ListLabels::class => $label,
+            ListBudgets::class => $budget,
+            default => $invoice,
+        })->getTooltip($createdAt);
+
+        expect($tooltip)->toBeString()->not->toBeEmpty()
+            ->and($tooltip)->not->toBe($relative);
+    }
+});
+
 test('labels table renders icon as graphic not name', function () {
     $this->actingAs($this->admin);
 

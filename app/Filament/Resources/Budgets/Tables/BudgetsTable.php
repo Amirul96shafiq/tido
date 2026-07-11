@@ -60,7 +60,8 @@ class BudgetsTable
 
                 TextColumn::make('created_at')
                     ->label('Created At')
-                    ->dateTime()
+                    ->since()
+                    ->dateTimeTooltip()
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
