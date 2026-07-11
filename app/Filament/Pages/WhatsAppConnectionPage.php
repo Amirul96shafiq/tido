@@ -588,7 +588,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
                 Action::make('openWhatsAppConnection')
                     ->label('Open WhatsApp Connection')
                     ->button()
-                    ->url(static::getUrl())
+                    ->url(static::getUrl(), shouldOpenInNewTab: true)
                     ->markAsRead(),
             ])
             ->sendToDatabase($recipient);
@@ -611,7 +611,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
                 Action::make('openWhatsAppConnection')
                     ->label('Open WhatsApp Connection')
                     ->button()
-                    ->url(static::getUrl())
+                    ->url(static::getUrl(), shouldOpenInNewTab: true)
                     ->markAsRead(),
             ])
             ->sendToDatabase($recipient);

@@ -33,6 +33,7 @@ test('updating profile name triggers database notification', function () {
     expect($notification->data['title'])->toBe('Profile Settings Updated');
     expect($notification->data['body'])->toContain('Name');
     expect($notification->data['actions'][0]['url'])->toBe(EditProfile::getUrl());
+    expect($notification->data['actions'][0]['shouldOpenUrlInNewTab'])->toBeTrue();
 });
 
 test('updating profile photo triggers database notification', function () {

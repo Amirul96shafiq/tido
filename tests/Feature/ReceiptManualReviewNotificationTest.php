@@ -39,9 +39,11 @@ test('sends database notification with view and edit actions when invoice requir
         ->and($notification->data['actions'][0]['name'])->toBe('view')
         ->and($notification->data['actions'][0]['label'])->toBe('View')
         ->and($notification->data['actions'][0]['url'])->toBe($expectedViewUrl)
+        ->and($notification->data['actions'][0]['shouldOpenUrlInNewTab'])->toBeTrue()
         ->and($notification->data['actions'][1]['name'])->toBe('edit')
         ->and($notification->data['actions'][1]['label'])->toBe('Edit')
-        ->and($notification->data['actions'][1]['url'])->toBe(InvoiceResource::getUrl('edit', ['record' => $invoice]));
+        ->and($notification->data['actions'][1]['url'])->toBe(InvoiceResource::getUrl('edit', ['record' => $invoice]))
+        ->and($notification->data['actions'][1]['shouldOpenUrlInNewTab'])->toBeTrue();
 });
 
 test('notifies all users when a receipt requires manual review', function () {

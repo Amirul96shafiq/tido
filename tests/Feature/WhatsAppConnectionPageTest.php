@@ -300,7 +300,8 @@ test('auto-registers webhook and sends welcome when status becomes open', functi
 
     $notification = $user->notifications()->first();
     expect($notification->data['title'])->toBe('WhatsApp connected')
-        ->and($notification->data['actions'][0]['url'])->toBe(WhatsAppConnectionPage::getUrl());
+        ->and($notification->data['actions'][0]['url'])->toBe(WhatsAppConnectionPage::getUrl())
+        ->and($notification->data['actions'][0]['shouldOpenUrlInNewTab'])->toBeTrue();
 
     expect(WhatsAppConnectionLog::query()->count())->toBe(1);
 
@@ -442,7 +443,8 @@ test('logout resets connect flags and stores disconnected database notification'
         ->get()
         ->first(fn ($notification): bool => $notification->data['title'] === 'WhatsApp disconnected');
 
-    expect($disconnected->data['actions'][0]['url'])->toBe(WhatsAppConnectionPage::getUrl());
+    expect($disconnected->data['actions'][0]['url'])->toBe(WhatsAppConnectionPage::getUrl())
+        ->and($disconnected->data['actions'][0]['shouldOpenUrlInNewTab'])->toBeTrue();
 
     expect(WhatsAppConnectionLog::query()->latest('id')->pluck('event')->all())
         ->toBe([
