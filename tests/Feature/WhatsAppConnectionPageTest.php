@@ -93,7 +93,7 @@ test('connected status shows linked number and instance details', function () {
         ->assertSee('Connected number')
         ->assertSee('601115666887')
         ->assertSee('tido Bot')
-        ->assertSee('Bot allowlist')
+        ->assertSee('Contact allowlist')
         ->assertSee('60123456789')
         ->assertSee('60111111111')
         ->assertSee('View details')
