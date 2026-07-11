@@ -55,7 +55,7 @@ class Login extends BaseLogin
         }
 
         return match ($this->loginMode) {
-            'otp' => 'Enter your code',
+            'otp' => 'Enter the code',
             default => 'Keep it tidy. Get it done.',
         };
     }
@@ -68,7 +68,7 @@ class Login extends BaseLogin
 
         return match ($this->loginMode) {
             'otp' => filled($this->pendingPhone)
-                ? "We sent a 6-digit code to {$this->pendingPhone}."
+                ? "6-digit code sent to {$this->pendingPhone}."
                 : 'Enter the 6-digit code from WhatsApp.',
             default => 'Where tidy preparation meets finished work, then "tido" (sleep).',
         };
@@ -335,7 +335,7 @@ class Login extends BaseLogin
         $endsAt = (int) ($this->otpCooldownEndsAt ?? 0);
         $prefix = $this->loginMode === 'otp'
             ? 'Resend available in '
-            : 'You can request another code in ';
+            : 'Another code available in ';
 
         return new HtmlString(
             '<div'
@@ -452,7 +452,7 @@ class Login extends BaseLogin
 
         Notification::make()
             ->title('WhatsApp code sent')
-            ->body('Check WhatsApp for your 6-digit login code.')
+            ->body('Check WhatsApp for the 6-digit login code.')
             ->success()
             ->send();
     }
@@ -516,7 +516,7 @@ class Login extends BaseLogin
 
         Notification::make()
             ->title('WhatsApp code resent')
-            ->body('Check WhatsApp for your new 6-digit login code.')
+            ->body('Check WhatsApp for the new 6-digit login code.')
             ->success()
             ->send();
     }

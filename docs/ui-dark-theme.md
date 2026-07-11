@@ -86,3 +86,4 @@ Custom solid buttons outside Filament should use `text-primary-950` (or `900`) o
 
 - Empty panels: [ui-empty-states.md](ui-empty-states.md)
 - Agent UI notes: [agent-onboarding.md](agent-onboarding.md) § Filament UI
+- UI copy voice: [ui-copy-style.md](ui-copy-style.md)

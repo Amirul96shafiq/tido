@@ -256,7 +256,7 @@ test('otp cooldown persists when returning to phone step for same number', funct
         ->assertSet('otpCooldownEndsAt', $endsAt)
         ->assertSet('lastOtpPhone', '60123456789')
         ->assertSet('data.phone', '60123456789')
-        ->assertSee('You can request another code in');
+        ->assertSee('Another code available in');
 
     expect($component->instance()->isPhoneSendOnCooldown())->toBeTrue();
 });
