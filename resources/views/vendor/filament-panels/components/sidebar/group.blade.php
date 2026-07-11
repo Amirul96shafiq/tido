@@ -62,7 +62,7 @@
             class="fi-sidebar-group-collapsed-label flex flex-col items-center justify-center py-2"
         >
             <span
-                class="text-[9px] font-bold tracking-wider text-gray-400 uppercase dark:text-zinc-500 truncate max-w-[48px] text-center"
+                class="text-[9px] font-bold tracking-wider text-gray-400 uppercase dark:text-slate-500 truncate max-w-[48px] text-center"
                 x-tooltip="{
                     content: @js($label),
                     placement: document.dir === 'rtl' ? 'left' : 'right',

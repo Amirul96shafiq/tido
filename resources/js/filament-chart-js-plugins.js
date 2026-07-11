@@ -13,10 +13,12 @@ const filamentTooltipThemePlugin = {
 function applyFilamentTooltipTheme(chart) {
     const isDark = document.documentElement.classList.contains('dark')
     const existingTooltip = chart.options.plugins?.tooltip ?? {}
+    const rootStyles = getComputedStyle(document.documentElement)
+    const slate700 = rootStyles.getPropertyValue('--color-slate-700').trim() || '#334155'
 
     const theme = isDark
         ? {
-              backgroundColor: '#333333',
+              backgroundColor: slate700,
               titleColor: '#ffffff',
               bodyColor: '#ffffff',
               borderColor: 'transparent',
