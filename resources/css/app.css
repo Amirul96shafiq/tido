@@ -115,6 +115,52 @@
     background-color: var(--color-slate-800) !important;
 }
 
+/* Auth simple pages — Catalyst-style: larger logo, left-aligned copy, borderless */
+.fi-simple-page-content {
+    row-gap: 2.5rem !important;
+}
+
+.fi-simple-header {
+    align-items: flex-start !important;
+    gap: 0 !important;
+}
+
+.fi-simple-header .fi-logo,
+.fi-simple-header .fi-logo img {
+    height: 4.5rem !important;
+    max-height: 4.5rem !important;
+    margin-left: -1.5rem !important;
+}
+
+.fi-simple-header .fi-logo {
+    margin-bottom: 1.5rem !important;
+}
+
+.fi-simple-header-heading {
+    text-align: start !important;
+}
+
+.fi-simple-header-subheading {
+    text-align: start !important;
+    margin-top: 0.5rem !important;
+}
+
+.fi-simple-page .fi-sc-form {
+    gap: 2rem !important;
+}
+
+.fi-simple-page .fi-sc-actions:not(.fi-sticky) {
+    margin-top: 0.5rem !important;
+}
+
+.fi-simple-main {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-ring-offset-shadow: 0 0 #0000 !important;
+    border-radius: 0 !important;
+}
+
 /* Keep logo in sidebar when expanded; show a single themed logo in topbar when collapsed */
 .fi-topbar .fi-logo {
     display: none !important;

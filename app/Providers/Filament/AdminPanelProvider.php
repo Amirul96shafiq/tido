@@ -7,6 +7,7 @@ namespace App\Providers\Filament;
 use App\Filament\Livewire\DatabaseNotifications;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\Login;
+use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Dashboard;
 use App\Helpers\GitHelper;
 use App\Http\Middleware\SetUserPreferences;
@@ -48,7 +49,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(Login::class)
-            ->passwordReset()
+            ->passwordReset(RequestPasswordReset::class)
             ->profile(EditProfile::class, isSimple: false)
             ->emailChangeVerification()
             ->colors([
