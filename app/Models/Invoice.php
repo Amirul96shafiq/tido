@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -69,6 +70,23 @@ class Invoice extends Model
     public function scopeInPeriod(Builder $query, CarbonInterface $start, CarbonInterface $end): void
     {
         $query->whereBetween('date_time', [$start, $end]);
+    }
+
+    public function fileUrl(): ?string
+    {
+        if (blank($this->image_path)) {
+            return null;
+        }
+
+        if (Storage::exists($this->image_path)) {
+            return Storage::temporaryUrl($this->image_path, now()->addMinutes(30));
+        }
+
+        if (Storage::disk('public')->exists($this->image_path)) {
+            return Storage::disk('public')->url($this->image_path);
+        }
+
+        return null;
     }
 
     public function getActivitylogOptions(): LogOptions
