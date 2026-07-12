@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\WhatsAppConnectMethod;
 use App\Jobs\SendWhatsAppConnectedAlertJob;
 use App\Services\WhatsAppNotificationService;
 use Illuminate\Http\Client\Request;
@@ -35,6 +36,36 @@ test('send whatsapp connected alert job sends reconnect message to personal numb
             && str_contains($text, 'reconnected')
             && str_contains($text, '601115666887')
             && str_contains($text, '— Powered by *tido*');
+    });
+});
+
+test('send whatsapp connected alert job mentions qr code connect method', function () {
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    (new SendWhatsAppConnectedAlertJob('601115666887', WhatsAppConnectMethod::QrCode))
+        ->handle(app(WhatsAppNotificationService::class));
+
+    Http::assertSent(function (Request $request) {
+        $text = (string) data_get($request->data(), 'text', '');
+
+        return str_contains($text, 'via QR code');
+    });
+});
+
+test('send whatsapp connected alert job mentions pairing code connect method', function () {
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    (new SendWhatsAppConnectedAlertJob('601115666887', WhatsAppConnectMethod::PairingCode))
+        ->handle(app(WhatsAppNotificationService::class));
+
+    Http::assertSent(function (Request $request) {
+        $text = (string) data_get($request->data(), 'text', '');
+
+        return str_contains($text, 'via pairing code');
     });
 });
 

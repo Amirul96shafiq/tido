@@ -37,7 +37,9 @@ console.log('Using: npm run dev:server (fallback: start:prod if you change this 
 //   browser[1] (NAME)   = PlatformType (Chrome|Firefox|Desktop|…)
 // With NAME=Chrome, WhatsApp always prefixes "Google Chrome (…)" — so a custom
 // NAME like "tido App" is ignored (falls back to Chrome) and nothing changes.
-// Use Desktop + full label in CLIENT for "tido App (Evolution API)".
+// Use Desktop + full label in CLIENT for QR → "tido App (Evolution API)".
+// Pairing-code auth requires Chrome platform id (Desktop fails "Couldn't link
+// device"); Evolution forces Chrome for pairing and keeps CLIENT as the label.
 const sessionPhoneClient =
     process.env.CONFIG_SESSION_PHONE_CLIENT?.trim() || 'tido App (Evolution API)';
 const sessionPhoneName = process.env.CONFIG_SESSION_PHONE_NAME?.trim() || 'Desktop';

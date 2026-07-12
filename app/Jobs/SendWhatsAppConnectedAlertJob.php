@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Enums\WhatsAppConnectMethod;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppMessage;
 use Illuminate\Bus\Queueable;
@@ -22,6 +23,7 @@ class SendWhatsAppConnectedAlertJob implements ShouldQueue
 
     public function __construct(
         public ?string $connectedNumber = null,
+        public ?WhatsAppConnectMethod $connectMethod = null,
     ) {
         $this->onQueue('whatsapp');
     }
@@ -44,7 +46,11 @@ class SendWhatsAppConnectedAlertJob implements ShouldQueue
             return;
         }
 
-        $body = 'WhatsApp session reconnected and is ready for document uploads.';
+        $body = match ($this->connectMethod) {
+            WhatsAppConnectMethod::QrCode => 'WhatsApp session reconnected via QR code and is ready for document uploads.',
+            WhatsAppConnectMethod::PairingCode => 'WhatsApp session reconnected via pairing code and is ready for document uploads.',
+            null => 'WhatsApp session reconnected and is ready for document uploads.',
+        };
 
         if (is_string($this->connectedNumber) && $this->connectedNumber !== '') {
             $body .= "\n\nLinked number: {$this->connectedNumber}.";

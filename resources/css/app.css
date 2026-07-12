@@ -677,14 +677,19 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /*
- * Database notifications slide-over: match changelog modal backdrop blur,
- * and fix Filament's -mx-6 / px-6 on .fi-modal-content which widens past the
- * modal and shows a horizontal scrollbar.
+ * Shared modal overlay blur — match changelog modal (backdrop-blur-md).
+ * See docs/ui-modal-overlay.md.
  */
+.fi-modal-close-overlay.fi-modal-overlay-blur,
 .fi-no-database > .fi-modal-close-overlay {
     @apply backdrop-blur-md;
 }
 
+/*
+ * Database notifications slide-over: match changelog modal backdrop blur,
+ * and fix Filament's -mx-6 / px-6 on .fi-modal-content which widens past the
+ * modal and shows a horizontal scrollbar.
+ */
 /*
  * Do not set overflow-x on the modal window or .fi-modal-content.
  * CSS overflow pairing turns a lone overflow-x into overflow-y: auto, which
@@ -904,8 +909,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /*
- * WhatsApp connection details slide-over: match database notifications
- * backdrop blur and content padding so the list aligns like notification rows.
+ * WhatsApp connection details slide-over: same backdrop blur as other panel modals.
+ * See docs/ui-modal-overlay.md.
  */
 .fi-wa-connection-details > .fi-modal-close-overlay,
 .fi-modal.fi-wa-connection-details > .fi-modal-close-overlay {

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\WhatsAppConnectionEvent;
+use App\Enums\WhatsAppConnectMethod;
 use App\Filament\Pages\WhatsAppConnectionPage;
 use App\Jobs\SendWhatsAppConnectedAlertJob;
 use App\Models\User;
@@ -71,16 +72,27 @@ test('whatsapp connection page loads for authenticated user', function () {
         ->assertSet('connectionStatus', 'close')
         ->assertActionVisible('refreshStatus')
         ->assertActionVisible('generateQr')
+        ->assertActionVisible('pairWithCode')
         ->assertActionEnabled('generateQr')
+        ->assertActionEnabled('pairWithCode')
         ->assertActionDisabled('logoutSession')
         ->assertActionDisabled('registerWebhook')
         ->assertActionDisabled('sendPing')
         ->assertSee('Not connected')
+        ->assertSee('Connect')
         ->assertSee('Connection history')
         ->assertSee('No connection events yet');
 });
 
 test('connected status shows linked number and instance details', function () {
+    WhatsAppConnectionLog::factory()->connected()->create([
+        'connected_number' => '601115666887',
+        'meta' => [
+            'source' => 'page',
+            'connect_method' => 'pairing_code',
+        ],
+    ]);
+
     Http::fake([
         '*/instance/connectionState/*' => Http::response([
             'instance' => ['state' => 'open'],
@@ -94,25 +106,51 @@ test('connected status shows linked number and instance details', function () {
         ->assertSet('connectedProfileName', 'tido Bot')
         ->assertSet('connectedInstanceId', 'instance-uuid-tido')
         ->assertSet('connectedIntegration', 'WHATSAPP-BAILEYS')
+        ->assertSet('connectedVia', WhatsAppConnectMethod::PairingCode)
         ->assertSet('connectedMessageCount', 12)
         ->assertSee('Connected number')
         ->assertSee('601115666887')
         ->assertSee('tido Bot')
+        ->assertSee('Connected via')
+        ->assertSee('pairing code')
         ->assertSee('Contact allowlist')
         ->assertSee('601116330705')
         ->assertSee('60111111111')
         ->assertSee('View details')
         ->assertSee('Connection details')
-        ->assertSee('tido App (Evolution API)')
+        ->assertSee('Google Chrome (Mac OS)')
+        ->assertDontSee('tido App (Evolution API)')
         ->assertSee('instance-uuid-tido')
         ->assertActionVisible('refreshStatus')
-        ->assertActionVisible('generateQr')
-        ->assertActionDisabled('generateQr')
+        ->assertActionVisible('connect')
+        ->assertActionDisabled('connect')
         ->assertActionEnabled('logoutSession')
         ->assertActionEnabled('registerWebhook')
         ->assertActionEnabled('sendPing');
 
     Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/fetchInstances'));
+});
+
+test('connected via qr code shows configured device label in details', function () {
+    WhatsAppConnectionLog::factory()->connected()->create([
+        'connected_number' => '601115666887',
+        'meta' => [
+            'source' => 'page',
+            'connect_method' => 'qr_code',
+        ],
+    ]);
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->assertSet('connectedVia', WhatsAppConnectMethod::QrCode)
+        ->assertSee('tido App (Evolution API)')
+        ->assertDontSee('Google Chrome (Mac OS)');
 });
 
 test('generate qr prefers connect for a fresh code when instance exists', function () {
@@ -133,8 +171,276 @@ test('generate qr prefers connect for a fresh code when instance exists', functi
         ->assertSet('connectionStatus', 'connecting')
         ->assertNotified();
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/tido'));
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/tido')
+        && ! str_contains($request->url(), 'number='));
     Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/instance/create'));
+});
+
+test('connect ttl matches evolution baileys qrTimeout of forty-five seconds', function () {
+    expect(WhatsAppConnectionPage::CONNECT_TTL_SECONDS)->toBe(45);
+});
+
+test('pair with code modal uses compact width and blurred overlay hook', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)->toContain('.fi-modal-close-overlay.fi-modal-overlay-blur')
+        ->and(file_exists(base_path('docs/ui-modal-overlay.md')))->toBeTrue();
+});
+
+test('pair with code requests evolution connect with submitted number', function () {
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'close'],
+        ]),
+        '*/instance/connect/*' => Http::response([
+            'pairingCode' => 'ABCD1234',
+            'instance' => ['state' => 'connecting'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->callAction('pairWithCode', data: [
+            'number' => '601115666887',
+        ])
+        ->assertSet('pairingCode', 'ABCD1234')
+        ->assertSet('pairingNumber', '601115666887')
+        ->assertSet('qrBase64', null)
+        ->assertSet('connectionStatus', 'connecting')
+        ->assertSee('ABCD-1234')
+        ->assertSee('Copy code')
+        ->assertNotified();
+
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/tido')
+        && str_contains($request->url(), 'number=601115666887'));
+});
+
+test('pair with code validates malaysian phone number', function () {
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'close'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->callAction('pairWithCode', data: [
+            'number' => 'invalid',
+        ])
+        ->assertHasActionErrors(['number'])
+        ->assertSet('pairingCode', null);
+
+    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/'));
+});
+
+test('refresh status does not call connect while a pairing code is active', function () {
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'connecting'],
+        ]),
+        '*/instance/logout/*' => Http::response(['status' => 'success']),
+        '*/instance/connect/*' => Http::response([
+            'pairingCode' => 'HWATQDD2',
+            'instance' => ['state' => 'connecting'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    $component = Livewire::test(WhatsAppConnectionPage::class)
+        ->callAction('pairWithCode', data: [
+            'number' => '601115666887',
+        ])
+        ->assertSet('pairingCode', 'HWATQDD2');
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'connecting'],
+        ]),
+        '*/instance/connect/*' => Http::response([
+            'pairingCode' => 'DC699MH8',
+            'instance' => ['state' => 'connecting'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    $component
+        ->call('refreshStatus')
+        ->assertSet('pairingCode', 'HWATQDD2');
+
+    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/'));
+});
+
+test('keeps polling while connecting even without a qr or pairing code', function () {
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'connecting'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    $component = Livewire::test(WhatsAppConnectionPage::class)
+        ->assertSet('connectionStatus', 'connecting')
+        ->assertSet('qrBase64', null)
+        ->assertSet('pairingCode', null);
+
+    expect($component->instance()->getPollingInterval())->toBe('5s');
+});
+
+test('does not call connect sync while evolution reports close during restart', function () {
+    Http::fake([
+        '*/instance/connectionState/*' => Http::sequence()
+            ->push(['instance' => ['state' => 'close']])
+            ->push(['instance' => ['state' => 'close']]),
+        '*/instance/connect/*' => Http::response([
+            'base64' => 'fresh-qr',
+            'instance' => ['state' => 'connecting'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->set('qrBase64', 'data:image/png;base64,old')
+        ->set('qrGeneratedAt', time())
+        ->set('connectionStatus', 'close')
+        ->call('refreshStatus')
+        ->assertSet('qrBase64', 'data:image/png;base64,old');
+
+    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/'));
+});
+
+test('cancel connecting logs out evolution and clears pairing display', function () {
+    Http::fake([
+        '*/instance/connectionState/*' => Http::sequence()
+            ->push(['instance' => ['state' => 'close']])
+            ->push(['instance' => ['state' => 'connecting']])
+            ->push(['instance' => ['state' => 'close']]),
+        '*/instance/connect/*' => Http::response([
+            'pairingCode' => 'QM1MP43P',
+            'instance' => ['state' => 'connecting'],
+        ]),
+        '*/instance/logout/*' => Http::response(['status' => 'success']),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->callAction('pairWithCode', data: [
+            'number' => '601115666887',
+        ])
+        ->assertSet('pairingCode', 'QM1MP43P')
+        ->assertSet('connectionStatus', 'connecting')
+        ->assertActionVisible('cancelConnecting')
+        ->callAction('cancelConnecting')
+        ->assertSet('pairingCode', null)
+        ->assertSet('pairingNumber', null)
+        ->assertSet('qrBase64', null)
+        ->assertSet('pendingConnectMethod', null)
+        ->assertSet('connectionStatus', 'close')
+        ->assertNotified();
+
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/logout/tido')
+        && $request->method() === 'DELETE');
+});
+
+test('cancel connecting is hidden when disconnected without an active attempt', function () {
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'close'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->assertSet('connectionStatus', 'close')
+        ->assertActionHidden('cancelConnecting');
+});
+
+test('pair with code polls connect when evolution is connecting without a code yet', function () {
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'close'],
+        ]),
+        '*/instance/logout/*' => Http::response(['status' => 'success']),
+        '*/instance/connect/*' => Http::sequence()
+            ->push([
+                'base64' => 'BBB',
+                'instance' => ['state' => 'connecting'],
+            ])
+            ->push([
+                'pairingCode' => 'WXYZ5678',
+                'instance' => ['state' => 'connecting'],
+            ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->callAction('pairWithCode', data: [
+            'number' => '601115666887',
+        ])
+        ->assertSet('pairingCode', 'WXYZ5678')
+        ->assertSet('pairingNumber', '601115666887')
+        ->assertNotified();
+
+    // One logout to clear stale creds before pairing — not a mid-flight retry.
+    expect(
+        collect(Http::recorded())
+            ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), '/instance/logout/tido')
+                && $pair[0]->method() === 'DELETE')
+            ->count()
+    )->toBe(1);
+
+    expect(
+        collect(Http::recorded())
+            ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), '/instance/connect/')
+                && str_contains($pair[0]->url(), 'number=601115666887'))
+            ->count()
+    )->toBeGreaterThanOrEqual(2);
+});
+
+test('copy pairing code action notifies success', function () {
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'close'],
+        ]),
+        '*/instance/connect/*' => Http::response([
+            'pairingCode' => 'ABCD-1234',
+            'instance' => ['state' => 'connecting'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->callAction('pairWithCode', data: [
+            'number' => '601115666887',
+        ])
+        ->call('copyPairingCode')
+        ->assertNotified();
+});
+
+test('generate qr clears pairing code display', function () {
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'close'],
+        ]),
+        '*/instance/connect/*' => Http::sequence()
+            ->push([
+                'pairingCode' => 'ABCD1234',
+                'instance' => ['state' => 'connecting'],
+            ])
+            ->push([
+                'base64' => 'BBB',
+                'instance' => ['state' => 'connecting'],
+            ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->callAction('pairWithCode', data: [
+            'number' => '601115666887',
+        ])
+        ->assertSet('pairingCode', 'ABCD1234')
+        ->call('generateQr')
+        ->assertSet('pairingCode', null)
+        ->assertSet('qrBase64', 'data:image/png;base64,BBB');
 });
 
 test('generate qr creates baileys instance when connect fails', function () {
@@ -293,7 +599,8 @@ test('auto-registers webhook and queues welcome when status becomes open', funct
     Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/message/sendText/'));
 
     Queue::assertPushed(SendWhatsAppConnectedAlertJob::class, function (SendWhatsAppConnectedAlertJob $job): bool {
-        return $job->connectedNumber === '601115666887';
+        return $job->connectedNumber === '601115666887'
+            && $job->connectMethod === null;
     });
 
     $user->refresh();
@@ -310,7 +617,78 @@ test('auto-registers webhook and queues welcome when status becomes open', funct
     expect($log->event)->toBe(WhatsAppConnectionEvent::Connected)
         ->and($log->connected_number)->toBe('601115666887')
         ->and($log->profile_name)->toBe('tido Bot')
-        ->and($log->status)->toBe('open');
+        ->and($log->status)->toBe('open')
+        ->and($log->meta['connect_method'] ?? null)->toBeNull();
+});
+
+test('auto-registers webhook and queues welcome with qr connect method after generate qr', function () {
+    Queue::fake([
+        SendWhatsAppConnectedAlertJob::class,
+    ]);
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::sequence()
+            ->push(['instance' => ['state' => 'close']])
+            ->push(['instance' => ['state' => 'connecting']])
+            ->push(['instance' => ['state' => 'open']]),
+        '*/instance/connect/*' => Http::response([
+            'base64' => 'BBB',
+            'instance' => ['state' => 'connecting'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->call('generateQr')
+        ->call('refreshStatus')
+        ->assertSet('connectionStatus', 'connecting')
+        ->call('refreshStatus')
+        ->assertSet('connectionStatus', 'open')
+        ->assertSet('welcomePingSent', true);
+
+    Queue::assertPushed(SendWhatsAppConnectedAlertJob::class, function (SendWhatsAppConnectedAlertJob $job): bool {
+        return $job->connectMethod === WhatsAppConnectMethod::QrCode;
+    });
+
+    $log = WhatsAppConnectionLog::query()->latest('id')->first();
+    expect($log->meta['connect_method'] ?? null)->toBe('qr_code');
+});
+
+test('auto-registers webhook and queues welcome with pairing code connect method', function () {
+    Queue::fake([
+        SendWhatsAppConnectedAlertJob::class,
+    ]);
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::sequence()
+            ->push(['instance' => ['state' => 'close']])
+            ->push(['instance' => ['state' => 'connecting']])
+            ->push(['instance' => ['state' => 'open']]),
+        '*/instance/connect/*' => Http::response([
+            'pairingCode' => 'ABCD1234',
+            'instance' => ['state' => 'connecting'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->callAction('pairWithCode', data: [
+            'number' => '601115666887',
+        ])
+        ->call('refreshStatus')
+        ->assertSet('connectionStatus', 'connecting')
+        ->call('refreshStatus')
+        ->assertSet('connectionStatus', 'open')
+        ->assertSet('welcomePingSent', true);
+
+    Queue::assertPushed(SendWhatsAppConnectedAlertJob::class, function (SendWhatsAppConnectedAlertJob $job): bool {
+        return $job->connectMethod === WhatsAppConnectMethod::PairingCode;
+    });
+
+    $log = WhatsAppConnectionLog::query()->latest('id')->first();
+    expect($log->meta['connect_method'] ?? null)->toBe('pairing_code');
 });
 
 test('skips whatsapp connection database notifications when preference is disabled', function () {
@@ -510,6 +888,18 @@ test('connection history section lists previous logs', function () {
     $connected = WhatsAppConnectionLog::factory()->connected()->create([
         'connected_number' => '601115666887',
         'message' => 'WhatsApp session connected (601115666887).',
+        'meta' => [
+            'source' => 'page',
+            'connect_method' => 'qr_code',
+        ],
+    ]);
+    $connectedViaPairing = WhatsAppConnectionLog::factory()->connected()->create([
+        'connected_number' => '601115666888',
+        'message' => 'WhatsApp session connected (601115666888).',
+        'meta' => [
+            'source' => 'page',
+            'connect_method' => 'pairing_code',
+        ],
     ]);
     $logout = WhatsAppConnectionLog::factory()->logout()->create([
         'connected_number' => '601115666887',
@@ -525,7 +915,10 @@ test('connection history section lists previous logs', function () {
 
     Livewire::test(WhatsAppConnectionPage::class)
         ->assertSee('Connection history')
-        ->assertCanSeeTableRecords([$connected, $logout])
+        ->assertSee('Connected via')
+        ->assertSee('QR code')
+        ->assertSee('pairing code')
+        ->assertCanSeeTableRecords([$connected, $connectedViaPairing, $logout])
         ->searchTable('logged out')
         ->assertCanSeeTableRecords([$logout])
         ->assertCanNotSeeTableRecords([$connected])
