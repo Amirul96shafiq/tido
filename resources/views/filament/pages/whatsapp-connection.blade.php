@@ -1,6 +1,6 @@
 <x-filament-panels::page>
     <div class="grid gap-6 lg:grid-cols-2">
-        <x-filament::section>
+        <x-filament::section class="order-2 lg:order-1">
             <x-slot name="heading">
                 Connection
             </x-slot>
@@ -64,7 +64,7 @@
             </div>
         </x-filament::section>
 
-        <x-filament::section>
+        <x-filament::section class="order-1 lg:order-2">
             <x-slot name="heading">
                 QR code
             </x-slot>
