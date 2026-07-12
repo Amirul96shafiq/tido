@@ -620,6 +620,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply flex size-10 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60;
 }
 
+.fi-auth-menu .fi-auth-menu-trigger {
+    @apply flex size-10 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60;
+}
+
 .fi-user-menu-profile-preview {
     @apply flex flex-col gap-0.5 px-4 py-3 text-center;
 }
