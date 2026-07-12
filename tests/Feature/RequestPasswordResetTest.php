@@ -37,10 +37,13 @@ test('reset password page shows description below heading', function () {
         ->assertSee('Set a new password for the account.');
 });
 
-test('guest auth pages show theme switcher', function (string $url) {
+test('guest auth pages show auth menu with theme switcher and changelogs', function (string $url) {
     $this->get($url)
         ->assertSuccessful()
-        ->assertSee('fi-theme-switcher', false);
+        ->assertSee('fi-auth-menu', false)
+        ->assertSee('images/favicon.png', false)
+        ->assertSee('fi-theme-switcher', false)
+        ->assertSee('Changelogs');
 })->with([
     fn () => '/admin/login',
     fn () => '/admin/password-reset/request',

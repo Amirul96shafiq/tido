@@ -79,7 +79,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::SIMPLE_LAYOUT_START,
-                fn (): string => Blade::render('<x-auth-theme-switcher />'),
+                fn (): string => Blade::render('<x-auth-menu />'),
                 scopes: [
                     Login::class,
                     RequestPasswordReset::class,
