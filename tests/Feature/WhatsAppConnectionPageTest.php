@@ -888,9 +888,13 @@ test('logout resets connect flags and stores disconnected database notification'
 });
 
 test('connection history section lists previous logs', function () {
+    $when = now()->subHours(4);
+    $relative = $when->diffForHumans();
+
     $connected = WhatsAppConnectionLog::factory()->connected()->create([
         'connected_number' => '601115666887',
         'message' => 'WhatsApp session connected (601115666887).',
+        'created_at' => $when,
         'meta' => [
             'source' => 'page',
             'connect_method' => 'qr_code',
@@ -916,11 +920,12 @@ test('connection history section lists previous logs', function () {
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    $component = Livewire::test(WhatsAppConnectionPage::class)
         ->assertSee('Connection history')
         ->assertSee('Connected via')
         ->assertSee('QR code')
         ->assertSee('pairing code')
+        ->assertSee($relative)
         ->assertCanSeeTableRecords([$connected, $connectedViaPairing, $logout])
         ->searchTable('logged out')
         ->assertCanSeeTableRecords([$logout])
@@ -929,4 +934,13 @@ test('connection history section lists previous logs', function () {
         ->filterTable('event', WhatsAppConnectionEvent::Connected->value)
         ->assertCanSeeTableRecords([$connected])
         ->assertCanNotSeeTableRecords([$logout]);
+
+    $column = $component->instance()->getTable()->getColumn('created_at');
+
+    expect($column)->not->toBeNull();
+
+    $tooltip = $column->record($connected)->getTooltip($when);
+
+    expect($tooltip)->toBeString()->not->toBeEmpty()
+        ->and($tooltip)->not->toBe($relative);
 });

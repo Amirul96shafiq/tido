@@ -35,10 +35,6 @@ class InvoicesTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('date_time')
-                    ->dateTime()
-                    ->sortable(),
-
                 TextColumn::make('total_amount')
                     ->money('MYR')
                     ->sortable(),
