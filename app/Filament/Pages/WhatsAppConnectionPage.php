@@ -275,7 +275,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
                     ->label('Generate / Refresh QR')
                     ->icon('heroicon-o-qr-code')
                     ->extraAttributes(['wire:key' => 'wa-action-generate-qr'])
-                    ->visible(fn (): bool => ! $this->isConnectionOpen())
+                    ->disabled(fn (): bool => $this->isConnectionOpen())
                     ->action(function (): void {
                         $this->generateQr();
                     }),
@@ -283,6 +283,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
                     ->label('Register Webhook')
                     ->icon('heroicon-o-globe-alt')
                     ->extraAttributes(['wire:key' => 'wa-action-register-webhook'])
+                    ->disabled(fn (): bool => ! $this->isConnectionOpen())
                     ->action(function (): void {
                         $this->registerWebhook();
                     }),
@@ -290,6 +291,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
                     ->label('Send Test Ping')
                     ->icon('heroicon-o-paper-airplane')
                     ->extraAttributes(['wire:key' => 'wa-action-send-ping'])
+                    ->disabled(fn (): bool => ! $this->isConnectionOpen())
                     ->action(function (): void {
                         $this->sendPing();
                     }),
@@ -298,7 +300,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
                     ->icon('heroicon-o-arrow-right-start-on-rectangle')
                     ->color('danger')
                     ->extraAttributes(['wire:key' => 'wa-action-logout-session'])
-                    ->visible(fn (): bool => $this->isConnectionOpen())
+                    ->disabled(fn (): bool => ! $this->isConnectionOpen())
                     ->requiresConfirmation()
                     ->action(function (): void {
                         $this->logoutSession();
