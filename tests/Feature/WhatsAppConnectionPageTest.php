@@ -71,7 +71,10 @@ test('whatsapp connection page loads for authenticated user', function () {
         ->assertSet('connectionStatus', 'close')
         ->assertActionVisible('refreshStatus')
         ->assertActionVisible('generateQr')
-        ->assertActionHidden('logoutSession')
+        ->assertActionEnabled('generateQr')
+        ->assertActionDisabled('logoutSession')
+        ->assertActionDisabled('registerWebhook')
+        ->assertActionDisabled('sendPing')
         ->assertSee('Not connected')
         ->assertSee('Connection history')
         ->assertSee('No connection events yet');
@@ -103,10 +106,11 @@ test('connected status shows linked number and instance details', function () {
         ->assertSee('tido App (Evolution API)')
         ->assertSee('instance-uuid-tido')
         ->assertActionVisible('refreshStatus')
-        ->assertActionHidden('generateQr')
-        ->assertActionVisible('logoutSession')
-        ->assertActionVisible('registerWebhook')
-        ->assertActionVisible('sendPing');
+        ->assertActionVisible('generateQr')
+        ->assertActionDisabled('generateQr')
+        ->assertActionEnabled('logoutSession')
+        ->assertActionEnabled('registerWebhook')
+        ->assertActionEnabled('sendPing');
 
     Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/fetchInstances'));
 });
