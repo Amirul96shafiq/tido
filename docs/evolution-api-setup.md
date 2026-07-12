@@ -38,7 +38,9 @@ curl -X POST http://localhost:8085/instance/create \
   }'
 ```
 
-After a successful create, the response includes `qrcode.base64` (a data-URI PNG). Easiest: open tido **Settings → WhatsApp** and click **Generate / refresh QR** to display it in the admin UI.
+After a successful create, the response includes `qrcode.base64` (a data-URI PNG). Easiest: open tido **Settings → WhatsApp Connection** → **Connect** → **Scan QR code** to display it in the admin UI.
+
+For same-phone linking, use **Connect** → **Pair with code**, enter the **WhatsApp number to link** (the Evolution linked-device account — may differ from `PERSONAL_WHATSAPP_NUMBER`), then copy the code into WhatsApp → Linked Devices → **Link with phone number instead**.
 
 Or use Evolution’s Swagger UI / paste the base64 into a browser address bar.
 
@@ -50,7 +52,13 @@ Or use Evolution’s Swagger UI / paste the base64 into a browser address bar.
 3. Open WhatsApp on your personal phone -> **Linked Devices** -> **Link a Device**.
 4. Scan the QR code. Once paired, your status will show as `CONNECTED`.
 
-Linked device name defaults to **tido App (Evolution API)** via `CONFIG_SESSION_PHONE_CLIENT` + `CONFIG_SESSION_PHONE_NAME=Desktop` (Sail `compose.yaml` / `npm run evolution`). Do **not** set `NAME=Chrome` if you want to avoid the “Google Chrome (…)” prefix. Re-pair (logout + new QR) after changing those values.
+Linked device name defaults to **tido App (Evolution API)** via `CONFIG_SESSION_PHONE_CLIENT` + `CONFIG_SESSION_PHONE_NAME=Desktop` for **QR** links (Sail `compose.yaml` / `npm run evolution`). Do **not** set `NAME=Chrome` for QR if you want to avoid the “Google Chrome (…)” prefix.
+
+**Pair with code:** Evolution’s stock Baileys path (no custom `CONFIG_SESSION_PHONE_*` browser for pairing). Linked Devices typically shows `Google Chrome (Mac OS)`. Use **QR** when you want `tido App (Evolution API)` as the device label.
+
+Re-pair (logout + new QR or pairing code) after changing those values — WhatsApp keeps the old label on existing links.
+
+tido’s Connection details **Device label** is the configured intended name (`CONFIG_SESSION_PHONE_CLIENT`); WhatsApp Linked Devices only picks it up from Baileys `browser` DeviceProps at connect time.
 
 ---
 

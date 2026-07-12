@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\WhatsAppConnectionEvent;
+use App\Enums\WhatsAppConnectMethod;
 use Database\Factories\WhatsAppConnectionLogFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -35,5 +36,16 @@ class WhatsAppConnectionLog extends Model
             'event' => WhatsAppConnectionEvent::class,
             'meta' => 'array',
         ];
+    }
+
+    public function connectMethod(): ?WhatsAppConnectMethod
+    {
+        $value = data_get($this->meta, 'connect_method');
+
+        if (! is_string($value) || $value === '') {
+            return null;
+        }
+
+        return WhatsAppConnectMethod::tryFrom($value);
     }
 }

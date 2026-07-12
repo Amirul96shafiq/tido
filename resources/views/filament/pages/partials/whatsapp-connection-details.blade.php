@@ -15,6 +15,15 @@
         </div>
     @endif
 
+    @if (filled($connectedVia))
+        <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+            <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Connected via</dt>
+            <dd class="text-gray-950 dark:text-white">
+                {{ $connectedVia }}
+            </dd>
+        </div>
+    @endif
+
     <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
         <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Device label</dt>
         <dd class="text-gray-950 dark:text-white">

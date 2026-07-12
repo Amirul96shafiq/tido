@@ -46,8 +46,10 @@ Edit Evolution’s `.env` at minimum:
 - Server port `8080` (default)
 - Linked device label (optional; `npm run evolution` defaults these):
   - `CONFIG_SESSION_PHONE_CLIENT="tido App (Evolution API)"` — os string WhatsApp shows
-  - `CONFIG_SESSION_PHONE_NAME=Desktop` — PlatformType (`Chrome` forces a “Google Chrome (…)” prefix)
-- After changing those values: **Log out** the linked device on your phone, restart Evolution, then generate and scan a **new** QR. Existing links keep the old name.
+  - `CONFIG_SESSION_PHONE_NAME=Desktop` — PlatformType for **QR** links (`Chrome` forces a “Google Chrome (…)” prefix)
+- Pair with code uses Evolution’s stock Baileys path (no custom browser identity). Linked Devices typically shows `Google Chrome (Mac OS)`. Use **QR** if you want `tido App (Evolution API)` as the device label.
+- After changing those values: **Log out** the linked device on your phone, restart Evolution, then connect again (QR or pairing code). Existing links keep the old name.
+- If WhatsApp shows **Google Chrome (Mac OS)** after pairing with a code, Evolution was skipping the custom `browser` identity on the pairing path (Baileys default). Use a build that sets CLIENT + Chrome for pairing, then logout and re-pair.
 
 Then:
 
@@ -104,9 +106,14 @@ Restart `npm run dev:full` after changing `.env` (or clear config cache if you u
 
 ---
 
-## Step 3: Create instance and scan QR
+## Step 3: Create instance and link WhatsApp
 
-**Preferred:** with tido running (`npm run dev:full`), open `/admin` → **Settings → WhatsApp** → **Generate / refresh QR**, then scan from your phone (Linked Devices).
+**Preferred:** with tido running (`npm run dev:full`), open `/admin` → **Settings → WhatsApp Connection** → **Connect**:
+
+- **Scan QR code** — scan from another screen (Linked Devices → Link a Device).
+- **Pair with code** — enter the WhatsApp number to link, copy the code, then Linked Devices → **Link with phone number instead** (works on one phone).
+
+`PERSONAL_WHATSAPP_NUMBER` is for alerts, OTP login, and bot allowlist — it can differ from the number you link to Evolution.
 
 Or via curl (include `integration`):
 

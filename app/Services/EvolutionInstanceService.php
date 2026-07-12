@@ -48,13 +48,33 @@ class EvolutionInstanceService
                 ->json();
 
             $state = data_get($response, 'instance.state')
+                ?? data_get($response, 'instance.connectionStatus')
                 ?? data_get($response, 'state')
-                ?? data_get($response, 'status')
-                ?? 'unknown';
+                ?? data_get($response, 'status');
+
+            $status = is_string($state) && $state !== ''
+                ? $state
+                : 'unknown';
+
+            // Socket endpoint can return a null/empty state while Prisma already has open
+            // (e.g. connectionStatus stored as a plain string without `.state`).
+            if (! $this->isConnectedStatus($status) && in_array(strtolower($status), ['unknown', ''], true)) {
+                $details = $this->fetchInstanceDetails();
+                $detailStatus = (string) ($details['connectionStatus'] ?? '');
+
+                if ($details['ok'] && $this->isConnectedStatus($detailStatus) && filled($details['connectedNumber'])) {
+                    return [
+                        'ok' => true,
+                        'status' => 'open',
+                        'message' => 'Connection state loaded.',
+                        'raw' => is_array($details['raw']) ? $details['raw'] : (is_array($response) ? $response : null),
+                    ];
+                }
+            }
 
             return [
                 'ok' => true,
-                'status' => (string) $state,
+                'status' => $status,
                 'message' => 'Connection state loaded.',
                 'raw' => is_array($response) ? $response : null,
             ];
@@ -71,7 +91,7 @@ class EvolutionInstanceService
     /**
      * Prefer a fresh connect QR (instance usually already exists). Create if missing.
      *
-     * @return array{ok: bool, status: string, qrBase64: string|null, message: string, raw: array<string, mixed>|null}
+     * @return array{ok: bool, status: string, qrBase64: string|null, pairingCode: string|null, message: string, raw: array<string, mixed>|null}
      */
     public function createOrConnect(): array
     {
@@ -98,22 +118,106 @@ class EvolutionInstanceService
                 return $retry;
             }
 
-            return [
-                'ok' => false,
-                'status' => 'error',
-                'qrBase64' => null,
-                'message' => $this->combineAuthHints($create['message'], $retry['message']),
-                'raw' => null,
-            ];
+            return $this->connectErrorResult($this->combineAuthHints($create['message'], $retry['message']));
         }
 
-        return [
-            'ok' => false,
-            'status' => 'error',
-            'qrBase64' => null,
-            'message' => $this->combineAuthHints($connect['message'], $create['message']),
-            'raw' => null,
-        ];
+        return $this->connectErrorResult($this->combineAuthHints($connect['message'], $create['message']));
+    }
+
+    /**
+     * Request a phone-number pairing code for the given WhatsApp account.
+     *
+     * @return array{ok: bool, status: string, qrBase64: string|null, pairingCode: string|null, message: string, raw: array<string, mixed>|null}
+     */
+    public function createOrConnectWithPairingCode(string $number): array
+    {
+        $connect = $this->connectInstance($number);
+
+        if ($connect['ok'] && $connect['pairingCode'] !== null) {
+            return $connect;
+        }
+
+        if ($connect['ok'] && $this->isConnectedStatus($connect['status'])) {
+            return $connect;
+        }
+
+        // Evolution often returns "connecting" before requestPairingCode finishes.
+        // Poll the cached QR payload — do NOT logout (that closes the socket mid-hello).
+        if ($connect['ok'] && $this->isConnectingStatus($connect['status']) && $connect['pairingCode'] === null) {
+            $polled = $this->pollForPairingCode($number);
+
+            if ($polled !== null) {
+                return $polled;
+            }
+        }
+
+        if (! $connect['ok'] || $this->shouldFallbackToConnect($connect['message'])) {
+            $create = $this->createInstance();
+
+            if ($create['ok'] && $create['pairingCode'] !== null) {
+                return $create;
+            }
+
+            if ($create['ok'] && $this->isConnectedStatus($create['status'])) {
+                return $create;
+            }
+
+            $retry = $this->connectInstance($number);
+
+            if ($retry['ok'] && $retry['pairingCode'] !== null) {
+                return $retry;
+            }
+
+            if ($retry['ok'] && $this->isConnectedStatus($retry['status'])) {
+                return $retry;
+            }
+
+            if ($retry['ok'] && $this->isConnectingStatus($retry['status']) && $retry['pairingCode'] === null) {
+                $polled = $this->pollForPairingCode($number);
+
+                if ($polled !== null) {
+                    return $polled;
+                }
+            }
+
+            if (! $create['ok'] && ! $retry['ok']) {
+                return $this->connectErrorResult($this->combineAuthHints($create['message'], $retry['message']));
+            }
+
+            return $this->connectErrorResult(
+                $retry['message'] !== ''
+                    ? $retry['message']
+                    : 'Evolution did not return a pairing code. Log out the session and try again.',
+            );
+        }
+
+        return $this->connectErrorResult(
+            $connect['message'] !== ''
+                ? $connect['message']
+                : 'Evolution did not return a pairing code. Log out the session and try again.',
+        );
+    }
+
+    /**
+     * @return array{ok: bool, status: string, qrBase64: string|null, pairingCode: string|null, message: string, raw: array<string, mixed>|null}|null
+     */
+    private function pollForPairingCode(string $number, int $attempts = 6, int $delayMs = 1000): ?array
+    {
+        for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+            usleep($delayMs * 1000);
+
+            $poll = $this->connectInstance($number);
+
+            if ($poll['ok'] && $poll['pairingCode'] !== null) {
+                return $poll;
+            }
+
+            if ($poll['ok'] && $this->isConnectedStatus($poll['status'])) {
+                return $poll;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -230,7 +334,7 @@ class EvolutionInstanceService
     }
 
     /**
-     * @return array{ok: bool, status: string, qrBase64: string|null, message: string, raw: array<string, mixed>|null}
+     * @return array{ok: bool, status: string, qrBase64: string|null, pairingCode: string|null, message: string, raw: array<string, mixed>|null}
      */
     public function createInstance(): array
     {
@@ -245,38 +349,36 @@ class EvolutionInstanceService
                 ->throw()
                 ->json();
 
-            return $this->qrResultFromPayload(is_array($response) ? $response : [], 'Instance created. Scan the QR with WhatsApp.');
+            return $this->connectResultFromPayload(is_array($response) ? $response : [], 'Instance created. Scan the QR with WhatsApp.');
         } catch (\Throwable $e) {
-            return [
-                'ok' => false,
-                'status' => 'error',
-                'qrBase64' => null,
-                'message' => $this->friendlyError($e),
-                'raw' => null,
-            ];
+            return $this->connectErrorResult($this->friendlyError($e));
         }
     }
 
     /**
-     * @return array{ok: bool, status: string, qrBase64: string|null, message: string, raw: array<string, mixed>|null}
+     * @return array{ok: bool, status: string, qrBase64: string|null, pairingCode: string|null, message: string, raw: array<string, mixed>|null}
      */
-    public function connectInstance(): array
+    public function connectInstance(?string $number = null): array
     {
         try {
+            $query = [];
+
+            if ($number !== null && $number !== '') {
+                $query['number'] = $number;
+            }
+
             $response = $this->client()
-                ->get("{$this->apiUrl}/instance/connect/{$this->instanceName}")
+                ->get("{$this->apiUrl}/instance/connect/{$this->instanceName}", $query)
                 ->throw()
                 ->json();
 
-            return $this->qrResultFromPayload(is_array($response) ? $response : [], 'Scan the QR with WhatsApp Linked Devices.');
+            $successMessage = $number !== null && $number !== ''
+                ? 'Enter the pairing code in WhatsApp Linked Devices.'
+                : 'Scan the QR with WhatsApp Linked Devices.';
+
+            return $this->connectResultFromPayload(is_array($response) ? $response : [], $successMessage);
         } catch (\Throwable $e) {
-            return [
-                'ok' => false,
-                'status' => 'error',
-                'qrBase64' => null,
-                'message' => $this->friendlyError($e),
-                'raw' => null,
-            ];
+            return $this->connectErrorResult($this->friendlyError($e));
         }
     }
 
@@ -327,18 +429,43 @@ class EvolutionInstanceService
     }
 
     /**
-     * @param  array<string, mixed>  $payload
-     * @return array{ok: bool, status: string, qrBase64: string|null, message: string, raw: array<string, mixed>}
+     * @return array{ok: bool, status: string, qrBase64: string|null, pairingCode: string|null, message: string, raw: array<string, mixed>|null}
      */
-    private function qrResultFromPayload(array $payload, string $successMessage): array
+    private function connectErrorResult(string $message): array
+    {
+        return [
+            'ok' => false,
+            'status' => 'error',
+            'qrBase64' => null,
+            'pairingCode' => null,
+            'message' => $message,
+            'raw' => null,
+        ];
+    }
+
+    private function isConnectingStatus(string $status): bool
+    {
+        return strtolower($status) === 'connecting';
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array{ok: bool, status: string, qrBase64: string|null, pairingCode: string|null, message: string, raw: array<string, mixed>}
+     */
+    private function connectResultFromPayload(array $payload, string $successMessage): array
     {
         $qr = data_get($payload, 'qrcode.base64')
             ?? data_get($payload, 'base64')
             ?? data_get($payload, 'qrcode.base64');
 
-        $status = (string) (data_get($payload, 'instance.status')
-            ?? data_get($payload, 'instance.state')
+        $pairingCode = data_get($payload, 'pairingCode')
+            ?? data_get($payload, 'qrcode.pairingCode');
+
+        $status = (string) (data_get($payload, 'instance.state')
+            ?? data_get($payload, 'state')
+            ?? data_get($payload, 'instance.status')
             ?? data_get($payload, 'status')
+            ?? data_get($payload, 'connectionStatus')
             ?? 'connecting');
 
         $qrBase64 = is_string($qr) && $qr !== '' ? $qr : null;
@@ -347,13 +474,22 @@ class EvolutionInstanceService
             $qrBase64 = 'data:image/png;base64,'.$qrBase64;
         }
 
+        $normalizedPairingCode = is_string($pairingCode) && trim($pairingCode) !== ''
+            ? trim($pairingCode)
+            : null;
+
+        $message = match (true) {
+            $normalizedPairingCode !== null => $successMessage,
+            $qrBase64 !== null => $successMessage,
+            default => 'Request succeeded but no QR or pairing code was returned. Try again or check Evolution logs.',
+        };
+
         return [
             'ok' => true,
             'status' => $status,
             'qrBase64' => $qrBase64,
-            'message' => $qrBase64 === null
-                ? 'Request succeeded but no QR was returned. Refresh QR or check Evolution logs.'
-                : $successMessage,
+            'pairingCode' => $normalizedPairingCode,
+            'message' => $message,
             'raw' => $payload,
         ];
     }
