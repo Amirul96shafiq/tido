@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Pages;
 
 use App\Enums\WhatsAppConnectionEvent;
+use App\Jobs\SendWhatsAppConnectedAlertJob;
 use App\Models\User;
 use App\Models\WhatsAppConnectionLog;
 use App\Services\EvolutionInstanceService;
@@ -116,6 +117,9 @@ class WhatsAppConnectionPage extends Page implements HasTable
         $this->clearConnectedInstanceDetails();
 
         if ($allowConnectSideEffects && $wasOpen && $this->isConnectionClosed()) {
+            $this->welcomePingSent = false;
+            $this->webhookRegistered = false;
+
             $this->logConnectionEvent(WhatsAppConnectionEvent::Disconnected, [
                 'status' => $this->connectionStatus,
                 'connected_number' => $previousNumber,
@@ -637,21 +641,13 @@ class WhatsAppConnectionPage extends Page implements HasTable
 
         $this->welcomePingSent = true;
 
-        $sent = app(WhatsAppNotificationService::class)->sendMessage(
-            $number,
-            WhatsAppMessage::compose(
-                '✅',
-                'Connected',
-                "WhatsApp session is linked and ready for document uploads.\n\nSend a document anytime to start tracking expenses.",
-            ),
-        );
+        SendWhatsAppConnectedAlertJob::dispatch($this->connectedNumber)
+            ->delay(now()->addSeconds(5));
 
         Notification::make()
-            ->title($sent ? 'Connected — welcome sent' : 'Connected — welcome ping failed')
-            ->body($sent
-                ? 'Sent a confirmation to '.$number.'.'
-                : 'Instance is open, but Evolution could not send the welcome message yet.')
-            ->{$sent ? 'success' : 'warning'}()
+            ->title('Connected — welcome queued')
+            ->body('A confirmation will be sent to '.$number.' shortly.')
+            ->success()
             ->send();
     }
 }
