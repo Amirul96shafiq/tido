@@ -134,6 +134,9 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-code-bracket')
                     ->url('javascript:void(0)')
                     ->sort(10),
+                'logout' => fn (Action $action): Action => $action
+                    ->icon('heroicon-o-arrow-right-start-on-rectangle')
+                    ->color('danger'),
             ])
             ->renderHook(
                 PanelsRenderHook::SIDEBAR_FOOTER,
