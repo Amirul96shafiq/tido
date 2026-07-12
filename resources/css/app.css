@@ -20,44 +20,85 @@
     }
 }
 
-/* Custom scrollbar — reusable class + Filament dropdown panels */
+/* Custom scrollbar — page chrome, reusable class, Filament panels */
+html,
+body,
+.fi-body,
+.fi-main-ctn,
+.fi-sidebar-nav,
 .custom-scrollbar,
 .fi-dropdown-panel {
     scrollbar-width: thin;
     scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
 }
 
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.fi-body::-webkit-scrollbar,
+.fi-main-ctn::-webkit-scrollbar,
+.fi-sidebar-nav::-webkit-scrollbar,
 .custom-scrollbar::-webkit-scrollbar,
 .fi-dropdown-panel::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
 }
 
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+.fi-body::-webkit-scrollbar-track,
+.fi-main-ctn::-webkit-scrollbar-track,
+.fi-sidebar-nav::-webkit-scrollbar-track,
 .custom-scrollbar::-webkit-scrollbar-track,
 .fi-dropdown-panel::-webkit-scrollbar-track {
     background: transparent;
 }
 
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+.fi-body::-webkit-scrollbar-thumb,
+.fi-main-ctn::-webkit-scrollbar-thumb,
+.fi-sidebar-nav::-webkit-scrollbar-thumb,
 .custom-scrollbar::-webkit-scrollbar-thumb,
 .fi-dropdown-panel::-webkit-scrollbar-thumb {
     background-color: rgba(156, 163, 175, 0.3);
     border-radius: 9999px;
 }
 
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+.fi-body::-webkit-scrollbar-thumb:hover,
+.fi-main-ctn::-webkit-scrollbar-thumb:hover,
+.fi-sidebar-nav::-webkit-scrollbar-thumb:hover,
 .custom-scrollbar::-webkit-scrollbar-thumb:hover,
 .fi-dropdown-panel::-webkit-scrollbar-thumb:hover {
     background-color: rgba(156, 163, 175, 0.5);
 }
 
+html.dark,
+.dark body,
+.dark .fi-body,
+.dark .fi-main-ctn,
+.dark .fi-sidebar-nav,
 .dark .custom-scrollbar,
 .dark .fi-dropdown-panel {
     scrollbar-color: rgba(51, 65, 85, 0.5) transparent;
 }
 
+html.dark::-webkit-scrollbar-thumb,
+.dark body::-webkit-scrollbar-thumb,
+.dark .fi-body::-webkit-scrollbar-thumb,
+.dark .fi-main-ctn::-webkit-scrollbar-thumb,
+.dark .fi-sidebar-nav::-webkit-scrollbar-thumb,
 .dark .custom-scrollbar::-webkit-scrollbar-thumb,
 .dark .fi-dropdown-panel::-webkit-scrollbar-thumb {
     background-color: rgba(51, 65, 85, 0.5);
 }
 
+html.dark::-webkit-scrollbar-thumb:hover,
+.dark body::-webkit-scrollbar-thumb:hover,
+.dark .fi-body::-webkit-scrollbar-thumb:hover,
+.dark .fi-main-ctn::-webkit-scrollbar-thumb:hover,
+.dark .fi-sidebar-nav::-webkit-scrollbar-thumb:hover,
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover,
 .dark .fi-dropdown-panel::-webkit-scrollbar-thumb:hover {
     background-color: rgba(71, 85, 105, 0.7);
