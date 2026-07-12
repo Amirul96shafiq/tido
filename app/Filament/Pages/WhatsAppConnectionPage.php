@@ -456,7 +456,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
                     ->label('Register Webhook')
                     ->icon('heroicon-o-globe-alt')
                     ->extraAttributes(['wire:key' => 'wa-action-register-webhook'])
-                    ->disabled(fn (): bool => ! $this->isConnectionOpen())
+                    ->disabled(fn (): bool => ! $this->isConnectionOpen() || $this->webhookRegistered)
                     ->action(function (): void {
                         $this->registerWebhook();
                     }),
@@ -492,7 +492,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
             // ActionGroup dropdown ignores `disabled` on its trigger button — render a
             // plain disabled action instead so the menu cannot open while connected.
             return Action::make('connect')
-                ->label('Connect')
+                ->label('Connected')
                 ->icon('heroicon-o-link')
                 ->button()
                 ->disabled()
