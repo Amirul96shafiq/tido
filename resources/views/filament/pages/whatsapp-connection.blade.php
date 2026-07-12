@@ -60,7 +60,7 @@
                     4. When status is <strong>open</strong>, the webhook registers automatically. Optionally send a <strong>Send Test Ping</strong>.
                 </p>
                 <p>
-                    If linking fails: use <strong>Cancel connecting</strong> to stop a QR/pairing attempt, or <strong>Logout Current Session</strong> when already linked, then connect again. Do not scan the QR printed in the Evolution terminal — only the image on this page.
+                    If linking fails: use <strong>Cancel connecting</strong> to stop a QR/pairing attempt, or <strong>Sign out Current Session</strong> when already linked, then connect again. Do not scan the QR printed in the Evolution terminal — only the image on this page.
                 </p>
             </div>
         </x-filament::section>

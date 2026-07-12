@@ -20,9 +20,11 @@ test('user menu orders theme before profile changelogs and logout', function () 
 
     expect($keys)->toBe(['profile', 'changelogs', 'logout']);
 
-    expect($items['profile']->getIcon())->toBe('heroicon-o-user-circle');
+    expect($items['profile']->getIcon())->toBe('heroicon-o-user');
     expect($items['profile']->getSort())->toBeGreaterThanOrEqual(0);
     expect($items['changelogs']->getLabel())->toBe('Changelogs');
     expect($items['changelogs']->getSort())->toBeGreaterThan($items['profile']->getSort());
     expect($items['logout']->getSort())->toBeGreaterThan($items['changelogs']->getSort());
+    expect($items['logout']->getIcon())->toBe('heroicon-o-arrow-right-start-on-rectangle');
+    expect($items['logout']->getColor())->toBe('danger');
 });

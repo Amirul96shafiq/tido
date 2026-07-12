@@ -469,7 +469,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
                         $this->sendPing();
                     }),
                 Action::make('logoutSession')
-                    ->label('Logout Current Session')
+                    ->label('Sign out Current Session')
                     ->icon('heroicon-o-arrow-right-start-on-rectangle')
                     ->color('danger')
                     ->extraAttributes(['wire:key' => 'wa-action-logout-session'])
