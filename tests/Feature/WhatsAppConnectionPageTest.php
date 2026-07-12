@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 use App\Enums\WhatsAppConnectionEvent;
 use App\Filament\Pages\WhatsAppConnectionPage;
+use App\Jobs\SendWhatsAppConnectedAlertJob;
 use App\Models\User;
 use App\Models\WhatsAppConnectionLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -255,13 +257,16 @@ test('does not auto-send welcome or webhook when page loads already connected', 
     expect($user->notifications()->count())->toBe(0);
 });
 
-test('auto-registers webhook and sends welcome when status becomes open', function () {
+test('auto-registers webhook and queues welcome when status becomes open', function () {
+    Queue::fake([
+        SendWhatsAppConnectedAlertJob::class,
+    ]);
+
     Http::fake([
         '*/instance/connectionState/*' => Http::sequence()
             ->push(['instance' => ['state' => 'connecting']])
             ->push(['instance' => ['state' => 'open']]),
         '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
-        '*/message/sendText/*' => Http::response(['status' => 'success']),
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
     ]);
 
@@ -281,18 +286,10 @@ test('auto-registers webhook and sends welcome when status becomes open', functi
             && data_get($request->data(), 'webhook.url') === 'http://127.0.0.1:2000/api/webhooks/whatsapp';
     });
 
-    Http::assertSent(function (Request $request) {
-        if (! str_contains($request->url(), '/message/sendText/')) {
-            return false;
-        }
+    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/message/sendText/'));
 
-        $text = (string) data_get($request->data(), 'text', '');
-
-        return str_contains((string) data_get($request->data(), 'number', ''), '601116330705')
-            && str_contains($text, '*Connected*')
-            && str_contains($text, '— Powered by *tido*')
-            && str_contains($text, "\n\n")
-            && ! str_contains($text, '\n');
+    Queue::assertPushed(SendWhatsAppConnectedAlertJob::class, function (SendWhatsAppConnectedAlertJob $job): bool {
+        return $job->connectedNumber === '601115666887';
     });
 
     $user->refresh();
@@ -315,13 +312,16 @@ test('auto-registers webhook and sends welcome when status becomes open', functi
 test('skips whatsapp connection database notifications when preference is disabled', function () {
     auth()->user()->update(['notify_whatsapp_connection' => false]);
 
+    Queue::fake([
+        SendWhatsAppConnectedAlertJob::class,
+    ]);
+
     Http::fake([
         '*/instance/connectionState/*' => Http::sequence()
             ->push(['instance' => ['state' => 'connecting']])
             ->push(['instance' => ['state' => 'open']])
             ->push(['instance' => ['state' => 'close']]),
         '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
-        '*/message/sendText/*' => Http::response(['status' => 'success']),
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
         '*/instance/logout/*' => Http::response(['status' => 'success']),
     ]);
@@ -342,13 +342,16 @@ test('skips whatsapp connection database notifications when preference is disabl
 });
 
 test('welcome message and webhook are only sent once per connect session', function () {
+    Queue::fake([
+        SendWhatsAppConnectedAlertJob::class,
+    ]);
+
     Http::fake([
         '*/instance/connectionState/*' => Http::sequence()
             ->push(['instance' => ['state' => 'connecting']])
             ->push(['instance' => ['state' => 'open']])
             ->push(['instance' => ['state' => 'open']]),
         '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
-        '*/message/sendText/*' => Http::response(['status' => 'success']),
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
     ]);
 
@@ -360,11 +363,7 @@ test('welcome message and webhook are only sent once per connect session', funct
         ->assertSet('welcomePingSent', true)
         ->assertSet('webhookRegistered', true);
 
-    expect(
-        collect(Http::recorded())
-            ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), '/message/sendText/'))
-            ->count()
-    )->toBe(1);
+    Queue::assertPushed(SendWhatsAppConnectedAlertJob::class, 1);
 
     expect(
         collect(Http::recorded())
@@ -376,13 +375,16 @@ test('welcome message and webhook are only sent once per connect session', funct
 });
 
 test('refresh status logs disconnected when session closes', function () {
+    Queue::fake([
+        SendWhatsAppConnectedAlertJob::class,
+    ]);
+
     Http::fake([
         '*/instance/connectionState/*' => Http::sequence()
             ->push(['instance' => ['state' => 'connecting']])
             ->push(['instance' => ['state' => 'open']])
             ->push(['instance' => ['state' => 'close']]),
         '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
-        '*/message/sendText/*' => Http::response(['status' => 'success']),
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
     ]);
 
@@ -391,6 +393,8 @@ test('refresh status logs disconnected when session closes', function () {
         ->assertSet('connectionStatus', 'open')
         ->call('refreshStatus')
         ->assertSet('connectionStatus', 'close')
+        ->assertSet('welcomePingSent', false)
+        ->assertSet('webhookRegistered', false)
         ->assertSee('Disconnected');
 
     expect(WhatsAppConnectionLog::query()->latest('id')->pluck('event')->all())
@@ -407,14 +411,52 @@ test('refresh status logs disconnected when session closes', function () {
         ->and($disconnected->status)->toBe('close');
 });
 
+test('reconnect after disconnect dispatches welcome alert again', function () {
+    Queue::fake([
+        SendWhatsAppConnectedAlertJob::class,
+    ]);
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::sequence()
+            ->push(['instance' => ['state' => 'connecting']])
+            ->push(['instance' => ['state' => 'open']])
+            ->push(['instance' => ['state' => 'close']])
+            ->push(['instance' => ['state' => 'open']]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->call('refreshStatus')
+        ->assertSet('connectionStatus', 'open')
+        ->assertSet('welcomePingSent', true)
+        ->assertSet('webhookRegistered', true)
+        ->call('refreshStatus')
+        ->assertSet('connectionStatus', 'close')
+        ->assertSet('welcomePingSent', false)
+        ->assertSet('webhookRegistered', false)
+        ->call('refreshStatus')
+        ->assertSet('connectionStatus', 'open')
+        ->assertSet('welcomePingSent', true)
+        ->assertSet('webhookRegistered', true);
+
+    Queue::assertPushed(SendWhatsAppConnectedAlertJob::class, 2);
+
+    expect(WhatsAppConnectionLog::query()->where('event', WhatsAppConnectionEvent::Connected)->count())->toBe(2)
+        ->and(WhatsAppConnectionLog::query()->where('event', WhatsAppConnectionEvent::Disconnected)->count())->toBe(1);
+});
+
 test('logout resets connect flags and stores disconnected database notification', function () {
+    Queue::fake([
+        SendWhatsAppConnectedAlertJob::class,
+    ]);
+
     Http::fake([
         '*/instance/connectionState/*' => Http::sequence()
             ->push(['instance' => ['state' => 'connecting']])
             ->push(['instance' => ['state' => 'open']])
             ->push(['instance' => ['state' => 'close']]),
         '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
-        '*/message/sendText/*' => Http::response(['status' => 'success']),
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
         '*/instance/logout/*' => Http::response(['status' => 'success']),
     ]);
