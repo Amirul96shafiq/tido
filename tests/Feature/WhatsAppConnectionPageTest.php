@@ -507,6 +507,8 @@ test('register webhook posts nested webhook payload', function () {
 
     Livewire::test(WhatsAppConnectionPage::class)
         ->call('registerWebhook')
+        ->assertSet('webhookRegistered', true)
+        ->assertActionDisabled('registerWebhook')
         ->assertNotified();
 
     Http::assertSent(function (Request $request) {
@@ -589,6 +591,7 @@ test('auto-registers webhook and queues welcome when status becomes open', funct
         ->assertSet('connectedNumber', '601115666887')
         ->assertSet('welcomePingSent', true)
         ->assertSet('webhookRegistered', true)
+        ->assertActionDisabled('registerWebhook')
         ->assertNotified();
 
     Http::assertSent(function (Request $request) {
