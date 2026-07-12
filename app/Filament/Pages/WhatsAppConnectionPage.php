@@ -683,12 +683,6 @@ class WhatsAppConnectionPage extends Page implements HasTable
             ->query(WhatsAppConnectionLog::query())
             ->defaultSort('created_at', 'desc')
             ->columns([
-                TextColumn::make('created_at')
-                    ->label('When')
-                    ->dateTime()
-                    ->sortable()
-                    ->timezone(config('app.timezone')),
-
                 TextColumn::make('event')
                     ->badge()
                     ->formatStateUsing(fn (WhatsAppConnectionEvent $state): string => $state->label())
@@ -720,6 +714,13 @@ class WhatsAppConnectionPage extends Page implements HasTable
                     ->placeholder('—')
                     ->wrap()
                     ->searchable(),
+
+                TextColumn::make('created_at')
+                    ->label('Created at')
+                    ->since()
+                    ->dateTimeTooltip()
+                    ->sortable()
+                    ->timezone(config('app.timezone')),
             ])
             ->filters([
                 SelectFilter::make('event')

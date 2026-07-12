@@ -178,6 +178,35 @@ test('resource tables show created_at as relative time with datetime tooltip', f
     }
 });
 
+test('invoices table shows date_time as relative time with datetime tooltip', function () {
+    $this->actingAs($this->admin);
+
+    $dateTime = now()->subDays(2)->seconds(0);
+    $relative = $dateTime->diffForHumans();
+
+    $invoice = Invoice::factory()->create([
+        'date_time' => $dateTime,
+        'created_at' => now()->subMinutes(5),
+    ]);
+
+    Livewire::test(ListInvoices::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$invoice])
+        ->assertSee($relative);
+
+    $column = Livewire::test(ListInvoices::class)
+        ->instance()
+        ->getTable()
+        ->getColumn('date_time');
+
+    expect($column)->not->toBeNull();
+
+    $tooltip = $column->record($invoice)->getTooltip($dateTime);
+
+    expect($tooltip)->toBeString()->not->toBeEmpty()
+        ->and($tooltip)->not->toBe($relative);
+});
+
 test('labels table renders icon as graphic not name', function () {
     $this->actingAs($this->admin);
 
