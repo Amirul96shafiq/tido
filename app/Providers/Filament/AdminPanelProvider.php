@@ -165,14 +165,14 @@ class AdminPanelProvider extends PanelProvider
                                 x-transition:enter-end="fi-transition-enter-end"
                                 class="flex items-center gap-2.5 px-3 py-2 text-[11px] font-mono text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-700/60 rounded-lg border border-gray-100 dark:border-slate-600/50 hover:bg-gray-100/50 dark:hover:bg-slate-700 transition-all duration-200 select-none cursor-default"
                             >
-                                <svg class="h-4 w-4 text-amber-500 dark:text-amber-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <svg class="h-4 w-4 text-amber-500 dark:text-amber-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="6" y1="3" x2="6" y2="15"></line>
                                     <circle cx="18" cy="6" r="3" fill="currentColor" fill-opacity="0.2"></circle>
                                     <circle cx="6" cy="18" r="3" fill="currentColor" fill-opacity="0.2"></circle>
                                     <path d="M18 9a9 9 0 0 1-9 9"></path>
                                 </svg>
                                 <span class="flex-1 truncate">{{ $gitVersion }}</span>
-                                <span class="relative flex h-2 w-2 flex-shrink-0">
+                                <span class="relative flex h-2 w-2 shrink-0">
                                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                                     <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                                 </span>
@@ -191,7 +191,7 @@ class AdminPanelProvider extends PanelProvider
                                         placement: document.dir === \'rtl\' ? \'left\' : \'right\',
                                         theme: $store.theme,
                                     }"
-                                    class="fi-version-icon-btn group !cursor-default"
+                                    class="fi-version-icon-btn group cursor-default!"
                                 >
                                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                         <line x1="6" y1="3" x2="6" y2="15"></line>
