@@ -10,6 +10,12 @@ use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Auth\ResetPassword;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Resources\Budgets\Pages\CreateBudget;
+use App\Filament\Resources\Budgets\Pages\EditBudget;
+use App\Filament\Resources\Invoices\Pages\CreateInvoice;
+use App\Filament\Resources\Invoices\Pages\EditInvoice;
+use App\Filament\Resources\Labels\Pages\CreateLabel;
+use App\Filament\Resources\Labels\Pages\EditLabel;
 use App\Helpers\GitHelper;
 use App\Http\Middleware\SetUserPreferences;
 use Filament\Actions\Action;
@@ -24,6 +30,7 @@ use Filament\Support\Assets\Js;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentIcon;
 use Filament\View\PanelsRenderHook;
+use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -208,6 +215,18 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::BODY_END,
                 fn (): string => Blade::render('<x-changelog-modal />'),
+            )
+            ->renderHook(
+                PanelsRenderHook::PAGE_END,
+                fn (): View => view('filament.hooks.content-draft-poller'),
+                scopes: [
+                    CreateInvoice::class,
+                    EditInvoice::class,
+                    CreateLabel::class,
+                    EditLabel::class,
+                    CreateBudget::class,
+                    EditBudget::class,
+                ],
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->navigationGroups([

@@ -1,14 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Budgets\Pages;
 
+use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Budgets\BudgetResource;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditBudget extends EditRecord
 {
+    use RecoversContentDraft;
+
     protected static string $resource = BudgetResource::class;
+
+    protected function contentDraftKey(): string
+    {
+        return 'budget-edit-'.$this->getRecord()->getKey();
+    }
 
     protected function getHeaderActions(): array
     {

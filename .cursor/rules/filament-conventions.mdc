@@ -31,6 +31,10 @@ Use Filament `Schema` for forms (v5), not legacy Form API. Prefer native Form/Ta
 
 Dashboard widgets live in `app/Filament/Widgets/`. Month filtering uses `InteractsWithDashboardMonth` + `DashboardMonthAnalytics` / `DashboardMonthPeriod`.
 
+## Content draft recovery
+
+Create/Edit resource pages use `App\Filament\Concerns\RecoversContentDraft` (Invoices, Labels, Budgets). See `docs/content-draft-recovery.md` when adding a new Create/Edit page: trait + `contentDraftKey()` + register the page in `AdminPanelProvider` `PAGE_END` poller scopes.
+
 ## Prefer
 
 - `relationship()` for related selects

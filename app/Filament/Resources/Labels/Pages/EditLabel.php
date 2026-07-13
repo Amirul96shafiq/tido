@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Labels\Pages;
 
+use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Labels\LabelResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -12,7 +13,14 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditLabel extends EditRecord
 {
+    use RecoversContentDraft;
+
     protected static string $resource = LabelResource::class;
+
+    protected function contentDraftKey(): string
+    {
+        return 'label-edit-'.$this->getRecord()->getKey();
+    }
 
     protected function getHeaderActions(): array
     {
