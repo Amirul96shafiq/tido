@@ -383,6 +383,56 @@ class EvolutionInstanceService
     }
 
     /**
+     * @return array{ok: bool, registered: bool, url: string|null, message: string}
+     */
+    public function findWebhook(): array
+    {
+        try {
+            $response = $this->client()
+                ->get("{$this->apiUrl}/webhook/find/{$this->instanceName}")
+                ->throw()
+                ->json();
+
+            if (! is_array($response) || $response === []) {
+                return [
+                    'ok' => true,
+                    'registered' => false,
+                    'url' => null,
+                    'message' => 'No webhook configured.',
+                ];
+            }
+
+            $enabled = (bool) (data_get($response, 'enabled') ?? data_get($response, 'webhook.enabled'));
+            $rawUrl = data_get($response, 'url') ?? data_get($response, 'webhook.url');
+            $url = is_string($rawUrl) && $rawUrl !== '' ? $rawUrl : null;
+            $expected = rtrim($this->defaultWebhookUrl(), '/');
+            $registered = $enabled
+                && $url !== null
+                && rtrim($url, '/') === $expected;
+
+            return [
+                'ok' => true,
+                'registered' => $registered,
+                'url' => $url,
+                'message' => $registered
+                    ? "Webhook registered: {$url}"
+                    : 'Webhook not registered for this app URL.',
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('Evolution webhook lookup failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'ok' => false,
+                'registered' => false,
+                'url' => null,
+                'message' => $this->friendlyError($e),
+            ];
+        }
+    }
+
+    /**
      * @return array{ok: bool, message: string}
      */
     public function registerWebhook(?string $webhookUrl = null): array
