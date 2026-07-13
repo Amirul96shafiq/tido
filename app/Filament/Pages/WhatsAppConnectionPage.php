@@ -118,6 +118,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
             $this->clearConnectDisplay();
             $this->statusMessage = 'WhatsApp is connected.';
             $this->loadConnectedInstanceDetails($evolution);
+            $this->syncWebhookRegistrationStatus($evolution);
 
             if ($this->connectedNumber !== null) {
                 $this->lastConnectedNumber = $this->connectedNumber;
@@ -773,6 +774,17 @@ class WhatsAppConnectionPage extends Page implements HasTable
             ->body($result['message'].' Use Register Webhook from the menu to retry.')
             ->warning()
             ->send();
+    }
+
+    private function syncWebhookRegistrationStatus(EvolutionInstanceService $evolution): void
+    {
+        $result = $evolution->findWebhook();
+
+        if (! $result['ok'] || ! $result['registered']) {
+            return;
+        }
+
+        $this->webhookRegistered = true;
     }
 
     /**

@@ -39,6 +39,19 @@ function fakeConnectedInstance(array $overrides = []): array
     ], $overrides);
 }
 
+/**
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function fakeRegisteredWebhook(array $overrides = []): array
+{
+    return array_merge([
+        'enabled' => true,
+        'url' => 'http://127.0.0.1:2000/api/webhooks/whatsapp',
+        'events' => ['MESSAGES_UPSERT'],
+    ], $overrides);
+}
+
 beforeEach(function () {
     config([
         'app.url' => 'http://127.0.0.1:2000',
@@ -98,6 +111,7 @@ test('connected status shows linked number and instance details', function () {
             'instance' => ['state' => 'open'],
         ]),
         '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/webhook/find/*' => Http::response(fakeRegisteredWebhook()),
     ]);
 
     Livewire::test(WhatsAppConnectionPage::class)
@@ -108,6 +122,7 @@ test('connected status shows linked number and instance details', function () {
         ->assertSet('connectedIntegration', 'WHATSAPP-BAILEYS')
         ->assertSet('connectedVia', WhatsAppConnectMethod::PairingCode)
         ->assertSet('connectedMessageCount', 12)
+        ->assertSet('webhookRegistered', true)
         ->assertSee('Connected number')
         ->assertSee('601115666887')
         ->assertSee('tido Bot')
@@ -125,10 +140,26 @@ test('connected status shows linked number and instance details', function () {
         ->assertActionVisible('connect')
         ->assertActionDisabled('connect')
         ->assertActionEnabled('logoutSession')
-        ->assertActionEnabled('registerWebhook')
+        ->assertActionDisabled('registerWebhook')
         ->assertActionEnabled('sendPing');
 
     Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/fetchInstances'));
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/webhook/find/tido'));
+});
+
+test('register webhook stays enabled when evolution has no webhook yet', function () {
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/webhook/find/*' => Http::response(null),
+    ]);
+
+    Livewire::test(WhatsAppConnectionPage::class)
+        ->assertSet('connectionStatus', 'open')
+        ->assertSet('webhookRegistered', false)
+        ->assertActionEnabled('registerWebhook');
 });
 
 test('connected via qr code shows configured device label in details', function () {
@@ -552,6 +583,7 @@ test('does not auto-send welcome or webhook when page loads already connected', 
             'instance' => ['state' => 'open'],
         ]),
         '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/webhook/find/*' => Http::response(fakeRegisteredWebhook()),
         '*/message/sendText/*' => Http::response(['status' => 'success']),
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
     ]);
@@ -562,7 +594,8 @@ test('does not auto-send welcome or webhook when page loads already connected', 
         ->assertSet('connectionStatus', 'open')
         ->assertSet('connectedNumber', '601115666887')
         ->assertSet('welcomePingSent', false)
-        ->assertSet('webhookRegistered', false);
+        ->assertSet('webhookRegistered', true)
+        ->assertActionDisabled('registerWebhook');
 
     Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/message/sendText/'));
     Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/webhook/set/'));
