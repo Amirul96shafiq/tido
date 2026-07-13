@@ -214,7 +214,8 @@ test('connect ttl matches evolution baileys qrTimeout of forty-five seconds', fu
 test('pair with code modal uses compact width and blurred overlay hook', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
-    expect($css)->toContain('.fi-modal-close-overlay.fi-modal-overlay-blur')
+    expect($css)->toContain('.fi-modal-close-overlay')
+        ->toContain('backdrop-blur-md')
         ->and(file_exists(base_path('docs/ui-modal-overlay.md')))->toBeTrue();
 });
 
