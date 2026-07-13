@@ -107,6 +107,22 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
+                function (): string {
+                    $light = asset('images/bg-l.png');
+                    $dark = asset('images/bg-d.png');
+
+                    return <<<HTML
+                        <style>
+                            :root {
+                                --tido-bg-light: url('{$light}');
+                                --tido-bg-dark: url('{$dark}');
+                            }
+                        </style>
+                        HTML;
+                },
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
                 fn (): string => <<<'HTML'
                     <script>
                         (function () {

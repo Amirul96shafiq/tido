@@ -85,7 +85,9 @@ class BudgetsTable
                     ->searchable(),
             ])
             ->recordActions([
-                ViewAction::make()->slideOver(),
+                ViewAction::make()
+                    ->slideOver()
+                    ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
                 EditAction::make(),
                 DeleteAction::make(),
             ])
