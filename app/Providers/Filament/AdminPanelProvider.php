@@ -83,6 +83,14 @@ class AdminPanelProvider extends PanelProvider
                     'chart-js-plugins',
                     Vite::asset('resources/js/filament-chart-js-plugins.js'),
                 )->module(),
+                Js::make(
+                    'drag-drop-upload',
+                    Vite::asset('resources/js/drag-drop-upload.js'),
+                )->module(),
+                Js::make(
+                    'receipt-upload-handler',
+                    Vite::asset('resources/js/receipt-upload-handler.js'),
+                )->module(),
             ])
             ->renderHook(
                 PanelsRenderHook::SIMPLE_LAYOUT_START,
@@ -214,7 +222,7 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,
-                fn (): string => Blade::render('<x-changelog-modal />'),
+                fn (): string => Blade::render('<x-changelog-modal /><x-drag-drop-lang />'),
             )
             ->renderHook(
                 PanelsRenderHook::PAGE_END,
