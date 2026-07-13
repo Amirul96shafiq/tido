@@ -9,6 +9,8 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
                 'resources/js/filament-chart-js-plugins.js',
+                'resources/js/drag-drop-upload.js',
+                'resources/js/receipt-upload-handler.js',
             ],
             refresh: true,
         }),
