@@ -2,7 +2,7 @@
     wire:poll.10s="saveDraft"
     x-data="{ savedAt: null }"
     x-on:content-draft-saved.window="savedAt = new Date().toLocaleTimeString()"
-    class="fi-content-draft-poller pointer-events-none fixed bottom-4 end-4 z-40"
+    class="fi-content-draft-poller pointer-events-none fixed bottom-4 inset-e-4 z-40"
 >
     <div
         x-show="savedAt"
