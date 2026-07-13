@@ -28,6 +28,7 @@ No multi-tenancy, no roles/policies package. Any authenticated user can access `
 2. Activate skills under `.cursor/skills/` / `.agents/skills/` when in that domain
 3. Use Laravel Boost MCP (`search-docs`, `database-schema`, `database-query`) before inventing APIs
 4. If a request contradicts `docs/system-architecture.md`, halt and warn the user
+5. Use feature/fix branches per `docs/git-workflow.md` — do not develop features on `main`
 
 ## Do not
 
@@ -36,3 +37,4 @@ No multi-tenancy, no roles/policies package. Any authenticated user can access `
 - Change dependencies without approval
 - Treat stock `README.md` as product docs
 - Call the product anything other than **tido**
+- Develop features directly on `main` (use `feature/*` or `fix/*` → PR → `main`)
