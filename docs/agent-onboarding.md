@@ -29,6 +29,7 @@ Default login (seeded): `admin@tido.local` / `password`.
 8. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
 9. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
 10. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
+11. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Stock `README.md` is the Laravel skeleton — **not** product documentation.
 
@@ -69,6 +70,10 @@ docs/               architecture + integration setup + this file
 Relationships: Invoice `hasMany` InvoiceItems; InvoiceItem `belongsTo` Label; Budget `belongsTo` Label.
 
 ## 5. How to implement features
+
+### Git workflow
+
+Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or `fix/...`), open a PR into `main`, then return to `main` after merge. Do not develop features on `main`. See `docs/git-workflow.md` for multi-developer rules and future staging/production promotion.
 
 ### Backend (models, jobs, services)
 
