@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Invoices\Pages;
 
+use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -10,7 +13,14 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditInvoice extends EditRecord
 {
+    use RecoversContentDraft;
+
     protected static string $resource = InvoiceResource::class;
+
+    protected function contentDraftKey(): string
+    {
+        return 'invoice-edit-'.$this->getRecord()->getKey();
+    }
 
     protected function getHeaderActions(): array
     {

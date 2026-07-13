@@ -28,6 +28,7 @@ Default login (seeded): `admin@tido.local` / `password`.
 7. UI empty panels: `docs/ui-empty-states.md`
 8. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
 9. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
+10. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
 
 Stock `README.md` is the Laravel skeleton — **not** product documentation.
 
@@ -35,8 +36,8 @@ Stock `README.md` is the Laravel skeleton — **not** product documentation.
 
 ```
 app/
-  Models/           Invoice, InvoiceItem, Label, Budget, User
-  Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Support
+  Models/           Invoice, InvoiceItem, Label, Budget, User, ContentDraft
+  Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support
   Services/         Ollama, GoogleDrive, WhatsApp, BudgetAlert, SpendingForecast
   Jobs/             ExtractReceiptDataJob, SyncGoogleDriveJob
   Observers/        InvoiceObserver
