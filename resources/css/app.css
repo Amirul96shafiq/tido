@@ -136,6 +136,9 @@ html.dark::-webkit-scrollbar-thumb:hover,
 
 /* Header visual styles matching sidebar */
 .fi-topbar {
+    /* Match collapsed sidebar content width (4.5rem minus 1px border → 71px) */
+    height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px) !important;
+    min-height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px) !important;
     background-color: var(--color-white) !important;
     border-bottom: 1px solid var(--color-gray-100) !important;
     box-shadow: none !important;
@@ -301,6 +304,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
 .fi-sidebar-header {
     display: flex !important;
+    /* Keep in sync with .fi-topbar — square when sidebar is collapsed */
+    height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px) !important;
+    min-height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px) !important;
     border-bottom: 1px solid var(--color-gray-100) !important;
 }
 
@@ -578,7 +584,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .fi-version-icon-btn.fi-icon-btn {
-    @apply !m-0 size-10;
+    @apply m-0! size-10;
 }
 
 .fi-version-icon-btn.fi-icon-btn:not(.fi-disabled):not([disabled]) {
@@ -804,7 +810,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .fi-no-database .fi-no-database-search-clear {
-    @apply absolute end-1 top-1/2 z-10 -translate-y-1/2;
+    @apply absolute inset-e-1 top-1/2 z-10 -translate-y-1/2;
 }
 
 .fi-no-database .fi-ta-filters-trigger-action-ctn {
