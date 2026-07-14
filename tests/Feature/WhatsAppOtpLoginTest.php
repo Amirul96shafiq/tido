@@ -311,18 +311,36 @@ test('otp cooldown clears after successful authentication', function () {
     $this->assertAuthenticatedAs($user);
 });
 
-test('otp step shows different number as text link under password login', function () {
+test('otp step shows different number link and mode tabs instead of password cta', function () {
     User::factory()->withWhatsAppPhone('60123456789')->create();
 
-    Livewire::test(Login::class)
+    $component = Livewire::test(Login::class)
         ->set('data.phone', '60123456789')
         ->call('sendOtp')
         ->assertSet('loginMode', 'otp')
-        ->assertSee('Sign in with email & password')
+        ->assertSee('One-Time Password (OTP)')
+        ->assertSee('Email & Password')
+        ->assertDontSee('Sign in with email & password')
         ->assertSee('Use a different number')
         ->assertSee('Resend in')
+        ->assertSee('A One-Time Password (OTP) code has been sent via WhatsApp to 60123456789. You can use the OTP code here.')
         ->assertDontSeeHtml('>Use a different number</button>')
         ->call('showPhoneStep')
         ->assertSet('loginMode', 'phone')
         ->assertDontSee('Use a different number');
+
+    expect($component->instance()->getSubheading())
+        ->toBe('Where tidy preparation meets finished work, then "tido" (sleep).');
+});
+
+test('login mode tabs switch between otp and password flows', function () {
+    Livewire::test(Login::class)
+        ->assertSet('loginMode', 'phone')
+        ->assertSee('One-Time Password (OTP)')
+        ->assertSee('Email & Password')
+        ->call('selectPasswordLoginTab')
+        ->assertSet('loginMode', 'password')
+        ->assertDontSee('Sign in with WhatsApp code')
+        ->call('selectOtpLoginTab')
+        ->assertSet('loginMode', 'phone');
 });

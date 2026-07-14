@@ -102,6 +102,13 @@ class AdminPanelProvider extends PanelProvider
                 ],
             )
             ->renderHook(
+                PanelsRenderHook::SIMPLE_PAGE_START,
+                fn (): string => Blade::render('<x-auth-login-toast />'),
+                scopes: [
+                    Login::class,
+                ],
+            )
+            ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => Blade::render('@vite(\'resources/css/app.css\')'),
             )
