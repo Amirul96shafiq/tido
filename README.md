@@ -12,11 +12,11 @@
 </p>
 
 <h2 align="center">
-**Keep it tidy. Get it done.**
+Keep it tidy. Get it done.
 </h2>
 
 <h4 align="center">
-Where tidy preparation meets finished work, then **tido** (sleep)
+Where tidy preparation meets finished work, then tido (sleep)
 </h4>
 
 <p align="center">
