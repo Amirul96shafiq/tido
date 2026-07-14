@@ -202,7 +202,7 @@ class Login extends BaseLogin
     {
         return Action::make('sendOtp')
             ->label(fn (): string|HtmlString => $this->isPhoneSendOnCooldown()
-                ? $this->otpCooldownActionLabelHtml('Send code in ', 'Send WhatsApp code')
+                ? $this->otpCooldownActionLabelHtml('Send new code in ', 'Send WhatsApp code')
                 : 'Send WhatsApp code')
             ->disabled(fn (): bool => $this->isPhoneSendOnCooldown())
             ->submit('sendOtp')
@@ -344,17 +344,10 @@ class Login extends BaseLogin
                 RenderHook::make(PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE),
                 $this->getLoginModeTabsComponent(),
                 $this->getFormContentComponent(),
-                $this->getOtpCooldownHintComponent(),
                 $this->getMultiFactorChallengeFormContentComponent(),
                 $this->getUseDifferentNumberComponent(),
                 RenderHook::make(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER),
             ]);
-    }
-
-    protected function getOtpCooldownHintComponent(): Component
-    {
-        return Html::make(fn (): HtmlString => $this->otpCooldownHintHtml())
-            ->visible(fn (): bool => $this->shouldShowOtpCooldownHint());
     }
 
     public function otpCooldownRemainingSeconds(): int
@@ -375,41 +368,6 @@ class Login extends BaseLogin
         $enteredPhone = PhoneNumber::normalize((string) ($this->data['phone'] ?? $this->lastOtpPhone));
 
         return $enteredPhone !== null && $enteredPhone === $this->lastOtpPhone;
-    }
-
-    public function shouldShowOtpCooldownHint(): bool
-    {
-        if ($this->otpCooldownRemainingSeconds() <= 0) {
-            return false;
-        }
-
-        return match ($this->loginMode) {
-            'otp' => true,
-            'phone' => $this->isPhoneSendOnCooldown(),
-            default => false,
-        };
-    }
-
-    public function otpCooldownHintHtml(): HtmlString
-    {
-        $endsAt = (int) ($this->otpCooldownEndsAt ?? 0);
-        $prefix = $this->loginMode === 'otp'
-            ? 'Resend available in '
-            : 'Another code available in ';
-
-        return new HtmlString(
-            '<div'
-            .' wire:key="otp-cooldown-timer-'.$endsAt.'-'.$this->loginMode.'"'
-            .' x-data="{ endsAt: '.$endsAt.', now: Math.floor(Date.now() / 1000), get remaining() { return Math.max(0, this.endsAt - this.now); } }"'
-            .' x-init="setInterval(() => { now = Math.floor(Date.now() / 1000) }, 250)"'
-            .' x-show="remaining > 0"'
-            .' class="fi-sc-text fi-color-gray text-sm text-gray-500 dark:text-gray-400"'
-            .' style="width:100%;text-align:start;margin-top:1rem;"'
-            .'>'
-            .e($prefix)
-            .'<span class="font-medium tabular-nums" x-text="remaining + \'s\'"></span>'
-            .'</div>'
-        );
     }
 
     public function otpCooldownActionLabelHtml(string $countingPrefix, string $readyLabel): HtmlString
