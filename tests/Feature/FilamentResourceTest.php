@@ -123,6 +123,32 @@ test('resource table record actions are icon-only', function () {
     }
 });
 
+test('resource table icon actions use filament tooltips', function () {
+    $this->actingAs($this->admin);
+
+    Label::factory()->create();
+
+    $table = Livewire::test(ListLabels::class)
+        ->assertSuccessful()
+        ->instance()
+        ->getTable();
+
+    foreach (['view', 'edit', 'delete'] as $actionName) {
+        $action = $table->getAction($actionName);
+
+        expect($action)->not->toBeNull()
+            ->and($action->getTooltip())->toBe($action->getLabel());
+    }
+
+    $filtersTrigger = $table->getFiltersTriggerAction();
+
+    expect($filtersTrigger->getTooltip())->toBe($filtersTrigger->getLabel());
+
+    $columnManagerTrigger = $table->getColumnManagerTriggerAction();
+
+    expect($columnManagerTrigger->getTooltip())->toBe($columnManagerTrigger->getLabel());
+});
+
 test('resource list create actions have plus icon', function () {
     $this->actingAs($this->admin);
 

@@ -189,9 +189,12 @@
                                 wire:click="toggleFilters"
                                 wire:loading.attr="disabled"
                                 wire:target="toggleFilters, resetFilters, search, filters"
-                                title="{{ __('filament-tables::table.actions.filter.label') }}"
                                 aria-label="{{ __('filament-tables::table.actions.filter.label') }}"
                                 aria-expanded="{{ $this->filtersOpen ? 'true' : 'false' }}"
+                                x-tooltip="{
+                                    content: @js(__('filament-tables::table.actions.filter.label')),
+                                    theme: $store.theme,
+                                }"
                             >
                                 <x-filament::icon
                                     :icon="Heroicon::Funnel"

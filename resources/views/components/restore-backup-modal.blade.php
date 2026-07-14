@@ -167,6 +167,11 @@
             <button
                 type="button"
                 class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/5 dark:hover:text-gray-200"
+                aria-label="{{ __('filament::components/modal.actions.close.label') }}"
+                x-tooltip="{
+                    content: @js(__('filament::components/modal.actions.close.label')),
+                    theme: $store.theme,
+                }"
                 x-on:click="close()"
             >
                 <x-heroicon-o-x-mark class="h-5 w-5" />
