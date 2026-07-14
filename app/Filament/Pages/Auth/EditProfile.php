@@ -189,7 +189,6 @@ class EditProfile extends BaseEditProfile
                                     ->tel()
                                     ->placeholder('+60123456789')
                                     ->maxLength(20)
-                                    ->helperText('Used for WhatsApp login OTP. Prefer the same number as PERSONAL_WHATSAPP_NUMBER.')
                                     ->rule(fn (): \Closure => function (string $attribute, mixed $value, \Closure $fail): void {
                                         if (blank($value)) {
                                             return;
