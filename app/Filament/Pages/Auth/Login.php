@@ -575,6 +575,8 @@ class Login extends BaseLogin
 
         session()->regenerate();
 
+        $this->sendLoginSuccessNotification();
+
         return app(LoginResponse::class);
     }
 
@@ -613,6 +615,8 @@ class Login extends BaseLogin
 
         session()->regenerate();
 
+        $this->sendLoginSuccessNotification();
+
         return app(LoginResponse::class);
     }
 
@@ -625,6 +629,14 @@ class Login extends BaseLogin
             ->orWhere('phone', '+'.$normalizedPhone)
             ->orWhere('phone', $localForm)
             ->first();
+    }
+
+    protected function sendLoginSuccessNotification(): void
+    {
+        Notification::make()
+            ->title('Signed in successfully')
+            ->success()
+            ->send();
     }
 
     protected function throwFailureValidationException(): never
