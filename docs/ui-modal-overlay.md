@@ -90,4 +90,5 @@ class="absolute inset-0 bg-gray-950/50 dark:bg-gray-950/75 backdrop-blur-md tran
 1. Choose **Filament action** vs **`<x-filament::modal>`** vs **custom Alpine**.
 2. Apply blur using one of the patterns above — do not ship a dim-only overlay when other modals in the panel use blur.
 3. For action modals with one or two fields, set `modalWidth(Width::Small)` (or `Medium`) so the dialog is not full-page wide.
-4. After CSS changes, run `npm run build` or `npm run dev` so Filament panel picks up `app.css`.
+4. Icon CTAs inside the modal must use Filament Tippy (`x-tooltip` / `:tooltip`) — see [ui-tooltips.md](ui-tooltips.md). If the shell uses `z-index` ≥ 9999 (e.g. changelog / restore backup at `99999`), set Tippy `zIndex` higher (e.g. `100000`).
+5. After CSS changes, run `npm run build` or `npm run dev` so Filament panel picks up `app.css`.

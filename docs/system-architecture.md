@@ -34,7 +34,7 @@ The interface utilizes FilamentPHP's native Tailwind CSS theming engine to achie
 
 ### 2.2. Filament Panel Adjustments
 * **Navigation:** Configure `->sidebarCollapsibleOnDesktop()` in the Panel Provider to maximize horizontal workspace.
-* **Data Tables:** Implement borderless table designs. Use minimalist pagination and hide complex filter menus behind single icon buttons. Row record actions (View/Edit/Delete) are icon-only via global `Table::configureUsing` → `modifyUngroupedRecordActionsUsing` → `iconButton()`. List-page “New …” CTAs use a plus Heroicon via global `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`.
+* **Data Tables:** Implement borderless table designs. Use minimalist pagination and hide complex filter menus behind single icon buttons. Row record actions (View/Edit/Delete) are icon-only via global `Table::configureUsing` → `modifyUngroupedRecordActionsUsing` → `iconButton()` **plus Filament Tippy `->tooltip()` from the action label** (also applied to Filter and Column Manager triggers). List-page “New …” CTAs use a plus Heroicon via global `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`. Do not use browser `title` attributes for icon CTAs — see `docs/ui-tooltips.md`.
 
 ---
 
@@ -106,5 +106,8 @@ The interface utilizes FilamentPHP's native Tailwind CSS theming engine to achie
 * **Webhook Feature Tests:** Assert that authorized payloads from the Evolution API correctly dispatch the parsing job, and unauthorized requests return `401 Unauthorized`.
 
 ### 6.4. Data Backup & Retention Strategy
-* **Database Snapshots:** Utilize `spatie/laravel-backup` to run daily scheduled backups of the PostgreSQL database, archiving them to a separate, secure local directory or secondary cloud disk.
+* **Database Snapshots:** Utilize `spatie/laravel-backup` to run daily scheduled backups of the PostgreSQL database (and configured files), archiving them to a separate, secure local directory or secondary cloud disk.
+* **Backup catalog:** Successful backups are registered in the `backups` table (`Backup` model / `BackupService`), including scheduled runs via `RegisterScheduledBackupCatalog` on `BackupWasSuccessful`. Manage download / restore / delete from Filament **Settings → Backups**.
+* **Restore tokens:** Plain restore tokens are shown once; only `restore_token_hash` is stored. Guest restore (no users) uses the auth-menu Restore Backup modal — see `docs/backups-and-danger-zone.md`.
+* **Danger Zone:** Profile Danger Zone creates a final backup then wipes account data (`AccountDangerZoneService`).
 * **Orphaned File Cleanup:** Implement a scheduled task to purge base64-encoded image strings from temporary cache stores once the OCR pipeline completes to prevent disk bloat.

@@ -69,7 +69,7 @@ Custom solid buttons outside Filament should use `text-primary-950` (or `900`) o
 
 1. **Surfaces** — Prefer Filament `bg-white dark:bg-gray-900` (or section/table widgets). Remapped gray already lands on slate-800. Avoid hardcoding `dark:bg-zinc-*` or `dark:bg-gray-950` as a “darker card” unless you intentionally want contrast.
 2. **Chrome overrides** — If you force sidebar/topbar/body colors, use `var(--color-slate-800)` and borders with `var(--color-slate-700)`, matching existing blocks in `app.css`.
-3. **Tooltips** — Do not use Tippy’s default `#333` or Chart.js `#333333`. Tippy is overridden in `app.css`; charts read `--color-slate-700` in `filament-chart-js-plugins.js`.
+3. **Tooltips** — Do not use Tippy’s default `#333` or Chart.js `#333333`. Tippy is overridden in `app.css`; charts read `--color-slate-700` in `filament-chart-js-plugins.js`. Icon CTAs must use Filament Tippy (`->tooltip()` / `x-tooltip`), not browser `title` — see [ui-tooltips.md](ui-tooltips.md). Custom modals at `z-index: 99999` need Tippy `zIndex: 100000` or tooltips render behind the shell.
 4. **Scrollable panels** — Add `custom-scrollbar` on custom `overflow-y-auto` regions (e.g. changelogs modal). Filament `.fi-dropdown-panel` scrollbars are already themed in `app.css`.
 5. **Hardcoded utilities** — Prefer `slate-*` (or Filament `gray-*`) over `zinc-*` for new dark-mode classes in Blade/CSS.
 6. **Solid gold CTAs** — Rely on `ButtonComponent` for Filament buttons; do not reintroduce white label text on primary fills in dark mode.
@@ -85,5 +85,7 @@ Custom solid buttons outside Filament should use `text-primary-950` (or `900`) o
 ## Related
 
 - Empty panels: [ui-empty-states.md](ui-empty-states.md)
+- Icon CTA tooltips: [ui-tooltips.md](ui-tooltips.md)
+- Modal blur: [ui-modal-overlay.md](ui-modal-overlay.md)
 - Agent UI notes: [agent-onboarding.md](agent-onboarding.md) § Filament UI
 - UI copy voice: [ui-copy-style.md](ui-copy-style.md)

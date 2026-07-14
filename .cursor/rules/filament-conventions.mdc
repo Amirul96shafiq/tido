@@ -22,10 +22,10 @@ Use Filament `Schema` for forms (v5), not legacy Form API. Prefer native Form/Ta
 
 ## Navigation
 
-- Groups: **Finances** (Invoices, Budgets), **Settings** (Labels)
-- Theme: amber/zinc, Outfit font, SPA mode, collapsible sidebar, database notifications
+- Groups: **Finances** (Invoices, Budgets), **Settings** (Labels, WhatsApp Connection, Backups)
+- Theme: amber/zinc accents + Slate dark surfaces (see `docs/ui-dark-theme.md`), Outfit font, SPA mode, collapsible sidebar, database notifications
 - Breadcrumbs: disabled panel-wide via `->breadcrumbs(false)` in `AdminPanelProvider` — do not re-enable per resource
-- Custom pages: `Dashboard`, `ReceiptUploadPage`, `Auth/EditProfile`
+- Custom pages: `Dashboard`, `ReceiptUploadPage`, `Auth/EditProfile`, `WhatsAppConnectionPage`
 
 ## Widgets
 
@@ -40,9 +40,11 @@ Create/Edit resource pages use `App\Filament\Concerns\RecoversContentDraft` (Inv
 - `relationship()` for related selects
 - Notifications on user-facing actions
 - Soft-delete aware queries (`withoutGlobalScopes` on record binding when needed)
-- Icon-only row actions (View/Edit/Delete): set globally in `AppServiceProvider` via `Table::configureUsing` → `modifyUngroupedRecordActionsUsing(fn (Action $action) => $action->iconButton())` — do not re-add visible labels per table
+- Icon-only row actions (View/Edit/Delete): set globally in `AppServiceProvider` via `Table::configureUsing` → `modifyUngroupedRecordActionsUsing(fn (Action $action) => $action->iconButton()->tooltip(fn (Action $action) => $action->getLabel()))` — do not re-add visible labels per table
+- Filter + Column Manager triggers: Tippy tooltips globally via `filtersTriggerAction` / `columnManagerTriggerAction` in the same `Table::configureUsing` block
 - List-page “New …” CTAs: plus icon set globally via `CreateAction::configureUsing` → `->icon(Heroicon::Plus)` — new List pages only need `CreateAction::make()`; do not omit/override unless intentional
 - `created_at` (and similar upload timestamps) use `->since()->dateTimeTooltip()` — relative time in the cell, full date/time on hover (same as Receipt Upload “Uploaded At”)
+- Icon CTA tooltips: Filament Tippy only (`->tooltip()` / `x-tooltip`) — never browser `title=` for user-facing CTAs; high-z custom modals need Tippy `zIndex: 100000` — see `docs/ui-tooltips.md`
 
 ## View records (required)
 
@@ -64,5 +66,6 @@ Resource::getUrl('index', [
 - Putting business logic (Ollama, Drive sync, alerts) inside Resource classes — call Services/Jobs
 - Dedicated View pages (`ViewRecord`, `make:filament-page --type=ViewRecord`, `getPages()` `view` routes)
 - Omitting View from resource table `recordActions`
-- Visible text labels on ungrouped table record actions (icons only; tooltips/a11y labels remain)
+- Visible text labels on ungrouped table record actions (icons only; Filament Tippy tooltips + a11y labels remain — see `docs/ui-tooltips.md`)
 - Raw `->dateTime()` alone on `created_at` resource columns — use `since()` + `dateTimeTooltip()` instead
+- Browser-native `title=` tooltips on icon CTAs — use `->tooltip()` / `x-tooltip` instead

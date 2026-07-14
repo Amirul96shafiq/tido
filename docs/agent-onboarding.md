@@ -26,10 +26,13 @@ Default login (seeded): `admin@tido.local` / `password`.
 5. Existing skills: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
 6. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-api-setup.md` (Sail/Docker) or `docs/evolution-local-windows.md` (host, no Docker), `docs/google-drive-setup.md`
 7. UI empty panels: `docs/ui-empty-states.md`
-8. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
-9. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
-10. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
-11. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+8. Modal blur / width: `docs/ui-modal-overlay.md`
+9. Icon CTA tooltips (Filament Tippy, not browser `title`): `docs/ui-tooltips.md`
+10. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
+11. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
+12. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
+13. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
+14. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Stock `README.md` is the Laravel skeleton — **not** product documentation.
 
@@ -37,16 +40,16 @@ Stock `README.md` is the Laravel skeleton — **not** product documentation.
 
 ```
 app/
-  Models/           Invoice, InvoiceItem, Label, Budget, User, ContentDraft
-  Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support
-  Services/         Ollama, GoogleDrive, WhatsApp, BudgetAlert, SpendingForecast
+  Models/           Invoice, InvoiceItem, Label, Budget, User, ContentDraft, Backup
+  Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support, Livewire
+  Services/         Ollama, GoogleDrive, WhatsApp, BudgetAlert, SpendingForecast, Backup*, AccountDangerZone
   Jobs/             ExtractReceiptDataJob, SyncGoogleDriveJob
   Observers/        InvoiceObserver
   Prompts/          ReceiptExtractionPrompt
   Enums/            LabelType, UserLocale, UserDateFormat
-  Http/Controllers/Api/  WhatsAppWebhookController
+  Http/Controllers/ Api webhooks, BackupDownload, GuestRestoreBackup
 routes/
-  web.php           / → /admin, changelog JSON
+  web.php           / → /admin, changelog JSON, backup download / guest restore
   api.php           WhatsApp webhook
   console.php       schedules (Drive sync, backups)
 database/
@@ -89,15 +92,18 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 1. Follow nested Resource layout: `Resources/{Plural}/{Singular}Resource.php` + `Schemas/` + `Tables/` + `Pages/`
 2. Forms use Filament v5 `Schema`; prefer native components
 3. View is always a slide-over — never a dedicated View page. Tables: `ViewAction::make()->slideOver()` in `recordActions` (before Edit/Delete). Notification/deep-link View CTAs: `Resource::getUrl('index', ['tableAction' => 'view', 'tableActionRecord' => $record->getRouteKey()])`
-4. Record actions are icon-only panel-wide (`AppServiceProvider` → `Table::configureUsing` → `modifyUngroupedRecordActionsUsing` → `iconButton()`); do not add visible labels on View/Edit/Delete
-5. List-page “New …” CTAs use a plus Heroicon panel-wide (`AppServiceProvider` → `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`); new List pages only need `CreateAction::make()`
-6. Nav groups: Finances / Settings
-7. Breadcrumbs are disabled panel-wide (`AdminPanelProvider` → `->breadcrumbs(false)`); do not re-enable on resources
-8. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
-9. Resource table `created_at` columns use `->since()->dateTimeTooltip()` (relative time + full datetime on hover), matching Receipt Upload “Uploaded At”
-10. Illustrated empty panels (filtered lists, search misses): use `<x-empty-state-panel>` — see `docs/ui-empty-states.md` (pattern from `errors/email-change-expired.blade.php`)
-11. Dark theme surfaces: Slate with slate-800 chrome — see `docs/ui-dark-theme.md` (do not reintroduce Zinc / `#333` tooltips, or white text on solid gold CTAs)
-12. UI copy: impersonal voice — no *we* / *you* / *your* in headings, descriptions, notifications; see `docs/ui-copy-style.md`
+4. Record actions are icon-only panel-wide (`AppServiceProvider` → `Table::configureUsing` → `modifyUngroupedRecordActionsUsing` → `iconButton()` + Filament `->tooltip()` from the action label); do not add visible labels on View/Edit/Delete — see `docs/ui-tooltips.md`
+5. Filter and Column Manager triggers also get Tippy tooltips globally via `filtersTriggerAction` / `columnManagerTriggerAction` in `AppServiceProvider`
+6. List-page “New …” CTAs use a plus Heroicon panel-wide (`AppServiceProvider` → `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`); new List pages only need `CreateAction::make()`
+7. Nav groups: Finances (Invoices, Budgets) / Settings (Labels, WhatsApp Connection, Backups)
+8. Breadcrumbs are disabled panel-wide (`AdminPanelProvider` → `->breadcrumbs(false)`); do not re-enable on resources
+9. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
+10. Resource table `created_at` columns use `->since()->dateTimeTooltip()` (relative time + full datetime on hover), matching Receipt Upload “Uploaded At”
+11. Illustrated empty panels (filtered lists, search misses): use `<x-empty-state-panel>` — see `docs/ui-empty-states.md` (pattern from `errors/email-change-expired.blade.php`)
+12. Custom Alpine / Blade icon CTAs: use `x-tooltip` + `theme: $store.theme` (never bare `title=`). High-z modals (changelog / restore backup at `z-index: 99999`) must set Tippy `zIndex: 100000` — see `docs/ui-tooltips.md`
+13. Dark theme surfaces: Slate with slate-800 chrome — see `docs/ui-dark-theme.md` (do not reintroduce Zinc / `#333` tooltips, or white text on solid gold CTAs)
+14. UI copy: impersonal voice — no *we* / *you* / *your* in headings, descriptions, notifications; see `docs/ui-copy-style.md`
+15. Backups / Danger Zone / guest restore: see `docs/backups-and-danger-zone.md` — do not invent a second restore path
 
 ### Integrations
 
@@ -130,6 +136,8 @@ php artisan test --compact --filter=YourTest
 - Assuming multi-user isolation — app is single-tenant
 - Editing architecture (new ingestion channel, schema) without checking `docs/system-architecture.md`
 - Horizon `viewHorizon` gate empty allowlist — configure before relying on `/horizon` in prod
+- Using browser `title=` on icon CTAs instead of Filament Tippy — see `docs/ui-tooltips.md`
+- Inventing a second backup/restore path outside `BackupService` — see `docs/backups-and-danger-zone.md`
 
 ## 8. Useful commands
 
