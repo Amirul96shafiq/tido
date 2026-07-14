@@ -20,11 +20,14 @@ use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedSchema;
+use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\RenderHook;
+use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\TextSize;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Auth\SessionGuard;
 use Illuminate\Contracts\Support\Htmlable;
@@ -261,6 +264,27 @@ class Login extends BaseLogin
             ->visible(fn (): bool => $this->loginMode === 'otp');
     }
 
+    protected function getUseDifferentNumberComponent(): Component
+    {
+        return Flex::make([
+            Text::make('Not receive OTP code?')
+                ->color('gray')
+                ->size(TextSize::Small)
+                ->grow(false),
+            Actions::make([
+                $this->useDifferentNumberAction(),
+            ])
+                ->key('use-different-number-actions')
+                ->alignment(Alignment::Start)
+                ->fullWidth(false)
+                ->grow(false),
+        ])
+            ->dense()
+            ->extraAttributes(['class' => 'tido-auth-use-different-number'])
+            ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
+                && $this->loginMode === 'otp');
+    }
+
     public function selectOtpLoginTab(): void
     {
         if ($this->loginMode !== 'password') {
@@ -322,14 +346,7 @@ class Login extends BaseLogin
                 $this->getFormContentComponent(),
                 $this->getOtpCooldownHintComponent(),
                 $this->getMultiFactorChallengeFormContentComponent(),
-                Actions::make([
-                    $this->useDifferentNumberAction(),
-                ])
-                    ->key('use-different-number-actions')
-                    ->alignment(Alignment::Start)
-                    ->fullWidth(false)
-                    ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
-                        && $this->loginMode === 'otp'),
+                $this->getUseDifferentNumberComponent(),
                 RenderHook::make(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER),
             ]);
     }

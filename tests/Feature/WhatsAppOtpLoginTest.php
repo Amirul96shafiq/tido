@@ -328,12 +328,14 @@ test('otp step shows different number link and mode tabs instead of password cta
         ->assertSee('One-Time Password (OTP)')
         ->assertSee('Email & Password')
         ->assertDontSee('Sign in with email & password')
+        ->assertSee('Not receive OTP code?')
         ->assertSee('Use a different number')
         ->assertSee('Resend in')
         ->assertSee('A One-Time Password (OTP) code has been sent via WhatsApp to 60123456789. You can use the OTP code here.')
         ->assertDontSeeHtml('>Use a different number</button>')
         ->call('showPhoneStep')
         ->assertSet('loginMode', 'phone')
+        ->assertDontSee('Not receive OTP code?')
         ->assertDontSee('Use a different number');
 
     expect($component->instance()->getSubheading())

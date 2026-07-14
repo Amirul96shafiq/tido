@@ -214,6 +214,23 @@ html.dark::-webkit-scrollbar-thumb:hover,
     margin-top: 0.5rem !important;
 }
 
+.tido-auth-use-different-number {
+    @apply mt-2 items-baseline gap-x-1;
+}
+
+.tido-auth-use-different-number.fi-sc-flex {
+    gap: 0.25rem;
+}
+
+.tido-auth-use-different-number > .fi-growable {
+    flex: 0 0 auto;
+    width: auto;
+}
+
+.tido-auth-use-different-number .fi-sc-actions:not(.fi-sticky) {
+    margin-top: 0 !important;
+}
+
 .fi-simple-main {
     background-color: transparent !important;
     box-shadow: none !important;
