@@ -34,7 +34,7 @@ Default login (seeded): `admin@tido.local` / `password`.
 13. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
 14. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
-Stock `README.md` is the Laravel skeleton — **not** product documentation.
+Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 
 ## 3. Directory map
 

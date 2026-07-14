@@ -2,6 +2,7 @@
 
 | Doc | Audience | Purpose |
 |-----|----------|---------|
+| [../README.md](../README.md) | Humans (GitHub) | Product overview, install, usage, license |
 | [agent-onboarding.md](agent-onboarding.md) | Cursor / AI agents | How the app works and how to code for it |
 | [system-architecture.md](system-architecture.md) | Agents + humans | Product blueprint; do not contradict without warning |
 | [ollama-setup.md](ollama-setup.md) | Ops | Local GPU Ollama / MiniCPM-V |
