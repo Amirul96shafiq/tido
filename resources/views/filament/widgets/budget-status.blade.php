@@ -23,7 +23,7 @@
                             </div>
                         </div>
                         
-                        <div class="w-full bg-gray-200 dark:bg-gray-800 h-2.5 rounded-full overflow-hidden relative">
+                        <div class="w-full bg-gray-200 dark:bg-white/15 h-2.5 rounded-full overflow-hidden relative">
                             @php
                                 $barColorClass = match($budget['status_color']) {
                                     'red' => 'bg-gradient-to-r from-red-500 to-rose-600',
