@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -79,6 +80,10 @@ class BackupService
             return null;
         }
 
+        $plainToken = $this->generateRestoreToken();
+        $this->embedApplicationFilesOnDisk($diskName, $newPath);
+        $this->embedRestoreTokenOnDisk($diskName, $newPath, $plainToken);
+
         return Backup::query()->create([
             'type' => BackupType::Auto,
             'disk' => $diskName,
@@ -86,6 +91,7 @@ class BackupService
             'filename' => $filename,
             'size_bytes' => $disk->exists($newPath) ? $disk->size($newPath) : null,
             'created_by' => null,
+            'restore_token_hash' => Hash::make($plainToken),
         ]);
     }
 
@@ -95,7 +101,28 @@ class BackupService
             throw new RuntimeException('Backup file is missing from storage.');
         }
 
-        $payloadPath = $this->extractBackupPayload($backup);
+        $tempDirectory = storage_path('app/backup-restore/'.uniqid('restore_', true));
+        File::ensureDirectoryExists($tempDirectory);
+
+        $zipPath = $tempDirectory.'/backup.zip';
+        File::put($zipPath, Storage::disk($backup->disk)->get($backup->path));
+
+        try {
+            $this->restoreFromZipPath($zipPath);
+        } finally {
+            if (File::isDirectory($tempDirectory)) {
+                File::deleteDirectory($tempDirectory);
+            }
+        }
+    }
+
+    public function restoreFromZipPath(string $zipPath): void
+    {
+        if (! File::exists($zipPath)) {
+            throw new RuntimeException('Backup archive was not found.');
+        }
+
+        $payloadPath = $this->extractBackupPayloadFromZip($zipPath);
 
         try {
             if (str_ends_with($payloadPath, '.sql')) {
@@ -106,12 +133,54 @@ class BackupService
                 throw new RuntimeException('Unsupported backup payload format.');
             }
 
+            $this->restoreApplicationFilesFromZip($zipPath);
             $this->flushCaches();
         } finally {
             if (File::isDirectory(dirname($payloadPath))) {
                 File::deleteDirectory(dirname($payloadPath));
             }
         }
+    }
+
+    public function generateRestoreToken(): string
+    {
+        return bin2hex(random_bytes(16));
+    }
+
+    public function assertRestoreToken(Backup $backup, string $plainToken): bool
+    {
+        return filled($backup->restore_token_hash)
+            && Hash::check($plainToken, $backup->restore_token_hash);
+    }
+
+    public function consumeRestoreToken(Backup $backup): void
+    {
+        $backup->forceFill(['restore_token_hash' => null])->save();
+    }
+
+    public function issueRestoreToken(Backup $backup): string
+    {
+        if (! $backup->fileExists()) {
+            throw new RuntimeException('Backup file is missing from storage.');
+        }
+
+        $plainToken = $this->generateRestoreToken();
+        $this->embedRestoreTokenOnDisk($backup->disk, $backup->path, $plainToken);
+
+        $backup->forceFill([
+            'restore_token_hash' => Hash::make($plainToken),
+            'size_bytes' => Storage::disk($backup->disk)->size($backup->path),
+        ])->save();
+
+        return $plainToken;
+    }
+
+    public function findBackupByRestoreToken(string $plainToken): ?Backup
+    {
+        return Backup::query()
+            ->whereNotNull('restore_token_hash')
+            ->get()
+            ->first(fn (Backup $backup): bool => $this->assertRestoreToken($backup, $plainToken));
     }
 
     public function delete(Backup $backup): void
@@ -233,16 +302,25 @@ class BackupService
         }
 
         $zip->addFile($databasePath, 'database.sqlite');
+        $plainToken = $this->generateRestoreToken();
+        $zip->addFromString('RESTORE_TOKEN.txt', $plainToken."\n");
         $zip->close();
 
         Storage::disk($diskName)->put($relativePath, File::get($zipPath));
         File::deleteDirectory($tempDirectory);
 
-        return $this->storeBackupCatalogRecord($type, $createdBy, $filename);
+        return $this->storeBackupCatalogRecord($type, $createdBy, $filename, $plainToken);
     }
 
-    protected function storeBackupCatalogRecord(BackupType $type, ?User $createdBy, string $filename): Backup
-    {
+    /**
+     * @param  non-empty-string|null  $plainToken
+     */
+    protected function storeBackupCatalogRecord(
+        BackupType $type,
+        ?User $createdBy,
+        string $filename,
+        ?string $plainToken = null,
+    ): Backup {
         $diskName = $this->backupDiskName();
         $path = $this->backupApplicationName().'/'.$filename;
         $disk = Storage::disk($diskName);
@@ -251,6 +329,11 @@ class BackupService
             throw new RuntimeException('No backup file was created.');
         }
 
+        $this->embedApplicationFilesOnDisk($diskName, $path);
+
+        $plainToken ??= $this->generateRestoreToken();
+        $this->embedRestoreTokenOnDisk($diskName, $path, $plainToken);
+
         return Backup::query()->create([
             'type' => $type,
             'disk' => $diskName,
@@ -258,7 +341,160 @@ class BackupService
             'filename' => $filename,
             'size_bytes' => $disk->size($path),
             'created_by' => $createdBy?->getKey(),
+            'restore_token_hash' => Hash::make($plainToken),
         ]);
+    }
+
+    protected function embedApplicationFilesOnDisk(string $diskName, string $path): void
+    {
+        $tempDirectory = storage_path('app/backup-temp/'.uniqid('files_', true));
+        File::ensureDirectoryExists($tempDirectory);
+
+        $tempZipPath = $tempDirectory.'/backup.zip';
+        File::put($tempZipPath, Storage::disk($diskName)->get($path));
+
+        $this->embedApplicationFilesInZip($tempZipPath);
+
+        Storage::disk($diskName)->put($path, File::get($tempZipPath));
+        File::deleteDirectory($tempDirectory);
+    }
+
+    protected function embedApplicationFilesInZip(string $absoluteZipPath): void
+    {
+        $zip = new ZipArchive;
+
+        if ($zip->open($absoluteZipPath) !== true) {
+            throw new RuntimeException('Unable to open backup archive to embed application files.');
+        }
+
+        for ($index = $zip->numFiles - 1; $index >= 0; $index--) {
+            $name = $zip->getNameIndex($index);
+
+            if (! is_string($name)) {
+                continue;
+            }
+
+            if (str_starts_with($name, 'files/public/') || str_starts_with($name, 'files/private/')) {
+                $zip->deleteIndex($index);
+            }
+        }
+
+        $this->addDiskFilesToZip($zip, 'public', 'files/public/');
+        $this->addDiskFilesToZip($zip, 'local', 'files/private/');
+
+        $zip->close();
+    }
+
+    protected function addDiskFilesToZip(ZipArchive $zip, string $diskName, string $zipPrefix): void
+    {
+        $disk = Storage::disk($diskName);
+
+        foreach ($disk->allFiles() as $relativePath) {
+            if ($this->shouldSkipDiskFileForBackup($diskName, $relativePath)) {
+                continue;
+            }
+
+            $absolutePath = $disk->path($relativePath);
+
+            if (! is_string($absolutePath) || ! is_file($absolutePath)) {
+                continue;
+            }
+
+            $zip->addFile($absolutePath, $zipPrefix.$relativePath);
+        }
+    }
+
+    protected function shouldSkipDiskFileForBackup(string $diskName, string $relativePath): bool
+    {
+        if ($diskName !== $this->backupDiskName()) {
+            return false;
+        }
+
+        $backupFolder = $this->backupApplicationName().'/';
+
+        return str_starts_with($relativePath, $backupFolder)
+            || str_starts_with($relativePath, 'backup-temp/')
+            || str_starts_with($relativePath, 'backup-restore/');
+    }
+
+    protected function restoreApplicationFilesFromZip(string $zipPath): void
+    {
+        $zip = new ZipArchive;
+
+        if ($zip->open($zipPath) !== true) {
+            throw new RuntimeException('Unable to open backup archive to restore application files.');
+        }
+
+        try {
+            for ($index = 0; $index < $zip->numFiles; $index++) {
+                $name = $zip->getNameIndex($index);
+
+                if (! is_string($name) || str_ends_with($name, '/')) {
+                    continue;
+                }
+
+                $diskName = null;
+                $relativePath = null;
+
+                if (str_starts_with($name, 'files/public/')) {
+                    $diskName = 'public';
+                    $relativePath = substr($name, strlen('files/public/'));
+                } elseif (str_starts_with($name, 'files/private/')) {
+                    $diskName = 'local';
+                    $relativePath = substr($name, strlen('files/private/'));
+                }
+
+                if ($diskName === null || $relativePath === null || $relativePath === '') {
+                    continue;
+                }
+
+                if (str_contains($relativePath, '..') || str_starts_with($relativePath, '/') || str_contains($relativePath, '\\')) {
+                    continue;
+                }
+
+                $contents = $zip->getFromIndex($index);
+
+                if ($contents === false) {
+                    continue;
+                }
+
+                Storage::disk($diskName)->put($relativePath, $contents);
+            }
+        } finally {
+            $zip->close();
+        }
+    }
+
+    protected function embedRestoreTokenOnDisk(string $diskName, string $path, string $plainToken): void
+    {
+        $tempDirectory = storage_path('app/backup-temp/'.uniqid('token_', true));
+        File::ensureDirectoryExists($tempDirectory);
+
+        $tempZipPath = $tempDirectory.'/backup.zip';
+        File::put($tempZipPath, Storage::disk($diskName)->get($path));
+
+        $this->embedRestoreTokenInZip($tempZipPath, $plainToken);
+
+        Storage::disk($diskName)->put($path, File::get($tempZipPath));
+        File::deleteDirectory($tempDirectory);
+    }
+
+    protected function embedRestoreTokenInZip(string $absoluteZipPath, string $plainToken): void
+    {
+        $zip = new ZipArchive;
+
+        if ($zip->open($absoluteZipPath) !== true) {
+            throw new RuntimeException('Unable to open backup archive to embed restore token.');
+        }
+
+        $existingIndex = $zip->locateName('RESTORE_TOKEN.txt');
+
+        if ($existingIndex !== false) {
+            $zip->deleteIndex($existingIndex);
+        }
+
+        $zip->addFromString('RESTORE_TOKEN.txt', $plainToken."\n");
+        $zip->close();
     }
 
     protected function backupDiskName(): string
@@ -273,17 +509,17 @@ class BackupService
         return (string) config('backup.backup.name', 'laravel-backup');
     }
 
-    protected function extractBackupPayload(Backup $backup): string
+    protected function extractBackupPayloadFromZip(string $zipPath): string
     {
-        $tempDirectory = storage_path('app/backup-restore/'.uniqid('restore_', true));
+        $tempDirectory = storage_path('app/backup-restore/'.uniqid('payload_', true));
         File::ensureDirectoryExists($tempDirectory);
 
-        $zipPath = $tempDirectory.'/backup.zip';
-        File::put($zipPath, Storage::disk($backup->disk)->get($backup->path));
+        $workingZipPath = $tempDirectory.'/backup.zip';
+        File::copy($zipPath, $workingZipPath);
 
         $zip = new ZipArchive;
 
-        if ($zip->open($zipPath) !== true) {
+        if ($zip->open($workingZipPath) !== true) {
             throw new RuntimeException('Unable to open backup archive.');
         }
 
@@ -409,6 +645,10 @@ class BackupService
 
     protected function flushCaches(): void
     {
+        if (app()->runningUnitTests()) {
+            return;
+        }
+
         Artisan::call('optimize:clear');
     }
 }

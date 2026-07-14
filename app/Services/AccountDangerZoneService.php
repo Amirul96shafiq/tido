@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\BackupType;
+use App\Models\Backup;
 use App\Models\Budget;
 use App\Models\ContentDraft;
 use App\Models\Invoice;
@@ -28,13 +29,15 @@ class AccountDangerZoneService
         $this->wipeSharedAppData($user);
     }
 
-    public function deleteAccount(User $user): void
+    public function deleteAccount(User $user): Backup
     {
-        $this->backupService->create(BackupType::Auto, $user);
+        $backup = $this->backupService->create(BackupType::Auto, $user);
 
         $this->wipeSharedAppData($user);
 
         $this->deleteUserAccount($user);
+
+        return $backup;
     }
 
     public function wipeSharedAppData(User $user): void
@@ -93,10 +96,16 @@ class AccountDangerZoneService
 
     protected function deleteUserAccount(User $user): void
     {
-        if (filled($user->avatar_url) && Storage::disk('public')->exists($user->avatar_url)) {
-            Storage::disk('public')->delete($user->avatar_url);
-        }
+        // Single-tenant: remove every account so OTP/password login cannot succeed via leftover users.
+        User::query()
+            ->orderBy('id')
+            ->cursor()
+            ->each(function (User $account): void {
+                if (filled($account->avatar_url) && Storage::disk('public')->exists($account->avatar_url)) {
+                    Storage::disk('public')->delete($account->avatar_url);
+                }
 
-        $user->delete();
+                $account->delete();
+            });
     }
 }

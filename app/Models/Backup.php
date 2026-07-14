@@ -26,6 +26,14 @@ class Backup extends Model
         'filename',
         'size_bytes',
         'created_by',
+        'restore_token_hash',
+    ];
+
+    /**
+     * @var list<string>
+     */
+    protected $hidden = [
+        'restore_token_hash',
     ];
 
     /**

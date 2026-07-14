@@ -34,6 +34,7 @@ use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -358,7 +359,7 @@ class EditProfile extends BaseEditProfile
             ->color('danger')
             ->requiresConfirmation()
             ->modalHeading('Delete account')
-            ->modalDescription('This permanently deletes all application data and your account. You will be signed out.')
+            ->modalDescription('This permanently deletes all data and user account. You will be signed out.')
             ->modalSubmitActionLabel('Delete account')
             ->action(function (AccountDangerZoneService $accountDangerZoneService): void {
                 if (! $this->isDeleteAccountReady() || ! $this->isDangerZonePasswordValid('delete_confirmation_password')) {
@@ -370,7 +371,15 @@ class EditProfile extends BaseEditProfile
                     return;
                 }
 
-                $accountDangerZoneService->deleteAccount($this->getDangerZoneUser());
+                $backup = $accountDangerZoneService->deleteAccount($this->getDangerZoneUser());
+
+                $downloadUrl = URL::temporarySignedRoute(
+                    'backups.download',
+                    now()->addMinutes(10),
+                    ['backup' => $backup],
+                );
+
+                $this->js('window.open('.Js::from($downloadUrl).', "_blank")');
 
                 FilamentAuthLogout::logoutToLogin($this);
             });
