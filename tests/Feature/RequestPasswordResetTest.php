@@ -27,9 +27,16 @@ test('forgot password page shows back to login link below the form', function ()
         ->assertSee('back to login');
 });
 
-test('login page shows email password sign in link', function () {
+test('login page shows mode tabs and info toast', function () {
     Livewire::test(Login::class)
-        ->assertSee('Sign in with email & password');
+        ->assertSee('One-Time Password (OTP)')
+        ->assertSee('Email & Password')
+        ->assertDontSee('Sign in with email & password');
+
+    $this->get('/admin/login')
+        ->assertSuccessful()
+        ->assertSee('Seamless login ready to use!')
+        ->assertSee('Use your personal WhatsApp number to login via One-Time Password (OTP) code.');
 });
 
 test('reset password page shows description below heading', function () {

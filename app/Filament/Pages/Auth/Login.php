@@ -69,7 +69,7 @@ class Login extends BaseLogin
 
         return match ($this->loginMode) {
             'otp' => filled($this->pendingPhone)
-                ? "6-digit code sent to {$this->pendingPhone}."
+                ? "A One-Time Password (OTP) code has been sent via WhatsApp to {$this->pendingPhone}. You can use the OTP code here."
                 : 'Enter the 6-digit code from WhatsApp.',
             default => 'Where tidy preparation meets finished work, then "tido" (sleep).',
         };
@@ -111,7 +111,44 @@ class Login extends BaseLogin
             ->length(6)
             ->autofocus(fn (): bool => $this->loginMode === 'otp')
             ->required(fn (): bool => $this->loginMode === 'otp')
-            ->visible(fn (): bool => $this->loginMode === 'otp');
+            ->visible(fn (): bool => $this->loginMode === 'otp')
+            ->extraInputAttributes([
+                // Paint digits into each cell — input letter-spacing paint drifts visually even when metrics match.
+                'x-init' => <<<'JS'
+                    const paintOtpDigits = () => {
+                        const ctn = $el.closest('.fi-one-time-code-input-ctn')
+                        if (! ctn) {
+                            return
+                        }
+
+                        const cells = Array.from(ctn.children).filter((node) => node.tagName === 'DIV')
+                        const digits = String($el.value || '').replace(/\D/g, '')
+
+                        cells.forEach((cell, index) => {
+                            let label = cell.querySelector('.tido-otp-digit')
+                            if (! label) {
+                                label = document.createElement('span')
+                                label.className = 'tido-otp-digit'
+                                label.setAttribute('aria-hidden', 'true')
+                                cell.appendChild(label)
+                            }
+                            label.textContent = digits[index] || ''
+                        })
+
+                        $el.style.color = 'transparent'
+                        $el.style.webkitTextFillColor = 'transparent'
+                        $el.style.caretColor = 'transparent'
+                    }
+
+                    $nextTick(() => paintOtpDigits())
+                    $el.addEventListener('input', () => paintOtpDigits())
+                    $el.addEventListener('focus', () => paintOtpDigits())
+                    $el.addEventListener('blur', () => paintOtpDigits())
+                    $el.addEventListener('paste', () => {
+                        requestAnimationFrame(() => paintOtpDigits())
+                    })
+                JS,
+            ]);
     }
 
     protected function getEmailFormComponent(): Component
@@ -208,17 +245,6 @@ class Login extends BaseLogin
         };
     }
 
-    public function usePasswordLoginAction(): Action
-    {
-        return Action::make('usePasswordLogin')
-            ->link()
-            ->label('Sign in with email & password')
-            ->action(function (): void {
-                $this->showPasswordStep();
-            })
-            ->visible(fn (): bool => in_array($this->loginMode, ['phone', 'otp'], true));
-    }
-
     public function useDifferentNumberAction(): Action
     {
         return Action::make('useDifferentNumber')
@@ -230,15 +256,29 @@ class Login extends BaseLogin
             ->visible(fn (): bool => $this->loginMode === 'otp');
     }
 
-    public function useWhatsAppLoginAction(): Action
+    public function selectOtpLoginTab(): void
     {
-        return Action::make('useWhatsAppLogin')
-            ->link()
-            ->label('Sign in with WhatsApp code')
-            ->action(function (): void {
-                $this->showPhoneStep();
-            })
-            ->visible(fn (): bool => $this->loginMode === 'password');
+        if ($this->loginMode === 'password') {
+            $this->showPhoneStep();
+        }
+    }
+
+    public function selectPasswordLoginTab(): void
+    {
+        if ($this->loginMode !== 'password') {
+            $this->showPasswordStep();
+        }
+    }
+
+    protected function getLoginModeTabsComponent(): Component
+    {
+        return Html::make(fn (): HtmlString => new HtmlString(
+            Blade::render(
+                '<x-auth-login-tabs :login-mode="$loginMode" />',
+                ['loginMode' => $this->loginMode],
+            )
+        ))
+            ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication));
     }
 
     public function getFormContentComponent(): Component
@@ -246,6 +286,10 @@ class Login extends BaseLogin
         return Form::make([EmbeddedSchema::make('form')])
             ->id('form')
             ->key('login-form-'.$this->loginMode)
+            ->extraAttributes([
+                'class' => 'tido-login-auth-panel',
+                'wire:transition' => 'tido-login-auth',
+            ])
             ->livewireSubmitHandler(fn (): string => $this->loginMode === 'phone' ? 'sendOtp' : 'authenticate')
             ->footer([
                 Actions::make($this->getFormActions())
@@ -261,24 +305,17 @@ class Login extends BaseLogin
         return $schema
             ->components([
                 RenderHook::make(PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE),
+                $this->getLoginModeTabsComponent(),
                 $this->getFormContentComponent(),
                 $this->getOtpCooldownHintComponent(),
                 $this->getMultiFactorChallengeFormContentComponent(),
                 Actions::make([
-                    $this->usePasswordLoginAction(),
                     $this->useDifferentNumberAction(),
-                ])
-                    ->alignment(fn (): Alignment => $this->loginMode === 'otp' ? Alignment::Between : Alignment::Start)
-                    ->fullWidth(false)
-                    ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
-                        && in_array($this->loginMode, ['phone', 'otp'], true)),
-                Actions::make([
-                    $this->useWhatsAppLoginAction(),
                 ])
                     ->alignment(Alignment::Start)
                     ->fullWidth(false)
                     ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
-                        && $this->loginMode === 'password'),
+                        && $this->loginMode === 'otp'),
                 RenderHook::make(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER),
             ]);
     }
