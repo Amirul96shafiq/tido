@@ -18,18 +18,9 @@
             const startTime = Date.now();
             const minLoadingTime = 1000;
             
-            // #region agent log
-            fetch('http://127.0.0.1:7630/ingest/872a83a7-c278-4561-81ba-5cb19a834c46',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'8f1b08'},body:JSON.stringify({sessionId:'8f1b08',runId:'run2',hypothesisId:'H1',location:'changelog-modal.blade.php:loadCommits',message:'loadCommits start',data:{page:page},timestamp:Date.now()})}).catch(()=>{});
-            // #endregion
             try {
                 const response = await fetch(`/changelog?page=${page}`);
-                // #region agent log
-                fetch('http://127.0.0.1:7630/ingest/872a83a7-c278-4561-81ba-5cb19a834c46',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'8f1b08'},body:JSON.stringify({sessionId:'8f1b08',runId:'run2',hypothesisId:'H1-H2',location:'changelog-modal.blade.php:loadCommits',message:'response received',data:{status:response.status,ok:response.ok,elapsedMs:Date.now()-startTime},timestamp:Date.now()})}).catch(()=>{});
-                // #endregion
                 const data = await response.json();
-                // #region agent log
-                fetch('http://127.0.0.1:7630/ingest/872a83a7-c278-4561-81ba-5cb19a834c46',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'8f1b08'},body:JSON.stringify({sessionId:'8f1b08',runId:'run2',hypothesisId:'H2',location:'changelog-modal.blade.php:loadCommits',message:'data parsed',data:{success:data.success,total:data.total,commitCount:(data.commits||[]).length},timestamp:Date.now()})}).catch(()=>{});
-                // #endregion
                 
                 if (data.success) {
                     this.commits = data.commits;
@@ -41,9 +32,6 @@
                     this.totalCommits = 0;
                 }
             } catch (error) {
-                // #region agent log
-                fetch('http://127.0.0.1:7630/ingest/872a83a7-c278-4561-81ba-5cb19a834c46',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'8f1b08'},body:JSON.stringify({sessionId:'8f1b08',runId:'run2',hypothesisId:'H2',location:'changelog-modal.blade.php:loadCommits',message:'fetch error',data:{error:String(error),elapsedMs:Date.now()-startTime},timestamp:Date.now()})}).catch(()=>{});
-                // #endregion
                 console.error('Error loading commits:', error);
                 this.commits = [];
                 this.totalCommits = 0;
@@ -111,7 +99,12 @@
             {{-- Close Button --}}
             <button type="button" 
                     @click="show = false" 
-                    title="Close"
+                    aria-label="Close"
+                    x-tooltip="{
+                        content: @js('Close'),
+                        theme: $store.theme,
+                        zIndex: 100000,
+                    }"
                     class="inline-flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-400 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/30">
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -162,7 +155,12 @@
                                 <button type="button"
                                         x-show="commit.description && commit.description.length > 0"
                                         @click.stop="toggleCommitDescription(commit.short_hash)"
-                                        title="View Commit Description"
+                                        aria-label="View Commit Description"
+                                        x-tooltip="{
+                                            content: @js('View Commit Description'),
+                                            theme: $store.theme,
+                                            zIndex: 100000,
+                                        }"
                                         class="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-all duration-200"
                                         :class="expandedCommit === commit.short_hash ? 'rotate-180' : 'rotate-0'">
                                     <x-heroicon-o-chevron-down class="w-4 h-4" />
@@ -171,7 +169,12 @@
                                 {{-- View Details Button --}}
                                 <button type="button"
                                         @click.stop="showCommitDetail(commit.short_hash)"
-                                        title="View Commit Details"
+                                        aria-label="View Commit Details"
+                                        x-tooltip="{
+                                            content: @js('View Commit Details'),
+                                            theme: $store.theme,
+                                            zIndex: 100000,
+                                        }"
                                         class="p-1 text-primary-400 hover:text-primary-600 dark:text-primary-500 dark:hover:text-primary-300 transition-colors">
                                     <x-heroicon-o-code-bracket class="w-4 h-4" />
                                 </button>
@@ -268,7 +271,12 @@
                     {{-- Previous Page --}}
                     <button x-show="pagination && pagination.current_page > 1"
                             @click="loadPage(pagination.current_page - 1)"
-                            title="Previous page"
+                            aria-label="Previous"
+                            x-tooltip="{
+                                content: @js('Previous'),
+                                theme: $store.theme,
+                                zIndex: 100000,
+                            }"
                             class="w-10 h-10 bg-primary-500/80 dark:bg-primary-500/80 hover:bg-primary-400 dark:hover:bg-primary-400 rounded-lg flex items-center justify-center transition-all duration-300 group">
                         <x-heroicon-o-arrow-left class="w-5 h-5 text-primary-900 dark:text-primary-900 transition-colors" />
                     </button>
@@ -279,7 +287,12 @@
                     {{-- Next Page --}}
                     <button x-show="pagination && pagination.current_page < pagination.last_page"
                             @click="loadPage(pagination.current_page + 1)"
-                            title="Next page"
+                            aria-label="Next"
+                            x-tooltip="{
+                                content: @js('Next'),
+                                theme: $store.theme,
+                                zIndex: 100000,
+                            }"
                             class="w-10 h-10 bg-primary-500/80 dark:bg-primary-500/80 hover:bg-primary-400 dark:hover:bg-primary-400 rounded-lg flex items-center justify-center transition-all duration-300 group">
                         <x-heroicon-o-arrow-right class="w-5 h-5 text-primary-900 dark:text-primary-900 transition-colors" />
                     </button>

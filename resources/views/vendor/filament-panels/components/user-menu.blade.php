@@ -46,6 +46,10 @@
                 aria-label="{{ __('filament-panels::layout.actions.open_user_menu.label') }}"
                 type="button"
                 class="fi-user-menu-trigger"
+                x-tooltip="{
+                    content: @js(__('filament-panels::layout.actions.open_user_menu.label')),
+                    theme: $store.theme,
+                }"
             >
                 <x-filament-panels::avatar.user :user="$user" loading="lazy" />
             </button>
@@ -54,6 +58,10 @@
                 aria-label="{{ __('filament-panels::layout.actions.open_user_menu.label') }}"
                 type="button"
                 class="fi-user-menu-trigger"
+                x-tooltip="{
+                    content: @js(__('filament-panels::layout.actions.open_user_menu.label')),
+                    theme: $store.theme,
+                }"
             >
                 <x-filament-panels::avatar.user :user="$user" loading="lazy" />
 

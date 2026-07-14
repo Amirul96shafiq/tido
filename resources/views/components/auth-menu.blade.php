@@ -5,6 +5,10 @@
                 aria-label="{{ __('filament-panels::layout.actions.open_user_menu.label') }}"
                 type="button"
                 class="fi-auth-menu-trigger fi-user-menu-trigger"
+                x-tooltip="{
+                    content: @js(__('filament-panels::layout.actions.open_user_menu.label')),
+                    theme: $store.theme,
+                }"
             >
                 <img
                     src="{{ asset('images/favicon.png') }}"
