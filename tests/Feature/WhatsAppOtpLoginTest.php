@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Filament\Pages\Auth\Login;
 use App\Models\User;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
@@ -26,6 +27,12 @@ beforeEach(function () {
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
 });
+
+function useDifferentNumberAction(): TestAction
+{
+    return TestAction::make('useDifferentNumber')
+        ->schemaComponent('use-different-number-actions', schema: 'content');
+}
 
 test('guest can open filament login page', function () {
     $this->get('/admin/login')->assertSuccessful();
@@ -343,4 +350,54 @@ test('login mode tabs switch between otp and password flows', function () {
         ->assertDontSee('Sign in with WhatsApp code')
         ->call('selectOtpLoginTab')
         ->assertSet('loginMode', 'phone');
+});
+
+test('otp tab restores enter otp step after switching to password', function () {
+    User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    Livewire::test(Login::class)
+        ->set('data.phone', '60123456789')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp')
+        ->assertSet('pendingPhone', '60123456789')
+        ->assertSee('Resend in')
+        ->call('selectPasswordLoginTab')
+        ->assertSet('loginMode', 'password')
+        ->assertSet('pendingPhone', '60123456789')
+        ->call('selectOtpLoginTab')
+        ->assertSet('loginMode', 'otp')
+        ->assertSet('pendingPhone', '60123456789')
+        ->assertSee('Resend in')
+        ->assertSee('Enter the code')
+        ->assertSee('A One-Time Password (OTP) code has been sent via WhatsApp to 60123456789. You can use the OTP code here.')
+        ->assertDontSee('WhatsApp number');
+});
+
+test('use different number confirms reset while resend cooldown is active', function () {
+    User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    Livewire::test(Login::class)
+        ->set('data.phone', '60123456789')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp')
+        ->assertSee('Resend in')
+        ->mountAction(useDifferentNumberAction())
+        ->assertMountedActionModalSee('This will reset the current login process')
+        ->callMountedAction()
+        ->assertSet('loginMode', 'phone')
+        ->assertSet('pendingPhone', null)
+        ->assertDontSee('Use a different number');
+});
+
+test('use different number skips confirmation when resend cooldown has expired', function () {
+    User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    Livewire::test(Login::class)
+        ->set('data.phone', '60123456789')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp')
+        ->set('otpCooldownEndsAt', null)
+        ->callAction(useDifferentNumberAction())
+        ->assertSet('loginMode', 'phone')
+        ->assertSet('pendingPhone', null);
 });

@@ -250,6 +250,11 @@ class Login extends BaseLogin
         return Action::make('useDifferentNumber')
             ->link()
             ->label('Use a different number')
+            ->requiresConfirmation()
+            ->modalHidden(fn (): bool => $this->otpCooldownRemainingSeconds() <= 0)
+            ->modalHeading('Use a different number?')
+            ->modalDescription('This will reset the current login process. You will need to enter a WhatsApp number and request a new code.')
+            ->modalSubmitActionLabel('Use a different number')
             ->action(function (): void {
                 $this->showPhoneStep();
             })
@@ -258,9 +263,17 @@ class Login extends BaseLogin
 
     public function selectOtpLoginTab(): void
     {
-        if ($this->loginMode === 'password') {
-            $this->showPhoneStep();
+        if ($this->loginMode !== 'password') {
+            return;
         }
+
+        if (filled($this->pendingPhone)) {
+            $this->showOtpStep();
+
+            return;
+        }
+
+        $this->showPhoneStep();
     }
 
     public function selectPasswordLoginTab(): void
@@ -312,6 +325,7 @@ class Login extends BaseLogin
                 Actions::make([
                     $this->useDifferentNumberAction(),
                 ])
+                    ->key('use-different-number-actions')
                     ->alignment(Alignment::Start)
                     ->fullWidth(false)
                     ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
@@ -408,8 +422,17 @@ class Login extends BaseLogin
     public function showPasswordStep(): void
     {
         $this->loginMode = 'password';
-        $this->pendingPhone = null;
         $this->data['otp'] = null;
+        $this->resetErrorBag();
+        $this->dispatch('$refresh');
+    }
+
+    public function showOtpStep(): void
+    {
+        $this->loginMode = 'otp';
+        $this->data['otp'] = null;
+        $this->data['email'] = null;
+        $this->data['password'] = null;
         $this->resetErrorBag();
         $this->dispatch('$refresh');
     }
