@@ -16,6 +16,7 @@ use Filament\Actions\Exceptions\ActionNotResolvableException;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -119,11 +120,22 @@ test('reset data wipes domain data keeps user system labels and backups', functi
     $this->assertGuest();
 });
 
-test('delete account action delegates to danger zone service and logs out', function () {
-    $this->mock(AccountDangerZoneService::class, function ($mock): void {
+test('delete account action downloads backup then logs out', function () {
+    Storage::fake('local');
+
+    $backup = Backup::factory()->create([
+        'disk' => 'local',
+        'path' => 'laravel-backup/delete-account-download.zip',
+        'filename' => 'delete-account-download.zip',
+    ]);
+
+    Storage::disk('local')->put($backup->path, 'zip-contents');
+
+    $this->mock(AccountDangerZoneService::class, function ($mock) use ($backup): void {
         $mock->shouldReceive('deleteAccount')
             ->once()
-            ->withArgs(fn (User $user): bool => $user->is($this->user));
+            ->withArgs(fn (User $user): bool => $user->is($this->user))
+            ->andReturn($backup);
     });
 
     Livewire::test(EditProfile::class)
@@ -182,14 +194,18 @@ test('account danger zone service wipe preserves backups table', function () {
         ->and(Backup::query()->whereKey($backup->getKey())->exists())->toBeTrue();
 });
 
-test('account danger zone service delete account removes user', function () {
-    $user = User::factory()->create();
-
-    Backup::factory()->create([
-        'created_by' => $user->getKey(),
+test('account danger zone service delete account removes all users', function () {
+    $otherUser = User::factory()->create([
+        'phone' => $this->user->phone,
     ]);
 
-    app(AccountDangerZoneService::class)->deleteAccount($user);
+    Backup::factory()->create([
+        'created_by' => $this->user->getKey(),
+    ]);
 
-    expect(User::query()->whereKey($user->getKey())->exists())->toBeFalse();
+    app(AccountDangerZoneService::class)->deleteAccount($this->user);
+
+    expect(User::query()->whereKey($this->user->getKey())->exists())->toBeFalse()
+        ->and(User::query()->whereKey($otherUser->getKey())->exists())->toBeFalse()
+        ->and(User::query()->count())->toBe(0);
 });

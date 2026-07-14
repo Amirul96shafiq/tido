@@ -28,6 +28,16 @@
             >
                 Changelogs
             </x-filament::dropdown.list.item>
+
+            @if (\App\Models\User::query()->doesntExist())
+                <x-filament::dropdown.list.item
+                    icon="heroicon-o-arrow-path"
+                    tag="button"
+                    x-on:click="window.showRestoreBackupModal(); close()"
+                >
+                    Restore Backup
+                </x-filament::dropdown.list.item>
+            @endif
         </x-filament::dropdown.list>
     </x-filament::dropdown>
 </div>

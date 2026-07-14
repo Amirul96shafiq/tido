@@ -213,3 +213,38 @@ test('backup service creates native sqlite backup without sqlite3 cli', function
 
     File::delete($databasePath);
 })->skip(fn (): bool => ! file_exists(database_path('database.sqlite')), 'Requires file-backed sqlite database.');
+
+test('backup archives embed and restore public avatar files', function () {
+    Storage::fake('public');
+    Storage::fake('local');
+
+    $avatarPath = 'avatars/profile-test.png';
+    Storage::disk('public')->put($avatarPath, 'avatar-bytes');
+
+    $tempZip = storage_path('app/backup-temp/'.uniqid('avatar_', true).'.zip');
+    File::ensureDirectoryExists(dirname($tempZip));
+
+    $zip = new ZipArchive;
+    expect($zip->open($tempZip, ZipArchive::CREATE | ZipArchive::OVERWRITE))->toBeTrue();
+    $zip->addFromString('database.sqlite', 'sqlite-placeholder');
+    $zip->close();
+
+    $embedFiles = new ReflectionMethod(BackupService::class, 'embedApplicationFilesInZip');
+    $embedFiles->invoke(app(BackupService::class), $tempZip);
+
+    $zip = new ZipArchive;
+    expect($zip->open($tempZip))->toBeTrue()
+        ->and($zip->locateName('files/public/'.$avatarPath))->not->toBeFalse();
+    $zip->close();
+
+    Storage::disk('public')->delete($avatarPath);
+    expect(Storage::disk('public')->exists($avatarPath))->toBeFalse();
+
+    $restoreFiles = new ReflectionMethod(BackupService::class, 'restoreApplicationFilesFromZip');
+    $restoreFiles->invoke(app(BackupService::class), $tempZip);
+
+    expect(Storage::disk('public')->exists($avatarPath))->toBeTrue()
+        ->and(Storage::disk('public')->get($avatarPath))->toBe('avatar-bytes');
+
+    File::delete($tempZip);
+});

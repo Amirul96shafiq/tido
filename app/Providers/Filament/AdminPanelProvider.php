@@ -238,7 +238,7 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,
-                fn (): string => Blade::render('<x-changelog-modal /><x-drag-drop-lang />'),
+                fn (): string => Blade::render('<x-changelog-modal /><x-restore-backup-modal /><x-drag-drop-lang />'),
             )
             ->renderHook(
                 PanelsRenderHook::PAGE_END,

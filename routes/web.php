@@ -1,12 +1,22 @@
 <?php
 
 use App\Helpers\ChangelogHelper;
+use App\Http\Controllers\BackupDownloadController;
+use App\Http\Controllers\GuestRestoreBackupController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect('/admin');
 });
+
+Route::get('/backups/{backup}/download', BackupDownloadController::class)
+    ->middleware('signed')
+    ->name('backups.download');
+
+Route::post('/restore-backup', GuestRestoreBackupController::class)
+    ->middleware('throttle:5,1')
+    ->name('restore-backup');
 
 Route::get('/changelog', function () {
     // #region agent log
