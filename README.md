@@ -14,14 +14,13 @@
 <h2 align="center">
 Keep it tidy. Get it done.
 </h2>
-
 <h4 align="center">
 Where tidy preparation meets finished work, then tido (sleep)
 </h4>
 
 <p align="center">
 tido is a localized, single-tenant MYR expense tracker built for frictionless financial logging. Ingest receipts autonomously via WhatsApp webhooks or scheduled Google Drive syncs (coming soon!), and bypass third-party APIs completely with on-device OCR parsing powered by Ollama (minicpm-v) (coming soon!). Manage parsed line items as labels, track strict budgets, and review analytics instantly within a streamlined Filament dashboard.
-<p align="center">
+</p>
 
 ## Table of Contents
 
