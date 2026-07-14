@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Helpers\UserDateDisplay;
+use App\Listeners\RegisterScheduledBackupCatalog;
 use App\Models\Invoice;
 use App\Models\User;
 use App\Observers\InvoiceObserver;
@@ -20,12 +21,14 @@ use Filament\Tables\Table;
 use Google\Client;
 use Google\Service\Drive;
 use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use Masbug\Flysystem\GoogleDriveAdapter;
+use Spatie\Backup\Events\BackupWasSuccessful;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -43,6 +46,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Invoice::observe(InvoiceObserver::class);
+
+        Event::listen(BackupWasSuccessful::class, RegisterScheduledBackupCatalog::class);
 
         $this->configureFilamentDateFormats();
 

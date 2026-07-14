@@ -32,5 +32,9 @@ class DatabaseSeeder extends Seeder
                 'invoice_id' => $invoice->id,
             ]);
         });
+
+        $this->call([
+            DangerZoneTestUsersSeeder::class,
+        ]);
     }
 }

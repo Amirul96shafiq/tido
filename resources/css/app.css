@@ -752,6 +752,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     }
 }
 
+/* Highlight Filament's native section ring (extraAttributes land on .fi-sc-section). */
+.fi-danger-zone-section > .fi-section {
+    @apply ring-red-500 dark:ring-red-500;
+}
+
 /*
  * Shared modal overlay blur — match changelog modal (backdrop-blur-md).
  * Apply to all Filament close overlays (resource view slide-overs, actions,

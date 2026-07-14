@@ -6,7 +6,10 @@ namespace App\Filament\Pages\Auth;
 
 use App\Enums\UserDateFormat;
 use App\Enums\UserLocale;
+use App\Models\User;
 use App\Notifications\VerifyEmailChange;
+use App\Services\AccountDangerZoneService;
+use App\Support\FilamentAuthLogout;
 use App\Support\PhoneNumber;
 use Filament\Actions\Action;
 use Filament\Auth\Notifications\NoticeOfEmailChangeRequest;
@@ -29,14 +32,20 @@ use Filament\Support\Enums\Alignment;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use League\Uri\Components\Query;
+use LogicException;
 
 class EditProfile extends BaseEditProfile
 {
+    private const RESET_CONFIRMATION_PHRASE = 'CONFIRM RESET DATA';
+
+    private const DELETE_CONFIRMATION_PHRASE = 'CONFIRM DELETE ACCOUNT';
+
     /**
      * @return array<string>
      */
@@ -149,6 +158,8 @@ class EditProfile extends BaseEditProfile
                                     ->label('Email Digest')
                                     ->helperText('Coming soon — preference saved for future digest emails.'),
                             ]),
+
+                        $this->getDangerZoneSection(),
                     ]),
 
                 Grid::make(1)
@@ -191,6 +202,221 @@ class EditProfile extends BaseEditProfile
                             ]),
                     ]),
             ]);
+    }
+
+    protected function getDangerZoneSection(): Section
+    {
+        return Section::make('Danger Zone')
+            ->key('dangerZone')
+            ->description('Irreversible actions for your account and application data.')
+            ->extraAttributes(['class' => 'fi-danger-zone-section'])
+            ->schema([
+                Toggle::make('enable_reset_data')
+                    ->label('Reset data')
+                    ->helperText('Deletes all application data. Your account is kept. An automatic backup is created first.')
+                    ->live()
+                    ->dehydrated(false)
+                    ->afterStateUpdated(function (mixed $state, Set $set): void {
+                        if ($state) {
+                            return;
+                        }
+
+                        $set('reset_confirmation_phrase', null);
+                        $set('reset_confirmation_password', null);
+                    }),
+                TextInput::make('reset_confirmation_phrase')
+                    ->label('Confirmation phrase')
+                    ->placeholder(self::RESET_CONFIRMATION_PHRASE)
+                    ->helperText('Type exactly: '.self::RESET_CONFIRMATION_PHRASE)
+                    ->live()
+                    ->visible(fn (Get $get): bool => (bool) $get('enable_reset_data'))
+                    ->dehydrated(false),
+                TextInput::make('reset_confirmation_password')
+                    ->label('Current password')
+                    ->password()
+                    ->revealable()
+                    ->live()
+                    ->visible(fn (Get $get): bool => (bool) $get('enable_reset_data'))
+                    ->dehydrated(false),
+                Toggle::make('enable_delete_account')
+                    ->label('Delete account')
+                    ->helperText('Deletes all application data and removes your account. An automatic backup is created first.')
+                    ->live()
+                    ->dehydrated(false)
+                    ->afterStateUpdated(function (mixed $state, Set $set): void {
+                        if ($state) {
+                            return;
+                        }
+
+                        $set('delete_confirmation_phrase', null);
+                        $set('delete_confirmation_password', null);
+                    }),
+                TextInput::make('delete_confirmation_phrase')
+                    ->label('Confirmation phrase')
+                    ->placeholder(self::DELETE_CONFIRMATION_PHRASE)
+                    ->helperText('Type exactly: '.self::DELETE_CONFIRMATION_PHRASE)
+                    ->live()
+                    ->visible(fn (Get $get): bool => (bool) $get('enable_delete_account'))
+                    ->dehydrated(false),
+                TextInput::make('delete_confirmation_password')
+                    ->label('Current password')
+                    ->password()
+                    ->revealable()
+                    ->live()
+                    ->visible(fn (Get $get): bool => (bool) $get('enable_delete_account'))
+                    ->dehydrated(false),
+            ]);
+    }
+
+    /**
+     * @return array<Action>
+     */
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction()
+                ->visible(fn (): bool => ! $this->isDangerZoneArmed()),
+            $this->getCancelFormAction(),
+            $this->getResetDataFormAction(),
+            $this->getDeleteAccountFormAction(),
+        ];
+    }
+
+    protected function getResetDataFormAction(): Action
+    {
+        return Action::make('resetData')
+            ->label('Reset data')
+            ->icon(Heroicon::OutlinedTrash)
+            ->color('danger')
+            ->visible(fn (): bool => $this->isResetDataReady())
+            ->action(function (): void {
+                if (! $this->isDangerZonePasswordValid('reset_confirmation_password')) {
+                    FilamentNotification::make()
+                        ->title('Incorrect password')
+                        ->body('The current password you entered is incorrect.')
+                        ->danger()
+                        ->send();
+
+                    return;
+                }
+
+                $this->replaceMountedAction('confirmResetData');
+            });
+    }
+
+    protected function getDeleteAccountFormAction(): Action
+    {
+        return Action::make('deleteAccount')
+            ->label('Delete account')
+            ->icon(Heroicon::OutlinedUserMinus)
+            ->color('danger')
+            ->visible(fn (): bool => $this->isDeleteAccountReady())
+            ->action(function (): void {
+                if (! $this->isDangerZonePasswordValid('delete_confirmation_password')) {
+                    FilamentNotification::make()
+                        ->title('Incorrect password')
+                        ->body('The current password you entered is incorrect.')
+                        ->danger()
+                        ->send();
+
+                    return;
+                }
+
+                $this->replaceMountedAction('confirmDeleteAccount');
+            });
+    }
+
+    public function confirmResetDataAction(): Action
+    {
+        return Action::make('confirmResetData')
+            ->label('Reset data')
+            ->color('danger')
+            ->requiresConfirmation()
+            ->modalHeading('Reset all data')
+            ->modalDescription('This permanently deletes all application data. Your account will remain. You will be signed out.')
+            ->modalSubmitActionLabel('Reset data')
+            ->action(function (AccountDangerZoneService $accountDangerZoneService): void {
+                if (! $this->isResetDataReady() || ! $this->isDangerZonePasswordValid('reset_confirmation_password')) {
+                    FilamentNotification::make()
+                        ->title('Unable to reset data')
+                        ->danger()
+                        ->send();
+
+                    return;
+                }
+
+                $accountDangerZoneService->resetData($this->getDangerZoneUser());
+
+                FilamentAuthLogout::logoutToLogin($this);
+            });
+    }
+
+    public function confirmDeleteAccountAction(): Action
+    {
+        return Action::make('confirmDeleteAccount')
+            ->label('Delete account')
+            ->color('danger')
+            ->requiresConfirmation()
+            ->modalHeading('Delete account')
+            ->modalDescription('This permanently deletes all application data and your account. You will be signed out.')
+            ->modalSubmitActionLabel('Delete account')
+            ->action(function (AccountDangerZoneService $accountDangerZoneService): void {
+                if (! $this->isDeleteAccountReady() || ! $this->isDangerZonePasswordValid('delete_confirmation_password')) {
+                    FilamentNotification::make()
+                        ->title('Unable to delete account')
+                        ->danger()
+                        ->send();
+
+                    return;
+                }
+
+                $accountDangerZoneService->deleteAccount($this->getDangerZoneUser());
+
+                FilamentAuthLogout::logoutToLogin($this);
+            });
+    }
+
+    protected function getDangerZoneUser(): User
+    {
+        $user = $this->getUser();
+
+        if (! $user instanceof User) {
+            throw new LogicException('The authenticated user must be an instance of '.User::class.'.');
+        }
+
+        return $user;
+    }
+
+    protected function getDangerZoneDataValue(string $key): mixed
+    {
+        return $this->data[$key] ?? null;
+    }
+
+    protected function isResetDataReady(): bool
+    {
+        return (bool) $this->getDangerZoneDataValue('enable_reset_data')
+            && $this->getDangerZoneDataValue('reset_confirmation_phrase') === self::RESET_CONFIRMATION_PHRASE
+            && filled($this->getDangerZoneDataValue('reset_confirmation_password'));
+    }
+
+    protected function isDeleteAccountReady(): bool
+    {
+        return (bool) $this->getDangerZoneDataValue('enable_delete_account')
+            && $this->getDangerZoneDataValue('delete_confirmation_phrase') === self::DELETE_CONFIRMATION_PHRASE
+            && filled($this->getDangerZoneDataValue('delete_confirmation_password'));
+    }
+
+    protected function isDangerZoneArmed(): bool
+    {
+        return $this->isResetDataReady() || $this->isDeleteAccountReady();
+    }
+
+    protected function isDangerZonePasswordValid(string $field): bool
+    {
+        $password = $this->getDangerZoneDataValue($field);
+
+        return is_string($password)
+            && Hash::check($password, $this->getUser()->getAuthPassword());
     }
 
     protected function getGenerateStrongPasswordActionComponent(): Component

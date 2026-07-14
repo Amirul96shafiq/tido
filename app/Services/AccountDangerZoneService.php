@@ -1,0 +1,102 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Enums\BackupType;
+use App\Models\Budget;
+use App\Models\ContentDraft;
+use App\Models\Invoice;
+use App\Models\Label;
+use App\Models\User;
+use App\Models\WhatsAppConnectionLog;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Spatie\Activitylog\Models\Activity;
+
+class AccountDangerZoneService
+{
+    public function __construct(
+        private readonly BackupService $backupService,
+    ) {}
+
+    public function resetData(User $user): void
+    {
+        $this->backupService->create(BackupType::Auto, $user);
+
+        $this->wipeSharedAppData($user);
+    }
+
+    public function deleteAccount(User $user): void
+    {
+        $this->backupService->create(BackupType::Auto, $user);
+
+        $this->wipeSharedAppData($user);
+
+        $this->deleteUserAccount($user);
+    }
+
+    public function wipeSharedAppData(User $user): void
+    {
+        DB::transaction(function () use ($user): void {
+            foreach ($this->domainWipeCallbacks($user) as $callback) {
+                $callback();
+            }
+        });
+    }
+
+    /**
+     * Ordered wipe callbacks for domain data. Add future domain resources here.
+     *
+     * @return list<callable(): void>
+     */
+    protected function domainWipeCallbacks(User $user): array
+    {
+        return [
+            function (): void {
+                $this->wipeInvoices();
+            },
+            fn (): mixed => Budget::query()->delete(),
+            function (): void {
+                $this->wipeUserCreatedLabels();
+            },
+            fn (): mixed => WhatsAppConnectionLog::query()->delete(),
+            fn (): mixed => Activity::query()->delete(),
+            fn (): mixed => $user->notifications()->delete(),
+            fn (): mixed => ContentDraft::query()->where('user_id', $user->getKey())->delete(),
+        ];
+    }
+
+    protected function wipeInvoices(): void
+    {
+        Invoice::query()
+            ->withTrashed()
+            ->cursor()
+            ->each(function (Invoice $invoice): void {
+                if (filled($invoice->image_path) && Storage::exists($invoice->image_path)) {
+                    Storage::delete($invoice->image_path);
+                }
+
+                $invoice->forceDelete();
+            });
+    }
+
+    protected function wipeUserCreatedLabels(): void
+    {
+        Label::query()
+            ->withTrashed()
+            ->where('is_system', false)
+            ->cursor()
+            ->each(fn (Label $label): mixed => $label->forceDelete());
+    }
+
+    protected function deleteUserAccount(User $user): void
+    {
+        if (filled($user->avatar_url) && Storage::disk('public')->exists($user->avatar_url)) {
+            Storage::disk('public')->delete($user->avatar_url);
+        }
+
+        $user->delete();
+    }
+}
