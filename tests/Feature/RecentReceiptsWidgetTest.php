@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use App\Enums\PaymentMethod;
+use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Widgets\RecentReceipts;
 use App\Models\Invoice;
 use App\Models\User;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -106,4 +108,30 @@ test('recent receipts widget excludes invoices outside selected month', function
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$inMonth])
         ->assertCanNotSeeTableRecords([$outOfMonth]);
+});
+
+test('recent receipts widget edit action links to invoice edit in a new tab', function () {
+    $invoice = Invoice::factory()->create([
+        'date_time' => now(),
+    ]);
+
+    $editUrl = InvoiceResource::getUrl('edit', ['record' => $invoice]);
+
+    $table = Livewire::test(RecentReceipts::class)
+        ->assertSuccessful()
+        ->assertActionExists(TestAction::make('edit')->table($invoice))
+        ->assertActionHasUrl(TestAction::make('edit')->table($invoice), $editUrl)
+        ->instance()
+        ->getTable();
+
+    $action = $table->getAction('edit');
+
+    expect($action)->not->toBeNull()
+        ->and($action->isIconButton())->toBeTrue()
+        ->and($action->getTooltip())->toBe($action->getLabel());
+
+    Livewire::test(RecentReceipts::class)
+        ->assertSuccessful()
+        ->assertSeeHtml('target="_blank"')
+        ->assertSeeHtml(e($editUrl));
 });
