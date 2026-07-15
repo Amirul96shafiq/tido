@@ -5,17 +5,31 @@ declare(strict_types=1);
 namespace App\Filament\Pages;
 
 use App\Filament\Support\DashboardMonthPeriod;
+use App\Models\User;
+use App\Support\TimeOfDayGreeting;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Schemas\Schema;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Facades\Auth;
 
 class Dashboard extends BaseDashboard
 {
     use HasFiltersForm;
 
     protected static bool $shouldRegisterNavigation = false;
+
+    /**
+     * @return array<string>
+     */
+    public function getPageClasses(): array
+    {
+        return [
+            'tido-dashboard-greeting',
+        ];
+    }
 
     /**
      * @return int|array<string, int>
@@ -41,6 +55,32 @@ class Dashboard extends BaseDashboard
     public function updatedFiltersMonth(): void
     {
         $this->updatedFilters();
+    }
+
+    public function getHeading(): string|Htmlable
+    {
+        $user = Auth::user();
+
+        if (! $user instanceof User) {
+            return parent::getHeading();
+        }
+
+        $now = now()->timezone($user->preferredTimezone());
+
+        return TimeOfDayGreeting::headingHtmlFor($now, $user->name);
+    }
+
+    public function getSubheading(): string|Htmlable|null
+    {
+        $user = Auth::user();
+
+        if (! $user instanceof User) {
+            return parent::getSubheading();
+        }
+
+        $now = now()->timezone($user->preferredTimezone());
+
+        return TimeOfDayGreeting::subheading($now);
     }
 
     public function getFiltersForm(): Schema

@@ -206,6 +206,10 @@ html.dark::-webkit-scrollbar-thumb:hover,
     margin-top: 0.5rem !important;
 }
 
+.tido-dashboard-greeting .fi-header-subheading {
+    @apply text-md;
+}
+
 .fi-simple-page .fi-sc-form {
     gap: 2rem !important;
 }
