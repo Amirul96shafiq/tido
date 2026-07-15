@@ -20,6 +20,8 @@ test('receipt extraction prompt includes all finance labels with descriptions', 
         ->toContain('Every item in items[] MUST include a label')
         ->toContain('Food & Dining — Ready-to-eat meals, restaurant items, convenience-store snacks and drinks')
         ->toContain('Groceries & Household — Supermarket pantry, fresh produce, cleaning supplies, baby wipes')
+        ->toContain('Gardenia Original Classic Bread')
+        ->toContain('Packaged bread loaves')
         ->not->toContain('suggested_category');
 });
 

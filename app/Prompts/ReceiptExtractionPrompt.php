@@ -42,6 +42,7 @@ Line item label rules (follow strictly):
 - Classify each line by its description, not the merchant alone (a grocery receipt can mix Groceries & Household and Food & Dining lines).
 - Use the exact label name from the list below. Pick the closest match when ambiguous.
 - Ready-to-eat / convenience-store snacks and drinks → Food & Dining. Supermarket pantry, fresh produce, and household consumables → Groceries & Household.
+- Packaged bread loaves (e.g. Gardenia Original Classic Bread) → Groceries & Household. Gardenia Quick Bites / Puazz and similar ready-to-eat snacks → Food & Dining.
 
 Available labels (use exact name in each item's "label" field):
 {$labelLines}
