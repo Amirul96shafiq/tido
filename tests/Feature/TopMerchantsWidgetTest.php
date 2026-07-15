@@ -28,7 +28,7 @@ test('top merchants widget truncates long merchant labels', function () {
 
     Livewire::test(TopMerchants::class)
         ->assertSuccessful()
-        ->assertSee('Cosmo Rest...');
+        ->assertSee('Cosmo Rest... (1)');
 });
 
 test('top merchants widget leaves short merchant labels unchanged', function () {
@@ -45,5 +45,30 @@ test('top merchants widget leaves short merchant labels unchanged', function () 
 
     Livewire::test(TopMerchants::class)
         ->assertSuccessful()
-        ->assertSee('7-Eleven');
+        ->assertSee('7-Eleven (1)');
+});
+
+test('top merchants widget shows receipt count on axis labels', function () {
+    Invoice::unsetEventDispatcher();
+
+    Invoice::factory()->create([
+        'merchant_name' => 'Grocery Mart',
+        'date_time' => now(),
+        'status' => 'reviewed',
+        'total_amount' => 40.00,
+    ]);
+
+    Invoice::factory()->create([
+        'merchant_name' => 'Grocery Mart',
+        'date_time' => now(),
+        'status' => 'reviewed',
+        'total_amount' => 20.00,
+    ]);
+
+    Invoice::setEventDispatcher(app('events'));
+
+    Livewire::test(TopMerchants::class)
+        ->assertSuccessful()
+        ->assertSee('Grocery Ma... (2)')
+        ->assertDontSee('saved this month');
 });
