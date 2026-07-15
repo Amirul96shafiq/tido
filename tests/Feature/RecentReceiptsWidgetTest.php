@@ -66,6 +66,31 @@ test('recent receipts widget filename links to file in a new tab', function () {
         ->assertSeeHtml(e($url));
 });
 
+test('recent receipts widget truncates long merchant names with full name in tooltip', function () {
+    $longMerchant = 'Cosmo Restaurants Sdn Bhd';
+    $invoice = Invoice::factory()->create([
+        'merchant_name' => $longMerchant,
+        'date_time' => now(),
+    ]);
+
+    Livewire::test(RecentReceipts::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$invoice])
+        ->assertSee('Cosmo Restaurants Sd...');
+
+    $column = Livewire::test(RecentReceipts::class)
+        ->instance()
+        ->getTable()
+        ->getColumn('merchant_name');
+
+    expect($column)->not->toBeNull()
+        ->and($column->getCharacterLimit())->toBe(20);
+
+    $tooltip = $column->record($invoice)->getTooltip($longMerchant);
+
+    expect($tooltip)->toBe($longMerchant);
+});
+
 test('recent receipts widget excludes invoices outside selected month', function () {
     $inMonth = Invoice::factory()->create([
         'merchant_name' => 'This Month',
