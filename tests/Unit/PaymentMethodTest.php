@@ -64,6 +64,10 @@ test('try from ai resolves common payment method aliases', function (string $inp
     ['touchngo', PaymentMethod::TouchNGo],
     ["Touch 'n Go", PaymentMethod::TouchNGo],
     ['TNG', PaymentMethod::TouchNGo],
+    ['debit', PaymentMethod::Other],
+    ['credit', PaymentMethod::Other],
+    ['debit_card', PaymentMethod::Other],
+    ['credit_card', PaymentMethod::Other],
     ['other', PaymentMethod::Other],
 ]);
 
