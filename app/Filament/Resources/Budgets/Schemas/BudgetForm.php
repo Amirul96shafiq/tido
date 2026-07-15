@@ -29,8 +29,7 @@ class BudgetForm
                     ->preload(),
 
                 TextInput::make('amount')
-                    ->numeric()
-                    ->prefix('RM')
+                    ->myr()
                     ->required(),
 
                 Select::make('period')

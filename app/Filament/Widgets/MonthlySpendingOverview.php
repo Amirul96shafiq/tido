@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Widgets;
 
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
+use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -33,7 +34,7 @@ class MonthlySpendingOverview extends BaseWidget
         $thisMonthTotal = $summary['current_total'];
         $lastMonthTotal = $summary['previous_total'];
         $difference = $thisMonthTotal - $lastMonthTotal;
-        $description = 'RM '.number_format(abs($difference), 2);
+        $description = MoneyDisplay::withPrefix(abs($difference));
 
         if ($lastMonthTotal > 0) {
             $percent = ($difference / $lastMonthTotal) * 100;
@@ -46,12 +47,12 @@ class MonthlySpendingOverview extends BaseWidget
         $descriptionColor = $difference >= 0 ? 'danger' : 'success';
 
         $stats = [
-            Stat::make('Total Spent ('.$monthLabel.')', 'RM '.number_format($thisMonthTotal, 2))
+            Stat::make('Total Spent ('.$monthLabel.')', MoneyDisplay::withPrefix($thisMonthTotal))
                 ->description($description)
                 ->descriptionIcon($descriptionIcon)
                 ->color($descriptionColor),
 
-            Stat::make('SST Tax Paid', 'RM '.number_format($summary['current_tax'], 2))
+            Stat::make('SST Tax Paid', MoneyDisplay::withPrefix($summary['current_tax']))
                 ->description('Estimated 6% local taxation')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('gray'),
@@ -77,7 +78,7 @@ class MonthlySpendingOverview extends BaseWidget
 
             $overallMonthlyBudget = $overallMonthlyBudget ? (float) $overallMonthlyBudget : null;
 
-            $forecastDesc = sprintf('Based on RM %.2f avg daily spend', $averageDailySpend);
+            $forecastDesc = 'Based on '.MoneyDisplay::withPrefix($averageDailySpend).' avg daily spend';
             $forecastColor = 'info';
 
             if ($overallMonthlyBudget) {
@@ -87,13 +88,13 @@ class MonthlySpendingOverview extends BaseWidget
                     $forecastDesc = sprintf('Projected to EXCEED budget (%.0f%%)', $budgetStatus);
                     $forecastColor = 'danger';
                 } else {
-                    $forecastDesc = sprintf('Projected at %.0f%% of budget (RM %.2f)', $budgetStatus, $overallMonthlyBudget);
+                    $forecastDesc = sprintf('Projected at %.0f%% of budget (%s)', $budgetStatus, MoneyDisplay::withPrefix($overallMonthlyBudget));
                     $forecastColor = 'success';
                 }
             }
 
             array_splice($stats, 1, 0, [
-                Stat::make('Spending Forecast (End of Month)', 'RM '.number_format($projectedSpend, 2))
+                Stat::make('Spending Forecast (End of Month)', MoneyDisplay::withPrefix($projectedSpend))
                     ->description($forecastDesc)
                     ->descriptionIcon('heroicon-m-chart-bar')
                     ->color($forecastColor),
@@ -103,7 +104,7 @@ class MonthlySpendingOverview extends BaseWidget
             $dailyAverage = $daysInMonth > 0 ? $thisMonthTotal / $daysInMonth : 0;
 
             array_splice($stats, 1, 0, [
-                Stat::make('Daily Average ('.$monthLabel.')', 'RM '.number_format($dailyAverage, 2))
+                Stat::make('Daily Average ('.$monthLabel.')', MoneyDisplay::withPrefix($dailyAverage))
                     ->description(sprintf('Across %d days in month', $daysInMonth))
                     ->descriptionIcon('heroicon-m-calculator')
                     ->color('info'),

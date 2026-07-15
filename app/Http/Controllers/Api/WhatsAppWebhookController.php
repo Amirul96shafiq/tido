@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\MoneyDisplay;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessWhatsAppMediaJob;
 use App\Models\Invoice;
@@ -114,7 +115,7 @@ class WhatsAppWebhookController extends Controller
                 sprintf(
                     "Period: *%s*\n\nTotal spent: *RM %s*",
                     $now->format('F Y'),
-                    number_format((float) $total, 2),
+                    MoneyDisplay::format((float) $total),
                 ),
             );
             $waService->sendMessage($senderNumber, $reply);

@@ -47,11 +47,11 @@ class InvoicesTable
                     ->sortable(),
 
                 TextColumn::make('total_amount')
-                    ->money('MYR')
+                    ->myr()
                     ->sortable(),
 
                 TextColumn::make('discount_total')
-                    ->money('MYR')
+                    ->myr()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 

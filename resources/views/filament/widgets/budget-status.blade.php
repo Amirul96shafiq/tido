@@ -1,3 +1,7 @@
+@php
+    use App\Helpers\MoneyDisplay;
+@endphp
+
 <x-filament-widgets::widget class="h-full">
     <x-filament::section class="h-full">
         <x-slot name="heading">
@@ -19,7 +23,7 @@
                                 <span class="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md">{{ ucfirst($budget['period']) }}</span>
                             </div>
                             <div class="font-bold text-gray-700 dark:text-gray-300">
-                                RM {{ number_format($budget['spent'], 2) }} <span class="text-xs text-gray-400 dark:text-gray-500 font-normal">/ RM {{ number_format($budget['amount'], 2) }}</span>
+                                {{ MoneyDisplay::withPrefix($budget['spent']) }} <span class="text-xs text-gray-400 dark:text-gray-500 font-normal">/ {{ MoneyDisplay::withPrefix($budget['amount']) }}</span>
                             </div>
                         </div>
                         
@@ -59,7 +63,7 @@
                                 @endif
                             </span>
                             <span>
-                                RM {{ number_format(max(0, $budget['amount'] - $budget['spent']), 2) }} remaining
+                                {{ MoneyDisplay::withPrefix(max(0, $budget['amount'] - $budget['spent'])) }} remaining
                             </span>
                         </div>
                     </div>

@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Invoices\Schemas;
 
 use App\Enums\LabelType;
 use App\Enums\PaymentMethod;
+use App\Helpers\MoneyDisplay;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
@@ -43,25 +44,21 @@ class InvoiceForm
                         Grid::make(4)
                             ->schema([
                                 TextInput::make('subtotal')
-                                    ->numeric()
-                                    ->prefix('RM')
+                                    ->myr()
                                     ->required(),
 
                                 TextInput::make('total_tax')
                                     ->label('Tax / Service')
                                     ->helperText('SST / service tax (include service charge if not split)')
-                                    ->numeric()
-                                    ->prefix('RM')
+                                    ->myr()
                                     ->default(0.00),
 
                                 TextInput::make('discount_total')
-                                    ->numeric()
-                                    ->prefix('RM')
+                                    ->myr()
                                     ->default(0.00),
 
                                 TextInput::make('rounding_amount')
-                                    ->numeric()
-                                    ->prefix('RM')
+                                    ->myr()
                                     ->default(0.00)
                                     ->helperText('May be negative'),
                             ]),
@@ -69,8 +66,7 @@ class InvoiceForm
                         Grid::make(4)
                             ->schema([
                                 TextInput::make('total_amount')
-                                    ->numeric()
-                                    ->prefix('RM')
+                                    ->myr()
                                     ->required(),
 
                                 Select::make('currency')
@@ -159,8 +155,7 @@ class InvoiceForm
                                             ->columnSpan(1),
 
                                         TextInput::make('unit_price')
-                                            ->numeric()
-                                            ->prefix('RM')
+                                            ->myr()
                                             ->required()
                                             ->columnSpan(1),
                                     ]),
@@ -168,8 +163,7 @@ class InvoiceForm
                                 Grid::make(6)
                                     ->schema([
                                         TextInput::make('line_total')
-                                            ->numeric()
-                                            ->prefix('RM')
+                                            ->myr()
                                             ->required()
                                             ->live(onBlur: true)
                                             ->columnSpan(2),
@@ -194,7 +188,7 @@ class InvoiceForm
                                     return $description;
                                 }
 
-                                return sprintf('%s (RM%s)', $description, number_format((float) $lineTotal, 2));
+                                return sprintf('%s (%s)', $description, MoneyDisplay::withPrefix($lineTotal, spaceAfterPrefix: false));
                             })
                             ->columns(1),
                     ]),
