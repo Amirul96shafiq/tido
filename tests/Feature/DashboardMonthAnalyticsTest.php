@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\PaymentMethod;
 use App\Filament\Support\DashboardMonthAnalytics;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Models\Budget;
@@ -661,4 +662,218 @@ test('top merchants aggregates spent, discount, receipts, and spend share', func
     expect($merchantB->receipt_count)->toBe(1);
     expect($merchantB->avg_spend)->toBe(25.0);
     expect($merchantB->spend_share_percent)->toBe(25.0);
+});
+
+test('spent by payment method groups spend, excludes pending, and computes mom', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->format('Y-m');
+    $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
+
+    Invoice::create([
+        'merchant_name' => 'Cash Store',
+        'invoice_number' => 'INV-CASH-1',
+        'receipt_hash' => 'hash-cash-1',
+        'date_time' => $bounds['start']->copy()->addDay(),
+        'subtotal' => 80.00,
+        'total_tax' => 0.00,
+        'total_amount' => 80.00,
+        'currency' => 'MYR',
+        'payment_method' => PaymentMethod::Cash,
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'Card Store',
+        'invoice_number' => 'INV-VISA-1',
+        'receipt_hash' => 'hash-visa-1',
+        'date_time' => $bounds['start']->copy()->addDays(2),
+        'subtotal' => 40.00,
+        'total_tax' => 0.00,
+        'total_amount' => 40.00,
+        'currency' => 'MYR',
+        'payment_method' => PaymentMethod::Visa,
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'Pending Store',
+        'invoice_number' => 'INV-PENDING-PM',
+        'receipt_hash' => 'hash-pending-pm',
+        'date_time' => $bounds['start']->copy()->addDays(3),
+        'subtotal' => 99.00,
+        'total_tax' => 0.00,
+        'total_amount' => 99.00,
+        'currency' => 'MYR',
+        'payment_method' => PaymentMethod::Cash,
+        'source' => 'manual',
+        'status' => 'pending',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'Unknown Method Store',
+        'invoice_number' => 'INV-UNKNOWN-PM',
+        'receipt_hash' => 'hash-unknown-pm',
+        'date_time' => $bounds['start']->copy()->addDays(4),
+        'subtotal' => 20.00,
+        'total_tax' => 0.00,
+        'total_amount' => 20.00,
+        'currency' => 'MYR',
+        'payment_method' => null,
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'Prior Cash Store',
+        'invoice_number' => 'INV-CASH-PRIOR',
+        'receipt_hash' => 'hash-cash-prior',
+        'date_time' => $bounds['previous_start']->copy()->addDay(),
+        'subtotal' => 30.00,
+        'total_tax' => 0.00,
+        'total_amount' => 30.00,
+        'currency' => 'MYR',
+        'payment_method' => PaymentMethod::Cash,
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $methods = analyticsForMonth($targetMonth)->spentByPaymentMethod();
+
+    expect($methods)->toHaveCount(3);
+
+    $cash = $methods->firstWhere('key', PaymentMethod::Cash->value);
+    $visa = $methods->firstWhere('key', PaymentMethod::Visa->value);
+    $unknown = $methods->firstWhere('key', '_unknown');
+
+    expect($cash->label)->toBe('Cash')
+        ->and($cash->total)->toBe(80.0)
+        ->and($cash->receipt_count)->toBe(1)
+        ->and($cash->spend_share_percent)->toEqualWithDelta(57.14, 0.01)
+        ->and($cash->mom_change['delta'])->toBe(50.0)
+        ->and($cash->mom_change['percent'])->toEqualWithDelta(166.67, 0.01);
+
+    expect($visa->label)->toBe('Visa')
+        ->and($visa->total)->toBe(40.0)
+        ->and($visa->receipt_count)->toBe(1)
+        ->and($visa->spend_share_percent)->toEqualWithDelta(28.57, 0.01);
+
+    expect($unknown->label)->toBe('Unknown')
+        ->and($unknown->total)->toBe(20.0)
+        ->and($unknown->receipt_count)->toBe(1);
+});
+
+test('receipts by source groups counts, spend, and mom by upload channel', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->format('Y-m');
+    $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
+
+    Invoice::create([
+        'merchant_name' => 'Manual Store A',
+        'invoice_number' => 'INV-MAN-1',
+        'receipt_hash' => 'hash-man-1',
+        'date_time' => $bounds['start']->copy()->addDay(),
+        'subtotal' => 50.00,
+        'total_tax' => 0.00,
+        'total_amount' => 50.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'Manual Store B',
+        'invoice_number' => 'INV-MAN-2',
+        'receipt_hash' => 'hash-man-2',
+        'date_time' => $bounds['start']->copy()->addDays(2),
+        'subtotal' => 30.00,
+        'total_tax' => 0.00,
+        'total_amount' => 30.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'WhatsApp Store',
+        'invoice_number' => 'INV-WA-1',
+        'receipt_hash' => 'hash-wa-1',
+        'date_time' => $bounds['start']->copy()->addDays(3),
+        'subtotal' => 20.00,
+        'total_tax' => 0.00,
+        'total_amount' => 20.00,
+        'currency' => 'MYR',
+        'source' => 'whatsapp',
+        'status' => 'parsed',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'Drive Store',
+        'invoice_number' => 'INV-GD-1',
+        'receipt_hash' => 'hash-gd-1',
+        'date_time' => $bounds['start']->copy()->addDays(4),
+        'subtotal' => 10.00,
+        'total_tax' => 0.00,
+        'total_amount' => 10.00,
+        'currency' => 'MYR',
+        'source' => 'google_drive',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'Pending WhatsApp',
+        'invoice_number' => 'INV-WA-PENDING',
+        'receipt_hash' => 'hash-wa-pending',
+        'date_time' => $bounds['start']->copy()->addDays(5),
+        'subtotal' => 99.00,
+        'total_tax' => 0.00,
+        'total_amount' => 99.00,
+        'currency' => 'MYR',
+        'source' => 'whatsapp',
+        'status' => 'pending',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'Prior Manual',
+        'invoice_number' => 'INV-MAN-PRIOR',
+        'receipt_hash' => 'hash-man-prior',
+        'date_time' => $bounds['previous_start']->copy()->addDay(),
+        'subtotal' => 15.00,
+        'total_tax' => 0.00,
+        'total_amount' => 15.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $sources = analyticsForMonth($targetMonth)->receiptsBySource();
+
+    expect($sources)->toHaveCount(3);
+
+    $manual = $sources->firstWhere('key', 'manual');
+    $whatsapp = $sources->firstWhere('key', 'whatsapp');
+    $drive = $sources->firstWhere('key', 'google_drive');
+
+    expect($manual->label)->toBe('Manual')
+        ->and($manual->receipt_count)->toBe(2)
+        ->and($manual->total_spent)->toBe(80.0)
+        ->and($manual->receipt_share_percent)->toBe(50.0)
+        ->and($manual->mom_change['delta'])->toBe(1.0);
+
+    expect($whatsapp->label)->toBe('WhatsApp')
+        ->and($whatsapp->receipt_count)->toBe(1)
+        ->and($whatsapp->total_spent)->toBe(20.0)
+        ->and($whatsapp->receipt_share_percent)->toBe(25.0);
+
+    expect($drive->label)->toBe('Google Drive')
+        ->and($drive->receipt_count)->toBe(1)
+        ->and($drive->total_spent)->toBe(10.0)
+        ->and($drive->receipt_share_percent)->toBe(25.0);
 });
