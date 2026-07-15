@@ -80,7 +80,7 @@ class Dashboard extends BaseDashboard
 
         $now = now()->timezone($user->preferredTimezone());
 
-        return TimeOfDayGreeting::subheading($now);
+        return TimeOfDayGreeting::subheadingHtml($now);
     }
 
     public function getFiltersForm(): Schema

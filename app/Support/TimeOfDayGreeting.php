@@ -36,6 +36,11 @@ final class TimeOfDayGreeting
         return self::period($now)->subheading();
     }
 
+    public static function subheadingHtml(CarbonInterface $now): HtmlString
+    {
+        return self::period($now)->subheadingHtml();
+    }
+
     public static function headingFor(CarbonInterface $now, string $name): string
     {
         $period = self::period($now);
