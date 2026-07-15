@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Models\Budget;
 use Filament\Widgets\Widget;
@@ -14,7 +15,12 @@ class BudgetStatus extends Widget
 
     protected static ?int $sort = 4;
 
-    protected int|string|array $columnSpan = 1;
+    protected static bool $isLazy = false;
+
+    protected int|string|array $columnSpan = [
+        'default' => 'full',
+        'xl' => 7,
+    ];
 
     protected string $view = 'filament.widgets.budget-status';
 
@@ -48,6 +54,7 @@ class BudgetStatus extends Widget
         return [
             'budgets' => $budgetStates,
             'monthLabel' => $this->formatSelectedMonth('F Y'),
+            'contentHeight' => DashboardWidgetHeights::STANDARD_CHART,
         ];
     }
 }

@@ -17,6 +17,18 @@ class Dashboard extends BaseDashboard
 
     protected static bool $shouldRegisterNavigation = false;
 
+    /**
+     * @return int|array<string, int>
+     */
+    public function getColumns(): int|array
+    {
+        return [
+            'default' => 1,
+            'md' => 2,
+            'xl' => 12,
+        ];
+    }
+
     public function booted(): void
     {
         if (! isset($this->filters['month'])) {

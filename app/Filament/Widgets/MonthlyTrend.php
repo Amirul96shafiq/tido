@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
@@ -15,11 +16,13 @@ class MonthlyTrend extends ChartWidget
 
     protected static ?int $sort = 2;
 
-    protected int|string|array $columnSpan = 1;
+    protected int|string|array $columnSpan = 'full';
+
+    protected ?string $maxHeight = DashboardWidgetHeights::TREND_CHART;
 
     public function getHeading(): string|Htmlable|null
     {
-        return 'Monthly Spending Trend (6 months to '.$this->formatSelectedMonth().')';
+        return 'Monthly Spending Trend (12 months to '.$this->formatSelectedMonth('M Y').')';
     }
 
     public function getType(): string
@@ -29,7 +32,7 @@ class MonthlyTrend extends ChartWidget
 
     protected function getData(): array
     {
-        $trend = $this->analytics()->trend();
+        $trend = $this->analytics()->trend(12);
         $selectedIndex = $trend['selected_index'];
         $pointColors = array_map(
             fn (int $index): string => $index === $selectedIndex ? '#FFA524' : '#FFD07D',
@@ -78,6 +81,7 @@ class MonthlyTrend extends ChartWidget
     {
         return RawJs::make(<<<'JS'
             {
+                maintainAspectRatio: false,
                 plugins: {
                     tooltip: {
                         callbacks: {
@@ -125,7 +129,7 @@ class MonthlyTrend extends ChartWidget
                                 const share = dataset.periodShares?.[index];
 
                                 if (share !== undefined) {
-                                    parts.push(`${share.toFixed(1)}% of 6-mo total`);
+                                    parts.push(`${share.toFixed(1)}% of 12-mo total`);
                                 }
 
                                 return parts.join(' · ');

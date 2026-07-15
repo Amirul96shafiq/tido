@@ -75,11 +75,22 @@ final class DashboardMonthAnalytics
      *     period_shares: list<float>,
      * }
      */
-    public function trend(int $months = 6): array
+    public function trend(int $months = 6, bool $calendarYear = false, bool $yearToDate = false): array
     {
         $endMonth = $this->bounds['start'];
-        $rangeStart = $endMonth->copy()->subMonths($months - 1)->startOfMonth();
-        $rangeEnd = $endMonth->copy()->endOfMonth();
+
+        if ($yearToDate) {
+            $months = $endMonth->month;
+            $rangeStart = $endMonth->copy()->startOfYear();
+            $rangeEnd = $endMonth->copy()->endOfMonth();
+        } elseif ($calendarYear) {
+            $months = 12;
+            $rangeStart = $endMonth->copy()->startOfYear();
+            $rangeEnd = $endMonth->copy()->endOfYear();
+        } else {
+            $rangeStart = $endMonth->copy()->subMonths($months - 1)->startOfMonth();
+            $rangeEnd = $endMonth->copy()->endOfMonth();
+        }
 
         $monthExpression = $this->monthTruncExpression('invoices.date_time');
 
@@ -119,8 +130,10 @@ final class DashboardMonthAnalytics
         $receiptCounts = [];
         $topLabels = [];
 
-        for ($i = $months - 1; $i >= 0; $i--) {
-            $month = $endMonth->copy()->subMonths($i);
+        for ($i = 0; $i < $months; $i++) {
+            $month = ($calendarYear || $yearToDate)
+                ? $endMonth->copy()->startOfYear()->addMonths($i)
+                : $endMonth->copy()->subMonths($months - 1 - $i);
             $key = $month->format('Y-m');
             $labels[] = $month->format('M Y');
             $stats = $monthlyStats->get($key);
@@ -156,7 +169,7 @@ final class DashboardMonthAnalytics
         return [
             'labels' => $labels,
             'data' => $data,
-            'selected_index' => $months - 1,
+            'selected_index' => ($calendarYear || $yearToDate) ? $endMonth->month - 1 : $months - 1,
             'receipt_counts' => $receiptCounts,
             'top_labels' => $topLabels,
             'mom_changes' => $momChanges,
@@ -253,7 +266,7 @@ final class DashboardMonthAnalytics
      *     spend_share_percent: float,
      * }>
      */
-    public function topMerchants(int $limit = 5): Collection
+    public function topMerchants(int $limit = 3): Collection
     {
         $monthTotal = $this->summary()['current_total'];
 
@@ -296,7 +309,7 @@ final class DashboardMonthAnalytics
      *     mom_change: array{delta: float, percent: ?float},
      * }>
      */
-    public function spentByPaymentMethod(): Collection
+    public function spentByPaymentMethod(int $limit = 3): Collection
     {
         $start = $this->bounds['start'];
         $end = $this->bounds['end'];
@@ -321,28 +334,31 @@ final class DashboardMonthAnalytics
             ->keyBy(fn ($row): string => $this->paymentMethodKey($row->payment_method))
             ->map(fn ($row): float => (float) $row->total);
 
-        return $rows->map(function ($row) use ($priorTotals, $monthTotal): object {
-            $key = $this->paymentMethodKey($row->payment_method);
-            $paymentMethod = is_string($row->payment_method)
-                ? PaymentMethod::tryFrom($row->payment_method)
-                : $row->payment_method;
-            $total = (float) $row->total;
-            $priorTotal = (float) ($priorTotals[$key] ?? 0);
-            $delta = $total - $priorTotal;
+        return $rows
+            ->map(function ($row) use ($priorTotals, $monthTotal): object {
+                $key = $this->paymentMethodKey($row->payment_method);
+                $paymentMethod = is_string($row->payment_method)
+                    ? PaymentMethod::tryFrom($row->payment_method)
+                    : $row->payment_method;
+                $total = (float) $row->total;
+                $priorTotal = (float) ($priorTotals[$key] ?? 0);
+                $delta = $total - $priorTotal;
 
-            return (object) [
-                'key' => $key,
-                'label' => $paymentMethod instanceof PaymentMethod ? $paymentMethod->label() : 'Unknown',
-                'color' => $this->paymentMethodColor($paymentMethod),
-                'total' => $total,
-                'receipt_count' => (int) $row->receipt_count,
-                'spend_share_percent' => $monthTotal > 0 ? ($total / $monthTotal) * 100 : 0.0,
-                'mom_change' => [
-                    'delta' => $delta,
-                    'percent' => $priorTotal > 0 ? ($delta / $priorTotal) * 100 : null,
-                ],
-            ];
-        });
+                return (object) [
+                    'key' => $key,
+                    'label' => $paymentMethod instanceof PaymentMethod ? $paymentMethod->label() : 'Unknown',
+                    'color' => $this->paymentMethodColor($paymentMethod),
+                    'total' => $total,
+                    'receipt_count' => (int) $row->receipt_count,
+                    'spend_share_percent' => $monthTotal > 0 ? ($total / $monthTotal) * 100 : 0.0,
+                    'mom_change' => [
+                        'delta' => $delta,
+                        'percent' => $priorTotal > 0 ? ($delta / $priorTotal) * 100 : null,
+                    ],
+                ];
+            })
+            ->take($limit)
+            ->values();
     }
 
     /**
@@ -356,7 +372,7 @@ final class DashboardMonthAnalytics
      *     mom_change: array{delta: float, percent: ?float},
      * }>
      */
-    public function receiptsBySource(): Collection
+    public function receiptsBySource(int $limit = 3): Collection
     {
         $start = $this->bounds['start'];
         $end = $this->bounds['end'];
@@ -382,25 +398,28 @@ final class DashboardMonthAnalytics
 
         $monthReceiptTotal = (int) $rows->sum('receipt_count');
 
-        return $rows->map(function ($row) use ($priorCounts, $monthReceiptTotal): object {
-            $key = $this->sourceKey($row->source);
-            $receiptCount = (int) $row->receipt_count;
-            $priorCount = (int) ($priorCounts[$key] ?? 0);
-            $delta = $receiptCount - $priorCount;
+        return $rows
+            ->map(function ($row) use ($priorCounts, $monthReceiptTotal): object {
+                $key = $this->sourceKey($row->source);
+                $receiptCount = (int) $row->receipt_count;
+                $priorCount = (int) ($priorCounts[$key] ?? 0);
+                $delta = $receiptCount - $priorCount;
 
-            return (object) [
-                'key' => $key,
-                'label' => $this->sourceLabel($row->source),
-                'color' => $this->sourceColor($row->source),
-                'receipt_count' => $receiptCount,
-                'total_spent' => (float) $row->total_spent,
-                'receipt_share_percent' => $monthReceiptTotal > 0 ? ($receiptCount / $monthReceiptTotal) * 100 : 0.0,
-                'mom_change' => [
-                    'delta' => (float) $delta,
-                    'percent' => $priorCount > 0 ? ($delta / $priorCount) * 100 : null,
-                ],
-            ];
-        });
+                return (object) [
+                    'key' => $key,
+                    'label' => $this->sourceLabel($row->source),
+                    'color' => $this->sourceColor($row->source),
+                    'receipt_count' => $receiptCount,
+                    'total_spent' => (float) $row->total_spent,
+                    'receipt_share_percent' => $monthReceiptTotal > 0 ? ($receiptCount / $monthReceiptTotal) * 100 : 0.0,
+                    'mom_change' => [
+                        'delta' => (float) $delta,
+                        'percent' => $priorCount > 0 ? ($delta / $priorCount) * 100 : null,
+                    ],
+                ];
+            })
+            ->take($limit)
+            ->values();
     }
 
     /**

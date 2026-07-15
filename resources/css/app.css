@@ -1405,3 +1405,56 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 .fi-wi-recent-receipts .fi-ta-filters-trigger-action-ctn {
     flex-shrink: 0;
 }
+
+/*
+ * Dashboard analytics widgets (Filament v5 schema grid uses .fi-sc.fi-grid).
+ * Stretch the visible .fi-section card (not just the outer widget wrapper).
+ */
+.fi-sc.fi-grid {
+    align-items: stretch;
+}
+
+.fi-sc.fi-grid > .fi-wi-widget {
+    display: flex !important;
+    flex-direction: column;
+    align-self: stretch;
+    min-height: 100%;
+}
+
+.fi-sc.fi-grid > .fi-wi-widget > .fi-section {
+    display: flex !important;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 100%;
+    height: 100%;
+}
+
+.fi-sc.fi-grid > .fi-wi-widget > .fi-section > .fi-section-content-ctn {
+    display: flex !important;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.fi-sc.fi-grid > .fi-wi-widget > .fi-section > .fi-section-content-ctn > .fi-section-content {
+    display: flex !important;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.fi-wi-chart-canvas-ctn-no-aspect-ratio {
+    height: 300px;
+    max-height: 300px;
+}
+
+.fi-wi-chart-canvas-ctn-no-aspect-ratio:has(canvas[style*='max-height: 200px']) {
+    height: 200px;
+    max-height: 200px;
+}
+
+.fi-wi-chart-canvas-ctn-no-aspect-ratio canvas {
+    height: 100% !important;
+    max-height: none !important;
+}
+

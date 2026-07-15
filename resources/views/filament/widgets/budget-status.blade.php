@@ -2,18 +2,24 @@
     use App\Helpers\MoneyDisplay;
 @endphp
 
-<x-filament-widgets::widget class="h-full">
+<x-filament-widgets::widget class="h-full fi-wi-budget-status">
     <x-filament::section class="h-full">
         <x-slot name="heading">
             Budget Performance ({{ $monthLabel ?? now()->format('F Y') }})
         </x-slot>
 
         @if(empty($budgets))
-            <div class="text-center py-6 text-gray-500 dark:text-gray-400 text-sm font-medium">
+            <div
+                class="flex flex-1 items-center justify-center text-gray-500 dark:text-gray-400 text-sm font-medium"
+                style="min-height: {{ $contentHeight }}"
+            >
                 No active budgets configured.
             </div>
         @else
-            <div class="flex flex-col gap-6 mt-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+            <div
+                class="flex flex-1 flex-col gap-6 mt-3 overflow-y-auto custom-scrollbar pr-2"
+                style="min-height: {{ $contentHeight }}; max-height: {{ $contentHeight }}"
+            >
                 @foreach($budgets as $budget)
                     <div class="flex flex-col gap-2 group p-3 rounded-xl transition-all duration-300">
                         <div class="flex justify-between items-center text-sm">
