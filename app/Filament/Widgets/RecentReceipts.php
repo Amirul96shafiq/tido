@@ -6,6 +6,7 @@ namespace App\Filament\Widgets;
 
 use App\Enums\PaymentMethod;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
+use App\Helpers\FilenameDisplay;
 use App\Models\Invoice;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\TextColumn;
@@ -38,17 +39,19 @@ class RecentReceipts extends BaseWidget
             ->defaultPaginationPageOption(10)
             ->paginated([10, 25, 50])
             ->columns([
-                TextColumn::make('original_filename')
-                    ->label('Filename')
-                    ->searchable()
-                    ->sortable()
-                    ->weight(FontWeight::Medium)
-                    ->color(fn (Invoice $record): ?string => filled($record->image_path) ? 'primary' : null)
-                    ->tooltip(fn (Invoice $record): ?string => filled($record->image_path) ? 'View file' : null)
-                    ->url(
-                        fn (Invoice $record): ?string => $record->fileUrl(),
-                        shouldOpenInNewTab: true,
-                    ),
+                FilenameDisplay::configureTextColumn(
+                    TextColumn::make('original_filename')
+                        ->label('Filename')
+                        ->searchable()
+                        ->sortable()
+                        ->weight(FontWeight::Medium)
+                        ->color(fn (Invoice $record): ?string => filled($record->image_path) ? 'primary' : null)
+                        ->tooltip(fn (Invoice $record): ?string => filled($record->image_path) ? (string) $record->original_filename : null)
+                        ->url(
+                            fn (Invoice $record): ?string => $record->fileUrl(),
+                            shouldOpenInNewTab: true,
+                        ),
+                ),
 
                 TextColumn::make('merchant_name')
                     ->label('Merchant')

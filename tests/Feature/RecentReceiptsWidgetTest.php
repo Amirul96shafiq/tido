@@ -36,7 +36,7 @@ test('recent receipts widget shows upload table columns', function () {
         ->assertSuccessful()
         ->assertSeeHtml('fi-wi-recent-receipts')
         ->assertCanSeeTableRecords([$invoice])
-        ->assertSee('dashboard_receipt.jpg')
+        ->assertSee('dashboard_....jpg')
         ->assertSee('Widget Merchant')
         ->assertSee('Cash')
         ->assertCanRenderTableColumn('original_filename')

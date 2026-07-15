@@ -33,7 +33,15 @@ class LabelsTable
 
                 TextColumn::make('name')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->limit(20)
+                    ->tooltip(function (TextColumn $column, ?string $state): ?string {
+                        if (blank($state) || mb_strlen((string) $state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+
+                        return (string) $state;
+                    }),
 
                 TextColumn::make('slug')
                     ->searchable(),

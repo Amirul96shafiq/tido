@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Pages;
 
 use App\Enums\PaymentMethod;
+use App\Helpers\FilenameDisplay;
 use App\Models\Invoice;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -92,22 +93,32 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
             ->defaultSort('created_at', 'desc')
             ->poll('5s')
             ->columns([
-                TextColumn::make('original_filename')
-                    ->label('Filename')
-                    ->searchable()
-                    ->sortable()
-                    ->weight(FontWeight::Medium)
-                    ->color(fn (Invoice $record): ?string => filled($record->image_path) ? 'primary' : null)
-                    ->tooltip(fn (Invoice $record): ?string => filled($record->image_path) ? 'View file' : null)
-                    ->url(
-                        fn (Invoice $record): ?string => $record->fileUrl(),
-                        shouldOpenInNewTab: true,
-                    ),
+                FilenameDisplay::configureTextColumn(
+                    TextColumn::make('original_filename')
+                        ->label('Filename')
+                        ->searchable()
+                        ->sortable()
+                        ->weight(FontWeight::Medium)
+                        ->color(fn (Invoice $record): ?string => filled($record->image_path) ? 'primary' : null)
+                        ->tooltip(fn (Invoice $record): ?string => filled($record->image_path) ? (string) $record->original_filename : null)
+                        ->url(
+                            fn (Invoice $record): ?string => $record->fileUrl(),
+                            shouldOpenInNewTab: true,
+                        ),
+                ),
 
                 TextColumn::make('merchant_name')
                     ->label('Merchant')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->limit(20)
+                    ->tooltip(function (TextColumn $column, ?string $state): ?string {
+                        if (blank($state) || mb_strlen((string) $state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+
+                        return (string) $state;
+                    }),
 
                 TextColumn::make('total_amount')
                     ->label('Total Amount')
