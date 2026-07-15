@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Support;
 
+use App\Enums\PaymentMethod;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use Carbon\Carbon;
@@ -285,6 +286,124 @@ final class DashboardMonthAnalytics
     }
 
     /**
+     * @return Collection<int, object{
+     *     key: string,
+     *     label: string,
+     *     color: string,
+     *     total: float,
+     *     receipt_count: int,
+     *     spend_share_percent: float,
+     *     mom_change: array{delta: float, percent: ?float},
+     * }>
+     */
+    public function spentByPaymentMethod(): Collection
+    {
+        $start = $this->bounds['start'];
+        $end = $this->bounds['end'];
+        $previousStart = $this->bounds['previous_start'];
+        $previousEnd = $this->bounds['previous_end'];
+        $monthTotal = $this->summary()['current_total'];
+
+        $rows = Invoice::query()
+            ->processed()
+            ->inPeriod($start, $end)
+            ->selectRaw('payment_method, SUM(total_amount) as total, COUNT(*) as receipt_count')
+            ->groupBy('payment_method')
+            ->orderByDesc('total')
+            ->get();
+
+        $priorTotals = Invoice::query()
+            ->processed()
+            ->inPeriod($previousStart, $previousEnd)
+            ->selectRaw('payment_method, SUM(total_amount) as total')
+            ->groupBy('payment_method')
+            ->get()
+            ->keyBy(fn ($row): string => $this->paymentMethodKey($row->payment_method))
+            ->map(fn ($row): float => (float) $row->total);
+
+        return $rows->map(function ($row) use ($priorTotals, $monthTotal): object {
+            $key = $this->paymentMethodKey($row->payment_method);
+            $paymentMethod = is_string($row->payment_method)
+                ? PaymentMethod::tryFrom($row->payment_method)
+                : $row->payment_method;
+            $total = (float) $row->total;
+            $priorTotal = (float) ($priorTotals[$key] ?? 0);
+            $delta = $total - $priorTotal;
+
+            return (object) [
+                'key' => $key,
+                'label' => $paymentMethod instanceof PaymentMethod ? $paymentMethod->label() : 'Unknown',
+                'color' => $this->paymentMethodColor($paymentMethod),
+                'total' => $total,
+                'receipt_count' => (int) $row->receipt_count,
+                'spend_share_percent' => $monthTotal > 0 ? ($total / $monthTotal) * 100 : 0.0,
+                'mom_change' => [
+                    'delta' => $delta,
+                    'percent' => $priorTotal > 0 ? ($delta / $priorTotal) * 100 : null,
+                ],
+            ];
+        });
+    }
+
+    /**
+     * @return Collection<int, object{
+     *     key: string,
+     *     label: string,
+     *     color: string,
+     *     receipt_count: int,
+     *     total_spent: float,
+     *     receipt_share_percent: float,
+     *     mom_change: array{delta: float, percent: ?float},
+     * }>
+     */
+    public function receiptsBySource(): Collection
+    {
+        $start = $this->bounds['start'];
+        $end = $this->bounds['end'];
+        $previousStart = $this->bounds['previous_start'];
+        $previousEnd = $this->bounds['previous_end'];
+
+        $rows = Invoice::query()
+            ->processed()
+            ->inPeriod($start, $end)
+            ->selectRaw('source, COUNT(*) as receipt_count, SUM(total_amount) as total_spent')
+            ->groupBy('source')
+            ->orderByDesc('receipt_count')
+            ->get();
+
+        $priorCounts = Invoice::query()
+            ->processed()
+            ->inPeriod($previousStart, $previousEnd)
+            ->selectRaw('source, COUNT(*) as receipt_count')
+            ->groupBy('source')
+            ->get()
+            ->keyBy(fn ($row): string => $this->sourceKey($row->source))
+            ->map(fn ($row): int => (int) $row->receipt_count);
+
+        $monthReceiptTotal = (int) $rows->sum('receipt_count');
+
+        return $rows->map(function ($row) use ($priorCounts, $monthReceiptTotal): object {
+            $key = $this->sourceKey($row->source);
+            $receiptCount = (int) $row->receipt_count;
+            $priorCount = (int) ($priorCounts[$key] ?? 0);
+            $delta = $receiptCount - $priorCount;
+
+            return (object) [
+                'key' => $key,
+                'label' => $this->sourceLabel($row->source),
+                'color' => $this->sourceColor($row->source),
+                'receipt_count' => $receiptCount,
+                'total_spent' => (float) $row->total_spent,
+                'receipt_share_percent' => $monthReceiptTotal > 0 ? ($receiptCount / $monthReceiptTotal) * 100 : 0.0,
+                'mom_change' => [
+                    'delta' => (float) $delta,
+                    'percent' => $priorCount > 0 ? ($delta / $priorCount) * 100 : null,
+                ],
+            ];
+        });
+    }
+
+    /**
      * @return array<int, float>
      */
     public function spentTotalsByLabelId(): array
@@ -304,6 +423,48 @@ final class DashboardMonthAnalytics
         $totals[0] = (float) $overall;
 
         return $totals;
+    }
+
+    private function paymentMethodKey(mixed $paymentMethod): string
+    {
+        if ($paymentMethod instanceof PaymentMethod) {
+            return $paymentMethod->value;
+        }
+
+        if (is_string($paymentMethod) && $paymentMethod !== '') {
+            return $paymentMethod;
+        }
+
+        return '_unknown';
+    }
+
+    private function paymentMethodColor(?PaymentMethod $paymentMethod): string
+    {
+        return DashboardChartColors::forPaymentMethod($paymentMethod);
+    }
+
+    private function sourceKey(mixed $source): string
+    {
+        if (is_string($source) && $source !== '') {
+            return $source;
+        }
+
+        return '_unknown';
+    }
+
+    private function sourceLabel(mixed $source): string
+    {
+        return match ($source) {
+            'manual' => 'Manual',
+            'whatsapp' => 'WhatsApp',
+            'google_drive' => 'Google Drive',
+            default => 'Unknown',
+        };
+    }
+
+    private function sourceColor(mixed $source): string
+    {
+        return DashboardChartColors::forSource($source);
     }
 
     private function monthTruncExpression(string $column): string
