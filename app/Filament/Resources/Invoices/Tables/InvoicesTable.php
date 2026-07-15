@@ -94,7 +94,7 @@ class InvoicesTable
                     ->dateTimeTooltip()
                     ->sortable(),
             ])
-            ->defaultSort('date_time', 'desc')
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('status')
                     ->options([
