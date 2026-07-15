@@ -100,9 +100,154 @@ test('trend returns six buckets ending at selected month', function () {
 
     expect($trend['labels'])->toHaveCount(6);
     expect($trend['data'])->toHaveCount(6);
+    expect($trend['receipt_counts'])->toHaveCount(6);
+    expect($trend['top_labels'])->toHaveCount(6);
+    expect($trend['mom_changes'])->toHaveCount(6);
+    expect($trend['period_shares'])->toHaveCount(6);
     expect($trend['selected_index'])->toBe(5);
     expect($trend['labels'][5])->toBe($targetMonth->format('M Y'));
     expect($trend['data'][5])->toBe(80.0);
+    expect($trend['receipt_counts'][5])->toBe(1);
+    expect($trend['mom_changes'][0])->toBeNull();
+});
+
+test('trend computes month over month change for consecutive months', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->startOfMonth();
+    $monthKey = $targetMonth->format('Y-m');
+    $priorMonth = $targetMonth->copy()->subMonth();
+
+    Invoice::create([
+        'merchant_name' => 'Prior Month Store',
+        'invoice_number' => 'INV-PRIOR',
+        'receipt_hash' => 'hash-prior-001',
+        'date_time' => $priorMonth->copy()->addDays(5),
+        'subtotal' => 100.00,
+        'total_tax' => 0.00,
+        'total_amount' => 100.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'Current Month Store',
+        'invoice_number' => 'INV-CURRENT',
+        'receipt_hash' => 'hash-current-001',
+        'date_time' => $targetMonth->copy()->addDays(5),
+        'subtotal' => 150.00,
+        'total_tax' => 0.00,
+        'total_amount' => 150.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $trend = analyticsForMonth($monthKey)->trend();
+    $selectedIndex = $trend['selected_index'];
+
+    expect($trend['mom_changes'][0])->toBeNull();
+    expect($trend['mom_changes'][$selectedIndex])->toMatchArray([
+        'delta' => 50.0,
+        'percent' => 50.0,
+    ]);
+});
+
+test('trend returns top three labels per month bucket', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->startOfMonth();
+    $monthKey = $targetMonth->format('Y-m');
+
+    $groceries = Label::factory()->create(['name' => 'Groceries', 'slug' => 'groceries']);
+    $transport = Label::factory()->create(['name' => 'Transport', 'slug' => 'transport']);
+    $dining = Label::factory()->create(['name' => 'Dining', 'slug' => 'dining']);
+    $misc = Label::factory()->create(['name' => 'Misc', 'slug' => 'misc']);
+
+    $invoice = Invoice::create([
+        'merchant_name' => 'Multi Label Store',
+        'invoice_number' => 'INV-LABELS',
+        'receipt_hash' => 'hash-labels-001',
+        'date_time' => $targetMonth->copy()->addDays(3),
+        'subtotal' => 200.00,
+        'total_tax' => 0.00,
+        'total_amount' => 200.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    foreach ([
+        [$groceries, 80.00],
+        [$transport, 60.00],
+        [$dining, 40.00],
+        [$misc, 20.00],
+    ] as [$label, $amount]) {
+        InvoiceItem::create([
+            'invoice_id' => $invoice->id,
+            'label_id' => $label->id,
+            'description' => $label->name,
+            'quantity' => 1,
+            'unit_price' => $amount,
+            'line_total' => $amount,
+        ]);
+    }
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $trend = analyticsForMonth($monthKey)->trend();
+    $selectedIndex = $trend['selected_index'];
+    $topLabels = $trend['top_labels'][$selectedIndex];
+
+    expect($topLabels)->toHaveCount(3);
+    expect($topLabels[0])->toMatchArray(['name' => 'Groceries', 'total' => 80.0]);
+    expect($topLabels[1])->toMatchArray(['name' => 'Transport', 'total' => 60.0]);
+    expect($topLabels[2])->toMatchArray(['name' => 'Dining', 'total' => 40.0]);
+});
+
+test('trend period shares sum to one hundred percent when data present', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->startOfMonth();
+    $monthKey = $targetMonth->format('Y-m');
+    $priorMonth = $targetMonth->copy()->subMonth();
+
+    Invoice::create([
+        'merchant_name' => 'Prior Month Store',
+        'invoice_number' => 'INV-SHARE-PRIOR',
+        'receipt_hash' => 'hash-share-prior',
+        'date_time' => $priorMonth->copy()->addDays(2),
+        'subtotal' => 75.00,
+        'total_tax' => 0.00,
+        'total_amount' => 75.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'Current Month Store',
+        'invoice_number' => 'INV-SHARE-CURRENT',
+        'receipt_hash' => 'hash-share-current',
+        'date_time' => $targetMonth->copy()->addDays(2),
+        'subtotal' => 25.00,
+        'total_tax' => 0.00,
+        'total_amount' => 25.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $trend = analyticsForMonth($monthKey)->trend();
+    $shareSum = array_sum($trend['period_shares']);
+
+    expect($shareSum)->toBe(100.0);
+    expect($trend['period_shares'][$trend['selected_index']])->toBe(25.0);
 });
 
 test('spent by label sums line items for selected month', function () {

@@ -63,7 +63,15 @@ final class DashboardMonthAnalytics
     }
 
     /**
-     * @return array{labels: list<string>, data: list<float>, selected_index: int}
+     * @return array{
+     *     labels: list<string>,
+     *     data: list<float>,
+     *     selected_index: int,
+     *     receipt_counts: list<int>,
+     *     top_labels: list<list<array{name: string, total: float}>>,
+     *     mom_changes: list<?array{delta: float, percent: ?float}>,
+     *     period_shares: list<float>,
+     * }
      */
     public function trend(int $months = 6): array
     {
@@ -73,27 +81,84 @@ final class DashboardMonthAnalytics
 
         $monthExpression = $this->monthTruncExpression('invoices.date_time');
 
-        $totals = Invoice::query()
+        $monthlyStats = Invoice::query()
             ->processed()
             ->whereBetween('date_time', [$rangeStart, $rangeEnd])
-            ->selectRaw("{$monthExpression} as month_key, SUM(total_amount) as total")
+            ->selectRaw("{$monthExpression} as month_key, SUM(total_amount) as total, COUNT(*) as receipt_count")
             ->groupBy('month_key')
-            ->pluck('total', 'month_key');
+            ->get()
+            ->keyBy('month_key');
+
+        $labelRows = InvoiceItem::query()
+            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->join('labels', 'invoice_items.label_id', '=', 'labels.id')
+            ->whereBetween('invoices.date_time', [$rangeStart, $rangeEnd])
+            ->whereIn('invoices.status', Invoice::dashboardAnalyticsStatuses())
+            ->selectRaw("{$monthExpression} as month_key, labels.name, SUM(invoice_items.line_total) as total")
+            ->groupBy('month_key', 'labels.name', 'labels.id')
+            ->get();
+
+        $topLabelsByMonthKey = [];
+
+        foreach ($labelRows->groupBy('month_key') as $monthKey => $rows) {
+            $topLabelsByMonthKey[(string) $monthKey] = $rows
+                ->sortByDesc('total')
+                ->take(3)
+                ->map(fn ($row): array => [
+                    'name' => (string) $row->name,
+                    'total' => (float) $row->total,
+                ])
+                ->values()
+                ->all();
+        }
 
         $labels = [];
         $data = [];
+        $receiptCounts = [];
+        $topLabels = [];
 
         for ($i = $months - 1; $i >= 0; $i--) {
             $month = $endMonth->copy()->subMonths($i);
             $key = $month->format('Y-m');
             $labels[] = $month->format('M Y');
-            $data[] = (float) ($totals[$key] ?? 0);
+            $stats = $monthlyStats->get($key);
+            $data[] = (float) ($stats->total ?? 0);
+            $receiptCounts[] = (int) ($stats->receipt_count ?? 0);
+            $topLabels[] = $topLabelsByMonthKey[$key] ?? [];
+        }
+
+        $periodTotal = array_sum($data);
+        $periodShares = array_map(
+            fn (float $total): float => $periodTotal > 0 ? ($total / $periodTotal) * 100 : 0.0,
+            $data,
+        );
+
+        $momChanges = [];
+
+        foreach ($data as $index => $total) {
+            if ($index === 0) {
+                $momChanges[] = null;
+
+                continue;
+            }
+
+            $previous = $data[$index - 1];
+            $delta = $total - $previous;
+
+            $momChanges[] = [
+                'delta' => $delta,
+                'percent' => $previous > 0 ? ($delta / $previous) * 100 : null,
+            ];
         }
 
         return [
             'labels' => $labels,
             'data' => $data,
             'selected_index' => $months - 1,
+            'receipt_counts' => $receiptCounts,
+            'top_labels' => $topLabels,
+            'mom_changes' => $momChanges,
+            'period_shares' => $periodShares,
         ];
     }
 
