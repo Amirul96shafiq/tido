@@ -117,6 +117,7 @@ class Login extends BaseLogin
             ->visible(fn (): bool => $this->loginMode === 'otp')
             ->extraInputAttributes([
                 // Paint digits into each cell — input letter-spacing paint drifts visually even when metrics match.
+                // Also mark the insertion cell and show a blinking caret (native caret stays transparent).
                 'x-init' => <<<'JS'
                     const paintOtpDigits = () => {
                         const ctn = $el.closest('.fi-one-time-code-input-ctn')
@@ -126,6 +127,11 @@ class Login extends BaseLogin
 
                         const cells = Array.from(ctn.children).filter((node) => node.tagName === 'DIV')
                         const digits = String($el.value || '').replace(/\D/g, '')
+                        const isFocused = document.activeElement === $el
+                        const isFull = digits.length >= cells.length
+                        const currentIndex = isFocused
+                            ? Math.min(digits.length, cells.length - 1)
+                            : null
 
                         cells.forEach((cell, index) => {
                             let label = cell.querySelector('.tido-otp-digit')
@@ -136,6 +142,21 @@ class Login extends BaseLogin
                                 cell.appendChild(label)
                             }
                             label.textContent = digits[index] || ''
+
+                            const isCurrent = currentIndex !== null && index === currentIndex
+                            cell.classList.toggle('tido-otp-current', isCurrent)
+
+                            let caret = cell.querySelector('.tido-otp-caret')
+                            if (isCurrent && ! isFull) {
+                                if (! caret) {
+                                    caret = document.createElement('span')
+                                    caret.className = 'tido-otp-caret'
+                                    caret.setAttribute('aria-hidden', 'true')
+                                    cell.appendChild(caret)
+                                }
+                            } else if (caret) {
+                                caret.remove()
+                            }
                         })
 
                         $el.style.color = 'transparent'
@@ -147,6 +168,7 @@ class Login extends BaseLogin
                     $el.addEventListener('input', () => paintOtpDigits())
                     $el.addEventListener('focus', () => paintOtpDigits())
                     $el.addEventListener('blur', () => paintOtpDigits())
+                    $el.addEventListener('keyup', () => paintOtpDigits())
                     $el.addEventListener('paste', () => {
                         requestAnimationFrame(() => paintOtpDigits())
                     })
