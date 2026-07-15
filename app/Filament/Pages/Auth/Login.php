@@ -7,6 +7,7 @@ namespace App\Filament\Pages\Auth;
 use App\Models\User;
 use App\Services\WhatsAppLoginOtpService;
 use App\Support\PhoneNumber;
+use App\Support\TidoBrandCopy;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -60,7 +61,7 @@ class Login extends BaseLogin
 
         return match ($this->loginMode) {
             'otp' => 'Enter the code',
-            default => 'Keep it tidy. Get it done.',
+            default => TidoBrandCopy::loginHeadingHtml(),
         };
     }
 
@@ -74,7 +75,7 @@ class Login extends BaseLogin
             'otp' => filled($this->pendingPhone)
                 ? "A One-Time Password (OTP) code has been sent via WhatsApp to {$this->pendingPhone}. You can use the OTP code here."
                 : 'Enter the 6-digit code from WhatsApp.',
-            default => 'Where tidy preparation meets finished work, then "tido" (sleep).',
+            default => TidoBrandCopy::loginSubheadingHtml(),
         };
     }
 

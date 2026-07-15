@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+use App\Support\TidoBrandCopy;
+use Illuminate\Support\HtmlString;
+
 enum TimeOfDayPeriod: string
 {
     case Morning = 'morning';
@@ -31,9 +34,20 @@ enum TimeOfDayPeriod: string
     public function subheading(): string
     {
         return match ($this) {
-            self::Morning => 'Ready to start the day? Start by tidying up your files, then get it done.',
-            self::Afternoon => 'Ready to keep going? Start by tidying up your files, then get it done.',
-            self::Evening => 'Ready to wrap up? Start by tidying up your files, then get it done.',
+            self::Morning => 'Ready to start the day? '.TidoBrandCopy::dashboardActionPhrase(),
+            self::Afternoon => 'Ready to keep going? '.TidoBrandCopy::dashboardActionPhrase(),
+            self::Evening => 'Ready to wrap up? '.TidoBrandCopy::dashboardActionPhrase(),
         };
+    }
+
+    public function subheadingHtml(): HtmlString
+    {
+        $prefix = match ($this) {
+            self::Morning => 'Ready to start the day?',
+            self::Afternoon => 'Ready to keep going?',
+            self::Evening => 'Ready to wrap up?',
+        };
+
+        return new HtmlString($prefix.' '.(string) TidoBrandCopy::dashboardActionPhraseHtml());
     }
 }

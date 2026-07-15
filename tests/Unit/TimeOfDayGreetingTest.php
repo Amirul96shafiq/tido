@@ -47,6 +47,13 @@ test('resolves evening period outside morning and afternoon hours', function (st
     '23:59' => ['2026-07-16 23:59:59'],
 ]);
 
+test('subheading html underlines ti and do in brand phrase', function () {
+    $now = Carbon::parse('2026-07-16 08:30:00', 'Asia/Kuala_Lumpur');
+
+    expect((string) TimeOfDayGreeting::subheadingHtml($now))
+        ->toBe('Ready to start the day? Start by <span class="underline">ti</span>dying up your files, then get it <span class="underline">do</span>ne.');
+});
+
 test('heading places emoji after greeting and shortened name', function () {
     $now = Carbon::parse('2026-07-16 08:30:00', 'Asia/Kuala_Lumpur');
 

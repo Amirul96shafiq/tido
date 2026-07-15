@@ -342,8 +342,8 @@ test('otp step shows different number link and mode tabs instead of password cta
         ->assertDontSee('Not receive OTP code?')
         ->assertDontSee('Use a different number');
 
-    expect($component->instance()->getSubheading())
-        ->toBe('Where tidy preparation meets finished work, then "tido" (sleep).');
+    expect((string) $component->instance()->getSubheading())
+        ->toBe('Where <span class="underline">ti</span>dy preparation meets <span class="underline">do</span>ne work, then "<span class="underline">tido</span>" (sleep).');
 });
 
 test('login mode tabs switch between otp and password flows', function () {
