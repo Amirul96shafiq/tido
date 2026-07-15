@@ -34,7 +34,15 @@ class InvoicesTable
             ->columns([
                 TextColumn::make('merchant_name')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->limit(20)
+                    ->tooltip(function (TextColumn $column, ?string $state): ?string {
+                        if (blank($state) || mb_strlen((string) $state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+
+                        return (string) $state;
+                    }),
 
                 TextColumn::make('invoice_number')
                     ->searchable()

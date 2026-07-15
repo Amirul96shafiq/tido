@@ -204,6 +204,55 @@ test('resource tables show created_at as relative time with datetime tooltip', f
     }
 });
 
+test('invoices table truncates long merchant names with full name in tooltip', function () {
+    $this->actingAs($this->admin);
+
+    $longMerchant = 'Cosmo Restaurants Sdn Bhd';
+    $invoice = Invoice::factory()->create([
+        'merchant_name' => $longMerchant,
+    ]);
+
+    Livewire::test(ListInvoices::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$invoice])
+        ->assertSee('Cosmo Restaurants Sd...');
+
+    $column = Livewire::test(ListInvoices::class)
+        ->instance()
+        ->getTable()
+        ->getColumn('merchant_name');
+
+    expect($column)->not->toBeNull()
+        ->and($column->getCharacterLimit())->toBe(20);
+
+    $tooltip = $column->record($invoice)->getTooltip($longMerchant);
+
+    expect($tooltip)->toBe($longMerchant);
+});
+
+test('invoices table leaves short merchant names unchanged', function () {
+    $this->actingAs($this->admin);
+
+    $shortMerchant = '7-Eleven';
+    $invoice = Invoice::factory()->create([
+        'merchant_name' => $shortMerchant,
+    ]);
+
+    Livewire::test(ListInvoices::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$invoice])
+        ->assertSee($shortMerchant);
+
+    $column = Livewire::test(ListInvoices::class)
+        ->instance()
+        ->getTable()
+        ->getColumn('merchant_name');
+
+    $tooltip = $column->record($invoice)->getTooltip($shortMerchant);
+
+    expect($tooltip)->toBeNull();
+});
+
 test('invoices table shows date_time as relative time with datetime tooltip', function () {
     $this->actingAs($this->admin);
 

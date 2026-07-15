@@ -24,7 +24,15 @@ class BudgetsTable
                     ->label('Label')
                     ->default('Overall (All Labels)')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->limit(20)
+                    ->tooltip(function (TextColumn $column, ?string $state): ?string {
+                        if (blank($state) || mb_strlen((string) $state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+
+                        return (string) $state;
+                    }),
 
                 TextColumn::make('amount')
                     ->myr()

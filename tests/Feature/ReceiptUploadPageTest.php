@@ -28,7 +28,7 @@ test('receipt upload page lists recent invoices', function () {
     Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$invoice])
-        ->assertSee('wa_receipt_preview.jpg');
+        ->assertSee('wa_receipt....jpg');
 });
 
 test('filename links to file in a new tab', function () {
@@ -61,6 +61,30 @@ test('filename without file path has no link', function () {
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$invoice])
         ->assertDontSeeHtml('missing_file.jpg</a>');
+});
+
+test('receipt upload page truncates long merchant names with full name in tooltip', function () {
+    $longMerchant = 'Cosmo Restaurants Sdn Bhd';
+    $invoice = Invoice::factory()->create([
+        'merchant_name' => $longMerchant,
+    ]);
+
+    Livewire::test(ReceiptUploadPage::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$invoice])
+        ->assertSee('Cosmo Restaurants Sd...');
+
+    $column = Livewire::test(ReceiptUploadPage::class)
+        ->instance()
+        ->getTable()
+        ->getColumn('merchant_name');
+
+    expect($column)->not->toBeNull()
+        ->and($column->getCharacterLimit())->toBe(20);
+
+    $tooltip = $column->record($invoice)->getTooltip($longMerchant);
+
+    expect($tooltip)->toBe($longMerchant);
 });
 
 test('upload button shows loading spinner while saving', function () {
