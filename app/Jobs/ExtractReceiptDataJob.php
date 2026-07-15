@@ -11,7 +11,7 @@ use App\Models\InvoiceItem;
 use App\Models\Label;
 use App\Prompts\ReceiptExtractionPrompt;
 use App\Services\OllamaService;
-use Carbon\Carbon;
+use App\Services\ReceiptParseNormalizer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -32,9 +32,12 @@ class ExtractReceiptDataJob implements ShouldQueue
         return [30, 60, 120];
     }
 
-    public function __construct(public int $invoiceId) {}
+    public function __construct(public int $invoiceId)
+    {
+        $this->onQueue('receipts');
+    }
 
-    public function handle(OllamaService $ollama): void
+    public function handle(OllamaService $ollama, ReceiptParseNormalizer $normalizer): void
     {
         $invoice = Invoice::find($this->invoiceId);
 
@@ -58,55 +61,64 @@ class ExtractReceiptDataJob implements ShouldQueue
             throw new \Exception('Ollama receipt extraction returned empty or invalid response.');
         }
 
-        $invoice->merchant_name = $parsed['merchant_name'] ?? 'Unknown Merchant';
-        $invoice->invoice_number = $parsed['invoice_number'] ?? null;
+        $normalized = $normalizer->normalize($parsed);
 
-        if (! empty($parsed['date_time'])) {
-            try {
-                $invoice->date_time = Carbon::parse($parsed['date_time']);
-            } catch (\Throwable) {
-                $invoice->date_time = now();
-            }
-        } else {
-            $invoice->date_time = now();
+        $dateTime = $normalized['date_time'];
+        $dateParsed = $dateTime !== null;
+        $dateSane = $normalizer->isDateTimeSane($dateTime);
+
+        $invoice->merchant_name = $normalized['merchant_name'];
+        $invoice->invoice_number = $normalized['invoice_number'];
+        if ($dateParsed) {
+            $invoice->date_time = $dateTime;
         }
-
-        $invoice->subtotal = (float) ($parsed['subtotal'] ?? 0.00);
-        $invoice->total_tax = (float) ($parsed['total_tax'] ?? 0.00);
-        $invoice->discount_total = (float) ($parsed['discount_total'] ?? 0.00);
-        $invoice->rounding_amount = (float) ($parsed['rounding_amount'] ?? 0.00);
-        $invoice->total_amount = (float) ($parsed['total_amount'] ?? 0.00);
-        $invoice->currency = $parsed['currency'] ?? 'MYR';
-        $invoice->payment_method = $this->resolvePaymentMethod($parsed['payment_method'] ?? null);
+        $invoice->subtotal = $normalized['subtotal'];
+        $invoice->total_tax = $normalized['total_tax'];
+        $invoice->discount_total = $normalized['discount_total'];
+        $invoice->rounding_amount = $normalized['rounding_amount'];
+        $invoice->total_amount = $normalized['total_amount'];
+        $invoice->currency = $normalized['currency'];
+        $invoice->payment_method = $this->resolvePaymentMethod($normalized['payment_method']);
         $invoice->raw_ai_response = $parsed;
-        $invoice->status = 'parsed';
+
+        $needsManualReview = ! $dateParsed
+            || ! $dateSane
+            || ! $normalizer->amountsReconcile($normalized);
+
+        $invoice->status = $needsManualReview ? 'requires_manual_review' : 'parsed';
+        $invoice->notes = $this->appendDateReviewNote($invoice->notes, $dateParsed, $dateSane);
+        $invoice->receipt_hash = $this->uniqueReceiptHash($invoice);
         $invoice->save();
 
-        if (! empty($parsed['items']) && is_array($parsed['items'])) {
-            foreach ($parsed['items'] as $item) {
-                $suggestedCat = $item['suggested_category'] ?? null;
-                $labelId = null;
+        $invoice->invoiceItems()->delete();
 
-                if ($suggestedCat) {
-                    $slug = Str::slug($suggestedCat);
-                    $labelId = Label::query()
-                        ->where('type', LabelType::Finance)
-                        ->where('slug', $slug)
-                        ->first()?->id;
-                }
+        foreach ($normalized['items'] as $item) {
+            $labelId = null;
+            $suggestedCat = $item['suggested_category'];
 
-                InvoiceItem::create([
-                    'invoice_id' => $invoice->id,
-                    'label_id' => $labelId,
-                    'description' => $item['description'] ?? 'Line Item',
-                    'quantity' => (float) ($item['quantity'] ?? 1.000),
-                    'unit_price' => (float) ($item['unit_price'] ?? 0.00),
-                    'line_total' => (float) ($item['line_total'] ?? 0.00),
-                ]);
+            if ($suggestedCat) {
+                $slug = Str::slug($suggestedCat);
+                $labelId = Label::query()
+                    ->where('type', LabelType::Finance)
+                    ->where('slug', $slug)
+                    ->first()?->id;
             }
+
+            InvoiceItem::create([
+                'invoice_id' => $invoice->id,
+                'label_id' => $labelId,
+                'description' => $item['description'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price'],
+                'line_total' => $item['line_total'],
+                'serial_number' => $item['serial_number'],
+            ]);
         }
 
-        Log::info('Invoice parsed successfully via AI pipeline', ['invoice_id' => $invoice->id]);
+        Log::info('Invoice parsed successfully via AI pipeline', [
+            'invoice_id' => $invoice->id,
+            'status' => $invoice->status,
+        ]);
     }
 
     public function failed(\Throwable $exception): void
@@ -125,5 +137,49 @@ class ExtractReceiptDataJob implements ShouldQueue
     protected function resolvePaymentMethod(mixed $value): ?PaymentMethod
     {
         return PaymentMethod::tryFromAi($value);
+    }
+
+    protected function appendDateReviewNote(?string $existingNotes, bool $dateParsed, bool $dateSane): ?string
+    {
+        $marker = null;
+        if (! $dateParsed) {
+            $marker = '[AI] Receipt date/time could not be parsed.';
+        } elseif (! $dateSane) {
+            $marker = '[AI] Receipt date/time looks implausible and needs review.';
+        }
+
+        if ($marker === null) {
+            return $existingNotes;
+        }
+
+        $notes = trim((string) $existingNotes);
+        if ($notes !== '' && str_contains($notes, $marker)) {
+            return $notes;
+        }
+
+        return $notes === '' ? $marker : $notes."\n".$marker;
+    }
+
+    protected function uniqueReceiptHash(Invoice $invoice): string
+    {
+        $dateTimeStr = $invoice->date_time
+            ? $invoice->date_time->format('Y-m-d H:i:s')
+            : now()->format('Y-m-d H:i:s');
+
+        $base = hash(
+            'sha256',
+            ($invoice->invoice_number ?? '').$dateTimeStr.$invoice->total_amount
+        );
+
+        $collision = Invoice::query()
+            ->where('receipt_hash', $base)
+            ->where('id', '!=', $invoice->id)
+            ->exists();
+
+        if (! $collision) {
+            return $base;
+        }
+
+        return hash('sha256', $base.'|'.$invoice->id);
     }
 }

@@ -119,6 +119,7 @@ enum PaymentMethod: string implements HasColor, HasIcon, HasLabel
             'cash' => self::Cash,
             'pay_with_qr', 'qr', 'qr_pay', 'qr_payment', 'duitnow_qr', 'duitnow' => self::PayWithQr,
             'touchngo', 'touch_n_go', 'touchngo_ewallet', 'tng', 't_ngo' => self::TouchNGo,
+            'debit', 'credit', 'debit_card', 'credit_card' => self::Other,
             'other' => self::Other,
             default => self::tryFrom($normalized),
         };
