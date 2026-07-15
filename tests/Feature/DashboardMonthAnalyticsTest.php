@@ -290,6 +290,196 @@ test('spent by label sums line items for selected month', function () {
     expect($spending)->toHaveCount(1);
     expect($spending->first()->name)->toBe('Groceries');
     expect($spending->first()->total)->toBe(45.0);
+    expect($spending->first()->receipt_count)->toBe(1);
+    expect($spending->first()->rank)->toBe(1);
+    expect($spending->first()->label_count)->toBe(1);
+    expect($spending->first()->mom_change)->toMatchArray([
+        'delta' => 45.0,
+        'percent' => null,
+    ]);
+    expect($spending->first()->top_merchant)->toMatchArray([
+        'name' => 'Grocery Store',
+        'total' => 45.0,
+    ]);
+});
+
+test('spent by label ranks higher totals first', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->format('Y-m');
+    $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
+
+    $groceries = Label::factory()->create(['name' => 'Groceries', 'slug' => 'groceries']);
+    $transport = Label::factory()->create(['name' => 'Transport', 'slug' => 'transport']);
+
+    foreach ([
+        [$groceries, 30.00, 'Small Grocery'],
+        [$transport, 90.00, 'Petrol Station'],
+    ] as [$label, $amount, $merchant]) {
+        $invoice = Invoice::create([
+            'merchant_name' => $merchant,
+            'invoice_number' => 'INV-'.strtoupper($label->slug),
+            'receipt_hash' => 'hash-'.$label->slug,
+            'date_time' => $bounds['start']->copy()->addDay(),
+            'subtotal' => $amount,
+            'total_tax' => 0.00,
+            'total_amount' => $amount,
+            'currency' => 'MYR',
+            'source' => 'manual',
+            'status' => 'reviewed',
+        ]);
+
+        InvoiceItem::create([
+            'invoice_id' => $invoice->id,
+            'label_id' => $label->id,
+            'description' => $label->name,
+            'quantity' => 1,
+            'unit_price' => $amount,
+            'line_total' => $amount,
+        ]);
+    }
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $spending = analyticsForMonth($targetMonth)->spentByLabel();
+
+    expect($spending)->toHaveCount(2);
+    expect($spending->first()->name)->toBe('Transport');
+    expect($spending->first()->rank)->toBe(1);
+    expect($spending->last()->name)->toBe('Groceries');
+    expect($spending->last()->rank)->toBe(2);
+    expect($spending->first()->label_count)->toBe(2);
+});
+
+test('spent by label counts one receipt with multiple line items', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->format('Y-m');
+    $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
+
+    $label = Label::factory()->create(['name' => 'Groceries', 'slug' => 'groceries']);
+
+    $invoice = Invoice::create([
+        'merchant_name' => 'Grocery Store',
+        'invoice_number' => 'INV-MULTI',
+        'receipt_hash' => 'hash-multi-001',
+        'date_time' => $bounds['start']->copy()->addDay(),
+        'subtotal' => 70.00,
+        'total_tax' => 0.00,
+        'total_amount' => 70.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    foreach ([25.00, 45.00] as $amount) {
+        InvoiceItem::create([
+            'invoice_id' => $invoice->id,
+            'label_id' => $label->id,
+            'description' => 'Item',
+            'quantity' => 1,
+            'unit_price' => $amount,
+            'line_total' => $amount,
+        ]);
+    }
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $spending = analyticsForMonth($targetMonth)->spentByLabel();
+
+    expect($spending->first()->receipt_count)->toBe(1);
+    expect($spending->first()->total)->toBe(70.0);
+});
+
+test('spent by label computes month over month change', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->startOfMonth();
+    $monthKey = $targetMonth->format('Y-m');
+    $priorMonth = $targetMonth->copy()->subMonth();
+
+    $label = Label::factory()->create(['name' => 'Groceries', 'slug' => 'groceries']);
+
+    foreach ([
+        [$priorMonth, 40.00, 'hash-prior-groc'],
+        [$targetMonth, 100.00, 'hash-current-groc'],
+    ] as [$month, $amount, $hash]) {
+        $invoice = Invoice::create([
+            'merchant_name' => 'Grocery Store',
+            'invoice_number' => 'INV-'.$hash,
+            'receipt_hash' => $hash,
+            'date_time' => $month->copy()->addDays(3),
+            'subtotal' => $amount,
+            'total_tax' => 0.00,
+            'total_amount' => $amount,
+            'currency' => 'MYR',
+            'source' => 'manual',
+            'status' => 'reviewed',
+        ]);
+
+        InvoiceItem::create([
+            'invoice_id' => $invoice->id,
+            'label_id' => $label->id,
+            'description' => 'Groceries',
+            'quantity' => 1,
+            'unit_price' => $amount,
+            'line_total' => $amount,
+        ]);
+    }
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $spending = analyticsForMonth($monthKey)->spentByLabel();
+
+    expect($spending->first()->mom_change)->toMatchArray([
+        'delta' => 60.0,
+        'percent' => 150.0,
+    ]);
+});
+
+test('spent by label picks highest spend merchant for label', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->format('Y-m');
+    $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
+
+    $label = Label::factory()->create(['name' => 'Food & Dining', 'slug' => 'food-dining']);
+
+    foreach ([
+        ['Cafe A', 20.00, 'hash-cafe-a'],
+        ['Restaurant B', 80.00, 'hash-restaurant-b'],
+    ] as [$merchant, $amount, $hash]) {
+        $invoice = Invoice::create([
+            'merchant_name' => $merchant,
+            'invoice_number' => 'INV-'.$hash,
+            'receipt_hash' => $hash,
+            'date_time' => $bounds['start']->copy()->addDay(),
+            'subtotal' => $amount,
+            'total_tax' => 0.00,
+            'total_amount' => $amount,
+            'currency' => 'MYR',
+            'source' => 'manual',
+            'status' => 'reviewed',
+        ]);
+
+        InvoiceItem::create([
+            'invoice_id' => $invoice->id,
+            'label_id' => $label->id,
+            'description' => 'Meal',
+            'quantity' => 1,
+            'unit_price' => $amount,
+            'line_total' => $amount,
+        ]);
+    }
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $spending = analyticsForMonth($targetMonth)->spentByLabel();
+
+    expect($spending->first()->top_merchant)->toMatchArray([
+        'name' => 'Restaurant B',
+        'total' => 80.0,
+    ]);
 });
 
 test('spent by label includes requires manual review invoices with labeled line items', function () {

@@ -7,6 +7,7 @@ namespace App\Filament\Support;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -163,24 +164,82 @@ final class DashboardMonthAnalytics
     }
 
     /**
-     * @return Collection<int, object{name: string, color: string|null, total: float, label_id: int|null}>
+     * @return Collection<int, object{
+     *     label_id: int,
+     *     name: string,
+     *     color: string|null,
+     *     total: float,
+     *     receipt_count: int,
+     *     rank: int,
+     *     label_count: int,
+     *     mom_change: array{delta: float, percent: ?float},
+     *     top_merchant: ?array{name: string, total: float},
+     * }>
      */
     public function spentByLabel(): Collection
     {
-        return InvoiceItem::query()
-            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-            ->join('labels', 'invoice_items.label_id', '=', 'labels.id')
-            ->whereBetween('invoices.date_time', [$this->bounds['start'], $this->bounds['end']])
-            ->whereIn('invoices.status', Invoice::dashboardAnalyticsStatuses())
-            ->selectRaw('labels.id as label_id, labels.name, labels.color, SUM(invoice_items.line_total) as total')
+        $start = $this->bounds['start'];
+        $end = $this->bounds['end'];
+        $previousStart = $this->bounds['previous_start'];
+        $previousEnd = $this->bounds['previous_end'];
+
+        $rows = $this->labelSpendingQuery($start, $end)
+            ->selectRaw('labels.id as label_id, labels.name, labels.color, SUM(invoice_items.line_total) as total, COUNT(DISTINCT invoices.id) as receipt_count')
             ->groupBy('labels.id', 'labels.name', 'labels.color')
-            ->get()
-            ->map(fn ($row): object => (object) [
-                'label_id' => (int) $row->label_id,
+            ->orderByDesc('total')
+            ->orderBy('labels.name')
+            ->get();
+
+        $priorTotals = $this->labelSpendingQuery($previousStart, $previousEnd)
+            ->selectRaw('labels.id as label_id, SUM(invoice_items.line_total) as total')
+            ->groupBy('labels.id')
+            ->pluck('total', 'label_id')
+            ->map(fn ($total): float => (float) $total);
+
+        $topMerchantsByLabel = [];
+
+        foreach (
+            $this->labelSpendingQuery($start, $end)
+                ->selectRaw('labels.id as label_id, invoices.merchant_name, SUM(invoice_items.line_total) as total')
+                ->groupBy('labels.id', 'invoices.merchant_name')
+                ->get()
+                ->groupBy('label_id') as $labelId => $merchants
+        ) {
+            $topMerchant = $merchants->sortByDesc('total')->first();
+
+            if ($topMerchant === null) {
+                continue;
+            }
+
+            $topMerchantsByLabel[(int) $labelId] = [
+                'name' => (string) $topMerchant->merchant_name,
+                'total' => (float) $topMerchant->total,
+            ];
+        }
+
+        $labelCount = $rows->count();
+
+        return $rows->values()->map(function ($row, int $index) use ($priorTotals, $topMerchantsByLabel, $labelCount): object {
+            $labelId = (int) $row->label_id;
+            $total = (float) $row->total;
+            $priorTotal = (float) ($priorTotals[$labelId] ?? 0);
+            $delta = $total - $priorTotal;
+
+            return (object) [
+                'label_id' => $labelId,
                 'name' => (string) $row->name,
                 'color' => $row->color,
-                'total' => (float) $row->total,
-            ]);
+                'total' => $total,
+                'receipt_count' => (int) $row->receipt_count,
+                'rank' => $index + 1,
+                'label_count' => $labelCount,
+                'mom_change' => [
+                    'delta' => $delta,
+                    'percent' => $priorTotal > 0 ? ($delta / $priorTotal) * 100 : null,
+                ],
+                'top_merchant' => $topMerchantsByLabel[$labelId] ?? null,
+            ];
+        });
     }
 
     /**
@@ -254,5 +313,17 @@ final class DashboardMonthAnalytics
             'sqlite' => "strftime('%Y-%m', {$column})",
             default => "DATE_FORMAT({$column}, '%Y-%m')",
         };
+    }
+
+    /**
+     * @return Builder<InvoiceItem>
+     */
+    private function labelSpendingQuery(Carbon $start, Carbon $end): Builder
+    {
+        return InvoiceItem::query()
+            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->join('labels', 'invoice_items.label_id', '=', 'labels.id')
+            ->whereBetween('invoices.date_time', [$start, $end])
+            ->whereIn('invoices.status', Invoice::dashboardAnalyticsStatuses());
     }
 }
