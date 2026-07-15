@@ -41,11 +41,17 @@ Run Sail/Docker Compose to launch the stack:
 ---
 
 ## Step 3: Pull the Vision Model
-Ollama needs to download the `minicpm-v` (or `llava`) model to perform OCR on receipts.
+Ollama needs a vision model for receipt OCR. Prefer `qwen2.5vl:7b` on an RTX 4060 (8 GB) or similar; `minicpm-v` remains a lighter fallback.
 
 ```bash
-docker exec -it tido-ollama-1 ollama pull minicpm-v
+# Host Ollama (default for Windows):
+ollama pull qwen2.5vl:7b
+
+# Or via Sail container:
+docker exec -it tido-ollama-1 ollama pull qwen2.5vl:7b
 ```
+
+Set `OLLAMA_MODEL=qwen2.5vl:7b` in `.env` (see `config/services.php`).
 
 ---
 

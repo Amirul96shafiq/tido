@@ -36,6 +36,7 @@ class InvoiceForm
                                 TextInput::make('invoice_number'),
                                 DateTimePicker::make('date_time')
                                     ->required()
+                                    ->timezone(fn (): string => (string) config('app.timezone'))
                                     ->default(now()),
                             ]),
 
