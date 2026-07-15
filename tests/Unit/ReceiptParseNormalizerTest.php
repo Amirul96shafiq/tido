@@ -112,7 +112,7 @@ test('normalize strips company registration style invoice numbers and none money
                 'unit_price' => '2.20',
                 'line_total' => '2.20',
                 'serial_number' => '9556072080026',
-                'suggested_category' => 'Food & Dining',
+                'label' => 'Food & Dining',
             ],
             [
                 'description' => 'OBALAB TRIANGLE CAKE',
@@ -120,14 +120,14 @@ test('normalize strips company registration style invoice numbers and none money
                 'unit_price' => '3.20',
                 'line_total' => '3.20',
                 'barcode' => 'none',
-                'suggested_category' => 'Groceries & Household',
+                'label' => 'Groceries & Household',
             ],
             [
                 'description' => '',
                 'quantity' => '1',
                 'unit_price' => '0',
                 'line_total' => '0',
-                'suggested_category' => '',
+                'label' => '',
             ],
         ],
     ]);
@@ -138,6 +138,8 @@ test('normalize strips company registration style invoice numbers and none money
         ->and($normalized['items'])->toHaveCount(2)
         ->and($normalized['items'][0]['serial_number'])->toBe('9556072080026')
         ->and($normalized['items'][1]['serial_number'])->toBeNull()
+        ->and($normalized['items'][0]['label'])->toBe('Food & Dining')
+        ->and($normalized['items'][1]['label'])->toBe('Groceries & Household')
         ->and($normalizer->amountsReconcile($normalized))->toBeTrue();
 });
 
@@ -158,17 +160,42 @@ test('amountsReconcile fails when line items disagree with total', function () {
                 'quantity' => 1,
                 'unit_price' => 3.6,
                 'line_total' => 3.6,
-                'suggested_category' => 'Groceries & Household',
+                'label' => 'Groceries & Household',
             ],
             [
                 'description' => 'BAD',
                 'quantity' => 5,
                 'unit_price' => 2.1,
                 'line_total' => 11.0,
-                'suggested_category' => 'Groceries & Household',
+                'label' => 'Groceries & Household',
             ],
         ],
     ]);
 
     expect($normalizer->amountsReconcile($normalized))->toBeFalse();
+});
+
+test('normalize accepts legacy suggested_category key for label', function () {
+    $normalizer = new ReceiptParseNormalizer;
+
+    $normalized = $normalizer->normalize([
+        'merchant_name' => 'Store',
+        'date_time' => '2026-07-15 10:00:00',
+        'subtotal' => 10.00,
+        'total_tax' => 0,
+        'discount_total' => 0,
+        'rounding_amount' => 0,
+        'total_amount' => 10.00,
+        'items' => [
+            [
+                'description' => 'Meal',
+                'quantity' => 1,
+                'unit_price' => 10.00,
+                'line_total' => 10.00,
+                'suggested_category' => 'Food & Dining',
+            ],
+        ],
+    ]);
+
+    expect($normalized['items'][0]['label'])->toBe('Food & Dining');
 });

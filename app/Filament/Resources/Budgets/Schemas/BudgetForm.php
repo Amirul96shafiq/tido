@@ -22,7 +22,7 @@ class BudgetForm
                     ->relationship(
                         name: 'label',
                         titleAttribute: 'name',
-                        modifyQueryUsing: fn ($query) => $query->where('type', LabelType::Finance),
+                        modifyQueryUsing: fn ($query) => $query->where('type', LabelType::Finance)->orderBy('name'),
                     )
                     ->placeholder('Overall (All Labels)')
                     ->searchable()

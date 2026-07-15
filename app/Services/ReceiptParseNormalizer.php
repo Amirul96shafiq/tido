@@ -22,7 +22,7 @@ class ReceiptParseNormalizer
      *     total_amount: float,
      *     currency: string,
      *     payment_method: mixed,
-     *     items: list<array{description: string, quantity: float, unit_price: float, line_total: float, serial_number: ?string, suggested_category: ?string}>
+     *     items: list<array{description: string, quantity: float, unit_price: float, line_total: float, serial_number: ?string, label: ?string}>
      * }
      */
     public function normalize(array $parsed): array
@@ -62,14 +62,14 @@ class ReceiptParseNormalizer
                     $description = 'Line Item';
                 }
 
-                $suggestedCategory = $item['suggested_category'] ?? null;
-                if (is_string($suggestedCategory)) {
-                    $suggestedCategory = trim($suggestedCategory);
-                    if ($suggestedCategory === '') {
-                        $suggestedCategory = null;
+                $labelName = $item['label'] ?? $item['suggested_category'] ?? null;
+                if (is_string($labelName)) {
+                    $labelName = trim($labelName);
+                    if ($labelName === '') {
+                        $labelName = null;
                     }
                 } else {
-                    $suggestedCategory = null;
+                    $labelName = null;
                 }
 
                 $items[] = [
@@ -80,7 +80,7 @@ class ReceiptParseNormalizer
                     'serial_number' => $this->toSerialNumber(
                         $item['serial_number'] ?? $item['barcode'] ?? $item['sku'] ?? null
                     ),
-                    'suggested_category' => $suggestedCategory,
+                    'label' => $labelName,
                 ];
             }
         }

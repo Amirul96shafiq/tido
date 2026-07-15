@@ -26,6 +26,7 @@ class LabelFactory extends Factory
             'slug' => Str::slug($name),
             'icon' => 'heroicon-o-briefcase',
             'color' => $this->faker->safeHexColor(),
+            'description' => $this->faker->optional()->sentence(),
             'is_system' => false,
         ];
     }

@@ -65,6 +65,24 @@ class Invoice extends Model
     }
 
     /**
+     * Invoices with AI-extracted line items that should appear on dashboard analytics.
+     *
+     * @param  Builder<Invoice>  $query
+     */
+    public function scopeDashboardAnalyticsEligible(Builder $query): void
+    {
+        $query->whereIn('status', self::dashboardAnalyticsStatuses());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function dashboardAnalyticsStatuses(): array
+    {
+        return ['parsed', 'reviewed', 'requires_manual_review'];
+    }
+
+    /**
      * @param  Builder<Invoice>  $query
      */
     public function scopeInPeriod(Builder $query, CarbonInterface $start, CarbonInterface $end): void
