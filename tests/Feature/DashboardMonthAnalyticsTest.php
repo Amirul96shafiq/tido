@@ -147,6 +147,67 @@ test('spent by label sums line items for selected month', function () {
     expect($spending->first()->total)->toBe(45.0);
 });
 
+test('spent by label includes requires manual review invoices with labeled line items', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->format('Y-m');
+    $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
+
+    $label = Label::factory()->create([
+        'name' => 'Pet Supplies',
+        'slug' => 'pet-supplies',
+    ]);
+
+    $invoice = Invoice::create([
+        'merchant_name' => 'Pet Lovers Centre',
+        'invoice_number' => 'INV-PET',
+        'receipt_hash' => 'hash-pet-manual-001',
+        'date_time' => $bounds['start']->copy()->addDay(),
+        'subtotal' => 44.70,
+        'total_tax' => 0.00,
+        'discount_total' => 2.67,
+        'total_amount' => 42.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'requires_manual_review',
+    ]);
+
+    InvoiceItem::create([
+        'invoice_id' => $invoice->id,
+        'label_id' => $label->id,
+        'description' => 'Pet food',
+        'quantity' => 1,
+        'unit_price' => 19.86,
+        'line_total' => 19.86,
+    ]);
+
+    InvoiceItem::create([
+        'invoice_id' => $invoice->id,
+        'label_id' => $label->id,
+        'description' => 'Pet treats',
+        'quantity' => 1,
+        'unit_price' => 32.60,
+        'line_total' => 32.60,
+    ]);
+
+    InvoiceItem::create([
+        'invoice_id' => $invoice->id,
+        'label_id' => $label->id,
+        'description' => 'Promo discount',
+        'quantity' => 1,
+        'unit_price' => -8.80,
+        'line_total' => -8.80,
+    ]);
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $spending = analyticsForMonth($targetMonth)->spentByLabel();
+
+    expect($spending)->toHaveCount(1);
+    expect($spending->first()->name)->toBe('Pet Supplies');
+    expect($spending->first()->total)->toBe(43.66);
+});
+
 test('budget mapping uses calendar month bounds for weekly budgets', function () {
     Invoice::unsetEventDispatcher();
 

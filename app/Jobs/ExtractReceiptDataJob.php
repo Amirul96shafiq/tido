@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Enums\LabelType;
 use App\Enums\PaymentMethod;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Models\Label;
 use App\Prompts\ReceiptExtractionPrompt;
+use App\Services\LabelMatcher;
 use App\Services\OllamaService;
 use App\Services\ReceiptParseNormalizer;
 use Illuminate\Bus\Queueable;
@@ -19,7 +18,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class ExtractReceiptDataJob implements ShouldQueue
 {
@@ -37,7 +35,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         $this->onQueue('receipts');
     }
 
-    public function handle(OllamaService $ollama, ReceiptParseNormalizer $normalizer): void
+    public function handle(OllamaService $ollama, ReceiptParseNormalizer $normalizer, LabelMatcher $labelMatcher): void
     {
         $invoice = Invoice::find($this->invoiceId);
 
@@ -55,7 +53,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         $imageContents = Storage::get($invoice->image_path);
         $base64Image = base64_encode($imageContents);
 
-        $parsed = $ollama->parseReceipt($base64Image, ReceiptExtractionPrompt::get());
+        $parsed = $ollama->parseReceipt($base64Image, ReceiptExtractionPrompt::build());
 
         if (! $parsed) {
             throw new \Exception('Ollama receipt extraction returned empty or invalid response.');
@@ -93,20 +91,9 @@ class ExtractReceiptDataJob implements ShouldQueue
         $invoice->invoiceItems()->delete();
 
         foreach ($normalized['items'] as $item) {
-            $labelId = null;
-            $suggestedCat = $item['suggested_category'];
-
-            if ($suggestedCat) {
-                $slug = Str::slug($suggestedCat);
-                $labelId = Label::query()
-                    ->where('type', LabelType::Finance)
-                    ->where('slug', $slug)
-                    ->first()?->id;
-            }
-
             InvoiceItem::create([
                 'invoice_id' => $invoice->id,
-                'label_id' => $labelId,
+                'label_id' => $labelMatcher->matchId($item['label']),
                 'description' => $item['description'],
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],

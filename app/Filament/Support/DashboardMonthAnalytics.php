@@ -106,7 +106,7 @@ final class DashboardMonthAnalytics
             ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
             ->join('labels', 'invoice_items.label_id', '=', 'labels.id')
             ->whereBetween('invoices.date_time', [$this->bounds['start'], $this->bounds['end']])
-            ->whereIn('invoices.status', ['parsed', 'reviewed'])
+            ->whereIn('invoices.status', Invoice::dashboardAnalyticsStatuses())
             ->selectRaw('labels.id as label_id, labels.name, labels.color, SUM(invoice_items.line_total) as total')
             ->groupBy('labels.id', 'labels.name', 'labels.color')
             ->get()
@@ -174,7 +174,7 @@ final class DashboardMonthAnalytics
         $overall = InvoiceItem::query()
             ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
             ->whereBetween('invoices.date_time', [$this->bounds['start'], $this->bounds['end']])
-            ->whereIn('invoices.status', ['parsed', 'reviewed'])
+            ->whereIn('invoices.status', Invoice::dashboardAnalyticsStatuses())
             ->sum('invoice_items.line_total');
 
         $totals[0] = (float) $overall;

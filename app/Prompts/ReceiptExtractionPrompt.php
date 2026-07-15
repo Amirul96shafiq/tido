@@ -4,11 +4,23 @@ declare(strict_types=1);
 
 namespace App\Prompts;
 
+use App\Models\Label;
+
 class ReceiptExtractionPrompt
 {
-    public static function get(): string
+    public static function build(): string
     {
-        return <<<'PROMPT'
+        $labelLines = Label::financeLabels()
+            ->map(function (Label $label): string {
+                $hint = filled($label->description)
+                    ? ' — '.$label->description
+                    : '';
+
+                return '- '.$label->name.$hint;
+            })
+            ->implode("\n");
+
+        return <<<PROMPT
 Please extract financial information from this receipt image.
 You must respond with a raw JSON object only. Do not wrap it in markdown formatting (like ```json).
 
@@ -24,6 +36,15 @@ Malaysia receipt rules (follow strictly):
 - All money fields must be JSON numbers (or 0). Never use strings like "None", "null", or blank. Never nest money as objects.
 - Prefer Grand Total / Total Paid / Amount Paid for total_amount over guessing from partial lines.
 - payment_method must be one of: mastercard, visa, mykasih, cash, pay_with_qr, touchngo, other, or null. Map DEBIT / CREDIT / debit card / credit card to other.
+
+Line item label rules (follow strictly):
+- Every item in items[] MUST include a label.
+- Classify each line by its description, not the merchant alone (a grocery receipt can mix Groceries & Household and Food & Dining lines).
+- Use the exact label name from the list below. Pick the closest match when ambiguous.
+- Ready-to-eat / convenience-store snacks and drinks → Food & Dining. Supermarket pantry, fresh produce, and household consumables → Groceries & Household.
+
+Available labels (use exact name in each item's "label" field):
+{$labelLines}
 
 The output JSON structure MUST match this exact schema:
 {
@@ -44,10 +65,16 @@ The output JSON structure MUST match this exact schema:
       "unit_price": "Number - cost per single unit",
       "line_total": "Number - total price for this line after line discounts",
       "serial_number": "String or null - barcode / SKU / PLU / item code printed for this line",
-      "suggested_category": "String - choose one of these exact categories: Food & Dining, Transportation & Fuel, Groceries & Household, Electronics & Gadgets, Utilities & Bills, Healthcare & Medical, Entertainment & Leisure, Office Supplies, Subscriptions & Memberships"
+      "label": "String - exact label name from the list above"
     }
   ]
 }
 PROMPT;
+    }
+
+    /** @deprecated Use build() instead */
+    public static function get(): string
+    {
+        return self::build();
     }
 }

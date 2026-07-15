@@ -6,6 +6,7 @@ use App\Enums\PaymentMethod;
 use App\Jobs\ExtractReceiptDataJob;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Services\LabelMatcher;
 use App\Services\OllamaService;
 use App\Services\ReceiptParseNormalizer;
 use App\Services\ReceiptReparseService;
@@ -54,14 +55,14 @@ test('extract receipt data job flags mismatched amounts for manual review', func
                         'quantity' => 1,
                         'unit_price' => 3.6,
                         'line_total' => 3.6,
-                        'suggested_category' => 'Groceries & Household',
+                        'label' => 'Groceries & Household',
                     ],
                     [
                         'description' => 'BAD LINE',
                         'quantity' => 5,
                         'unit_price' => 2.1,
                         'line_total' => 11.0,
-                        'suggested_category' => 'Groceries & Household',
+                        'label' => 'Groceries & Household',
                     ],
                 ],
             ]),
@@ -70,7 +71,7 @@ test('extract receipt data job flags mismatched amounts for manual review', func
 
     $this->seed(LabelSeeder::class);
 
-    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class));
+    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class), app(LabelMatcher::class));
 
     $invoice->refresh();
 
@@ -170,7 +171,7 @@ test('extract receipt data job replaces items on successful reparse', function (
                         'quantity' => 1,
                         'unit_price' => 20.00,
                         'line_total' => 20.00,
-                        'suggested_category' => 'Food & Dining',
+                        'label' => 'Food & Dining',
                     ],
                 ],
             ]),
@@ -179,7 +180,7 @@ test('extract receipt data job replaces items on successful reparse', function (
 
     $this->seed(LabelSeeder::class);
 
-    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class));
+    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class), app(LabelMatcher::class));
 
     $invoice->refresh();
 
@@ -228,7 +229,7 @@ test('extract receipt data job flags implausible date for manual review', functi
                         'quantity' => 1,
                         'unit_price' => 8,
                         'line_total' => 8,
-                        'suggested_category' => 'Transportation & Fuel',
+                        'label' => 'Transportation & Fuel',
                     ],
                 ],
             ]),
@@ -237,7 +238,7 @@ test('extract receipt data job flags implausible date for manual review', functi
 
     $this->seed(LabelSeeder::class);
 
-    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class));
+    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class), app(LabelMatcher::class));
 
     $invoice->refresh();
 
@@ -285,7 +286,7 @@ test('extract receipt data job keeps upload date when ai datetime cannot be pars
                         'quantity' => 1,
                         'unit_price' => 74.8,
                         'line_total' => 74.8,
-                        'suggested_category' => 'Food & Dining',
+                        'label' => 'Food & Dining',
                     ],
                 ],
             ]),
@@ -294,7 +295,7 @@ test('extract receipt data job keeps upload date when ai datetime cannot be pars
 
     $this->seed(LabelSeeder::class);
 
-    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class));
+    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class), app(LabelMatcher::class));
 
     $invoice->refresh();
 
@@ -340,7 +341,7 @@ test('extract receipt data job parses day first datetime with T suffix correctly
                         'quantity' => 1,
                         'unit_price' => 4.00,
                         'line_total' => 4.00,
-                        'suggested_category' => 'Groceries & Household',
+                        'label' => 'Groceries & Household',
                     ],
                 ],
             ]),
@@ -349,7 +350,7 @@ test('extract receipt data job parses day first datetime with T suffix correctly
 
     $this->seed(LabelSeeder::class);
 
-    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class));
+    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class), app(LabelMatcher::class));
 
     $invoice->refresh();
 

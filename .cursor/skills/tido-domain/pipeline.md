@@ -23,7 +23,7 @@ InvoiceObserver / BudgetAlertService (threshold WhatsApp + DB notifications)
 - Skip if invoice missing or status ≠ `pending`
 - Missing image → `failed`
 - Empty Ollama parse → throw (retry); `failed()` → `requires_manual_review`
-- Category: match `suggested_category` to Finance `Label` slug; leave null if unknown
+- Label: match AI `label` (legacy `suggested_category`) via `LabelMatcher` to Finance `Label`; leave null if unknown
 
 ## Duplicate hash
 

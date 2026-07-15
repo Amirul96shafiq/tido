@@ -139,7 +139,7 @@ class InvoiceForm
                                             ->relationship(
                                                 name: 'label',
                                                 titleAttribute: 'name',
-                                                modifyQueryUsing: fn ($query) => $query->where('type', LabelType::Finance),
+                                                modifyQueryUsing: fn ($query) => $query->where('type', LabelType::Finance)->orderBy('name'),
                                             )
                                             ->searchable()
                                             ->preload()

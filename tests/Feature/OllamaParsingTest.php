@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\PaymentMethod;
 use App\Jobs\ExtractReceiptDataJob;
 use App\Models\Invoice;
+use App\Services\LabelMatcher;
 use App\Services\OllamaService;
 use App\Services\ReceiptParseNormalizer;
 use Database\Seeders\LabelSeeder;
@@ -71,7 +72,7 @@ test('extract receipt data job processes mock response and updates status', func
                         'quantity' => 1,
                         'unit_price' => 20.00,
                         'line_total' => 20.00,
-                        'suggested_category' => 'Food & Dining',
+                        'label' => 'Food & Dining',
                     ],
                 ],
             ]),
@@ -81,7 +82,7 @@ test('extract receipt data job processes mock response and updates status', func
     $this->seed(LabelSeeder::class);
 
     $job = new ExtractReceiptDataJob($invoice->id);
-    $job->handle(new OllamaService, new ReceiptParseNormalizer);
+    $job->handle(new OllamaService, new ReceiptParseNormalizer, new LabelMatcher);
 
     $invoice->refresh();
 
