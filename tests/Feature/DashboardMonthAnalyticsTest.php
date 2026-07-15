@@ -196,3 +196,73 @@ test('budget mapping uses calendar month bounds for weekly budgets', function ()
 
     expect($totals[$label->id])->toBe(120.0);
 });
+
+test('top merchants aggregates spent, discount, receipts, and spend share', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->format('Y-m');
+    $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
+
+    Invoice::create([
+        'merchant_name' => 'Merchant A',
+        'invoice_number' => 'INV-A1',
+        'receipt_hash' => 'hash-a1',
+        'date_time' => $bounds['start']->copy()->addDay(),
+        'subtotal' => 50.00,
+        'total_tax' => 0.00,
+        'discount_total' => 5.00,
+        'total_amount' => 50.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'Merchant A',
+        'invoice_number' => 'INV-A2',
+        'receipt_hash' => 'hash-a2',
+        'date_time' => $bounds['start']->copy()->addDays(2),
+        'subtotal' => 25.00,
+        'total_tax' => 0.00,
+        'discount_total' => 2.50,
+        'total_amount' => 25.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'Merchant B',
+        'invoice_number' => 'INV-B1',
+        'receipt_hash' => 'hash-b1',
+        'date_time' => $bounds['start']->copy()->addDays(3),
+        'subtotal' => 25.00,
+        'total_tax' => 0.00,
+        'discount_total' => 0.00,
+        'total_amount' => 25.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $merchants = analyticsForMonth($targetMonth)->topMerchants();
+
+    expect($merchants)->toHaveCount(2);
+
+    $merchantA = $merchants->firstWhere('merchant_name', 'Merchant A');
+    $merchantB = $merchants->firstWhere('merchant_name', 'Merchant B');
+
+    expect($merchantA->total_spent)->toBe(75.0);
+    expect($merchantA->total_discount)->toBe(7.5);
+    expect($merchantA->receipt_count)->toBe(2);
+    expect($merchantA->avg_spend)->toBe(37.5);
+    expect($merchantA->spend_share_percent)->toBe(75.0);
+
+    expect($merchantB->total_spent)->toBe(25.0);
+    expect($merchantB->total_discount)->toBe(0.0);
+    expect($merchantB->receipt_count)->toBe(1);
+    expect($merchantB->avg_spend)->toBe(25.0);
+    expect($merchantB->spend_share_percent)->toBe(25.0);
+});

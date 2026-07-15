@@ -39,13 +39,16 @@ class TopMerchants extends ChartWidget
             'datasets' => [
                 [
                     'label' => 'Total Spent (RM)',
-                    'data' => $merchants->pluck('total')->toArray(),
+                    'data' => $merchants->pluck('total_spent')->toArray(),
                     'backgroundColor' => '#FFD07D',
                     'merchantNames' => $names->toArray(),
+                    'receiptCounts' => $merchants->pluck('receipt_count')->toArray(),
+                    'avgSpends' => $merchants->pluck('avg_spend')->toArray(),
+                    'spendSharePercents' => $merchants->pluck('spend_share_percent')->toArray(),
                 ],
             ],
-            'labels' => $names
-                ->map(fn (string $name): string => Str::limit($name, self::LABEL_LIMIT))
+            'labels' => $merchants
+                ->map(fn (object $merchant): string => Str::limit($merchant->merchant_name, self::LABEL_LIMIT)." ({$merchant->receipt_count})")
                 ->toArray(),
         ];
     }
@@ -66,6 +69,40 @@ class TopMerchants extends ChartWidget
                                 }
 
                                 return item?.label ?? '';
+                            },
+                            afterTitle: (items) => {
+                                const item = items[0];
+                                const index = item?.dataIndex;
+                                const dataset = item?.dataset;
+
+                                if (index === undefined || !dataset) {
+                                    return '';
+                                }
+
+                                const share = dataset.spendSharePercents?.[index];
+                                const receipts = dataset.receiptCounts?.[index];
+                                const avgSpend = dataset.avgSpends?.[index];
+
+                                const parts = [];
+
+                                if (share !== undefined) {
+                                    parts.push(`${share.toFixed(1)}% of month spend`);
+                                }
+
+                                if (receipts !== undefined) {
+                                    parts.push(`${receipts} receipt${receipts === 1 ? '' : 's'}`);
+                                }
+
+                                if (avgSpend !== undefined) {
+                                    parts.push(`RM ${avgSpend.toFixed(2)} avg/visit`);
+                                }
+
+                                return parts.join(' · ');
+                            },
+                            label: (item) => {
+                                const value = item.parsed?.y ?? item.raw ?? 0;
+
+                                return `${item.dataset.label}: RM ${Number(value).toFixed(2)}`;
                             },
                         },
                     },

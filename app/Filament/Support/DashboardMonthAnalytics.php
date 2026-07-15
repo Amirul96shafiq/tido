@@ -119,22 +119,45 @@ final class DashboardMonthAnalytics
     }
 
     /**
-     * @return Collection<int, object{merchant_name: string, total: float}>
+     * @return Collection<int, object{
+     *     merchant_name: string,
+     *     total_spent: float,
+     *     total_discount: float,
+     *     receipt_count: int,
+     *     avg_spend: float,
+     *     spend_share_percent: float,
+     * }>
      */
     public function topMerchants(int $limit = 5): Collection
     {
+        $monthTotal = $this->summary()['current_total'];
+
         return Invoice::query()
             ->processed()
             ->inPeriod($this->bounds['start'], $this->bounds['end'])
-            ->selectRaw('merchant_name, SUM(total_amount) as total')
+            ->selectRaw('
+                merchant_name,
+                SUM(total_amount) as total_spent,
+                SUM(discount_total) as total_discount,
+                COUNT(*) as receipt_count
+            ')
             ->groupBy('merchant_name')
-            ->orderByDesc('total')
+            ->orderByDesc('total_spent')
             ->limit($limit)
             ->get()
-            ->map(fn ($row): object => (object) [
-                'merchant_name' => (string) $row->merchant_name,
-                'total' => (float) $row->total,
-            ]);
+            ->map(function ($row) use ($monthTotal): object {
+                $totalSpent = (float) $row->total_spent;
+                $receiptCount = (int) $row->receipt_count;
+
+                return (object) [
+                    'merchant_name' => (string) $row->merchant_name,
+                    'total_spent' => $totalSpent,
+                    'total_discount' => (float) $row->total_discount,
+                    'receipt_count' => $receiptCount,
+                    'avg_spend' => $receiptCount > 0 ? $totalSpent / $receiptCount : 0.0,
+                    'spend_share_percent' => $monthTotal > 0 ? ($totalSpent / $monthTotal) * 100 : 0.0,
+                ];
+            });
     }
 
     /**
