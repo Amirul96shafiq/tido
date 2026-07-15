@@ -112,6 +112,111 @@ test('trend returns six buckets ending at selected month', function () {
     expect($trend['mom_changes'][0])->toBeNull();
 });
 
+test('year to date trend ends at selected month', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->month(7)->startOfMonth();
+    $monthKey = $targetMonth->format('Y-m');
+
+    Invoice::create([
+        'merchant_name' => 'July Store',
+        'invoice_number' => 'INV-JULY',
+        'receipt_hash' => 'hash-july-001',
+        'date_time' => $targetMonth->copy()->addDays(2),
+        'subtotal' => 90.00,
+        'total_tax' => 0.00,
+        'total_amount' => 90.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $trend = analyticsForMonth($monthKey)->trend(yearToDate: true);
+
+    expect($trend['labels'])->toHaveCount(7);
+    expect($trend['labels'][0])->toBe($targetMonth->copy()->startOfYear()->format('M Y'));
+    expect($trend['labels'][6])->toBe($targetMonth->format('M Y'));
+    expect($trend['selected_index'])->toBe(6);
+    expect($trend['data'][6])->toBe(90.0);
+});
+
+test('rolling twelve month trend ends at selected month', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->month(7)->startOfMonth();
+    $monthKey = $targetMonth->format('Y-m');
+    $rangeStart = $targetMonth->copy()->subMonths(11);
+
+    Invoice::create([
+        'merchant_name' => 'Prior Year Store',
+        'invoice_number' => 'INV-PRIOR-YEAR',
+        'receipt_hash' => 'hash-prior-year-001',
+        'date_time' => $rangeStart->copy()->addDays(2),
+        'subtotal' => 40.00,
+        'total_tax' => 0.00,
+        'total_amount' => 40.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'July Store',
+        'invoice_number' => 'INV-JULY-ROLLING',
+        'receipt_hash' => 'hash-july-rolling-001',
+        'date_time' => $targetMonth->copy()->addDays(2),
+        'subtotal' => 90.00,
+        'total_tax' => 0.00,
+        'total_amount' => 90.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $trend = analyticsForMonth($monthKey)->trend(12);
+
+    expect($trend['labels'])->toHaveCount(12);
+    expect($trend['labels'][0])->toBe($rangeStart->format('M Y'));
+    expect($trend['labels'][11])->toBe($targetMonth->format('M Y'));
+    expect($trend['selected_index'])->toBe(11);
+    expect($trend['data'][0])->toBe(40.0);
+    expect($trend['data'][11])->toBe(90.0);
+});
+
+test('calendar year trend returns twelve buckets for selected year', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->month(7)->startOfMonth();
+    $monthKey = $targetMonth->format('Y-m');
+
+    Invoice::create([
+        'merchant_name' => 'July Store',
+        'invoice_number' => 'INV-JULY',
+        'receipt_hash' => 'hash-july-001',
+        'date_time' => $targetMonth->copy()->addDays(2),
+        'subtotal' => 90.00,
+        'total_tax' => 0.00,
+        'total_amount' => 90.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $trend = analyticsForMonth($monthKey)->trend(calendarYear: true);
+
+    expect($trend['labels'])->toHaveCount(12);
+    expect($trend['labels'][0])->toBe($targetMonth->copy()->startOfYear()->format('M Y'));
+    expect($trend['labels'][11])->toBe($targetMonth->copy()->endOfYear()->format('M Y'));
+    expect($trend['selected_index'])->toBe(6);
+    expect($trend['data'][6])->toBe(90.0);
+});
+
 test('trend computes month over month change for consecutive months', function () {
     Invoice::unsetEventDispatcher();
 
@@ -664,6 +769,39 @@ test('top merchants aggregates spent, discount, receipts, and spend share', func
     expect($merchantB->spend_share_percent)->toBe(25.0);
 });
 
+test('top merchants defaults to three results', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->format('Y-m');
+    $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
+
+    foreach (['A' => 100, 'B' => 80, 'C' => 60, 'D' => 40] as $name => $amount) {
+        Invoice::create([
+            'merchant_name' => "Merchant {$name}",
+            'invoice_number' => "INV-TOP-{$name}",
+            'receipt_hash' => "hash-top-{$name}",
+            'date_time' => $bounds['start']->copy()->addDay(),
+            'subtotal' => $amount,
+            'total_tax' => 0.00,
+            'total_amount' => $amount,
+            'currency' => 'MYR',
+            'source' => 'manual',
+            'status' => 'reviewed',
+        ]);
+    }
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $merchants = analyticsForMonth($targetMonth)->topMerchants();
+
+    expect($merchants)->toHaveCount(3);
+    expect($merchants->pluck('merchant_name')->all())->toBe([
+        'Merchant A',
+        'Merchant B',
+        'Merchant C',
+    ]);
+});
+
 test('spent by payment method groups spend, excludes pending, and computes mom', function () {
     Invoice::unsetEventDispatcher();
 
@@ -765,6 +903,47 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
     expect($unknown->label)->toBe('Unknown')
         ->and($unknown->total)->toBe(20.0)
         ->and($unknown->receipt_count)->toBe(1);
+});
+
+test('spent by payment method defaults to three results', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->format('Y-m');
+    $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
+
+    $methods = [
+        PaymentMethod::Cash->value => 100,
+        PaymentMethod::Visa->value => 80,
+        PaymentMethod::Mastercard->value => 60,
+        PaymentMethod::TouchNGo->value => 40,
+    ];
+
+    foreach ($methods as $method => $amount) {
+        Invoice::create([
+            'merchant_name' => "Store {$method}",
+            'invoice_number' => "INV-PM-{$method}",
+            'receipt_hash' => "hash-pm-{$method}",
+            'date_time' => $bounds['start']->copy()->addDay(),
+            'subtotal' => $amount,
+            'total_tax' => 0.00,
+            'total_amount' => $amount,
+            'currency' => 'MYR',
+            'payment_method' => $method,
+            'source' => 'manual',
+            'status' => 'reviewed',
+        ]);
+    }
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $rows = analyticsForMonth($targetMonth)->spentByPaymentMethod();
+
+    expect($rows)->toHaveCount(3);
+    expect($rows->pluck('key')->all())->toBe([
+        PaymentMethod::Cash->value,
+        PaymentMethod::Visa->value,
+        PaymentMethod::Mastercard->value,
+    ]);
 });
 
 test('receipts by source groups counts, spend, and mom by upload channel', function () {

@@ -26,5 +26,6 @@ test('monthly trend widget renders with enriched chart data', function () {
     Invoice::setEventDispatcher(app('events'));
 
     Livewire::test(MonthlyTrend::class)
-        ->assertSuccessful();
+        ->assertSuccessful()
+        ->assertSee('Monthly Spending Trend (12 months to '.now()->format('M Y').')');
 });

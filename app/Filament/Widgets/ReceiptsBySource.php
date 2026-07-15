@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
@@ -15,11 +16,14 @@ class ReceiptsBySource extends ChartWidget
 
     protected static ?int $sort = 7;
 
-    protected int|string|array $columnSpan = 1;
+    protected int|string|array $columnSpan = [
+        'default' => 'full',
+        'xl' => 4,
+    ];
 
     protected ?string $pollingInterval = null;
 
-    protected ?string $maxHeight = '300px';
+    protected ?string $maxHeight = DashboardWidgetHeights::STANDARD_CHART;
 
     public function getHeading(): string|Htmlable|null
     {
@@ -85,6 +89,7 @@ class ReceiptsBySource extends ChartWidget
     {
         return RawJs::make(<<<'JS'
             {
+                maintainAspectRatio: false,
                 indexAxis: 'y',
                 plugins: {
                     legend: {
