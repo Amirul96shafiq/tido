@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
@@ -57,8 +58,8 @@ class BudgetAlertService
                     sprintf(
                         "Spending for this label has reached the alert threshold.\n\nLabel: *%s*\nSpent: *RM %s* / *RM %s* (%.1f%%)\nPeriod: *%s*",
                         $labelName,
-                        number_format($spent, 2),
-                        number_format($budgetAmount, 2),
+                        MoneyDisplay::format($spent),
+                        MoneyDisplay::format($budgetAmount),
                         $percentage,
                         $periodName,
                     ),
@@ -78,7 +79,7 @@ class BudgetAlertService
 
                     FilamentNotification::make()
                         ->title("Budget Alert: {$labelName}")
-                        ->body('Spent: RM '.number_format($spent, 2).' / RM '.number_format($budgetAmount, 2).' ('.round($percentage).'%)')
+                        ->body(MoneyDisplay::withPrefix($spent).' / '.MoneyDisplay::withPrefix($budgetAmount).' ('.round($percentage).'%)')
                         ->warning()
                         ->sendToDatabase($user);
                 }

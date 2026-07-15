@@ -27,7 +27,7 @@ class BudgetsTable
                     ->sortable(),
 
                 TextColumn::make('amount')
-                    ->money('MYR')
+                    ->myr()
                     ->sortable(),
 
                 TextColumn::make('period')

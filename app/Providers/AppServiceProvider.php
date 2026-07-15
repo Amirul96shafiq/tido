@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Helpers\MoneyDisplay;
 use App\Helpers\UserDateDisplay;
 use App\Listeners\RegisterScheduledBackupCatalog;
 use App\Models\Invoice;
@@ -13,10 +14,12 @@ use App\View\Components\ButtonComponent;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 use Filament\Support\Facades\FilamentTimezone;
 use Filament\Support\Icons\Heroicon;
 use Filament\Support\View\Components\ButtonComponent as FilamentButtonComponent;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Google\Client;
 use Google\Service\Drive;
@@ -50,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(BackupWasSuccessful::class, RegisterScheduledBackupCatalog::class);
 
         $this->configureFilamentDateFormats();
+        $this->configureFilamentMoneyFormatting();
 
         try {
             Storage::extend('google', function ($app, $config) {
@@ -115,6 +119,17 @@ class AppServiceProvider extends ServiceProvider
             $component
                 ->defaultDateDisplayFormat(fn (): string => UserDateDisplay::dateFormat())
                 ->defaultDateTimeDisplayFormat(fn (): string => UserDateDisplay::dateTimeFormat());
+        });
+    }
+
+    protected function configureFilamentMoneyFormatting(): void
+    {
+        TextColumn::macro('myr', function (): TextColumn {
+            return MoneyDisplay::configureTextColumn($this);
+        });
+
+        TextInput::macro('myr', function (): TextInput {
+            return MoneyDisplay::configureTextInput($this);
         });
     }
 }

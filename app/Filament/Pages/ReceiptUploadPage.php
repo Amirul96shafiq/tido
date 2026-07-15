@@ -111,7 +111,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
 
                 TextColumn::make('total_amount')
                     ->label('Total Amount')
-                    ->money('MYR')
+                    ->myr()
                     ->sortable(),
 
                 TextColumn::make('payment_method')
