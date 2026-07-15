@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Invoices\Tables;
 
 use App\Enums\PaymentMethod;
+use App\Models\Invoice;
+use App\Services\ReceiptReparseService;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -13,12 +16,15 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 
 class InvoicesTable
 {
@@ -34,6 +40,11 @@ class InvoicesTable
                     ->searchable()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('date_time')
+                    ->label('Buy date')
+                    ->dateTime()
+                    ->sortable(),
 
                 TextColumn::make('total_amount')
                     ->money('MYR')
@@ -125,6 +136,22 @@ class InvoicesTable
                     ->slideOver()
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
                 EditAction::make(),
+                Action::make('reparse')
+                    ->label('Reparse')
+                    ->icon(Heroicon::ArrowPath)
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Reparse receipt')
+                    ->modalDescription('Clear line items, reset status to pending, and queue OCR again.')
+                    ->visible(fn (Invoice $record): bool => filled($record->image_path) && Storage::exists((string) $record->image_path))
+                    ->action(function (Invoice $record, ReceiptReparseService $reparseService): void {
+                        $reparseService->reparse($record);
+
+                        Notification::make()
+                            ->title('Reparse queued')
+                            ->success()
+                            ->send();
+                    }),
                 DeleteAction::make(),
             ])
             ->toolbarActions([

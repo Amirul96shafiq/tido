@@ -126,7 +126,8 @@ Horizon listens on queues `default`, `whatsapp`, and `receipts`. Without `schedu
 Pull the vision model (once):
 
 ```bash
-docker exec -it tido-ollama-1 ollama pull minicpm-v
+docker exec -it tido-ollama-1 ollama pull qwen2.5vl:7b
+# or on host: ollama pull qwen2.5vl:7b
 curl http://localhost:11434/api/tags
 ```
 
@@ -204,7 +205,7 @@ Copy `.env.example` and set values for your environment. Notable groups:
 | `PERSONAL_WHATSAPP_NUMBER` | Primary number: OTP login, panel identity, budget alerts, seeded admin phone |
 | `PERSONAL_WHATSAPP_EXTRA_NUMBERS` | Extra numbers for receipt import / bot only (no panel OTP) |
 | `OLLAMA_HOST` | Ollama HTTP API (default `http://ollama:11434`) |
-| `OLLAMA_MODEL` | Vision model (default `minicpm-v`) |
+| `OLLAMA_MODEL` | Vision model (default `qwen2.5vl:7b`) |
 | `GOOGLE_DRIVE_CLIENT_ID` | Drive OAuth client |
 | `GOOGLE_DRIVE_CLIENT_SECRET` | Drive OAuth secret |
 | `GOOGLE_DRIVE_REFRESH_TOKEN` | Drive refresh token |
