@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Filament\Widgets;
 
 use App\Enums\PaymentMethod;
+use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Helpers\FilenameDisplay;
 use App\Models\Invoice;
+use Filament\Actions\EditAction;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -102,6 +104,13 @@ class RecentReceipts extends BaseWidget
                     ->since()
                     ->dateTimeTooltip()
                     ->sortable(),
+            ])
+            ->recordActions([
+                EditAction::make()
+                    ->url(
+                        fn (Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record]),
+                        shouldOpenInNewTab: true,
+                    ),
             ])
             ->filters([
                 SelectFilter::make('status')
