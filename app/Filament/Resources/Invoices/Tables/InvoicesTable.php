@@ -92,8 +92,7 @@ class InvoicesTable
                     ->label('Created At')
                     ->since()
                     ->dateTimeTooltip()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
             ])
             ->defaultSort('date_time', 'desc')
             ->filters([
