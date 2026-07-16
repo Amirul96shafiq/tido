@@ -33,8 +33,10 @@ test('spending by payment method widget renders with axis labels', function () {
         ->assertSee('Cash (1)');
 });
 
-test('spending by payment method widget renders empty state description', function () {
+test('spending by payment method widget renders empty state', function () {
     Livewire::test(SpendingByPaymentMethod::class)
         ->assertSuccessful()
-        ->assertSee('No expenses recorded for this month.');
+        ->assertSee('No expenses')
+        ->assertSee('No payment method spending recorded for this month.')
+        ->assertSee('Upload Receipts');
 });

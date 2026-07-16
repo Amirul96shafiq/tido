@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Widgets;
 
 use App\Filament\Support\DashboardWidgetHeights;
+use App\Filament\Widgets\Concerns\HasChartEmptyState;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
@@ -12,7 +13,13 @@ use Illuminate\Contracts\Support\Htmlable;
 
 class ReceiptsBySource extends ChartWidget
 {
+    use HasChartEmptyState;
     use InteractsWithDashboardMonth;
+
+    /**
+     * @var view-string
+     */
+    protected string $view = 'filament.widgets.chart-with-empty-state';
 
     protected static ?int $sort = 7;
 
@@ -30,18 +37,29 @@ class ReceiptsBySource extends ChartWidget
         return 'Receipts by Upload Source ('.$this->formatSelectedMonth('F Y').')';
     }
 
-    public function getDescription(): ?string
-    {
-        if ($this->analytics()->receiptsBySource()->isEmpty()) {
-            return 'No receipts recorded for this month.';
-        }
-
-        return null;
-    }
-
     public function getType(): string
     {
         return 'bar';
+    }
+
+    protected function isChartEmpty(): bool
+    {
+        return $this->analytics()->receiptsBySource()->isEmpty();
+    }
+
+    protected function getEmptyStateHeading(): string
+    {
+        return 'No receipts';
+    }
+
+    protected function getEmptyStateDescription(): string
+    {
+        return 'No receipts recorded for this month.';
+    }
+
+    protected function getEmptyStateIcon(): string
+    {
+        return 'heroicon-o-arrow-up-tray';
     }
 
     protected function getData(): array
@@ -50,19 +68,7 @@ class ReceiptsBySource extends ChartWidget
 
         if ($sources->isEmpty()) {
             return [
-                'datasets' => [
-                    [
-                        'label' => 'Receipts',
-                        'data' => [],
-                        'backgroundColor' => [],
-                        'sourceLabels' => [],
-                        'totalSpent' => [],
-                        'receiptSharePercents' => [],
-                        'momDeltas' => [],
-                        'momPercents' => [],
-                        'priorMonthLabel' => $this->previousMonthLabel(),
-                    ],
-                ],
+                'datasets' => [],
                 'labels' => [],
             ];
         }

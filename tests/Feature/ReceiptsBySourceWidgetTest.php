@@ -44,8 +44,10 @@ test('receipts by source widget renders source labels', function () {
         ->assertSee('Google Drive');
 });
 
-test('receipts by source widget renders empty state description', function () {
+test('receipts by source widget renders empty state', function () {
     Livewire::test(ReceiptsBySource::class)
         ->assertSuccessful()
-        ->assertSee('No receipts recorded for this month.');
+        ->assertSee('No receipts')
+        ->assertSee('No receipts recorded for this month.')
+        ->assertSee('Upload Receipts');
 });
