@@ -20,7 +20,7 @@ Upload → pending `Invoice` → `ExtractReceiptDataJob` → `OllamaService` →
 - NVIDIA GPU + current Game Ready / Studio driver (recommended for speed; CPU works but is slower)
 - tido running on the same machine with a queue worker (`npm run dev:full`)
 
-No Docker, NVIDIA Container Toolkit, or Sail `ollama` service.
+No Docker or NVIDIA Container Toolkit required.
 
 ---
 

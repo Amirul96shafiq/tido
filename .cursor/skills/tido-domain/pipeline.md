@@ -68,4 +68,4 @@ Supervisors listen on `default`, `receipts`, `whatsapp`. Jobs today often use th
 
 - Blueprint: `docs/system-architecture.md`
 - Agent map: `docs/agent-onboarding.md`
-- Ops: `docs/ollama-setup.md`, `docs/evolution-api-setup.md`, `docs/google-drive-setup.md`
+- Ops: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/google-drive-setup.md`
