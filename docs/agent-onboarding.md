@@ -24,7 +24,7 @@ Default login (seeded): `admin@tido.local` / `password`.
 3. `docs/system-architecture.md` — product blueprint (note: some version numbers are outdated; trust Laravel 12 / PG 17 / stack in `AGENTS.md`)
 4. Domain skill: `.cursor/skills/tido-domain/SKILL.md` (+ `pipeline.md` when touching OCR/webhooks)
 5. Existing skills: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
-6. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-api-setup.md` (Sail/Docker) or `docs/evolution-local-windows.md` (host, no Docker), `docs/google-drive-setup.md`
+6. Setup ops only when needed: `docs/ollama-setup.md` (native host Ollama, no Docker), `docs/evolution-api-setup.md` (Sail/Docker) or `docs/evolution-local-windows.md` (host, no Docker), `docs/google-drive-setup.md`
 7. UI empty panels: `docs/ui-empty-states.md`
 8. Modal blur / width: `docs/ui-modal-overlay.md`
 9. Icon CTA tooltips (Filament Tippy, not browser `title`): `docs/ui-tooltips.md`
@@ -149,4 +149,4 @@ vendor/bin/pint --dirty --format agent
 npm run dev          # or npm run dev:full (vite + serve:2000 + queue)
 ```
 
-Sail stack (see `compose.yaml`): `laravel.test`, `pgsql`, `redis`, `ollama`, `evolution-api`.
+Local OCR: native Ollama on the host (`docs/ollama-setup.md`, `OLLAMA_HOST=http://127.0.0.1:11434`). Sail `compose.yaml` may still list an `ollama` service; prefer the host install for day-to-day development.

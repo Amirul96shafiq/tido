@@ -69,7 +69,7 @@ The interface utilizes FilamentPHP's native Tailwind CSS theming engine to achie
 * **Google Drive Push Notifications:** HTTP POST webhook from Google Cloud Pub/Sub enqueues the extraction job.
 
 ### 4.2. 100% Offline AI Extraction
-* Dispatches a queued job (`ExtractReceiptDataJob`) to local Ollama endpoint (`http://localhost:11434/api/generate`).
+* Dispatches a queued job (`ExtractReceiptDataJob`) to the local Ollama HTTP API (`OLLAMA_HOST`, default `http://127.0.0.1:11434`) at `/api/generate`. Ollama runs as a native host process (see `docs/ollama-setup.md`), not as a required Docker service.
 
 ### 4.3. Dynamic Auto-Categorization & Line-Item Splitting
 * AI maps individual line items to predefined database categories. Filament uses a `Repeater` form component for manual review.
@@ -89,12 +89,9 @@ The interface utilizes FilamentPHP's native Tailwind CSS theming engine to achie
 
 ## 6. Infrastructure, Testing & Monitoring
 
-### 6.1. Containerization & Orchestration
-* **Docker Compose Architecture:** The project must be containerized to ensure environment parity. A `docker-compose.yml` should define:
-    * `laravel.test`: The PHP 8.3 application image.
-    * `pgsql`: PostgreSQL 16 database.
-    * `redis`: In-memory data store for handling queue connections securely.
-    * `ollama`: Official Ollama container with GPU passthrough enabled (`deploy.resources.reservations.devices`) for hardware-accelerated OCR.
+### 6.1. Local services & orchestration
+* **Application / DB / queues:** Local development commonly runs PHP on the host (`npm run dev:full`) with SQLite or a local PostgreSQL, and a database or Redis queue. Sail/`compose.yaml` remains optional for containerized app/DB/Redis/Evolution.
+* **Ollama (OCR):** Run as a **native host process** on `http://127.0.0.1:11434` with vision model `qwen2.5vl:7b` (see `docs/ollama-setup.md`). Do not require Docker GPU passthrough for day-to-day receipt parsing.
 
 ### 6.2. Queue Monitoring & Error Handling
 * **Laravel Horizon:** Install and configure Horizon to monitor Redis queues. AI parsing is heavily resource-dependent and prone to timeouts.

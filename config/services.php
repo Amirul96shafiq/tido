@@ -36,7 +36,7 @@ return [
     ],
 
     'ollama' => [
-        'host' => env('OLLAMA_HOST', 'http://ollama:11434'),
+        'host' => env('OLLAMA_HOST', 'http://127.0.0.1:11434'),
         'model' => env('OLLAMA_MODEL', 'qwen2.5vl:7b'),
         'timeout' => (int) env('OLLAMA_TIMEOUT', 120),
     ],

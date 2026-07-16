@@ -1,68 +1,108 @@
-# Ollama Setup Guide (GPU Acceleration)
+# Ollama Setup Guide (native, no Docker)
 
-This guide documents how to configure Ollama with GPU acceleration on your host machine to run OCR models for receipt parsing at zero cost.
+Run Ollama on the Windows host so tido can parse receipt images with a local vision model. This matches the host pattern used for Evolution ([evolution-local-windows.md](evolution-local-windows.md)).
+
+## Architecture (local)
+
+| Process | How it runs | Role |
+|---------|-------------|------|
+| Ollama | Windows installer (background service) | Vision API on `http://127.0.0.1:11434` |
+| tido | `npm run dev:full` | Vite + `artisan serve` + queue worker |
+
+Upload → pending `Invoice` → `ExtractReceiptDataJob` → `OllamaService` → `POST /api/generate` → status `parsed`.
+
+---
 
 ## Prerequisites
-- NVIDIA Graphics Card (RTX 4060 or higher confirmed)
-- Docker Desktop with CUDA support
-- NVIDIA Container Toolkit
+
+- Windows 10/11
+- [Ollama for Windows](https://ollama.com/download)
+- NVIDIA GPU + current Game Ready / Studio driver (recommended for speed; CPU works but is slower)
+- tido running on the same machine with a queue worker (`npm run dev:full`)
+
+No Docker, NVIDIA Container Toolkit, or Sail `ollama` service.
 
 ---
 
-## Step 1: Install NVIDIA Container Toolkit
-Before running Docker containers with GPU access, you must register the NVIDIA driver with Docker.
+## Step 1: Install Ollama
 
-### On Windows
-Docker Desktop on Windows supports WSL 2 GPU paravirtualization natively. Make sure:
-1. WSL 2 is installed and selected in Docker Desktop options.
-2. The latest NVIDIA Game Ready or Studio Driver is installed on the host.
+1. Download and install from [https://ollama.com/download](https://ollama.com/download).
+2. Accept the default so Ollama starts as a Windows service and listens on port **11434**.
+3. Confirm the API is up:
 
-### On Linux
-Run the following commands to install the Toolkit:
 ```bash
-curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
-curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
-  sed 's/\(deb\s\[\)/\1signed-by=\/usr/share/keyrings\/nvidia-container-toolkit-keyring.gpg /' | \
-  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-
-sudo apt-get update
-sudo apt-get install -y nvidia-container-toolkit
-sudo systemctl restart docker
+curl http://127.0.0.1:11434/api/tags
 ```
 
----
+You should get JSON (an empty `models` list is fine before the first pull).
 
-## Step 2: Spin up the Containers
-Run Sail/Docker Compose to launch the stack:
-```bash
-./vendor/bin/sail up -d
-```
+Optional: start Ollama via `npm run dev:ollama` if the service is not already running.
 
 ---
 
-## Step 3: Pull the Vision Model
-Ollama needs a vision model for receipt OCR. Prefer `qwen2.5vl:7b` on an RTX 4060 (8 GB) or similar; `minicpm-v` remains a lighter fallback.
+## Step 2: Pull the vision model
+
+tido defaults to **`qwen2.5vl:7b`** for receipt OCR on an RTX 4060 (8 GB) or similar. `minicpm-v` remains a lighter fallback.
 
 ```bash
-# Host Ollama (default for Windows):
 ollama pull qwen2.5vl:7b
-
-# Or via Sail container:
-docker exec -it tido-ollama-1 ollama pull qwen2.5vl:7b
 ```
 
-Set `OLLAMA_MODEL=qwen2.5vl:7b` in `.env` (see `config/services.php`).
+Confirm the model is listed:
+
+```bash
+curl http://127.0.0.1:11434/api/tags
+```
 
 ---
 
-## Step 4: Verify the Installation
-To confirm that Ollama is running and has access to your GPU:
+## Step 3: Point tido at localhost
 
-### 1. Test Endpoint
-Send a curl request to ensure the API is reachable:
-```bash
-curl http://localhost:11434/api/tags
+In `.env` (see also `.env.example`):
+
+```env
+OLLAMA_HOST=http://127.0.0.1:11434
+OLLAMA_MODEL=qwen2.5vl:7b
+OLLAMA_TIMEOUT=120
 ```
 
-### 2. Verify GPU usage
-Run `nvidia-smi` on the host while uploading a receipt. You should see `ollama` or `ollama_llama_server` allocate memory and consume GPU compute during parsing.
+If Ollama runs on another machine, set `OLLAMA_HOST` to that host's URL only.
+
+After changing env values, restart `npm run dev:full` (or clear config cache if you use one).
+
+---
+
+## Step 4: Run tido with a queue worker
+
+Parsing is asynchronous. The Filament upload only creates a pending invoice; the queue worker calls Ollama.
+
+```bash
+npm run dev:full
+```
+
+That starts Vite, `php artisan serve` (port 2000), and `queue:listen` on `default,whatsapp,receipts` with a timeout long enough for `OLLAMA_TIMEOUT=120`.
+
+---
+
+## Step 5: Smoke test
+
+1. Open Filament → **Upload Receipts** and upload a receipt image.
+2. Open the invoice: status should move from `pending` → `parsed` with merchant / amounts / line items.
+3. If status stays `pending`, the queue worker is not running.
+4. If status becomes `requires_manual_review`, check `storage/logs/laravel.log` for Ollama connection or HTTP errors.
+
+### Optional: GPU check
+
+While a receipt is parsing, run `nvidia-smi` on the host. You should see `ollama` or `ollama_llama_server` using GPU memory/compute.
+
+---
+
+## Config reference
+
+| Env | Default | Purpose |
+|-----|---------|---------|
+| `OLLAMA_HOST` | `http://127.0.0.1:11434` | Base URL for `/api/generate` |
+| `OLLAMA_MODEL` | `qwen2.5vl:7b` | Vision model name |
+| `OLLAMA_TIMEOUT` | `120` | HTTP timeout (seconds) |
+
+App wiring: `config/services.php` → `OllamaService` → `ExtractReceiptDataJob`.
