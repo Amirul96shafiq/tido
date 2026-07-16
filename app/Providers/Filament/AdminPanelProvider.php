@@ -93,6 +93,10 @@ class AdminPanelProvider extends PanelProvider
                     'receipt-upload-handler',
                     Vite::asset('resources/js/receipt-upload-handler.js'),
                 )->module(),
+                Js::make(
+                    'sticky-blur-veil',
+                    Vite::asset('resources/js/sticky-blur-veil.js'),
+                )->module(),
             ])
             ->renderHook(
                 PanelsRenderHook::SIMPLE_LAYOUT_START,

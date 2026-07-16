@@ -27,12 +27,13 @@ Default login (seeded): `admin@tido.local` / `password`.
 6. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/google-drive-setup.md`
 7. UI empty panels: `docs/ui-empty-states.md`
 8. Modal blur / width: `docs/ui-modal-overlay.md`
-9. Icon CTA tooltips (Filament Tippy, not browser `title`): `docs/ui-tooltips.md`
-10. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
-11. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
-12. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
-13. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
-14. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+9. Sticky top/bottom bars + blur veil: `docs/ui-sticky-blur.md`
+10. Icon CTA tooltips (Filament Tippy, not browser `title`): `docs/ui-tooltips.md`
+11. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
+12. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
+13. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
+14. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
+15. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 

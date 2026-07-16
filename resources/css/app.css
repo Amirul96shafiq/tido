@@ -220,6 +220,178 @@ html.dark::-webkit-scrollbar-thumb:hover,
     max-width: 100%;
 }
 
+/*
+ * overflow-x-clip on .fi-layout breaks position: sticky for descendants.
+ * Scope lives inside .fi-page — use :has() on .fi-layout, not a descendant selector.
+ * See docs/ui-sticky-blur.md.
+ */
+.fi-layout:has(.tido-sticky-scope) {
+    overflow-x: visible;
+}
+
+/*
+ * Sticky pin + progressive blur veil (reusable).
+ * Filament: .tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker)
+ * Stick the short grid-col; parent grid must span pin + scrolling content.
+ */
+.tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker) {
+    position: sticky;
+    z-index: 10;
+    isolation: isolate;
+    padding-block: 0.5rem;
+    margin-block: -0.5rem;
+}
+
+.tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker--top) {
+    top: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem);
+}
+
+.tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker--bottom) {
+    bottom: 0.25rem;
+    top: auto;
+}
+
+.tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker) > * {
+    position: relative;
+    z-index: 1;
+}
+
+.tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker)::before,
+.tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker)::after {
+    content: "";
+    position: fixed;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 200ms ease-in-out;
+}
+
+/* Top-anchored veil (below topbar) */
+.tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker--top)::before,
+.tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker--top)::after {
+    inset: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px) 0 auto 0;
+}
+
+/* Bottom-anchored veil */
+.tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker--bottom)::before,
+.tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker--bottom)::after {
+    inset: auto 0 0 0;
+}
+
+/* Long soft tint + light blur */
+.tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker)::before {
+    height: 20vh;
+    background-color: color-mix(in srgb, var(--color-white) 55%, transparent);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+.tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker--top)::before {
+    mask-image: linear-gradient(
+        to bottom,
+        rgb(0 0 0) 0%,
+        rgb(0 0 0 / 0.75) 25%,
+        rgb(0 0 0 / 0.4) 50%,
+        rgb(0 0 0 / 0.15) 75%,
+        transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        rgb(0 0 0) 0%,
+        rgb(0 0 0 / 0.75) 25%,
+        rgb(0 0 0 / 0.4) 50%,
+        rgb(0 0 0 / 0.15) 75%,
+        transparent 100%
+    );
+}
+
+.tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker--bottom)::before {
+    mask-image: linear-gradient(
+        to top,
+        rgb(0 0 0) 0%,
+        rgb(0 0 0 / 0.75) 25%,
+        rgb(0 0 0 / 0.4) 50%,
+        rgb(0 0 0 / 0.15) 75%,
+        transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+        to top,
+        rgb(0 0 0) 0%,
+        rgb(0 0 0 / 0.75) 25%,
+        rgb(0 0 0 / 0.4) 50%,
+        rgb(0 0 0 / 0.15) 75%,
+        transparent 100%
+    );
+}
+
+/* Stronger blur nearer the edge */
+.tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker)::after {
+    height: 12vh;
+    background-color: color-mix(in srgb, var(--color-white) 90%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker--top)::after {
+    mask-image: linear-gradient(
+        to bottom,
+        rgb(0 0 0) 0%,
+        rgb(0 0 0 / 0.6) 40%,
+        transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        rgb(0 0 0) 0%,
+        rgb(0 0 0 / 0.6) 40%,
+        transparent 100%
+    );
+}
+
+.tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker--bottom)::after {
+    mask-image: linear-gradient(
+        to top,
+        rgb(0 0 0) 0%,
+        rgb(0 0 0 / 0.6) 40%,
+        transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+        to top,
+        rgb(0 0 0) 0%,
+        rgb(0 0 0 / 0.6) 40%,
+        transparent 100%
+    );
+}
+
+.dark .tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker)::before,
+.dark .tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker)::after {
+    background-color: color-mix(in srgb, var(--color-slate-800) 90%, transparent);
+}
+
+.tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker).tido-sticky-stuck::before,
+.tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker).tido-sticky-stuck::after {
+    opacity: 1;
+}
+
 .fi-simple-page .fi-sc-form {
     gap: 2rem !important;
 }

@@ -11,6 +11,7 @@ export default defineConfig({
                 'resources/js/filament-chart-js-plugins.js',
                 'resources/js/drag-drop-upload.js',
                 'resources/js/receipt-upload-handler.js',
+                'resources/js/sticky-blur-veil.js',
             ],
             refresh: true,
         }),
