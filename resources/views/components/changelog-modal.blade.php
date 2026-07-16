@@ -77,7 +77,7 @@
     
     {{-- Modal Card --}}
     <div role="dialog" 
-         aria-modal="true" 
+         :aria-modal="show ? 'true' : 'false'"
          aria-labelledby="changelog-heading" 
          class="relative w-full max-w-4xl mx-auto cursor-default flex flex-col rounded-xl bg-white dark:bg-gray-900 shadow-xl ring-1 ring-gray-950/5 dark:ring-white/10 pointer-events-auto min-h-[90vh] max-h-[90vh] overflow-hidden">
         

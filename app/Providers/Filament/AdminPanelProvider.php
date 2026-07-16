@@ -18,6 +18,7 @@ use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Filament\Resources\Labels\Pages\EditLabel;
 use App\Helpers\GitHelper;
 use App\Http\Middleware\SetUserPreferences;
+use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -28,6 +29,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Assets\Js;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentIcon;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\View\View;
@@ -162,6 +164,16 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications(livewireComponent: DatabaseNotifications::class)
             ->breadcrumbs(false)
             ->spa()
+            ->globalSearchResourceOptIn()
+            ->globalSearchKeyBindings(['alt+k'])
+            ->globalSearchFieldKeyBindingSuffix()
+            ->plugins([
+                GlobalSearchModalPlugin::make()
+                    ->modal(
+                        width: Width::TwoExtraLarge,
+                        hasCloseButton: false,
+                    ),
+            ])
             ->userMenuItems([
                 // sort >= 0 places items after the theme switcher (theme → profile → changelogs → logout)
                 'profile' => fn (Action $action): Action => $action
