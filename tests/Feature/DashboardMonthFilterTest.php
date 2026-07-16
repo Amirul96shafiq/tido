@@ -38,7 +38,9 @@ test('dashboard shows reset month action beside month filter', function () {
         ->assertActionVisible(resetMonthAction());
 
     $this->get(Dashboard::getUrl())
-        ->assertSuccessful();
+        ->assertSuccessful()
+        ->assertSee('tido-sticky-marker--top', false)
+        ->assertSee('tido-sticky-scope', false);
 });
 
 test('reset month action restores current calendar month', function () {
