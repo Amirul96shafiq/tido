@@ -69,7 +69,7 @@ The interface utilizes FilamentPHP's native Tailwind CSS theming engine to achie
 * **Google Drive Push Notifications:** HTTP POST webhook from Google Cloud Pub/Sub enqueues the extraction job.
 
 ### 4.2. 100% Offline AI Extraction
-* Dispatches a queued job (`ExtractReceiptDataJob`) to the local Ollama HTTP API (`OLLAMA_HOST`, default `http://127.0.0.1:11434`) at `/api/generate`. Ollama runs as a native host process (see `docs/ollama-setup.md`), not as a required Docker service.
+* Dispatches a queued job (`ExtractReceiptDataJob`) to the local Ollama HTTP API (`OLLAMA_HOST`, default `http://127.0.0.1:11434`) at `/api/generate`. Ollama runs as a native host process (see `docs/ollama-setup.md`).
 
 ### 4.3. Dynamic Auto-Categorization & Line-Item Splitting
 * AI maps individual line items to predefined database categories. Filament uses a `Repeater` form component for manual review.
@@ -90,8 +90,9 @@ The interface utilizes FilamentPHP's native Tailwind CSS theming engine to achie
 ## 6. Infrastructure, Testing & Monitoring
 
 ### 6.1. Local services & orchestration
-* **Application / DB / queues:** Local development commonly runs PHP on the host (`npm run dev:full`) with SQLite or a local PostgreSQL, and a database or Redis queue. Sail/`compose.yaml` remains optional for containerized app/DB/Redis/Evolution.
-* **Ollama (OCR):** Run as a **native host process** on `http://127.0.0.1:11434` with vision model `qwen2.5vl:7b` (see `docs/ollama-setup.md`). Do not require Docker GPU passthrough for day-to-day receipt parsing.
+* **Application / DB / queues:** Windows host development runs PHP via `npm run dev:full` with SQLite (default) and a `database` queue connection. `queue:listen` handles `default`, `whatsapp`, and `receipts`.
+* **Ollama (OCR):** Native host process on `http://127.0.0.1:11434` with vision model `qwen2.5vl:7b` (see `docs/ollama-setup.md`).
+* **Evolution (WhatsApp):** Native host process on `http://127.0.0.1:8080` via `npm run evolution` (see `docs/evolution-local-windows.md`).
 
 ### 6.2. Queue Monitoring & Error Handling
 * **Laravel Horizon:** Install and configure Horizon to monitor Redis queues. AI parsing is heavily resource-dependent and prone to timeouts.

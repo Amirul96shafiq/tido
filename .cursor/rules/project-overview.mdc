@@ -14,7 +14,7 @@ Personal MYR expense & receipt tracker. Ingest receipts (WhatsApp, Google Drive,
 
 ## Stack (authoritative)
 
-Laravel 12 · Filament v5 · Livewire 4 · Tailwind v4 · PostgreSQL 17 · Redis · Horizon · Ollama · Evolution API · Pest v3 · Sail
+Laravel 12 · Filament v5 · Livewire 4 · Tailwind v4 · SQLite (local) / PostgreSQL 17 (prod) · Ollama · Evolution API · Pest v3 · Windows host dev
 
 Prefer this over older version numbers in `docs/system-architecture.md`.
 
