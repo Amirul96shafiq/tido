@@ -388,7 +388,6 @@ class Login extends BaseLogin
             ->key('login-form-'.$this->loginMode)
             ->extraAttributes([
                 'class' => 'tido-login-auth-panel',
-                'wire:transition' => 'tido-login-auth',
             ])
             ->livewireSubmitHandler(fn (): string => $this->loginMode === 'phone' ? 'sendOtp' : 'authenticate')
             ->footer([

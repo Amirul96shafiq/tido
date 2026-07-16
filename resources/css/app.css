@@ -448,26 +448,9 @@ html.dark::-webkit-scrollbar-thumb:hover,
     transition: color 220ms ease;
 }
 
-/* Soft cross-fade when switching OTP ↔ email/password */
-.fi-simple-page.tido-login-mode-leave .fi-simple-header-heading,
-.fi-simple-page.tido-login-mode-leave .fi-simple-header-subheading,
-.fi-simple-page.tido-login-mode-leave .tido-login-auth-panel,
-.fi-simple-page.tido-login-mode-leave .fi-sc-actions:not(.fi-sticky) {
-    opacity: 0;
-    transform: translateY(0.25rem);
-    transition:
-        opacity 160ms ease,
-        transform 160ms ease;
-}
-
-.fi-simple-page.tido-login-mode-enter .fi-simple-header-heading,
-.fi-simple-page.tido-login-mode-enter .fi-simple-header-subheading,
-.fi-simple-page.tido-login-mode-enter .tido-login-auth-panel,
-.fi-simple-page.tido-login-mode-enter .fi-sc-actions:not(.fi-sticky) {
-    animation: tido-login-panel-in 260ms ease-out;
-}
-
+/* Login panel enter animation (no leave soft-switch — Livewire remorphs .fi-simple-page) */
 .tido-login-auth-panel {
+    opacity: 1;
     animation: tido-login-panel-in 260ms ease-out;
 }
 
@@ -486,26 +469,12 @@ html.dark::-webkit-scrollbar-thumb:hover,
 @media (prefers-reduced-motion: reduce) {
     .tido-auth-login-tabs .fi-tabs-item,
     .tido-auth-login-tabs .fi-tabs-item .fi-tabs-item-label,
-    .fi-simple-page.tido-login-mode-leave .fi-simple-header-heading,
-    .fi-simple-page.tido-login-mode-leave .fi-simple-header-subheading,
-    .fi-simple-page.tido-login-mode-leave .tido-login-auth-panel,
-    .fi-simple-page.tido-login-mode-leave .fi-sc-actions:not(.fi-sticky),
-    .fi-simple-page.tido-login-mode-enter .fi-simple-header-heading,
-    .fi-simple-page.tido-login-mode-enter .fi-simple-header-subheading,
-    .fi-simple-page.tido-login-mode-enter .tido-login-auth-panel,
-    .fi-simple-page.tido-login-mode-enter .fi-sc-actions:not(.fi-sticky),
     .tido-login-auth-panel {
         animation: none !important;
         transition: none !important;
         opacity: 1 !important;
         transform: none !important;
     }
-}
-
-::view-transition-old(tido-login-auth),
-::view-transition-new(tido-login-auth) {
-    animation-duration: 240ms;
-    animation-timing-function: ease;
 }
 
 /* Login info toast above logo */
