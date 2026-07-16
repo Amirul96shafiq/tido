@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\ReceiptUploadPage;
+use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Models\Invoice;
 use App\Models\User;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -94,4 +96,28 @@ test('upload button shows loading spinner while saving', function () {
         ->assertSeeHtml('wire:loading.delay')
         ->assertSeeHtml('M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z')
         ->assertSee('Upload and Start AI Extraction');
+});
+
+test('receipt upload page edit action links to invoice edit in a new tab', function () {
+    $invoice = Invoice::factory()->create();
+
+    $editUrl = InvoiceResource::getUrl('edit', ['record' => $invoice]);
+
+    $table = Livewire::test(ReceiptUploadPage::class)
+        ->assertSuccessful()
+        ->assertActionExists(TestAction::make('edit')->table($invoice))
+        ->assertActionHasUrl(TestAction::make('edit')->table($invoice), $editUrl)
+        ->instance()
+        ->getTable();
+
+    $action = $table->getAction('edit');
+
+    expect($action)->not->toBeNull()
+        ->and($action->isIconButton())->toBeTrue()
+        ->and($action->getTooltip())->toBe($action->getLabel());
+
+    Livewire::test(ReceiptUploadPage::class)
+        ->assertSuccessful()
+        ->assertSeeHtml('target="_blank"')
+        ->assertSeeHtml(e($editUrl));
 });
