@@ -44,5 +44,7 @@ test('spending by label widget renders with enriched chart data', function () {
 test('spending by label widget renders empty state', function () {
     Livewire::test(SpendingByLabel::class)
         ->assertSuccessful()
-        ->assertSee('No Expenses');
+        ->assertSee('No expenses')
+        ->assertSee('No label spending recorded for this month.')
+        ->assertSee('Upload Receipts');
 });
