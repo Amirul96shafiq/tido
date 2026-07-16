@@ -12,8 +12,10 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Label;
 use App\Models\User;
+use CharrafiMed\GlobalSearchModal\Livewire\GlobalSearchModal;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -129,4 +131,18 @@ test('backup global search finds filename and links to index', function () {
 
     expect($results)->toHaveCount(1)
         ->and($results->first()->url)->toBe(BackupResource::getUrl('index'));
+});
+
+test('global search modal section headers use panel primary color', function () {
+    $this->actingAs(User::factory()->create());
+
+    Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+    $html = Livewire::test(GlobalSearchModal::class)->html();
+
+    expect($html)
+        ->toContain('text-primary-600')
+        ->toContain('text-primary-500')
+        ->not->toContain('text-violet-600')
+        ->not->toContain('text-violet-500');
 });
