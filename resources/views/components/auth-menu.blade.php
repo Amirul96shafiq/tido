@@ -1,19 +1,24 @@
-<div class="fi-auth-menu fixed top-4 end-4 z-50">
+<div class="fi-auth-menu fixed top-4 inset-e-4 z-50">
     <x-filament::dropdown placement="bottom-end" teleport>
         <x-slot name="trigger">
             <button
-                aria-label="{{ __('filament-panels::layout.actions.open_user_menu.label') }}"
+                aria-label="Auth menu"
                 type="button"
                 class="fi-auth-menu-trigger fi-user-menu-trigger"
                 x-tooltip="{
-                    content: @js(__('filament-panels::layout.actions.open_user_menu.label')),
+                    content: @js('Auth menu'),
                     theme: $store.theme,
                 }"
             >
                 <img
-                    src="{{ asset('images/favicon.png') }}"
+                    src="{{ asset('images/tido-auth-menu-icon-d.png') }}"
                     alt="tido"
-                    class="size-8 rounded-lg"
+                    class="size-8 rounded-full dark:hidden"
+                />
+                <img
+                    src="{{ asset('images/tido-auth-menu-icon-l.png') }}"
+                    alt="tido"
+                    class="size-8 rounded-full hidden dark:block"
                 />
             </button>
         </x-slot>
