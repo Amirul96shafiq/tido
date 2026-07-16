@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Budgets\Tables;
 
+use App\Filament\Resources\Budgets\BudgetResource;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -103,6 +106,16 @@ class BudgetsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+            ])
+            ->emptyStateHeading('No budgets yet')
+            ->emptyStateDescription('Create a budget to track spending against a limit.')
+            ->emptyStateIcon('heroicon-o-banknotes')
+            ->emptyStateActions([
+                Action::make('create')
+                    ->label('New budget')
+                    ->icon(Heroicon::Plus)
+                    ->url(BudgetResource::getUrl('create'))
+                    ->button(),
             ]);
     }
 }

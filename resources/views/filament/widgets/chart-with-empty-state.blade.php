@@ -90,6 +90,7 @@
                             :href="\App\Filament\Pages\ReceiptUploadPage::getUrl()"
                             tag="a"
                             color="primary"
+                            icon="heroicon-m-plus"
                         >
                             Upload Receipts
                         </x-filament::button>

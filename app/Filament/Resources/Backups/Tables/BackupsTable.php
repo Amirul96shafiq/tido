@@ -15,6 +15,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
@@ -119,6 +120,35 @@ class BackupsTable
                         }
 
                         $backupService->delete($record);
+                    }),
+            ])
+            ->emptyStateHeading('No backups yet')
+            ->emptyStateDescription('Create a backup to save a restore point.')
+            ->emptyStateIcon('heroicon-o-circle-stack')
+            ->emptyStateActions([
+                Action::make('createBackup')
+                    ->label('Create backup')
+                    ->icon(Heroicon::Plus)
+                    ->button()
+                    ->action(function (BackupService $backupService, BackupNotificationService $backupNotificationService): void {
+                        $user = auth()->user();
+
+                        if (! $user instanceof User) {
+                            return;
+                        }
+
+                        $backup = $backupService->create(
+                            BackupType::Manual,
+                            $user,
+                        );
+
+                        $backupNotificationService->notifyCreated($user, $backup);
+
+                        Notification::make()
+                            ->title('Backup created')
+                            ->body('A new database backup has been saved.')
+                            ->success()
+                            ->send();
                     }),
             ]);
     }
