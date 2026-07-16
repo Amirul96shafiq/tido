@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Invoices\Tables;
 
 use App\Enums\PaymentMethod;
+use App\Filament\Pages\ReceiptUploadPage;
 use App\Models\Invoice;
 use App\Services\ReceiptReparseService;
 use Filament\Actions\Action;
@@ -168,6 +169,16 @@ class InvoicesTable
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                 ]),
+            ])
+            ->emptyStateHeading('No invoices yet')
+            ->emptyStateDescription('Upload a receipt or add an invoice to start tracking spending.')
+            ->emptyStateIcon('heroicon-o-document-text')
+            ->emptyStateActions([
+                Action::make('uploadReceipts')
+                    ->label('Upload Receipts')
+                    ->icon(Heroicon::Plus)
+                    ->url(ReceiptUploadPage::getUrl())
+                    ->button(),
             ]);
     }
 }
