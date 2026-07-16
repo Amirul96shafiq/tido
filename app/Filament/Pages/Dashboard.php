@@ -12,7 +12,10 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
+use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\VerticalAlignment;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Auth;
 
@@ -123,41 +126,63 @@ class Dashboard extends BaseDashboard
         return $schema
             ->columns(1)
             ->components([
-                Select::make('month')
-                    ->label('Month')
-                    ->options(DashboardMonthPeriod::options())
-                    ->searchable()
-                    ->native(false)
-                    ->required()
-                    ->selectablePlaceholder(false)
-                    ->prefixAction(
-                        Action::make('previousMonth')
-                            ->label('Previous month')
-                            ->tooltip('Previous month')
-                            ->icon('heroicon-m-chevron-left')
-                            ->iconButton()
-                            ->action(function (): void {
-                                $this->shiftDashboardMonth(-1);
-                            }),
-                        isInline: true,
-                    )
-                    ->suffixAction(
-                        Action::make('nextMonth')
-                            ->label('Next month')
-                            ->tooltip('Next month')
-                            ->icon('heroicon-m-chevron-right')
-                            ->iconButton()
+                Flex::make([
+                    Select::make('month')
+                        ->label('Month')
+                        ->options(DashboardMonthPeriod::options())
+                        ->searchable()
+                        ->native(false)
+                        ->required()
+                        ->selectablePlaceholder(false)
+                        ->grow(false)
+                        ->prefixAction(
+                            Action::make('previousMonth')
+                                ->label('Previous month')
+                                ->tooltip('Previous month')
+                                ->icon('heroicon-m-chevron-left')
+                                ->iconButton()
+                                ->action(function (): void {
+                                    $this->shiftDashboardMonth(-1);
+                                }),
+                            isInline: true,
+                        )
+                        ->suffixAction(
+                            Action::make('nextMonth')
+                                ->label('Next month')
+                                ->tooltip('Next month')
+                                ->icon('heroicon-m-chevron-right')
+                                ->iconButton()
+                                ->disabled(fn (): bool => DashboardMonthPeriod::isCurrentMonth(
+                                    DashboardMonthPeriod::fromFilters($this->filters),
+                                ))
+                                ->action(function (): void {
+                                    $this->shiftDashboardMonth(1);
+                                }),
+                            isInline: true,
+                        )
+                        ->extraFieldWrapperAttributes([
+                            'class' => 'fi-dashboard-month-filter',
+                        ]),
+                    Actions::make([
+                        Action::make('resetMonth')
+                            ->label('Reset')
+                            ->tooltip('Reset')
+                            ->icon('heroicon-o-arrow-path')
+                            ->button()
+                            ->hiddenLabel()
+                            ->color('primary')
                             ->disabled(fn (): bool => DashboardMonthPeriod::isCurrentMonth(
                                 DashboardMonthPeriod::fromFilters($this->filters),
                             ))
                             ->action(function (): void {
-                                $this->shiftDashboardMonth(1);
+                                $this->resetDashboardMonth();
                             }),
-                        isInline: true,
-                    )
-                    ->extraFieldWrapperAttributes([
-                        'class' => 'fi-dashboard-month-filter w-full max-w-[18rem]',
-                    ]),
+                    ])
+                        ->key('resetMonthActions')
+                        ->grow(false)
+                        ->fullWidth(false)
+                        ->verticalAlignment(VerticalAlignment::End),
+                ])->extraAttributes(['class' => 'items-end gap-5']),
             ]);
     }
 
@@ -168,6 +193,15 @@ class Dashboard extends BaseDashboard
                 ->copy()
                 ->addMonths($months)
                 ->format('Y-m'),
+        ];
+
+        $this->updatedFilters();
+    }
+
+    protected function resetDashboardMonth(): void
+    {
+        $this->filters = [
+            'month' => now()->format('Y-m'),
         ];
 
         $this->updatedFilters();
