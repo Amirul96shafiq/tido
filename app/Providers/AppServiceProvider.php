@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Helpers\MoneyDisplay;
 use App\Helpers\UserDateDisplay;
+use App\Http\Responses\LogoutResponse;
 use App\Listeners\RegisterScheduledBackupCatalog;
 use App\Models\Invoice;
 use App\Models\User;
@@ -13,6 +14,7 @@ use App\Observers\InvoiceObserver;
 use App\View\Components\ButtonComponent;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Auth\Http\Responses\Contracts\LogoutResponse as LogoutResponseContract;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -41,6 +43,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(FilamentButtonComponent::class, ButtonComponent::class);
+        $this->app->bind(LogoutResponseContract::class, LogoutResponse::class);
     }
 
     /**
