@@ -179,6 +179,9 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                 SelectFilter::make('payment_method')
                     ->options(PaymentMethod::class)
                     ->searchable(),
-            ]);
+            ])
+            ->emptyStateHeading('No receipts yet')
+            ->emptyStateDescription('Upload a receipt with the form above to start tracking spending.')
+            ->emptyStateIcon('heroicon-o-arrow-up-tray');
     }
 }

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Labels\Tables;
 
 use App\Enums\LabelType;
+use App\Filament\Resources\Labels\LabelResource;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -12,6 +14,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ColorColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -92,6 +95,16 @@ class LabelsTable
                         }),
                     RestoreBulkAction::make(),
                 ]),
+            ])
+            ->emptyStateHeading('No labels yet')
+            ->emptyStateDescription('Create a label to categorize expenses.')
+            ->emptyStateIcon('heroicon-o-tag')
+            ->emptyStateActions([
+                Action::make('create')
+                    ->label('New label')
+                    ->icon(Heroicon::Plus)
+                    ->url(LabelResource::getUrl('create'))
+                    ->button(),
             ]);
     }
 }

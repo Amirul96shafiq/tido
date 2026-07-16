@@ -731,6 +731,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
             ])
             ->emptyStateHeading('No connection events yet')
             ->emptyStateDescription('Connect, disconnect, or log out to start the history.')
+            ->emptyStateIcon('heroicon-o-signal')
             ->paginated([10, 25, 50]);
     }
 

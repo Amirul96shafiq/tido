@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Filament\Widgets;
 
 use App\Enums\PaymentMethod;
+use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Helpers\FilenameDisplay;
 use App\Models\Invoice;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -134,6 +137,16 @@ class RecentReceipts extends BaseWidget
                 SelectFilter::make('payment_method')
                     ->options(PaymentMethod::class)
                     ->searchable(),
+            ])
+            ->emptyStateHeading('No receipts')
+            ->emptyStateDescription('No receipts recorded for this month.')
+            ->emptyStateIcon('heroicon-o-receipt-percent')
+            ->emptyStateActions([
+                Action::make('uploadReceipts')
+                    ->label('Upload Receipts')
+                    ->icon(Heroicon::Plus)
+                    ->url(ReceiptUploadPage::getUrl())
+                    ->button(),
             ]);
     }
 }
