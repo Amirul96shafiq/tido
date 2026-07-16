@@ -1,8 +1,6 @@
-# Evolution API on Windows (no Docker)
+# Evolution API (WhatsApp) — canonical setup for tido
 
-Use this guide when Docker/WSL is unavailable. Run **tido** and **Evolution** as two separate processes on the host (Approach B).
-
-For Sail/Docker instead, see [evolution-api-setup.md](evolution-api-setup.md).
+Run **tido** and **Evolution** as two separate processes on the Windows host.
 
 ## Architecture (local)
 
@@ -89,7 +87,7 @@ $env:EVOLUTION_PATH="g:\projects\evolution-api"; npm run evolution
 
 ## Step 2: Point tido at host Evolution
 
-In tido’s `.env` (host PHP / `npm run dev:full`, **not** Sail):
+In tido's `.env`:
 
 ```env
 EVOLUTION_API_URL=http://127.0.0.1:8080
@@ -100,7 +98,7 @@ PERSONAL_WHATSAPP_NUMBER=601116330705
 
 Use your real number (digits only). Admin `User.phone` must match (Profile or tinker).
 
-`http://evolution-api:8080` only works **inside** Docker. Host tido must use `127.0.0.1`.
+Use `http://127.0.0.1:8080` — the default in `config/services.php` and `.env.example`.
 
 Restart `npm run dev:full` after changing `.env` (or clear config cache if you use it).
 
@@ -185,6 +183,6 @@ If Evolution is down, use **Sign in with email & password**.
 | Connection refused | Wrong port; Evolution not started |
 | OTP not received | Instance CONNECTED? Number matches `User.phone`? |
 | Webhook never fires | URL must be `http://127.0.0.1:2000/...` while using `artisan serve` |
-| Sail URL left in `.env` | Replace `http://evolution-api:8080` with `http://127.0.0.1:8080` for host |
+| Wrong Evolution URL in `.env` | Use `http://127.0.0.1:8080` |
 
-Production later: run tido + Evolution as separate managed services (e.g. Docker Compose on a Linux VPS), not `concurrently` on a desktop.
+Production later: run tido + Evolution as separate managed services on a Linux VPS, not `concurrently` on a desktop.

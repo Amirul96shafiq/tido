@@ -42,7 +42,7 @@ return [
     ],
 
     'evolution' => [
-        'api_url' => env('EVOLUTION_API_URL', 'http://evolution-api:8080'),
+        'api_url' => env('EVOLUTION_API_URL', 'http://127.0.0.1:8080'),
         'api_key' => env('EVOLUTION_API_KEY', 'tido-secret-key'),
         'instance_name' => env('EVOLUTION_INSTANCE_NAME', 'tido'),
         // Primary: panel access, OTP, outbound alerts/ping (single number).
