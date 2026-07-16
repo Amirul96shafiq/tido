@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Widgets;
 
 use App\Filament\Support\DashboardWidgetHeights;
+use App\Filament\Widgets\Concerns\HasChartEmptyState;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
@@ -12,7 +13,13 @@ use Illuminate\Contracts\Support\Htmlable;
 
 class SpendingByLabel extends ChartWidget
 {
+    use HasChartEmptyState;
     use InteractsWithDashboardMonth;
+
+    /**
+     * @var view-string
+     */
+    protected string $view = 'filament.widgets.chart-with-empty-state';
 
     protected static ?int $sort = 3;
 
@@ -35,29 +42,34 @@ class SpendingByLabel extends ChartWidget
         return 'doughnut';
     }
 
+    protected function isChartEmpty(): bool
+    {
+        return $this->analytics()->spentByLabel()->isEmpty();
+    }
+
+    protected function getEmptyStateHeading(): string
+    {
+        return 'No expenses';
+    }
+
+    protected function getEmptyStateDescription(): string
+    {
+        return 'No label spending recorded for this month.';
+    }
+
+    protected function getEmptyStateIcon(): string
+    {
+        return 'heroicon-o-tag';
+    }
+
     protected function getData(): array
     {
         $spending = $this->analytics()->spentByLabel();
 
         if ($spending->isEmpty()) {
             return [
-                'datasets' => [
-                    [
-                        'label' => 'Spent (RM)',
-                        'data' => [0],
-                        'backgroundColor' => ['#e5e7eb'],
-                        'receiptCounts' => [0],
-                        'ranks' => [null],
-                        'labelCount' => 0,
-                        'momDeltas' => [null],
-                        'momPercents' => [null],
-                        'topMerchantNames' => [null],
-                        'topMerchantTotals' => [null],
-                        'priorMonthLabel' => $this->previousMonthLabel(),
-                        'isEmpty' => true,
-                    ],
-                ],
-                'labels' => ['No Expenses'],
+                'datasets' => [],
+                'labels' => [],
             ];
         }
 

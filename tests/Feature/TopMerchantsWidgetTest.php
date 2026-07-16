@@ -72,3 +72,11 @@ test('top merchants widget shows receipt count on axis labels', function () {
         ->assertSee('Grocery Ma... (2)')
         ->assertDontSee('saved this month');
 });
+
+test('top merchants widget renders empty state', function () {
+    Livewire::test(TopMerchants::class)
+        ->assertSuccessful()
+        ->assertSee('No merchants')
+        ->assertSee('No merchant spending recorded for this month.')
+        ->assertSee('Upload Receipts');
+});
