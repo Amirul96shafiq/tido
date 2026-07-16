@@ -214,6 +214,12 @@ html.dark::-webkit-scrollbar-thumb:hover,
     @apply justify-start sm:justify-end;
 }
 
+/* Dashboard month Select — width lives here; arbitrary Tailwind in PHP is not scanned */
+.fi-dashboard-month-filter {
+    width: 18rem;
+    max-width: 100%;
+}
+
 .fi-simple-page .fi-sc-form {
     gap: 2rem !important;
 }
