@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-tido is a localized, single-tenant MYR expense tracker built for frictionless financial logging. Ingest receipts autonomously via WhatsApp webhooks or scheduled Google Drive syncs (coming soon!), and bypass third-party APIs completely with on-device OCR parsing powered by Ollama (minicpm-v) (coming soon!). Manage parsed line items as labels, track strict budgets, and review analytics instantly within a streamlined Filament dashboard.
+tido is a localized, single-tenant MYR expense tracker built for frictionless financial logging. Ingest receipts autonomously via WhatsApp webhooks or scheduled Google Drive syncs (coming soon!), and bypass third-party APIs completely with on-device OCR parsing powered by Ollama (`qwen2.5vl:7b`) (coming soon!). Manage parsed line items as labels, track strict budgets, and review analytics instantly within a streamlined Filament dashboard.
 </p>
 
 ## Table of Contents
@@ -36,7 +36,7 @@ tido is a localized, single-tenant MYR expense tracker built for frictionless fi
 ## Features
 
 - Receipt ingestion from WhatsApp (Evolution API), Google Drive **scheduled** sync (every 15m), and admin upload
-- Local OCR via Ollama (`minicpm-v`) with JSON-formatted extraction
+- Local OCR via Ollama (`qwen2.5vl:7b`) with JSON-formatted extraction
 - Line-item **Labels**, duplicate detection (`receipt_hash`), and manual review
 - Per-label budgets with WhatsApp threshold alerts
 - Month-scoped dashboard analytics and spending forecast
@@ -52,12 +52,12 @@ tido is a localized, single-tenant MYR expense tracker built for frictionless fi
 | Admin UI | Filament v5, Livewire 4, Tailwind CSS v4 |
 | Database | PostgreSQL 17 (Sail); SQLite for quick local |
 | Queues | Redis + Laravel Horizon (`default`, `whatsapp`, `receipts`) |
-| OCR | Ollama (`minicpm-v`) |
+| OCR | Ollama (`qwen2.5vl:7b`, native host) |
 | WhatsApp | Evolution API |
 | Drive | `masbug/flysystem-google-drive-ext` |
 | Backups / audit | Spatie Laravel Backup, Spatie Activity Log |
 | Tests | Pest v3 |
-| Dev env | Laravel Sail / Docker Compose |
+| Dev env | Host PHP (`npm run dev:full`); Sail optional for DB/Redis |
 
 ## Architecture
 
@@ -83,10 +83,11 @@ Full blueprint: [docs/system-architecture.md](docs/system-architecture.md).
 ### Prerequisites
 
 - PHP 8.2+, Composer, Node.js
-- Docker Desktop (for Sail stack: PostgreSQL, Redis, Ollama, Evolution)
-- NVIDIA GPU + Container Toolkit recommended for Ollama OCR
+- [Ollama for Windows](https://ollama.com/download) (native host OCR — see [docs/ollama-setup.md](docs/ollama-setup.md))
+- Optional: Docker Desktop if using Sail for PostgreSQL / Redis / Evolution
+- NVIDIA GPU recommended for faster Ollama vision parsing
 
-### Sail (recommended)
+### Sail (optional)
 
 ```bash
 composer install
@@ -97,7 +98,7 @@ cp .env.example .env
 
 One-shot alternative (sqlite defaults unless `.env` is adjusted first): `composer setup`.
 
-Configure Sail in `.env` (defaults in `.env.example` use sqlite / database queue):
+Configure Sail in `.env` when using containers for DB/queue/Evolution (OCR still prefers host Ollama):
 
 ```env
 DB_CONNECTION=pgsql
@@ -108,7 +109,7 @@ DB_PASSWORD=password
 QUEUE_CONNECTION=redis
 REDIS_HOST=redis
 EVOLUTION_API_URL=http://evolution-api:8080
-OLLAMA_HOST=http://ollama:11434
+OLLAMA_HOST=http://127.0.0.1:11434
 ```
 
 Then migrate, seed, build assets, and start workers + scheduler:
@@ -123,13 +124,14 @@ Then migrate, seed, build assets, and start workers + scheduler:
 
 Horizon listens on queues `default`, `whatsapp`, and `receipts`. Without `schedule:work` (or a cron entry for `schedule:run`), Drive sync and daily backups will not run.
 
-Pull the vision model (once):
+Install Ollama on the host and pull the vision model (once) — do **not** use Docker for Ollama:
 
 ```bash
-docker exec -it tido-ollama-1 ollama pull qwen2.5vl:7b
-# or on host: ollama pull qwen2.5vl:7b
-curl http://localhost:11434/api/tags
+ollama pull qwen2.5vl:7b
+curl http://127.0.0.1:11434/api/tags
 ```
+
+Full guide: [docs/ollama-setup.md](docs/ollama-setup.md).
 
 Default seeded login: `admin@tido.local` / `password`.
 
@@ -147,17 +149,18 @@ Full guide: [docs/evolution-api-setup.md](docs/evolution-api-setup.md).
 <details>
 <summary>Windows host (no Docker)</summary>
 
-| Terminal | Command |
-|----------|---------|
-| 1 | `npm run dev:full` — Vite + `artisan serve --port=2000` + queue listener on `default,whatsapp,receipts` |
-| 2 | `npm run evolution` — Evolution on `http://127.0.0.1:8080` |
-| 3 (optional) | `php artisan schedule:work` — Drive sync + backups |
+| Process | Command / notes |
+|---------|-----------------|
+| Ollama | Windows installer; API at `http://127.0.0.1:11434` — [docs/ollama-setup.md](docs/ollama-setup.md) |
+| Terminal 1 | `npm run dev:full` — Vite + `artisan serve --port=2000` + queue listener on `default,whatsapp,receipts` |
+| Terminal 2 | `npm run evolution` — Evolution on `http://127.0.0.1:8080` |
+| Terminal 3 (optional) | `php artisan schedule:work` — Drive sync + backups |
 
 Or all-in-one: `npm run dev:whatsapp`. Webhook URL: `http://127.0.0.1:2000/api/webhooks/whatsapp`.
 
 Also available: `composer run dev` (serve + queue + Pail + Vite, no Evolution).
 
-See [docs/evolution-local-windows.md](docs/evolution-local-windows.md).
+See [docs/evolution-local-windows.md](docs/evolution-local-windows.md) and [docs/ollama-setup.md](docs/ollama-setup.md).
 
 </details>
 
@@ -204,8 +207,9 @@ Copy `.env.example` and set values for your environment. Notable groups:
 | `EVOLUTION_INSTANCE_NAME` | Instance name (default `tido`) |
 | `PERSONAL_WHATSAPP_NUMBER` | Primary number: OTP login, panel identity, budget alerts, seeded admin phone |
 | `PERSONAL_WHATSAPP_EXTRA_NUMBERS` | Extra numbers for receipt import / bot only (no panel OTP) |
-| `OLLAMA_HOST` | Ollama HTTP API (default `http://ollama:11434`) |
+| `OLLAMA_HOST` | Ollama HTTP API (default `http://127.0.0.1:11434`) |
 | `OLLAMA_MODEL` | Vision model (default `qwen2.5vl:7b`) |
+| `OLLAMA_TIMEOUT` | Ollama HTTP timeout seconds (default `120`) |
 | `GOOGLE_DRIVE_CLIENT_ID` | Drive OAuth client |
 | `GOOGLE_DRIVE_CLIENT_SECRET` | Drive OAuth secret |
 | `GOOGLE_DRIVE_REFRESH_TOKEN` | Drive refresh token |
@@ -231,7 +235,7 @@ Deep docs live under [`docs/`](docs/README.md):
 |-----|---------|
 | [agent-onboarding.md](docs/agent-onboarding.md) | Product map for agents and contributors |
 | [system-architecture.md](docs/system-architecture.md) | Architecture blueprint |
-| [ollama-setup.md](docs/ollama-setup.md) | Local GPU Ollama / MiniCPM-V |
+| [ollama-setup.md](docs/ollama-setup.md) | Native host Ollama / qwen2.5vl:7b (no Docker) |
 | [evolution-api-setup.md](docs/evolution-api-setup.md) | Evolution instance + webhook (Sail) |
 | [evolution-local-windows.md](docs/evolution-local-windows.md) | Evolution on Windows host |
 | [google-drive-setup.md](docs/google-drive-setup.md) | Drive folder sync credentials |

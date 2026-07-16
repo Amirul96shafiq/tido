@@ -5,7 +5,7 @@
 | [../README.md](../README.md) | Humans (GitHub) | Product overview, install, usage, license |
 | [agent-onboarding.md](agent-onboarding.md) | Cursor / AI agents | How the app works and how to code for it |
 | [system-architecture.md](system-architecture.md) | Agents + humans | Product blueprint; do not contradict without warning |
-| [ollama-setup.md](ollama-setup.md) | Ops | Local GPU Ollama / MiniCPM-V |
+| [ollama-setup.md](ollama-setup.md) | Ops | Native host Ollama / qwen2.5vl:7b (no Docker) |
 | [evolution-api-setup.md](evolution-api-setup.md) | Ops | WhatsApp Evolution instance + webhook |
 | [google-drive-setup.md](google-drive-setup.md) | Ops | Drive folder sync credentials |
 | [ui-empty-states.md](ui-empty-states.md) | Agents + humans | Illustrated empty panels (email-change expiry pattern) |
