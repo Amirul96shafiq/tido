@@ -61,6 +61,7 @@ Do **not** replace Filament’s built-in database-notifications empty modal (no 
 |---------|------|
 | Database notifications — filtered/search empty | `resources/views/filament/livewire/database-notifications.blade.php` |
 | Email change link expired | `resources/views/errors/email-change-expired.blade.php` (standalone HTML; keep in sync visually) |
+| Dashboard chart widgets (empty month) | `resources/views/filament/widgets/chart-with-empty-state.blade.php` + `HasChartEmptyState` — Spending by Label, Top Merchants, Payment Method, Receipts by Source (CTA: Upload Receipts) |
 
 ## Agent checklist
 

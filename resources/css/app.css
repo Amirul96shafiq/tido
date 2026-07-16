@@ -1428,6 +1428,21 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply w-full justify-center;
 }
 
+/* Chart widget empty panels: static icon (no pulse ring). */
+.fi-wi-chart-empty-panel .fi-no-empty-panel-icon-ctn::after {
+    display: none;
+    animation: none;
+}
+
+/* Chart CTAs: size to label — do not stretch to card width (max-w-xs is ~card-wide on xl/4 widgets). */
+.fi-wi-chart-empty-panel .fi-no-empty-panel-actions {
+    @apply w-auto;
+}
+
+.fi-wi-chart-empty-panel .fi-no-empty-panel-actions .fi-btn {
+    @apply w-auto;
+}
+
 .fi-no-database .fi-no-database-filters-panel {
     @apply bg-gray-50 dark:bg-white/5;
 }

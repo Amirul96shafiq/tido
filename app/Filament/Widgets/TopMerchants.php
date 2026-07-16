@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Widgets;
 
 use App\Filament\Support\DashboardWidgetHeights;
+use App\Filament\Widgets\Concerns\HasChartEmptyState;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
@@ -13,7 +14,13 @@ use Illuminate\Support\Str;
 
 class TopMerchants extends ChartWidget
 {
+    use HasChartEmptyState;
     use InteractsWithDashboardMonth;
+
+    /**
+     * @var view-string
+     */
+    protected string $view = 'filament.widgets.chart-with-empty-state';
 
     private const LABEL_LIMIT = 10;
 
@@ -36,9 +43,37 @@ class TopMerchants extends ChartWidget
         return 'bar';
     }
 
+    protected function isChartEmpty(): bool
+    {
+        return $this->analytics()->topMerchants()->isEmpty();
+    }
+
+    protected function getEmptyStateHeading(): string
+    {
+        return 'No merchants';
+    }
+
+    protected function getEmptyStateDescription(): string
+    {
+        return 'No merchant spending recorded for this month.';
+    }
+
+    protected function getEmptyStateIcon(): string
+    {
+        return 'heroicon-o-building-storefront';
+    }
+
     protected function getData(): array
     {
         $merchants = $this->analytics()->topMerchants();
+
+        if ($merchants->isEmpty()) {
+            return [
+                'datasets' => [],
+                'labels' => [],
+            ];
+        }
+
         $names = $merchants->pluck('merchant_name');
 
         return [
