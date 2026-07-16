@@ -12,12 +12,12 @@
 </p>
 
 <p align="center">
-  <strong>Keep it <u>ti</u>dy. Get it <u>do</u>ne.</strong><br>
-  Where <u>ti</u>dy preparation meets <u>do</u>ne work, then <u>tido</u> (sleep)
+  <strong>Keep it <ins>ti</ins>dy. Get it <ins>do</ins>ne.</strong><br>
+  Where <ins>ti</ins>dy preparation meets <ins>do</ins>ne work, then <ins>tido</ins> (sleep)
 </p>
 
 <p align="center">
-  <span style="font-size: 10px;"><em>// <u>tido</u> is derived from how people in Terengganu (one of the East state of Malaysia) say and write "tidur", which translates to "sleep" in English.</em></span>
+  <sup><sub><em>// <ins>tido</ins> is derived from how people in Terengganu (one of the East state of Malaysia) say and write "tidur", which translates to "sleep" in English.</em></sub></sup>
 </p>
 
 <p align="center">
