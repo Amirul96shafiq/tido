@@ -12,12 +12,16 @@
 </p>
 
 <p align="center">
-  <strong>Keep it tidy. Get it done.</strong><br>
-  Where tidy preparation meets finished work, then tido (sleep)
+  <strong>Keep it <u>ti</u>dy. Get it <u>do</u>ne.</strong><br>
+  Where <u>ti</u>dy preparation meets <u>do</u>ne work, then <u>tido</u> (sleep)
 </p>
 
 <p align="center">
-tido is a localized, single-tenant MYR expense tracker built for frictionless financial logging. Ingest receipts autonomously via WhatsApp webhooks or scheduled Google Drive syncs (coming soon!), and bypass third-party APIs completely with on-device OCR parsing powered by Ollama (`qwen2.5vl:7b`) (coming soon!). Manage parsed line items as labels, track strict budgets, and review analytics instantly within a streamlined Filament dashboard.
+  <small><i>// <u>tido</u> is derived from how people in Terengganu, Malaysia say and write tidur, which translates to "sleep" in English.</i></small>
+</p>
+
+<p align="center">
+tido is a localized, single-tenant MYR expense tracker built for frictionless financial logging. Ingest receipts autonomously via WhatsApp webhooks or scheduled Google Drive syncs (coming soon!), and bypass third-party APIs completely with on-device OCR parsing powered by Ollama (`qwen2.5vl:7b`). Manage parsed line items as labels, track strict budgets, and review analytics instantly within a streamlined Filament dashboard.
 </p>
 
 ## Table of Contents
