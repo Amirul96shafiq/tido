@@ -51,7 +51,8 @@ class InvoicesTable
 
                 TextColumn::make('date_time')
                     ->label('Buy date')
-                    ->dateTime()
+                    ->since()
+                    ->dateTimeTooltip()
                     ->sortable(),
 
                 TextColumn::make('total_amount')
