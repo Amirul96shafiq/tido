@@ -1443,6 +1443,38 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply w-auto;
 }
 
+/*
+ * Filament table empty states — match illustrated panel language
+ * (static icon well, bold heading, short description, content-sized CTA).
+ */
+.fi-ta-empty-state .fi-ta-empty-state-content {
+    @apply max-w-sm;
+}
+
+.fi-ta-empty-state .fi-ta-empty-state-icon-bg {
+    @apply mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gray-500/10 p-0 dark:bg-slate-500/10;
+
+    & .fi-icon {
+        @apply h-10 w-10 text-gray-500 dark:text-gray-400;
+    }
+}
+
+.fi-ta-empty-state .fi-ta-empty-state-heading {
+    @apply mb-2 text-xl font-bold tracking-tight text-gray-950 dark:text-white;
+}
+
+.fi-ta-empty-state .fi-ta-empty-state-description {
+    @apply mt-0 mb-6 max-w-sm text-sm leading-relaxed text-gray-500 dark:text-gray-400;
+}
+
+.fi-ta-empty-state .fi-ta-actions {
+    @apply mt-0;
+
+    & .fi-btn {
+        @apply w-auto;
+    }
+}
+
 .fi-no-database .fi-no-database-filters-panel {
     @apply bg-gray-50 dark:bg-white/5;
 }
