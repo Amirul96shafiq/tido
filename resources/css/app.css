@@ -207,7 +207,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
 }
 
 .tido-dashboard-greeting .fi-header-subheading {
-    @apply text-md;
+    @apply text-base;
 }
 
 .fi-simple-page .fi-sc-form {
