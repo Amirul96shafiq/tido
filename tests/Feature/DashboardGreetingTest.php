@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Dashboard;
 use App\Models\User;
 use Carbon\Carbon;
@@ -91,6 +92,30 @@ test('dashboard greeting shortens long user names in heading', function () {
 
     Livewire::test(Dashboard::class)
         ->assertSee('Good Evening, <span class="text-primary-600 dark:text-primary-400">Amirul S. H.</span> 🌙', false);
+});
+
+test('dashboard header exposes profile and changelogs actions', function () {
+    Carbon::setTestNow(Carbon::parse('2026-07-16 09:00:00', 'Asia/Kuala_Lumpur'));
+
+    $user = User::factory()
+        ->withWhatsAppPhone('60123456789')
+        ->create([
+            'name' => 'Ada',
+            'timezone' => 'Asia/Kuala_Lumpur',
+        ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(Dashboard::class)
+        ->assertActionVisible('profile')
+        ->assertActionVisible('changelogs')
+        ->callAction('changelogs');
+
+    $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee('Profile', false)
+        ->assertSee('Changelogs', false)
+        ->assertSee(EditProfile::getUrl(), false);
 });
 
 afterEach(function () {

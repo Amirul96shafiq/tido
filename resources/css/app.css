@@ -210,6 +210,10 @@ html.dark::-webkit-scrollbar-thumb:hover,
     @apply text-base;
 }
 
+.tido-dashboard-greeting .fi-header-actions-ctn > .fi-ac:not(.fi-width-full) {
+    @apply justify-start sm:justify-end;
+}
+
 .fi-simple-page .fi-sc-form {
     gap: 2rem !important;
 }

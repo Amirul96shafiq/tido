@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Models\User;
 use App\Support\TimeOfDayGreeting;
@@ -81,6 +82,25 @@ class Dashboard extends BaseDashboard
         $now = now()->timezone($user->preferredTimezone());
 
         return TimeOfDayGreeting::subheadingHtml($now);
+    }
+
+    /**
+     * @return array<Action>
+     */
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('profile')
+                ->label('Profile')
+                ->icon('heroicon-o-user')
+                ->color('primary')
+                ->url(EditProfile::getUrl()),
+            Action::make('changelogs')
+                ->label('Changelogs')
+                ->icon('heroicon-o-code-bracket')
+                ->color('primary')
+                ->action(fn (): mixed => $this->js('window.showChangelogModal()')),
+        ];
     }
 
     public function getFiltersForm(): Schema
