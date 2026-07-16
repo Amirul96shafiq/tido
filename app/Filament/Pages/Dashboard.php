@@ -14,6 +14,7 @@ use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Flex;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\VerticalAlignment;
 use Illuminate\Contracts\Support\Htmlable;
@@ -183,6 +184,23 @@ class Dashboard extends BaseDashboard
                         ->fullWidth(false)
                         ->verticalAlignment(VerticalAlignment::End),
                 ])->extraAttributes(['class' => 'items-end gap-5']),
+            ]);
+    }
+
+    public function content(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Group::make([
+                    Group::make([
+                        $this->getFiltersFormContentComponent(),
+                    ])->extraAttributes([
+                        'class' => 'tido-sticky-marker tido-sticky-marker--top',
+                    ]),
+                    $this->getWidgetsContentComponent(),
+                ])->extraAttributes([
+                    'class' => 'tido-sticky-scope',
+                ]),
             ]);
     }
 

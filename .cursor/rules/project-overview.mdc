@@ -30,7 +30,8 @@ No multi-tenancy, no roles/policies package. Any authenticated user can access `
 4. If a request contradicts `docs/system-architecture.md`, halt and warn the user
 5. Use feature/fix branches per `docs/git-workflow.md` — do not develop features on `main`
 6. UI icon CTAs: Filament Tippy tooltips — `docs/ui-tooltips.md`
-7. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`
+7. Sticky top/bottom bars + blur veil — `docs/ui-sticky-blur.md`
+8. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`
 
 ## Do not
 
