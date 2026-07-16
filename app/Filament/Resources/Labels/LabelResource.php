@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Labels;
 
+use App\Enums\LabelType;
 use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Filament\Resources\Labels\Pages\EditLabel;
 use App\Filament\Resources\Labels\Pages\ListLabels;
@@ -14,11 +15,18 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class LabelResource extends Resource
 {
     protected static ?string $model = Label::class;
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+    protected static bool $isGloballySearchable = true;
+
+    protected static ?int $globalSearchSort = 2;
 
     protected static ?string $slug = 'labels';
 
@@ -55,6 +63,29 @@ class LabelResource extends Resource
             'index' => ListLabels::route('/'),
             'create' => CreateLabel::route('/create'),
             'edit' => EditLabel::route('/{record}/edit'),
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function getGloballySearchableAttributes(): array
+    {
+        return [
+            'name',
+            'slug',
+            'description',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Type' => $record->type instanceof LabelType ? $record->type->label() : (string) $record->type,
+            'Slug' => $record->slug,
         ];
     }
 

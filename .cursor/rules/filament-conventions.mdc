@@ -35,6 +35,20 @@ Dashboard widgets live in `app/Filament/Widgets/`. Month filtering uses `Interac
 
 Create/Edit resource pages use `App\Filament\Concerns\RecoversContentDraft` (Invoices, Labels, Budgets). See `docs/content-draft-recovery.md` when adding a new Create/Edit page: trait + `contentDraftKey()` + register the page in `AdminPanelProvider` `PAGE_END` poller scopes.
 
+## Global search (Global Search Modal)
+
+Panel uses `charrafimed/global-search-modal` with `globalSearchResourceOptIn()` — resources must **explicitly** opt in on the resource class itself (a shared trait property does not satisfy Filament’s reflection check).
+
+When adding a new `*Resource.php`:
+
+1. Decide whether records should appear in global search.
+2. If yes: set `protected static bool $isGloballySearchable = true` on the resource class, plus `$recordTitleAttribute` and `getGloballySearchableAttributes()`.
+3. Add `getGlobalSearchEloquentQuery()` when searching relationship dot-notation or showing details that need eager loading.
+4. Override `getGlobalSearchResultUrl()` for index-only resources (e.g. Backups).
+5. Set `$globalSearchSort` for sensible result group ordering.
+
+Custom Filament pages (`Dashboard`, `ReceiptUploadPage`, etc.) are not searchable via this plugin — only Eloquent resources.
+
 ## Prefer
 
 - `relationship()` for related selects
