@@ -4,6 +4,9 @@
 
 @php
     $otpActive = in_array($loginMode, ['phone', 'otp'], true);
+    // Blade does not compile @js() inside <x-*> attributes; emit plain Alpine only.
+    $otpTabClick = $otpActive ? '' : 'softSwitch()';
+    $passwordTabClick = $otpActive ? 'softSwitch()' : '';
 @endphp
 
 <div
@@ -49,7 +52,7 @@
             :active="$otpActive"
             class="flex-1"
             wire:click="selectOtpLoginTab"
-            x-on:click="@js(! $otpActive) && softSwitch()"
+            x-on:click="{{ $otpTabClick }}"
         >
             One-Time Password (OTP)
         </x-filament::tabs.item>
@@ -58,7 +61,7 @@
             :active="! $otpActive"
             class="flex-1"
             wire:click="selectPasswordLoginTab"
-            x-on:click="@js($otpActive) && softSwitch()"
+            x-on:click="{{ $passwordTabClick }}"
         >
             Email &amp; Password
         </x-filament::tabs.item>

@@ -34,6 +34,22 @@ function useDifferentNumberAction(): TestAction
         ->schemaComponent('use-different-number-actions', schema: 'content');
 }
 
+/**
+ * @return array{0: string}|null
+ */
+function verifyOtpButtonTag(string $html): ?array
+{
+    if (! preg_match(
+        '/<button\b[^>]*\bwire:target="authenticate"[^>]*>/',
+        $html,
+        $matches,
+    )) {
+        return null;
+    }
+
+    return $matches;
+}
+
 test('guest can open filament login page', function () {
     $this->get('/admin/login')->assertSuccessful();
 });
@@ -70,6 +86,28 @@ test('otp step renders six digit input boxes', function () {
         ->toContain('fi-one-time-code-input-ctn')
         ->and(substr_count($html, 'fi-one-time-code-input-digit-field'))->toBe(6)
         ->and($html)->not->toContain('placeholder="6-digit code"');
+});
+
+test('verify otp action stays disabled until all six digits are entered', function () {
+    User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $component = Livewire::test(Login::class)
+        ->set('data.phone', '60123456789')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp');
+
+    $emptyTag = verifyOtpButtonTag($component->html());
+    expect($emptyTag)->not->toBeNull()
+        ->and($emptyTag[0])->toContain('disabled="disabled"');
+
+    $partialTag = verifyOtpButtonTag($component->set('data.otp', '12345')->html());
+    expect($partialTag)->not->toBeNull()
+        ->and($partialTag[0])->toContain('disabled="disabled"');
+
+    $completeTag = verifyOtpButtonTag($component->set('data.otp', '123456')->html());
+    expect($completeTag)->not->toBeNull()
+        ->and($completeTag[0])->not->toContain('disabled="disabled"')
+        ->and($completeTag[0])->not->toContain('fi-disabled');
 });
 
 test('send otp fails for unknown phone without revealing details', function () {

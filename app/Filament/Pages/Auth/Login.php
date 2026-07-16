@@ -119,7 +119,32 @@ class Login extends BaseLogin
             ->extraInputAttributes([
                 // Paint digits into each cell — input letter-spacing paint drifts visually even when metrics match.
                 // Also mark the insertion cell and show a blinking caret (native caret stays transparent).
+                // Avoid ->live() here: Livewire remorph wipes .tido-otp-digit spans (input text is transparent).
                 'x-init' => <<<'JS'
+                    if (window.Alpine && ! Alpine.store('tidoLoginOtp')) {
+                        Alpine.store('tidoLoginOtp', { len: 0 })
+                    }
+
+                    const syncVerifyButton = (digitLen) => {
+                        if (window.Alpine && Alpine.store('tidoLoginOtp')) {
+                            Alpine.store('tidoLoginOtp').len = digitLen
+                        }
+
+                        // Filament ->disabled() bakes fi-disabled (pointer-events-none); Alpine x-bind:disabled cannot clear it.
+                        const btn = $el.closest('form')?.querySelector('button[type=submit]')
+                        if (! btn) {
+                            return
+                        }
+
+                        const incomplete = digitLen < 6
+                        btn.classList.toggle('fi-disabled', incomplete)
+                        if (incomplete) {
+                            btn.setAttribute('aria-disabled', 'true')
+                        } else {
+                            btn.removeAttribute('aria-disabled')
+                        }
+                    }
+
                     const paintOtpDigits = () => {
                         const ctn = $el.closest('.fi-one-time-code-input-ctn')
                         if (! ctn) {
@@ -133,6 +158,8 @@ class Login extends BaseLogin
                         const currentIndex = isFocused
                             ? Math.min(digits.length, cells.length - 1)
                             : null
+
+                        syncVerifyButton(digits.length)
 
                         cells.forEach((cell, index) => {
                             let label = cell.querySelector('.tido-otp-digit')
@@ -251,7 +278,20 @@ class Login extends BaseLogin
         return Action::make('verifyOtp')
             ->label('Verify code & sign in')
             ->submit('authenticate')
+            // Server-side initial state; Alpine store updates enablement without Livewire remorph.
+            ->disabled(fn (): bool => ! $this->isOtpCodeComplete())
+            ->extraAttributes([
+                // Client-side enablement without OTP ->live() remorph (keeps painted digits visible).
+                'x-bind:disabled' => '(typeof isProcessing !== \'undefined\' && isProcessing) || ! window.Alpine || ! $store.tidoLoginOtp || $store.tidoLoginOtp.len < 6',
+            ])
             ->visible(fn (): bool => $this->loginMode === 'otp');
+    }
+
+    protected function isOtpCodeComplete(): bool
+    {
+        $otp = preg_replace('/\D+/', '', (string) ($this->data['otp'] ?? ''));
+
+        return is_string($otp) && strlen($otp) === 6;
     }
 
     protected function getPasswordSignInFormAction(): Action
