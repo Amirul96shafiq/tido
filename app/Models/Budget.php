@@ -38,6 +38,13 @@ class Budget extends Model
         return $this->belongsTo(Label::class);
     }
 
+    public function getGlobalSearchTitleAttribute(): string
+    {
+        $label = $this->label?->name ?? 'Overall';
+
+        return "{$label} · ".ucfirst((string) $this->period)." {$this->year}";
+    }
+
     public function getStartDate(?Carbon $reference = null): Carbon
     {
         $reference ??= now();

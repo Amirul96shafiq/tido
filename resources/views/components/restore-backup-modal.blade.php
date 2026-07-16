@@ -145,7 +145,7 @@
 
     <div
         role="dialog"
-        aria-modal="true"
+        :aria-modal="show ? 'true' : 'false'"
         aria-labelledby="restore-backup-heading"
         class="relative w-full max-w-lg mx-auto cursor-default flex flex-col rounded-xl bg-white dark:bg-gray-900 shadow-xl ring-1 ring-gray-950/5 dark:ring-white/10 pointer-events-auto overflow-hidden"
     >
