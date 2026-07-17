@@ -56,8 +56,13 @@ test('topbar hides notification bell and exposes notifications in user menu', fu
     $response->assertSee('fi-topbar-database-notifications-trigger-sync', false);
     $response->assertSee('fi-user-menu-notifications-badge', false);
     $response->assertSee('fi-user-menu-avatar-wrap', false);
+    $response->assertSee('fi-user-menu-notifications-wrap', false);
+    $response->assertSee('fi-user-menu-item-notifications-badge', false);
+    $response->assertSee('fi-user-menu-profile-preview-avatar', false);
     $response->assertSee('Notifications', false);
     $response->assertSee("\$dispatch('open-modal', { id: 'database-notifications' })", false);
+    $response->assertSee('menuOpen', false);
+    $response->assertSee('offset: -48', false);
 });
 
 test('topbar user menu chrome matches collapsed sidebar square with left border', function () {
@@ -69,6 +74,31 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         $css,
         '.fi-topbar .fi-user-menu-trigger {',
         '.fi-topbar .fi-user-menu-trigger .fi-user-menu-avatar-wrap {',
+    );
+    $notificationsWrapBlock = Str::between(
+        $css,
+        '.fi-user-menu-notifications-wrap {',
+        '.fi-user-menu-notifications-wrap .fi-user-menu-item-notifications-badge {',
+    );
+    $itemBadgeBlock = Str::between(
+        $css,
+        '.fi-user-menu-notifications-wrap .fi-user-menu-item-notifications-badge {',
+        '.fi-topbar-end .fi-no-database > .fi-modal-trigger {',
+    );
+    $profilePreviewBlock = Str::between(
+        $css,
+        '.fi-user-menu-profile-preview {',
+        '.fi-user-menu-profile-preview-avatar {',
+    );
+    $profileAvatarBlock = Str::between(
+        $css,
+        '.fi-user-menu-profile-preview-avatar {',
+        '.fi-user-menu-profile-preview-avatar .fi-avatar {',
+    );
+    $profileAvatarSizeBlock = Str::between(
+        $css,
+        '.fi-user-menu-profile-preview-avatar .fi-avatar {',
+        '.fi-user-menu-profile-preview-name {',
     );
 
     expect($block)
@@ -82,5 +112,16 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->toContain('hover:bg-gray-100')
         ->toContain('dark:hover:bg-slate-700/60')
         ->not->toContain('size-full')
-        ->not->toContain('rounded-none');
+        ->not->toContain('rounded-none')
+        ->and($notificationsWrapBlock)
+        ->toContain('relative')
+        ->and($itemBadgeBlock)
+        ->toContain('absolute')
+        ->toContain('left-7')
+        ->and($profilePreviewBlock)
+        ->toContain('items-center')
+        ->and($profileAvatarBlock)
+        ->toContain('justify-center')
+        ->and($profileAvatarSizeBlock)
+        ->toContain('size-12');
 });

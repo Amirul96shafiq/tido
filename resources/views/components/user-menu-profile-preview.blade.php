@@ -9,6 +9,10 @@
 @endphp
 
 <div {{ $attributes->class(['fi-user-menu-profile-preview']) }}>
+    <div class="fi-user-menu-profile-preview-avatar">
+        <x-filament-panels::avatar.user :user="$user" loading="lazy" />
+    </div>
+
     <p class="fi-user-menu-profile-preview-name">
         {{ $name }}
     </p>

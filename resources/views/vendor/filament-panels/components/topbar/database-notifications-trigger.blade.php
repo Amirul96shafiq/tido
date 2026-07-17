@@ -9,7 +9,9 @@
     x-data
     x-init="
         if (! Alpine.store('tidoNotifications')) {
-            Alpine.store('tidoNotifications', { unread: 0 });
+            Alpine.store('tidoNotifications', { unread: 0, menuOpen: false });
+        } else if (Alpine.store('tidoNotifications').menuOpen === undefined) {
+            Alpine.store('tidoNotifications').menuOpen = false;
         }
 
         const sync = () => {
