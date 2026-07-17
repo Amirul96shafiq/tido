@@ -21,16 +21,33 @@
     }
 }
 
-/* Custom scrollbar — page chrome, reusable class, Filament panels */
-html,
-body,
-.fi-body,
-.fi-main-ctn,
+/* Custom scrollbar — page chrome, reusable class, Filament panels.
+ * Do NOT set scrollbar-width/scrollbar-color on the main page scroller in
+ * Chromium: those standard props win and suppress ::-webkit-scrollbar-track
+ * borders (needed to match the sidebar separator). Firefox gets them via
+ * @supports below. */
 .fi-sidebar-nav,
 .custom-scrollbar,
 .fi-dropdown-panel {
     scrollbar-width: thin;
     scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+    html,
+    body,
+    .fi-body,
+    .fi-main-ctn {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+    }
+
+    html.dark,
+    .dark body,
+    .dark .fi-body,
+    .dark .fi-main-ctn {
+        scrollbar-color: rgba(51, 65, 85, 0.5) transparent;
+    }
 }
 
 html::-webkit-scrollbar,
@@ -54,6 +71,34 @@ body::-webkit-scrollbar-track,
     background: transparent;
 }
 
+/*
+ * Main page scrollbar left edge — match sidebar separator.
+ * Chromium ignores border on ::-webkit-scrollbar / ::-webkit-scrollbar-track
+ * for the viewport scroller, so paint a fixed 1px rail in the gutter.
+ */
+@supports selector(::-webkit-scrollbar) {
+    .fi-body::after {
+        content: '';
+        position: fixed;
+        inset-block: 0;
+        /* fixed is positioned against the layout viewport (excludes scrollbar),
+         * so right:0 sits on the scrollbar's left edge */
+        inset-inline-end: 0;
+        width: 1px;
+        background-color: var(--color-gray-100);
+        pointer-events: none;
+        z-index: 39;
+    }
+
+    .dark .fi-body::after {
+        background-color: color-mix(
+            in srgb,
+            var(--color-slate-700) 60%,
+            transparent
+        );
+    }
+}
+
 html::-webkit-scrollbar-thumb,
 body::-webkit-scrollbar-thumb,
 .fi-body::-webkit-scrollbar-thumb,
@@ -75,10 +120,6 @@ body::-webkit-scrollbar-thumb:hover,
     background-color: rgba(156, 163, 175, 0.5);
 }
 
-html.dark,
-.dark body,
-.dark .fi-body,
-.dark .fi-main-ctn,
 .dark .fi-sidebar-nav,
 .dark .custom-scrollbar,
 .dark .fi-dropdown-panel {
