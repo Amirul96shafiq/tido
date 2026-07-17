@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Labels\Pages;
 
+use App\Filament\Concerns\AppendsResourceLabelToEditTitle;
 use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Labels\LabelResource;
@@ -14,6 +15,7 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditLabel extends EditRecord
 {
+    use AppendsResourceLabelToEditTitle;
     use HasStickyBlurFormActions;
     use RecoversContentDraft;
 
