@@ -7,6 +7,7 @@ use App\Filament\Resources\Budgets\Pages\EditBudget;
 use App\Models\Budget;
 use App\Models\Label;
 use App\Models\User;
+use Filament\Forms\Components\RichEditor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -32,7 +33,7 @@ test('create budget page saves new fields', function () {
             'notify_filament' => true,
             'notify_whatsapp' => false,
             'is_active' => true,
-            'notes' => 'Includes litter and food',
+            'notes' => '<p>Includes litter and food</p>',
         ])
         ->call('create')
         ->assertHasNoFormErrors();
@@ -42,11 +43,26 @@ test('create budget page saves new fields', function () {
     expect($budget)->not->toBeNull()
         ->and($budget->title)->toBe('Pets 2026')
         ->and($budget->icon)->toBe('heroicon-o-heart')
-        ->and($budget->notes)->toBe('Includes litter and food')
+        ->and($budget->notes)->toBe('<p>Includes litter and food</p>')
         ->and($budget->critical_threshold)->toBe(100)
         ->and($budget->notify_whatsapp)->toBeFalse()
         ->and($budget->display_title)->toBe('Pets 2026')
         ->and($budget->display_icon)->toBe('heroicon-o-heart');
+});
+
+test('budget form uses rich editor for notes', function () {
+    Livewire::test(CreateBudget::class)
+        ->assertSuccessful()
+        ->assertSchemaComponentExists(
+            'notes',
+            checkComponentUsing: function (RichEditor $component): bool {
+                expect($component->getExtraAttributes())->toMatchArray([
+                    'class' => 'fi-budget-notes-editor',
+                ]);
+
+                return true;
+            },
+        );
 });
 
 test('edit budget page shows performance section', function () {

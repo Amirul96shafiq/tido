@@ -8,6 +8,7 @@ use App\Models\InvoiceItem;
 use App\Models\User;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\RichEditor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -32,6 +33,19 @@ test('invoice edit form uses private visibility for receipt image', function () 
         ->assertSchemaComponentExists(
             'image_path',
             checkComponentUsing: fn (FileUpload $component): bool => $component->getVisibility() === 'private',
+        );
+});
+
+test('invoice form uses rich editor for notes', function () {
+    $invoice = Invoice::factory()->create([
+        'image_path' => null,
+    ]);
+
+    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSchemaComponentExists(
+            'notes',
+            checkComponentUsing: fn (RichEditor $component): bool => true,
         );
 });
 

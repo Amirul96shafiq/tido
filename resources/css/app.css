@@ -1343,6 +1343,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     }
 }
 
+.fi-budget-notes-editor .fi-fo-rich-editor-content {
+    min-height: 10rem;
+}
+
 @media (min-width: 1024px) {
     /* overflow-x-clip on .fi-layout breaks position: sticky for descendants */
     .fi-layout:has(.fi-profile-page),

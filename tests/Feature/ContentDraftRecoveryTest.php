@@ -46,7 +46,7 @@ test('saveDraft persists meaningful create form payload', function () {
 
     expect($draft)->not->toBeNull()
         ->and($draft->payload['merchant_name'])->toBe('FamilyMart Pinggiran')
-        ->and($draft->payload['notes'])->toBe('Keep this draft')
+        ->and(data_get($draft->payload, 'notes.content.0.content.0.text'))->toBe('Keep this draft')
         ->and($draft->payload)->not->toHaveKey('image_path');
 });
 
@@ -78,7 +78,7 @@ test('create page offers draft recovery and restore fills the form', function ()
         ->dispatch('restore-content-draft')
         ->assertFormSet([
             'merchant_name' => 'Restored Merchant',
-            'notes' => 'From draft',
+            'notes' => '<p>From draft</p>',
         ])
         ->assertNotified('Draft restored');
 });

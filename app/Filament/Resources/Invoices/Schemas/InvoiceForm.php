@@ -11,8 +11,8 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -117,8 +117,12 @@ class InvoiceForm
                             ->openable()
                             ->downloadable(),
 
-                        Textarea::make('notes')
-                            ->rows(3),
+                        RichEditor::make('notes')
+                            ->toolbarButtons([
+                                ['bold', 'italic', 'underline', 'strike', 'link'],
+                                ['bulletList', 'orderedList'],
+                                ['undo', 'redo'],
+                            ]),
                     ]),
 
                 Section::make('Line Items')
