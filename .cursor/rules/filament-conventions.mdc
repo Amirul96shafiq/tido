@@ -41,7 +41,7 @@ Create/Edit resource pages and `Auth/EditProfile` must use `App\Filament\Concern
 
 ## Edit page title
 
-Every `EditRecord` page must use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the heading ends with the singular model label (e.g. `Edit Overall Budget · Monthly 2026 Budget`, `Edit Food & Dining Label`, `Edit Starbucks Invoice`). Does not apply to Create pages, List pages, or `EditProfile`.
+Every `EditRecord` page must use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the heading ends with the singular model label (e.g. `Edit Overall Budget · Monthly 2026 Budget`, `Edit Food & Dining Label`, `Edit Starbucks Invoice`). The record-title segment is highlighted with primary color (`text-primary-600 dark:text-primary-400`). Does not apply to Create pages, List pages, or `EditProfile`.
 
 ## Global search (Global Search Modal)
 
