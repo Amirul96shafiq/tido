@@ -1184,12 +1184,37 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply size-5;
 }
 
+.fi-topbar .fi-user-menu {
+    /* Match collapsed sidebar / go-to-top chrome square (4.5rem − 1px → 71×71) */
+    width: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
+    height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
+    box-sizing: border-box;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    margin-inline-end: -1rem;
+    border-left: 1px solid var(--color-gray-100);
+}
+
+.dark .fi-topbar .fi-user-menu {
+    border-left-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
+}
+
 .fi-topbar .fi-user-menu-trigger {
-    @apply relative flex size-10 items-center justify-center overflow-visible rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60;
+    @apply relative flex size-full items-center justify-center overflow-visible rounded-none transition-all duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60;
+}
+
+.fi-topbar .fi-user-menu-trigger .fi-user-menu-avatar-wrap {
+    @apply relative inline-flex;
 }
 
 .fi-topbar .fi-user-menu-trigger .fi-user-menu-notifications-badge {
-    @apply pointer-events-none z-10 translate-x-0.5 -translate-y-0.5;
+    @apply pointer-events-none absolute top-0 right-0 z-10 translate-x-0.5 -translate-y-0.5;
 }
 
 /* Keep DatabaseNotifications mounted for the slide-over + poll, but hide the topbar trigger. */

@@ -55,6 +55,20 @@ test('topbar hides notification bell and exposes notifications in user menu', fu
     $response->assertDontSee('fi-topbar-database-notifications-btn', false);
     $response->assertSee('fi-topbar-database-notifications-trigger-sync', false);
     $response->assertSee('fi-user-menu-notifications-badge', false);
+    $response->assertSee('fi-user-menu-avatar-wrap', false);
     $response->assertSee('Notifications', false);
     $response->assertSee("\$dispatch('open-modal', { id: 'database-notifications' })", false);
+});
+
+test('topbar user menu chrome matches collapsed sidebar square with left border', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $expectedSize = 'calc(var(--collapsed-sidebar-width, 4.5rem) - 1px)';
+    $block = Str::between($css, '.fi-topbar .fi-user-menu {', '.dark .fi-topbar .fi-user-menu {');
+
+    expect($block)
+        ->toContain("width: {$expectedSize};")
+        ->toContain("height: {$expectedSize};")
+        ->toContain('border-left: 1px solid var(--color-gray-100);')
+        ->toContain('margin-inline-end: -1rem;');
 });
