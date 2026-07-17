@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Models\Budget;
@@ -38,16 +39,23 @@ class BudgetStatus extends Widget
             $labelKey = $budget->label_id ?? 0;
             $spent = $spentTotals[$labelKey] ?? 0.0;
             $percentage = $budget->amount > 0 ? ($spent / $budget->amount) * 100 : 0;
+            $warnThreshold = (float) $budget->alert_threshold;
+            $criticalThreshold = (float) $budget->critical_threshold;
 
             $budgetStates[] = [
-                'name' => $budget->label ? $budget->label->name : 'Overall Budget',
+                'id' => $budget->id,
+                'edit_url' => BudgetResource::getUrl('edit', ['record' => $budget]),
+                'name' => $budget->display_title,
+                'icon' => $budget->display_icon,
                 'amount' => (float) $budget->amount,
                 'spent' => $spent,
                 'percentage' => min(100, $percentage),
                 'raw_percentage' => $percentage,
                 'period' => ucfirst($budget->period),
                 'color' => $budget->label ? $budget->label->color : '#FFD07D',
-                'status_color' => $percentage >= 100 ? 'red' : ($percentage >= $budget->alert_threshold ? 'amber' : 'emerald'),
+                'status_color' => $percentage >= $criticalThreshold
+                    ? 'red'
+                    : ($percentage >= $warnThreshold ? 'amber' : 'emerald'),
             ];
         }
 

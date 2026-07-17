@@ -128,3 +128,174 @@ test('budget alert service skips users who opted out of budget alerts', function
 
     $this->assertDatabaseCount('notifications', 1);
 });
+
+test('budget alert service sends critical notification at critical threshold', function () {
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    User::factory()->create();
+
+    $label = Label::factory()->create([
+        'name' => 'Food & Dining',
+        'slug' => 'food-dining',
+    ]);
+
+    Budget::create([
+        'label_id' => $label->id,
+        'amount' => 100.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+        'alert_threshold' => 80,
+        'critical_threshold' => 95,
+        'is_active' => true,
+    ]);
+
+    $invoice = Invoice::create([
+        'merchant_name' => 'McDonalds',
+        'invoice_number' => 'INV-333',
+        'date_time' => now(),
+        'subtotal' => 96.00,
+        'total_tax' => 0.00,
+        'total_amount' => 96.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'pending',
+    ]);
+
+    InvoiceItem::create([
+        'invoice_id' => $invoice->id,
+        'label_id' => $label->id,
+        'description' => 'Burgers',
+        'quantity' => 1,
+        'unit_price' => 96.00,
+        'line_total' => 96.00,
+    ]);
+
+    config([
+        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.personal_number' => '60123456789',
+    ]);
+
+    $invoice->update(['status' => 'parsed']);
+
+    Http::assertSent(function (Request $request) {
+        return str_contains($request->url(), '/message/sendText/')
+            && str_contains((string) $request['text'], 'Budget critical')
+            && str_contains((string) $request['text'], 'critical threshold');
+    });
+
+    $this->assertDatabaseCount('notifications', 1);
+});
+
+test('budget alert service skips whatsapp when notify_whatsapp is false', function () {
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    User::factory()->create();
+
+    $label = Label::factory()->create([
+        'name' => 'Food & Dining',
+        'slug' => 'food-dining',
+    ]);
+
+    Budget::create([
+        'label_id' => $label->id,
+        'amount' => 100.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+        'alert_threshold' => 80,
+        'critical_threshold' => 100,
+        'notify_filament' => true,
+        'notify_whatsapp' => false,
+        'is_active' => true,
+    ]);
+
+    $invoice = Invoice::create([
+        'merchant_name' => 'McDonalds',
+        'invoice_number' => 'INV-444',
+        'date_time' => now(),
+        'subtotal' => 90.00,
+        'total_tax' => 0.00,
+        'total_amount' => 90.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'pending',
+    ]);
+
+    InvoiceItem::create([
+        'invoice_id' => $invoice->id,
+        'label_id' => $label->id,
+        'description' => 'Burgers',
+        'quantity' => 1,
+        'unit_price' => 90.00,
+        'line_total' => 90.00,
+    ]);
+
+    config([
+        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.personal_number' => '60123456789',
+    ]);
+
+    $invoice->update(['status' => 'parsed']);
+
+    Http::assertNothingSent();
+    $this->assertDatabaseCount('notifications', 1);
+});
+
+test('budget alert service skips filament when notify_filament is false', function () {
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    User::factory()->create();
+
+    $label = Label::factory()->create([
+        'name' => 'Food & Dining',
+        'slug' => 'food-dining',
+    ]);
+
+    Budget::create([
+        'label_id' => $label->id,
+        'amount' => 100.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+        'alert_threshold' => 80,
+        'critical_threshold' => 100,
+        'notify_filament' => false,
+        'notify_whatsapp' => true,
+        'is_active' => true,
+    ]);
+
+    $invoice = Invoice::create([
+        'merchant_name' => 'McDonalds',
+        'invoice_number' => 'INV-555',
+        'date_time' => now(),
+        'subtotal' => 90.00,
+        'total_tax' => 0.00,
+        'total_amount' => 90.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'pending',
+    ]);
+
+    InvoiceItem::create([
+        'invoice_id' => $invoice->id,
+        'label_id' => $label->id,
+        'description' => 'Burgers',
+        'quantity' => 1,
+        'unit_price' => 90.00,
+        'line_total' => 90.00,
+    ]);
+
+    config([
+        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.personal_number' => '60123456789',
+    ]);
+
+    $invoice->update(['status' => 'parsed']);
+
+    Http::assertSent(fn (Request $request) => str_contains($request->url(), '/message/sendText/'));
+    $this->assertDatabaseCount('notifications', 0);
+});

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Widgets\BudgetStatus;
 use App\Models\Budget;
 use App\Models\Label;
@@ -36,4 +37,39 @@ test('budget status widget renders active budgets', function () {
         ->assertSuccessful()
         ->assertSee('Groceries')
         ->assertDontSee('No budgets yet');
+});
+
+test('budget status widget prefers custom title over label name', function () {
+    $label = Label::factory()->create(['name' => 'Groceries']);
+
+    Budget::factory()->create([
+        'title' => 'Family Groceries',
+        'icon' => 'heroicon-o-shopping-cart',
+        'label_id' => $label->id,
+        'amount' => 500.00,
+        'is_active' => true,
+    ]);
+
+    Livewire::test(BudgetStatus::class)
+        ->assertSuccessful()
+        ->assertSee('Family Groceries')
+        ->assertDontSee('No budgets yet');
+});
+
+test('budget status widget links each budget to its edit page', function () {
+    $label = Label::factory()->create(['name' => 'Groceries']);
+
+    $budget = Budget::factory()->create([
+        'label_id' => $label->id,
+        'amount' => 500.00,
+        'is_active' => true,
+    ]);
+
+    $editUrl = BudgetResource::getUrl('edit', ['record' => $budget]);
+
+    Livewire::test(BudgetStatus::class)
+        ->assertSuccessful()
+        ->assertSee($editUrl, false)
+        ->assertSee('wire:navigate', false)
+        ->assertSee('hover:bg-gray-100', false);
 });

@@ -62,6 +62,7 @@ class BudgetResource extends Resource
     public static function getGloballySearchableAttributes(): array
     {
         return [
+            'title',
             'label.name',
             'period',
             'year',
