@@ -147,14 +147,17 @@ class MonthlyTrend extends ChartWidget
                                 const totals = dataset.topLabelTotals?.[index];
 
                                 if (!Array.isArray(names) || names.length === 0) {
-                                    return ['No labeled spending'];
+                                    return ['Top 3 Labels', 'No labeled spending'];
                                 }
 
-                                return names.map((name, labelIndex) => {
-                                    const total = totals?.[labelIndex] ?? 0;
+                                return [
+                                    'Top 3 Labels',
+                                    ...names.map((name, labelIndex) => {
+                                        const total = totals?.[labelIndex] ?? 0;
 
-                                    return `${name} RM ${Number(total).toFixed(2)}`;
-                                });
+                                        return `${name} RM ${Number(total).toFixed(2)}`;
+                                    }),
+                                ];
                             },
                         },
                     },
