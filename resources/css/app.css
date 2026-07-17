@@ -107,7 +107,7 @@ body::-webkit-scrollbar-thumb,
 .custom-scrollbar::-webkit-scrollbar-thumb,
 .fi-dropdown-panel::-webkit-scrollbar-thumb {
     background-color: rgba(156, 163, 175, 0.3);
-    border-radius: 9999px;
+    border-radius: 0;
 }
 
 html::-webkit-scrollbar-thumb:hover,
