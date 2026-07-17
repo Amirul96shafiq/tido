@@ -6,9 +6,9 @@ namespace App\Filament\Resources\Budgets\Schemas;
 
 use App\Enums\LabelType;
 use App\Filament\Forms\Components\IconPicker;
+use App\Filament\Forms\Components\NotesRichEditor;
 use App\Models\Budget;
 use App\Models\Label;
-use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Slider;
 use Filament\Forms\Components\TextInput;
@@ -126,14 +126,8 @@ class BudgetForm
 
                         Section::make('Budget Notes')
                             ->schema([
-                                RichEditor::make('notes')
+                                NotesRichEditor::make('notes')
                                     ->hiddenLabel()
-                                    ->toolbarButtons([
-                                        ['bold', 'italic', 'underline', 'strike', 'link'],
-                                        ['bulletList', 'orderedList'],
-                                        ['undo', 'redo'],
-                                    ])
-                                    ->extraAttributes(['class' => 'fi-budget-notes-editor'])
                                     ->columnSpanFull(),
                             ]),
 

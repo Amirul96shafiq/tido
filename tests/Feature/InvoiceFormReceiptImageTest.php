@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Resources\Invoices\Pages\EditInvoice;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\User;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\RichEditor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -45,7 +45,13 @@ test('invoice form uses rich editor for notes', function () {
         ->assertSuccessful()
         ->assertSchemaComponentExists(
             'notes',
-            checkComponentUsing: fn (RichEditor $component): bool => true,
+            checkComponentUsing: function (NotesRichEditor $component): bool {
+                expect($component->getExtraAttributes())->toMatchArray([
+                    'class' => NotesRichEditor::EXTRA_CLASS,
+                ]);
+
+                return true;
+            },
         );
 });
 

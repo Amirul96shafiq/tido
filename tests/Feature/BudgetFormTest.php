@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Resources\Budgets\Pages\CreateBudget;
 use App\Filament\Resources\Budgets\Pages\EditBudget;
 use App\Models\Budget;
 use App\Models\Label;
 use App\Models\User;
-use Filament\Forms\Components\RichEditor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -55,9 +55,9 @@ test('budget form uses rich editor for notes', function () {
         ->assertSuccessful()
         ->assertSchemaComponentExists(
             'notes',
-            checkComponentUsing: function (RichEditor $component): bool {
+            checkComponentUsing: function (NotesRichEditor $component): bool {
                 expect($component->getExtraAttributes())->toMatchArray([
-                    'class' => 'fi-budget-notes-editor',
+                    'class' => NotesRichEditor::EXTRA_CLASS,
                 ]);
 
                 return true;

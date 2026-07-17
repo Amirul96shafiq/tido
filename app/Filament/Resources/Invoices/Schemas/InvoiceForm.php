@@ -6,12 +6,12 @@ namespace App\Filament\Resources\Invoices\Schemas;
 
 use App\Enums\LabelType;
 use App\Enums\PaymentMethod;
+use App\Filament\Forms\Components\NotesRichEditor;
 use App\Helpers\MoneyDisplay;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
@@ -117,12 +117,8 @@ class InvoiceForm
                             ->openable()
                             ->downloadable(),
 
-                        RichEditor::make('notes')
-                            ->toolbarButtons([
-                                ['bold', 'italic', 'underline', 'strike', 'link'],
-                                ['bulletList', 'orderedList'],
-                                ['undo', 'redo'],
-                            ]),
+                        NotesRichEditor::make('notes')
+                            ->label('Invoice Notes'),
                     ]),
 
                 Section::make('Line Items')

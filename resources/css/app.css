@@ -1343,7 +1343,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     }
 }
 
-.fi-budget-notes-editor .fi-fo-rich-editor-content {
+.fi-notes-rich-editor .fi-fo-rich-editor-content {
     min-height: 10rem;
 }
 

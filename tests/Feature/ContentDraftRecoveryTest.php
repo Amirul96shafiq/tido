@@ -265,7 +265,7 @@ test('label create page offers draft recovery', function () {
         ->assertFormSet([
             'name' => 'Recovered Label',
             'slug' => 'recovered-label',
-            'description' => 'From draft',
+            'description' => '<p>From draft</p>',
         ]);
 });
 
