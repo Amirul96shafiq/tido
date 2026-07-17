@@ -843,9 +843,23 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     );
 }
 
+/* Match collapsed sidebar content square: height compensates for 1px border-top
+ * under border-box so the inner .fi-sidebar-version-collapsed is 71×71
+ * (same as calc(4.5rem - 1px) content width target). */
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-version-footer {
+    display: flex !important;
+    align-items: center;
+    height: var(--collapsed-sidebar-width, 4.5rem) !important;
+    min-height: var(--collapsed-sidebar-width, 4.5rem) !important;
+    max-height: var(--collapsed-sidebar-width, 4.5rem) !important;
+    padding-block: 0 !important;
+    box-sizing: border-box;
+}
+
 .fi-sidebar-version-collapsed {
     display: flex;
     width: 100%;
+    height: 100%;
     align-items: center;
     justify-content: flex-start;
     padding-inline: 1rem;

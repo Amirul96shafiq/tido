@@ -202,7 +202,7 @@ class AdminPanelProvider extends PanelProvider
                         <div
                             x-data="{}"
                             class="fi-sidebar-version-footer"
-                            :class="$store.sidebar.isOpen ? \'px-6 py-4\' : \'px-0 py-4\'"
+                            :class="$store.sidebar.isOpen ? \'px-6 py-4\' : \'px-0 py-0\'"
                         >
                             <!-- Expanded state -->
                             <div

@@ -17,3 +17,25 @@ test('topbar and sidebar header height match collapsed sidebar width', function 
         ->toContain("height: {$expectedHeight} !important;")
         ->toContain("min-height: {$expectedHeight} !important;");
 });
+
+test('collapsed version footer is a square matching collapsed sidebar width', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+    $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
+
+    // Border-box height equals --collapsed-sidebar-width so 1px border-top
+    // leaves a 71px content area (matches calc(4.5rem - 1px) target).
+    $expectedHeight = 'var(--collapsed-sidebar-width, 4.5rem)';
+    $footerBlock = Str::between(
+        $css,
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-version-footer {',
+        '.fi-sidebar-version-collapsed {',
+    );
+
+    expect($footerBlock)
+        ->toContain("height: {$expectedHeight} !important;")
+        ->toContain("min-height: {$expectedHeight} !important;")
+        ->toContain("max-height: {$expectedHeight} !important;")
+        ->toContain('padding-block: 0 !important;')
+        ->and($provider)
+        ->toContain('$store.sidebar.isOpen ? \\\'px-6 py-4\\\' : \\\'px-0 py-0\\\'');
+});
