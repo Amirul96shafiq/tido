@@ -56,6 +56,25 @@ test('budget status widget prefers custom title over label name', function () {
         ->assertDontSee('No budgets yet');
 });
 
+test('budget status widget uses single-line title marquee markup', function () {
+    $label = Label::factory()->create(['name' => 'Groceries & Household']);
+
+    Budget::factory()->create([
+        'label_id' => $label->id,
+        'amount' => 250.00,
+        'is_active' => true,
+    ]);
+
+    Livewire::test(BudgetStatus::class)
+        ->assertSuccessful()
+        ->assertSee('Groceries & Household')
+        ->assertSee('x-ref="marqueeText"', false)
+        ->assertSee('tido-text-marquee', false)
+        ->assertSee('tido-text-marquee-clip', false)
+        ->assertSee('whitespace-nowrap', false)
+        ->assertSee('shrink-0 whitespace-nowrap text-right', false);
+});
+
 test('budget status widget links each budget to its edit page', function () {
     $label = Label::factory()->create(['name' => 'Groceries']);
 
@@ -72,4 +91,83 @@ test('budget status widget links each budget to its edit page', function () {
         ->assertSee($editUrl, false)
         ->assertSee('wire:navigate', false)
         ->assertSee('hover:bg-gray-100', false);
+});
+
+test('budget status widget renders active budgets in sort order', function () {
+    $first = Budget::factory()->create([
+        'title' => 'First Budget',
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+
+    $second = Budget::factory()->create([
+        'title' => 'Second Budget',
+        'sort_order' => 1,
+        'is_active' => true,
+    ]);
+
+    Livewire::test(BudgetStatus::class)
+        ->assertSuccessful()
+        ->assertSeeInOrder([
+            'First Budget',
+            'Second Budget',
+        ]);
+
+    $first->update(['sort_order' => 1]);
+    $second->update(['sort_order' => 0]);
+
+    Livewire::test(BudgetStatus::class)
+        ->assertSuccessful()
+        ->assertSeeInOrder([
+            'Second Budget',
+            'First Budget',
+        ]);
+});
+
+test('budget status widget persists drag and drop reorder', function () {
+    $first = Budget::factory()->create([
+        'title' => 'Alpha Budget',
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+
+    $second = Budget::factory()->create([
+        'title' => 'Beta Budget',
+        'sort_order' => 1,
+        'is_active' => true,
+    ]);
+
+    Livewire::test(BudgetStatus::class)
+        ->call('reorderBudgets', $second->id, 0)
+        ->assertSuccessful();
+
+    expect($first->fresh()->sort_order)->toBe(1)
+        ->and($second->fresh()->sort_order)->toBe(0);
+
+    Livewire::test(BudgetStatus::class)
+        ->assertSeeInOrder([
+            'Beta Budget',
+            'Alpha Budget',
+        ]);
+});
+
+test('budget status widget ignores reorder for inactive budgets', function () {
+    $active = Budget::factory()->create([
+        'title' => 'Active Budget',
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+
+    $inactive = Budget::factory()->create([
+        'title' => 'Inactive Budget',
+        'sort_order' => 1,
+        'is_active' => false,
+    ]);
+
+    Livewire::test(BudgetStatus::class)
+        ->call('reorderBudgets', $inactive->id, 0)
+        ->assertSuccessful();
+
+    expect($active->fresh()->sort_order)->toBe(0)
+        ->and($inactive->fresh()->sort_order)->toBe(1);
 });

@@ -1471,6 +1471,28 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     }
 }
 
+@keyframes tido-text-marquee {
+    0%,
+    15% {
+        transform: translateX(0);
+    }
+
+    85%,
+    100% {
+        transform: translateX(calc(-100% + var(--tido-marquee-clip, 9rem)));
+    }
+}
+
+.tido-text-marquee {
+    animation: tido-text-marquee 8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tido-text-marquee {
+        animation: none;
+    }
+}
+
 .fi-no-empty-panel-icon {
     /* Keep below sticky header overlays (date pickers, selects) */
     @apply relative z-0 h-10 w-10;

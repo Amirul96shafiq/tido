@@ -8,6 +8,7 @@ Before coding, read **[docs/agent-onboarding.md](docs/agent-onboarding.md)** for
 - Git workflow: **[docs/git-workflow.md](docs/git-workflow.md)** — feature/fix branches → PR → `main`; do not develop on `main`
 - Icon CTA tooltips: **[docs/ui-tooltips.md](docs/ui-tooltips.md)** — Filament Tippy, not browser `title`
 - Sticky bars + blur veil: **[docs/ui-sticky-blur.md](docs/ui-sticky-blur.md)** — top/bottom pin with frosted veil
+- Text marquee (overflow RTL): **[docs/ui-text-marquee.md](docs/ui-text-marquee.md)** — reuse `.tido-text-marquee` anywhere
 - Backups / Danger Zone: **[docs/backups-and-danger-zone.md](docs/backups-and-danger-zone.md)**
 - Product name: **tido** only · expense tags: **Label** / **Labels** (model: `Label`, not Category)
 

@@ -9,6 +9,7 @@ use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Models\Budget;
 use Filament\Widgets\Widget;
+use Illuminate\Support\Facades\DB;
 
 class BudgetStatus extends Widget
 {
@@ -25,12 +26,46 @@ class BudgetStatus extends Widget
 
     protected string $view = 'filament.widgets.budget-status';
 
+    public function reorderBudgets(int|string $id, int $position): void
+    {
+        $budgetId = (int) $id;
+
+        $orderedIds = Budget::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn (mixed $value): int => (int) $value)
+            ->all();
+
+        $fromIndex = array_search($budgetId, $orderedIds, true);
+
+        if ($fromIndex === false) {
+            return;
+        }
+
+        $position = max(0, min($position, count($orderedIds) - 1));
+
+        array_splice($orderedIds, $fromIndex, 1);
+        array_splice($orderedIds, $position, 0, [$budgetId]);
+
+        DB::transaction(function () use ($orderedIds): void {
+            foreach ($orderedIds as $index => $orderedId) {
+                Budget::query()
+                    ->whereKey($orderedId)
+                    ->update(['sort_order' => $index]);
+            }
+        });
+    }
+
     protected function getViewData(): array
     {
         $spentTotals = $this->analytics()->spentTotalsByLabelId();
 
         $budgets = Budget::with('label')
             ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
             ->get();
 
         $budgetStates = [];

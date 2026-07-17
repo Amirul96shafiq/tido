@@ -34,75 +34,110 @@
             </div>
         @else
             <div
+                wire:sort="reorderBudgets"
                 class="flex flex-1 flex-col gap-6 mt-3 overflow-y-auto custom-scrollbar pr-2"
                 style="min-height: {{ $contentHeight }}; max-height: {{ $contentHeight }}"
             >
                 @foreach($budgets as $budget)
-                    <a
+                    <div
                         wire:key="budget-status-{{ $budget['id'] }}"
-                        wire:navigate
-                        href="{{ $budget['edit_url'] }}"
-                        class="flex flex-col gap-2 p-4 -mx-1 rounded-xl transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                        wire:sort:item="{{ $budget['id'] }}"
+                        class="flex items-center gap-2 p-4 -mx-1 rounded-xl transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60"
                     >
-                        <div class="flex justify-between items-center text-sm">
-                            <div class="flex items-center gap-2">
-                                <span
-                                    class="flex size-6 shrink-0 items-center justify-center rounded-md"
-                                    style="background-color: color-mix(in srgb, {{ $budget['color'] }} 18%, transparent); color: {{ $budget['color'] }};"
-                                >
-                                    <x-filament::icon
-                                        :icon="$budget['icon']"
-                                        class="size-3.5"
-                                    />
-                                </span>
-                                <span class="font-semibold text-gray-800 dark:text-gray-200">{{ $budget['name'] }}</span>
-                                <span class="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md">{{ ucfirst($budget['period']) }}</span>
-                            </div>
-                            <div class="font-bold text-gray-700 dark:text-gray-300">
-                                {{ MoneyDisplay::withPrefix($budget['spent']) }} <span class="text-xs text-gray-400 dark:text-gray-500 font-normal">/ {{ MoneyDisplay::withPrefix($budget['amount']) }}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="w-full bg-gray-200 dark:bg-white/15 h-2.5 rounded-full overflow-hidden relative">
-                            @php
-                                $barColorClass = match($budget['status_color']) {
-                                    'red' => 'bg-gradient-to-r from-red-500 to-rose-600',
-                                    'amber' => 'bg-gradient-to-r from-amber-400 to-orange-500',
-                                    default => 'bg-gradient-to-r from-[#FFD07D] to-[#FFA524]',
-                                };
-                                $glowColor = match($budget['status_color']) {
-                                    'red' => 'rgba(239, 68, 68, 0.4)',
-                                    'amber' => 'rgba(245, 158, 11, 0.4)',
-                                    default => 'rgba(255, 208, 125, 0.4)',
-                                };
-                            @endphp
-                            <div class="h-full rounded-full transition-all duration-1000 ease-out {{ $barColorClass }}"
-                                 style="width: {{ $budget['percentage'] }}%; box-shadow: 0 0 10px {{ $glowColor }};">
-                            </div>
-                        </div>
+                        <button
+                            type="button"
+                            wire:sort:handle
+                            class="flex size-6 shrink-0 cursor-grab items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 active:cursor-grabbing dark:hover:bg-slate-600 dark:hover:text-gray-200"
+                        >
+                            <x-filament::icon
+                                icon="heroicon-m-bars-3"
+                                class="size-4"
+                            />
+                        </button>
 
-                        <div class="flex justify-between items-center text-xs text-gray-400 dark:text-gray-500">
-                            <span>
-                                @if($budget['raw_percentage'] >= 100)
-                                    <span class="text-red-500 font-semibold flex items-center gap-1">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
-                                        Exceeded by {{ number_format($budget['raw_percentage'] - 100, 1) }}%
+                        <a
+                            wire:navigate
+                            wire:sort:ignore
+                            href="{{ $budget['edit_url'] }}"
+                            class="flex min-w-0 flex-1 flex-col gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg"
+                        >
+                            <div class="flex min-w-0 items-center justify-between gap-2 text-sm">
+                                <div class="flex min-w-0 flex-1 items-center gap-2">
+                                    <span
+                                        class="flex size-6 shrink-0 items-center justify-center rounded-md"
+                                        style="background-color: color-mix(in srgb, {{ $budget['color'] }} 18%, transparent); color: {{ $budget['color'] }};"
+                                    >
+                                        <x-filament::icon
+                                            :icon="$budget['icon']"
+                                            class="size-3.5"
+                                        />
                                     </span>
-                                @elseif($budget['status_color'] === 'amber')
-                                    <span class="text-amber-500 font-semibold">
-                                        Approaching limit ({{ number_format($budget['raw_percentage'], 1) }}%)
-                                    </span>
-                                @else
-                                    <span class="text-gray-400 dark:text-gray-500">
-                                        {{ number_format($budget['raw_percentage'], 1) }}% consumed
-                                    </span>
-                                @endif
-                            </span>
-                            <span>
-                                {{ MoneyDisplay::withPrefix(max(0, $budget['amount'] - $budget['spent'])) }} remaining
-                            </span>
-                        </div>
-                    </a>
+                                    <div
+                                        x-data="{ overflowing: false }"
+                                        x-init="
+                                            const measure = () => {
+                                                $el.style.setProperty('--tido-marquee-clip', $el.clientWidth + 'px');
+                                                overflowing = $refs.marqueeText.scrollWidth > $el.clientWidth;
+                                            };
+                                            measure();
+                                            new ResizeObserver(measure).observe($el);
+                                        "
+                                        class="tido-text-marquee-clip relative min-w-0 max-w-[9rem] overflow-hidden sm:max-w-[12rem]"
+                                    >
+                                        <span
+                                            x-ref="marqueeText"
+                                            class="inline-block whitespace-nowrap font-semibold text-gray-800 dark:text-gray-200"
+                                            :class="{ 'tido-text-marquee': overflowing }"
+                                        >{{ $budget['name'] }}</span>
+                                    </div>
+                                    <span class="shrink-0 text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md">{{ ucfirst($budget['period']) }}</span>
+                                </div>
+                                <div class="shrink-0 whitespace-nowrap text-right font-bold text-gray-700 dark:text-gray-300">
+                                    {{ MoneyDisplay::withPrefix($budget['spent']) }} <span class="text-xs text-gray-400 dark:text-gray-500 font-normal">/ {{ MoneyDisplay::withPrefix($budget['amount']) }}</span>
+                                </div>
+                            </div>
+
+                            <div class="w-full bg-gray-200 dark:bg-white/15 h-2.5 rounded-full overflow-hidden relative">
+                                @php
+                                    $barColorClass = match($budget['status_color']) {
+                                        'red' => 'bg-gradient-to-r from-red-500 to-rose-600',
+                                        'amber' => 'bg-gradient-to-r from-amber-400 to-orange-500',
+                                        default => 'bg-gradient-to-r from-[#FFD07D] to-[#FFA524]',
+                                    };
+                                    $glowColor = match($budget['status_color']) {
+                                        'red' => 'rgba(239, 68, 68, 0.4)',
+                                        'amber' => 'rgba(245, 158, 11, 0.4)',
+                                        default => 'rgba(255, 208, 125, 0.4)',
+                                    };
+                                @endphp
+                                <div class="h-full rounded-full transition-all duration-1000 ease-out {{ $barColorClass }}"
+                                     style="width: {{ $budget['percentage'] }}%; box-shadow: 0 0 10px {{ $glowColor }};">
+                                </div>
+                            </div>
+
+                            <div class="mt-2 flex justify-between items-center text-xs text-gray-400 dark:text-gray-500">
+                                <span>
+                                    @if($budget['raw_percentage'] >= 100)
+                                        <span class="text-red-500 font-semibold flex items-center gap-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
+                                            Exceeded by {{ number_format($budget['raw_percentage'] - 100, 1) }}%
+                                        </span>
+                                    @elseif($budget['status_color'] === 'amber')
+                                        <span class="text-amber-500 font-semibold">
+                                            Approaching limit ({{ number_format($budget['raw_percentage'], 1) }}%)
+                                        </span>
+                                    @else
+                                        <span class="text-gray-400 dark:text-gray-500">
+                                            {{ number_format($budget['raw_percentage'], 1) }}% consumed
+                                        </span>
+                                    @endif
+                                </span>
+                                <span>
+                                    {{ MoneyDisplay::withPrefix(max(0, $budget['amount'] - $budget['spent'])) }} remaining
+                                </span>
+                            </div>
+                        </a>
+                    </div>
                 @endforeach
             </div>
         @endif
