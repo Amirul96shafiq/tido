@@ -925,7 +925,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 /* Go to top — flush bottom-right square matching collapsed version footer (71×71) */
 .tido-go-to-top {
     position: fixed;
-    right: 0;
+    right: 1px;
     bottom: 0;
     z-index: 40;
     width: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
