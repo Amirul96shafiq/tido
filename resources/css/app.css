@@ -872,6 +872,62 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     cursor: default;
 }
 
+/* Go to top — flush bottom-right square matching collapsed version footer (71×71) */
+.tido-go-to-top {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    width: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
+    height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-white);
+    border-top: 1px solid var(--color-gray-100);
+    border-left: 1px solid var(--color-gray-100);
+}
+
+.dark .tido-go-to-top {
+    background-color: var(--color-slate-800);
+    border-top-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
+    border-left-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
+}
+
+.tido-go-to-top-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--color-gray-500);
+    border-radius: 0.5rem;
+    transition: background-color 200ms ease, color 200ms ease;
+}
+
+.tido-go-to-top-btn:hover {
+    background-color: color-mix(in srgb, var(--color-gray-100) 50%, transparent);
+    color: var(--color-gray-700);
+}
+
+.dark .tido-go-to-top-btn {
+    color: var(--color-slate-400);
+}
+
+.dark .tido-go-to-top-btn:hover {
+    background-color: color-mix(in srgb, var(--color-slate-700) 60%, transparent);
+    color: var(--color-slate-200);
+}
+
 .fi-sidebar-item-btn > .fi-icon,
 .fi-sidebar-item-btn > .fi-sidebar-item-icon {
     flex-shrink: 0;
