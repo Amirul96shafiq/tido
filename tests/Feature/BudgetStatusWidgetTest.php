@@ -56,6 +56,25 @@ test('budget status widget prefers custom title over label name', function () {
         ->assertDontSee('No budgets yet');
 });
 
+test('budget status widget uses single-line title marquee markup', function () {
+    $label = Label::factory()->create(['name' => 'Groceries & Household']);
+
+    Budget::factory()->create([
+        'label_id' => $label->id,
+        'amount' => 250.00,
+        'is_active' => true,
+    ]);
+
+    Livewire::test(BudgetStatus::class)
+        ->assertSuccessful()
+        ->assertSee('Groceries & Household')
+        ->assertSee('x-ref="marqueeText"', false)
+        ->assertSee('tido-text-marquee', false)
+        ->assertSee('tido-text-marquee-clip', false)
+        ->assertSee('whitespace-nowrap', false)
+        ->assertSee('shrink-0 whitespace-nowrap text-right', false);
+});
+
 test('budget status widget links each budget to its edit page', function () {
     $label = Label::factory()->create(['name' => 'Groceries']);
 

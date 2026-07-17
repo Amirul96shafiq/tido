@@ -61,8 +61,8 @@
                             href="{{ $budget['edit_url'] }}"
                             class="flex min-w-0 flex-1 flex-col gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg"
                         >
-                            <div class="flex justify-between items-center text-sm">
-                                <div class="flex items-center gap-2">
+                            <div class="flex min-w-0 items-center justify-between gap-2 text-sm">
+                                <div class="flex min-w-0 flex-1 items-center gap-2">
                                     <span
                                         class="flex size-6 shrink-0 items-center justify-center rounded-md"
                                         style="background-color: color-mix(in srgb, {{ $budget['color'] }} 18%, transparent); color: {{ $budget['color'] }};"
@@ -72,10 +72,27 @@
                                             class="size-3.5"
                                         />
                                     </span>
-                                    <span class="font-semibold text-gray-800 dark:text-gray-200">{{ $budget['name'] }}</span>
-                                    <span class="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md">{{ ucfirst($budget['period']) }}</span>
+                                    <div
+                                        x-data="{ overflowing: false }"
+                                        x-init="
+                                            const measure = () => {
+                                                $el.style.setProperty('--tido-marquee-clip', $el.clientWidth + 'px');
+                                                overflowing = $refs.marqueeText.scrollWidth > $el.clientWidth;
+                                            };
+                                            measure();
+                                            new ResizeObserver(measure).observe($el);
+                                        "
+                                        class="tido-text-marquee-clip relative min-w-0 max-w-[9rem] overflow-hidden sm:max-w-[12rem]"
+                                    >
+                                        <span
+                                            x-ref="marqueeText"
+                                            class="inline-block whitespace-nowrap font-semibold text-gray-800 dark:text-gray-200"
+                                            :class="{ 'tido-text-marquee': overflowing }"
+                                        >{{ $budget['name'] }}</span>
+                                    </div>
+                                    <span class="shrink-0 text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md">{{ ucfirst($budget['period']) }}</span>
                                 </div>
-                                <div class="font-bold text-gray-700 dark:text-gray-300">
+                                <div class="shrink-0 whitespace-nowrap text-right font-bold text-gray-700 dark:text-gray-300">
                                     {{ MoneyDisplay::withPrefix($budget['spent']) }} <span class="text-xs text-gray-400 dark:text-gray-500 font-normal">/ {{ MoneyDisplay::withPrefix($budget['amount']) }}</span>
                                 </div>
                             </div>

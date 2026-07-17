@@ -60,6 +60,7 @@ Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`
 - View records: always `ViewAction::make()->slideOver()` — never dedicated View pages
 - Upload UI: `ReceiptUploadPage` → creates pending invoices
 - Dashboard widgets use `DashboardMonthAnalytics` / month period helpers
+- Single-line overflowing labels: `docs/ui-text-marquee.md` (Budget Performance is the first consumer)
 
 ## Config / env
 

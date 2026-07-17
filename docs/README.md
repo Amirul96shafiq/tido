@@ -12,6 +12,7 @@
 | [ui-modal-overlay.md](ui-modal-overlay.md) | Agents + humans | Modal backdrop blur + Filament action modal width |
 | [ui-sticky-blur.md](ui-sticky-blur.md) | Agents + humans | Sticky top/bottom bars with progressive blur veil |
 | [ui-tooltips.md](ui-tooltips.md) | Agents + humans | Filament Tippy tooltips on icon CTAs (not browser `title`) |
+| [ui-text-marquee.md](ui-text-marquee.md) | Agents + humans | Single-line overflowing text (RTL marquee) — reusable |
 | [ui-dark-theme.md](ui-dark-theme.md) | Agents + humans | Dark mode Slate surfaces, tooltips, scrollbars, solid CTA text |
 | [ui-copy-style.md](ui-copy-style.md) | Agents + humans | Impersonal UI voice (no we/you); auth and panel copy |
 | [content-draft-recovery.md](content-draft-recovery.md) | Agents + humans | Auto-save drafts + crash recovery on Filament Create/Edit |

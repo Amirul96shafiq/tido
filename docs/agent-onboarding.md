@@ -29,11 +29,12 @@ Default login (seeded): `admin@tido.local` / `password`.
 8. Modal blur / width: `docs/ui-modal-overlay.md`
 9. Sticky top/bottom bars + blur veil: `docs/ui-sticky-blur.md`
 10. Icon CTA tooltips (Filament Tippy, not browser `title`): `docs/ui-tooltips.md`
-11. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
-12. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
-13. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
-14. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
-15. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+11. Single-line text marquee (overflow RTL scroll): `docs/ui-text-marquee.md`
+12. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
+13. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
+14. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
+15. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
+16. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 
