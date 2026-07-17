@@ -833,6 +833,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 .fi-sidebar-version-footer {
     border-top: 1px solid var(--color-gray-100);
     transition: padding 300ms ease-in-out;
+    box-sizing: border-box;
 }
 
 .dark .fi-sidebar-version-footer {
@@ -841,6 +842,15 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
         var(--color-slate-700) 60%,
         transparent
     );
+}
+
+/* Open sidebar: match topbar / sidebar-header chrome height (71px). */
+.fi-sidebar.fi-sidebar-open .fi-sidebar-version-footer {
+    display: flex !important;
+    align-items: center;
+    height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px) !important;
+    min-height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px) !important;
+    max-height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px) !important;
 }
 
 /* Match collapsed sidebar content square: height compensates for 1px border-top
@@ -853,7 +863,6 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     min-height: var(--collapsed-sidebar-width, 4.5rem) !important;
     max-height: var(--collapsed-sidebar-width, 4.5rem) !important;
     padding-block: 0 !important;
-    box-sizing: border-box;
 }
 
 .fi-sidebar-version-collapsed {

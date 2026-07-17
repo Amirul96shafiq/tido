@@ -18,6 +18,22 @@ test('topbar and sidebar header height match collapsed sidebar width', function 
         ->toContain("min-height: {$expectedHeight} !important;");
 });
 
+test('open version footer matches topbar chrome height', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $expectedHeight = 'calc(var(--collapsed-sidebar-width, 4.5rem) - 1px)';
+    $footerBlock = Str::between(
+        $css,
+        '.fi-sidebar.fi-sidebar-open .fi-sidebar-version-footer {',
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-version-footer {',
+    );
+
+    expect($footerBlock)
+        ->toContain("height: {$expectedHeight} !important;")
+        ->toContain("min-height: {$expectedHeight} !important;")
+        ->toContain("max-height: {$expectedHeight} !important;");
+});
+
 test('collapsed version footer is a square matching collapsed sidebar width', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
     $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
