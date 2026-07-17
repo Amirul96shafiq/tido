@@ -27,5 +27,6 @@ test('monthly trend widget renders with enriched chart data', function () {
 
     Livewire::test(MonthlyTrend::class)
         ->assertSuccessful()
-        ->assertSee('Monthly Spending Trend (12 months to '.now()->format('M Y').')');
+        ->assertSee('Monthly Spending Trend (12 months to '.now()->format('M Y').')')
+        ->assertSee('font: { size: 10 }', false);
 });

@@ -159,6 +159,16 @@ class MonthlyTrend extends ChartWidget
                         },
                     },
                 },
+                scales: {
+                    x: {
+                        ticks: {
+                            maxRotation: 0,
+                            minRotation: 0,
+                            autoSkip: false,
+                            font: { size: 10 },
+                        },
+                    },
+                },
             }
         JS);
     }

@@ -135,7 +135,7 @@ final class DashboardMonthAnalytics
                 ? $endMonth->copy()->startOfYear()->addMonths($i)
                 : $endMonth->copy()->subMonths($months - 1 - $i);
             $key = $month->format('Y-m');
-            $labels[] = $month->format('M Y');
+            $labels[] = $month->format('m/y');
             $stats = $monthlyStats->get($key);
             $data[] = (float) ($stats->total ?? 0);
             $receiptCounts[] = (int) ($stats->receipt_count ?? 0);

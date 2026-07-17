@@ -106,7 +106,7 @@ test('trend returns six buckets ending at selected month', function () {
     expect($trend['mom_changes'])->toHaveCount(6);
     expect($trend['period_shares'])->toHaveCount(6);
     expect($trend['selected_index'])->toBe(5);
-    expect($trend['labels'][5])->toBe($targetMonth->format('M Y'));
+    expect($trend['labels'][5])->toBe($targetMonth->format('m/y'));
     expect($trend['data'][5])->toBe(80.0);
     expect($trend['receipt_counts'][5])->toBe(1);
     expect($trend['mom_changes'][0])->toBeNull();
@@ -136,8 +136,8 @@ test('year to date trend ends at selected month', function () {
     $trend = analyticsForMonth($monthKey)->trend(yearToDate: true);
 
     expect($trend['labels'])->toHaveCount(7);
-    expect($trend['labels'][0])->toBe($targetMonth->copy()->startOfYear()->format('M Y'));
-    expect($trend['labels'][6])->toBe($targetMonth->format('M Y'));
+    expect($trend['labels'][0])->toBe($targetMonth->copy()->startOfYear()->format('m/y'));
+    expect($trend['labels'][6])->toBe($targetMonth->format('m/y'));
     expect($trend['selected_index'])->toBe(6);
     expect($trend['data'][6])->toBe(90.0);
 });
@@ -180,8 +180,8 @@ test('rolling twelve month trend ends at selected month', function () {
     $trend = analyticsForMonth($monthKey)->trend(12);
 
     expect($trend['labels'])->toHaveCount(12);
-    expect($trend['labels'][0])->toBe($rangeStart->format('M Y'));
-    expect($trend['labels'][11])->toBe($targetMonth->format('M Y'));
+    expect($trend['labels'][0])->toBe($rangeStart->format('m/y'));
+    expect($trend['labels'][11])->toBe($targetMonth->format('m/y'));
     expect($trend['selected_index'])->toBe(11);
     expect($trend['data'][0])->toBe(40.0);
     expect($trend['data'][11])->toBe(90.0);
@@ -211,8 +211,8 @@ test('calendar year trend returns twelve buckets for selected year', function ()
     $trend = analyticsForMonth($monthKey)->trend(calendarYear: true);
 
     expect($trend['labels'])->toHaveCount(12);
-    expect($trend['labels'][0])->toBe($targetMonth->copy()->startOfYear()->format('M Y'));
-    expect($trend['labels'][11])->toBe($targetMonth->copy()->endOfYear()->format('M Y'));
+    expect($trend['labels'][0])->toBe($targetMonth->copy()->startOfYear()->format('m/y'));
+    expect($trend['labels'][11])->toBe($targetMonth->copy()->endOfYear()->format('m/y'));
     expect($trend['selected_index'])->toBe(6);
     expect($trend['data'][6])->toBe(90.0);
 });
