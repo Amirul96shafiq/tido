@@ -147,7 +147,7 @@ class SpendingByLabel extends ChartWidget
                                     parts.push(momText);
                                 }
 
-                                return parts.join(' · ');
+                                return parts;
                             },
                             afterBody: (items) => {
                                 const item = items[0];

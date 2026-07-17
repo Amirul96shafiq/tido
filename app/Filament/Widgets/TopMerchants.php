@@ -139,7 +139,7 @@ class TopMerchants extends ChartWidget
                                     parts.push(`RM ${avgSpend.toFixed(2)} avg/visit`);
                                 }
 
-                                return parts.join(' · ');
+                                return parts;
                             },
                             label: (item) => {
                                 const value = item.parsed?.y ?? item.raw ?? 0;

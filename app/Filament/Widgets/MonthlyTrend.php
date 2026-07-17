@@ -132,7 +132,7 @@ class MonthlyTrend extends ChartWidget
                                     parts.push(`${share.toFixed(1)}% of 12-mo total`);
                                 }
 
-                                return parts.join(' · ');
+                                return parts;
                             },
                             afterBody: (items) => {
                                 const item = items[0];

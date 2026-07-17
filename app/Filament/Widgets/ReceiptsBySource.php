@@ -159,7 +159,7 @@ class ReceiptsBySource extends ChartWidget
                                     parts.push(momText);
                                 }
 
-                                return parts.join(' · ');
+                                return parts;
                             },
                         },
                     },

@@ -34,7 +34,20 @@ function applyFilamentTooltipTheme(chart) {
 
     const preservedTooltipOptions = {}
 
-    for (const key of ['enabled', 'callbacks', 'external', 'filter', 'itemSort', 'intersect', 'mode']) {
+    for (const key of [
+        'enabled',
+        'callbacks',
+        'external',
+        'filter',
+        'itemSort',
+        'intersect',
+        'mode',
+        'position',
+        'xAlign',
+        'yAlign',
+        'caretPadding',
+        'caretSize',
+    ]) {
         if (existingTooltip[key] !== undefined) {
             preservedTooltipOptions[key] = existingTooltip[key]
         }
@@ -44,6 +57,7 @@ function applyFilamentTooltipTheme(chart) {
     chart.options.plugins.tooltip = {
         cornerRadius: 4,
         padding: 9,
+        position: 'nearest',
         titleFont: {
             size: 14,
             weight: '400',
