@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Invoices\Pages;
 
+use App\Filament\Concerns\AppendsResourceLabelToEditTitle;
 use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Invoices\InvoiceResource;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\Storage;
 
 class EditInvoice extends EditRecord
 {
+    use AppendsResourceLabelToEditTitle;
     use HasStickyBlurFormActions;
     use RecoversContentDraft;
 

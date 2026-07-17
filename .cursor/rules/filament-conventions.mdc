@@ -39,6 +39,10 @@ Create/Edit resource pages use `App\Filament\Concerns\RecoversContentDraft` (Inv
 
 Create/Edit resource pages and `Auth/EditProfile` must use `App\Filament\Concerns\HasStickyBlurFormActions` so Create / Save / Cancel (and other `getFormActions()` CTAs) stick to the bottom with the frosted blur veil. See `docs/ui-sticky-blur.md` — do not call Filament `stickyFormActions()`.
 
+## Edit page title
+
+Every `EditRecord` page must use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the heading ends with the singular model label (e.g. `Edit Overall Budget · Monthly 2026 Budget`, `Edit Food & Dining Label`, `Edit Starbucks Invoice`). Does not apply to Create pages, List pages, or `EditProfile`.
+
 ## Global search (Global Search Modal)
 
 Panel uses `charrafimed/global-search-modal` with `globalSearchResourceOptIn()` — resources must **explicitly** opt in on the resource class itself (a shared trait property does not satisfy Filament’s reflection check).
