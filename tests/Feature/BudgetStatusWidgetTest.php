@@ -70,5 +70,6 @@ test('budget status widget links each budget to its edit page', function () {
     Livewire::test(BudgetStatus::class)
         ->assertSuccessful()
         ->assertSee($editUrl, false)
+        ->assertSee('wire:navigate', false)
         ->assertSee('hover:bg-gray-100', false);
 });

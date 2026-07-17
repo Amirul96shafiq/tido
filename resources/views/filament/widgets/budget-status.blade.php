@@ -40,6 +40,7 @@
                 @foreach($budgets as $budget)
                     <a
                         wire:key="budget-status-{{ $budget['id'] }}"
+                        wire:navigate
                         href="{{ $budget['edit_url'] }}"
                         class="flex flex-col gap-2 p-4 -mx-1 rounded-xl transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                     >
