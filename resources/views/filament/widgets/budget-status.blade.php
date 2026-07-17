@@ -10,10 +10,27 @@
 
         @if(empty($budgets))
             <div
-                class="flex flex-1 items-center justify-center text-gray-500 dark:text-gray-400 text-sm font-medium"
+                class="fi-wi-budget-status-empty flex flex-1 items-center justify-center"
                 style="min-height: {{ $contentHeight }}"
             >
-                No active budgets configured.
+                <x-empty-state-panel
+                    heading="No budgets yet"
+                    description="Create a budget to track spending against a limit."
+                    icon="heroicon-o-banknotes"
+                    icon-color="gray"
+                    class="fi-wi-chart-empty-panel"
+                >
+                    <x-slot name="actions">
+                        <x-filament::button
+                            :href="\App\Filament\Resources\Budgets\BudgetResource::getUrl('create')"
+                            tag="a"
+                            color="primary"
+                            icon="heroicon-m-plus"
+                        >
+                            New budget
+                        </x-filament::button>
+                    </x-slot>
+                </x-empty-state-panel>
             </div>
         @else
             <div
