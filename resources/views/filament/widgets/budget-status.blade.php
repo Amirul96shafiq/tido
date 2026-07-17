@@ -38,7 +38,11 @@
                 style="min-height: {{ $contentHeight }}; max-height: {{ $contentHeight }}"
             >
                 @foreach($budgets as $budget)
-                    <div wire:key="budget-status-{{ $loop->index }}" class="flex flex-col gap-2 group p-3 rounded-xl transition-all duration-300">
+                    <a
+                        wire:key="budget-status-{{ $budget['id'] }}"
+                        href="{{ $budget['edit_url'] }}"
+                        class="flex flex-col gap-2 p-4 -mx-1 rounded-xl transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                    >
                         <div class="flex justify-between items-center text-sm">
                             <div class="flex items-center gap-2">
                                 <span
@@ -97,7 +101,7 @@
                                 {{ MoneyDisplay::withPrefix(max(0, $budget['amount'] - $budget['spent'])) }} remaining
                             </span>
                         </div>
-                    </div>
+                    </a>
                 @endforeach
             </div>
         @endif

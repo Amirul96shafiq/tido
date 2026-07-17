@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Models\Budget;
@@ -42,6 +43,8 @@ class BudgetStatus extends Widget
             $criticalThreshold = (float) $budget->critical_threshold;
 
             $budgetStates[] = [
+                'id' => $budget->id,
+                'edit_url' => BudgetResource::getUrl('edit', ['record' => $budget]),
                 'name' => $budget->display_title,
                 'icon' => $budget->display_icon,
                 'amount' => (float) $budget->amount,
