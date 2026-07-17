@@ -1184,8 +1184,52 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply size-5;
 }
 
+.fi-topbar .fi-user-menu {
+    /* Match collapsed sidebar / go-to-top chrome square (4.5rem − 1px → 71×71) */
+    width: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
+    height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
+    box-sizing: border-box;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    margin-inline-end: -1rem;
+    border-left: 1px solid var(--color-gray-100);
+}
+
+.dark .fi-topbar .fi-user-menu {
+    border-left-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
+}
+
 .fi-topbar .fi-user-menu-trigger {
-    @apply flex size-10 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60;
+    /* Same size-10 rounded hover as collapsed sidebar / version-icon items */
+    @apply relative flex size-10 items-center justify-center overflow-visible rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60;
+}
+
+.fi-topbar .fi-user-menu-trigger .fi-user-menu-avatar-wrap {
+    @apply relative inline-flex;
+}
+
+.fi-topbar .fi-user-menu-trigger .fi-user-menu-notifications-badge {
+    @apply pointer-events-none absolute top-0 right-0 z-10 translate-x-0.5 -translate-y-0.5;
+}
+
+.fi-user-menu-notifications-wrap {
+    @apply relative;
+}
+
+.fi-user-menu-notifications-wrap .fi-user-menu-item-notifications-badge {
+    /* Sit on the leading bell icon (item padding + icon corner) */
+    @apply pointer-events-none absolute top-1.5 left-4 z-10 -translate-y-0.5 translate-x-0.5;
+}
+
+/* Keep DatabaseNotifications mounted for the slide-over + poll, but hide the topbar trigger. */
+.fi-topbar-end .fi-no-database > .fi-modal-trigger {
+    @apply pointer-events-none absolute size-0 overflow-hidden opacity-0;
 }
 
 .fi-auth-menu .fi-auth-menu-trigger {
@@ -1193,7 +1237,15 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .fi-user-menu-profile-preview {
-    @apply flex flex-col gap-0.5 px-4 py-3 text-center;
+    @apply flex flex-col items-center gap-0.5 px-4 py-3 text-center;
+}
+
+.fi-user-menu-profile-preview-avatar {
+    @apply my-3 flex justify-center;
+}
+
+.fi-user-menu-profile-preview-avatar .fi-avatar {
+    @apply size-16;
 }
 
 .fi-user-menu-profile-preview-name {

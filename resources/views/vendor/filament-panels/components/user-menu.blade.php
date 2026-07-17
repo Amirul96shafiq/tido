@@ -34,6 +34,7 @@
 
 <x-filament::dropdown
     :placement="($position === UserMenuPosition::Topbar) ? 'bottom-end' : 'top-end'"
+    :offset="($position === UserMenuPosition::Topbar) ? -39 : 8"
     :teleport="$position === UserMenuPosition::Topbar"
     :attributes="
         \Filament\Support\prepare_inherited_attributes($attributes)
@@ -46,12 +47,54 @@
                 aria-label="{{ __('filament-panels::layout.actions.open_user_menu.label') }}"
                 type="button"
                 class="fi-user-menu-trigger"
+                x-data
+                x-init="
+                    if (! Alpine.store('tidoNotifications')) {
+                        Alpine.store('tidoNotifications', { unread: 0, menuOpen: false });
+                    } else if (Alpine.store('tidoNotifications').menuOpen === undefined) {
+                        Alpine.store('tidoNotifications').menuOpen = false;
+                    }
+
+                    const dropdownTrigger = $el.closest('.fi-dropdown-trigger');
+
+                    if (dropdownTrigger) {
+                        const syncMenuOpen = () => {
+                            Alpine.store('tidoNotifications').menuOpen =
+                                dropdownTrigger.getAttribute('aria-expanded') === 'true';
+                        };
+
+                        syncMenuOpen();
+
+                        new MutationObserver(syncMenuOpen).observe(dropdownTrigger, {
+                            attributes: true,
+                            attributeFilter: ['aria-expanded'],
+                        });
+                    }
+                "
                 x-tooltip="{
                     content: @js(__('filament-panels::layout.actions.open_user_menu.label')),
                     theme: $store.theme,
                 }"
             >
-                <x-filament-panels::avatar.user :user="$user" loading="lazy" />
+                <span class="fi-user-menu-avatar-wrap">
+                    <x-filament-panels::avatar.user :user="$user" loading="lazy" />
+
+                    <span
+                        x-cloak
+                        x-show="$store.tidoNotifications.unread > 0 && ! $store.tidoNotifications.menuOpen"
+                        x-bind:class="{
+                            'h-4 min-w-4': $store.tidoNotifications.unread < 10,
+                            'h-4 min-w-[1.125rem] px-0.5': $store.tidoNotifications.unread >= 10,
+                        }"
+                        class="fi-user-menu-notifications-badge flex items-center justify-center"
+                    >
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span
+                            class="relative inline-flex h-full min-w-full items-center justify-center rounded-full bg-amber-500 px-0.5 text-[9px] font-semibold leading-none text-zinc-900"
+                            x-text="$store.tidoNotifications.unread > 99 ? '99+' : $store.tidoNotifications.unread"
+                        ></span>
+                    </span>
+                </span>
             </button>
         @else
             <button
@@ -109,6 +152,26 @@
                     {{ $item }}
 
                     {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::USER_MENU_PROFILE_AFTER) }}
+                @elseif ($key === 'notifications')
+                    <div class="fi-user-menu-notifications-wrap">
+                        {{ $item }}
+
+                        <span
+                            x-cloak
+                            x-show="$store.tidoNotifications.unread > 0 && $store.tidoNotifications.menuOpen"
+                            x-bind:class="{
+                                'h-4 min-w-4': $store.tidoNotifications.unread < 10,
+                                'h-4 min-w-[1.125rem] px-0.5': $store.tidoNotifications.unread >= 10,
+                            }"
+                            class="fi-user-menu-item-notifications-badge flex items-center justify-center"
+                        >
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span
+                                class="relative inline-flex h-full min-w-full items-center justify-center rounded-full bg-amber-500 px-0.5 text-[9px] font-semibold leading-none text-zinc-900"
+                                x-text="$store.tidoNotifications.unread > 99 ? '99+' : $store.tidoNotifications.unread"
+                            ></span>
+                        </span>
+                    </div>
                 @else
                     {{ $item }}
                 @endif
@@ -133,6 +196,26 @@
                     {{ $item }}
 
                     {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::USER_MENU_PROFILE_AFTER) }}
+                @elseif ($key === 'notifications')
+                    <div class="fi-user-menu-notifications-wrap">
+                        {{ $item }}
+
+                        <span
+                            x-cloak
+                            x-show="$store.tidoNotifications.unread > 0 && $store.tidoNotifications.menuOpen"
+                            x-bind:class="{
+                                'h-4 min-w-4': $store.tidoNotifications.unread < 10,
+                                'h-4 min-w-[1.125rem] px-0.5': $store.tidoNotifications.unread >= 10,
+                            }"
+                            class="fi-user-menu-item-notifications-badge flex items-center justify-center"
+                        >
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span
+                                class="relative inline-flex h-full min-w-full items-center justify-center rounded-full bg-amber-500 px-0.5 text-[9px] font-semibold leading-none text-zinc-900"
+                                x-text="$store.tidoNotifications.unread > 99 ? '99+' : $store.tidoNotifications.unread"
+                            ></span>
+                        </span>
+                    </div>
                 @else
                     {{ $item }}
                 @endif
