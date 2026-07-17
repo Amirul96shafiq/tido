@@ -2,7 +2,8 @@
 
 Reusable pattern for a Filament schema bar that sticks to the **top** (below the panel topbar) or **bottom** of the viewport, with a frosted blur + tint veil behind it while pinned.
 
-Reference implementation: dashboard month filter in [`app/Filament/Pages/Dashboard.php`](../app/Filament/Pages/Dashboard.php).
+- **Top reference:** dashboard month filter in [`app/Filament/Pages/Dashboard.php`](../app/Filament/Pages/Dashboard.php)
+- **Bottom form CTAs:** trait [`HasStickyBlurFormActions`](../app/Filament/Concerns/HasStickyBlurFormActions.php) on Create/Edit resource pages and profile
 
 ## Why Filament needs a special structure
 
@@ -81,6 +82,31 @@ Same structure; swap the edge modifier:
 
 Place the pin Group **after** the scrolling content if the bar should sit at the bottom of the page flow, or keep order as needed — sticky `bottom` still pins to the viewport when scrolling.
 
+## Form actions (bottom)
+
+Create / Edit resource pages and the profile page use the shared trait [`HasStickyBlurFormActions`](../app/Filament/Concerns/HasStickyBlurFormActions.php) so form CTAs (Create, Create & create another, Save changes, Cancel, and any other `getFormActions()` buttons) stick to the viewport bottom with the same blur veil.
+
+Do **not** use Filament’s `stickyFormActions()` — that applies an opaque fixed card, not the tido frosted veil.
+
+### Current opt-in pages
+
+| Page | Notes |
+|------|--------|
+| `CreateInvoice` / `EditInvoice` | Resource CTAs |
+| `CreateLabel` / `EditLabel` | Resource CTAs |
+| `CreateBudget` / `EditBudget` | Resource CTAs |
+| `Auth/EditProfile` | Save / Cancel / Danger Zone CTAs |
+
+### Opt in a new Create / Edit page
+
+1. On the page class: `use HasStickyBlurFormActions;`
+2. Keep CTAs in `getFormActions()` so they land in the shared sticky bar
+3. Do **not** call `CreateRecord::stickyFormActions()` / `EditRecord::stickyFormActions()` / `BasePage::stickyFormActions()`
+4. Extend the dataset in `tests/Feature/StickyBlurFormActionsTest.php`
+5. No per-page CSS or JS — panel assets already load the veil
+
+Dashboard remains the reference for **top** sticky bars (manual `Group` + markers). Form pages use the trait for **bottom** CTAs.
+
 ## Assets (already panel-wide)
 
 - CSS: [`resources/css/app.css`](../resources/css/app.css) — sticky offsets, progressive blur/tint veil (dual `::before` / `::after` layers)
@@ -111,3 +137,4 @@ No per-page JS registration is required once the hook classes are present.
 - Rely on `.page-class .fi-layout` descendant selectors for overflow — page classes sit *inside* `.fi-layout`.
 - Put opaque backgrounds on the pin that defeat the frosted look unless intentional.
 - Invent a second stuck-detection script — extend `sticky-blur-veil.js` if needed.
+- Use Filament `stickyFormActions()` for Create/Edit/profile CTAs — use `HasStickyBlurFormActions` instead.

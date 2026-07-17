@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Invoices\Pages;
 
+use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Models\Invoice;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Storage;
 
 class EditInvoice extends EditRecord
 {
+    use HasStickyBlurFormActions;
     use RecoversContentDraft;
 
     protected static string $resource = InvoiceResource::class;

@@ -6,6 +6,7 @@ namespace App\Filament\Pages\Auth;
 
 use App\Enums\UserDateFormat;
 use App\Enums\UserLocale;
+use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Models\User;
 use App\Notifications\VerifyEmailChange;
 use App\Services\AccountDangerZoneService;
@@ -43,6 +44,8 @@ use LogicException;
 
 class EditProfile extends BaseEditProfile
 {
+    use HasStickyBlurFormActions;
+
     private const RESET_CONFIRMATION_PHRASE = 'CONFIRM RESET DATA';
 
     private const DELETE_CONFIRMATION_PHRASE = 'CONFIRM DELETE ACCOUNT';
