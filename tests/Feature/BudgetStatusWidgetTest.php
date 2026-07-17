@@ -37,3 +37,20 @@ test('budget status widget renders active budgets', function () {
         ->assertSee('Groceries')
         ->assertDontSee('No budgets yet');
 });
+
+test('budget status widget prefers custom title over label name', function () {
+    $label = Label::factory()->create(['name' => 'Groceries']);
+
+    Budget::factory()->create([
+        'title' => 'Family Groceries',
+        'icon' => 'heroicon-o-shopping-cart',
+        'label_id' => $label->id,
+        'amount' => 500.00,
+        'is_active' => true,
+    ]);
+
+    Livewire::test(BudgetStatus::class)
+        ->assertSuccessful()
+        ->assertSee('Family Groceries')
+        ->assertDontSee('No budgets yet');
+});

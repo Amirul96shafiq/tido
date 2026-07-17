@@ -38,10 +38,18 @@
                 style="min-height: {{ $contentHeight }}; max-height: {{ $contentHeight }}"
             >
                 @foreach($budgets as $budget)
-                    <div class="flex flex-col gap-2 group p-3 rounded-xl transition-all duration-300">
+                    <div wire:key="budget-status-{{ $loop->index }}" class="flex flex-col gap-2 group p-3 rounded-xl transition-all duration-300">
                         <div class="flex justify-between items-center text-sm">
                             <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full shadow-sm" style="background-color: {{ $budget['color'] }}; box-shadow: 0 0 8px {{ $budget['color'] }}80;"></span>
+                                <span
+                                    class="flex size-6 shrink-0 items-center justify-center rounded-md"
+                                    style="background-color: color-mix(in srgb, {{ $budget['color'] }} 18%, transparent); color: {{ $budget['color'] }};"
+                                >
+                                    <x-filament::icon
+                                        :icon="$budget['icon']"
+                                        class="size-3.5"
+                                    />
+                                </span>
                                 <span class="font-semibold text-gray-800 dark:text-gray-200">{{ $budget['name'] }}</span>
                                 <span class="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md">{{ ucfirst($budget['period']) }}</span>
                             </div>
@@ -75,7 +83,7 @@
                                         <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
                                         Exceeded by {{ number_format($budget['raw_percentage'] - 100, 1) }}%
                                     </span>
-                                @elseif($budget['raw_percentage'] >= 85)
+                                @elseif($budget['status_color'] === 'amber')
                                     <span class="text-amber-500 font-semibold">
                                         Approaching limit ({{ number_format($budget['raw_percentage'], 1) }}%)
                                     </span>

@@ -7,7 +7,6 @@ namespace App\Services;
 use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
 use App\Models\Invoice;
-use App\Models\InvoiceItem;
 use App\Models\User;
 use App\Support\WhatsAppMessage;
 use Filament\Notifications\Notification as FilamentNotification;
@@ -20,70 +19,98 @@ class BudgetAlertService
     {
         $labelIds = $invoice->invoiceItems()->pluck('label_id')->unique()->filter()->toArray();
 
-        $budgets = Budget::whereIn('label_id', $labelIds)
-            ->orWhereNull('label_id')
+        $budgets = Budget::query()
             ->where('is_active', true)
+            ->where(function ($query) use ($labelIds): void {
+                $query->whereIn('label_id', $labelIds)
+                    ->orWhereNull('label_id');
+            })
             ->get();
 
         foreach ($budgets as $budget) {
-            $start = $budget->getStartDate();
-            $end = $budget->getEndDate();
-
-            $query = InvoiceItem::query()
-                ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-                ->whereBetween('invoices.date_time', [$start, $end])
-                ->whereIn('invoices.status', ['parsed', 'reviewed']);
-
-            if ($budget->label_id) {
-                $query->where('invoice_items.label_id', $budget->label_id);
-            }
-
-            $spent = (float) $query->sum('invoice_items.line_total');
             $budgetAmount = (float) $budget->amount;
 
             if ($budgetAmount <= 0) {
                 continue;
             }
 
+            $spent = $budget->spentInPeriod();
             $percentage = ($spent / $budgetAmount) * 100;
-            $threshold = (float) $budget->alert_threshold;
+            $warnThreshold = (float) $budget->alert_threshold;
+            $criticalThreshold = (float) $budget->critical_threshold;
 
-            if ($percentage >= $threshold) {
-                $labelName = $budget->label ? (string) $budget->label->getAttribute('name') : 'Overall Budget';
-                $periodName = ucfirst($budget->period);
+            $level = match (true) {
+                $percentage >= $criticalThreshold => 'critical',
+                $percentage >= $warnThreshold => 'warn',
+                default => null,
+            };
 
-                $message = WhatsAppMessage::compose(
-                    '⚠️',
-                    'Budget alert',
-                    sprintf(
-                        "Spending for this label has reached the alert threshold.\n\nLabel: *%s*\nSpent: *RM %s* / *RM %s* (%.1f%%)\nPeriod: *%s*",
-                        $labelName,
-                        MoneyDisplay::format($spent),
-                        MoneyDisplay::format($budgetAmount),
-                        $percentage,
-                        $periodName,
-                    ),
-                );
-
-                $personalNumber = config('services.evolution.personal_number');
-                if (! empty($personalNumber)) {
-                    $this->waService->sendMessage((string) $personalNumber, $message);
-                }
-
-                $users = User::all();
-
-                foreach ($users as $user) {
-                    if (! $user->notify_budget_alerts) {
-                        continue;
-                    }
-
-                    FilamentNotification::make()
-                        ->title("Budget Alert: {$labelName}")
-                        ->body(MoneyDisplay::withPrefix($spent).' / '.MoneyDisplay::withPrefix($budgetAmount).' ('.round($percentage).'%)')
-                        ->warning()
-                        ->sendToDatabase($user);
-                }
+            if ($level === null) {
+                continue;
             }
+
+            $this->dispatchAlert($budget, $spent, $budgetAmount, $percentage, $level);
+        }
+    }
+
+    /**
+     * @param  'warn'|'critical'  $level
+     */
+    private function dispatchAlert(
+        Budget $budget,
+        float $spent,
+        float $budgetAmount,
+        float $percentage,
+        string $level,
+    ): void {
+        $labelName = $budget->display_title;
+        $periodName = ucfirst((string) $budget->period);
+        $isCritical = $level === 'critical';
+        $alertHeading = $isCritical ? 'Budget critical' : 'Budget alert';
+
+        if ($budget->notify_whatsapp) {
+            $message = WhatsAppMessage::compose(
+                $isCritical ? '🚨' : '⚠️',
+                $alertHeading,
+                sprintf(
+                    "Spending for this budget has reached the %s threshold.\n\nBudget: *%s*\nSpent: *RM %s* / *RM %s* (%.1f%%)\nPeriod: *%s*",
+                    $isCritical ? 'critical' : 'warning',
+                    $labelName,
+                    MoneyDisplay::format($spent),
+                    MoneyDisplay::format($budgetAmount),
+                    $percentage,
+                    $periodName,
+                ),
+            );
+
+            $personalNumber = config('services.evolution.personal_number');
+            if (! empty($personalNumber)) {
+                $this->waService->sendMessage((string) $personalNumber, $message);
+            }
+        }
+
+        if (! $budget->notify_filament) {
+            return;
+        }
+
+        $users = User::all();
+
+        foreach ($users as $user) {
+            if (! $user->notify_budget_alerts) {
+                continue;
+            }
+
+            $notification = FilamentNotification::make()
+                ->title(($isCritical ? 'Budget Critical: ' : 'Budget Alert: ').$labelName)
+                ->body(MoneyDisplay::withPrefix($spent).' / '.MoneyDisplay::withPrefix($budgetAmount).' ('.round($percentage).'%)');
+
+            if ($isCritical) {
+                $notification->danger();
+            } else {
+                $notification->warning();
+            }
+
+            $notification->sendToDatabase($user);
         }
     }
 }

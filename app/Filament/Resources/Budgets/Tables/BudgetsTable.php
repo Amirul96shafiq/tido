@@ -12,6 +12,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -23,9 +24,32 @@ class BudgetsTable
     {
         return $table
             ->columns([
+                IconColumn::make('display_icon')
+                    ->label('')
+                    ->icon(fn (?string $state): ?string => $state)
+                    ->color('gray'),
+
+                TextColumn::make('display_title')
+                    ->label('Title')
+                    ->searchable(query: function ($query, string $search): void {
+                        $query->where(function ($inner) use ($search): void {
+                            $inner->where('title', 'like', "%{$search}%")
+                                ->orWhereHas('label', fn ($labelQuery) => $labelQuery->where('name', 'like', "%{$search}%"));
+                        });
+                    })
+                    ->limit(24)
+                    ->tooltip(function (TextColumn $column, ?string $state): ?string {
+                        if (blank($state) || mb_strlen((string) $state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+
+                        return (string) $state;
+                    }),
+
                 TextColumn::make('label.name')
                     ->label('Label')
                     ->default('Overall (All Labels)')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable()
                     ->sortable()
                     ->limit(20)
@@ -62,7 +86,12 @@ class BudgetsTable
                     ->sortable(),
 
                 TextColumn::make('alert_threshold')
-                    ->label('Threshold')
+                    ->label('Warn')
+                    ->suffix('%')
+                    ->sortable(),
+
+                TextColumn::make('critical_threshold')
+                    ->label('Critical')
                     ->suffix('%')
                     ->sortable(),
 

@@ -21,13 +21,19 @@ class BudgetFactory extends Factory
         $quarter = ($period === 'quarterly') ? $this->faker->numberBetween(1, 4) : null;
 
         return [
+            'title' => null,
+            'icon' => null,
             'label_id' => $this->faker->boolean(80) ? Label::factory() : null,
             'amount' => $this->faker->randomFloat(2, 50, 5000),
             'period' => $period,
             'quarter' => $quarter,
             'year' => (int) now()->year,
-            'alert_threshold' => $this->faker->numberBetween(50, 100),
+            'alert_threshold' => 80,
+            'critical_threshold' => 100,
+            'notify_filament' => true,
+            'notify_whatsapp' => true,
             'is_active' => true,
+            'notes' => null,
         ];
     }
 }

@@ -17,6 +17,17 @@ class EditBudget extends EditRecord
 
     protected static string $resource = BudgetResource::class;
 
+    /**
+     * @return array<string>
+     */
+    public function getPageClasses(): array
+    {
+        return [
+            ...parent::getPageClasses(),
+            'fi-budget-form-page',
+        ];
+    }
+
     protected function contentDraftKey(): string
     {
         return 'budget-edit-'.$this->getRecord()->getKey();
