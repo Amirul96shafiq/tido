@@ -46,12 +46,34 @@
                 aria-label="{{ __('filament-panels::layout.actions.open_user_menu.label') }}"
                 type="button"
                 class="fi-user-menu-trigger"
+                x-data
+                x-init="
+                    if (! Alpine.store('tidoNotifications')) {
+                        Alpine.store('tidoNotifications', { unread: 0 });
+                    }
+                "
                 x-tooltip="{
                     content: @js(__('filament-panels::layout.actions.open_user_menu.label')),
                     theme: $store.theme,
                 }"
             >
                 <x-filament-panels::avatar.user :user="$user" loading="lazy" />
+
+                <span
+                    x-cloak
+                    x-show="$store.tidoNotifications.unread > 0"
+                    x-bind:class="{
+                        'h-4 min-w-4': $store.tidoNotifications.unread < 10,
+                        'h-4 min-w-[1.125rem] px-0.5': $store.tidoNotifications.unread >= 10,
+                    }"
+                    class="fi-user-menu-notifications-badge absolute top-0 right-0 flex items-center justify-center"
+                >
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span
+                        class="relative inline-flex h-full min-w-full items-center justify-center rounded-full bg-amber-500 px-0.5 text-[9px] font-semibold leading-none text-zinc-900"
+                        x-text="$store.tidoNotifications.unread > 99 ? '99+' : $store.tidoNotifications.unread"
+                    ></span>
+                </span>
             </button>
         @else
             <button

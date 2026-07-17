@@ -2,14 +2,22 @@
 
 declare(strict_types=1);
 
+use App\Filament\Pages\Dashboard;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('user menu orders theme before profile changelogs and logout', function () {
-    $user = User::factory()->create();
+beforeEach(function () {
+    config([
+        'services.evolution.personal_number' => '60123456789',
+    ]);
+});
+
+test('user menu orders profile changelogs notifications and logout', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
 
     $this->actingAs($user);
 
@@ -18,13 +26,35 @@ test('user menu orders theme before profile changelogs and logout', function () 
     $items = Filament::getUserMenuItems();
     $keys = array_keys($items);
 
-    expect($keys)->toBe(['profile', 'changelogs', 'logout']);
+    expect($keys)->toBe(['profile', 'changelogs', 'notifications', 'logout']);
 
     expect($items['profile']->getIcon())->toBe('heroicon-o-user');
     expect($items['profile']->getSort())->toBeGreaterThanOrEqual(0);
     expect($items['changelogs']->getLabel())->toBe('Changelogs');
     expect($items['changelogs']->getSort())->toBeGreaterThan($items['profile']->getSort());
-    expect($items['logout']->getSort())->toBeGreaterThan($items['changelogs']->getSort());
+    expect($items['notifications']->getLabel())->toBe('Notifications');
+    expect($items['notifications']->getIcon())->toBe('heroicon-o-bell');
+    expect($items['notifications']->getSort())->toBeGreaterThan($items['changelogs']->getSort());
+    expect($items['logout']->getSort())->toBeGreaterThan($items['notifications']->getSort());
     expect($items['logout']->getIcon())->toBe('heroicon-o-arrow-right-start-on-rectangle');
     expect($items['logout']->getColor())->toBe('danger');
+});
+
+test('topbar hides notification bell and exposes notifications in user menu', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $this->actingAs($user);
+
+    Notification::make()
+        ->title('Test notification')
+        ->sendToDatabase($user);
+
+    $response = $this->get(Dashboard::getUrl());
+
+    $response->assertSuccessful();
+    $response->assertDontSee('fi-topbar-database-notifications-btn', false);
+    $response->assertSee('fi-topbar-database-notifications-trigger-sync', false);
+    $response->assertSee('fi-user-menu-notifications-badge', false);
+    $response->assertSee('Notifications', false);
+    $response->assertSee("\$dispatch('open-modal', { id: 'database-notifications' })", false);
 });

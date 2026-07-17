@@ -179,7 +179,8 @@ class AdminPanelProvider extends PanelProvider
                     ),
             ])
             ->userMenuItems([
-                // sort >= 0 places items after the theme switcher (theme → profile → changelogs → logout)
+                // sort >= 0 places items after the theme switcher
+                // (theme → profile → changelogs → notifications → logout)
                 'profile' => fn (Action $action): Action => $action
                     ->icon('heroicon-o-user')
                     ->sort(0),
@@ -188,9 +189,15 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-code-bracket')
                     ->url('javascript:void(0)')
                     ->sort(10),
+                Action::make('notifications')
+                    ->label('Notifications')
+                    ->icon('heroicon-o-bell')
+                    ->alpineClickHandler("\$dispatch('open-modal', { id: 'database-notifications' })")
+                    ->sort(20),
                 'logout' => fn (Action $action): Action => $action
                     ->icon('heroicon-o-arrow-right-start-on-rectangle')
-                    ->color('danger'),
+                    ->color('danger')
+                    ->sort(30),
             ])
             ->renderHook(
                 PanelsRenderHook::SIDEBAR_FOOTER,

@@ -1185,7 +1185,16 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .fi-topbar .fi-user-menu-trigger {
-    @apply flex size-10 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60;
+    @apply relative flex size-10 items-center justify-center overflow-visible rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60;
+}
+
+.fi-topbar .fi-user-menu-trigger .fi-user-menu-notifications-badge {
+    @apply pointer-events-none z-10 translate-x-0.5 -translate-y-0.5;
+}
+
+/* Keep DatabaseNotifications mounted for the slide-over + poll, but hide the topbar trigger. */
+.fi-topbar-end .fi-no-database > .fi-modal-trigger {
+    @apply pointer-events-none absolute size-0 overflow-hidden opacity-0;
 }
 
 .fi-auth-menu .fi-auth-menu-trigger {
