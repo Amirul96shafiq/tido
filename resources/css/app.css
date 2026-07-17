@@ -1206,7 +1206,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .fi-topbar .fi-user-menu-trigger {
-    @apply relative flex size-full items-center justify-center overflow-visible rounded-none transition-all duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60;
+    /* Same size-10 rounded hover as collapsed sidebar / version-icon items */
+    @apply relative flex size-10 items-center justify-center overflow-visible rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60;
 }
 
 .fi-topbar .fi-user-menu-trigger .fi-user-menu-avatar-wrap {

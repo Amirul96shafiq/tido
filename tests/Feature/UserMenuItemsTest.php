@@ -65,10 +65,22 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
 
     $expectedSize = 'calc(var(--collapsed-sidebar-width, 4.5rem) - 1px)';
     $block = Str::between($css, '.fi-topbar .fi-user-menu {', '.dark .fi-topbar .fi-user-menu {');
+    $triggerBlock = Str::between(
+        $css,
+        '.fi-topbar .fi-user-menu-trigger {',
+        '.fi-topbar .fi-user-menu-trigger .fi-user-menu-avatar-wrap {',
+    );
 
     expect($block)
         ->toContain("width: {$expectedSize};")
         ->toContain("height: {$expectedSize};")
         ->toContain('border-left: 1px solid var(--color-gray-100);')
-        ->toContain('margin-inline-end: -1rem;');
+        ->toContain('margin-inline-end: -1rem;')
+        ->and($triggerBlock)
+        ->toContain('size-10')
+        ->toContain('rounded-lg')
+        ->toContain('hover:bg-gray-100')
+        ->toContain('dark:hover:bg-slate-700/60')
+        ->not->toContain('size-full')
+        ->not->toContain('rounded-none');
 });
