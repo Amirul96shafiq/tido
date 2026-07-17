@@ -6,7 +6,6 @@ namespace App\Filament\Resources\Budgets\Schemas;
 
 use App\Enums\LabelType;
 use App\Filament\Forms\Components\IconPicker;
-use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
 use App\Models\Label;
 use Filament\Forms\Components\Select;
@@ -16,12 +15,10 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
-use Filament\Support\Enums\FontWeight;
 use Filament\Support\RawJs;
 
 class BudgetForm
@@ -147,37 +144,8 @@ class BudgetForm
                             ->description('Spending against this budget for the current period')
                             ->visible(fn (string $operation): bool => $operation === 'edit')
                             ->schema([
-                                Text::make(function (?Budget $record): string {
-                                    if (! $record instanceof Budget) {
-                                        return 'No performance data yet.';
-                                    }
-
-                                    $spent = $record->spentInPeriod();
-                                    $amount = (float) $record->amount;
-                                    $percentage = $amount > 0 ? ($spent / $amount) * 100 : 0.0;
-                                    $remaining = max(0, $amount - $spent);
-                                    $start = $record->getStartDate()->format('d M Y');
-                                    $end = $record->getEndDate()->format('d M Y');
-
-                                    $status = match (true) {
-                                        $percentage >= (float) $record->critical_threshold => 'Critical',
-                                        $percentage >= (float) $record->alert_threshold => 'Warning',
-                                        default => 'On track',
-                                    };
-
-                                    return sprintf(
-                                        'Period: %s – %s · Spent %s of %s (%.1f%%) · %s remaining · Status: %s',
-                                        $start,
-                                        $end,
-                                        MoneyDisplay::withPrefix($spent),
-                                        MoneyDisplay::withPrefix($amount),
-                                        $percentage,
-                                        MoneyDisplay::withPrefix($remaining),
-                                        $status,
-                                    );
-                                })
-                                    ->weight(FontWeight::Medium)
-                                    ->color('neutral'),
+                                View::make('filament.forms.components.budget-performance')
+                                    ->viewData(fn (?Budget $record): array => self::performanceViewData($record)),
                             ]),
                     ]),
 
@@ -243,6 +211,65 @@ class BudgetForm
                             ]),
                     ]),
             ]);
+    }
+
+    /**
+     * @return array{
+     *     hasData: bool,
+     *     periodLabel: ?string,
+     *     status: string,
+     *     statusColor: string,
+     *     spent: float,
+     *     amount: float,
+     *     remaining: float,
+     *     percentage: float,
+     *     rawPercentage: float
+     * }
+     */
+    private static function performanceViewData(?Budget $record): array
+    {
+        if (! $record instanceof Budget) {
+            return [
+                'hasData' => false,
+                'periodLabel' => null,
+                'status' => 'On track',
+                'statusColor' => 'emerald',
+                'spent' => 0.0,
+                'amount' => 0.0,
+                'remaining' => 0.0,
+                'percentage' => 0.0,
+                'rawPercentage' => 0.0,
+            ];
+        }
+
+        $spent = $record->spentInPeriod();
+        $amount = (float) $record->amount;
+        $rawPercentage = $amount > 0 ? ($spent / $amount) * 100 : 0.0;
+        $remaining = max(0, $amount - $spent);
+
+        $statusColor = match (true) {
+            $rawPercentage >= (float) $record->critical_threshold => 'red',
+            $rawPercentage >= (float) $record->alert_threshold => 'amber',
+            default => 'emerald',
+        };
+
+        $status = match ($statusColor) {
+            'red' => 'Critical',
+            'amber' => 'Warning',
+            default => 'On track',
+        };
+
+        return [
+            'hasData' => true,
+            'periodLabel' => $record->getStartDate()->format('d M Y').' – '.$record->getEndDate()->format('d M Y'),
+            'status' => $status,
+            'statusColor' => $statusColor,
+            'spent' => $spent,
+            'amount' => $amount,
+            'remaining' => $remaining,
+            'percentage' => min(100, $rawPercentage),
+            'rawPercentage' => $rawPercentage,
+        ];
     }
 
     private static function syncAppearanceFromLabel(mixed $labelId, Get $get, Set $set): void

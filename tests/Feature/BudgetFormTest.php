@@ -57,12 +57,19 @@ test('edit budget page shows performance section', function () {
         'year' => (int) now()->year,
     ]);
 
+    $periodLabel = $budget->getStartDate()->format('d M Y').' – '.$budget->getEndDate()->format('d M Y');
+
     Livewire::test(EditBudget::class, ['record' => $budget->getRouteKey()])
         ->assertSuccessful()
         ->assertSee('Budget Performance')
         ->assertSee('Budget Appearance')
         ->assertSee('Budget Settings')
         ->assertSee('Groceries Cap')
+        ->assertSee('Spent')
+        ->assertSee('Limit')
+        ->assertSee('Remaining')
+        ->assertSee('On track')
+        ->assertSee($periodLabel)
         ->assertSee('fi-budget-form-page', false)
         ->assertSee('fi-budget-sidebar-sticky', false);
 });
