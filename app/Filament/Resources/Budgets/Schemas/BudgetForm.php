@@ -37,7 +37,6 @@ class BudgetForm
                     ->extraAttributes(['class' => 'fi-budget-main-column'])
                     ->schema([
                         Section::make('Limit & Period')
-                            ->description('Spending cap and the calendar window it applies to')
                             ->schema([
                                 Grid::make(3)
                                     ->schema([
@@ -79,10 +78,7 @@ class BudgetForm
                             ]),
 
                         Section::make('Alert Settings')
-                            ->description('When and how to notify about spending')
                             ->schema([
-                                Grid::make(2)
-                                    ->schema([
                                         Slider::make('alert_threshold')
                                             ->label('Warn Threshold (%)')
                                             ->range(minValue: 10, maxValue: 100)
@@ -93,8 +89,7 @@ class BudgetForm
                                                 `${Math.round($value)}%`
                                                 JS))
                                             ->live()
-                                            ->required()
-                                            ->helperText('Warn when spending reaches this percentage of the limit.'),
+                                            ->required(),
 
                                         Slider::make('critical_threshold')
                                             ->label('Critical Threshold (%)')
@@ -107,7 +102,6 @@ class BudgetForm
                                                 JS))
                                             ->live()
                                             ->required()
-                                            ->helperText('Critical alert when spending reaches this percentage. Must be ≥ warn threshold.')
                                             ->rules([
                                                 fn (Get $get): \Closure => function (string $attribute, mixed $value, \Closure $fail) use ($get): void {
                                                     $warn = (int) round((float) ($get('alert_threshold') ?? 0));
@@ -120,7 +114,7 @@ class BudgetForm
                                             ]),
 
                                         Toggle::make('notify_filament')
-                                            ->label('Notify in Filament')
+                                            ->label('Notify in tido App')
                                             ->default(true)
                                             ->helperText('Send in-app database notifications when a threshold is reached.'),
 
@@ -129,10 +123,8 @@ class BudgetForm
                                             ->default(true)
                                             ->helperText('Send WhatsApp messages when a threshold is reached.'),
                                     ]),
-                            ]),
 
                         Section::make('Budget Notes')
-                            ->description('Optional memo for this budget')
                             ->schema([
                                 Textarea::make('notes')
                                     ->hiddenLabel()
@@ -141,7 +133,6 @@ class BudgetForm
                             ]),
 
                         Section::make('Budget Performance')
-                            ->description('Spending against this budget for the current period')
                             ->visible(fn (string $operation): bool => $operation === 'edit')
                             ->schema([
                                 View::make('filament.forms.components.budget-performance')
@@ -158,7 +149,6 @@ class BudgetForm
                     ->extraAttributes(['class' => 'fi-budget-sidebar-sticky'])
                     ->schema([
                         Section::make('Budget Appearance')
-                            ->description('How this budget appears in the list and widget')
                             ->schema([
                                 View::make('filament.forms.components.label-icon-preview')
                                     ->viewData(fn (Get $get): array => [
@@ -185,7 +175,6 @@ class BudgetForm
                             ]),
 
                         Section::make('Budget Settings')
-                            ->description('What this budget covers and whether it is active')
                             ->schema([
                                 Select::make('label_id')
                                     ->label('Label')
