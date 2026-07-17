@@ -122,6 +122,10 @@ const DragDropUpload = {
 
     bindEvents() {
         const preventDefaults = (event) => {
+            if (!this.isFileDrag(event) || this.shouldIgnoreEvent(event)) {
+                return;
+            }
+
             event.preventDefault();
             event.stopPropagation();
         };
@@ -136,15 +140,35 @@ const DragDropUpload = {
         this.addListener('drop', (event) => this.handleDrop(event));
     },
 
+    isFileDrag(event) {
+        const types = event.dataTransfer?.types;
+
+        if (!types) {
+            return false;
+        }
+
+        return Array.from(types).includes('Files');
+    },
+
     shouldIgnoreTarget(target) {
-        return (
+        if (!(target instanceof Element)) {
+            return false;
+        }
+
+        return Boolean(
             target.closest('.no-drag-image') ||
-            target.classList.contains('no-drag-image')
+                target.closest('[wire\\:sort]') ||
+                target.closest('[wire\\:sort\\:item]') ||
+                target.classList.contains('no-drag-image'),
         );
     },
 
+    shouldIgnoreEvent(event) {
+        return this.shouldIgnoreTarget(event.target);
+    },
+
     handleDragEnter(event) {
-        if (this.shouldIgnoreTarget(event.target)) {
+        if (!this.isFileDrag(event) || this.shouldIgnoreEvent(event)) {
             return;
         }
 
@@ -155,7 +179,7 @@ const DragDropUpload = {
     },
 
     handleDragOver(event) {
-        if (this.shouldIgnoreTarget(event.target)) {
+        if (!this.isFileDrag(event) || this.shouldIgnoreEvent(event)) {
             return;
         }
 
@@ -165,7 +189,11 @@ const DragDropUpload = {
         }
     },
 
-    handleDragLeave() {
+    handleDragLeave(event) {
+        if (!this.isFileDrag(event) || this.shouldIgnoreEvent(event)) {
+            return;
+        }
+
         this.dragCounter--;
         if (this.dragCounter === 0 && this.overlay) {
             this.overlay.style.display = 'none';
@@ -176,6 +204,10 @@ const DragDropUpload = {
         this.dragCounter = 0;
         if (this.overlay) {
             this.overlay.style.display = 'none';
+        }
+
+        if (!this.isFileDrag(event) || this.shouldIgnoreEvent(event)) {
+            return;
         }
 
         const files = event.dataTransfer?.files;

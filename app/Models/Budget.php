@@ -39,6 +39,7 @@ class Budget extends Model
         'notify_whatsapp',
         'is_active',
         'notes',
+        'sort_order',
     ];
 
     protected $casts = [
@@ -50,7 +51,19 @@ class Budget extends Model
         'notify_filament' => 'boolean',
         'notify_whatsapp' => 'boolean',
         'is_active' => 'boolean',
+        'sort_order' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Budget $budget): void {
+            if ($budget->sort_order !== null) {
+                return;
+            }
+
+            $budget->sort_order = (int) static::query()->max('sort_order') + 1;
+        });
+    }
 
     public function label(): BelongsTo
     {

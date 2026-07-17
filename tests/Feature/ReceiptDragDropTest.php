@@ -29,6 +29,16 @@ test('drag drop source files exist', function () {
         ->and(resource_path('views/components/drag-drop-lang.blade.php'))->toBeReadableFile();
 });
 
+test('drag drop upload ignores non-file and sortable list drags', function () {
+    $source = (string) file_get_contents(resource_path('js/drag-drop-upload.js'));
+
+    expect($source)
+        ->toContain('isFileDrag(event)')
+        ->toContain("includes('Files')")
+        ->toContain('[wire\\\\:sort]')
+        ->toContain('shouldIgnoreEvent(event)');
+});
+
 test('drag drop language bootstrap includes expected copy', function () {
     $this->get(Dashboard::getUrl())
         ->assertSuccessful()
