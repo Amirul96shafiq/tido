@@ -1227,22 +1227,28 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 @media (max-width: 1023px) {
-    .fi-profile-page .fi-grid-col:has(.fi-profile-sidebar-sticky) {
+    /*
+     * Scope to columns inside the profile form only.
+     * Without .fi-sc-form, :has(.fi-profile-main-column) also matches the
+     * sticky-scope form wrapper and sets order:2, so bottom CTAs (order:0)
+     * render above the entire form (including Danger Zone).
+     */
+    .fi-profile-page .fi-sc-form .fi-grid-col:has(.fi-profile-sidebar-sticky) {
         order: 1;
     }
 
-    .fi-profile-page .fi-grid-col:has(.fi-profile-main-column) {
+    .fi-profile-page .fi-sc-form .fi-grid-col:has(.fi-profile-main-column) {
         order: 2;
     }
 }
 
 @media (min-width: 1024px) {
     /* overflow-x-clip on .fi-layout breaks position: sticky for descendants */
-    .fi-profile-page .fi-layout {
+    .fi-layout:has(.fi-profile-page) {
         overflow-x: visible;
     }
 
-    .fi-profile-page .fi-grid-col:has(.fi-profile-sidebar-sticky) {
+    .fi-profile-page .fi-sc-form .fi-grid-col:has(.fi-profile-sidebar-sticky) {
         position: sticky;
         top: calc(4rem + 1.5rem);
         align-self: start;

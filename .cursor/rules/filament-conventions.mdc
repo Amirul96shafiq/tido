@@ -35,6 +35,10 @@ Dashboard widgets live in `app/Filament/Widgets/`. Month filtering uses `Interac
 
 Create/Edit resource pages use `App\Filament\Concerns\RecoversContentDraft` (Invoices, Labels, Budgets). See `docs/content-draft-recovery.md` when adding a new Create/Edit page: trait + `contentDraftKey()` + register the page in `AdminPanelProvider` `PAGE_END` poller scopes.
 
+## Sticky form actions (bottom blur)
+
+Create/Edit resource pages and `Auth/EditProfile` must use `App\Filament\Concerns\HasStickyBlurFormActions` so Create / Save / Cancel (and other `getFormActions()` CTAs) stick to the bottom with the frosted blur veil. See `docs/ui-sticky-blur.md` — do not call Filament `stickyFormActions()`.
+
 ## Global search (Global Search Modal)
 
 Panel uses `charrafimed/global-search-modal` with `globalSearchResourceOptIn()` — resources must **explicitly** opt in on the resource class itself (a shared trait property does not satisfy Filament’s reflection check).
