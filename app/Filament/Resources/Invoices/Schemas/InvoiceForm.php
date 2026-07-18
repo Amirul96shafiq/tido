@@ -38,8 +38,7 @@ class InvoiceForm
                                 Grid::make(3)
                                     ->schema([
                                         TextInput::make('merchant_name')
-                                            ->required()
-                                            ->helperText('Prefer store brand and branch, e.g. FamilyMart Pinggiran Batu Caves'),
+                                            ->required(),
                                         TextInput::make('invoice_number'),
                                         DateTimePicker::make('date_time')
                                             ->required()
@@ -55,7 +54,6 @@ class InvoiceForm
 
                                         TextInput::make('total_tax')
                                             ->label('Tax / Service')
-                                            ->helperText('SST / service tax (include service charge if not split)')
                                             ->myr()
                                             ->default(0.00),
 
@@ -123,13 +121,13 @@ class InvoiceForm
                                 Repeater::make('invoiceItems')
                                     ->relationship('invoiceItems')
                                     ->schema([
-                                        Grid::make(6)
-                                            ->schema([
-                                                TextInput::make('description')
-                                                    ->required()
-                                                    ->live(onBlur: true)
-                                                    ->columnSpan(2),
+                                        TextInput::make('description')
+                                            ->required()
+                                            ->live(onBlur: true)
+                                            ->columnSpanFull(),
 
+                                        Grid::make(4)
+                                            ->schema([
                                                 Select::make('label_id')
                                                     ->label('Label')
                                                     ->relationship(
@@ -144,7 +142,7 @@ class InvoiceForm
 
                                                 TextInput::make('quantity')
                                                     ->numeric()
-                                                    ->step(0.001)
+                                                    ->step(0.1)
                                                     ->default(1)
                                                     ->required()
                                                     ->helperText('Supports kg / litres')
