@@ -1355,6 +1355,34 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     min-height: 10rem;
 }
 
+/*
+ * Filament forces `.filepond--drop-label { opacity-100! height-auto! }`, which
+ * blocks FilePond's fade-out AND keeps a real measured height. With
+ * allowMultiple, FilePond reserves that height as a hopper above items
+ * (`v = labelHeight` while under maxFiles) — the empty dark box above previews.
+ * Collapse the label out of layout once any item exists.
+ */
+.fi-fo-file-upload .filepond--root:has(.filepond--item) .filepond--drop-label,
+.fi-fo-file-upload
+    .filepond--root:has(.filepond--item)
+    .filepond--drop-label
+    label {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+}
+
+.fi-fo-file-upload .filepond--root:has(.filepond--item) .filepond--list-scroller {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
 /* Invoice receipt FileUpload: native preview inside FilePond image layer */
 .fi-receipt-image-upload.tido-receipt-has-native-preview .filepond--item {
     position: relative;

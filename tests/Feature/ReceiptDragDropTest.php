@@ -113,3 +113,25 @@ test('receipt upload page save creates pending invoice and dispatches extraction
 
     Queue::assertPushed(ExtractReceiptDataJob::class);
 });
+
+test('receipt upload page clears required error after file is selected', function () {
+    Storage::fake('public');
+
+    $file = UploadedFile::fake()->image('receipt.jpg');
+
+    Livewire::test(ReceiptUploadPage::class)
+        ->call('save')
+        ->assertHasErrors(['data.receipts'])
+        ->set('data.receipts', [$file])
+        ->assertHasNoErrors(['data.receipts']);
+});
+
+test('app css hides filepond drop label when files are present', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.filepond--root:has(.filepond--item) .filepond--drop-label')
+        ->toContain('display: none !important')
+        ->toContain('min-height: 0 !important')
+        ->toContain('.filepond--list-scroller');
+});

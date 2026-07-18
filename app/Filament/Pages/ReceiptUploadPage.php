@@ -56,7 +56,10 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                     ->image()
                     ->maxSize(10240)
                     ->directory('receipts')
-                    ->required(),
+                    ->required()
+                    ->afterStateUpdated(function (): void {
+                        $this->resetValidation('data.receipts');
+                    }),
             ]);
     }
 
