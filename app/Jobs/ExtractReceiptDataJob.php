@@ -144,7 +144,9 @@ class ExtractReceiptDataJob implements ShouldQueue
             return $notes;
         }
 
-        return $notes === '' ? $marker : $notes."\n".$marker;
+        $markerHtml = '<p>'.$marker.'</p>';
+
+        return $notes === '' ? $markerHtml : $notes.$markerHtml;
     }
 
     protected function uniqueReceiptHash(Invoice $invoice): string

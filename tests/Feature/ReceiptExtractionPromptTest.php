@@ -39,6 +39,23 @@ test('receipt extraction prompt includes user created finance labels', function 
     expect($prompt)->toContain('Pet Supplies — Pet food, grooming, vet supplies');
 });
 
+test('receipt extraction prompt strips html from label descriptions', function () {
+    $this->seed(LabelSeeder::class);
+
+    Label::factory()->create([
+        'name' => 'Pet Supplies',
+        'slug' => 'pet-supplies',
+        'description' => '<p>Pet food, <strong>grooming</strong>, vet supplies</p>',
+    ]);
+
+    $prompt = ReceiptExtractionPrompt::build();
+
+    expect($prompt)
+        ->toContain('Pet Supplies — Pet food, grooming, vet supplies')
+        ->not->toContain('<p>')
+        ->not->toContain('<strong>');
+});
+
 test('receipt extraction prompt get delegates to build', function () {
     $this->seed(LabelSeeder::class);
 

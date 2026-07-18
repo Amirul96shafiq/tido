@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Resources\Invoices\Pages\EditInvoice;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
@@ -32,6 +33,25 @@ test('invoice edit form uses private visibility for receipt image', function () 
         ->assertSchemaComponentExists(
             'image_path',
             checkComponentUsing: fn (FileUpload $component): bool => $component->getVisibility() === 'private',
+        );
+});
+
+test('invoice form uses rich editor for notes', function () {
+    $invoice = Invoice::factory()->create([
+        'image_path' => null,
+    ]);
+
+    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSchemaComponentExists(
+            'notes',
+            checkComponentUsing: function (NotesRichEditor $component): bool {
+                expect($component->getExtraAttributes())->toMatchArray([
+                    'class' => NotesRichEditor::EXTRA_CLASS,
+                ]);
+
+                return true;
+            },
         );
 });
 

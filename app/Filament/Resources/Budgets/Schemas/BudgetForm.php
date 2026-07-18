@@ -6,11 +6,11 @@ namespace App\Filament\Resources\Budgets\Schemas;
 
 use App\Enums\LabelType;
 use App\Filament\Forms\Components\IconPicker;
+use App\Filament\Forms\Components\NotesRichEditor;
 use App\Models\Budget;
 use App\Models\Label;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Slider;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
@@ -79,56 +79,55 @@ class BudgetForm
 
                         Section::make('Alert Settings')
                             ->schema([
-                                        Slider::make('alert_threshold')
-                                            ->label('Warn Threshold (%)')
-                                            ->range(minValue: 10, maxValue: 100)
-                                            ->step(5)
-                                            ->decimalPlaces(0)
-                                            ->default(80)
-                                            ->tooltips(RawJs::make(<<<'JS'
+                                Slider::make('alert_threshold')
+                                    ->label('Warn Threshold (%)')
+                                    ->range(minValue: 10, maxValue: 100)
+                                    ->step(5)
+                                    ->decimalPlaces(0)
+                                    ->default(80)
+                                    ->tooltips(RawJs::make(<<<'JS'
                                                 `${Math.round($value)}%`
                                                 JS))
-                                            ->live()
-                                            ->required(),
+                                    ->live()
+                                    ->required(),
 
-                                        Slider::make('critical_threshold')
-                                            ->label('Critical Threshold (%)')
-                                            ->range(minValue: 10, maxValue: 100)
-                                            ->step(5)
-                                            ->decimalPlaces(0)
-                                            ->default(100)
-                                            ->tooltips(RawJs::make(<<<'JS'
+                                Slider::make('critical_threshold')
+                                    ->label('Critical Threshold (%)')
+                                    ->range(minValue: 10, maxValue: 100)
+                                    ->step(5)
+                                    ->decimalPlaces(0)
+                                    ->default(100)
+                                    ->tooltips(RawJs::make(<<<'JS'
                                                 `${Math.round($value)}%`
                                                 JS))
-                                            ->live()
-                                            ->required()
-                                            ->rules([
-                                                fn (Get $get): \Closure => function (string $attribute, mixed $value, \Closure $fail) use ($get): void {
-                                                    $warn = (int) round((float) ($get('alert_threshold') ?? 0));
-                                                    $critical = (int) round((float) $value);
+                                    ->live()
+                                    ->required()
+                                    ->rules([
+                                        fn (Get $get): \Closure => function (string $attribute, mixed $value, \Closure $fail) use ($get): void {
+                                            $warn = (int) round((float) ($get('alert_threshold') ?? 0));
+                                            $critical = (int) round((float) $value);
 
-                                                    if ($critical < $warn) {
-                                                        $fail('Critical threshold must be greater than or equal to the warn threshold.');
-                                                    }
-                                                },
-                                            ]),
-
-                                        Toggle::make('notify_filament')
-                                            ->label('Notify in tido App')
-                                            ->default(true)
-                                            ->helperText('Send in-app database notifications when a threshold is reached.'),
-
-                                        Toggle::make('notify_whatsapp')
-                                            ->label('Notify via WhatsApp')
-                                            ->default(true)
-                                            ->helperText('Send WhatsApp messages when a threshold is reached.'),
+                                            if ($critical < $warn) {
+                                                $fail('Critical threshold must be greater than or equal to the warn threshold.');
+                                            }
+                                        },
                                     ]),
+
+                                Toggle::make('notify_filament')
+                                    ->label('Notify in tido App')
+                                    ->default(true)
+                                    ->helperText('Send in-app database notifications when a threshold is reached.'),
+
+                                Toggle::make('notify_whatsapp')
+                                    ->label('Notify via WhatsApp')
+                                    ->default(true)
+                                    ->helperText('Send WhatsApp messages when a threshold is reached.'),
+                            ]),
 
                         Section::make('Budget Notes')
                             ->schema([
-                                Textarea::make('notes')
+                                NotesRichEditor::make('notes')
                                     ->hiddenLabel()
-                                    ->rows(3)
                                     ->columnSpanFull(),
                             ]),
 

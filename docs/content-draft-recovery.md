@@ -77,6 +77,10 @@ class EditThing extends EditRecord
 
 The poller badge (bottom-end) shows a pulsing amber dot + “Draft saved at …” after the first successful `saveDraft`, with a bottom→top entrance transition. It is non-interactive (`pointer-events-none`).
 
+## Notes / rich editor fields
+
+When a draft includes a `NotesRichEditor` field, Livewire payload state is TipTap **document JSON**, while create/save dehydrates to **HTML** in the database. See [ui-notes-rich-editor.md](ui-notes-rich-editor.md).
+
 ## Out of scope
 
 - Custom Filament pages without Create/Edit record (`ReceiptUploadPage`, WhatsApp connection, profile) — opt in separately if needed.

@@ -61,6 +61,7 @@ Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`
 - Upload UI: `ReceiptUploadPage` → creates pending invoices
 - Dashboard widgets use `DashboardMonthAnalytics` / month period helpers
 - Single-line overflowing labels: `docs/ui-text-marquee.md` (Budget Performance is the first consumer)
+- Notes fields: `NotesRichEditor` — `docs/ui-notes-rich-editor.md` (Budget `notes`, Invoice `notes`, Label `description` as Label Notes)
 
 ## Config / env
 

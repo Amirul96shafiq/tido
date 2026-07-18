@@ -33,8 +33,9 @@ Default login (seeded): `admin@tido.local` / `password`.
 12. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
 13. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
 14. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
-15. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
-16. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+15. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
+16. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
+17. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 

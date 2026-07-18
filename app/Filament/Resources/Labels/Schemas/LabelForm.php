@@ -6,9 +6,9 @@ namespace App\Filament\Resources\Labels\Schemas;
 
 use App\Enums\LabelType;
 use App\Filament\Forms\Components\IconPicker;
+use App\Filament\Forms\Components\NotesRichEditor;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\Page as ResourcePage;
 use Filament\Schemas\Components\Section;
@@ -72,9 +72,8 @@ class LabelForm
                                 modifyRuleUsing: fn (Unique $rule, Get $get) => $rule->where('type', $get('type')),
                             ),
 
-                        Textarea::make('description')
-                            ->label('Description')
-                            ->rows(3)
+                        NotesRichEditor::make('description')
+                            ->label('Label Notes')
                             ->columnSpanFull(),
                     ]),
             ]);

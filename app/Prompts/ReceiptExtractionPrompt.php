@@ -12,8 +12,9 @@ class ReceiptExtractionPrompt
     {
         $labelLines = Label::financeLabels()
             ->map(function (Label $label): string {
-                $hint = filled($label->description)
-                    ? ' — '.$label->description
+                $hintText = self::plainTextHint($label->description);
+                $hint = $hintText !== ''
+                    ? ' — '.$hintText
                     : '';
 
                 return '- '.$label->name.$hint;
@@ -77,5 +78,19 @@ PROMPT;
     public static function get(): string
     {
         return self::build();
+    }
+
+    /**
+     * Strip rich-editor HTML (and collapse whitespace) for prompt injection.
+     */
+    private static function plainTextHint(?string $description): string
+    {
+        if ($description === null || trim($description) === '') {
+            return '';
+        }
+
+        $plain = html_entity_decode(strip_tags($description), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return trim(preg_replace('/\s+/u', ' ', $plain) ?? '');
     }
 }

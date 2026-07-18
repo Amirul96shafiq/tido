@@ -6,13 +6,13 @@ namespace App\Filament\Resources\Invoices\Schemas;
 
 use App\Enums\LabelType;
 use App\Enums\PaymentMethod;
+use App\Filament\Forms\Components\NotesRichEditor;
 use App\Helpers\MoneyDisplay;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -117,8 +117,8 @@ class InvoiceForm
                             ->openable()
                             ->downloadable(),
 
-                        Textarea::make('notes')
-                            ->rows(3),
+                        NotesRichEditor::make('notes')
+                            ->label('Invoice Notes'),
                     ]),
 
                 Section::make('Line Items')
