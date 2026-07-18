@@ -26,6 +26,7 @@ beforeEach(function () {
 test('drag drop source files exist', function () {
     expect(resource_path('js/drag-drop-upload.js'))->toBeReadableFile()
         ->and(resource_path('js/receipt-upload-handler.js'))->toBeReadableFile()
+        ->and(resource_path('js/receipt-image-preview.js'))->toBeReadableFile()
         ->and(resource_path('views/components/drag-drop-lang.blade.php'))->toBeReadableFile();
 });
 
@@ -67,7 +68,26 @@ test('vite config includes drag drop scripts', function () {
 
     expect($viteConfig)
         ->toContain('resources/js/drag-drop-upload.js')
-        ->toContain('resources/js/receipt-upload-handler.js');
+        ->toContain('resources/js/receipt-upload-handler.js')
+        ->toContain('resources/js/receipt-image-preview.js');
+});
+
+test('admin panel registers receipt image preview script', function () {
+    $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
+
+    expect($provider)
+        ->toContain('receipt-image-preview')
+        ->toContain('resources/js/receipt-image-preview.js');
+});
+
+test('receipt image preview script raises filepond max height for receipt uploads', function () {
+    $source = (string) file_get_contents(resource_path('js/receipt-image-preview.js'));
+
+    expect($source)
+        ->toContain('.fi-receipt-image-upload')
+        ->toContain('tido-receipt-native-preview')
+        ->toContain('FilePond.find')
+        ->toContain('MAX_PREVIEW_HEIGHT = 500');
 });
 
 test('receipt upload page save creates pending invoice and dispatches extraction job', function () {

@@ -101,6 +101,10 @@ class AdminPanelProvider extends PanelProvider
                     'select-value-marquee',
                     Vite::asset('resources/js/select-value-marquee.js'),
                 )->module(),
+                Js::make(
+                    'receipt-image-preview',
+                    Vite::asset('resources/js/receipt-image-preview.js'),
+                )->module(),
             ])
             ->renderHook(
                 PanelsRenderHook::SIMPLE_LAYOUT_START,

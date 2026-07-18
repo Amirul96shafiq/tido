@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/js/receipt-upload-handler.js',
                 'resources/js/sticky-blur-veil.js',
                 'resources/js/select-value-marquee.js',
+                'resources/js/receipt-image-preview.js',
             ],
             refresh: true,
         }),

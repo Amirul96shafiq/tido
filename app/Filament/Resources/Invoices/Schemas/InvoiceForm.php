@@ -208,7 +208,8 @@ class InvoiceForm
                                     ->directory('receipts')
                                     ->visibility('private')
                                     ->openable()
-                                    ->downloadable(),
+                                    ->downloadable()
+                                    ->extraAttributes(['class' => 'fi-receipt-image-upload']),
                             ]),
                     ]),
             ]);

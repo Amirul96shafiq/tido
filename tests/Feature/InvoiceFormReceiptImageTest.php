@@ -38,6 +38,26 @@ test('invoice edit form uses private visibility for receipt image', function () 
         );
 });
 
+test('invoice edit form receipt image upload uses natural height preview class', function () {
+    $invoice = Invoice::factory()->create([
+        'image_path' => null,
+    ]);
+
+    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSee('fi-receipt-image-upload', false)
+        ->assertSchemaComponentExists(
+            'image_path',
+            checkComponentUsing: function (FileUpload $component): bool {
+                expect($component->getExtraAttributes())->toMatchArray([
+                    'class' => 'fi-receipt-image-upload',
+                ]);
+
+                return true;
+            },
+        );
+});
+
 test('invoice form uses rich editor for notes', function () {
     $invoice = Invoice::factory()->create([
         'image_path' => null,

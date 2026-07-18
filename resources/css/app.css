@@ -1355,6 +1355,71 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     min-height: 10rem;
 }
 
+/* Invoice receipt FileUpload: native preview inside FilePond image layer */
+.fi-receipt-image-upload.tido-receipt-has-native-preview .filepond--item {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Dark top veil so remove/open/download + filename stay readable on light receipts */
+.fi-receipt-image-upload.tido-receipt-has-native-preview .filepond--item::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    z-index: 3;
+    height: 3.25rem;
+    pointer-events: none;
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+    background: linear-gradient(
+        to bottom,
+        rgb(0 0 0 / 0.72) 0%,
+        rgb(0 0 0 / 0.45) 55%,
+        rgb(0 0 0 / 0) 100%
+    );
+}
+
+.fi-receipt-image-upload.tido-receipt-has-native-preview .filepond--image-preview {
+    background-color: transparent !important;
+}
+
+.fi-receipt-image-upload.tido-receipt-has-native-preview .tido-receipt-native-preview {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 2 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    object-fit: contain !important;
+    object-position: top center !important;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 1 !important;
+}
+
+/* Long receipts: cap height and crop the overflow from the bottom */
+.fi-receipt-image-upload.tido-receipt-preview-capped .tido-receipt-native-preview {
+    object-fit: cover !important;
+}
+
+.fi-receipt-image-upload.tido-receipt-has-native-preview .filepond--image-preview canvas {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+.fi-receipt-image-upload.tido-receipt-has-native-preview .filepond--file-wrapper {
+    z-index: 4 !important;
+}
+
+.fi-receipt-image-upload .filepond--root,
+.fi-receipt-image-upload .filepond--item {
+    width: 100%;
+}
+
 @media (min-width: 1024px) {
     /* overflow-x-clip on .fi-layout breaks position: sticky for descendants */
     .fi-layout:has(.fi-profile-page),
