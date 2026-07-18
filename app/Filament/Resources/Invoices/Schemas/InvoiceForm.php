@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Invoices\Schemas;
 use App\Enums\LabelType;
 use App\Enums\PaymentMethod;
 use App\Filament\Forms\Components\NotesRichEditor;
+use App\Filament\Support\SelectValueMarquee;
 use App\Helpers\MoneyDisplay;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
@@ -75,7 +76,9 @@ class InvoiceForm
                                     ])
                                     ->default('MYR')
                                     ->searchable()
-                                    ->required(),
+                                    ->required()
+                                    ->wrapOptionLabels(false)
+                                    ->extraAttributes(SelectValueMarquee::extraAttributes()),
 
                                 Select::make('payment_method')
                                     ->options(PaymentMethod::class)

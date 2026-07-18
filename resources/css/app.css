@@ -1590,6 +1590,38 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     }
 }
 
+/*
+ * Filament JS select selected value — single-line clip for `.tido-text-marquee`.
+ * Opt in: `.tido-select-value-marquee` (JS: select-value-marquee.js).
+ * Closed value: no wrap + marquee. Dropdown options: full wording (no ellipsis).
+ */
+.tido-select-value-marquee .fi-select-input-value-ctn {
+    min-width: 0;
+    overflow: hidden;
+    text-wrap: nowrap;
+    word-break: normal;
+}
+
+.tido-select-value-marquee .fi-select-input-ctn-option-labels-not-wrapped .fi-select-input-value-ctn > span {
+    display: inline-block;
+    flex: none;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+}
+
+.tido-select-value-marquee .fi-select-input-ctn-option-labels-not-wrapped .fi-select-input-option {
+    text-wrap: wrap;
+    word-break: break-word;
+}
+
+.tido-select-value-marquee .fi-select-input-ctn-option-labels-not-wrapped .fi-select-input-option > span {
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+    word-break: break-word;
+}
+
 .fi-no-empty-panel-icon {
     /* Keep below sticky header overlays (date pickers, selects) */
     @apply relative z-0 h-10 w-10;

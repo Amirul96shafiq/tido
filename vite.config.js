@@ -12,6 +12,7 @@ export default defineConfig({
                 'resources/js/drag-drop-upload.js',
                 'resources/js/receipt-upload-handler.js',
                 'resources/js/sticky-blur-veil.js',
+                'resources/js/select-value-marquee.js',
             ],
             refresh: true,
         }),

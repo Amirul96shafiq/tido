@@ -97,6 +97,10 @@ class AdminPanelProvider extends PanelProvider
                     'sticky-blur-veil',
                     Vite::asset('resources/js/sticky-blur-veil.js'),
                 )->module(),
+                Js::make(
+                    'select-value-marquee',
+                    Vite::asset('resources/js/select-value-marquee.js'),
+                )->module(),
             ])
             ->renderHook(
                 PanelsRenderHook::SIMPLE_LAYOUT_START,

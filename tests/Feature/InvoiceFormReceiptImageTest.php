@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Resources\Invoices\Pages\EditInvoice;
+use App\Filament\Support\SelectValueMarquee;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\User;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -49,6 +51,24 @@ test('invoice form uses rich editor for notes', function () {
                 expect($component->getExtraAttributes())->toMatchArray([
                     'class' => NotesRichEditor::EXTRA_CLASS,
                 ]);
+
+                return true;
+            },
+        );
+});
+
+test('invoice currency select uses single-line marquee markup', function () {
+    $invoice = Invoice::factory()->create([
+        'image_path' => null,
+    ]);
+
+    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSee(SelectValueMarquee::EXTRA_CLASS, false)
+        ->assertSchemaComponentExists(
+            'currency',
+            checkComponentUsing: function (Select $component): bool {
+                expect($component->canOptionLabelsWrap())->toBeFalse();
 
                 return true;
             },
