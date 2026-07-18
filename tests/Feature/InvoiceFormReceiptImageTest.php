@@ -55,6 +55,21 @@ test('invoice form uses rich editor for notes', function () {
         );
 });
 
+test('invoice form uses left right sticky layout', function () {
+    $invoice = Invoice::factory()->create([
+        'image_path' => null,
+    ]);
+
+    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSee('Receipt Details')
+        ->assertSee('Invoice Notes')
+        ->assertSee('Line Items')
+        ->assertSee('Image & Uploads')
+        ->assertSee('fi-invoice-form-page', false)
+        ->assertSee('fi-invoice-sidebar-sticky', false);
+});
+
 test('invoice edit form serves receipt image via temporary url', function () {
     Storage::fake();
     $this->travelTo(now()->startOfMinute());

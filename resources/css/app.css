@@ -1341,6 +1341,14 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     .fi-budget-form-page .fi-sc-form .fi-grid-col:has(.fi-budget-main-column) {
         order: 2;
     }
+
+    .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-sidebar-sticky) {
+        order: 1;
+    }
+
+    .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-main-column) {
+        order: 2;
+    }
 }
 
 .fi-notes-rich-editor .fi-fo-rich-editor-content {
@@ -1350,12 +1358,14 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 @media (min-width: 1024px) {
     /* overflow-x-clip on .fi-layout breaks position: sticky for descendants */
     .fi-layout:has(.fi-profile-page),
-    .fi-layout:has(.fi-budget-form-page) {
+    .fi-layout:has(.fi-budget-form-page),
+    .fi-layout:has(.fi-invoice-form-page) {
         overflow-x: visible;
     }
 
     .fi-profile-page .fi-sc-form .fi-grid-col:has(.fi-profile-sidebar-sticky),
-    .fi-budget-form-page .fi-sc-form .fi-grid-col:has(.fi-budget-sidebar-sticky) {
+    .fi-budget-form-page .fi-sc-form .fi-grid-col:has(.fi-budget-sidebar-sticky),
+    .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-sidebar-sticky) {
         position: sticky;
         top: calc(4rem + 1.5rem);
         align-self: start;

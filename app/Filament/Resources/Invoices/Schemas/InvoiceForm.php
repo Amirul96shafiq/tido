@@ -25,172 +25,190 @@ class InvoiceForm
         return $schema
             ->columns(3)
             ->components([
-                Section::make('Receipt Information')
-                    ->description('General invoice details')
-                    ->columnSpan('full')
+                Grid::make(1)
+                    ->columnSpan(2)
+                    ->columnOrder([
+                        'default' => 2,
+                        'lg' => 1,
+                    ])
+                    ->extraAttributes(['class' => 'fi-invoice-main-column'])
                     ->schema([
-                        Grid::make(3)
+                        Section::make('Receipt Details')
                             ->schema([
-                                TextInput::make('merchant_name')
-                                    ->required()
-                                    ->helperText('Prefer store brand and branch, e.g. FamilyMart Pinggiran Batu Caves'),
-                                TextInput::make('invoice_number'),
-                                DateTimePicker::make('date_time')
-                                    ->required()
-                                    ->timezone(fn (): string => (string) config('app.timezone'))
-                                    ->default(now()),
-                            ]),
-
-                        Grid::make(4)
-                            ->schema([
-                                TextInput::make('subtotal')
-                                    ->myr()
-                                    ->required(),
-
-                                TextInput::make('total_tax')
-                                    ->label('Tax / Service')
-                                    ->helperText('SST / service tax (include service charge if not split)')
-                                    ->myr()
-                                    ->default(0.00),
-
-                                TextInput::make('discount_total')
-                                    ->myr()
-                                    ->default(0.00),
-
-                                TextInput::make('rounding_amount')
-                                    ->myr()
-                                    ->default(0.00)
-                                    ->helperText('May be negative'),
-                            ]),
-
-                        Grid::make(4)
-                            ->schema([
-                                TextInput::make('total_amount')
-                                    ->myr()
-                                    ->required(),
-
-                                Select::make('currency')
-                                    ->options([
-                                        'MYR' => 'MYR (Malaysian Ringgit)',
-                                    ])
-                                    ->default('MYR')
-                                    ->searchable()
-                                    ->required(),
-
-                                Select::make('payment_method')
-                                    ->options(PaymentMethod::class)
-                                    ->searchable(),
-
-                                Select::make('source')
-                                    ->options([
-                                        'manual' => 'Manual Upload',
-                                        'whatsapp' => 'WhatsApp',
-                                        'google_drive' => 'Google Drive',
-                                    ])
-                                    ->default('manual')
-                                    ->searchable()
-                                    ->required(),
-                            ]),
-
-                        Select::make('status')
-                            ->options([
-                                'pending' => 'Pending Parsing',
-                                'parsed' => 'Parsed by AI',
-                                'reviewed' => 'Reviewed',
-                                'requires_manual_review' => 'Requires Manual Review',
-                                'failed' => 'Parsing Failed',
-                            ])
-                            ->default('pending')
-                            ->searchable()
-                            ->required(),
-                    ]),
-
-                Section::make('Image & Uploads')
-                    ->columnSpan('full')
-                    ->schema([
-                        FileUpload::make('image_path')
-                            ->label('Receipt Image')
-                            ->image()
-                            ->maxSize(10240)
-                            ->directory('receipts')
-                            ->visibility('private')
-                            ->openable()
-                            ->downloadable(),
-
-                        NotesRichEditor::make('notes')
-                            ->label('Invoice Notes'),
-                    ]),
-
-                Section::make('Line Items')
-                    ->columnSpan('full')
-                    ->schema([
-                        Repeater::make('invoiceItems')
-                            ->relationship('invoiceItems')
-                            ->schema([
-                                Grid::make(6)
+                                Grid::make(3)
                                     ->schema([
-                                        TextInput::make('description')
+                                        TextInput::make('merchant_name')
                                             ->required()
-                                            ->live(onBlur: true)
-                                            ->columnSpan(2),
+                                            ->helperText('Prefer store brand and branch, e.g. FamilyMart Pinggiran Batu Caves'),
+                                        TextInput::make('invoice_number'),
+                                        DateTimePicker::make('date_time')
+                                            ->required()
+                                            ->timezone(fn (): string => (string) config('app.timezone'))
+                                            ->default(now()),
+                                    ]),
 
-                                        Select::make('label_id')
-                                            ->label('Label')
-                                            ->relationship(
-                                                name: 'label',
-                                                titleAttribute: 'name',
-                                                modifyQueryUsing: fn ($query) => $query->where('type', LabelType::Finance)->orderBy('name'),
-                                            )
+                                Grid::make(4)
+                                    ->schema([
+                                        TextInput::make('subtotal')
+                                            ->myr()
+                                            ->required(),
+
+                                        TextInput::make('total_tax')
+                                            ->label('Tax / Service')
+                                            ->helperText('SST / service tax (include service charge if not split)')
+                                            ->myr()
+                                            ->default(0.00),
+
+                                        TextInput::make('discount_total')
+                                            ->myr()
+                                            ->default(0.00),
+
+                                        TextInput::make('rounding_amount')
+                                            ->myr()
+                                            ->default(0.00)
+                                            ->helperText('May be negative'),
+                                    ]),
+
+                                Grid::make(4)
+                                    ->schema([
+                                        TextInput::make('total_amount')
+                                            ->myr()
+                                            ->required(),
+
+                                        Select::make('currency')
+                                            ->options([
+                                                'MYR' => 'MYR (Malaysian Ringgit)',
+                                            ])
+                                            ->default('MYR')
                                             ->searchable()
-                                            ->preload()
-                                            ->required()
-                                            ->columnSpan(2),
+                                            ->required(),
 
-                                        TextInput::make('quantity')
-                                            ->numeric()
-                                            ->step(0.001)
-                                            ->default(1)
-                                            ->required()
-                                            ->helperText('Supports kg / litres')
-                                            ->columnSpan(1),
+                                        Select::make('payment_method')
+                                            ->options(PaymentMethod::class)
+                                            ->searchable(),
 
-                                        TextInput::make('unit_price')
-                                            ->myr()
-                                            ->required()
-                                            ->columnSpan(1),
+                                        Select::make('source')
+                                            ->options([
+                                                'manual' => 'Manual Upload',
+                                                'whatsapp' => 'WhatsApp',
+                                                'google_drive' => 'Google Drive',
+                                            ])
+                                            ->default('manual')
+                                            ->searchable()
+                                            ->required(),
                                     ]),
 
-                                Grid::make(6)
+                                Select::make('status')
+                                    ->options([
+                                        'pending' => 'Pending Parsing',
+                                        'parsed' => 'Parsed by AI',
+                                        'reviewed' => 'Reviewed',
+                                        'requires_manual_review' => 'Requires Manual Review',
+                                        'failed' => 'Parsing Failed',
+                                    ])
+                                    ->default('pending')
+                                    ->searchable()
+                                    ->required(),
+                            ]),
+
+                        Section::make('Invoice Notes')
+                            ->schema([
+                                NotesRichEditor::make('notes')
+                                    ->hiddenLabel()
+                                    ->columnSpanFull(),
+                            ]),
+
+                        Section::make('Line Items')
+                            ->schema([
+                                Repeater::make('invoiceItems')
+                                    ->relationship('invoiceItems')
                                     ->schema([
-                                        TextInput::make('line_total')
-                                            ->myr()
-                                            ->required()
-                                            ->live(onBlur: true)
-                                            ->columnSpan(2),
+                                        Grid::make(6)
+                                            ->schema([
+                                                TextInput::make('description')
+                                                    ->required()
+                                                    ->live(onBlur: true)
+                                                    ->columnSpan(2),
 
-                                        DatePicker::make('warranty_expiry_date')
-                                            ->columnSpan(2),
+                                                Select::make('label_id')
+                                                    ->label('Label')
+                                                    ->relationship(
+                                                        name: 'label',
+                                                        titleAttribute: 'name',
+                                                        modifyQueryUsing: fn ($query) => $query->where('type', LabelType::Finance)->orderBy('name'),
+                                                    )
+                                                    ->searchable()
+                                                    ->preload()
+                                                    ->required()
+                                                    ->columnSpan(2),
 
-                                        TextInput::make('serial_number')
-                                            ->columnSpan(2),
-                                    ]),
-                            ])
-                            ->itemLabel(function (array $state): ?string {
-                                $description = $state['description'] ?? null;
+                                                TextInput::make('quantity')
+                                                    ->numeric()
+                                                    ->step(0.001)
+                                                    ->default(1)
+                                                    ->required()
+                                                    ->helperText('Supports kg / litres')
+                                                    ->columnSpan(1),
 
-                                if (blank($description)) {
-                                    return null;
-                                }
+                                                TextInput::make('unit_price')
+                                                    ->myr()
+                                                    ->required()
+                                                    ->columnSpan(1),
+                                            ]),
 
-                                $lineTotal = $state['line_total'] ?? null;
+                                        Grid::make(6)
+                                            ->schema([
+                                                TextInput::make('line_total')
+                                                    ->myr()
+                                                    ->required()
+                                                    ->live(onBlur: true)
+                                                    ->columnSpan(2),
 
-                                if ($lineTotal === null || $lineTotal === '') {
-                                    return $description;
-                                }
+                                                DatePicker::make('warranty_expiry_date')
+                                                    ->columnSpan(2),
 
-                                return sprintf('%s (%s)', $description, MoneyDisplay::withPrefix($lineTotal, spaceAfterPrefix: false));
-                            })
-                            ->columns(1),
+                                                TextInput::make('serial_number')
+                                                    ->columnSpan(2),
+                                            ]),
+                                    ])
+                                    ->itemLabel(function (array $state): ?string {
+                                        $description = $state['description'] ?? null;
+
+                                        if (blank($description)) {
+                                            return null;
+                                        }
+
+                                        $lineTotal = $state['line_total'] ?? null;
+
+                                        if ($lineTotal === null || $lineTotal === '') {
+                                            return $description;
+                                        }
+
+                                        return sprintf('%s (%s)', $description, MoneyDisplay::withPrefix($lineTotal, spaceAfterPrefix: false));
+                                    })
+                                    ->columns(1),
+                            ]),
+                    ]),
+
+                Grid::make(1)
+                    ->columnSpan(1)
+                    ->columnOrder([
+                        'default' => 1,
+                        'lg' => 2,
+                    ])
+                    ->extraAttributes(['class' => 'fi-invoice-sidebar-sticky'])
+                    ->schema([
+                        Section::make('Image & Uploads')
+                            ->schema([
+                                FileUpload::make('image_path')
+                                    ->label('Receipt Image')
+                                    ->image()
+                                    ->maxSize(10240)
+                                    ->directory('receipts')
+                                    ->visibility('private')
+                                    ->openable()
+                                    ->downloadable(),
+                            ]),
                     ]),
             ]);
     }

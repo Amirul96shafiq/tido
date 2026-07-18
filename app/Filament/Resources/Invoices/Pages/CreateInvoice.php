@@ -16,6 +16,17 @@ class CreateInvoice extends CreateRecord
 
     protected static string $resource = InvoiceResource::class;
 
+    /**
+     * @return array<string>
+     */
+    public function getPageClasses(): array
+    {
+        return [
+            ...parent::getPageClasses(),
+            'fi-invoice-form-page',
+        ];
+    }
+
     protected function contentDraftKey(): string
     {
         return 'invoice-create';
