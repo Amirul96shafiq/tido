@@ -2,9 +2,15 @@
 
 Reusable pattern for **single-line** labels that continuously scroll right-to-left **only when** the text is wider than its clip. Use anywhere a flex/grid row would otherwise wrap long names into multi-line text and crowd siblings (badges, amounts, actions).
 
-**Canonical first use:** Budget Performance widget — [`resources/views/filament/widgets/budget-status.blade.php`](../resources/views/filament/widgets/budget-status.blade.php)
+**Canonical first uses:**
 
-**Shared CSS:** [`.tido-text-marquee`](../resources/css/app.css) in `resources/css/app.css`
+| Surface | Path |
+|---------|------|
+| Budget Performance widget (Blade + Alpine) | [`resources/views/filament/widgets/budget-status.blade.php`](../resources/views/filament/widgets/budget-status.blade.php) |
+| Filament JS Select selected value | Invoice `currency` via [`SelectValueMarquee`](../app/Filament/Support/SelectValueMarquee.php) |
+
+**Shared CSS:** [`.tido-text-marquee`](../resources/css/app.css) in `resources/css/app.css`  
+**Select helper JS:** [`resources/js/select-value-marquee.js`](../resources/js/select-value-marquee.js) (panel asset)
 
 ## When to use
 
@@ -22,9 +28,10 @@ Do **not** use for body copy, multi-line descriptions, or primary page headings.
 | Token | Role |
 |-------|------|
 | `.tido-text-marquee-clip` | Outer clip: `relative min-w-0 overflow-hidden` + a `max-w-*` (or flex shrink) |
-| `--tido-marquee-clip` | CSS var = clip `clientWidth` in `px` (set by Alpine) |
-| `x-ref="marqueeText"` | Inner text node measured via `scrollWidth` |
+| `--tido-marquee-clip` | CSS var = clip `clientWidth` in `px` (set by Alpine / select JS) |
+| `x-ref="marqueeText"` | Inner text node measured via `scrollWidth` (Blade + Alpine only) |
 | `.tido-text-marquee` | Animation class — added **only** when overflowing |
+| `.tido-select-value-marquee` | Opt-in on Filament JS `Select` fields (selected-value marquee) |
 | `whitespace-nowrap` | Required on the text span |
 | `min-w-0` | Required on clip **and** flex ancestors so width can shrink |
 
@@ -70,7 +77,7 @@ Do not duplicate this CSS under a new class name. Reuse `.tido-text-marquee` / `
 </div>
 ```
 
-### Agent checklist when applying to a new surface
+### Agent checklist when applying to a new Blade surface
 
 1. Identify the text that wraps on narrow widths.
 2. Wrap it in the clip + Alpine block above (keep `x-ref="marqueeText"`).
@@ -80,6 +87,50 @@ Do not duplicate this CSS under a new class name. Reuse `.tido-text-marquee` / `
 6. Do **not** copy a second keyframes block — use `.tido-text-marquee`.
 7. After CSS changes, rebuild Vite (`npm run build` / `npm run dev`).
 8. Add/extend a Pest feature test asserting `tido-text-marquee-clip`, `x-ref="marqueeText"`, and `tido-text-marquee` appear in the rendered HTML.
+
+## Filament JS Select (selected value)
+
+Use this when a searchable / JS Filament `Select` shows a long option label that wraps inside a narrow column (e.g. `MYR (Malaysian Ringgit)`).
+
+**Do not** invent a field-specific class (`fi-currency-select`, etc.). Always opt in with the shared token.
+
+### Pieces
+
+| Piece | Path / value |
+|-------|----------------|
+| PHP constant | `App\Filament\Support\SelectValueMarquee::EXTRA_CLASS` → `tido-select-value-marquee` |
+| Helper | `SelectValueMarquee::extraAttributes()` |
+| CSS | `.tido-select-value-marquee …` in `resources/css/app.css` |
+| JS | `resources/js/select-value-marquee.js` (registered in `AdminPanelProvider`) |
+
+### Drop-in
+
+```php
+use App\Filament\Support\SelectValueMarquee;
+use Filament\Forms\Components\Select;
+
+Select::make('currency')
+    ->options([
+        'MYR' => 'MYR (Malaysian Ringgit)',
+    ])
+    ->searchable()
+    ->wrapOptionLabels(false) // keep the closed value on one line
+    ->extraAttributes(SelectValueMarquee::extraAttributes());
+```
+
+Requirements:
+
+1. Field must be a **JS** select (`searchable()`, `multiple()`, `native(false)`, or `allowHtml()` — not a plain native `<select>`).
+2. Call `wrapOptionLabels(false)` so the **closed** selected value stays on one line (marquee handles overflow). Dropdown options still show the **full** label (no ellipsis) via shared CSS under `.tido-select-value-marquee`.
+3. Use `SelectValueMarquee::extraAttributes()` (or `['class' => SelectValueMarquee::EXTRA_CLASS]` with `merge: true` if merging other attributes).
+4. Rebuild Vite after CSS/JS changes.
+
+### Agent checklist (Select)
+
+- [ ] `wrapOptionLabels(false)`
+- [ ] `SelectValueMarquee::extraAttributes()` — no one-off class names
+- [ ] Test asserts `tido-select-value-marquee` and `canOptionLabelsWrap() === false`
+- [ ] Do **not** duplicate select-marquee CSS/JS under a new name
 
 ## Flex row recipe (with siblings)
 
@@ -106,6 +157,8 @@ Do not duplicate this CSS under a new class name. Reuse `.tido-text-marquee` / `
 3. End position uses `--tido-marquee-clip` so the last characters stop flush with the clip edge (not fully off-screen).
 4. `ResizeObserver` re-measures after Livewire morph, sidebar collapse, and viewport resize.
 5. `prefers-reduced-motion: reduce` disables animation; text remains single-line clipped.
+6. Select helper also uses `MutationObserver` because Filament recreates the selected-label DOM when the value changes.
+7. For Select marquee fields: dropdown option labels show in full (wrap allowed); only the closed selected value is single-line + marquee.
 
 ## Choosing clip width
 
@@ -114,12 +167,13 @@ Do not duplicate this CSS under a new class name. Reuse `.tido-text-marquee` / `
 | Fixed `max-w-[9rem] sm:max-w-[12rem]` | Dense widgets with important right-side meta (Budget Status) |
 | `flex-1 min-w-0` without fixed max | Label should take all leftover space between fixed siblings |
 | Smaller `max-w-*` | Very narrow columns (e.g. mobile list tiles) |
+| Select field width | Clip is the Filament `.fi-select-input-value-ctn` — no fixed `max-w-*` needed |
 
 Tune per surface; keep the Alpine/CSS contract identical.
 
 ## Tests
 
-Minimum assertions when a surface adopts the pattern:
+### Blade + Alpine
 
 ```php
 ->assertSee('tido-text-marquee-clip', false)
@@ -130,11 +184,25 @@ Minimum assertions when a surface adopts the pattern:
 
 Reference: [`tests/Feature/BudgetStatusWidgetTest.php`](../tests/Feature/BudgetStatusWidgetTest.php) → `budget status widget uses single-line title marquee markup`.
 
+### Filament Select
+
+```php
+->assertSee(SelectValueMarquee::EXTRA_CLASS, false)
+->assertSchemaComponentExists(
+    'currency',
+    checkComponentUsing: fn (Select $component): bool => ! $component->canOptionLabelsWrap(),
+);
+```
+
+Reference: [`tests/Feature/InvoiceFormReceiptImageTest.php`](../tests/Feature/InvoiceFormReceiptImageTest.php) → `invoice currency select uses single-line marquee markup`.
+
 ## Do not
 
 - Invent a second marquee class or keyframes set
+- Invent field-specific select marquee classes (e.g. `fi-currency-select`)
 - Animate when `scrollWidth <= clientWidth`
 - Drop `ResizeObserver` (Livewire/layout changes break the measure)
 - Allow the marquee text to wrap (`break-words`, multi-line)
 - Use browser `title=` as the only way to reveal truncated icon CTAs — see [ui-tooltips.md](ui-tooltips.md)
 - Apply to long paragraphs or multi-line body copy
+- Use select marquee on native (non-JS) Filament selects — it targets `.fi-select-input-value-label`
