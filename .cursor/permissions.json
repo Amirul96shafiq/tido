@@ -1,0 +1,9 @@
+{
+  "autoRun": {
+    "block_instructions": [
+      "Block git push, git commit, and any force-push or amend that publishes or rewrites history. Surface an approval prompt.",
+      "Block gh pr create, gh pr merge, and other gh commands that create or merge pull requests. Surface an approval prompt.",
+      "Allow read-only git/gh inspection (status, diff, log, show, branch list, pr view/list/checks) to run without prompting."
+    ]
+  }
+}

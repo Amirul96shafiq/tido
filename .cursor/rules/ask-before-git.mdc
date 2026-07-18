@@ -1,0 +1,27 @@
+---
+description: Require approval before push, commit, or opening a PR
+alwaysApply: true
+---
+
+# Ask before push / PR
+
+The user must review content before anything is published.
+
+## Needs approval first (chat yes + Cursor Allow if prompted)
+
+- `git push` / `git push -u` / force push
+- `git commit` / `git commit --amend`
+- `gh pr create` / `gh pr merge` / other `gh pr` write actions
+- Any compound shell command that includes the above
+
+## May run without asking
+
+- Read-only git: `git status`, `git diff`, `git log`, `git show`, `git branch` (list only)
+- Inspecting PR state: `gh pr view`, `gh pr list`, `gh pr checks` (read-only)
+
+## Agent workflow
+
+1. Prepare the PR locally (branch, commits already reviewed with the user if new commits are needed).
+2. Show what will be pushed / what the PR will contain (summary + key files).
+3. Ask for explicit approval, then run push / `gh pr create` only after yes.
+4. If Auto-review blocks push/PR, retry with `request_smart_mode_approval: true`.
