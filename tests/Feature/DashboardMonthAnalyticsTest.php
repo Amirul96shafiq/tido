@@ -409,6 +409,81 @@ test('spent by label sums line items for selected month', function () {
     ]);
 });
 
+test('spent by label excludes soft deleted invoices', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->format('Y-m');
+    $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
+
+    $label = Label::factory()->create([
+        'name' => 'Dining',
+        'slug' => 'dining',
+    ]);
+
+    $active = Invoice::create([
+        'merchant_name' => 'Active Cafe',
+        'invoice_number' => 'INV-ACTIVE',
+        'receipt_hash' => 'hash-active-soft-001',
+        'date_time' => $bounds['start']->copy()->addDay(),
+        'subtotal' => 20.00,
+        'total_tax' => 0.00,
+        'total_amount' => 20.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    $trashed = Invoice::create([
+        'merchant_name' => 'Trashed Cafe',
+        'invoice_number' => 'INV-TRASHED',
+        'receipt_hash' => 'hash-trashed-soft-001',
+        'date_time' => $bounds['start']->copy()->addDays(2),
+        'subtotal' => 80.00,
+        'total_tax' => 0.00,
+        'total_amount' => 80.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    InvoiceItem::create([
+        'invoice_id' => $active->id,
+        'label_id' => $label->id,
+        'description' => 'Coffee',
+        'quantity' => 1,
+        'unit_price' => 20.00,
+        'line_total' => 20.00,
+    ]);
+
+    InvoiceItem::create([
+        'invoice_id' => $trashed->id,
+        'label_id' => $label->id,
+        'description' => 'Lunch',
+        'quantity' => 1,
+        'unit_price' => 80.00,
+        'line_total' => 80.00,
+    ]);
+
+    $trashed->delete();
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $analytics = analyticsForMonth($targetMonth);
+    $spending = $analytics->spentByLabel();
+    $totals = $analytics->spentTotalsByLabelId();
+    $trend = $analytics->trend();
+
+    expect($spending)->toHaveCount(1);
+    expect($spending->first()->total)->toBe(20.0);
+    expect($spending->first()->receipt_count)->toBe(1);
+    expect($totals[$label->id])->toBe(20.0);
+    expect($totals[0])->toBe(20.0);
+    expect($trend['data'][$trend['selected_index']])->toBe(20.0);
+    expect($trend['top_labels'][$trend['selected_index']])->toMatchArray([
+        ['name' => 'Dining', 'total' => 20.0],
+    ]);
+});
+
 test('spent by label ranks higher totals first', function () {
     Invoice::unsetEventDispatcher();
 

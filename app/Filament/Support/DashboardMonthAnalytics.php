@@ -105,6 +105,7 @@ final class DashboardMonthAnalytics
         $labelRows = InvoiceItem::query()
             ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
             ->join('labels', 'invoice_items.label_id', '=', 'labels.id')
+            ->whereNull('invoices.deleted_at')
             ->whereBetween('invoices.date_time', [$rangeStart, $rangeEnd])
             ->whereIn('invoices.status', Invoice::dashboardAnalyticsStatuses())
             ->selectRaw("{$monthExpression} as month_key, labels.name, SUM(invoice_items.line_total) as total")
@@ -435,6 +436,7 @@ final class DashboardMonthAnalytics
 
         $overall = InvoiceItem::query()
             ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->whereNull('invoices.deleted_at')
             ->whereBetween('invoices.date_time', [$this->bounds['start'], $this->bounds['end']])
             ->whereIn('invoices.status', Invoice::dashboardAnalyticsStatuses())
             ->sum('invoice_items.line_total');
@@ -503,6 +505,7 @@ final class DashboardMonthAnalytics
         return InvoiceItem::query()
             ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
             ->join('labels', 'invoice_items.label_id', '=', 'labels.id')
+            ->whereNull('invoices.deleted_at')
             ->whereBetween('invoices.date_time', [$start, $end])
             ->whereIn('invoices.status', Invoice::dashboardAnalyticsStatuses());
     }
