@@ -138,7 +138,7 @@
             {{-- Commits List --}}
             <div x-show="!loading && commits.length > 0" class="space-y-0">
                 <template x-for="commit in commits" :key="commit.short_hash">
-                    <div class="group border-b border-gray-100 dark:border-gray-800 last:border-b-0 py-4 transition-colors">
+                    <div class="group border-b border-gray-200 dark:border-gray-700 last:border-b-0 py-4 transition-colors">
                         
                         {{-- Avatar and Actions Row --}}
                         <div class="flex items-start justify-between gap-3 mb-2">
