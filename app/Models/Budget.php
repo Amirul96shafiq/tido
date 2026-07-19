@@ -114,6 +114,7 @@ class Budget extends Model
 
         $query = InvoiceItem::query()
             ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->whereNull('invoices.deleted_at')
             ->whereBetween('invoices.date_time', [$start, $end])
             ->whereIn('invoices.status', ['parsed', 'reviewed']);
 

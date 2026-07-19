@@ -63,9 +63,15 @@
                 </span>
             </div>
             <div class="flex flex-col gap-0.5">
-                <span class="text-xs font-medium text-gray-400 dark:text-gray-500">Remaining</span>
-                <span class="text-sm font-semibold text-gray-950 dark:text-white">
-                    {{ MoneyDisplay::withPrefix($remaining) }}
+                <span class="text-xs font-medium text-gray-400 dark:text-gray-500">
+                    {{ $remaining < 0 ? 'Over by' : 'Remaining' }}
+                </span>
+                <span @class([
+                    'text-sm font-semibold',
+                    'text-red-500' => $remaining < 0,
+                    'text-gray-950 dark:text-white' => $remaining >= 0,
+                ])>
+                    {{ MoneyDisplay::withPrefix(abs($remaining)) }}
                 </span>
             </div>
         </div>
@@ -92,7 +98,13 @@
                         {{ number_format($rawPercentage, 1) }}% consumed
                     @endif
                 </span>
-                <span>{{ MoneyDisplay::withPrefix($remaining) }} remaining</span>
+                @if ($remaining < 0)
+                    <span class="font-semibold text-red-500">
+                        {{ MoneyDisplay::withPrefix(abs($remaining)) }} over
+                    </span>
+                @else
+                    <span>{{ MoneyDisplay::withPrefix($remaining) }} remaining</span>
+                @endif
             </div>
         </div>
     </div>

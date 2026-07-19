@@ -135,7 +135,7 @@ class BudgetForm
                             ->visible(fn (string $operation): bool => $operation === 'edit')
                             ->schema([
                                 View::make('filament.forms.components.budget-performance')
-                                    ->viewData(fn (?Budget $record): array => self::performanceViewData($record)),
+                                    ->viewData(fn (?Budget $record, Get $get): array => self::performanceViewData($record, $get)),
                             ]),
                     ]),
 
@@ -214,7 +214,7 @@ class BudgetForm
      *     rawPercentage: float
      * }
      */
-    private static function performanceViewData(?Budget $record): array
+    private static function performanceViewData(?Budget $record, ?Get $get = null): array
     {
         if (! $record instanceof Budget) {
             return [
@@ -231,13 +231,24 @@ class BudgetForm
         }
 
         $spent = $record->spentInPeriod();
-        $amount = (float) $record->amount;
+        $recordAmount = (float) $record->amount;
+        $formAmountRaw = $get !== null ? $get('amount') : null;
+        $amount = filled($formAmountRaw)
+            ? (float) $formAmountRaw
+            : $recordAmount;
         $rawPercentage = $amount > 0 ? ($spent / $amount) * 100 : 0.0;
-        $remaining = max(0, $amount - $spent);
+        $remaining = $amount - $spent;
+
+        $alertThreshold = (float) ($get !== null
+            ? ($get('alert_threshold') ?? $record->alert_threshold)
+            : $record->alert_threshold);
+        $criticalThreshold = (float) ($get !== null
+            ? ($get('critical_threshold') ?? $record->critical_threshold)
+            : $record->critical_threshold);
 
         $statusColor = match (true) {
-            $rawPercentage >= (float) $record->critical_threshold => 'red',
-            $rawPercentage >= (float) $record->alert_threshold => 'amber',
+            $rawPercentage >= $criticalThreshold => 'red',
+            $rawPercentage >= $alertThreshold => 'amber',
             default => 'emerald',
         };
 

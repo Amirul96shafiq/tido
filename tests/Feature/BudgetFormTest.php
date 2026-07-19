@@ -6,6 +6,8 @@ use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Resources\Budgets\Pages\CreateBudget;
 use App\Filament\Resources\Budgets\Pages\EditBudget;
 use App\Models\Budget;
+use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Label;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -88,6 +90,61 @@ test('edit budget page shows performance section', function () {
         ->assertSee($periodLabel)
         ->assertSee('fi-budget-form-page', false)
         ->assertSee('fi-budget-sidebar-sticky', false);
+});
+
+test('budget performance uses live form amount before save', function () {
+    $budget = Budget::factory()->create([
+        'title' => 'Groceries Cap',
+        'amount' => 250.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+        'alert_threshold' => 80,
+        'critical_threshold' => 100,
+    ]);
+
+    Livewire::test(EditBudget::class, ['record' => $budget->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSee('RM 250.00')
+        ->fillForm([
+            'amount' => 500.00,
+        ])
+        ->assertSee('RM 500.00')
+        ->assertDontSee('RM 250.00');
+});
+
+test('budget performance shows overspend instead of zero remaining', function () {
+    Invoice::unsetEventDispatcher();
+
+    $label = Label::factory()->create(['name' => 'Groceries & Household']);
+
+    $budget = Budget::factory()->create([
+        'title' => 'Groceries Cap',
+        'label_id' => $label->id,
+        'amount' => 500.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+        'alert_threshold' => 80,
+        'critical_threshold' => 100,
+    ]);
+
+    $invoice = Invoice::factory()->create([
+        'status' => 'reviewed',
+        'date_time' => now(),
+        'total_amount' => 721.11,
+    ]);
+
+    InvoiceItem::factory()->create([
+        'invoice_id' => $invoice->id,
+        'label_id' => $label->id,
+        'line_total' => 721.11,
+    ]);
+
+    Livewire::test(EditBudget::class, ['record' => $budget->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSee('Over by')
+        ->assertSee('RM 221.11')
+        ->assertSee('over')
+        ->assertSee('Critical');
 });
 
 test('critical threshold cannot be below warn threshold', function () {

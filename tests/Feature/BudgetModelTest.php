@@ -86,3 +86,40 @@ test('spent in period sums parsed invoice items for the budget label', function 
 
     expect($budget->spentInPeriod())->toBe(80.0);
 });
+
+test('spent in period excludes soft deleted invoices', function () {
+    $label = Label::factory()->create();
+
+    $budget = Budget::factory()->create([
+        'label_id' => $label->id,
+        'amount' => 500.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+    ]);
+
+    $active = Invoice::factory()->create([
+        'date_time' => now(),
+        'status' => 'reviewed',
+    ]);
+
+    $trashed = Invoice::factory()->create([
+        'date_time' => now(),
+        'status' => 'parsed',
+    ]);
+
+    InvoiceItem::factory()->create([
+        'invoice_id' => $active->id,
+        'label_id' => $label->id,
+        'line_total' => 100.00,
+    ]);
+
+    InvoiceItem::factory()->create([
+        'invoice_id' => $trashed->id,
+        'label_id' => $label->id,
+        'line_total' => 250.00,
+    ]);
+
+    $trashed->delete();
+
+    expect($budget->spentInPeriod())->toBe(100.0);
+});
