@@ -202,3 +202,28 @@ test('invoice line item description and line total restore defaults when emptied
         ->set("data.invoiceItems.{$itemKey}.line_total", '')
         ->assertSet("data.invoiceItems.{$itemKey}.line_total", '0.00');
 });
+
+test('invoice receipt fields have placeholders for empty values', function () {
+    $invoice = Invoice::factory()->create([
+        'image_path' => null,
+    ]);
+
+    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSchemaComponentExists(
+            'merchant_name',
+            checkComponentUsing: fn (TextInput $component): bool => $component->getPlaceholder() === 'Merchant name',
+        )
+        ->assertSchemaComponentExists(
+            'invoice_number',
+            checkComponentUsing: fn (TextInput $component): bool => $component->getPlaceholder() === 'Invoice number',
+        )
+        ->assertSchemaComponentExists(
+            'subtotal',
+            checkComponentUsing: fn (TextInput $component): bool => $component->getPlaceholder() === '0.00',
+        )
+        ->assertSchemaComponentExists(
+            'total_amount',
+            checkComponentUsing: fn (TextInput $component): bool => $component->getPlaceholder() === '0.00',
+        );
+});

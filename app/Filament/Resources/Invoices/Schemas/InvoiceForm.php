@@ -39,8 +39,10 @@ class InvoiceForm
                                 Grid::make(3)
                                     ->schema([
                                         TextInput::make('merchant_name')
-                                            ->required(),
-                                        TextInput::make('invoice_number'),
+                                            ->required()
+                                            ->placeholder('Merchant name'),
+                                        TextInput::make('invoice_number')
+                                            ->placeholder('Invoice number'),
                                         DateTimePicker::make('date_time')
                                             ->required()
                                             ->timezone(fn (): string => (string) config('app.timezone'))
@@ -51,7 +53,8 @@ class InvoiceForm
                                     ->schema([
                                         TextInput::make('subtotal')
                                             ->myr()
-                                            ->required(),
+                                            ->required()
+                                            ->placeholder('0.00'),
 
                                         TextInput::make('total_tax')
                                             ->label('Tax / Service')
@@ -72,7 +75,8 @@ class InvoiceForm
                                     ->schema([
                                         TextInput::make('total_amount')
                                             ->myr()
-                                            ->required(),
+                                            ->required()
+                                            ->placeholder('0.00'),
 
                                         Select::make('currency')
                                             ->options([
