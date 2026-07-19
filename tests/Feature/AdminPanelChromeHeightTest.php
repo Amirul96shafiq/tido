@@ -18,6 +18,35 @@ test('topbar and sidebar header height match collapsed sidebar width', function 
         ->toContain("min-height: {$expectedHeight} !important;");
 });
 
+test('main content min-height matches tido topbar not Filament 4rem', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $mainCtnBlock = Str::between(
+        $css,
+        '.fi-body-has-sidebar-collapsible-on-desktop .fi-main-ctn {',
+        '.fi-body-has-sidebar-collapsible-on-desktop .fi-main-ctn-sidebar-open {',
+    );
+
+    expect($mainCtnBlock)
+        ->toContain('min-height: calc(')
+        ->toContain('100dvh - (var(--collapsed-sidebar-width, 4.5rem) - 1px)')
+        ->not->toContain('100dvh - 4rem')
+        ->not->toContain('100dvh-4rem');
+});
+
+test('page header main container shaves 1px bottom padding for fold-packed lists', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $block = Str::between(
+        $css,
+        '.fi-page-header-main-ctn {',
+        '.fi-layout:has(.fi-fo-file-upload-editor',
+    );
+
+    expect($block)
+        ->toContain('padding-bottom: calc(2rem - 1px);');
+});
+
 test('open version footer matches topbar chrome height', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
     $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
