@@ -187,6 +187,7 @@ class InvoiceForm
 
                                         return sprintf('%s (%s)', $description, MoneyDisplay::withPrefix($lineTotal, spaceAfterPrefix: false));
                                     })
+                                    ->collapsed()
                                     ->columns(1),
                             ]),
                     ]),
