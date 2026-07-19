@@ -111,7 +111,8 @@ test('can toggle filters panel', function () {
         ->assertSee('Resource')
         ->assertSee('From')
         ->assertSee('Until')
-        ->assertSee('Status');
+        ->assertSee('Status')
+        ->assertSee('dd/mm/yyyy');
 });
 
 test('can close filters panel', function () {
