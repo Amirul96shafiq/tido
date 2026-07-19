@@ -182,13 +182,24 @@
                             </style>
                         </div>
 
-                        <div class="fi-ta-filters-trigger-action-ctn">
+                        <div
+                            class="fi-ta-filters-trigger-action-ctn"
+                            @if ($this->filtersOpen)
+                                x-on:click.outside="
+                                    if ($event.target.closest('.fi-dropdown-panel, .fi-fo-date-time-picker-panel')) {
+                                        return
+                                    }
+
+                                    $wire.closeFilters()
+                                "
+                            @endif
+                        >
                             <button
                                 type="button"
                                 class="fi-icon-btn fi-size-md fi-color fi-color-gray relative"
                                 wire:click="toggleFilters"
                                 wire:loading.attr="disabled"
-                                wire:target="toggleFilters, resetFilters, search, filters"
+                                wire:target="toggleFilters, closeFilters, resetFilters, search, filters"
                                 aria-label="{{ __('filament-tables::table.actions.filter.label') }}"
                                 aria-expanded="{{ $this->filtersOpen ? 'true' : 'false' }}"
                                 x-tooltip="{
@@ -200,13 +211,13 @@
                                     :icon="Heroicon::Funnel"
                                     class="fi-icon fi-size-md"
                                     wire:loading.remove.delay.default
-                                    wire:target="toggleFilters, resetFilters, search, filters"
+                                    wire:target="toggleFilters, closeFilters, resetFilters, search, filters"
                                 />
 
                                 <x-filament::loading-indicator
                                     class="fi-icon fi-size-md"
                                     wire:loading.delay.default
-                                    wire:target="toggleFilters, resetFilters, search, filters"
+                                    wire:target="toggleFilters, closeFilters, resetFilters, search, filters"
                                 />
 
                                 @if ($activeFiltersCount > 0)
@@ -217,7 +228,7 @@
                                             ])
                                         }}
                                         wire:loading.remove.delay.default
-                                        wire:target="toggleFilters, resetFilters, search, filters"
+                                        wire:target="toggleFilters, closeFilters, resetFilters, search, filters"
                                     >
                                         {{ $activeFiltersCount }}
                                     </span>

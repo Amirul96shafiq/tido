@@ -46,6 +46,11 @@ class DatabaseNotifications extends BaseDatabaseNotifications
         $this->filtersOpen = ! $this->filtersOpen;
     }
 
+    public function closeFilters(): void
+    {
+        $this->filtersOpen = false;
+    }
+
     public function resetFilters(): void
     {
         $this->filters = [
