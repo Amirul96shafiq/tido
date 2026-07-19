@@ -105,7 +105,7 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->toContain("width: {$expectedSize};")
         ->toContain("height: {$expectedSize};")
         ->toContain('border-left: 1px solid var(--color-gray-100);')
-        ->toContain('margin-inline-end: -1rem;')
+        ->toContain('margin-inline-end: calc(-1rem + 1px);')
         ->and($triggerBlock)
         ->toContain('size-10')
         ->toContain('rounded-lg')

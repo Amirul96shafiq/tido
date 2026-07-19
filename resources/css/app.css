@@ -957,7 +957,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     cursor: default;
 }
 
-/* Go to top — flush bottom-right square matching collapsed version footer (71×71) */
+/* Go to top — flush bottom-right square matching collapsed version footer (71×71)
+ * right:1px clears .fi-body::after scrollbar rail (inset-inline-end:0) */
 .tido-go-to-top {
     position: fixed;
     right: 1px;
@@ -1009,6 +1010,63 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .dark .tido-go-to-top-btn:hover {
+    background-color: color-mix(in srgb, var(--color-slate-700) 60%, transparent);
+    color: var(--color-slate-200);
+}
+
+/* Go to bottom — flush under topbar, right-aligned under user menu (71×71)
+ * right:1px clears .fi-body::after scrollbar rail (inset-inline-end:0) */
+.tido-go-to-bottom {
+    position: fixed;
+    right: 1px;
+    top: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
+    z-index: 40;
+    width: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
+    height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-white);
+    border-bottom: 1px solid var(--color-gray-100);
+    border-left: 1px solid var(--color-gray-100);
+}
+
+.dark .tido-go-to-bottom {
+    background-color: var(--color-slate-800);
+    border-bottom-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
+    border-left-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
+}
+
+.tido-go-to-bottom-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--color-gray-500);
+    border-radius: 0.5rem;
+    transition: background-color 200ms ease, color 200ms ease;
+}
+
+.tido-go-to-bottom-btn:hover {
+    background-color: color-mix(in srgb, var(--color-gray-100) 50%, transparent);
+    color: var(--color-gray-700);
+}
+
+.dark .tido-go-to-bottom-btn {
+    color: var(--color-slate-400);
+}
+
+.dark .tido-go-to-bottom-btn:hover {
     background-color: color-mix(in srgb, var(--color-slate-700) 60%, transparent);
     color: var(--color-slate-200);
 }
@@ -1261,7 +1319,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .fi-topbar .fi-user-menu {
-    /* Match collapsed sidebar / go-to-top chrome square (4.5rem − 1px → 71×71) */
+    /* Match collapsed sidebar / go-to-top chrome square (4.5rem − 1px → 71×71).
+     * Cancel topbar padding but leave 1px for .fi-body::after scrollbar rail
+     * so left edge aligns with .tido-go-to-top / .tido-go-to-bottom (right:1px). */
     width: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
     height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
     box-sizing: border-box;
@@ -1269,7 +1329,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    margin-inline-end: -1rem;
+    margin-inline-end: calc(-1rem + 1px);
     border-left: 1px solid var(--color-gray-100);
 }
 
