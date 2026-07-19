@@ -126,7 +126,13 @@ class InvoiceForm
                                     ->schema([
                                         TextInput::make('description')
                                             ->required()
+                                            ->default('Item name')
                                             ->live(onBlur: true)
+                                            ->afterStateUpdated(function (TextInput $component, mixed $state): void {
+                                                if (blank($state)) {
+                                                    $component->state('Item name');
+                                                }
+                                            })
                                             ->columnSpanFull(),
 
                                         Grid::make(4)
@@ -162,7 +168,13 @@ class InvoiceForm
                                                 TextInput::make('line_total')
                                                     ->myr()
                                                     ->required()
+                                                    ->default('0.00')
                                                     ->live(onBlur: true)
+                                                    ->afterStateUpdated(function (TextInput $component, mixed $state): void {
+                                                        if (blank($state)) {
+                                                            $component->state('0.00');
+                                                        }
+                                                    })
                                                     ->columnSpan(2),
 
                                                 DatePicker::make('warranty_expiry_date')
