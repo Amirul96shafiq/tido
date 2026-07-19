@@ -78,7 +78,7 @@ class AdminPanelProvider extends PanelProvider
             ->darkModeBrandLogo(asset('images/tido_light_logo.png'))
             ->brandLogoHeight('3rem')
             ->favicon(asset('images/favicon.png'))
-            ->sidebarWidth('18rem')
+            ->sidebarWidth('16rem')
             ->sidebarCollapsibleOnDesktop()
             ->assets([
                 Js::make(
@@ -217,7 +217,7 @@ class AdminPanelProvider extends PanelProvider
                         <div
                             x-data="{}"
                             class="fi-sidebar-version-footer"
-                            :class="$store.sidebar.isOpen ? \'px-6 py-4\' : \'px-0 py-0\'"
+                            :class="$store.sidebar.isOpen ? \'px-6 py-0\' : \'px-0 py-0\'"
                         >
                             <!-- Expanded state -->
                             <div
@@ -225,7 +225,7 @@ class AdminPanelProvider extends PanelProvider
                                 x-transition:enter="fi-transition-enter"
                                 x-transition:enter-start="fi-transition-enter-start"
                                 x-transition:enter-end="fi-transition-enter-end"
-                                class="flex items-center gap-2.5 px-3 py-2 text-[11px] font-mono text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-700/60 rounded-lg border border-gray-100 dark:border-slate-600/50 hover:bg-gray-100/50 dark:hover:bg-slate-700 transition-all duration-200 select-none cursor-default"
+                                class="fi-sidebar-version-expanded flex w-full min-w-0 items-center gap-2.5 px-3 py-2 text-[11px] font-mono text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-700/60 rounded-lg border border-gray-100 dark:border-slate-600/50 hover:bg-gray-100/50 dark:hover:bg-slate-700 transition-all duration-200 select-none cursor-default"
                             >
                                 <svg class="h-4 w-4 text-amber-500 dark:text-amber-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="6" y1="3" x2="6" y2="15"></line>

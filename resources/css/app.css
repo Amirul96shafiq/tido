@@ -917,9 +917,16 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 .fi-sidebar.fi-sidebar-open .fi-sidebar-version-footer {
     display: flex !important;
     align-items: center;
+    width: 100%;
     height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px) !important;
     min-height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px) !important;
     max-height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px) !important;
+}
+
+.fi-sidebar.fi-sidebar-open .fi-sidebar-version-expanded {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
 }
 
 /* Match collapsed sidebar content square: height compensates for 1px border-top
