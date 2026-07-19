@@ -146,3 +146,21 @@ test('global search modal section headers use panel primary color', function () 
         ->not->toContain('text-violet-600')
         ->not->toContain('text-violet-500');
 });
+
+test('global search keybinding suffix matches collapsed sidebar group title style', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+    $sidebarGroup = (string) file_get_contents(
+        resource_path('views/vendor/filament-panels/components/sidebar/group.blade.php'),
+    );
+
+    expect($sidebarGroup)
+        ->toContain('text-[9px] font-bold tracking-wider text-gray-400 uppercase dark:text-slate-500')
+        ->and($css)
+        ->toContain('.fi-global-search-field .fi-input-wrp-label')
+        ->toContain('text-[9px]')
+        ->toContain('font-bold')
+        ->toContain('tracking-wider')
+        ->toContain('uppercase')
+        ->toContain('text-gray-400')
+        ->toContain('dark:text-slate-500');
+});
