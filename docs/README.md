@@ -14,6 +14,7 @@
 | [ui-tooltips.md](ui-tooltips.md) | Agents + humans | Filament Tippy tooltips on icon CTAs (not browser `title`) |
 | [ui-text-marquee.md](ui-text-marquee.md) | Agents + humans | Single-line overflowing text (RTL marquee) — reusable |
 | [ui-notes-rich-editor.md](ui-notes-rich-editor.md) | Agents + humans | Shared `NotesRichEditor` for `notes` fields (toolbar + height) |
+| [ui-form-empty-defaults.md](ui-form-empty-defaults.md) | Agents + humans | Placeholders vs defaults on resource Create/Edit forms |
 | [ui-dark-theme.md](ui-dark-theme.md) | Agents + humans | Dark mode Slate surfaces, tooltips, scrollbars, solid CTA text |
 | [ui-copy-style.md](ui-copy-style.md) | Agents + humans | Impersonal UI voice (no we/you); auth and panel copy |
 | [content-draft-recovery.md](content-draft-recovery.md) | Agents + humans | Auto-save drafts + crash recovery on Filament Create/Edit |

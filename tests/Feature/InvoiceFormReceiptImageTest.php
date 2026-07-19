@@ -11,6 +11,7 @@ use App\Models\User;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -162,5 +163,67 @@ test('invoice line item repeater uses description and line total as item label',
 
                 return true;
             },
+        );
+});
+
+test('invoice line item description and line total restore defaults when emptied', function () {
+    $invoice = Invoice::factory()->create();
+    $item = InvoiceItem::factory()->for($invoice)->create([
+        'description' => 'Nasi Lemak Special',
+        'line_total' => 10.00,
+    ]);
+
+    $itemKey = "record-{$item->getKey()}";
+
+    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+        ->assertSuccessful()
+        ->assertFormFieldExists(
+            'invoiceItems',
+            function (Repeater $field): bool {
+                $components = collect($field->getChildSchema()->getFlatComponents(withHidden: true));
+
+                $description = $components->first(
+                    fn (mixed $component): bool => $component instanceof TextInput && $component->getName() === 'description',
+                );
+                $lineTotal = $components->first(
+                    fn (mixed $component): bool => $component instanceof TextInput && $component->getName() === 'line_total',
+                );
+
+                expect($description)->not->toBeNull()
+                    ->and($description->getDefaultState())->toBe('Item name')
+                    ->and($lineTotal)->not->toBeNull()
+                    ->and($lineTotal->getDefaultState())->toBe('0.00');
+
+                return true;
+            },
+        )
+        ->set("data.invoiceItems.{$itemKey}.description", '')
+        ->assertSet("data.invoiceItems.{$itemKey}.description", 'Item name')
+        ->set("data.invoiceItems.{$itemKey}.line_total", '')
+        ->assertSet("data.invoiceItems.{$itemKey}.line_total", '0.00');
+});
+
+test('invoice receipt fields have placeholders for empty values', function () {
+    $invoice = Invoice::factory()->create([
+        'image_path' => null,
+    ]);
+
+    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSchemaComponentExists(
+            'merchant_name',
+            checkComponentUsing: fn (TextInput $component): bool => $component->getPlaceholder() === 'Merchant name',
+        )
+        ->assertSchemaComponentExists(
+            'invoice_number',
+            checkComponentUsing: fn (TextInput $component): bool => $component->getPlaceholder() === 'Invoice number',
+        )
+        ->assertSchemaComponentExists(
+            'subtotal',
+            checkComponentUsing: fn (TextInput $component): bool => $component->getPlaceholder() === '0.00',
+        )
+        ->assertSchemaComponentExists(
+            'total_amount',
+            checkComponentUsing: fn (TextInput $component): bool => $component->getPlaceholder() === '0.00',
         );
 });

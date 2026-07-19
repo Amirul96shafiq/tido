@@ -43,6 +43,7 @@ class BudgetForm
                                         TextInput::make('amount')
                                             ->myr()
                                             ->required()
+                                            ->placeholder('0.00')
                                             ->helperText('Maximum spend allowed in MYR for this period.'),
 
                                         Select::make('period')

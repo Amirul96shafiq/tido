@@ -63,6 +63,7 @@ Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`
 - Single-line overflowing labels: `docs/ui-text-marquee.md` (Blade + Alpine; Filament Select via `SelectValueMarquee`)
 
 - Notes fields: `NotesRichEditor` — `docs/ui-notes-rich-editor.md` (Budget `notes`, Invoice `notes`, Label `description` as Label Notes)
+- Form empty fields: placeholders vs defaults — `docs/ui-form-empty-defaults.md`
 
 ## Config / env
 

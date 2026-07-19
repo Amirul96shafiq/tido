@@ -43,11 +43,13 @@ class LabelForm
 
                                 TextInput::make('name')
                                     ->required()
+                                    ->placeholder('Label name')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn ($state, callable $set) => $set('slug', Str::slug($state ?? ''))),
 
                                 TextInput::make('slug')
                                     ->required()
+                                    ->placeholder('label-slug')
                                     ->disabled(fn ($record) => (bool) ($record?->is_system ?? false))
                                     ->unique(
                                         table: 'labels',

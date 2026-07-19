@@ -10,6 +10,7 @@ Before coding, read **[docs/agent-onboarding.md](docs/agent-onboarding.md)** for
 - Sticky bars + blur veil: **[docs/ui-sticky-blur.md](docs/ui-sticky-blur.md)** — top/bottom pin with frosted veil
 - Text marquee (overflow RTL): **[docs/ui-text-marquee.md](docs/ui-text-marquee.md)** — reuse `.tido-text-marquee` anywhere
 - Notes rich editor: **[docs/ui-notes-rich-editor.md](docs/ui-notes-rich-editor.md)** — `NotesRichEditor` for `notes` fields
+- Form empty defaults: **[docs/ui-form-empty-defaults.md](docs/ui-form-empty-defaults.md)** — placeholders vs defaults on resource forms
 - Backups / Danger Zone: **[docs/backups-and-danger-zone.md](docs/backups-and-danger-zone.md)**
 - Product name: **tido** only · expense tags: **Label** / **Labels** (model: `Label`, not Category)
 
