@@ -182,7 +182,7 @@
                             </style>
                         </div>
 
-                        <div class="fi-ta-filters-trigger-action-ctn ms-auto shrink-0">
+                        <div class="fi-ta-filters-trigger-action-ctn">
                             <button
                                 type="button"
                                 class="fi-icon-btn fi-size-md fi-color fi-color-gray relative"
@@ -223,33 +223,33 @@
                                     </span>
                                 @endif
                             </button>
+
+                            @if ($this->filtersOpen)
+                                <div
+                                    wire:key="database-notifications-filters-panel"
+                                    class="fi-no-database-filters-panel"
+                                >
+                                    <div class="mb-3 flex items-center justify-between gap-2">
+                                        <h3 class="text-sm font-medium text-gray-950 dark:text-white">
+                                            {{ __('filament-tables::table.filters.heading') }}
+                                        </h3>
+
+                                        <x-filament::link
+                                            tag="button"
+                                            color="danger"
+                                            size="sm"
+                                            wire:click="resetFilters"
+                                            type="button"
+                                        >
+                                            {{ __('filament-tables::table.filters.actions.reset.label') }}
+                                        </x-filament::link>
+                                    </div>
+
+                                    {{ $this->getSchema('filtersForm') }}
+                                </div>
+                            @endif
                         </div>
                     </div>
-
-                    @if ($this->filtersOpen)
-                        <div
-                            wire:key="database-notifications-filters-panel"
-                            class="fi-no-database-filters-panel mt-3 rounded-lg border border-gray-200 p-3 dark:border-white/10"
-                        >
-                            <div class="mb-3 flex items-center justify-between gap-2">
-                                <h3 class="text-sm font-medium text-gray-950 dark:text-white">
-                                    {{ __('filament-tables::table.filters.heading') }}
-                                </h3>
-
-                                <x-filament::link
-                                    tag="button"
-                                    color="danger"
-                                    size="sm"
-                                    wire:click="resetFilters"
-                                    type="button"
-                                >
-                                    {{ __('filament-tables::table.filters.actions.reset.label') }}
-                                </x-filament::link>
-                            </div>
-
-                            {{ $this->getSchema('filtersForm') }}
-                        </div>
-                    @endif
                 </div>
             </x-slot>
 

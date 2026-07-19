@@ -102,8 +102,10 @@ test('can toggle filters panel', function () {
 
     Livewire::test(DatabaseNotifications::class)
         ->assertSet('filtersOpen', false)
+        ->assertDontSee('fi-no-database-filters-panel', false)
         ->call('toggleFilters')
         ->assertSet('filtersOpen', true)
+        ->assertSee('fi-no-database-filters-panel', false)
         ->assertSee('Resource')
         ->assertSee('From')
         ->assertSee('Until')
