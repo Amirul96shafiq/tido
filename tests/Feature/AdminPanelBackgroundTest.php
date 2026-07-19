@@ -33,3 +33,22 @@ test('admin panel provider injects theme background asset css variables', functi
         ->toContain('--tido-bg-light:')
         ->toContain('--tido-bg-dark:');
 });
+
+test('dark mode form fields and repeater items match section surface and border', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $fieldsBlock = Str::between(
+        $css,
+        '/* Form fields + nested repeater/builder items — match section / widget',
+        '/* Auth simple pages',
+    );
+
+    expect($fieldsBlock)
+        ->toContain('.dark .fi-input-wrp:not(.fi-disabled),')
+        ->toContain('.dark .fi-fo-file-upload .filepond--root:not([data-disabled=\'disabled\']),')
+        ->toContain('.dark .fi-fo-repeater-item,')
+        ->toContain('.dark .fi-fo-builder-item {')
+        ->toContain('@apply bg-gray-900 ring-white/10;')
+        ->and($css)
+        ->toContain('dark:bg-gray-900 dark:ring-white/10');
+});

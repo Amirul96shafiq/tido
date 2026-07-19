@@ -212,6 +212,20 @@ html.dark::-webkit-scrollbar-thumb:hover,
     background-image: var(--tido-bg-dark);
 }
 
+/*
+ * Form fields + nested repeater/builder items — match section / widget
+ * surface in dark mode. Filament defaults to dark:bg-white/5 (and
+ * dark:ring-white/20 on inputs). Use solid gray-900 (slate-800 via palette
+ * remap) and ring-white/10 — same as .fi-section — so nested wells are fully
+ * opaque and share the section border.
+ */
+.dark .fi-input-wrp:not(.fi-disabled),
+.dark .fi-fo-file-upload .filepond--root:not([data-disabled='disabled']),
+.dark .fi-fo-repeater-item,
+.dark .fi-fo-builder-item {
+    @apply bg-gray-900 ring-white/10;
+}
+
 /* Auth simple pages — Catalyst-style: larger logo, left-aligned copy, borderless */
 .fi-simple-page-content {
     row-gap: 2.5rem !important;
@@ -606,7 +620,7 @@ html:not(.dark) .tido-auth-login-toast-close:hover {
 }
 
 .fi-one-time-code-input-ctn > .fi-one-time-code-input-digit-field {
-    @apply relative inline-block min-w-0 shrink rounded-lg border-none bg-white shadow-sm ring-1 ring-gray-950/10 transition duration-75 dark:bg-white/5 dark:ring-white/20;
+    @apply relative inline-block min-w-0 shrink rounded-lg border-none bg-white shadow-sm ring-1 ring-gray-950/10 transition duration-75 dark:bg-gray-900 dark:ring-white/10;
 
     display: inline-flex;
     align-items: center;

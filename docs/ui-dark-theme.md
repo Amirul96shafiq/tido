@@ -35,6 +35,7 @@ PHP’s array spread **reindexes integer keys** (`50` → `0`, etc.). Filament t
 |------|-------|--------|
 | Page / sidebar / topbar / body chrome | `slate-800` | Forced in `app.css` on `.fi-body`, `.fi-sidebar`, `.fi-topbar` |
 | Cards, widgets, tables, sections | Filament `gray-900` / `gray-950` | Same visual as slate-800 via palette remap |
+| Form fields + repeater/builder items | `gray-900` + `ring-white/10` | Same solid surface + border as sections/widgets (not Filament’s `white/5` / `white/20`) |
 | Borders / dividers on chrome | `slate-700` (often ~60% opacity) | Visible against slate-800 |
 | Nav / icon hovers & active fills | `slate-700` | e.g. `dark:hover:bg-slate-700/60` |
 | Sidebar version badge (expanded) | `slate-700/60` → hover `slate-700` | Border `slate-600/50`; see `AdminPanelProvider` footer hook |
@@ -68,11 +69,12 @@ Custom solid buttons outside Filament should use `text-primary-950` (or `900`) o
 ## Practical rules for new UI
 
 1. **Surfaces** — Prefer Filament `bg-white dark:bg-gray-900` (or section/table widgets). Remapped gray already lands on slate-800. Avoid hardcoding `dark:bg-zinc-*` or `dark:bg-gray-950` as a “darker card” unless you intentionally want contrast.
-2. **Chrome overrides** — If you force sidebar/topbar/body colors, use `var(--color-slate-800)` and borders with `var(--color-slate-700)`, matching existing blocks in `app.css`.
-3. **Tooltips** — Do not use Tippy’s default `#333` or Chart.js `#333333`. Tippy is overridden in `app.css`; charts read `--color-slate-700` in `filament-chart-js-plugins.js`. Icon CTAs must use Filament Tippy (`->tooltip()` / `x-tooltip`), not browser `title` — see [ui-tooltips.md](ui-tooltips.md). Custom modals at `z-index: 99999` need Tippy `zIndex: 100000` or tooltips render behind the shell.
-4. **Scrollable panels** — Add `custom-scrollbar` on custom `overflow-y-auto` regions (e.g. changelogs modal). Filament `.fi-dropdown-panel` scrollbars are already themed in `app.css`.
-5. **Hardcoded utilities** — Prefer `slate-*` (or Filament `gray-*`) over `zinc-*` for new dark-mode classes in Blade/CSS.
-6. **Solid gold CTAs** — Rely on `ButtonComponent` for Filament buttons; do not reintroduce white label text on primary fills in dark mode.
+2. **Form fields / repeaters** — Do not reintroduce `dark:bg-white/5` or `dark:ring-white/20` on inputs or repeater/builder items. Dark mode uses solid `bg-gray-900` + `ring-white/10` (see `.fi-input-wrp` / FilePond / `.fi-fo-repeater-item` overrides in `app.css`) to match sections/widgets.
+3. **Chrome overrides** — If you force sidebar/topbar/body colors, use `var(--color-slate-800)` and borders with `var(--color-slate-700)`, matching existing blocks in `app.css`.
+4. **Tooltips** — Do not use Tippy’s default `#333` or Chart.js `#333333`. Tippy is overridden in `app.css`; charts read `--color-slate-700` in `filament-chart-js-plugins.js`. Icon CTAs must use Filament Tippy (`->tooltip()` / `x-tooltip`), not browser `title` — see [ui-tooltips.md](ui-tooltips.md). Custom modals at `z-index: 99999` need Tippy `zIndex: 100000` or tooltips render behind the shell.
+5. **Scrollable panels** — Add `custom-scrollbar` on custom `overflow-y-auto` regions (e.g. changelogs modal). Filament `.fi-dropdown-panel` scrollbars are already themed in `app.css`.
+6. **Hardcoded utilities** — Prefer `slate-*` (or Filament `gray-*`) over `zinc-*` for new dark-mode classes in Blade/CSS.
+7. **Solid gold CTAs** — Rely on `ButtonComponent` for Filament buttons; do not reintroduce white label text on primary fills in dark mode.
 
 ## Hex / RGB cheatsheet
 
