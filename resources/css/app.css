@@ -1027,13 +1027,23 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     color: var(--color-slate-200);
 }
 
+/*
+ * Filament default .fi-dropdown-panel is z-20; raise for body-level / teleported panels.
+ * Topbar user-menu panel stays in .fi-topbar-ctn (z-20) — see .tido-go-to-bottom.
+ */
+.fi-dropdown-panel {
+    z-index: 50;
+}
+
 /* Go to bottom — flush under topbar, right-aligned under user menu (71×71)
- * right:1px clears .fi-body::after scrollbar rail (inset-inline-end:0) */
+ * right:1px clears .fi-body::after scrollbar rail (inset-inline-end:0)
+ * z-index must stay below .fi-topbar-ctn (20): user-menu panel is not teleported
+ * out of the topbar stacking context, so a z-40 CTA would paint over the menu. */
 .tido-go-to-bottom {
     position: fixed;
     right: 1px;
     top: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
-    z-index: 40;
+    z-index: 15;
     width: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
     height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
     box-sizing: border-box;

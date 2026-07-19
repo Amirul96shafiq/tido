@@ -40,6 +40,21 @@ test('user menu orders profile changelogs notifications and logout', function ()
     expect($items['logout']->getColor())->toBe('danger');
 });
 
+test('theme switcher keeps user menu open by not calling close', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $this->actingAs($user);
+
+    $response = $this->get(Dashboard::getUrl());
+
+    $response->assertSuccessful();
+    $response->assertSee('fi-theme-switcher-btn', false);
+    $response->assertSee('theme = \'light\'', false);
+    $response->assertSee('theme = \'dark\'', false);
+    $response->assertSee('theme = \'system\'', false);
+    $response->assertDontSee('&& close()', false);
+});
+
 test('topbar hides notification bell and exposes notifications in user menu', function () {
     $user = User::factory()->withWhatsAppPhone('60123456789')->create();
 

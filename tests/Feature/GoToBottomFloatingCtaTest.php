@@ -14,6 +14,7 @@ test('go to bottom is fixed flush under topbar at collapsed chrome size', functi
         ->toContain("top: {$expectedSize};")
         ->toContain("width: {$expectedSize};")
         ->toContain("height: {$expectedSize};")
+        ->toContain('z-index: 15;')
         ->toContain('border-bottom: 1px solid var(--color-gray-100);')
         ->toContain('border-left: 1px solid var(--color-gray-100);');
 });
