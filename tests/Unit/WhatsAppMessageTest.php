@@ -42,3 +42,26 @@ test('receipt upload failed informs user on final attempt', function () {
         ->toContain('Resend the document to try again.')
         ->not->toContain('Automatic retry');
 });
+
+test('document received includes file count', function () {
+    $message = WhatsAppMessage::documentReceived(2);
+
+    expect($message)->toBe(
+        "📥 *Document received*\n\nA total of *2* file(s) saved and queued for AI parsing.\n\n— Powered by *tido*",
+    );
+});
+
+test('document parsed includes merchant total payment method and invoice edit url', function () {
+    $message = WhatsAppMessage::documentParsed(
+        'https://tido.test/admin/invoices/1/edit',
+        [
+            'merchant_name' => '7-Eleven',
+            'total_amount' => '12.50',
+            'payment_method' => 'Cash',
+        ],
+    );
+
+    expect($message)->toBe(
+        "🎉 *Document parsed*\n\nMerchant: *7-Eleven*\nTotal Amount: *RM 12.50*\nPayment Method: *Cash*\n\nGo to *invoice edit*\nhttps://tido.test/admin/invoices/1/edit\n\n— Powered by *tido*",
+    );
+});

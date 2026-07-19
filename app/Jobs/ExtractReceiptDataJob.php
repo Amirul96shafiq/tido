@@ -35,8 +35,11 @@ class ExtractReceiptDataJob implements ShouldQueue
         $this->onQueue('receipts');
     }
 
-    public function handle(OllamaService $ollama, ReceiptParseNormalizer $normalizer, LabelMatcher $labelMatcher): void
-    {
+    public function handle(
+        OllamaService $ollama,
+        ReceiptParseNormalizer $normalizer,
+        LabelMatcher $labelMatcher,
+    ): void {
         $invoice = Invoice::find($this->invoiceId);
 
         if (! $invoice || $invoice->status !== 'pending') {
@@ -102,6 +105,8 @@ class ExtractReceiptDataJob implements ShouldQueue
             ]);
         }
 
+        $this->notifyWhatsAppParsed($invoice);
+
         Log::info('Invoice parsed successfully via AI pipeline', [
             'invoice_id' => $invoice->id,
             'status' => $invoice->status,
@@ -119,6 +124,15 @@ class ExtractReceiptDataJob implements ShouldQueue
             'invoice_id' => $this->invoiceId,
             'error' => $exception->getMessage(),
         ]);
+    }
+
+    protected function notifyWhatsAppParsed(Invoice $invoice): void
+    {
+        if ($invoice->source !== 'whatsapp' || blank($invoice->whatsapp_sender)) {
+            return;
+        }
+
+        SendWhatsAppDocumentParsedJob::dispatch($invoice->id);
     }
 
     protected function resolvePaymentMethod(mixed $value): ?PaymentMethod
@@ -160,7 +174,8 @@ class ExtractReceiptDataJob implements ShouldQueue
             ($invoice->invoice_number ?? '').$dateTimeStr.$invoice->total_amount
         );
 
-        $collision = Invoice::query()
+        // Soft-deleted rows still occupy the unique index; include them in the collision check.
+        $collision = Invoice::withTrashed()
             ->where('receipt_hash', $base)
             ->where('id', '!=', $invoice->id)
             ->exists();

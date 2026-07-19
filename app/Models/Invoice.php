@@ -32,6 +32,7 @@ class Invoice extends Model
         'currency',
         'payment_method',
         'source',
+        'whatsapp_sender',
         'status',
         'google_drive_file_id',
         'original_filename',

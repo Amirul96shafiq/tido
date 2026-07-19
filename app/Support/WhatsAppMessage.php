@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Helpers\MoneyDisplay;
+
 final class WhatsAppMessage
 {
     public const FOOTER = '— Powered by *tido*';
@@ -42,5 +44,47 @@ final class WhatsAppMessage
         }
 
         return self::compose('❌', $title, $body);
+    }
+
+    public static function documentReceived(int $count): string
+    {
+        $count = max(1, $count);
+
+        return self::compose(
+            '📥',
+            'Document received',
+            sprintf('A total of *%d* file(s) saved and queued for AI parsing.', $count),
+        );
+    }
+
+    /**
+     * @param  array{merchant_name?: string|null, total_amount?: float|int|string|null, payment_method?: string|null}  $details
+     */
+    public static function documentParsed(string $editUrl, array $details = []): string
+    {
+        $editUrl = trim($editUrl);
+        $merchant = trim((string) ($details['merchant_name'] ?? ''));
+        $paymentMethod = trim((string) ($details['payment_method'] ?? ''));
+
+        if ($merchant === '') {
+            $merchant = 'Unknown merchant';
+        }
+
+        if ($paymentMethod === '') {
+            $paymentMethod = 'Unknown';
+        }
+
+        $totalAmount = MoneyDisplay::withPrefix($details['total_amount'] ?? 0);
+
+        $body = implode("\n", [
+            "Merchant: *{$merchant}*",
+            "Total Amount: *{$totalAmount}*",
+            "Payment Method: *{$paymentMethod}*",
+            '',
+            'Go to *invoice edit*',
+            $editUrl,
+        ]);
+
+        return self::compose('🎉', 'Document parsed', $body);
     }
 }
