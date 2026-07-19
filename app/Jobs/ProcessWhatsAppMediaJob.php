@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Models\Invoice;
 use App\Services\WhatsAppNotificationService;
+use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppMessage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -74,19 +75,13 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
             'total_amount' => 0.00,
             'currency' => 'MYR',
             'source' => 'whatsapp',
+            'whatsapp_sender' => $this->senderNumber,
             'status' => 'pending',
             'image_path' => $localPath,
             'original_filename' => $filename,
         ]);
 
-        $waService->sendMessage(
-            $this->senderNumber,
-            WhatsAppMessage::compose(
-                '📥',
-                'Document received',
-                "File saved and queued for AI parsing.\n\nA status update will follow once processing finishes.",
-            ),
-        );
+        WhatsAppDocumentReceivedDebouncer::register($this->senderNumber, $invoice->id);
 
         Log::info('WhatsApp receipt media processed', [
             'invoice_id' => $invoice->id,

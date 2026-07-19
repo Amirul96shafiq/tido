@@ -27,7 +27,8 @@ class InvoiceObserver
 
     public function created(Invoice $invoice): void
     {
-        if ($invoice->status === 'pending') {
+        // WhatsApp receipts wait for the batched "Document received" ack before OCR starts.
+        if ($invoice->status === 'pending' && $invoice->source !== 'whatsapp') {
             ExtractReceiptDataJob::dispatch($invoice->id);
         }
     }

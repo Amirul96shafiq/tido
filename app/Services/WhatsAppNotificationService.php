@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Log;
 class WhatsAppNotificationService
 {
     protected string $apiUrl;
+
     protected string $apiKey;
+
     protected string $instanceName;
 
     public function __construct()
@@ -23,9 +25,7 @@ class WhatsAppNotificationService
     public function sendMessage(string $number, string $text): bool
     {
         try {
-            if (! str_contains($number, '@')) {
-                $number = $number . '@s.whatsapp.net';
-            }
+            $number = $this->normalizeNumber($number);
 
             $response = Http::withHeaders(['apikey' => $this->apiKey])
                 ->post("{$this->apiUrl}/message/sendText/{$this->instanceName}", [
@@ -38,13 +38,24 @@ class WhatsAppNotificationService
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
+
                 return false;
             }
 
             return true;
         } catch (\Throwable $e) {
             Log::error('WhatsAppNotificationService send error', ['error' => $e->getMessage()]);
+
             return false;
         }
+    }
+
+    protected function normalizeNumber(string $number): string
+    {
+        if (! str_contains($number, '@')) {
+            return $number.'@s.whatsapp.net';
+        }
+
+        return $number;
     }
 }

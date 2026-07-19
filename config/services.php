@@ -50,6 +50,11 @@ return [
         // Extra senders allowed to talk to the bot / upload receipts (comma/space/semicolon separated).
         // Does not grant panel or OTP login.
         'personal_extra_numbers' => env('PERSONAL_WHATSAPP_EXTRA_NUMBERS'),
+        // Seconds to wait after the last saved WhatsApp receipt before sending a batched "Document received" ack.
+        'document_received_debounce_seconds' => (int) env('WHATSAPP_DOCUMENT_RECEIVED_DEBOUNCE_SECONDS', 3),
+        // Base URL for WhatsApp deep links (file + invoice edit). Use a LAN/public host phones can open.
+        // When empty and APP_URL is localhost, tido tries the machine LAN IPv4 automatically.
+        'public_app_url' => env('WHATSAPP_PUBLIC_APP_URL'),
         // Intended WhatsApp Linked Devices label (must match Evolution CONFIG_SESSION_PHONE_CLIENT).
         'device_label' => env('CONFIG_SESSION_PHONE_CLIENT', 'tido App (Evolution API)'),
     ],

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Jobs\ExtractReceiptDataJob;
 use App\Jobs\ProcessWhatsAppMediaJob;
+use App\Jobs\SendWhatsAppDocumentReceivedAckJob;
 use App\Models\Invoice;
 use App\Services\WhatsAppNotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,7 +23,7 @@ beforeEach(function () {
     ]);
 });
 
-test('process whatsapp media job stores receipt and sends success message', function () {
+test('process whatsapp media job stores receipt and schedules batched document received ack', function () {
     Storage::fake('local');
     Queue::fake();
 
@@ -45,9 +46,14 @@ test('process whatsapp media job stores receipt and sends success message', func
     $invoice = Invoice::first();
     expect($invoice)->not->toBeNull()
         ->and($invoice->source)->toBe('whatsapp')
+        ->and($invoice->whatsapp_sender)->toBe('60123456789')
         ->and(Storage::exists($invoice->image_path))->toBeTrue();
 
-    Queue::assertPushed(ExtractReceiptDataJob::class);
+    Queue::assertNotPushed(ExtractReceiptDataJob::class);
+    Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class, function (SendWhatsAppDocumentReceivedAckJob $ack): bool {
+        return $ack->senderNumber === '60123456789'
+            && $ack->token !== '';
+    });
 
     Http::assertSent(function (Request $request): bool {
         return str_contains($request->url(), '/chat/getBase64FromMediaMessage/')
@@ -55,10 +61,7 @@ test('process whatsapp media job stores receipt and sends success message', func
             && ($request['convertToMp4'] ?? null) === false;
     });
 
-    Http::assertSent(function (Request $request): bool {
-        return str_contains($request->url(), '/message/sendText/')
-            && str_contains((string) $request['text'], '*Document received*');
-    });
+    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/message/sendText/'));
 });
 
 test('process whatsapp media job sends attempt 1 failure message and throws', function () {
