@@ -10,6 +10,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Label;
 use App\Models\User;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -223,4 +224,13 @@ test('threshold sliders store whole percentages', function () {
     expect($budget)->not->toBeNull()
         ->and($budget->alert_threshold)->toBe(75)
         ->and($budget->critical_threshold)->toBe(100);
+});
+
+test('budget limit amount has empty placeholder', function () {
+    Livewire::test(CreateBudget::class)
+        ->assertSuccessful()
+        ->assertSchemaComponentExists(
+            'amount',
+            checkComponentUsing: fn (TextInput $component): bool => $component->getPlaceholder() === '0.00',
+        );
 });

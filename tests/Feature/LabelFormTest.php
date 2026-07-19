@@ -6,6 +6,7 @@ use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Models\Label;
 use App\Models\User;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -28,6 +29,19 @@ test('label form uses notes rich editor for description', function () {
 
                 return true;
             },
+        );
+});
+
+test('label name and slug have empty placeholders', function () {
+    Livewire::test(CreateLabel::class)
+        ->assertSuccessful()
+        ->assertSchemaComponentExists(
+            'name',
+            checkComponentUsing: fn (TextInput $component): bool => $component->getPlaceholder() === 'Label name',
+        )
+        ->assertSchemaComponentExists(
+            'slug',
+            checkComponentUsing: fn (TextInput $component): bool => $component->getPlaceholder() === 'label-slug',
         );
 });
 
