@@ -297,6 +297,20 @@ html.dark::-webkit-scrollbar-thumb:hover,
     margin-block: -0.5rem;
 }
 
+/*
+ * Sticky bottom CTAs (z-index: 10 + isolation) paint above the form column.
+ * Select/date panels stay position:absolute inside that column (z-20 is trapped),
+ * so open menus sit under Save/Cancel. Lift the form column while a panel is open.
+ */
+.tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.fi-dropdown-panel:not([style*='display: none'])):not(
+        :has(.tido-sticky-marker)
+    ) {
+    position: relative;
+    z-index: 15;
+}
+
 .tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker--top) {
     top: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem);
 }
