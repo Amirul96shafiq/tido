@@ -222,6 +222,10 @@ class EditProfile extends BaseEditProfile
                     ->dehydrated(false)
                     ->afterStateUpdated(function (mixed $state, Set $set): void {
                         if ($state) {
+                            $set('enable_delete_account', false);
+                            $set('delete_confirmation_phrase', null);
+                            $set('delete_confirmation_password', null);
+
                             return;
                         }
 
@@ -250,6 +254,10 @@ class EditProfile extends BaseEditProfile
                     ->dehydrated(false)
                     ->afterStateUpdated(function (mixed $state, Set $set): void {
                         if ($state) {
+                            $set('enable_reset_data', false);
+                            $set('reset_confirmation_phrase', null);
+                            $set('reset_confirmation_password', null);
+
                             return;
                         }
 

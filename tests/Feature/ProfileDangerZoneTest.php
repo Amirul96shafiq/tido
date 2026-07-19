@@ -149,6 +149,37 @@ test('delete account action downloads backup then logs out', function () {
     $this->assertGuest();
 });
 
+test('enabling one danger zone toggle disables the other and clears its fields', function () {
+    $component = Livewire::test(EditProfile::class)
+        ->set('data.enable_reset_data', true)
+        ->set('data.reset_confirmation_phrase', 'CONFIRM RESET DATA')
+        ->set('data.reset_confirmation_password', 'password')
+        ->assertActionVisible(formAction('resetData'))
+        ->set('data.enable_delete_account', true);
+
+    expect($component->get('data.enable_reset_data'))->toBeFalse()
+        ->and($component->get('data.reset_confirmation_phrase'))->toBeNull()
+        ->and($component->get('data.reset_confirmation_password'))->toBeNull()
+        ->and($component->get('data.enable_delete_account'))->toBeTrue();
+
+    expect(fn () => $component->callAction(formAction('resetData')))
+        ->toThrow(ActionNotResolvableException::class);
+
+    $component
+        ->set('data.delete_confirmation_phrase', 'CONFIRM DELETE ACCOUNT')
+        ->set('data.delete_confirmation_password', 'password')
+        ->assertActionVisible(formAction('deleteAccount'))
+        ->set('data.enable_reset_data', true);
+
+    expect($component->get('data.enable_delete_account'))->toBeFalse()
+        ->and($component->get('data.delete_confirmation_phrase'))->toBeNull()
+        ->and($component->get('data.delete_confirmation_password'))->toBeNull()
+        ->and($component->get('data.enable_reset_data'))->toBeTrue();
+
+    expect(fn () => $component->callAction(formAction('deleteAccount')))
+        ->toThrow(ActionNotResolvableException::class);
+});
+
 test('disabling reset data toggle clears confirmation fields and hides cta', function () {
     $component = Livewire::test(EditProfile::class)
         ->set('data.enable_reset_data', true)
