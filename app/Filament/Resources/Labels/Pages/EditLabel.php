@@ -9,7 +9,6 @@ use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Labels\LabelResource;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 
@@ -30,8 +29,6 @@ class EditLabel extends EditRecord
     {
         return [
             DeleteAction::make()
-                ->visible(fn () => ! (bool) $this->record->is_system),
-            ForceDeleteAction::make()
                 ->visible(fn () => ! (bool) $this->record->is_system),
             RestoreAction::make(),
         ];

@@ -11,6 +11,7 @@ use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\Page as ResourcePage;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\View;
@@ -26,6 +27,44 @@ class LabelForm
         return $schema
             ->columns(3)
             ->components([
+                Grid::make(1)
+                    ->columnSpan(2)
+                    ->schema([
+                        Section::make(fn (LivewireComponent $livewire): string => self::modelLabel($livewire).' Details')
+                            ->columns(3)
+                            ->schema([
+                                Select::make('type')
+                                    ->label('Type')
+                                    ->options(LabelType::options())
+                                    ->default(LabelType::Finance)
+                                    ->required()
+                                    ->disabled(fn ($record) => (bool) ($record?->is_system ?? false))
+                                    ->native(false),
+
+                                TextInput::make('name')
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn ($state, callable $set) => $set('slug', Str::slug($state ?? ''))),
+
+                                TextInput::make('slug')
+                                    ->required()
+                                    ->disabled(fn ($record) => (bool) ($record?->is_system ?? false))
+                                    ->unique(
+                                        table: 'labels',
+                                        column: 'slug',
+                                        ignoreRecord: true,
+                                        modifyRuleUsing: fn (Unique $rule, Get $get) => $rule->where('type', $get('type')),
+                                    ),
+                            ]),
+
+                        Section::make('Label Notes')
+                            ->schema([
+                                NotesRichEditor::make('description')
+                                    ->hiddenLabel()
+                                    ->columnSpanFull(),
+                            ]),
+                    ]),
+
                 Section::make(fn (LivewireComponent $livewire): string => self::modelLabel($livewire).' Appearance')
                     ->columnSpan(1)
                     ->schema([
@@ -44,37 +83,6 @@ class LabelForm
 
                         ColorPicker::make('color')
                             ->live(),
-                    ]),
-
-                Section::make(fn (LivewireComponent $livewire): string => self::modelLabel($livewire).' Details')
-                    ->columnSpan(2)
-                    ->schema([
-                        Select::make('type')
-                            ->label('Type')
-                            ->options(LabelType::options())
-                            ->default(LabelType::Finance)
-                            ->required()
-                            ->disabled(fn ($record) => (bool) ($record?->is_system ?? false))
-                            ->native(false),
-
-                        TextInput::make('name')
-                            ->required()
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(fn ($state, callable $set) => $set('slug', Str::slug($state ?? ''))),
-
-                        TextInput::make('slug')
-                            ->required()
-                            ->disabled(fn ($record) => (bool) ($record?->is_system ?? false))
-                            ->unique(
-                                table: 'labels',
-                                column: 'slug',
-                                ignoreRecord: true,
-                                modifyRuleUsing: fn (Unique $rule, Get $get) => $rule->where('type', $get('type')),
-                            ),
-
-                        NotesRichEditor::make('description')
-                            ->label('Label Notes')
-                            ->columnSpanFull(),
                     ]),
             ]);
     }

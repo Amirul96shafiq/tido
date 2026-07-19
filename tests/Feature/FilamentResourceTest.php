@@ -345,6 +345,8 @@ test('authenticated user can load label create and edit forms', function () {
         'color' => '#dbb051',
     ]);
 
+    $modelLabel = LabelResource::getTitleCaseModelLabel();
+
     Livewire::test(CreateLabel::class)
         ->assertSuccessful()
         ->assertFormFieldExists('type')
@@ -352,8 +354,11 @@ test('authenticated user can load label create and edit forms', function () {
         ->assertFormFieldExists('slug')
         ->assertFormFieldExists('icon')
         ->assertFormFieldExists('color')
-        ->assertSee(LabelResource::getTitleCaseModelLabel().' Details')
-        ->assertSee(LabelResource::getTitleCaseModelLabel().' Appearance');
+        ->assertSeeInOrder([
+            $modelLabel.' Details',
+            'Label Notes',
+            $modelLabel.' Appearance',
+        ]);
 
     Livewire::test(EditLabel::class, ['record' => $label->getRouteKey()])
         ->assertSuccessful()
@@ -365,5 +370,11 @@ test('authenticated user can load label create and edit forms', function () {
             'slug' => $label->slug,
             'icon' => 'heroicon-o-cake',
             'color' => '#dbb051',
-        ]);
+        ])
+        ->assertSeeInOrder([
+            $modelLabel.' Details',
+            'Label Notes',
+            $modelLabel.' Appearance',
+        ])
+        ->assertActionDoesNotExist('forceDelete');
 });
