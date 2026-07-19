@@ -60,28 +60,19 @@
         {{ $getExtraAttributeBag()->class(['fi-fo-icon-picker flex flex-col gap-3']) }}
     >
         @if (count($curatedIcons))
-            <div class="@container flex flex-col gap-2">
+            <div class="flex flex-col gap-2">
                 <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
                     Quick picks
                 </p>
-                <div class="flex flex-nowrap gap-2 overflow-hidden">
-                    @foreach ($curatedIcons as $index => $icon)
-                        @php
-                            // size-10 (2.5rem) + gap-2 (0.5rem) per extra icon
-                            $visibilityClass = match (true) {
-                                $index < 3 => 'flex',
-                                $index < 4 => 'hidden @[11.5rem]:flex',
-                                $index < 5 => 'hidden @[14.5rem]:flex',
-                                $index < 6 => 'hidden @[17.5rem]:flex',
-                                $index < 7 => 'hidden @[20.5rem]:flex',
-                                default => 'hidden',
-                            };
-                        @endphp
-
+                <div
+                    class="grid w-full gap-2"
+                    style="grid-template-columns: repeat({{ count($curatedIcons) }}, minmax(0, 1fr));"
+                >
+                    @foreach ($curatedIcons as $icon)
                         <button
                             type="button"
                             x-on:click="select(@js($icon['value']))"
-                            class="{{ $visibilityClass }} size-10 shrink-0 items-center justify-center rounded-lg border transition"
+                            class="flex aspect-square w-full items-center justify-center rounded-lg border transition"
                             :class="state === @js($icon['value'])
                                 ? 'border-primary-600 bg-primary-50 text-primary-700 dark:border-primary-400 dark:bg-primary-400/10 dark:text-primary-300'
                                 : 'border-gray-200 text-gray-700 hover:border-primary-400 hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5'"

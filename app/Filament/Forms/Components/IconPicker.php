@@ -33,8 +33,6 @@ class IconPicker extends Field
             'heroicon-o-briefcase',
             'heroicon-o-credit-card',
             'heroicon-o-home',
-            'heroicon-o-gift',
-            'heroicon-o-tag',
         ];
     }
 

@@ -329,6 +329,7 @@ test('label create form uses modal icon picker', function () {
         ->assertSee('Choose icon')
         ->assertSee('Quick picks')
         ->assertSee('Load more')
+        ->assertSeeHtml('grid-template-columns: repeat('.count(IconPicker::curatedIconValues()).', minmax(0, 1fr));')
         ->fillForm([
             'icon' => 'heroicon-o-wallet',
         ])
