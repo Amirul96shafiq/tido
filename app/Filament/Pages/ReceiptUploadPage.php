@@ -51,7 +51,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
             ->statePath('data')
             ->components([
                 FileUpload::make('receipts')
-                    ->label('Select or Drop Receipt Images')
+                    ->hiddenLabel()
                     ->multiple()
                     ->image()
                     ->maxSize(10240)

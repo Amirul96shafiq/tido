@@ -110,7 +110,6 @@ class EditProfile extends BaseEditProfile
                     ->extraAttributes(['class' => 'fi-profile-main-column'])
                     ->schema([
                         Section::make('Account & Security')
-                            ->description('Manage your login credentials.')
                             ->schema([
                                 $this->getEmailFormComponent(),
                                 Toggle::make('change_password')
@@ -124,7 +123,6 @@ class EditProfile extends BaseEditProfile
                             ]),
 
                         Section::make('Regional Preferences')
-                            ->description('Customize how dates and times are displayed.')
                             ->schema([
                                 Select::make('locale')
                                     ->label('Language')
@@ -147,7 +145,6 @@ class EditProfile extends BaseEditProfile
                             ]),
 
                         Section::make('Notifications')
-                            ->description('Choose which alerts you receive.')
                             ->schema([
                                 Toggle::make('notify_budget_alerts')
                                     ->label('Budget Alerts')
@@ -175,7 +172,6 @@ class EditProfile extends BaseEditProfile
                     ->extraAttributes(['class' => 'fi-profile-sidebar-sticky'])
                     ->schema([
                         Section::make('Profile Photo')
-                            ->description('Upload a photo to personalize your account.')
                             ->extraAttributes(['class' => 'fi-profile-photo-section'])
                             ->schema([
                                 Flex::make([
@@ -184,7 +180,6 @@ class EditProfile extends BaseEditProfile
                             ]),
 
                         Section::make('Personal Details')
-                            ->description('Your display name and contact number.')
                             ->schema([
                                 $this->getNameFormComponent(),
                                 TextInput::make('phone')
@@ -211,7 +206,6 @@ class EditProfile extends BaseEditProfile
     {
         return Section::make('Danger Zone')
             ->key('dangerZone')
-            ->description('Irreversible actions for your account and application data.')
             ->extraAttributes(['class' => 'fi-danger-zone-section'])
             ->schema([
                 Toggle::make('enable_reset_data')

@@ -4,9 +4,6 @@
             <x-slot name="heading">
                 Upload Receipts
             </x-slot>
-            <x-slot name="description">
-                Select or drop receipt images to be parsed by the AI.
-            </x-slot>
 
             {{ $this->form }}
             
