@@ -216,6 +216,7 @@ class EditProfile extends BaseEditProfile
             ->schema([
                 Toggle::make('enable_reset_data')
                     ->label('Reset data')
+                    ->onColor('danger')
                     ->helperText('Deletes all application data. Your account is kept. An automatic backup is created first.')
                     ->live()
                     ->dehydrated(false)
@@ -243,6 +244,7 @@ class EditProfile extends BaseEditProfile
                     ->dehydrated(false),
                 Toggle::make('enable_delete_account')
                     ->label('Delete account')
+                    ->onColor('danger')
                     ->helperText('Deletes all application data and removes your account. An automatic backup is created first.')
                     ->live()
                     ->dehydrated(false)
