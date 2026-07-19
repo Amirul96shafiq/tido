@@ -26,16 +26,6 @@
                 {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_LOGO_BEFORE) }}
 
                 <div class="fi-sidebar-header-wrap flex items-center justify-between w-full gap-2">
-                    <div class="fi-sidebar-header-logo-ctn flex-1">
-                        @if ($homeUrl = filament()->getHomeUrl())
-                            <a {{ \Filament\Support\generate_href_html($homeUrl) }}>
-                                <x-filament-panels::logo />
-                            </a>
-                        @else
-                            <x-filament-panels::logo />
-                        @endif
-                    </div>
-
                     @if ($isSidebarCollapsibleOnDesktop || $isSidebarFullyCollapsibleOnDesktop)
                         <div class="fi-sidebar-collapse-btns flex shrink-0 items-center justify-center">
                             <x-filament::icon-button
@@ -93,6 +83,16 @@
                             />
                         </div>
                     @endif
+
+                    <div class="fi-sidebar-header-logo-ctn flex-1">
+                        @if ($homeUrl = filament()->getHomeUrl())
+                            <a {{ \Filament\Support\generate_href_html($homeUrl) }}>
+                                <x-filament-panels::logo />
+                            </a>
+                        @else
+                            <x-filament-panels::logo />
+                        @endif
+                    </div>
                 </div>
 
                 {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_LOGO_AFTER) }}

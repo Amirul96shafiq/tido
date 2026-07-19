@@ -68,3 +68,27 @@ test('collapsed version footer is a square matching collapsed sidebar width', fu
         ->and($provider)
         ->toContain('$store.sidebar.isOpen ? \\\'px-6 py-0\\\' : \\\'px-0 py-0\\\'');
 });
+
+test('open sidebar header places collapse button before logo', function () {
+    $sidebar = (string) file_get_contents(
+        resource_path('views/vendor/filament-panels/livewire/sidebar.blade.php'),
+    );
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $collapsePos = strpos($sidebar, 'fi-sidebar-collapse-btns');
+    $logoPos = strpos($sidebar, 'fi-sidebar-header-logo-ctn');
+    $openHeaderBlock = Str::between(
+        $css,
+        '.fi-sidebar.fi-sidebar-open .fi-sidebar-header {',
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-header {',
+    );
+
+    expect($collapsePos)->not->toBeFalse()
+        ->and($logoPos)->not->toBeFalse()
+        ->and($collapsePos)->toBeLessThan($logoPos)
+        ->and($css)
+        ->toContain('.fi-sidebar.fi-sidebar-open .fi-sidebar-header-logo-ctn')
+        ->toContain('justify-content: flex-end;')
+        ->and($openHeaderBlock)
+        ->toContain('padding-inline: 1rem !important;');
+});

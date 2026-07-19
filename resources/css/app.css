@@ -818,6 +818,19 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     display: flex !important;
 }
 
+.fi-sidebar.fi-sidebar-open .fi-sidebar-header-logo-ctn {
+    justify-content: flex-end;
+}
+
+/*
+ * Open + collapsed toggle share the same left rail (1rem).
+ * Open nav item buttons sit at 1rem via px-6 + groups -mx-2;
+ * matching header padding-inline keeps collapse/expand aligned.
+ */
+.fi-sidebar.fi-sidebar-open .fi-sidebar-header {
+    padding-inline: 1rem !important;
+}
+
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-header {
     padding-inline: 1rem !important;
     justify-content: flex-start !important;
