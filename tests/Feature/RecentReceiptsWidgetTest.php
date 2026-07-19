@@ -93,6 +93,21 @@ test('recent receipts widget truncates long merchant names with full name in too
     expect($tooltip)->toBe($longMerchant);
 });
 
+test('recent receipts widget defaults to five records per page', function () {
+    Invoice::factory()->count(6)->create([
+        'date_time' => now(),
+    ]);
+
+    $table = Livewire::test(RecentReceipts::class)
+        ->assertSuccessful()
+        ->assertCountTableRecords(6)
+        ->instance()
+        ->getTable();
+
+    expect($table->getDefaultPaginationPageOption())->toBe(5)
+        ->and($table->getPaginationPageOptions())->toBe([5, 10, 25, 50]);
+});
+
 test('recent receipts widget excludes invoices outside selected month', function () {
     $inMonth = Invoice::factory()->create([
         'merchant_name' => 'This Month',

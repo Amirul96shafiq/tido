@@ -41,8 +41,8 @@ class RecentReceipts extends BaseWidget
             )
             ->defaultSort('created_at', 'desc')
             ->poll('5s')
-            ->defaultPaginationPageOption(10)
-            ->paginated([10, 25, 50])
+            ->defaultPaginationPageOption(5)
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 FilenameDisplay::configureTextColumn(
                     TextColumn::make('original_filename')
