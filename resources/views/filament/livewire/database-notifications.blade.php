@@ -182,13 +182,24 @@
                             </style>
                         </div>
 
-                        <div class="fi-ta-filters-trigger-action-ctn ms-auto shrink-0">
+                        <div
+                            class="fi-ta-filters-trigger-action-ctn"
+                            @if ($this->filtersOpen)
+                                x-on:click.outside="
+                                    if ($event.target.closest('.fi-dropdown-panel, .fi-fo-date-time-picker-panel')) {
+                                        return
+                                    }
+
+                                    $wire.closeFilters()
+                                "
+                            @endif
+                        >
                             <button
                                 type="button"
                                 class="fi-icon-btn fi-size-md fi-color fi-color-gray relative"
                                 wire:click="toggleFilters"
                                 wire:loading.attr="disabled"
-                                wire:target="toggleFilters, resetFilters, search, filters"
+                                wire:target="toggleFilters, closeFilters, resetFilters, search, filters"
                                 aria-label="{{ __('filament-tables::table.actions.filter.label') }}"
                                 aria-expanded="{{ $this->filtersOpen ? 'true' : 'false' }}"
                                 x-tooltip="{
@@ -200,13 +211,13 @@
                                     :icon="Heroicon::Funnel"
                                     class="fi-icon fi-size-md"
                                     wire:loading.remove.delay.default
-                                    wire:target="toggleFilters, resetFilters, search, filters"
+                                    wire:target="toggleFilters, closeFilters, resetFilters, search, filters"
                                 />
 
                                 <x-filament::loading-indicator
                                     class="fi-icon fi-size-md"
                                     wire:loading.delay.default
-                                    wire:target="toggleFilters, resetFilters, search, filters"
+                                    wire:target="toggleFilters, closeFilters, resetFilters, search, filters"
                                 />
 
                                 @if ($activeFiltersCount > 0)
@@ -217,39 +228,39 @@
                                             ])
                                         }}
                                         wire:loading.remove.delay.default
-                                        wire:target="toggleFilters, resetFilters, search, filters"
+                                        wire:target="toggleFilters, closeFilters, resetFilters, search, filters"
                                     >
                                         {{ $activeFiltersCount }}
                                     </span>
                                 @endif
                             </button>
+
+                            @if ($this->filtersOpen)
+                                <div
+                                    wire:key="database-notifications-filters-panel"
+                                    class="fi-no-database-filters-panel"
+                                >
+                                    <div class="mb-3 flex items-center justify-between gap-2">
+                                        <h3 class="text-sm font-medium text-gray-950 dark:text-white">
+                                            {{ __('filament-tables::table.filters.heading') }}
+                                        </h3>
+
+                                        <x-filament::link
+                                            tag="button"
+                                            color="danger"
+                                            size="sm"
+                                            wire:click="resetFilters"
+                                            type="button"
+                                        >
+                                            {{ __('filament-tables::table.filters.actions.reset.label') }}
+                                        </x-filament::link>
+                                    </div>
+
+                                    {{ $this->getSchema('filtersForm') }}
+                                </div>
+                            @endif
                         </div>
                     </div>
-
-                    @if ($this->filtersOpen)
-                        <div
-                            wire:key="database-notifications-filters-panel"
-                            class="fi-no-database-filters-panel mt-3 rounded-lg border border-gray-200 p-3 dark:border-white/10"
-                        >
-                            <div class="mb-3 flex items-center justify-between gap-2">
-                                <h3 class="text-sm font-medium text-gray-950 dark:text-white">
-                                    {{ __('filament-tables::table.filters.heading') }}
-                                </h3>
-
-                                <x-filament::link
-                                    tag="button"
-                                    color="danger"
-                                    size="sm"
-                                    wire:click="resetFilters"
-                                    type="button"
-                                >
-                                    {{ __('filament-tables::table.filters.actions.reset.label') }}
-                                </x-filament::link>
-                            </div>
-
-                            {{ $this->getSchema('filtersForm') }}
-                        </div>
-                    @endif
                 </div>
             </x-slot>
 

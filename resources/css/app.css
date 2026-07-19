@@ -1607,7 +1607,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .fi-no-database .fi-ta-filters-trigger-action-ctn {
-    @apply ms-auto shrink-0;
+    @apply relative ms-auto shrink-0;
+}
+
+.fi-no-database .fi-no-database-filters-panel {
+    @apply absolute end-0 top-full z-30 mt-2 w-72 rounded-lg border border-gray-200 bg-white p-3 shadow-lg ring-1 ring-gray-950/5 dark:border-white/10 dark:bg-gray-900 dark:ring-white/10;
 }
 
 .fi-no-database .fi-no-database-empty-filter {
@@ -1826,10 +1830,6 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     & .fi-btn {
         @apply w-auto;
     }
-}
-
-.fi-no-database .fi-no-database-filters-panel {
-    @apply bg-gray-50 dark:bg-white/5;
 }
 
 /*

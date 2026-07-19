@@ -102,12 +102,27 @@ test('can toggle filters panel', function () {
 
     Livewire::test(DatabaseNotifications::class)
         ->assertSet('filtersOpen', false)
+        ->assertDontSee('fi-no-database-filters-panel', false)
         ->call('toggleFilters')
         ->assertSet('filtersOpen', true)
+        ->assertSee('fi-no-database-filters-panel', false)
+        ->assertSeeHtml('x-on:click.outside')
+        ->assertSeeHtml('$wire.closeFilters()')
         ->assertSee('Resource')
         ->assertSee('From')
         ->assertSee('Until')
         ->assertSee('Status');
+});
+
+test('can close filters panel', function () {
+    seedDatabaseNotifications($this->user);
+
+    Livewire::test(DatabaseNotifications::class)
+        ->call('toggleFilters')
+        ->assertSet('filtersOpen', true)
+        ->call('closeFilters')
+        ->assertSet('filtersOpen', false)
+        ->assertDontSee('fi-no-database-filters-panel', false);
 });
 
 test('can filter by resource', function () {
