@@ -1214,14 +1214,33 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
         padding-inline-start: var(--collapsed-sidebar-width, 4.5rem) !important;
     }
 
+    /*
+     * Filament defaults .fi-main-ctn to min-h-[calc(100dvh-4rem)] (64px topbar).
+     * tido topbar is calc(var(--collapsed-sidebar-width) - 1px) (~71px) and sits
+     * outside .fi-main-ctn, so the stock min-height forces ~7px page overflow
+     * even when content is short. Match the real topbar height.
+     */
     .fi-body-has-sidebar-collapsible-on-desktop .fi-main-ctn {
         margin-inline-start: var(--collapsed-sidebar-width, 4.5rem);
         transition: margin-inline-start 300ms ease-in-out;
+        min-height: calc(
+            100dvh - (var(--collapsed-sidebar-width, 4.5rem) - 1px)
+        );
     }
 
     .fi-body-has-sidebar-collapsible-on-desktop .fi-main-ctn-sidebar-open {
         margin-inline-start: var(--sidebar-width, 18rem);
     }
+}
+
+/*
+ * Filament .fi-page-header-main-ctn uses py-8. With tido's topbar
+ * (4.5rem - 1px), list pages that pack to the fold (e.g. Invoices @ 10 rows)
+ * end up 1px over 100dvh (topbar 71 + content 875 = 946 on a 945px viewport).
+ * Shave 1px from bottom padding so fold-packed tables do not force a scrollbar.
+ */
+.fi-page-header-main-ctn {
+    padding-bottom: calc(2rem - 1px);
 }
 
 /*
