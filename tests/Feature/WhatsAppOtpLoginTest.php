@@ -373,7 +373,7 @@ test('otp step shows different number link and mode tabs instead of password cta
         ->assertSee('Not receive OTP code?')
         ->assertSee('Use a different number')
         ->assertSee('Resend in')
-        ->assertSee('A One-Time Password (OTP) code has been sent via WhatsApp to 60123456789. You can use the OTP code here.')
+        ->assertSee('A One-Time Password (OTP) code has been sent via WhatsApp to <span class="text-primary-600 underline dark:text-primary-400">60123456789</span>. You can use the OTP code here.', false)
         ->assertDontSeeHtml('>Use a different number</button>')
         ->call('showPhoneStep')
         ->assertSet('loginMode', 'phone')
@@ -413,7 +413,7 @@ test('otp tab restores enter otp step after switching to password', function () 
         ->assertSet('pendingPhone', '60123456789')
         ->assertSee('Resend in')
         ->assertSee('Enter the code')
-        ->assertSee('A One-Time Password (OTP) code has been sent via WhatsApp to 60123456789. You can use the OTP code here.')
+        ->assertSee('A One-Time Password (OTP) code has been sent via WhatsApp to <span class="text-primary-600 underline dark:text-primary-400">60123456789</span>. You can use the OTP code here.', false)
         ->assertDontSee('WhatsApp number');
 });
 

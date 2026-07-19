@@ -73,7 +73,12 @@ class Login extends BaseLogin
 
         return match ($this->loginMode) {
             'otp' => filled($this->pendingPhone)
-                ? "A One-Time Password (OTP) code has been sent via WhatsApp to {$this->pendingPhone}. You can use the OTP code here."
+                ? new HtmlString(
+                    'A One-Time Password (OTP) code has been sent via WhatsApp to '
+                    .'<span class="text-primary-600 underline dark:text-primary-400">'
+                    .e((string) $this->pendingPhone)
+                    .'</span>. You can use the OTP code here.'
+                )
                 : 'Enter the 6-digit code from WhatsApp.',
             default => TidoBrandCopy::loginSubheadingHtml(),
         };
