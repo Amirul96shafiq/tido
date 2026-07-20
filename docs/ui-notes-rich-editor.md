@@ -11,7 +11,7 @@ Canonical Filament field for note-like HTML columns in tido admin forms (`notes`
 | Component | `App\Filament\Forms\Components\NotesRichEditor` |
 | CSS height | `.fi-notes-rich-editor` in `resources/css/app.css` (`min-height: 10rem`) |
 | Constant | `NotesRichEditor::EXTRA_CLASS` → `fi-notes-rich-editor` |
-| Tests | `BudgetFormTest`, `InvoiceFormReceiptImageTest`, `LabelFormTest`, `ContentDraftRecoveryTest`, `ReceiptExtractionPromptTest`, `ReceiptReparseTest` |
+| Tests | `BudgetFormTest`, `InvoiceFormReceiptImageTest`, `LabelFormTest`, `PaymentMethodFormTest`, `ContentDraftRecoveryTest`, `ReceiptExtractionPromptTest`, `ReceiptReparseTest` |
 
 ## Current consumers
 
@@ -20,6 +20,7 @@ Canonical Filament field for note-like HTML columns in tido admin forms (`notes`
 | `BudgetForm` | `notes` | Hidden (section **Budget Notes**) |
 | `InvoiceForm` | `notes` | **Invoice Notes** |
 | `LabelForm` | `description` | **Label Notes** (column name kept for schema / OCR hints) |
+| `PaymentMethodForm` | `notes` | Hidden (section **Payment Method Notes**) |
 
 DB columns remain nullable `text` (HTML from the editor). Plain-text legacy rows still load.
 

@@ -27,6 +27,7 @@ class PaymentMethod extends Model
         'name',
         'slug',
         'aliases',
+        'notes',
         'icon',
         'color',
         'is_system',
@@ -44,7 +45,7 @@ class PaymentMethod extends Model
     {
         return static::query()
             ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'aliases', 'icon', 'color']);
+            ->get(['id', 'name', 'slug', 'aliases', 'notes', 'icon', 'color']);
     }
 
     public static function findBySlug(string $slug): ?self

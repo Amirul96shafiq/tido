@@ -28,12 +28,23 @@ class ReceiptExtractionPrompt
             ->implode(', ');
         $paymentMethodLines = $paymentMethods
             ->map(function (PaymentMethod $method): string {
+                $parts = [];
+
                 $aliases = collect($method->aliases ?? [])
                     ->filter(fn (mixed $alias): bool => is_string($alias) && $alias !== '')
                     ->values();
 
-                $hint = $aliases->isNotEmpty()
-                    ? ' (aliases: '.$aliases->implode(', ').')'
+                if ($aliases->isNotEmpty()) {
+                    $parts[] = 'aliases: '.$aliases->implode(', ');
+                }
+
+                $notesHint = self::plainTextHint($method->notes);
+                if ($notesHint !== '') {
+                    $parts[] = $notesHint;
+                }
+
+                $hint = $parts !== []
+                    ? ' — '.implode('; ', $parts)
                     : '';
 
                 return '- '.$method->name.$hint;

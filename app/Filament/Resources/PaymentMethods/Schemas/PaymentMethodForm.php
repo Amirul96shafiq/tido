@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\PaymentMethods\Schemas;
 
 use App\Filament\Forms\Components\IconPicker;
+use App\Filament\Forms\Components\NotesRichEditor;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
@@ -50,6 +51,13 @@ class PaymentMethodForm
                                     ->columnSpanFull()
                                     ->splitKeys(['Tab', 'Enter', ','])
                                     ->reorderable(),
+                            ]),
+
+                        Section::make('Payment Method Notes')
+                            ->schema([
+                                NotesRichEditor::make('notes')
+                                    ->hiddenLabel()
+                                    ->columnSpanFull(),
                             ]),
                     ]),
 

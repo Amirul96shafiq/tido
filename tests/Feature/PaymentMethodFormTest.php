@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Resources\PaymentMethods\Pages\CreatePaymentMethod;
 use App\Filament\Resources\PaymentMethods\Pages\EditPaymentMethod;
 use App\Models\PaymentMethod;
@@ -16,6 +17,21 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->actingAs(User::factory()->create());
+});
+
+test('payment method form uses notes rich editor for notes', function () {
+    Livewire::test(CreatePaymentMethod::class)
+        ->assertSuccessful()
+        ->assertSchemaComponentExists(
+            'notes',
+            checkComponentUsing: function (NotesRichEditor $component): bool {
+                expect($component->getExtraAttributes())->toMatchArray([
+                    'class' => NotesRichEditor::EXTRA_CLASS,
+                ]);
+
+                return true;
+            },
+        );
 });
 
 test('payment method name and slug have empty placeholders', function () {
@@ -41,6 +57,7 @@ test('create payment method page saves aliases normalized', function () {
             'name' => 'GrabPay',
             'slug' => 'grabpay',
             'aliases' => ['Grab Pay', 'GRAB'],
+            'notes' => '<p>Grab e-wallet payments</p>',
             'icon' => 'heroicon-o-device-phone-mobile',
             'color' => '#00B14F',
         ])
@@ -51,7 +68,8 @@ test('create payment method page saves aliases normalized', function () {
 
     expect($method)->not->toBeNull()
         ->and($method->is_system)->toBeFalse()
-        ->and($method->aliases)->toBe(['grab_pay', 'grab']);
+        ->and($method->aliases)->toBe(['grab_pay', 'grab'])
+        ->and($method->notes)->toBe('<p>Grab e-wallet payments</p>');
 });
 
 test('system payment method slug is locked on edit', function () {

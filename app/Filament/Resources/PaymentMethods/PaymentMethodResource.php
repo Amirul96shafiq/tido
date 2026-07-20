@@ -73,6 +73,7 @@ class PaymentMethodResource extends Resource
         return [
             'name',
             'slug',
+            'notes',
         ];
     }
 
