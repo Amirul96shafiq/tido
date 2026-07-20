@@ -1,6 +1,43 @@
+import os from 'os';
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
+
+/**
+ * Prefer 192.168.*, then 10.*, for phone-reachable Vite HMR on the LAN.
+ */
+function detectLanIpv4() {
+    const interfaces = os.networkInterfaces();
+    const candidates = [];
+
+    for (const addresses of Object.values(interfaces)) {
+        if (!addresses) {
+            continue;
+        }
+
+        for (const address of addresses) {
+            if (address.family !== 'IPv4' || address.internal) {
+                continue;
+            }
+
+            if (address.address.startsWith('192.168.')) {
+                return address.address;
+            }
+
+            candidates.push(address.address);
+        }
+    }
+
+    for (const ip of candidates) {
+        if (ip.startsWith('10.')) {
+            return ip;
+        }
+    }
+
+    return candidates[0] ?? null;
+}
+
+const lanIp = detectLanIpv4();
 
 export default defineConfig({
     plugins: [
@@ -20,8 +57,17 @@ export default defineConfig({
         tailwindcss(),
     ],
     server: {
-        host: '192.168.100.6',
+        host: true,
         port: 5173,
+        ...(lanIp ? { hmr: { host: lanIp } } : {}),
+        cors: {
+            origin: [
+                /^https?:\/\/localhost(:\d+)?$/,
+                /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
+                /^https?:\/\/192\.168\.\d+\.\d+(:\d+)?$/,
+                /^https?:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/,
+            ],
+        },
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },

@@ -5,11 +5,11 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "dev:full": "concurrently -n vite,php,queue -c cyan,green,yellow \"npm run dev\" \"php artisan serve --port=2000\" \"php artisan queue:listen --queue=default,whatsapp,receipts --tries=3 --timeout=180\"",
+        "dev:full": "concurrently -n vite,php,queue -c cyan,green,yellow \"npm run dev\" \"php artisan serve --host=0.0.0.0 --port=2000\" \"php artisan queue:listen --queue=default,whatsapp,receipts --tries=3 --timeout=180\"",
         "dev:ollama": "node scripts/run-ollama.mjs",
         "evolution": "node scripts/run-evolution.mjs",
-        "dev:whatsapp": "concurrently -n vite,php,queue,evolution -c cyan,green,yellow,magenta \"npm run dev\" \"php artisan serve --port=2000\" \"php artisan queue:listen --queue=default,whatsapp,receipts --tries=3 --timeout=180\" \"npm run evolution\"",
-        "dev:all": "concurrently -n vite,php,queue,evolution,ollama -c cyan,green,yellow,magenta,blue \"npm run dev\" \"php artisan serve --port=2000\" \"php artisan queue:listen --queue=default,whatsapp,receipts --tries=3 --timeout=180\" \"npm run evolution\" \"npm run dev:ollama\""
+        "dev:whatsapp": "concurrently -n vite,php,queue,evolution -c cyan,green,yellow,magenta \"npm run dev\" \"php artisan serve --host=0.0.0.0 --port=2000\" \"php artisan queue:listen --queue=default,whatsapp,receipts --tries=3 --timeout=180\" \"npm run evolution\"",
+        "dev:all": "concurrently -n vite,php,queue,evolution,ollama -c cyan,green,yellow,magenta,blue \"npm run dev\" \"php artisan serve --host=0.0.0.0 --port=2000\" \"php artisan queue:listen --queue=default,whatsapp,receipts --tries=3 --timeout=180\" \"npm run evolution\" \"npm run dev:ollama\""
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

@@ -128,13 +128,21 @@ curl http://127.0.0.1:11434/api/tags
 | Process | Command / notes |
 |---------|-----------------|
 | All-in-one | `npm run dev:all` — Vite + serve :2000 + queue + Evolution + Ollama helper |
-| tido only | `npm run dev:full` — Vite + `artisan serve --port=2000` + queue listener |
+| tido only | `npm run dev:full` — Vite + `artisan serve --host=0.0.0.0 --port=2000` + queue listener |
 | Evolution | `npm run evolution` — API at `http://127.0.0.1:8080` |
 | Scheduler (optional) | `php artisan schedule:work` — Drive sync + backups |
 
 Webhook URL while developing: `http://127.0.0.1:2000/api/webhooks/whatsapp`.
 
 Also available: `composer run dev` (serve + queue + Pail + Vite, no Evolution).
+
+**Mobile (same Wi‑Fi):**
+
+1. Find this PC’s IPv4 (`ipconfig` → e.g. `192.168.100.6`).
+2. Set `APP_URL=http://192.168.x.x:2000` in `.env` (restart `npm run dev:full`).
+3. Optionally set `WHATSAPP_PUBLIC_APP_URL` to the same base for WhatsApp links.
+4. If the phone cannot connect, allow inbound TCP **2000** and **5173** in Windows Firewall.
+5. On the phone: open `http://192.168.x.x:2000/admin`.
 
 Default seeded login: `admin@tido.local` / `password`.
 
