@@ -28,8 +28,6 @@ class SpendingByPaymentMethod extends ChartWidget
         'xl' => 4,
     ];
 
-    protected ?string $pollingInterval = null;
-
     protected ?string $maxHeight = DashboardWidgetHeights::STANDARD_CHART;
 
     public function getHeading(): string|Htmlable|null

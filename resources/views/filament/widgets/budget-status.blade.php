@@ -2,7 +2,10 @@
     use App\Helpers\MoneyDisplay;
 @endphp
 
-<x-filament-widgets::widget class="h-full fi-wi-budget-status">
+<x-filament-widgets::widget
+    class="h-full fi-wi-budget-status"
+    wire:poll.5s
+>
     <x-filament::section class="h-full">
         <x-slot name="heading">
             Budget Performance ({{ $monthLabel ?? now()->format('F Y') }})

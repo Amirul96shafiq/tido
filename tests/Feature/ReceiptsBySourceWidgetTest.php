@@ -41,13 +41,13 @@ test('receipts by source widget renders source labels', function () {
         ->assertSuccessful()
         ->assertSee('Manual')
         ->assertSee('WhatsApp')
-        ->assertSee('Google Drive');
+        ->assertSee('Google Drive')
+        ->assertSeeHtml('wire:poll.5s');
 });
 
-test('receipts by source widget renders empty state', function () {
+test('receipts by source widget polls while empty', function () {
     Livewire::test(ReceiptsBySource::class)
         ->assertSuccessful()
         ->assertSee('No receipts')
-        ->assertSee('No receipts recorded for this month.')
-        ->assertSee('Upload Receipts');
+        ->assertSeeHtml('wire:poll.5s="updateChartData"');
 });

@@ -134,21 +134,36 @@ test('recent receipts widget defaults to five records per page', function () {
         ->and($table->getPaginationPageOptions())->toBe([5, 10, 25, 50]);
 });
 
-test('recent receipts widget excludes invoices outside selected month', function () {
+test('recent receipts widget excludes invoices uploaded outside selected month', function () {
     $inMonth = Invoice::factory()->create([
-        'merchant_name' => 'This Month',
-        'date_time' => now(),
+        'merchant_name' => 'This Month Upload',
+        'date_time' => now()->subYear(),
+        'created_at' => now(),
     ]);
 
     $outOfMonth = Invoice::factory()->create([
-        'merchant_name' => 'Last Year',
-        'date_time' => now()->subYear(),
+        'merchant_name' => 'Last Year Upload',
+        'date_time' => now(),
+        'created_at' => now()->subYear(),
     ]);
 
     Livewire::test(RecentReceipts::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$inMonth])
         ->assertCanNotSeeTableRecords([$outOfMonth]);
+});
+
+test('recent receipts widget includes uploads whose receipt date is outside selected month', function () {
+    $lateUpload = Invoice::factory()->create([
+        'merchant_name' => 'Tenaga Nasional',
+        'date_time' => now()->subMonths(2),
+        'created_at' => now(),
+    ]);
+
+    Livewire::test(RecentReceipts::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$lateUpload])
+        ->assertSee('Tenaga Nasional');
 });
 
 test('recent receipts widget edit action links to invoice edit in a new tab', function () {

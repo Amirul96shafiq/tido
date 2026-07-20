@@ -12,6 +12,7 @@
     $maxHeight = $this->getMaxHeight();
     $hasMaxHeight = filled($maxHeight) && $maxHeight !== '100%';
     $selectedMonth = method_exists($this, 'formatSelectedMonth') ? $this->formatSelectedMonth('Y-m') : 'unknown';
+    $resolvedPollingInterval = $this->getPollingInterval();
 @endphp
 
 <x-filament-widgets::widget class="fi-wi-chart">
@@ -70,89 +71,92 @@
             </x-slot>
         @endif
 
-        @if ($isEmpty)
-            <div
-                wire:key="chart-body-{{ class_basename($this::class) }}-empty-{{ $selectedMonth }}"
-                class="fi-wi-chart-empty flex flex-1 items-center justify-center"
-                @style([
-                    ('min-height: ' . e($maxHeight) . '; max-height: ' . e($maxHeight)) => $hasMaxHeight,
-                ])
-            >
-                <x-empty-state-panel
-                    :heading="$this->getEmptyStateHeading()"
-                    :description="$this->getEmptyStateDescription()"
-                    :icon="$this->getEmptyStateIcon()"
-                    :icon-color="$this->getEmptyStateIconColor()"
-                    class="fi-wi-chart-empty-panel"
-                >
-                    <x-slot name="actions">
-                        <x-filament::button
-                            :href="\App\Filament\Pages\ReceiptUploadPage::getUrl()"
-                            tag="a"
-                            color="primary"
-                            icon="heroicon-m-plus"
-                        >
-                            Upload Receipts
-                        </x-filament::button>
-                    </x-slot>
-                </x-empty-state-panel>
-            </div>
-        @else
-            <div
-                wire:key="chart-body-{{ class_basename($this::class) }}-chart-{{ $selectedMonth }}"
-                @if ($pollingInterval = $this->getPollingInterval())
-                    wire:poll.{{ $pollingInterval }}="updateChartData"
-                @endif
-            >
+        <div
+            @if ($resolvedPollingInterval)
+                wire:poll.{{ $resolvedPollingInterval }}="updateChartData"
+            @endif
+        >
+            @if ($isEmpty)
                 <div
-                    x-load
-                    x-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('chart', 'filament/widgets') }}"
-                    wire:ignore
-                    data-chart-type="{{ $type }}"
-                    x-data="chart({
-                                cachedData: @js($this->getCachedData()),
-                                options: @js($this->getOptions()),
-                                type: @js($type),
-                            })"
-                    {{
-                        (new ComponentAttributeBag)
-                            ->color(ChartWidgetComponent::class, $color)
-                            ->class([
-                                'fi-wi-chart-canvas-ctn',
-                                'fi-wi-chart-canvas-ctn-no-aspect-ratio' => $hasMaxHeight,
-                            ])
-                    }}
+                    wire:key="chart-body-{{ class_basename($this::class) }}-empty-{{ $selectedMonth }}"
+                    class="fi-wi-chart-empty flex flex-1 items-center justify-center"
+                    @style([
+                        ('min-height: ' . e($maxHeight) . '; max-height: ' . e($maxHeight)) => $hasMaxHeight,
+                    ])
                 >
-                    <canvas
-                        x-ref="canvas"
-                        @style([
-                            'width: 100%',
-                            'height: 100%; max-height: 100%' => ! $hasMaxHeight,
-                            ('max-height: ' . e($maxHeight)) => $hasMaxHeight,
-                        ])
-                    ></canvas>
-
-                    <span
-                        x-ref="backgroundColorElement"
-                        class="fi-wi-chart-bg-color"
-                    ></span>
-
-                    <span
-                        x-ref="borderColorElement"
-                        class="fi-wi-chart-border-color"
-                    ></span>
-
-                    <span
-                        x-ref="gridColorElement"
-                        class="fi-wi-chart-grid-color"
-                    ></span>
-
-                    <span
-                        x-ref="textColorElement"
-                        class="fi-wi-chart-text-color"
-                    ></span>
+                    <x-empty-state-panel
+                        :heading="$this->getEmptyStateHeading()"
+                        :description="$this->getEmptyStateDescription()"
+                        :icon="$this->getEmptyStateIcon()"
+                        :icon-color="$this->getEmptyStateIconColor()"
+                        class="fi-wi-chart-empty-panel"
+                    >
+                        <x-slot name="actions">
+                            <x-filament::button
+                                :href="\App\Filament\Pages\ReceiptUploadPage::getUrl()"
+                                tag="a"
+                                color="primary"
+                                icon="heroicon-m-plus"
+                            >
+                                Upload Receipts
+                            </x-filament::button>
+                        </x-slot>
+                    </x-empty-state-panel>
                 </div>
-            </div>
-        @endif
+            @else
+                <div
+                    wire:key="chart-body-{{ class_basename($this::class) }}-chart-{{ $selectedMonth }}"
+                >
+                    <div
+                        x-load
+                        x-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('chart', 'filament/widgets') }}"
+                        wire:ignore
+                        data-chart-type="{{ $type }}"
+                        x-data="chart({
+                                    cachedData: @js($this->getCachedData()),
+                                    options: @js($this->getOptions()),
+                                    type: @js($type),
+                                })"
+                        {{
+                            (new ComponentAttributeBag)
+                                ->color(ChartWidgetComponent::class, $color)
+                                ->class([
+                                    'fi-wi-chart-canvas-ctn',
+                                    'fi-wi-chart-canvas-ctn-no-aspect-ratio' => $hasMaxHeight,
+                                ])
+                        }}
+                    >
+                        <canvas
+                            x-ref="canvas"
+                            @style([
+                                'width: 100%',
+                                'height: 100%; max-height: 100%' => ! $hasMaxHeight,
+                                ('max-height: ' . e($maxHeight)) => $hasMaxHeight,
+                            ])
+                        ></canvas>
+
+                        <span
+                            x-ref="backgroundColorElement"
+                            class="fi-wi-chart-bg-color"
+                        ></span>
+
+                        <span
+                            x-ref="borderColorElement"
+                            class="fi-wi-chart-border-color"
+                        ></span>
+
+                        <span
+                            x-ref="gridColorElement"
+                            class="fi-wi-chart-grid-color"
+                        ></span>
+
+                        <span
+                            x-ref="textColorElement"
+                            class="fi-wi-chart-text-color"
+                        ></span>
+                    </div>
+                </div>
+            @endif
+        </div>
     </x-filament::section>
 </x-filament-widgets::widget>
