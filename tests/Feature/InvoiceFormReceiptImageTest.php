@@ -88,9 +88,16 @@ test('invoice form uses left right sticky layout', function () {
         ->assertSee('Receipt Details')
         ->assertSee('Invoice Notes')
         ->assertSee('Line Items')
+        ->assertSee('Status')
         ->assertSee('Image & Uploads')
         ->assertSee('fi-invoice-form-page', false)
-        ->assertSee('fi-invoice-sidebar-sticky', false);
+        ->assertSee('fi-invoice-sidebar-sticky', false)
+        ->assertSeeInOrder([
+            'Receipt Details',
+            'Invoice Notes',
+            'Line Items',
+            'Status',
+        ]);
 });
 
 test('invoice currency select uses single-line marquee markup', function () {

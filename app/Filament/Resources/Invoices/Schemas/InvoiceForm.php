@@ -102,18 +102,6 @@ class InvoiceForm
                                             ->searchable()
                                             ->required(),
                                     ]),
-
-                                Select::make('status')
-                                    ->options([
-                                        'pending' => 'Pending Parsing',
-                                        'parsed' => 'Parsed by AI',
-                                        'reviewed' => 'Reviewed',
-                                        'requires_manual_review' => 'Requires Manual Review',
-                                        'failed' => 'Parsing Failed',
-                                    ])
-                                    ->default('pending')
-                                    ->searchable()
-                                    ->required(),
                             ]),
 
                         Section::make('Invoice Notes')
@@ -205,6 +193,22 @@ class InvoiceForm
                                     })
                                     ->collapsed()
                                     ->columns(1),
+                            ]),
+
+                        Section::make('Status')
+                            ->schema([
+                                Select::make('status')
+                                    ->hiddenLabel()
+                                    ->options([
+                                        'pending' => 'Pending Parsing',
+                                        'parsed' => 'Parsed by AI',
+                                        'reviewed' => 'Reviewed',
+                                        'requires_manual_review' => 'Requires Manual Review',
+                                        'failed' => 'Parsing Failed',
+                                    ])
+                                    ->default('pending')
+                                    ->searchable()
+                                    ->required(),
                             ]),
                     ]),
 
