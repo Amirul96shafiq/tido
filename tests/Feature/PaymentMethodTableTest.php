@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Enums\PaymentMethod;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Invoices\Pages\ListInvoices;
+use App\Filament\Resources\PaymentMethods\Pages\ListPaymentMethods;
 use App\Models\Invoice;
+use App\Models\PaymentMethod;
 use App\Models\User;
-use Filament\Support\Icons\Heroicon;
-use Illuminate\Contracts\Support\Htmlable;
+use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -19,16 +19,25 @@ beforeEach(function () {
         'services.evolution.personal_number' => '60123456789',
     ]);
 
+    $this->seed(PaymentMethodSeeder::class);
     $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
+});
+
+test('payment methods table shows aliases as comma separated text', function () {
+    Livewire::test(ListPaymentMethods::class)
+        ->assertSuccessful()
+        ->assertSee('master + 3 more')
+        ->assertSee('qr + 4 more')
+        ->assertDontSee('—, —, —, —');
 });
 
 test('invoice table shows payment method labels for qr and touch n go', function () {
     $qrInvoice = Invoice::factory()->create([
-        'payment_method' => PaymentMethod::PayWithQr,
+        'payment_method_id' => PaymentMethod::findBySlug('pay_with_qr')->id,
         'merchant_name' => 'QR Merchant',
     ]);
     $tngInvoice = Invoice::factory()->create([
-        'payment_method' => PaymentMethod::TouchNGo,
+        'payment_method_id' => PaymentMethod::findBySlug('touchngo')->id,
         'merchant_name' => 'TNG Merchant',
     ]);
 
@@ -41,11 +50,11 @@ test('invoice table shows payment method labels for qr and touch n go', function
 
 test('upload receipts table shows payment method labels for qr and touch n go', function () {
     $qrInvoice = Invoice::factory()->create([
-        'payment_method' => PaymentMethod::PayWithQr,
+        'payment_method_id' => PaymentMethod::findBySlug('pay_with_qr')->id,
         'original_filename' => 'qr_receipt.jpg',
     ]);
     $tngInvoice = Invoice::factory()->create([
-        'payment_method' => PaymentMethod::TouchNGo,
+        'payment_method_id' => PaymentMethod::findBySlug('touchngo')->id,
         'original_filename' => 'tng_receipt.jpg',
     ]);
 
@@ -56,8 +65,8 @@ test('upload receipts table shows payment method labels for qr and touch n go', 
         ->assertSee("Touch 'n Go");
 });
 
-test('payment method enum exposes icons used by filament badges', function () {
-    expect(PaymentMethod::PayWithQr->getIcon())->toBe(Heroicon::QrCode)
-        ->and(PaymentMethod::TouchNGo->getIcon())->toBeInstanceOf(Htmlable::class)
-        ->and(PaymentMethod::Cash->getIcon())->toBe(Heroicon::Banknotes);
+test('seeded payment methods expose icons used by filament badges', function () {
+    expect(PaymentMethod::findBySlug('pay_with_qr')?->icon)->toBe('heroicon-o-qr-code')
+        ->and(PaymentMethod::findBySlug('touchngo')?->icon)->toBe('heroicon-o-device-phone-mobile')
+        ->and(PaymentMethod::findBySlug('cash')?->icon)->toBe('heroicon-o-banknotes');
 });

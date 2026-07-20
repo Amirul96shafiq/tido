@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
-use App\Enums\PaymentMethod;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Helpers\FilenameDisplay;
 use App\Models\Invoice;
@@ -130,8 +129,10 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                     ->myr()
                     ->sortable(),
 
-                TextColumn::make('payment_method')
+                TextColumn::make('paymentMethod.name')
+                    ->label('Payment Method')
                     ->badge()
+                    ->icon(fn (Invoice $record): ?string => $record->paymentMethod?->icon)
                     ->placeholder('-'),
 
                 TextColumn::make('source')
@@ -188,9 +189,11 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                     ])
                     ->searchable(),
 
-                SelectFilter::make('payment_method')
-                    ->options(PaymentMethod::class)
-                    ->searchable(),
+                SelectFilter::make('payment_method_id')
+                    ->label('Payment Method')
+                    ->relationship('paymentMethod', 'name')
+                    ->searchable()
+                    ->preload(),
             ])
             ->emptyStateHeading('No receipts yet')
             ->emptyStateDescription('Upload a receipt with the form above to start tracking spending.')

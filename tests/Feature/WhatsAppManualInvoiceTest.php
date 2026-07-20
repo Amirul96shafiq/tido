@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-use App\Enums\PaymentMethod;
 use App\Jobs\ParseManualWhatsAppInvoiceJob;
 use App\Jobs\ProcessManualWhatsAppInvoiceJob;
 use App\Jobs\SendWhatsAppManualInvoiceParsedJob;
 use App\Jobs\SendWhatsAppManualInvoiceReceivedAckJob;
 use App\Models\Invoice;
 use App\Models\Label;
+use App\Models\PaymentMethod;
 use App\Services\LabelMatcher;
 use App\Services\OllamaService;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppManualInvoiceReceivedDebouncer;
 use Database\Seeders\LabelSeeder;
+use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
@@ -23,6 +24,8 @@ use Illuminate\Support\Facades\Queue;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    $this->seed(PaymentMethodSeeder::class);
+
     config([
         'services.evolution.api_key' => 'tido-secret-key',
         'services.evolution.api_url' => 'http://evolution-api.test',
@@ -118,7 +121,7 @@ test('process manual whatsapp invoice job creates invoice items and registers de
         ->and((float) $invoice->total_amount)->toBe(4.2)
         ->and((float) $invoice->subtotal)->toBe(4.2)
         ->and($invoice->currency)->toBe('MYR')
-        ->and($invoice->payment_method)->toBe(PaymentMethod::Cash)
+        ->and($invoice->paymentMethod->slug)->toBe('cash')
         ->and($invoice->source)->toBe('whatsapp')
         ->and($invoice->whatsapp_sender)->toBe('60123456789')
         ->and($invoice->status)->toBe('pending')
@@ -153,7 +156,7 @@ TEXT;
 
     expect($invoice)->not->toBeNull()
         ->and($invoice->merchant_name)->toBe('Kedai Makan Seri Ayu')
-        ->and($invoice->payment_method)->toBe(PaymentMethod::PayWithQr)
+        ->and($invoice->paymentMethod->slug)->toBe('pay_with_qr')
         ->and((float) $invoice->total_amount)->toBe(14.5);
 });
 
@@ -191,14 +194,14 @@ test('manual invoice received ack sends message and dispatches parse jobs', func
         'whatsapp_sender' => $sender,
         'status' => 'pending',
         'image_path' => null,
-        'payment_method' => PaymentMethod::Cash,
+        'payment_method_id' => PaymentMethod::findBySlug('cash')->id,
     ]);
     $invoiceB = Invoice::factory()->create([
         'source' => 'whatsapp',
         'whatsapp_sender' => $sender,
         'status' => 'pending',
         'image_path' => null,
-        'payment_method' => PaymentMethod::Cash,
+        'payment_method_id' => PaymentMethod::findBySlug('cash')->id,
     ]);
 
     WhatsAppManualInvoiceReceivedDebouncer::register($sender, $invoiceA->id);
@@ -248,7 +251,7 @@ test('parse manual whatsapp invoice job applies labels and requires manual revie
         'total_amount' => 4.20,
         'subtotal' => 4.20,
         'currency' => 'MYR',
-        'payment_method' => PaymentMethod::Cash,
+        'payment_method_id' => PaymentMethod::findBySlug('cash')->id,
         'source' => 'whatsapp',
         'whatsapp_sender' => '60123456789',
         'status' => 'pending',
@@ -306,7 +309,7 @@ test('send manual invoice parsed job sends whatsapp message with edit url', func
     $invoice = Invoice::factory()->create([
         'merchant_name' => 'myNEWS Bayu Residensi',
         'total_amount' => 4.20,
-        'payment_method' => PaymentMethod::Cash,
+        'payment_method_id' => PaymentMethod::findBySlug('cash')->id,
         'source' => 'whatsapp',
         'whatsapp_sender' => '60123456789',
         'status' => 'requires_manual_review',

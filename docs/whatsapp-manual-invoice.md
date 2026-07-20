@@ -30,6 +30,10 @@ Teh o ais limau, 1, 3.5;
 
 ### Payment tokens (optional)
 
+Trailing merchant tokens map to **Payment Method aliases** configured under **Settings → Payment Methods** (plus each method’s slug).
+
+System defaults (seeded):
+
 | Token | Payment method |
 |-------|----------------|
 | *(omitted)* | Cash (default) |
@@ -41,6 +45,8 @@ Teh o ais limau, 1, 3.5;
 | `mykasih` | MYKASIH |
 | `other` | Other |
 
+Custom methods: add aliases on the Payment Method record (e.g. GrabPay → `grab`) so the same WhatsApp token works without a code change.
+
 Unknown trailing tokens are treated as part of the merchant name (not a payment method).
 
 ## What tido stores
@@ -51,7 +57,7 @@ Unknown trailing tokens are treated as part of the merchant name (not a payment 
 | `total_amount` / `subtotal` | Sum of line totals |
 | Tax / discount / rounding | `0.00` |
 | `currency` | `MYR` |
-| `payment_method` | From token, else Cash |
+| `payment_method_id` | From token/alias, else Cash |
 | `source` | `whatsapp` |
 | `image_path` | `null` (Recent Receipts shows **Manual invoice**, no file link) |
 | `date_time` | Ingest time (`now()`); editable in admin |

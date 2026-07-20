@@ -7,8 +7,10 @@ use App\Jobs\SendWhatsAppDocumentParsedJob;
 use App\Models\Invoice;
 use App\Services\LabelMatcher;
 use App\Services\OllamaService;
+use App\Services\PaymentMethodMatcher;
 use App\Services\ReceiptParseNormalizer;
 use Database\Seeders\LabelSeeder;
+use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -21,6 +23,7 @@ test('extract receipt data job uniquifies hash when soft-deleted invoice owns th
     Storage::fake('local');
     Storage::put('receipts/wa_NEW.jpg', 'fake-image-content');
     $this->seed(LabelSeeder::class);
+    $this->seed(PaymentMethodSeeder::class);
 
     $invoiceNumber = '17086';
     $dateTime = '2026-07-18 22:13:19';
@@ -90,6 +93,7 @@ test('extract receipt data job uniquifies hash when soft-deleted invoice owns th
         new OllamaService,
         new ReceiptParseNormalizer,
         new LabelMatcher,
+        new PaymentMethodMatcher,
     );
 
     $invoice->refresh();

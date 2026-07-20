@@ -8,10 +8,12 @@ use App\Models\Backup;
 use App\Models\Budget;
 use App\Models\Invoice;
 use App\Models\Label;
+use App\Models\PaymentMethod;
 use App\Models\User;
 use App\Services\AccountDangerZoneService;
 use App\Services\BackupService;
 use Database\Seeders\LabelSeeder;
+use Database\Seeders\PaymentMethodSeeder;
 use Filament\Actions\Exceptions\ActionNotResolvableException;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -23,6 +25,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->seed(LabelSeeder::class);
+    $this->seed(PaymentMethodSeeder::class);
 
     $this->user = User::factory()->create([
         'email' => 'danger-zone@example.com',
@@ -90,9 +93,16 @@ test('reset data wipes domain data keeps user system labels and backups', functi
     Budget::factory(2)->create();
 
     $systemLabelCount = Label::query()->where('is_system', true)->count();
+    $systemPaymentMethodCount = PaymentMethod::query()->where('is_system', true)->count();
 
     $userLabel = Label::factory()->create([
         'name' => 'Custom Label',
+        'is_system' => false,
+    ]);
+
+    $userPaymentMethod = PaymentMethod::factory()->create([
+        'name' => 'GrabPay',
+        'slug' => 'grabpay',
         'is_system' => false,
     ]);
 
@@ -113,6 +123,8 @@ test('reset data wipes domain data keeps user system labels and backups', functi
         ->and(Budget::query()->count())->toBe(0)
         ->and(Label::query()->whereKey($userLabel->getKey())->exists())->toBeFalse()
         ->and(Label::query()->where('is_system', true)->count())->toBe($systemLabelCount)
+        ->and(PaymentMethod::query()->whereKey($userPaymentMethod->getKey())->exists())->toBeFalse()
+        ->and(PaymentMethod::query()->where('is_system', true)->count())->toBe($systemPaymentMethodCount)
         ->and(Backup::query()->whereKey($backup->getKey())->exists())->toBeTrue()
         ->and(Backup::query()->where('type', BackupType::Auto)->exists())->toBeTrue()
         ->and(User::query()->whereKey($this->user->getKey())->exists())->toBeTrue();

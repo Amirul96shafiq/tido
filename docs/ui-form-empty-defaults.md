@@ -43,9 +43,10 @@ When adding or extending `app/Filament/Resources/{Plural}/Schemas/{Singular}Form
 | Budget | `amount` (Limit & Period) | Placeholder | `0.00` |
 | Budget | `period`, `year` | Default | `monthly`, current year |
 | Label | `name`, `slug` | Placeholder | `Label name`, `label-slug` |
+| Payment Method | `name`, `slug`, `aliases` | Placeholder | `Payment method name`, `payment-method-slug`, `Add alias (e.g. grabpay)` |
 
 ## References
 
-- Forms: `InvoiceForm`, `BudgetForm`, `LabelForm` under `app/Filament/Resources/*/Schemas/`
-- Tests: `tests/Feature/InvoiceFormReceiptImageTest.php`, `BudgetFormTest.php`, `LabelFormTest.php`
+- Forms: `InvoiceForm`, `BudgetForm`, `LabelForm`, `PaymentMethodForm` under `app/Filament/Resources/*/Schemas/`
+- Tests: `tests/Feature/InvoiceFormReceiptImageTest.php`, `BudgetFormTest.php`, `LabelFormTest.php`, `PaymentMethodFormTest.php`
 - Filament docs: field `placeholder()` vs `default()` (Boost `search-docs`)

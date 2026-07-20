@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Invoices\Tables;
 
-use App\Enums\PaymentMethod;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Models\Invoice;
 use App\Services\ReceiptReparseService;
@@ -65,8 +64,10 @@ class InvoicesTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('payment_method')
+                TextColumn::make('paymentMethod.name')
+                    ->label('Payment Method')
                     ->badge()
+                    ->icon(fn ($record): ?string => $record->paymentMethod?->icon)
                     ->placeholder('-'),
 
                 TextColumn::make('source')
@@ -116,9 +117,11 @@ class InvoicesTable
                     ])
                     ->searchable(),
 
-                SelectFilter::make('payment_method')
-                    ->options(PaymentMethod::class)
-                    ->searchable(),
+                SelectFilter::make('payment_method_id')
+                    ->label('Payment Method')
+                    ->relationship('paymentMethod', 'name')
+                    ->searchable()
+                    ->preload(),
 
                 Filter::make('date_time')
                     ->schema([

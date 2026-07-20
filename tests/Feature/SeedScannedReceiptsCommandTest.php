@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Enums\PaymentMethod;
 use App\Models\Invoice;
 use Database\Seeders\LabelSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -50,7 +49,7 @@ test('receipts seed scanned creates reviewed invoices with storage images', func
     expect($invoice->source)->toBe('manual');
     expect($invoice->image_path)->toBe('receipts/'.$first['source_filename']);
     expect($invoice->original_filename)->toBe($first['source_filename']);
-    expect($invoice->payment_method)->toBe(PaymentMethod::from($first['payment_method']));
+    expect($invoice->paymentMethod->slug)->toBe($first['payment_method']);
     expect($invoice->invoiceItems)->toHaveCount(count($first['items']));
     expect(Storage::exists($invoice->image_path))->toBeTrue();
 });

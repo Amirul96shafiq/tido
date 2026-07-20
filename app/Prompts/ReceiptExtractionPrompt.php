@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Prompts;
 
 use App\Models\Label;
+use App\Models\PaymentMethod;
 
 class ReceiptExtractionPrompt
 {
@@ -21,6 +22,40 @@ class ReceiptExtractionPrompt
             })
             ->implode("\n");
 
+        $paymentMethods = PaymentMethod::orderedForSelect();
+        $paymentMethodNames = $paymentMethods
+            ->pluck('name')
+            ->implode(', ');
+        $paymentMethodLines = $paymentMethods
+            ->map(function (PaymentMethod $method): string {
+                $parts = [];
+
+                $aliases = collect($method->aliases ?? [])
+                    ->filter(fn (mixed $alias): bool => is_string($alias) && $alias !== '')
+                    ->values();
+
+                if ($aliases->isNotEmpty()) {
+                    $parts[] = 'aliases: '.$aliases->implode(', ');
+                }
+
+                $notesHint = self::plainTextHint($method->notes);
+                if ($notesHint !== '') {
+                    $parts[] = $notesHint;
+                }
+
+                $hint = $parts !== []
+                    ? ' — '.implode('; ', $parts)
+                    : '';
+
+                return '- '.$method->name.$hint;
+            })
+            ->implode("\n");
+
+        if ($paymentMethodLines === '') {
+            $paymentMethodLines = '- (none configured)';
+            $paymentMethodNames = 'null';
+        }
+
         return <<<PROMPT
 Please extract financial information from this receipt image.
 You must respond with a raw JSON object only. Do not wrap it in markdown formatting (like ```json).
@@ -36,7 +71,7 @@ Malaysia receipt rules (follow strictly):
 - For weight or unit-priced lines, compute line_total as quantity × unit_price (e.g. 5 × 0.220 = 1.10).
 - All money fields must be JSON numbers (or 0). Never use strings like "None", "null", or blank. Never nest money as objects.
 - Prefer Grand Total / Total Paid / Amount Paid for total_amount over guessing from partial lines.
-- payment_method must be one of: mastercard, visa, mykasih, cash, pay_with_qr, touchngo, other, or null. Map DEBIT / CREDIT / debit card / credit card to other.
+- payment_method must be an exact name from the available payment methods list below, or null. Prefer aliases when the receipt wording matches them.
 
 Line item label rules (follow strictly):
 - Every item in items[] MUST include a label.
@@ -47,6 +82,9 @@ Line item label rules (follow strictly):
 
 Available labels (use exact name in each item's "label" field):
 {$labelLines}
+
+Available payment methods (use exact name in "payment_method"):
+{$paymentMethodLines}
 
 The output JSON structure MUST match this exact schema:
 {
@@ -59,7 +97,7 @@ The output JSON structure MUST match this exact schema:
   "rounding_amount": "Number - rounding adjustment, may be negative (0 if none)",
   "total_amount": "Number - final total paid amount",
   "currency": "String - default is 'MYR'",
-  "payment_method": "String or null - one of: mastercard, visa, mykasih, cash, pay_with_qr, touchngo, other",
+  "payment_method": "String or null - exact payment method name from the list above (e.g. {$paymentMethodNames})",
   "items": [
     {
       "description": "String - line item title",

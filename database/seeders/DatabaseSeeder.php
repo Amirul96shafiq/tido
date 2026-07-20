@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             LabelSeeder::class,
+            PaymentMethodSeeder::class,
         ]);
 
         User::factory()->create([

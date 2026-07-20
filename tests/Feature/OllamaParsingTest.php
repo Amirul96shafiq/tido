@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Enums\PaymentMethod;
 use App\Jobs\ExtractReceiptDataJob;
 use App\Models\Invoice;
 use App\Services\LabelMatcher;
 use App\Services\OllamaService;
+use App\Services\PaymentMethodMatcher;
 use App\Services\ReceiptParseNormalizer;
 use Database\Seeders\LabelSeeder;
+use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -80,9 +81,10 @@ test('extract receipt data job processes mock response and updates status', func
     ]);
 
     $this->seed(LabelSeeder::class);
+    $this->seed(PaymentMethodSeeder::class);
 
     $job = new ExtractReceiptDataJob($invoice->id);
-    $job->handle(new OllamaService, new ReceiptParseNormalizer, new LabelMatcher);
+    $job->handle(new OllamaService, new ReceiptParseNormalizer, new LabelMatcher, new PaymentMethodMatcher);
 
     $invoice->refresh();
 
@@ -92,7 +94,7 @@ test('extract receipt data job processes mock response and updates status', func
     expect($invoice->total_amount)->toBe('20.69');
     expect($invoice->discount_total)->toBe('0.50');
     expect($invoice->rounding_amount)->toBe('-0.01');
-    expect($invoice->payment_method)->toBe(PaymentMethod::Mastercard);
+    expect($invoice->paymentMethod->slug)->toBe('mastercard');
     expect($invoice->invoiceItems)->toHaveCount(1);
     expect($invoice->invoiceItems->first()->description)->toBe('2-pc Chicken Meal');
     expect($invoice->invoiceItems->first()->label->name)->toBe('Food & Dining');

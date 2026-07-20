@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Enums\PaymentMethod;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Widgets\RecentReceipts;
 use App\Helpers\FilenameDisplay;
 use App\Models\Invoice;
+use App\Models\PaymentMethod;
 use App\Models\User;
+use Database\Seeders\PaymentMethodSeeder;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -16,6 +17,8 @@ use Livewire\Livewire;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    $this->seed(PaymentMethodSeeder::class);
+
     config([
         'services.evolution.personal_number' => '60123456789',
     ]);
@@ -28,7 +31,7 @@ test('recent receipts widget shows upload table columns', function () {
         'original_filename' => 'dashboard_receipt.jpg',
         'image_path' => 'receipts/dashboard_receipt.jpg',
         'merchant_name' => 'Widget Merchant',
-        'payment_method' => PaymentMethod::Cash,
+        'payment_method_id' => PaymentMethod::findBySlug('cash')->id,
         'source' => 'manual',
         'status' => 'reviewed',
         'date_time' => now(),
@@ -43,7 +46,7 @@ test('recent receipts widget shows upload table columns', function () {
         ->assertSee('Widget Merchant')
         ->assertSee('Cash')
         ->assertCanRenderTableColumn('original_filename')
-        ->assertCanRenderTableColumn('payment_method')
+        ->assertCanRenderTableColumn('paymentMethod.name')
         ->assertCanRenderTableColumn('source')
         ->assertCanRenderTableColumn('created_at');
 });
@@ -75,7 +78,7 @@ test('recent receipts widget shows Manual invoice plain text without file link',
         'original_filename' => null,
         'image_path' => null,
         'source' => 'whatsapp',
-        'payment_method' => PaymentMethod::Cash,
+        'payment_method_id' => PaymentMethod::findBySlug('cash')->id,
         'status' => 'reviewed',
         'date_time' => now(),
         'total_amount' => 26.00,

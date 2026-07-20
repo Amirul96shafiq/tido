@@ -45,7 +45,7 @@ Sources: `manual` | `whatsapp` | `google_drive`
 - Validate auth/payload first; heavy work via queue/jobs
 - Images → store → pending Invoice; text keywords (`spend`/`total`) → monthly total reply
 - Text manual invoice format → pending Invoice (no image) → label job → `requires_manual_review`
-- Optional merchant payment token: `qr` / `tngo` / `card` (Mastercard) / `cash` / … (default cash)
+- Optional merchant payment token: aliases from Settings → Payment Methods (defaults: `qr` / `tngo` / `card` / `cash` / …)
 
 ## Google Drive
 
