@@ -44,13 +44,37 @@ class PaymentMethodsTable
 
                 TextColumn::make('aliases')
                     ->label('Aliases')
-                    ->formatStateUsing(function (mixed $state): string {
-                        if (! is_array($state) || $state === []) {
+                    ->state(function ($record): string {
+                        $aliases = is_array($record?->aliases) ? $record->aliases : [];
+                        $aliases = array_values(array_filter(
+                            $aliases,
+                            fn (mixed $alias): bool => is_string($alias) && $alias !== '',
+                        ));
+
+                        if ($aliases === []) {
                             return '—';
                         }
 
-                        return implode(', ', array_slice($state, 0, 4))
-                            .(count($state) > 4 ? '…' : '');
+                        $formatted = $aliases[0];
+                        $remaining = count($aliases) - 1;
+                        if ($remaining > 0) {
+                            $formatted .= ' + '.$remaining.' more';
+                        }
+
+                        return $formatted;
+                    })
+                    ->tooltip(function ($record): ?string {
+                        $aliases = is_array($record?->aliases) ? $record->aliases : [];
+                        $aliases = array_values(array_filter(
+                            $aliases,
+                            fn (mixed $alias): bool => is_string($alias) && $alias !== '',
+                        ));
+
+                        if (count($aliases) <= 1) {
+                            return null;
+                        }
+
+                        return implode(', ', $aliases);
                     })
                     ->toggleable(),
 

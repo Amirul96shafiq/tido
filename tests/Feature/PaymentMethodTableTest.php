@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Invoices\Pages\ListInvoices;
+use App\Filament\Resources\PaymentMethods\Pages\ListPaymentMethods;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\User;
@@ -20,6 +21,14 @@ beforeEach(function () {
 
     $this->seed(PaymentMethodSeeder::class);
     $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
+});
+
+test('payment methods table shows aliases as comma separated text', function () {
+    Livewire::test(ListPaymentMethods::class)
+        ->assertSuccessful()
+        ->assertSee('master + 3 more')
+        ->assertSee('qr + 4 more')
+        ->assertDontSee('—, —, —, —');
 });
 
 test('invoice table shows payment method labels for qr and touch n go', function () {
