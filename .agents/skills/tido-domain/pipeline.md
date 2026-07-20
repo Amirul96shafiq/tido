@@ -44,6 +44,7 @@ Unique on `receipt_hash`. Factories should set a unique hash.
 - Self-chat allowed when `remoteJid` matches allowlist (including `fromMe: true`)
 - Image: fetch media → `receipts/` storage → pending Invoice → ack text
 - Text: spend/total keywords → monthly sum via Evolution `sendText`
+- Text manual invoice format (`merchant;` + `item, qty, line_total;` blocks, multi-block OK) → pending Invoice (no image, cash/MYR) → Manual invoice received ack → `ParseManualWhatsAppInvoiceJob` (Ollama labels only) → `requires_manual_review` + Manual invoice parsed reply
 
 ## Google Drive sync
 

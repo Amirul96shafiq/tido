@@ -6,9 +6,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\MoneyDisplay;
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessManualWhatsAppInvoiceJob;
 use App\Jobs\ProcessWhatsAppMediaJob;
 use App\Models\Invoice;
 use App\Services\WhatsAppNotificationService;
+use App\Support\ManualWhatsAppInvoiceParser;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppMessage;
 use Illuminate\Http\JsonResponse;
@@ -98,7 +100,15 @@ class WhatsAppWebhookController extends Controller
 
     protected function handleTextMessage(string $text, string $senderNumber, WhatsAppNotificationService $waService): JsonResponse
     {
-        $text = strtolower(trim($text));
+        $originalText = trim($text);
+
+        if (ManualWhatsAppInvoiceParser::looksLike($originalText)) {
+            ProcessManualWhatsAppInvoiceJob::dispatch($senderNumber, $originalText);
+
+            return response()->json(['status' => 'accepted']);
+        }
+
+        $text = strtolower($originalText);
 
         if (str_contains($text, 'spend') || str_contains($text, 'total')) {
             $now = now();
@@ -126,7 +136,7 @@ class WhatsAppWebhookController extends Controller
         $help = WhatsAppMessage::compose(
             '🤖',
             'Help',
-            "• Send a *document* to upload and parse it.\n• Type *spend* or *total* to view this month's expenses.",
+            "• Send a *document* to upload and parse it.\n• Send a *manual invoice* text (merchant; then item, qty, total; lines).\n• Type *spend* or *total* to view this month's expenses.",
         );
 
         $waService->sendMessage($senderNumber, $help);

@@ -87,4 +87,46 @@ final class WhatsAppMessage
 
         return self::compose('🎉', 'Document parsed', $body);
     }
+
+    public static function manualInvoiceReceived(int $count): string
+    {
+        $count = max(1, $count);
+
+        return self::compose(
+            '📥',
+            'Manual invoice received',
+            sprintf('A total of *%d* manual invoice(s) saved and queued for AI parsing.', $count),
+        );
+    }
+
+    /**
+     * @param  array{merchant_name?: string|null, total_amount?: float|int|string|null, payment_method?: string|null}  $details
+     */
+    public static function manualInvoiceParsed(string $editUrl, array $details = []): string
+    {
+        $editUrl = trim($editUrl);
+        $merchant = trim((string) ($details['merchant_name'] ?? ''));
+        $paymentMethod = trim((string) ($details['payment_method'] ?? ''));
+
+        if ($merchant === '') {
+            $merchant = 'Unknown merchant';
+        }
+
+        if ($paymentMethod === '') {
+            $paymentMethod = 'Unknown';
+        }
+
+        $totalAmount = MoneyDisplay::withPrefix($details['total_amount'] ?? 0);
+
+        $body = implode("\n", [
+            "Merchant: *{$merchant}*",
+            "Total Amount: *{$totalAmount}*",
+            "Payment Method: *{$paymentMethod}*",
+            '',
+            'Go to *invoice edit*',
+            $editUrl,
+        ]);
+
+        return self::compose('🎉', 'Manual invoice parsed', $body);
+    }
 }

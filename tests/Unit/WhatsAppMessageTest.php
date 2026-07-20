@@ -65,3 +65,26 @@ test('document parsed includes merchant total payment method and invoice edit ur
         "🎉 *Document parsed*\n\nMerchant: *7-Eleven*\nTotal Amount: *RM 12.50*\nPayment Method: *Cash*\n\nGo to *invoice edit*\nhttps://tido.test/admin/invoices/1/edit\n\n— Powered by *tido*",
     );
 });
+
+test('manual invoice received includes invoice count', function () {
+    $message = WhatsAppMessage::manualInvoiceReceived(2);
+
+    expect($message)->toBe(
+        "📥 *Manual invoice received*\n\nA total of *2* manual invoice(s) saved and queued for AI parsing.\n\n— Powered by *tido*",
+    );
+});
+
+test('manual invoice parsed includes merchant total payment method and invoice edit url', function () {
+    $message = WhatsAppMessage::manualInvoiceParsed(
+        'https://tido.test/admin/invoices/191/edit',
+        [
+            'merchant_name' => 'myNEWS Bayu Residensi',
+            'total_amount' => '4.20',
+            'payment_method' => 'Cash',
+        ],
+    );
+
+    expect($message)->toBe(
+        "🎉 *Manual invoice parsed*\n\nMerchant: *myNEWS Bayu Residensi*\nTotal Amount: *RM 4.20*\nPayment Method: *Cash*\n\nGo to *invoice edit*\nhttps://tido.test/admin/invoices/191/edit\n\n— Powered by *tido*",
+    );
+});
