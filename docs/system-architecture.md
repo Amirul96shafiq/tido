@@ -66,7 +66,9 @@ The interface utilizes FilamentPHP's native Tailwind CSS theming engine to achie
 
 ### 4.1. Headless Ingestion & Webhooks
 * **Evolution API Integration:** POST webhook (`/api/webhooks/whatsapp`) to Laravel, bypassing UI.
-* **Google Drive Push Notifications:** HTTP POST webhook from Google Cloud Pub/Sub enqueues the extraction job.
+* **WhatsApp image receipts:** Media download → pending `Invoice` → batched document ack → `ExtractReceiptDataJob` (Ollama vision).
+* **WhatsApp manual text invoices:** Fixed `merchant[, payment];` + `item, qty, line_total;` format → pending `Invoice` (no image) → label classification → `requires_manual_review`. See `docs/whatsapp-manual-invoice.md`.
+* **Google Drive:** Scheduled folder poll (`SyncGoogleDriveJob` every 15m) copies images locally and creates pending invoices (Pub/Sub push is not the primary local path).
 
 ### 4.2. 100% Offline AI Extraction
 * Dispatches a queued job (`ExtractReceiptDataJob`) to the local Ollama HTTP API (`OLLAMA_HOST`, default `http://127.0.0.1:11434`) at `/api/generate`. Ollama runs as a native host process (see `docs/ollama-setup.md`).

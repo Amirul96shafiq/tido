@@ -46,7 +46,9 @@ Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`
 |---------|-------|
 | OCR HTTP | `App\Services\OllamaService` |
 | Prompt JSON schema | `App\Prompts\ReceiptExtractionPrompt` |
-| Parse job | `App\Jobs\ExtractReceiptDataJob` |
+| Manual text labels | `App\Prompts\ManualInvoiceLabelPrompt` + `ParseManualWhatsAppInvoiceJob` |
+| Manual text parser | `App\Support\ManualWhatsAppInvoiceParser` |
+| Parse job (vision) | `App\Jobs\ExtractReceiptDataJob` |
 | Hash + dispatch + alerts | `App\Observers\InvoiceObserver` |
 | WhatsApp in | `App\Http\Controllers\Api\WhatsAppWebhookController` |
 | WhatsApp out | `App\Services\WhatsAppNotificationService` |
@@ -69,7 +71,7 @@ Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`
 
 - `config/services.php` → `ollama.*`, `evolution.*`, `PERSONAL_WHATSAPP_NUMBER`, `PERSONAL_WHATSAPP_EXTRA_NUMBERS`
 - `config/filesystems.php` → `google` disk
-- Setup guides: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/google-drive-setup.md`
+- Setup guides: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-manual-invoice.md`, `docs/google-drive-setup.md`
 
 ## Hard rules
 

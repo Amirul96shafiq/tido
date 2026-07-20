@@ -5,7 +5,7 @@ alwaysApply: true
 
 # tido — Project Overview
 
-Personal MYR expense & receipt tracker. Ingest receipts (WhatsApp, Google Drive, Filament upload), parse with local Ollama vision, categorize line items, detect duplicates, show budgets/analytics.
+Personal MYR expense & receipt tracker. Ingest receipts (WhatsApp image or text manual invoice, Google Drive, Filament upload), parse with local Ollama, categorize line items, detect duplicates, show budgets/analytics.
 
 ## Naming
 
@@ -35,6 +35,7 @@ No multi-tenancy, no roles/policies package. Any authenticated user can access `
 9. Notes rich editor (`notes` fields) — `docs/ui-notes-rich-editor.md`
 10. Resource form empty placeholders / defaults — `docs/ui-form-empty-defaults.md`
 11. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`
+12. WhatsApp text manual invoices — `docs/whatsapp-manual-invoice.md`
 
 ## Do not
 
