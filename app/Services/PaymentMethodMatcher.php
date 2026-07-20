@@ -15,9 +15,8 @@ class PaymentMethodMatcher
 
     public function matchId(mixed $value): ?int
     {
-        $method = $this->match($value);
-
-        return $method?->id;
+        return $this->match($value)?->id
+            ?? $this->defaultOther()?->id;
     }
 
     public function match(mixed $value): ?PaymentMethod
@@ -32,9 +31,17 @@ class PaymentMethodMatcher
             return null;
         }
 
-        foreach ($this->methods() as $method) {
-            if ($method->slug === $normalized || $method->slug === Str::slug($value)) {
-                return $method;
+        $candidates = array_values(array_unique(array_filter([
+            $normalized,
+            $this->normalize(Str::slug($value)),
+            $this->baseToken($normalized),
+        ])));
+
+        foreach ($candidates as $candidate) {
+            foreach ($this->methods() as $method) {
+                if ($method->slug === $candidate) {
+                    return $method;
+                }
             }
         }
 
@@ -44,10 +51,12 @@ class PaymentMethodMatcher
             }
         }
 
-        foreach ($this->methods() as $method) {
-            foreach ($method->aliases ?? [] as $alias) {
-                if ($this->normalize((string) $alias) === $normalized) {
-                    return $method;
+        foreach ($candidates as $candidate) {
+            foreach ($this->methods() as $method) {
+                foreach ($method->aliases ?? [] as $alias) {
+                    if ($this->normalize((string) $alias) === $candidate) {
+                        return $method;
+                    }
                 }
             }
         }
@@ -85,11 +94,28 @@ class PaymentMethodMatcher
             ?? $this->methods()->firstWhere('slug', 'cash');
     }
 
+    public function defaultOther(): ?PaymentMethod
+    {
+        return PaymentMethod::findBySlug('other')
+            ?? $this->methods()->firstWhere('slug', 'other');
+    }
+
     private function normalize(string $value): string
     {
         $normalized = strtolower(trim($value));
 
         return str_replace([' ', '-', "'"], ['_', '_', ''], $normalized);
+    }
+
+    /**
+     * Strip trailing parenthetical / slash codes (e.g. "MyDebit (009659/587840)" → "mydebit").
+     */
+    private function baseToken(string $normalized): string
+    {
+        $withoutParen = preg_replace('/_?\([^)]*\)\z/u', '', $normalized) ?? $normalized;
+        $withoutSlashCodes = preg_replace('/_+\d.*\z/u', '', $withoutParen) ?? $withoutParen;
+
+        return rtrim($withoutSlashCodes, '_');
     }
 
     /** @return Collection<int, PaymentMethod> */

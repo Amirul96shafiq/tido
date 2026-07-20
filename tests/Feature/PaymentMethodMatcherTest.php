@@ -40,13 +40,31 @@ test('matcher resolves common payment method aliases', function (string $input, 
     ['other', 'other'],
 ]);
 
-test('matcher returns null for blank or unknown values', function () {
+test('matcher returns null from match for blank or unknown values', function () {
     $matcher = app(PaymentMethodMatcher::class);
 
     expect($matcher->match(null))->toBeNull()
         ->and($matcher->match(''))->toBeNull()
-        ->and($matcher->match('bitcoin'))->toBeNull()
-        ->and($matcher->matchId('bitcoin'))->toBeNull();
+        ->and($matcher->match('bitcoin'))->toBeNull();
+});
+
+test('matchId falls back to other for blank or unknown values', function () {
+    $matcher = app(PaymentMethodMatcher::class);
+    $otherId = PaymentMethod::findBySlug('other')?->id;
+
+    expect($otherId)->not->toBeNull()
+        ->and($matcher->matchId(null))->toBe($otherId)
+        ->and($matcher->matchId(''))->toBe($otherId)
+        ->and($matcher->matchId('bitcoin'))->toBe($otherId)
+        ->and($matcher->matchId('Card Payment'))->toBe($otherId)
+        ->and($matcher->matchId('MyDebit (009659/587840)'))->toBe($otherId);
+});
+
+test('default other resolves seeded other method', function () {
+    $other = app(PaymentMethodMatcher::class)->defaultOther();
+
+    expect($other)->not->toBeNull()
+        ->and($other->slug)->toBe('other');
 });
 
 test('matcher resolves custom payment methods by name and aliases', function () {

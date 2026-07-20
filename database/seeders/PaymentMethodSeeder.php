@@ -57,7 +57,7 @@ class PaymentMethodSeeder extends Seeder
             [
                 'slug' => 'other',
                 'name' => 'Other',
-                'aliases' => ['debit', 'credit', 'debit_card', 'credit_card'],
+                'aliases' => ['debit', 'credit', 'debit_card', 'credit_card', 'mydebit', 'my_debit', 'card_payment'],
                 'icon' => 'heroicon-o-ellipsis-horizontal',
                 'color' => '#9CA3AF',
             ],
