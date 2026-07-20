@@ -61,7 +61,7 @@ class ProcessManualWhatsAppInvoiceJob implements ShouldQueue
                 'rounding_amount' => 0.00,
                 'total_amount' => $totalAmount,
                 'currency' => 'MYR',
-                'payment_method' => $block['payment_method'],
+                'payment_method_id' => $block['payment_method']->id,
                 'source' => 'whatsapp',
                 'whatsapp_sender' => $this->senderNumber,
                 'status' => 'pending',
@@ -70,7 +70,7 @@ class ProcessManualWhatsAppInvoiceJob implements ShouldQueue
                     'manual_whatsapp_text' => $this->text,
                     'parsed_block' => [
                         'merchant_name' => $block['merchant_name'],
-                        'payment_method' => $block['payment_method']->value,
+                        'payment_method' => $block['payment_method']->slug,
                         'items' => $block['items'],
                     ],
                 ],

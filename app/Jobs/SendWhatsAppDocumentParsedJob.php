@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Enums\PaymentMethod;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Models\Invoice;
 use App\Services\WhatsAppNotificationService;
@@ -58,9 +57,7 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
             fn (): string => InvoiceResource::getUrl('edit', ['record' => $invoice]),
         );
 
-        $paymentMethod = $invoice->payment_method instanceof PaymentMethod
-            ? $invoice->payment_method->label()
-            : null;
+        $paymentMethod = $invoice->paymentMethod?->name;
 
         $message = WhatsAppMessage::documentParsed($editUrl, [
             'merchant_name' => $invoice->merchant_name,

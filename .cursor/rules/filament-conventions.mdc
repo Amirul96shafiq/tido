@@ -22,7 +22,7 @@ Use Filament `Schema` for forms (v5), not legacy Form API. Prefer native Form/Ta
 
 ## Navigation
 
-- Groups: **Finances** (Invoices, Budgets), **Settings** (Labels, WhatsApp Connection, Backups)
+- Groups: **Finances** (Invoices, Budgets), **Settings** (Labels, Payment Methods, WhatsApp Connection, Backups)
 - Theme: amber/zinc accents + Slate dark surfaces (see `docs/ui-dark-theme.md`), Outfit font, SPA mode, collapsible sidebar, database notifications
 - Breadcrumbs: disabled panel-wide via `->breadcrumbs(false)` in `AdminPanelProvider` — do not re-enable per resource
 - Custom pages: `Dashboard`, `ReceiptUploadPage`, `Auth/EditProfile`, `WhatsAppConnectionPage`

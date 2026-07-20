@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Enums\PaymentMethod;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Prompts\ReceiptExtractionPrompt;
 use App\Services\LabelMatcher;
 use App\Services\OllamaService;
+use App\Services\PaymentMethodMatcher;
 use App\Services\ReceiptParseNormalizer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -39,6 +39,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         OllamaService $ollama,
         ReceiptParseNormalizer $normalizer,
         LabelMatcher $labelMatcher,
+        PaymentMethodMatcher $paymentMethodMatcher,
     ): void {
         $invoice = Invoice::find($this->invoiceId);
 
@@ -87,7 +88,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         $invoice->rounding_amount = $normalized['rounding_amount'];
         $invoice->total_amount = $normalized['total_amount'];
         $invoice->currency = $normalized['currency'];
-        $invoice->payment_method = $this->resolvePaymentMethod($normalized['payment_method']);
+        $invoice->payment_method_id = $paymentMethodMatcher->matchId($normalized['payment_method']);
         $invoice->raw_ai_response = $parsed;
 
         $needsManualReview = ! $dateParsed
@@ -141,11 +142,6 @@ class ExtractReceiptDataJob implements ShouldQueue
         }
 
         SendWhatsAppDocumentParsedJob::dispatch($invoice->id);
-    }
-
-    protected function resolvePaymentMethod(mixed $value): ?PaymentMethod
-    {
-        return PaymentMethod::tryFromAi($value);
     }
 
     protected function appendDateReviewNote(?string $existingNotes, bool $dateParsed, bool $dateSane): ?string

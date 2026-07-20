@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\PaymentMethod;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
@@ -30,7 +30,7 @@ class Invoice extends Model
         'rounding_amount',
         'total_amount',
         'currency',
-        'payment_method',
+        'payment_method_id',
         'source',
         'whatsapp_sender',
         'status',
@@ -48,9 +48,13 @@ class Invoice extends Model
         'discount_total' => 'decimal:2',
         'rounding_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
-        'payment_method' => PaymentMethod::class,
         'raw_ai_response' => 'array',
     ];
+
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(PaymentMethod::class);
+    }
 
     public function invoiceItems(): HasMany
     {

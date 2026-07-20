@@ -7,8 +7,10 @@ use App\Models\Invoice;
 use App\Models\Label;
 use App\Services\LabelMatcher;
 use App\Services\OllamaService;
+use App\Services\PaymentMethodMatcher;
 use App\Services\ReceiptParseNormalizer;
 use Database\Seeders\LabelSeeder;
+use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -22,6 +24,7 @@ test('extract receipt data job maps custom user label from ai response', functio
     Storage::put('receipts/mock.jpg', 'fake-image-content');
 
     $this->seed(LabelSeeder::class);
+    $this->seed(PaymentMethodSeeder::class);
 
     Label::factory()->create([
         'name' => 'Pet Supplies',
@@ -69,7 +72,7 @@ test('extract receipt data job maps custom user label from ai response', functio
     ]);
 
     $job = new ExtractReceiptDataJob($invoice->id);
-    $job->handle(new OllamaService, new ReceiptParseNormalizer, new LabelMatcher);
+    $job->handle(new OllamaService, new ReceiptParseNormalizer, new LabelMatcher, new PaymentMethodMatcher);
 
     $invoice->refresh();
 

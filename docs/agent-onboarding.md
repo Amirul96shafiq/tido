@@ -45,14 +45,14 @@ Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage)
 
 ```
 app/
-  Models/           Invoice, InvoiceItem, Label, Budget, User, ContentDraft, Backup
+  Models/           Invoice, InvoiceItem, Label, PaymentMethod, Budget, User, ContentDraft, Backup
   Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support, Livewire
-  Services/         Ollama, GoogleDrive, WhatsApp, BudgetAlert, SpendingForecast, Backup*, AccountDangerZone
+  Services/         Ollama, GoogleDrive, WhatsApp, BudgetAlert, SpendingForecast, Backup*, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
   Jobs/             ExtractReceiptDataJob, ProcessManualWhatsAppInvoiceJob, ParseManualWhatsAppInvoiceJob, SyncGoogleDriveJob, …
   Observers/        InvoiceObserver
   Prompts/          ReceiptExtractionPrompt, ManualInvoiceLabelPrompt
   Support/          ManualWhatsAppInvoiceParser, WhatsAppMessage, …
-  Enums/            LabelType, PaymentMethod, UserLocale, UserDateFormat
+  Enums/            LabelType, UserLocale, UserDateFormat
   Http/Controllers/ Api webhooks, BackupDownload, GuestRestoreBackup
 routes/
   web.php           / → /admin, changelog JSON, backup download / guest restore
@@ -70,6 +70,7 @@ docs/               architecture + integration setup + this file
 | Concept | Truth in code |
 |---------|----------------|
 | Category | **`Label`** model / `labels` table (UI: **Label** / **Labels**) |
+| Payment method | **`PaymentMethod`** model / `payment_methods` table (Settings CRUD; AI/WhatsApp via aliases) |
 | Money | `decimal(12,2)`, cast `decimal:2`, currency `MYR`, UI `RM` |
 | Duplicate | `receipt_hash` SHA-256 of number + datetime + total |
 | Statuses | `pending`, `parsed`, `reviewed`, `requires_manual_review`, `failed` |
@@ -102,7 +103,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 5. Filter and Column Manager triggers also get Tippy tooltips globally via `filtersTriggerAction` / `columnManagerTriggerAction` in `AppServiceProvider`
 6. List-page “New …” CTAs use a plus Heroicon panel-wide (`AppServiceProvider` → `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`); new List pages only need `CreateAction::make()`
 7. Edit pages: use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the title ends with the singular model label (see `.cursor/rules/filament-conventions.mdc` — Edit page title)
-8. Nav groups: Finances (Invoices, Budgets) / Settings (Labels, WhatsApp Connection, Backups)
+8. Nav groups: Finances (Invoices, Budgets) / Settings (Labels, Payment Methods, WhatsApp Connection, Backups)
 9. Breadcrumbs are disabled panel-wide (`AdminPanelProvider` → `->breadcrumbs(false)`); do not re-enable on resources
 10. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
 11. Resource table `created_at` columns use `->since()->dateTimeTooltip()` (relative time + full datetime on hover), matching Receipt Upload “Uploaded At”

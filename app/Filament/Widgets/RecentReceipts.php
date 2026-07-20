@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
-use App\Enums\PaymentMethod;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
@@ -76,8 +75,10 @@ class RecentReceipts extends BaseWidget
                     ->myr()
                     ->sortable(),
 
-                TextColumn::make('payment_method')
+                TextColumn::make('paymentMethod.name')
+                    ->label('Payment Method')
                     ->badge()
+                    ->icon(fn (Invoice $record): ?string => $record->paymentMethod?->icon)
                     ->placeholder('-'),
 
                 TextColumn::make('source')
@@ -134,9 +135,11 @@ class RecentReceipts extends BaseWidget
                     ])
                     ->searchable(),
 
-                SelectFilter::make('payment_method')
-                    ->options(PaymentMethod::class)
-                    ->searchable(),
+                SelectFilter::make('payment_method_id')
+                    ->label('Payment Method')
+                    ->relationship('paymentMethod', 'name')
+                    ->searchable()
+                    ->preload(),
             ])
             ->emptyStateHeading('No receipts')
             ->emptyStateDescription('No receipts recorded for this month.')

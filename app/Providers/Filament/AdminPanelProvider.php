@@ -16,6 +16,8 @@ use App\Filament\Resources\Invoices\Pages\CreateInvoice;
 use App\Filament\Resources\Invoices\Pages\EditInvoice;
 use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Filament\Resources\Labels\Pages\EditLabel;
+use App\Filament\Resources\PaymentMethods\Pages\CreatePaymentMethod;
+use App\Filament\Resources\PaymentMethods\Pages\EditPaymentMethod;
 use App\Helpers\GitHelper;
 use App\Http\Middleware\SetUserPreferences;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
@@ -286,6 +288,8 @@ class AdminPanelProvider extends PanelProvider
                     EditInvoice::class,
                     CreateLabel::class,
                     EditLabel::class,
+                    CreatePaymentMethod::class,
+                    EditPaymentMethod::class,
                     CreateBudget::class,
                     EditBudget::class,
                 ],

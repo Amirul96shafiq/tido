@@ -6,11 +6,13 @@ use App\Filament\Resources\Backups\BackupResource;
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Labels\LabelResource;
+use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Models\Backup;
 use App\Models\Budget;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Label;
+use App\Models\PaymentMethod;
 use App\Models\User;
 use CharrafiMed\GlobalSearchModal\Livewire\GlobalSearchModal;
 use Filament\Facades\Filament;
@@ -56,6 +58,7 @@ test('only configured resources are globally searchable', function () {
         BudgetResource::class,
         InvoiceResource::class,
         LabelResource::class,
+        PaymentMethodResource::class,
     ]);
 });
 
@@ -118,6 +121,18 @@ test('label global search finds slug', function () {
 
     expect($results)->toHaveCount(1)
         ->and($results->first()->title)->toBe('Test Label');
+});
+
+test('payment method global search finds slug', function () {
+    PaymentMethod::factory()->create([
+        'name' => 'GrabPay Unique',
+        'slug' => 'grabpay-unique-xyz',
+    ]);
+
+    $results = PaymentMethodResource::getGlobalSearchResults('grabpay-unique-xyz');
+
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->title)->toBe('GrabPay Unique');
 });
 
 test('budget global search finds label name', function () {

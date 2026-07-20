@@ -5,12 +5,14 @@ declare(strict_types=1);
 use App\Models\Label;
 use App\Prompts\ReceiptExtractionPrompt;
 use Database\Seeders\LabelSeeder;
+use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
 test('receipt extraction prompt includes all finance labels with descriptions', function () {
     $this->seed(LabelSeeder::class);
+    $this->seed(PaymentMethodSeeder::class);
 
     $prompt = ReceiptExtractionPrompt::build();
 
@@ -23,6 +25,20 @@ test('receipt extraction prompt includes all finance labels with descriptions', 
         ->toContain('Gardenia Original Classic Bread')
         ->toContain('Packaged bread loaves')
         ->not->toContain('suggested_category');
+});
+
+test('receipt extraction prompt includes available payment methods with aliases', function () {
+    $this->seed(LabelSeeder::class);
+    $this->seed(PaymentMethodSeeder::class);
+
+    $prompt = ReceiptExtractionPrompt::build();
+
+    expect($prompt)
+        ->toContain('Available payment methods')
+        ->toContain('- Cash')
+        ->toContain('- Pay with QR (aliases: qr, qr_pay, qr_payment, duitnow_qr, duitnow)')
+        ->toContain('- Visa')
+        ->toContain('- Mastercard (aliases: master, master_card, card, mc)');
 });
 
 test('receipt extraction prompt includes user created finance labels', function () {

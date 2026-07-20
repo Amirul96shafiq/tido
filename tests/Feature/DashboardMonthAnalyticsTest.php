@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Enums\PaymentMethod;
 use App\Filament\Support\DashboardMonthAnalytics;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Models\Budget;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Label;
+use App\Models\PaymentMethod;
+use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -880,6 +881,11 @@ test('top merchants defaults to three results', function () {
 test('spent by payment method groups spend, excludes pending, and computes mom', function () {
     Invoice::unsetEventDispatcher();
 
+    $this->seed(PaymentMethodSeeder::class);
+
+    $cashMethod = PaymentMethod::findBySlug('cash');
+    $visaMethod = PaymentMethod::findBySlug('visa');
+
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
 
@@ -892,7 +898,7 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
         'total_tax' => 0.00,
         'total_amount' => 80.00,
         'currency' => 'MYR',
-        'payment_method' => PaymentMethod::Cash,
+        'payment_method_id' => $cashMethod->id,
         'source' => 'manual',
         'status' => 'reviewed',
     ]);
@@ -906,7 +912,7 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
         'total_tax' => 0.00,
         'total_amount' => 40.00,
         'currency' => 'MYR',
-        'payment_method' => PaymentMethod::Visa,
+        'payment_method_id' => $visaMethod->id,
         'source' => 'manual',
         'status' => 'reviewed',
     ]);
@@ -920,7 +926,7 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
         'total_tax' => 0.00,
         'total_amount' => 99.00,
         'currency' => 'MYR',
-        'payment_method' => PaymentMethod::Cash,
+        'payment_method_id' => $cashMethod->id,
         'source' => 'manual',
         'status' => 'pending',
     ]);
@@ -934,7 +940,7 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
         'total_tax' => 0.00,
         'total_amount' => 20.00,
         'currency' => 'MYR',
-        'payment_method' => null,
+        'payment_method_id' => null,
         'source' => 'manual',
         'status' => 'reviewed',
     ]);
@@ -948,7 +954,7 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
         'total_tax' => 0.00,
         'total_amount' => 30.00,
         'currency' => 'MYR',
-        'payment_method' => PaymentMethod::Cash,
+        'payment_method_id' => $cashMethod->id,
         'source' => 'manual',
         'status' => 'reviewed',
     ]);
@@ -959,8 +965,8 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
 
     expect($methods)->toHaveCount(3);
 
-    $cash = $methods->firstWhere('key', PaymentMethod::Cash->value);
-    $visa = $methods->firstWhere('key', PaymentMethod::Visa->value);
+    $cash = $methods->firstWhere('key', (string) $cashMethod->id);
+    $visa = $methods->firstWhere('key', (string) $visaMethod->id);
     $unknown = $methods->firstWhere('key', '_unknown');
 
     expect($cash->label)->toBe('Cash')
@@ -983,27 +989,31 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
 test('spent by payment method defaults to three results', function () {
     Invoice::unsetEventDispatcher();
 
+    $this->seed(PaymentMethodSeeder::class);
+
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
 
     $methods = [
-        PaymentMethod::Cash->value => 100,
-        PaymentMethod::Visa->value => 80,
-        PaymentMethod::Mastercard->value => 60,
-        PaymentMethod::TouchNGo->value => 40,
+        'cash' => 100,
+        'visa' => 80,
+        'mastercard' => 60,
+        'touchngo' => 40,
     ];
 
-    foreach ($methods as $method => $amount) {
+    foreach ($methods as $slug => $amount) {
+        $paymentMethod = PaymentMethod::findBySlug($slug);
+
         Invoice::create([
-            'merchant_name' => "Store {$method}",
-            'invoice_number' => "INV-PM-{$method}",
-            'receipt_hash' => "hash-pm-{$method}",
+            'merchant_name' => "Store {$slug}",
+            'invoice_number' => "INV-PM-{$slug}",
+            'receipt_hash' => "hash-pm-{$slug}",
             'date_time' => $bounds['start']->copy()->addDay(),
             'subtotal' => $amount,
             'total_tax' => 0.00,
             'total_amount' => $amount,
             'currency' => 'MYR',
-            'payment_method' => $method,
+            'payment_method_id' => $paymentMethod->id,
             'source' => 'manual',
             'status' => 'reviewed',
         ]);
@@ -1015,9 +1025,9 @@ test('spent by payment method defaults to three results', function () {
 
     expect($rows)->toHaveCount(3);
     expect($rows->pluck('key')->all())->toBe([
-        PaymentMethod::Cash->value,
-        PaymentMethod::Visa->value,
-        PaymentMethod::Mastercard->value,
+        (string) PaymentMethod::findBySlug('cash')->id,
+        (string) PaymentMethod::findBySlug('visa')->id,
+        (string) PaymentMethod::findBySlug('mastercard')->id,
     ]);
 });
 

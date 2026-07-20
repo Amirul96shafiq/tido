@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Enums\PaymentMethod;
 use App\Models\Invoice;
+use App\Models\PaymentMethod;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -34,7 +34,7 @@ class InvoiceFactory extends Factory
             'rounding_amount' => 0,
             'total_amount' => $total,
             'currency' => 'MYR',
-            'payment_method' => $this->faker->randomElement(PaymentMethod::cases()),
+            'payment_method_id' => PaymentMethod::factory(),
             'source' => $this->faker->randomElement(['manual', 'whatsapp', 'google_drive']),
             'status' => $this->faker->randomElement(['reviewed', 'parsed']),
             'google_drive_file_id' => null,

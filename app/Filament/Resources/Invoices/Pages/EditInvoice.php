@@ -79,7 +79,7 @@ class EditInvoice extends EditRecord
                         'discount_total',
                         'rounding_amount',
                         'total_amount',
-                        'payment_method',
+                        'payment_method_id',
                     ]);
                 }),
             DeleteAction::make(),

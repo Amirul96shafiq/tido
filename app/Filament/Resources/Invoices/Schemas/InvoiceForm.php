@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Invoices\Schemas;
 
 use App\Enums\LabelType;
-use App\Enums\PaymentMethod;
 use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Support\SelectValueMarquee;
 use App\Helpers\MoneyDisplay;
@@ -88,9 +87,11 @@ class InvoiceForm
                                             ->wrapOptionLabels(false)
                                             ->extraAttributes(SelectValueMarquee::extraAttributes()),
 
-                                        Select::make('payment_method')
-                                            ->options(PaymentMethod::class)
-                                            ->searchable(),
+                                        Select::make('payment_method_id')
+                                            ->label('Payment Method')
+                                            ->relationship('paymentMethod', 'name')
+                                            ->searchable()
+                                            ->preload(),
 
                                         Select::make('source')
                                             ->options([

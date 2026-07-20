@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Enums\PaymentMethod;
 use App\Filament\Widgets\SpendingByPaymentMethod;
 use App\Models\Invoice;
+use App\Models\PaymentMethod;
 use App\Models\User;
+use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -18,12 +19,14 @@ beforeEach(function () {
 test('spending by payment method widget renders with axis labels', function () {
     Invoice::unsetEventDispatcher();
 
+    $this->seed(PaymentMethodSeeder::class);
+
     Invoice::factory()->create([
         'merchant_name' => 'Corner Shop',
         'date_time' => now(),
         'status' => 'reviewed',
         'total_amount' => 25.00,
-        'payment_method' => PaymentMethod::Cash,
+        'payment_method_id' => PaymentMethod::findBySlug('cash')->id,
     ]);
 
     Invoice::setEventDispatcher(app('events'));

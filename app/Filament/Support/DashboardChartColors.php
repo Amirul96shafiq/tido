@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Support;
 
-use App\Enums\PaymentMethod;
+use App\Models\PaymentMethod;
 
 final class DashboardChartColors
 {
@@ -18,13 +18,11 @@ final class DashboardChartColors
 
     public static function forPaymentMethod(?PaymentMethod $paymentMethod): string
     {
-        return match ($paymentMethod) {
-            PaymentMethod::Mastercard, PaymentMethod::Cash => self::PRIMARY_DARK,
-            PaymentMethod::Visa, PaymentMethod::PayWithQr => self::PRIMARY,
-            PaymentMethod::Mykasih, PaymentMethod::TouchNGo => self::PRIMARY_LIGHT,
-            PaymentMethod::Other => self::UNKNOWN,
-            default => self::UNKNOWN,
-        };
+        if ($paymentMethod !== null && filled($paymentMethod->color)) {
+            return (string) $paymentMethod->color;
+        }
+
+        return self::UNKNOWN;
     }
 
     public static function forSource(mixed $source): string

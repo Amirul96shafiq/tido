@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Enums\LabelType;
-use App\Enums\PaymentMethod;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Label;
+use App\Models\PaymentMethod;
 use Database\Seeders\LabelSeeder;
+use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -24,6 +25,11 @@ class SeedScannedReceiptsCommand extends Command
     {
         $this->callSilent('db:seed', [
             '--class' => LabelSeeder::class,
+            '--force' => true,
+        ]);
+
+        $this->callSilent('db:seed', [
+            '--class' => PaymentMethodSeeder::class,
             '--force' => true,
         ]);
 
@@ -59,6 +65,8 @@ class SeedScannedReceiptsCommand extends Command
 
             try {
                 DB::transaction(function () use ($receipt, $invoiceNumber, $sourceFilename, $storagePath, &$created): void {
+                    $paymentMethod = PaymentMethod::findBySlug((string) $receipt['payment_method']);
+
                     $invoice = Invoice::create([
                         'merchant_name' => $receipt['merchant_name'],
                         'invoice_number' => $invoiceNumber,
@@ -69,7 +77,7 @@ class SeedScannedReceiptsCommand extends Command
                         'rounding_amount' => $receipt['rounding_amount'],
                         'total_amount' => $receipt['total_amount'],
                         'currency' => 'MYR',
-                        'payment_method' => PaymentMethod::from((string) $receipt['payment_method']),
+                        'payment_method_id' => $paymentMethod?->id,
                         'source' => 'manual',
                         'status' => 'reviewed',
                         'image_path' => $storagePath,

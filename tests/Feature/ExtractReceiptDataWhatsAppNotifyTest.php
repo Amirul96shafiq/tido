@@ -2,18 +2,20 @@
 
 declare(strict_types=1);
 
-use App\Enums\PaymentMethod;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Jobs\ExtractReceiptDataJob;
 use App\Jobs\SendWhatsAppDocumentParsedJob;
 use App\Models\Invoice;
+use App\Models\PaymentMethod;
 use App\Services\LabelMatcher;
 use App\Services\OllamaService;
+use App\Services\PaymentMethodMatcher;
 use App\Services\ReceiptParseNormalizer;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppPublicUrl;
 use Database\Seeders\LabelSeeder;
+use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
@@ -66,6 +68,7 @@ test('extract receipt data job dispatches gated document parsed whatsapp job', f
 
     fakeSuccessfulOllamaResponse();
     $this->seed(LabelSeeder::class);
+    $this->seed(PaymentMethodSeeder::class);
 
     $invoice = Invoice::create([
         'merchant_name' => 'Pending AI Extraction...',
@@ -86,6 +89,7 @@ test('extract receipt data job dispatches gated document parsed whatsapp job', f
         new OllamaService,
         new ReceiptParseNormalizer,
         new LabelMatcher,
+        new PaymentMethodMatcher,
     );
 
     expect($invoice->fresh()->status)->toBe('parsed');
@@ -113,10 +117,12 @@ test('document parsed job waits while document received ack is pending then send
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
 
+    $this->seed(PaymentMethodSeeder::class);
+
     $invoice = Invoice::factory()->create([
         'merchant_name' => '7-Eleven',
         'total_amount' => '2.00',
-        'payment_method' => PaymentMethod::Cash,
+        'payment_method_id' => PaymentMethod::findBySlug('cash')->id,
         'source' => 'whatsapp',
         'whatsapp_sender' => '60123456789',
         'status' => 'parsed',
@@ -187,6 +193,7 @@ test('extract receipt data job does not dispatch document parsed for non-whatsap
 
     fakeSuccessfulOllamaResponse();
     $this->seed(LabelSeeder::class);
+    $this->seed(PaymentMethodSeeder::class);
 
     $invoice = Invoice::create([
         'merchant_name' => 'Pending AI Extraction...',
@@ -206,6 +213,7 @@ test('extract receipt data job does not dispatch document parsed for non-whatsap
         new OllamaService,
         new ReceiptParseNormalizer,
         new LabelMatcher,
+        new PaymentMethodMatcher,
     );
 
     expect($invoice->fresh()->status)->toBe('parsed');
@@ -225,6 +233,7 @@ test('extract receipt data job does not dispatch document parsed without whatsap
 
     fakeSuccessfulOllamaResponse();
     $this->seed(LabelSeeder::class);
+    $this->seed(PaymentMethodSeeder::class);
 
     $invoice = Invoice::create([
         'merchant_name' => 'Pending AI Extraction...',
@@ -245,6 +254,7 @@ test('extract receipt data job does not dispatch document parsed without whatsap
         new OllamaService,
         new ReceiptParseNormalizer,
         new LabelMatcher,
+        new PaymentMethodMatcher,
     );
 
     expect($invoice->fresh()->status)->toBe('parsed');

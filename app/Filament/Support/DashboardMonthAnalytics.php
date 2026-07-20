@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Support;
 
-use App\Enums\PaymentMethod;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\PaymentMethod;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -321,33 +321,39 @@ final class DashboardMonthAnalytics
         $rows = Invoice::query()
             ->processed()
             ->inPeriod($start, $end)
-            ->selectRaw('payment_method, SUM(total_amount) as total, COUNT(*) as receipt_count')
-            ->groupBy('payment_method')
+            ->selectRaw('payment_method_id, SUM(total_amount) as total, COUNT(*) as receipt_count')
+            ->groupBy('payment_method_id')
             ->orderByDesc('total')
             ->get();
+
+        $methods = PaymentMethod::query()
+            ->withTrashed()
+            ->whereIn('id', $rows->pluck('payment_method_id')->filter()->all())
+            ->get()
+            ->keyBy('id');
 
         $priorTotals = Invoice::query()
             ->processed()
             ->inPeriod($previousStart, $previousEnd)
-            ->selectRaw('payment_method, SUM(total_amount) as total')
-            ->groupBy('payment_method')
+            ->selectRaw('payment_method_id, SUM(total_amount) as total')
+            ->groupBy('payment_method_id')
             ->get()
-            ->keyBy(fn ($row): string => $this->paymentMethodKey($row->payment_method))
+            ->keyBy(fn ($row): string => $this->paymentMethodKey($row->payment_method_id))
             ->map(fn ($row): float => (float) $row->total);
 
         return $rows
-            ->map(function ($row) use ($priorTotals, $monthTotal): object {
-                $key = $this->paymentMethodKey($row->payment_method);
-                $paymentMethod = is_string($row->payment_method)
-                    ? PaymentMethod::tryFrom($row->payment_method)
-                    : $row->payment_method;
+            ->map(function ($row) use ($priorTotals, $monthTotal, $methods): object {
+                $key = $this->paymentMethodKey($row->payment_method_id);
+                $paymentMethod = $row->payment_method_id !== null
+                    ? ($methods->get((int) $row->payment_method_id) ?? null)
+                    : null;
                 $total = (float) $row->total;
                 $priorTotal = (float) ($priorTotals[$key] ?? 0);
                 $delta = $total - $priorTotal;
 
                 return (object) [
                     'key' => $key,
-                    'label' => $paymentMethod instanceof PaymentMethod ? $paymentMethod->label() : 'Unknown',
+                    'label' => $paymentMethod instanceof PaymentMethod ? $paymentMethod->name : 'Unknown',
                     'color' => $this->paymentMethodColor($paymentMethod),
                     'total' => $total,
                     'receipt_count' => (int) $row->receipt_count,
@@ -446,14 +452,10 @@ final class DashboardMonthAnalytics
         return $totals;
     }
 
-    private function paymentMethodKey(mixed $paymentMethod): string
+    private function paymentMethodKey(mixed $paymentMethodId): string
     {
-        if ($paymentMethod instanceof PaymentMethod) {
-            return $paymentMethod->value;
-        }
-
-        if (is_string($paymentMethod) && $paymentMethod !== '') {
-            return $paymentMethod;
+        if (is_int($paymentMethodId) || (is_string($paymentMethodId) && ctype_digit($paymentMethodId))) {
+            return (string) $paymentMethodId;
         }
 
         return '_unknown';

@@ -10,6 +10,7 @@ use App\Models\Budget;
 use App\Models\ContentDraft;
 use App\Models\Invoice;
 use App\Models\Label;
+use App\Models\PaymentMethod;
 use App\Models\User;
 use App\Models\WhatsAppConnectionLog;
 use Illuminate\Support\Facades\DB;
@@ -64,6 +65,9 @@ class AccountDangerZoneService
             function (): void {
                 $this->wipeUserCreatedLabels();
             },
+            function (): void {
+                $this->wipeUserCreatedPaymentMethods();
+            },
             fn (): mixed => WhatsAppConnectionLog::query()->delete(),
             fn (): mixed => Activity::query()->delete(),
             fn (): mixed => $user->notifications()->delete(),
@@ -92,6 +96,15 @@ class AccountDangerZoneService
             ->where('is_system', false)
             ->cursor()
             ->each(fn (Label $label): mixed => $label->forceDelete());
+    }
+
+    protected function wipeUserCreatedPaymentMethods(): void
+    {
+        PaymentMethod::query()
+            ->withTrashed()
+            ->where('is_system', false)
+            ->cursor()
+            ->each(fn (PaymentMethod $paymentMethod): mixed => $paymentMethod->forceDelete());
     }
 
     protected function deleteUserAccount(User $user): void
