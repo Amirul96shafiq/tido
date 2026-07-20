@@ -195,7 +195,7 @@ class InvoiceForm
                                     ->columns(1),
                             ]),
 
-                        Section::make('Status')
+                        Section::make('Invoice Status')
                             ->schema([
                                 Select::make('status')
                                     ->hiddenLabel()
