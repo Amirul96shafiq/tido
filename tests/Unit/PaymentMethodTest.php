@@ -55,6 +55,7 @@ test('try from ai resolves common payment method aliases', function (string $inp
     expect(PaymentMethod::tryFromAi($input))->toBe($expected);
 })->with([
     ['mastercard', PaymentMethod::Mastercard],
+    ['card', PaymentMethod::Mastercard],
     ['Visa', PaymentMethod::Visa],
     ['MYKASIH', PaymentMethod::Mykasih],
     ['cash', PaymentMethod::Cash],
@@ -64,6 +65,7 @@ test('try from ai resolves common payment method aliases', function (string $inp
     ['touchngo', PaymentMethod::TouchNGo],
     ["Touch 'n Go", PaymentMethod::TouchNGo],
     ['TNG', PaymentMethod::TouchNGo],
+    ['tngo', PaymentMethod::TouchNGo],
     ['debit', PaymentMethod::Other],
     ['credit', PaymentMethod::Other],
     ['debit_card', PaymentMethod::Other],

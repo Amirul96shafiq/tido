@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Enums\PaymentMethod;
+
 final class ManualWhatsAppInvoiceParser
 {
     /**
@@ -12,9 +14,27 @@ final class ManualWhatsAppInvoiceParser
     private const ITEM_PATTERN = '/^(.+?),\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\s*;\s*$/u';
 
     /**
-     * Merchant line: name; (must end with semicolon, not an item line)
+     * Merchant line: name; or name, payment_token; (must end with semicolon, not an item line)
      */
     private const MERCHANT_PATTERN = '/^(.+?)\s*;\s*$/u';
+
+    /**
+     * WhatsApp shorthand → PaymentMethod (lowercase keys).
+     *
+     * @var array<string, PaymentMethod>
+     */
+    private const PAYMENT_ALIASES = [
+        'qr' => PaymentMethod::PayWithQr,
+        'tngo' => PaymentMethod::TouchNGo,
+        'tng' => PaymentMethod::TouchNGo,
+        'card' => PaymentMethod::Mastercard,
+        'mc' => PaymentMethod::Mastercard,
+        'mastercard' => PaymentMethod::Mastercard,
+        'visa' => PaymentMethod::Visa,
+        'cash' => PaymentMethod::Cash,
+        'mykasih' => PaymentMethod::Mykasih,
+        'other' => PaymentMethod::Other,
+    ];
 
     public static function looksLike(string $text): bool
     {
@@ -24,6 +44,7 @@ final class ManualWhatsAppInvoiceParser
     /**
      * @return list<array{
      *     merchant_name: string,
+     *     payment_method: PaymentMethod,
      *     items: list<array{description: string, quantity: float, line_total: float}>
      * }>
      */
@@ -31,6 +52,7 @@ final class ManualWhatsAppInvoiceParser
     {
         $lines = preg_split('/\R/u', trim($text)) ?: [];
         $blocks = [];
+        /** @var array{merchant_name: string, payment_method: PaymentMethod}|null $currentMerchant */
         $currentMerchant = null;
         /** @var list<array{description: string, quantity: float, line_total: float}> $currentItems */
         $currentItems = [];
@@ -44,7 +66,8 @@ final class ManualWhatsAppInvoiceParser
             }
 
             $blocks[] = [
-                'merchant_name' => $currentMerchant,
+                'merchant_name' => $currentMerchant['merchant_name'],
+                'payment_method' => $currentMerchant['payment_method'],
                 'items' => $currentItems,
             ];
             $currentMerchant = null;
@@ -125,10 +148,29 @@ final class ManualWhatsAppInvoiceParser
         ];
     }
 
-    private static function parseMerchantLine(string $line): string
+    /**
+     * @return array{merchant_name: string, payment_method: PaymentMethod}
+     */
+    private static function parseMerchantLine(string $line): array
     {
         preg_match(self::MERCHANT_PATTERN, $line, $matches);
+        $raw = trim($matches[1] ?? '');
 
-        return trim($matches[1] ?? '');
+        if (preg_match('/^(.+),\s*([^,]+)$/u', $raw, $parts) === 1) {
+            $maybeToken = strtolower(trim($parts[2]));
+            $paymentMethod = self::PAYMENT_ALIASES[$maybeToken] ?? null;
+
+            if ($paymentMethod !== null) {
+                return [
+                    'merchant_name' => trim($parts[1]),
+                    'payment_method' => $paymentMethod,
+                ];
+            }
+        }
+
+        return [
+            'merchant_name' => $raw,
+            'payment_method' => PaymentMethod::Cash,
+        ];
     }
 }

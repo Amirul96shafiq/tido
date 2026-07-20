@@ -138,6 +138,25 @@ test('process manual whatsapp invoice job creates invoice items and registers de
     Queue::assertNotPushed(ParseManualWhatsAppInvoiceJob::class);
 });
 
+test('process job applies merchant payment token', function () {
+    Queue::fake();
+
+    $text = <<<'TEXT'
+Kedai Makan Seri Ayu, qr;
+Nasi + ikan keli, 1, 12;
+Teh o ais, 1, 2.5;
+TEXT;
+
+    (new ProcessManualWhatsAppInvoiceJob('60123456789', $text))->handle();
+
+    $invoice = Invoice::query()->first();
+
+    expect($invoice)->not->toBeNull()
+        ->and($invoice->merchant_name)->toBe('Kedai Makan Seri Ayu')
+        ->and($invoice->payment_method)->toBe(PaymentMethod::PayWithQr)
+        ->and((float) $invoice->total_amount)->toBe(14.5);
+});
+
 test('process job creates multiple invoices from one message', function () {
     Queue::fake();
 

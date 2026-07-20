@@ -136,7 +136,7 @@ class WhatsAppWebhookController extends Controller
         $help = WhatsAppMessage::compose(
             '🤖',
             'Help',
-            "• Send a *document* to upload and parse it.\n• Send a *manual invoice* text (merchant; then item, qty, total; lines).\n• Type *spend* or *total* to view this month's expenses.",
+            "• Send a *document* to upload and parse it.\n• Send a *manual invoice* text (merchant[, qr|tngo|card|cash]; then item, qty, total; lines).\n• Type *spend* or *total* to view this month's expenses.",
         );
 
         $waService->sendMessage($senderNumber, $help);

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\PaymentMethod;
 use App\Support\ManualWhatsAppInvoiceParser;
 
 test('parser accepts a single merchant with line items', function () {
@@ -17,6 +18,7 @@ TEXT;
 
     expect($blocks)->toHaveCount(1)
         ->and($blocks[0]['merchant_name'])->toBe('myNEWS Bayu Residensi')
+        ->and($blocks[0]['payment_method'])->toBe(PaymentMethod::Cash)
         ->and($blocks[0]['items'])->toHaveCount(2)
         ->and($blocks[0]['items'][0])->toMatchArray([
             'description' => 'GARDENIA QUICKBITES CREAM ROLL',
@@ -43,6 +45,7 @@ TEXT;
 
     expect($blocks)->toHaveCount(2)
         ->and($blocks[0]['merchant_name'])->toBe('myNEWS Bayu Residensi')
+        ->and($blocks[0]['payment_method'])->toBe(PaymentMethod::Cash)
         ->and($blocks[1]['merchant_name'])->toBe('7-Eleven Malaysia Sdn. Bhd.')
         ->and($blocks[1]['items'][0]['line_total'])->toBe(2.0);
 });
@@ -65,4 +68,29 @@ test('parser preserves original casing', function () {
 
     expect($blocks[0]['merchant_name'])->toBe('My Store')
         ->and($blocks[0]['items'][0]['description'])->toBe('Item One');
+});
+
+test('parser maps merchant payment tokens', function (string $token, PaymentMethod $method) {
+    $text = "Kedai Makan Seri Ayu, {$token};\nNasi, 1, 12;";
+
+    $blocks = ManualWhatsAppInvoiceParser::parse($text);
+
+    expect($blocks)->toHaveCount(1)
+        ->and($blocks[0]['merchant_name'])->toBe('Kedai Makan Seri Ayu')
+        ->and($blocks[0]['payment_method'])->toBe($method);
+})->with([
+    'qr' => ['qr', PaymentMethod::PayWithQr],
+    'tngo' => ['tngo', PaymentMethod::TouchNGo],
+    'card' => ['card', PaymentMethod::Mastercard],
+    'cash' => ['cash', PaymentMethod::Cash],
+    'visa' => ['visa', PaymentMethod::Visa],
+]);
+
+test('parser keeps comma in merchant name when trailing token is unknown', function () {
+    $text = "Store, Branch Name;\nItem A, 1, 10;";
+
+    $blocks = ManualWhatsAppInvoiceParser::parse($text);
+
+    expect($blocks[0]['merchant_name'])->toBe('Store, Branch Name')
+        ->and($blocks[0]['payment_method'])->toBe(PaymentMethod::Cash);
 });
