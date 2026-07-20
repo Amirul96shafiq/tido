@@ -113,12 +113,12 @@ enum PaymentMethod: string implements HasColor, HasIcon, HasLabel
         $normalized = str_replace([' ', '-', "'"], ['_', '_', ''], $normalized);
 
         return match ($normalized) {
-            'mastercard', 'master', 'master_card' => self::Mastercard,
+            'mastercard', 'master', 'master_card', 'card' => self::Mastercard,
             'visa' => self::Visa,
             'mykasih', 'my_kasih' => self::Mykasih,
             'cash' => self::Cash,
             'pay_with_qr', 'qr', 'qr_pay', 'qr_payment', 'duitnow_qr', 'duitnow' => self::PayWithQr,
-            'touchngo', 'touch_n_go', 'touchngo_ewallet', 'tng', 't_ngo' => self::TouchNGo,
+            'touchngo', 'touch_n_go', 'touchngo_ewallet', 'tng', 't_ngo', 'tngo' => self::TouchNGo,
             'debit', 'credit', 'debit_card', 'credit_card' => self::Other,
             'other' => self::Other,
             default => self::tryFrom($normalized),

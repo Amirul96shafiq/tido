@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-tido is a localized, single-tenant MYR expense tracker built for frictionless financial logging. Ingest receipts autonomously via WhatsApp webhooks or scheduled Google Drive syncs (coming soon!), and bypass third-party APIs completely with on-device OCR parsing powered by Ollama (`qwen2.5vl:7b`). Manage parsed line items as labels, track strict budgets, and review analytics instantly within a streamlined Filament dashboard.
+tido is a localized, single-tenant MYR expense tracker built for frictionless financial logging. Ingest receipts via WhatsApp (image or text manual invoice), scheduled Google Drive sync, or admin upload, and parse on-device with Ollama (`qwen2.5vl:7b`). Manage parsed line items as labels, track strict budgets, and review analytics instantly within a streamlined Filament dashboard.
 </p>
 
 ## Table of Contents
@@ -39,8 +39,8 @@ tido is a localized, single-tenant MYR expense tracker built for frictionless fi
 
 ## Features
 
-- Receipt ingestion from WhatsApp (Evolution API), Google Drive **scheduled** sync (every 15m), and admin upload
-- Local OCR via Ollama (`qwen2.5vl:7b`) with JSON-formatted extraction
+- Receipt ingestion from WhatsApp (Evolution API: **images** + **text manual invoices**), Google Drive **scheduled** sync (every 15m), and admin upload
+- Local OCR via Ollama (`qwen2.5vl:7b`) with JSON-formatted extraction; manual WhatsApp text uses Ollama for **Labels** only
 - Line-item **Labels**, duplicate detection (`receipt_hash`), and manual review
 - Per-label budgets with WhatsApp threshold alerts
 - Month-scoped dashboard analytics and spending forecast
@@ -67,16 +67,20 @@ tido is a localized, single-tenant MYR expense tracker built for frictionless fi
 
 ```mermaid
 flowchart LR
-  wa[WhatsApp_webhook] --> pending[Pending_Invoice]
+  waImg[WhatsApp_image] --> pending[Pending_Invoice]
+  waText[WhatsApp_manual_text] --> pendingManual[Pending_manual_Invoice]
   drive[Drive_sync_15m] --> pending
   upload[Admin_upload] --> pending
   pending --> job[ExtractReceiptDataJob]
   job --> ollama[Ollama_vision]
   ollama --> items[Labels_and_line_items]
   items --> review[Parsed_or_manual_review]
+  pendingManual --> labelJob[ParseManualWhatsAppInvoiceJob]
+  labelJob --> ollamaText[Ollama_text_labels]
+  ollamaText --> manualReview[requires_manual_review]
 ```
 
-Invoice statuses: `pending` → `parsed` → `reviewed` (or `requires_manual_review` / `failed`). Duplicates use SHA-256 `receipt_hash` (number + datetime + total). Expense tags are the **`Label`** model / `labels` table (UI: **Label** / **Labels**).
+Invoice statuses: `pending` → `parsed` → `reviewed` (or `requires_manual_review` / `failed`). WhatsApp **manual text** invoices skip vision OCR and land on `requires_manual_review` after label classification. Duplicates use SHA-256 `receipt_hash` (number + datetime + total). Expense tags are the **`Label`** model / `labels` table (UI: **Label** / **Labels**).
 
 Scheduled jobs (`routes/console.php`): Drive sync every 15 minutes; `backup:run` daily 02:00; `backup:clean` daily 03:00.
 
@@ -147,6 +151,20 @@ Admin nav:
 
 **WhatsApp OTP login:** Pair Evolution → set `PERSONAL_WHATSAPP_NUMBER` (and match the user’s phone) → `php artisan whatsapp:ping` → sign in with OTP at `/admin/login`.
 
+**WhatsApp receipt image:** Send a photo/document from an allowlisted number → batched “Document received” → Ollama vision parse → “Document parsed” with edit link.
+
+**WhatsApp manual invoice (no receipt image):** Send text in this format (each line ends with `;`). Optional payment token after the merchant: `qr`, `tngo`, `card` (Mastercard), `cash` (default if omitted), `visa`, etc.
+
+```
+Kedai Makan Seri Ayu, qr;
+Nasi + ikan keli, 1, 12;
+Teh o ais, 1, 2.5;
+```
+
+Multiple merchant blocks in one message (or rapid messages) create multiple invoices. Totals are summed from line totals; currency is MYR; status becomes `requires_manual_review` after AI labels. Full format, tokens, and replies: [docs/whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md).
+
+**WhatsApp text commands:** `spend` / `total` — this month’s spending; other text — help.
+
 **Backups:** Cataloged ZIPs under Settings → Backups. Restore tokens are shown once (email/UI); only a hash is stored. After Danger Zone account wipe, guest restore is available when no users exist. Details: [docs/backups-and-danger-zone.md](docs/backups-and-danger-zone.md).
 
 Useful commands:
@@ -209,6 +227,7 @@ Deep docs live under [`docs/`](docs/README.md):
 | [system-architecture.md](docs/system-architecture.md) | Architecture blueprint |
 | [ollama-setup.md](docs/ollama-setup.md) | Native host Ollama / qwen2.5vl:7b |
 | [evolution-local-windows.md](docs/evolution-local-windows.md) | Evolution instance + webhook (Windows host) |
+| [whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md) | Text-only WhatsApp manual invoice format |
 | [google-drive-setup.md](docs/google-drive-setup.md) | Drive folder sync credentials |
 | [backups-and-danger-zone.md](docs/backups-and-danger-zone.md) | Backups, restore tokens, Danger Zone |
 | [content-draft-recovery.md](docs/content-draft-recovery.md) | Form draft auto-save / crash recovery |

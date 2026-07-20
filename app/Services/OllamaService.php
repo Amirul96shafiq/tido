@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Log;
 class OllamaService
 {
     protected string $host;
+
     protected string $model;
+
     protected int $timeout;
 
     public function __construct()
@@ -22,21 +24,36 @@ class OllamaService
 
     public function parseReceipt(string $base64Image, string $prompt): ?array
     {
+        return $this->generateJson($prompt, [$base64Image]);
+    }
+
+    /**
+     * @param  list<string>|null  $images  Optional base64 images for vision models
+     */
+    public function generateJson(string $prompt, ?array $images = null): ?array
+    {
         try {
+            $payload = [
+                'model' => $this->model,
+                'prompt' => $prompt,
+                'stream' => false,
+                'format' => 'json',
+            ];
+
+            if ($images !== null && $images !== []) {
+                $payload['images'] = $images;
+            }
+
             $response = Http::timeout($this->timeout)
-                ->post("{$this->host}/api/generate", [
-                    'model' => $this->model,
-                    'prompt' => $prompt,
-                    'images' => [$base64Image],
-                    'stream' => false,
-                    'format' => 'json',
-                ]);
+                ->post("{$this->host}/api/generate", $payload);
 
             if ($response->failed()) {
-                Log::error('Ollama parse receipt HTTP request failed', [
+                Log::error('Ollama generate JSON HTTP request failed', [
                     'status' => $response->status(),
                     'body' => $response->body(),
+                    'has_images' => isset($payload['images']),
                 ]);
+
                 return null;
             }
 
@@ -45,15 +62,17 @@ class OllamaService
 
             if (empty($rawText)) {
                 Log::error('Ollama response text is empty', ['response' => $responseBody]);
+
                 return null;
             }
 
             return $this->cleanAndDecodeJson($rawText);
         } catch (\Throwable $e) {
-            Log::error('Ollama service parse receipt error', [
+            Log::error('Ollama service generate JSON error', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return null;
         }
     }
@@ -72,6 +91,7 @@ class OllamaService
                 'cleaned_text' => $cleaned,
                 'json_error' => json_last_error_msg(),
             ]);
+
             return null;
         }
 

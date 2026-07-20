@@ -12,6 +12,7 @@ Before coding, read **[docs/agent-onboarding.md](docs/agent-onboarding.md)** for
 - Notes rich editor: **[docs/ui-notes-rich-editor.md](docs/ui-notes-rich-editor.md)** — `NotesRichEditor` for `notes` fields
 - Form empty defaults: **[docs/ui-form-empty-defaults.md](docs/ui-form-empty-defaults.md)** — placeholders vs defaults on resource forms
 - Backups / Danger Zone: **[docs/backups-and-danger-zone.md](docs/backups-and-danger-zone.md)**
+- WhatsApp manual text invoices: **[docs/whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md)**
 - Product name: **tido** only · expense tags: **Label** / **Labels** (model: `Label`, not Category)
 
 <laravel-boost-guidelines>

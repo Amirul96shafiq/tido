@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\PaymentMethod;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Widgets\RecentReceipts;
+use App\Helpers\FilenameDisplay;
 use App\Models\Invoice;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
@@ -66,6 +67,28 @@ test('recent receipts widget filename links to file in a new tab', function () {
         ->assertCanSeeTableRecords([$invoice])
         ->assertSeeHtml('target="_blank"')
         ->assertSeeHtml(e($url));
+});
+
+test('recent receipts widget shows Manual invoice plain text without file link', function () {
+    $invoice = Invoice::factory()->create([
+        'merchant_name' => 'Kedai Makan Seri Ayu',
+        'original_filename' => null,
+        'image_path' => null,
+        'source' => 'whatsapp',
+        'payment_method' => PaymentMethod::Cash,
+        'status' => 'reviewed',
+        'date_time' => now(),
+        'total_amount' => 26.00,
+    ]);
+
+    Livewire::test(RecentReceipts::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$invoice])
+        ->assertSee(FilenameDisplay::MANUAL_INVOICE_LABEL)
+        ->assertSee('Kedai Makan Seri Ayu');
+
+    expect(FilenameDisplay::labelForInvoice($invoice))->toBe('Manual invoice')
+        ->and($invoice->fileUrl())->toBeNull();
 });
 
 test('recent receipts widget truncates long merchant names with full name in tooltip', function () {

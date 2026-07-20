@@ -4,13 +4,14 @@ How this project works and how to change it safely. Cursor loads `.cursor/rules/
 
 ## 1. What you are building
 
-**tido** is a single-tenant personal finance app for **Malaysian Ringgit (MYR)**. It ingests receipt images, extracts structured data with a **local Ollama** vision model, categorizes line items as **Labels** (model: `Label`), tracks **Budgets**, and surfaces analytics in a **Filament v5** admin at `/admin`.
+**tido** is a single-tenant personal finance app for **Malaysian Ringgit (MYR)**. It ingests receipt **images** and WhatsApp **text manual invoices**, extracts or classifies data with a **local Ollama** model, categorizes line items as **Labels** (model: `Label`), tracks **Budgets**, and surfaces analytics in a **Filament v5** admin at `/admin`.
 
 Primary ingestion paths:
 
 | Channel | Entry | Creates |
 |---------|-------|---------|
-| WhatsApp | `POST /api/webhooks/whatsapp` | Pending `Invoice` |
+| WhatsApp image | `POST /api/webhooks/whatsapp` | Pending `Invoice` → vision OCR |
+| WhatsApp manual text | same webhook (fixed text format) | Pending `Invoice` (no image) → label job → `requires_manual_review` |
 | Google Drive | `SyncGoogleDriveJob` (every 15m) | Pending `Invoice` |
 | UI upload | `ReceiptUploadPage` | Pending `Invoice` |
 | Manual CRUD | `InvoiceResource` | Invoice (may still trigger observer) |
@@ -24,7 +25,7 @@ Default login (seeded): `admin@tido.local` / `password`.
 3. `docs/system-architecture.md` — product blueprint (note: some version numbers are outdated; trust Laravel 12 / PG 17 / stack in `AGENTS.md`)
 4. Domain skill: `.cursor/skills/tido-domain/SKILL.md` (+ `pipeline.md` when touching OCR/webhooks)
 5. Existing skills: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
-6. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/google-drive-setup.md`
+6. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-manual-invoice.md`, `docs/google-drive-setup.md`
 7. UI empty panels: `docs/ui-empty-states.md`
 8. Modal blur / width: `docs/ui-modal-overlay.md`
 9. Sticky top/bottom bars + blur veil: `docs/ui-sticky-blur.md`
@@ -47,10 +48,11 @@ app/
   Models/           Invoice, InvoiceItem, Label, Budget, User, ContentDraft, Backup
   Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support, Livewire
   Services/         Ollama, GoogleDrive, WhatsApp, BudgetAlert, SpendingForecast, Backup*, AccountDangerZone
-  Jobs/             ExtractReceiptDataJob, SyncGoogleDriveJob
+  Jobs/             ExtractReceiptDataJob, ProcessManualWhatsAppInvoiceJob, ParseManualWhatsAppInvoiceJob, SyncGoogleDriveJob, …
   Observers/        InvoiceObserver
-  Prompts/          ReceiptExtractionPrompt
-  Enums/            LabelType, UserLocale, UserDateFormat
+  Prompts/          ReceiptExtractionPrompt, ManualInvoiceLabelPrompt
+  Support/          ManualWhatsAppInvoiceParser, WhatsAppMessage, …
+  Enums/            LabelType, PaymentMethod, UserLocale, UserDateFormat
   Http/Controllers/ Api webhooks, BackupDownload, GuestRestoreBackup
 routes/
   web.php           / → /admin, changelog JSON, backup download / guest restore

@@ -1,18 +1,28 @@
 ---
 description: Receipt ingestion, Ollama parsing, WhatsApp, and Google Drive rules
-globs: app/Services/**/*.php, app/Jobs/**/*.php, app/Observers/**/*.php, app/Http/Controllers/Api/**/*.php, app/Prompts/**/*.php
+globs: app/Services/**/*.php, app/Jobs/**/*.php, app/Observers/**/*.php, app/Http/Controllers/Api/**/*.php, app/Prompts/**/*.php, app/Support/ManualWhatsAppInvoiceParser.php, app/Support/WhatsAppMessage.php
 alwaysApply: false
 ---
 
 # Receipt Pipeline Rules
 
-## Flow
+## Flow (image)
 
 ```
 Image → Invoice (pending) → InvoiceObserver → ExtractReceiptDataJob
   → OllamaService + ReceiptExtractionPrompt
   → Invoice (parsed) + InvoiceItems → BudgetAlertService
 ```
+
+## Flow (WhatsApp manual text)
+
+```
+Text format → ProcessManualWhatsAppInvoiceJob → pending Invoice (no image)
+  → Manual invoice received ack → ParseManualWhatsAppInvoiceJob
+  → Ollama text labels → requires_manual_review → Manual invoice parsed reply
+```
+
+Format + payment tokens: `docs/whatsapp-manual-invoice.md`.
 
 Statuses: `pending` → `parsed` → `reviewed` | `requires_manual_review` | `failed`  
 Sources: `manual` | `whatsapp` | `google_drive`
@@ -21,7 +31,8 @@ Sources: `manual` | `whatsapp` | `google_drive`
 
 - POST with `"format": "json"`
 - Strip markdown fences with regex before `json_decode` (`OllamaService::cleanAndDecodeJson`)
-- Prompt/schema lives in `app/Prompts/ReceiptExtractionPrompt.php`
+- Vision prompt/schema: `app/Prompts/ReceiptExtractionPrompt.php`
+- Manual text labels: `app/Prompts/ManualInvoiceLabelPrompt.php` via `OllamaService::generateJson` (no `images`)
 - Map AI `label` (legacy `suggested_category`) via `LabelMatcher` → `Label` where `type = Finance`
 
 ## Duplicate detection
@@ -33,6 +44,8 @@ Sources: `manual` | `whatsapp` | `google_drive`
 - `POST /api/webhooks/whatsapp` — Bearer token from `config('services.evolution.api_key')`
 - Validate auth/payload first; heavy work via queue/jobs
 - Images → store → pending Invoice; text keywords (`spend`/`total`) → monthly total reply
+- Text manual invoice format → pending Invoice (no image) → label job → `requires_manual_review`
+- Optional merchant payment token: `qr` / `tngo` / `card` (Mastercard) / `cash` / … (default cash)
 
 ## Google Drive
 

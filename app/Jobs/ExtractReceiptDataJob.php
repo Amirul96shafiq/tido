@@ -46,7 +46,15 @@ class ExtractReceiptDataJob implements ShouldQueue
             return;
         }
 
-        if (empty($invoice->image_path) || ! Storage::exists($invoice->image_path)) {
+        if (empty($invoice->image_path)) {
+            Log::info('ExtractReceiptDataJob skipped: invoice has no image (manual text invoice)', [
+                'invoice_id' => $this->invoiceId,
+            ]);
+
+            return;
+        }
+
+        if (! Storage::exists($invoice->image_path)) {
             Log::error('Invoice image path does not exist', ['invoice_id' => $this->invoiceId]);
             $invoice->update(['status' => 'failed']);
 
