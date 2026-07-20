@@ -31,6 +31,19 @@ test('admin panel opens global search with alt+k', function () {
     expect(filament()->getCurrentOrDefaultPanel()->getGlobalSearchKeyBindings())->toBe(['alt+k']);
 });
 
+test('admin panel includes spa-safe alt+k global search shortcut', function () {
+    config([
+        'services.evolution.personal_number' => '60123456789',
+    ]);
+
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $this->actingAs($user)
+        ->get('/admin')
+        ->assertOk()
+        ->assertSee('__tidoGlobalSearchShortcutInstalled', false);
+});
+
 test('only configured resources are globally searchable', function () {
     $searchable = collect(Filament::getResources())
         ->filter(fn (string $resource): bool => $resource::canGloballySearch())
