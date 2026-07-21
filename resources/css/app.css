@@ -1412,6 +1412,36 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply text-[9px] font-bold tracking-wider whitespace-nowrap uppercase text-gray-400 dark:text-slate-500;
 }
 
+/*
+ * Mobile: collapse topbar global search to a size-10 icon button.
+ * Input stays the hit target so global-search-modal still opens on tap.
+ */
+@media (max-width: 1023px) {
+    .fi-topbar .fi-global-search {
+        @apply flex-none;
+    }
+
+    .fi-topbar .fi-global-search-field {
+        @apply relative size-10 shrink-0;
+    }
+
+    .fi-topbar .fi-global-search-field .fi-input-wrp {
+        @apply relative size-10 items-center justify-center overflow-hidden p-0;
+    }
+
+    .fi-topbar .fi-global-search-field .fi-input-wrp-prefix {
+        @apply pointer-events-none absolute inset-0 z-0 flex items-center justify-center p-0 pe-0 ps-0;
+    }
+
+    .fi-topbar .fi-global-search-field .fi-input-wrp-suffix {
+        @apply hidden;
+    }
+
+    .fi-topbar .fi-global-search-field .fi-input {
+        @apply absolute inset-0 z-10 size-full min-w-0 flex-none cursor-pointer border-0 p-0 opacity-0;
+    }
+}
+
 .fi-auth-menu .fi-auth-menu-trigger {
     @apply flex size-10 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60;
 }

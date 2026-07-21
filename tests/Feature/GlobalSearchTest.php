@@ -192,3 +192,19 @@ test('global search keybinding suffix matches collapsed sidebar group title styl
         ->toContain('text-gray-400')
         ->toContain('dark:text-slate-500');
 });
+
+test('topbar global search collapses to icon button on small screens', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('@media (max-width: 1023px)')
+        ->toContain('.fi-topbar .fi-global-search')
+        ->toContain('.fi-topbar .fi-global-search-field')
+        ->toContain('.fi-topbar .fi-global-search-field .fi-input-wrp')
+        ->toContain('.fi-topbar .fi-global-search-field .fi-input-wrp-prefix')
+        ->toContain('.fi-topbar .fi-global-search-field .fi-input-wrp-suffix')
+        ->toContain('.fi-topbar .fi-global-search-field .fi-input')
+        ->toContain('collapse topbar global search to a size-10 icon button')
+        ->toContain('flex-none')
+        ->toContain('opacity-0');
+});
