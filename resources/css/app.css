@@ -1094,6 +1094,30 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     color: var(--color-slate-200);
 }
 
+/*
+ * Draft saved badge — top-start of the content area (below topbar, past sidebar).
+ * Keeps clear of .tido-go-to-bottom (top-end under the user menu).
+ */
+.fi-content-draft-poller {
+    position: fixed;
+    z-index: 40;
+    pointer-events: none;
+    top: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px + 1rem);
+    inset-inline-start: 1rem;
+}
+
+@media (min-width: 1024px) {
+    .fi-body-has-sidebar-collapsible-on-desktop .fi-content-draft-poller {
+        inset-inline-start: calc(var(--collapsed-sidebar-width, 4.5rem) + 1rem);
+        transition: inset-inline-start 300ms ease-in-out;
+    }
+
+    .fi-body-has-sidebar-collapsible-on-desktop:has(.fi-main-ctn-sidebar-open)
+        .fi-content-draft-poller {
+        inset-inline-start: calc(var(--sidebar-width, 18rem) + 1rem);
+    }
+}
+
 .fi-sidebar-item-btn > .fi-icon,
 .fi-sidebar-item-btn > .fi-sidebar-item-icon {
     flex-shrink: 0;

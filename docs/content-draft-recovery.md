@@ -75,7 +75,7 @@ class EditThing extends EditRecord
 
 ## UI
 
-The poller badge (bottom-end) shows a pulsing amber dot + “Draft saved at …” after the first successful `saveDraft`, with a bottom→top entrance transition. It is non-interactive (`pointer-events-none`).
+The poller badge sits at the **top-start** of the content area (below the topbar, past the sidebar) so it does not overlap the go-to-bottom CTA. It shows a pulsing amber dot + “Draft saved at …” after the first successful `saveDraft`, with a top entrance transition. It is non-interactive (`pointer-events-none`).
 
 ## Notes / rich editor fields
 
