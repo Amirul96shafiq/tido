@@ -24,7 +24,7 @@ Use Filament `Schema` for forms (v5), not legacy Form API. Prefer native Form/Ta
 
 - Groups: **Finances** (Invoices, Budgets), **Settings** (Labels, Payment Methods, Backups), **Integrations** (EvolutionAPI)
 - Theme: amber/zinc accents + Slate dark surfaces (see `docs/ui-dark-theme.md`), Outfit font, SPA mode, collapsible sidebar, database notifications
-- Breadcrumbs: disabled panel-wide via `->breadcrumbs(false)` in `AdminPanelProvider` — do not re-enable per resource
+- Breadcrumbs: disabled panel-wide via `->breadcrumbs(false)` in `AdminPanelProvider` — do not re-enable per resource. Create/Edit pages instead show a “Go back to table” link via `PAGE_HEADER_HEADING_BEFORE` (`resources/views/filament/hooks/back-to-table.blade.php`); when adding a new Create/Edit page, include it in both that hook’s scopes and the `PAGE_END` draft-poller scopes.
 - Custom pages: `Dashboard`, `ReceiptUploadPage`, `Auth/EditProfile`, `EvolutionApiPage`
 
 ## Widgets

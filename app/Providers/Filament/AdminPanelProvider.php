@@ -285,6 +285,20 @@ class AdminPanelProvider extends PanelProvider
                 fn (): string => Blade::render('<x-changelog-modal /><x-restore-backup-modal /><x-drag-drop-config /><x-go-to-top /><x-go-to-bottom /><x-global-search-shortcut />'),
             )
             ->renderHook(
+                PanelsRenderHook::PAGE_HEADER_HEADING_BEFORE,
+                fn (): View => view('filament.hooks.back-to-table'),
+                scopes: [
+                    CreateInvoice::class,
+                    EditInvoice::class,
+                    CreateLabel::class,
+                    EditLabel::class,
+                    CreatePaymentMethod::class,
+                    EditPaymentMethod::class,
+                    CreateBudget::class,
+                    EditBudget::class,
+                ],
+            )
+            ->renderHook(
                 PanelsRenderHook::PAGE_END,
                 fn (): View => view('filament.hooks.content-draft-poller'),
                 scopes: [
