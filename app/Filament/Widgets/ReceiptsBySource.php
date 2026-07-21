@@ -45,17 +45,17 @@ class ReceiptsBySource extends ChartWidget
         return $this->analytics()->receiptsBySource()->isEmpty();
     }
 
-    protected function getEmptyStateHeading(): string
+    public function getEmptyStateHeading(): string
     {
         return 'No receipts';
     }
 
-    protected function getEmptyStateDescription(): string
+    public function getEmptyStateDescription(): string
     {
         return 'No receipts recorded for this month.';
     }
 
-    protected function getEmptyStateIcon(): string
+    public function getEmptyStateIcon(): string
     {
         return 'heroicon-o-arrow-up-tray';
     }

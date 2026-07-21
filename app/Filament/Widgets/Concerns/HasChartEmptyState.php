@@ -4,21 +4,29 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets\Concerns;
 
+use BackedEnum;
+use Illuminate\Contracts\Support\Htmlable;
+
 trait HasChartEmptyState
 {
     abstract protected function isChartEmpty(): bool;
 
-    protected function getEmptyStateHeading(): string
+    public function isEmpty(): bool
+    {
+        return $this->isChartEmpty();
+    }
+
+    public function getEmptyStateHeading(): string|Htmlable
     {
         return 'No data';
     }
 
-    protected function getEmptyStateDescription(): string
+    public function getEmptyStateDescription(): string|Htmlable|null
     {
         return 'Nothing recorded for this month.';
     }
 
-    protected function getEmptyStateIcon(): string
+    public function getEmptyStateIcon(): string|BackedEnum|Htmlable
     {
         return 'heroicon-o-chart-bar';
     }

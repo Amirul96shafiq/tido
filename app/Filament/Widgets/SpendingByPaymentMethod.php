@@ -45,17 +45,17 @@ class SpendingByPaymentMethod extends ChartWidget
         return $this->analytics()->spentByPaymentMethod()->isEmpty();
     }
 
-    protected function getEmptyStateHeading(): string
+    public function getEmptyStateHeading(): string
     {
         return 'No expenses';
     }
 
-    protected function getEmptyStateDescription(): string
+    public function getEmptyStateDescription(): string
     {
         return 'No payment method spending recorded for this month.';
     }
 
-    protected function getEmptyStateIcon(): string
+    public function getEmptyStateIcon(): string
     {
         return 'heroicon-o-credit-card';
     }

@@ -1,10 +1,11 @@
 @php
+    use Filament\Support\View\ComponentAttributeBag as FilamentComponentAttributeBag;
     use Filament\Widgets\View\Components\ChartWidgetComponent;
-    use Illuminate\View\ComponentAttributeBag;
+    use Illuminate\Contracts\Support\Htmlable;
 
     $color = $this->getColor();
     $heading = $this->getHeading();
-    $isEmpty = $this->isChartEmpty();
+    $isEmpty = $this->isEmpty();
     $description = $isEmpty ? null : $this->getDescription();
     $filters = $this->getFilters();
     $isCollapsible = $this->isCollapsible();
@@ -13,6 +14,10 @@
     $hasMaxHeight = filled($maxHeight) && $maxHeight !== '100%';
     $selectedMonth = method_exists($this, 'formatSelectedMonth') ? $this->formatSelectedMonth('Y-m') : 'unknown';
     $resolvedPollingInterval = $this->getPollingInterval();
+    $chartAccessibleLabel = trim(implode('. ', array_filter([
+        $heading instanceof Htmlable ? strip_tags($heading->toHtml()) : $heading,
+        $description instanceof Htmlable ? strip_tags($description->toHtml()) : $description,
+    ], fn ($value): bool => filled($value))));
 @endphp
 
 <x-filament-widgets::widget class="fi-wi-chart">
@@ -30,6 +35,7 @@
                         class="fi-wi-chart-filter"
                     >
                         <x-filament::input.select
+                            :aria-label="__('filament-widgets::chart.filter.label')"
                             inline-prefix
                             wire:model.live="filter"
                         >
@@ -118,16 +124,21 @@
                                     type: @js($type),
                                 })"
                         {{
-                            (new ComponentAttributeBag)
+                            (new FilamentComponentAttributeBag)
                                 ->color(ChartWidgetComponent::class, $color)
                                 ->class([
+                                    'fi-wi-chart-frame',
                                     'fi-wi-chart-canvas-ctn',
-                                    'fi-wi-chart-canvas-ctn-no-aspect-ratio' => $hasMaxHeight,
+                                    'fi-wi-chart-frame-no-aspect-ratio' => $hasMaxHeight,
                                 ])
                         }}
                     >
                         <canvas
                             x-ref="canvas"
+                            @if (filled($chartAccessibleLabel))
+                                role="img"
+                                aria-label="{{ $chartAccessibleLabel }}"
+                            @endif
                             @style([
                                 'width: 100%',
                                 'height: 100%; max-height: 100%' => ! $hasMaxHeight,

@@ -48,17 +48,17 @@ class TopMerchants extends ChartWidget
         return $this->analytics()->topMerchants()->isEmpty();
     }
 
-    protected function getEmptyStateHeading(): string
+    public function getEmptyStateHeading(): string
     {
         return 'No merchants';
     }
 
-    protected function getEmptyStateDescription(): string
+    public function getEmptyStateDescription(): string
     {
         return 'No merchant spending recorded for this month.';
     }
 
-    protected function getEmptyStateIcon(): string
+    public function getEmptyStateIcon(): string
     {
         return 'heroicon-o-building-storefront';
     }

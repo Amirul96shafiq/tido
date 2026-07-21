@@ -47,17 +47,17 @@ class SpendingByLabel extends ChartWidget
         return $this->analytics()->spentByLabel()->isEmpty();
     }
 
-    protected function getEmptyStateHeading(): string
+    public function getEmptyStateHeading(): string
     {
         return 'No expenses';
     }
 
-    protected function getEmptyStateDescription(): string
+    public function getEmptyStateDescription(): string
     {
         return 'No label spending recorded for this month.';
     }
 
-    protected function getEmptyStateIcon(): string
+    public function getEmptyStateIcon(): string
     {
         return 'heroicon-o-tag';
     }

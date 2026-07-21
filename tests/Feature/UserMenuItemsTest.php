@@ -77,7 +77,9 @@ test('topbar hides notification bell and exposes notifications in user menu', fu
     $response->assertSee('Notifications', false);
     $response->assertSee("\$dispatch('open-modal', { id: 'database-notifications' })", false);
     $response->assertSee('menuOpen', false);
-    $response->assertSee('offset: -48', false);
+    $response->assertSee("getAttribute('aria-expanded') === 'true'", false);
+    $response->assertDontSee("dropdownTrigger.getAttribute('aria-expanded') === 'true'", false);
+    $response->assertSee('offset: -39', false);
 });
 
 test('topbar user menu chrome matches collapsed sidebar square with left border', function () {
@@ -132,11 +134,11 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->toContain('relative')
         ->and($itemBadgeBlock)
         ->toContain('absolute')
-        ->toContain('left-7')
+        ->toContain('left-4')
         ->and($profilePreviewBlock)
         ->toContain('items-center')
         ->and($profileAvatarBlock)
         ->toContain('justify-center')
         ->and($profileAvatarSizeBlock)
-        ->toContain('size-12');
+        ->toContain('size-16');
 });

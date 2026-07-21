@@ -622,8 +622,7 @@ html:not(.dark) .tido-auth-login-toast-close:hover {
     background-color: rgb(15 23 42 / 0.06);
 }
 
-/* OTP digit boxes — full width; letter-spacing must use length units (not %),
-   because % in letter-spacing resolves against font-size and collapses to 0. */
+/* OTP digit boxes — Filament 5.7+ renders six .fi-one-time-code-input-digit inputs. */
 .fi-one-time-code-input-ctn {
     --otp-gap: 0.5rem;
     --otp-digit-count: 6;
@@ -633,8 +632,8 @@ html:not(.dark) .tido-auth-login-toast-close:hover {
     gap: var(--otp-gap);
 }
 
-.fi-one-time-code-input-ctn > .fi-one-time-code-input-digit-field {
-    @apply relative inline-block min-w-0 shrink rounded-lg border-none bg-white shadow-sm ring-1 ring-gray-950/10 transition duration-75 dark:bg-gray-900 dark:ring-white/10;
+.fi-one-time-code-input-ctn > .fi-one-time-code-input-digit {
+    @apply relative min-w-0 shrink rounded-lg border-none bg-white font-sans font-bold text-gray-950 shadow-sm ring-1 ring-gray-950/10 transition duration-75 focus:ring-2 focus:ring-primary-600 focus:outline-none dark:bg-gray-900 dark:text-white dark:ring-white/10 dark:focus:ring-primary-500;
 
     display: inline-flex;
     align-items: center;
@@ -643,93 +642,25 @@ html:not(.dark) .tido-auth-login-toast-close:hover {
     width: auto;
     height: auto;
     aspect-ratio: 1 / 1;
-}
-
-.fi-one-time-code-input-ctn > .fi-one-time-code-input-digit-field.fi-active,
-.fi-one-time-code-input-ctn
-    > .fi-one-time-code-input-digit-field.tido-otp-current {
-    @apply ring-2 ring-primary-600 dark:ring-primary-500;
-}
-
-.tido-otp-digit {
-    pointer-events: none;
-    @apply font-sans font-bold;
+    text-align: center;
     font-size: clamp(1rem, calc((100cqi - 5 * 0.5rem) / 6 * 0.42), 1.5rem);
     font-variant-numeric: tabular-nums;
     line-height: 1;
-    color: rgb(3 7 18);
+    caret-color: var(--primary-600);
 }
 
-.dark .tido-otp-digit {
-    color: rgb(255 255 255);
+.dark .fi-one-time-code-input-ctn > .fi-one-time-code-input-digit {
+    caret-color: var(--primary-500);
 }
 
-.tido-otp-caret {
-    pointer-events: none;
-    display: block;
-    width: 2px;
-    height: 1.15em;
-    margin-inline-start: 0.05em;
-    flex-shrink: 0;
-    background-color: var(--primary-600);
-    animation: tido-otp-caret-blink 1s steps(1, end) infinite;
+.fi-one-time-code-input-ctn > .fi-one-time-code-input-digit::selection {
+    background-color: color-mix(in oklab, var(--primary-600) 25%, transparent);
+    color: inherit;
 }
 
-.dark .tido-otp-caret {
-    background-color: var(--primary-500);
-}
-
-@keyframes tido-otp-caret-blink {
-    0%,
-    100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0;
-    }
-}
-
-input[type="text"].fi-one-time-code-input {
-    --otp-digit-size: calc(
-        (100cqi - (var(--otp-digit-count) - 1) * var(--otp-gap)) /
-            var(--otp-digit-count)
-    );
-
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    box-sizing: border-box;
-    border: none !important;
-    background: transparent !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    font-family: var(--font-sans) !important;
-    font-weight: 700 !important;
-    font-size: clamp(
-        1rem,
-        calc(var(--otp-digit-size) * 0.42),
-        1.5rem
-    ) !important;
-    line-height: var(--otp-digit-size) !important;
-    letter-spacing: calc(
-        var(--otp-digit-size) + var(--otp-gap) - 0.5em
-    ) !important;
-    padding-left: calc((var(--otp-digit-size) - 0.5em) / 2) !important;
-    color: transparent !important;
-    -webkit-text-fill-color: transparent !important;
-    caret-color: transparent !important;
-    text-align: left;
-}
-
-input[type="text"].fi-one-time-code-input::selection {
-    background-color: transparent;
-    color: transparent;
-}
-
-input[type="text"].fi-one-time-code-input::-moz-selection {
-    background-color: transparent;
-    color: transparent;
+.fi-one-time-code-input-ctn > .fi-one-time-code-input-digit::-moz-selection {
+    background-color: color-mix(in oklab, var(--primary-600) 25%, transparent);
+    color: inherit;
 }
 
 /* Keep logo in sidebar when expanded; show a single themed logo in topbar when collapsed */
@@ -2164,17 +2095,17 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     min-height: 0;
 }
 
-.fi-wi-chart-canvas-ctn-no-aspect-ratio {
+.fi-wi-chart-frame-no-aspect-ratio {
     height: 300px;
     max-height: 300px;
 }
 
-.fi-wi-chart-canvas-ctn-no-aspect-ratio:has(canvas[style*='max-height: 200px']) {
+.fi-wi-chart-frame-no-aspect-ratio:has(canvas[style*='max-height: 200px']) {
     height: 200px;
     max-height: 200px;
 }
 
-.fi-wi-chart-canvas-ctn-no-aspect-ratio canvas {
+.fi-wi-chart-frame-no-aspect-ratio canvas {
     height: 100% !important;
     max-height: none !important;
 }

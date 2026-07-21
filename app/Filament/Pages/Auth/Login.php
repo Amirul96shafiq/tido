@@ -121,10 +121,9 @@ class Login extends BaseLogin
             ->autofocus(fn (): bool => $this->loginMode === 'otp')
             ->required(fn (): bool => $this->loginMode === 'otp')
             ->visible(fn (): bool => $this->loginMode === 'otp')
-            ->extraInputAttributes([
-                // Paint digits into each cell — input letter-spacing paint drifts visually even when metrics match.
-                // Also mark the insertion cell and show a blinking caret (native caret stays transparent).
-                // Avoid ->live() here: Livewire remorph wipes .tido-otp-digit spans (input text is transparent).
+            // Filament 5.7+ uses six real digit inputs; do not paint/overlay or force transparent text.
+            // Container-level sync keeps Verify enabled without ->live() remorph.
+            ->extraAttributes([
                 'x-init' => <<<'JS'
                     if (window.Alpine && ! Alpine.store('tidoLoginOtp')) {
                         Alpine.store('tidoLoginOtp', { len: 0 })
@@ -150,60 +149,19 @@ class Login extends BaseLogin
                         }
                     }
 
-                    const paintOtpDigits = () => {
-                        const ctn = $el.closest('.fi-one-time-code-input-ctn')
-                        if (! ctn) {
-                            return
-                        }
+                    const syncOtpUi = () => {
+                        const digitInputs = Array.from($el.querySelectorAll('.fi-one-time-code-input-digit'))
+                        const digitLen = digitInputs.map((input) => input.value).join('').replace(/\D/g, '').length
 
-                        const cells = Array.from(ctn.children).filter((node) => node.tagName === 'DIV')
-                        const digits = String($el.value || '').replace(/\D/g, '')
-                        const isFocused = document.activeElement === $el
-                        const isFull = digits.length >= cells.length
-                        const currentIndex = isFocused
-                            ? Math.min(digits.length, cells.length - 1)
-                            : null
-
-                        syncVerifyButton(digits.length)
-
-                        cells.forEach((cell, index) => {
-                            let label = cell.querySelector('.tido-otp-digit')
-                            if (! label) {
-                                label = document.createElement('span')
-                                label.className = 'tido-otp-digit'
-                                label.setAttribute('aria-hidden', 'true')
-                                cell.appendChild(label)
-                            }
-                            label.textContent = digits[index] || ''
-
-                            const isCurrent = currentIndex !== null && index === currentIndex
-                            cell.classList.toggle('tido-otp-current', isCurrent)
-
-                            let caret = cell.querySelector('.tido-otp-caret')
-                            if (isCurrent && ! isFull) {
-                                if (! caret) {
-                                    caret = document.createElement('span')
-                                    caret.className = 'tido-otp-caret'
-                                    caret.setAttribute('aria-hidden', 'true')
-                                    cell.appendChild(caret)
-                                }
-                            } else if (caret) {
-                                caret.remove()
-                            }
-                        })
-
-                        $el.style.color = 'transparent'
-                        $el.style.webkitTextFillColor = 'transparent'
-                        $el.style.caretColor = 'transparent'
+                        syncVerifyButton(digitLen)
                     }
 
-                    $nextTick(() => paintOtpDigits())
-                    $el.addEventListener('input', () => paintOtpDigits())
-                    $el.addEventListener('focus', () => paintOtpDigits())
-                    $el.addEventListener('blur', () => paintOtpDigits())
-                    $el.addEventListener('keyup', () => paintOtpDigits())
+                    $nextTick(() => syncOtpUi())
+                    $el.addEventListener('input', () => syncOtpUi())
+                    $el.addEventListener('keyup', () => syncOtpUi())
+                    $el.addEventListener('focusin', () => syncOtpUi())
                     $el.addEventListener('paste', () => {
-                        requestAnimationFrame(() => paintOtpDigits())
+                        requestAnimationFrame(() => syncOtpUi())
                     })
                 JS,
             ]);
