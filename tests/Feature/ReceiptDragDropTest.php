@@ -40,6 +40,21 @@ test('drag drop upload ignores non-file and sortable list drags', function () {
         ->toContain('shouldIgnoreEvent(event)');
 });
 
+test('drag drop upload includes FilePond-style drip blob that follows the cursor', function () {
+    $source = (string) file_get_contents(resource_path('js/drag-drop-upload.js'));
+
+    expect($source)
+        ->toContain('drag-drop-drip-blob')
+        ->toContain('moveDrip(event)')
+        ->toContain('clientX')
+        ->toContain('clientY')
+        ->toContain('hideDrip(')
+        ->toContain('DRIP_INITIAL_SCALE')
+        ->toContain('springStep')
+        ->toContain('dropDrip()')
+        ->toContain('scale3d');
+});
+
 test('drag drop language bootstrap includes expected copy', function () {
     $this->get(Dashboard::getUrl())
         ->assertSuccessful()

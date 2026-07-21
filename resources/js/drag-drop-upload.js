@@ -15,11 +15,29 @@ const UPLOAD_FIELD_SELECTORS = [
     'input[name*="receipts"]',
 ];
 
+/**
+ * FilePond default spring (stiffness .5, damping .75, mass 10).
+ * Matches filament/forms FileUpload drip-blob motion.
+ */
+const DRIP_SPRING = {
+    stiffness: 0.5,
+    damping: 0.75,
+    mass: 10,
+    restEpsilon: 0.001,
+};
+
+const DRIP_VISIBLE_OPACITY = 0.4;
+const DRIP_OPACITY_MS = 250;
+const DRIP_INITIAL_SCALE = 2.5;
+
 const DragDropUpload = {
     overlay: null,
+    drip: null,
     dragCounter: 0,
     active: false,
     listeners: [],
+    dripRafId: null,
+    dripState: null,
 
     allowedTypes: [
         'image/jpeg',
@@ -55,6 +73,8 @@ const DragDropUpload = {
 
     teardown() {
         this.dragCounter = 0;
+        this.stopDripAnimation();
+        this.hideDrip({ immediate: true });
 
         this.listeners.forEach(({ eventName, handler }) => {
             document.removeEventListener(eventName, handler, false);
@@ -66,6 +86,8 @@ const DragDropUpload = {
         }
 
         this.overlay = null;
+        this.drip = null;
+        this.dripState = null;
         this.active = false;
     },
 
@@ -96,8 +118,34 @@ const DragDropUpload = {
             backdrop-filter: blur(10px);
             flex-direction: column;
             pointer-events: none;
+            overflow: hidden;
         `;
-        this.overlay.innerHTML = `
+        this.drip = document.createElement('div');
+        this.drip.id = 'drag-drop-drip-blob';
+        this.drip.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 8em;
+            height: 8em;
+            margin-top: -4em;
+            margin-left: -4em;
+            border-radius: 50%;
+            background: rgb(120, 53, 15);
+            opacity: 0;
+            pointer-events: none;
+            will-change: transform, opacity;
+            transform-origin: 50% 50%;
+            transition: opacity ${DRIP_OPACITY_MS}ms linear;
+            z-index: 0;
+        `;
+        this.overlay.appendChild(this.drip);
+        this.resetDripState(0, 0);
+
+        const content = document.createElement('div');
+        content.style.cssText =
+            'position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center;';
+        content.innerHTML = `
             <svg class="w-12 h-12 mb-4 animate-bounce" style="animation-duration: 2s; width: 3rem; height: 3rem; margin-bottom: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"></path>
             </svg>
@@ -112,7 +160,211 @@ const DragDropUpload = {
                 }</div>
             </div>
         `;
+        this.overlay.appendChild(content);
+
         document.body.appendChild(this.overlay);
+    },
+
+    resetDripState(x, y) {
+        this.dripState = {
+            x,
+            y,
+            scale: DRIP_INITIAL_SCALE,
+            targetX: x,
+            targetY: y,
+            targetScale: DRIP_INITIAL_SCALE,
+            vx: 0,
+            vy: 0,
+            vs: 0,
+            hideOverlayWhenResting: false,
+        };
+        this.applyDripTransform();
+    },
+
+    showOverlay() {
+        if (!this.overlay) {
+            return;
+        }
+
+        this.overlay.style.display = 'flex';
+    },
+
+    hideOverlay({ immediate = false } = {}) {
+        if (immediate) {
+            this.stopDripAnimation();
+            if (this.overlay) {
+                this.overlay.style.display = 'none';
+            }
+            this.hideDrip({ immediate: true });
+            return;
+        }
+
+        if (this.overlay) {
+            this.overlay.style.display = 'none';
+        }
+
+        this.hideDrip({ immediate: true });
+    },
+
+    applyDripTransform() {
+        if (!this.drip || !this.dripState) {
+            return;
+        }
+
+        const { x, y, scale } = this.dripState;
+        this.drip.style.transform = `translate3d(${x}px, ${y}px, 0) scale3d(${scale}, ${scale}, 1)`;
+    },
+
+    setDripOpacity(opacity) {
+        if (!this.drip) {
+            return;
+        }
+
+        this.drip.style.opacity = String(opacity);
+    },
+
+    stopDripAnimation() {
+        if (this.dripRafId !== null) {
+            cancelAnimationFrame(this.dripRafId);
+            this.dripRafId = null;
+        }
+    },
+
+    springStep(current, target, velocity) {
+        const force = -(current - target) * DRIP_SPRING.stiffness;
+        const nextVelocity =
+            (velocity + force / DRIP_SPRING.mass) * DRIP_SPRING.damping;
+        let nextCurrent = current + nextVelocity;
+
+        if (
+            Math.abs(nextCurrent - target) < DRIP_SPRING.restEpsilon &&
+            Math.abs(nextVelocity) < DRIP_SPRING.restEpsilon
+        ) {
+            return { value: target, velocity: 0, resting: true };
+        }
+
+        return { value: nextCurrent, velocity: nextVelocity, resting: false };
+    },
+
+    tickDripAnimation() {
+        this.dripRafId = null;
+
+        if (!this.drip || !this.dripState) {
+            return;
+        }
+
+        const state = this.dripState;
+        const xStep = this.springStep(state.x, state.targetX, state.vx);
+        const yStep = this.springStep(state.y, state.targetY, state.vy);
+        const scaleStep = this.springStep(
+            state.scale,
+            state.targetScale,
+            state.vs,
+        );
+
+        state.x = xStep.value;
+        state.vx = xStep.velocity;
+        state.y = yStep.value;
+        state.vy = yStep.velocity;
+        state.scale = scaleStep.value;
+        state.vs = scaleStep.velocity;
+
+        this.applyDripTransform();
+
+        const resting = xStep.resting && yStep.resting && scaleStep.resting;
+
+        if (!resting) {
+            this.dripRafId = requestAnimationFrame(() =>
+                this.tickDripAnimation(),
+            );
+            return;
+        }
+
+        if (state.hideOverlayWhenResting && this.overlay) {
+            this.overlay.style.display = 'none';
+            state.hideOverlayWhenResting = false;
+            this.resetDripState(state.x, state.y);
+            this.setDripOpacity(0);
+        }
+    },
+
+    startDripAnimation() {
+        if (this.dripRafId !== null) {
+            return;
+        }
+
+        this.dripRafId = requestAnimationFrame(() => this.tickDripAnimation());
+    },
+
+    moveDrip(event) {
+        if (!this.drip || !this.dripState) {
+            return;
+        }
+
+        const { clientX, clientY } = event;
+        const state = this.dripState;
+        const isFirstFrame = state.targetScale === DRIP_INITIAL_SCALE;
+
+        if (isFirstFrame) {
+            state.x = clientX;
+            state.y = clientY;
+            state.scale = DRIP_INITIAL_SCALE;
+            state.vx = 0;
+            state.vy = 0;
+            state.vs = 0;
+            this.applyDripTransform();
+        }
+
+        state.targetX = clientX;
+        state.targetY = clientY;
+        state.targetScale = 1;
+        state.hideOverlayWhenResting = false;
+        this.setDripOpacity(DRIP_VISIBLE_OPACITY);
+        this.startDripAnimation();
+    },
+
+    hideDrip({ immediate = false, expand = false } = {}) {
+        if (!this.drip || !this.dripState) {
+            return;
+        }
+
+        const state = this.dripState;
+
+        if (immediate) {
+            this.stopDripAnimation();
+            this.setDripOpacity(0);
+            this.resetDripState(state.targetX, state.targetY);
+            return;
+        }
+
+        this.setDripOpacity(0);
+
+        if (expand) {
+            // FilePond DID_DROP: scale to 2.5 + fade opacity
+            state.targetScale = DRIP_INITIAL_SCALE;
+            state.hideOverlayWhenResting = true;
+            this.startDripAnimation();
+            return;
+        }
+
+        // FilePond DID_END_DRAG: fade opacity only
+        window.setTimeout(() => {
+            if (!this.overlay) {
+                return;
+            }
+
+            this.overlay.style.display = 'none';
+            this.stopDripAnimation();
+            this.resetDripState(state.targetX, state.targetY);
+        }, DRIP_OPACITY_MS);
+    },
+
+    endDrip() {
+        this.hideDrip({ expand: false });
+    },
+
+    dropDrip() {
+        this.hideDrip({ expand: true });
     },
 
     addListener(eventName, handler) {
@@ -173,8 +425,9 @@ const DragDropUpload = {
         }
 
         this.dragCounter++;
-        if (this.dragCounter === 1 && this.overlay) {
-            this.overlay.style.display = 'flex';
+        if (this.dragCounter === 1) {
+            this.showOverlay();
+            this.moveDrip(event);
         }
     },
 
@@ -184,9 +437,8 @@ const DragDropUpload = {
         }
 
         event.preventDefault();
-        if (this.overlay) {
-            this.overlay.style.display = 'flex';
-        }
+        this.showOverlay();
+        this.moveDrip(event);
     },
 
     handleDragLeave(event) {
@@ -195,16 +447,14 @@ const DragDropUpload = {
         }
 
         this.dragCounter--;
-        if (this.dragCounter === 0 && this.overlay) {
-            this.overlay.style.display = 'none';
+        if (this.dragCounter === 0) {
+            this.endDrip();
         }
     },
 
     handleDrop(event) {
         this.dragCounter = 0;
-        if (this.overlay) {
-            this.overlay.style.display = 'none';
-        }
+        this.dropDrip();
 
         if (!this.isFileDrag(event) || this.shouldIgnoreEvent(event)) {
             return;
