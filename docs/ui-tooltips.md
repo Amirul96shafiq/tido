@@ -44,6 +44,22 @@ x-tooltip="{
 
 Keep `aria-label` for accessibility. Do **not** also set `title=` (double tooltips).
 
+## Mobile (below `sm`)
+
+Filament Tippy is **disabled** below Tailwind `sm` (`max-width: 639px`):
+
+| Layer | File |
+|-------|------|
+| Cancel show + `touch: false` | [`resources/js/disable-mobile-tippy.js`](../resources/js/disable-mobile-tippy.js) |
+| Hide any mounted Tippy root | [`resources/css/app.css`](../resources/css/app.css) (`[data-tippy-root]`) |
+| Asset registration | [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php) |
+
+**Keep** `aria-label` (or Action labels) so icon CTAs stay accessible when Tippy is off.
+
+**Exception:** Chart.js widget tooltips (tap a chart segment for details) are **not** Tippy — they stay enabled. Theming lives in [`filament-chart-js-plugins.js`](../resources/js/filament-chart-js-plugins.js).
+
+**Test:** `tests/Feature/MobileTippyTest.php`.
+
 ### High z-index custom modals
 
 Tippy defaults to `zIndex: 9999`. Custom shells that use `z-index: 99999` (changelog, restore backup) must raise Tippy above the shell:

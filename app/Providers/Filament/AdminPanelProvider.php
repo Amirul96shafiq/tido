@@ -88,6 +88,10 @@ class AdminPanelProvider extends PanelProvider
                     Vite::asset('resources/js/filament-chart-js-plugins.js'),
                 )->module(),
                 Js::make(
+                    'disable-mobile-tippy',
+                    Vite::asset('resources/js/disable-mobile-tippy.js'),
+                )->module(),
+                Js::make(
                     'drag-drop-upload',
                     Vite::asset('resources/js/drag-drop-upload.js'),
                 )->module(),
