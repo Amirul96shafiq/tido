@@ -1631,9 +1631,13 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     }
 }
 
-/* Highlight Filament's native section ring (extraAttributes land on .fi-sc-section). */
+/* Light danger tint + ring (extraAttributes land on .fi-sc-section). */
 .fi-danger-zone-section > .fi-section {
-    @apply ring-red-500 dark:ring-red-500;
+    @apply bg-danger-50/80 dark:bg-danger-500/10 ring-danger-500 dark:ring-danger-500;
+}
+
+.fi-danger-zone-section > .fi-section.fi-section-has-header:not(.fi-collapsed) > .fi-section-content-ctn {
+    @apply border-danger-300/50 dark:border-danger-500/40;
 }
 
 /*
