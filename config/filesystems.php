@@ -41,7 +41,9 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // Relative so FilePond/browser fetch stay same-origin when APP_URL
+            // is a LAN IP but the app is opened via localhost (or vice versa).
+            'url' => '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
