@@ -55,21 +55,21 @@
                         Alpine.store('tidoNotifications').menuOpen = false;
                     }
 
-                    const dropdownTrigger = $el.closest('.fi-dropdown-trigger');
+                    // Filament 5.7+: aria-expanded lives on the focusable button; the
+                    // .fi-dropdown-trigger wrapper attribute is stripped by dropdown.js.
+                    const expandTarget = $el;
 
-                    if (dropdownTrigger) {
-                        const syncMenuOpen = () => {
-                            Alpine.store('tidoNotifications').menuOpen =
-                                dropdownTrigger.getAttribute('aria-expanded') === 'true';
-                        };
+                    const syncMenuOpen = () => {
+                        Alpine.store('tidoNotifications').menuOpen =
+                            expandTarget.getAttribute('aria-expanded') === 'true';
+                    };
 
-                        syncMenuOpen();
+                    syncMenuOpen();
 
-                        new MutationObserver(syncMenuOpen).observe(dropdownTrigger, {
-                            attributes: true,
-                            attributeFilter: ['aria-expanded'],
-                        });
-                    }
+                    new MutationObserver(syncMenuOpen).observe(expandTarget, {
+                        attributes: true,
+                        attributeFilter: ['aria-expanded'],
+                    });
                 "
                 x-tooltip="{
                     content: @js(__('filament-panels::layout.actions.open_user_menu.label')),

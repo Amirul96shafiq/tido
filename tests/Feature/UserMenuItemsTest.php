@@ -77,6 +77,8 @@ test('topbar hides notification bell and exposes notifications in user menu', fu
     $response->assertSee('Notifications', false);
     $response->assertSee("\$dispatch('open-modal', { id: 'database-notifications' })", false);
     $response->assertSee('menuOpen', false);
+    $response->assertSee("getAttribute('aria-expanded') === 'true'", false);
+    $response->assertDontSee("dropdownTrigger.getAttribute('aria-expanded') === 'true'", false);
     $response->assertSee('offset: -39', false);
 });
 
