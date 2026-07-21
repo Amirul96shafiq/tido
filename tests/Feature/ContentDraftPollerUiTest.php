@@ -10,7 +10,7 @@ test('draft saved poller is fixed at top-start clear of sidebar and topbar', fun
 
     expect($block)
         ->toContain('position: fixed;')
-        ->toContain('z-index: 40;')
+        ->toContain('z-index: 35;')
         ->toContain('pointer-events: none;')
         ->toContain('top: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px + 1rem);')
         ->toContain('inset-inline-start: 1rem;')

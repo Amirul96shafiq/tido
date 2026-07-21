@@ -907,7 +907,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     position: fixed;
     right: 1px;
     bottom: 0;
-    z-index: 40;
+    z-index: 35;
     width: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
     height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
     box-sizing: border-box;
@@ -1031,7 +1031,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
  */
 .fi-content-draft-poller {
     position: fixed;
-    z-index: 40;
+    z-index: 35;
     pointer-events: none;
     top: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px + 1rem);
     inset-inline-start: 1rem;

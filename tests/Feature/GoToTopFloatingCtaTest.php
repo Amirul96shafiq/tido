@@ -10,6 +10,7 @@ test('go to top is fixed flush bottom-right at collapsed chrome size', function 
 
     expect($block)
         ->toContain('position: fixed;')
+        ->toContain('z-index: 35;')
         ->toContain('right: 1px;')
         ->toContain('bottom: 0;')
         ->toContain("width: {$expectedSize};")
