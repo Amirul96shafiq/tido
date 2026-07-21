@@ -83,12 +83,16 @@ class MonthlySpendingOverview extends BaseWidget
 
             if ($overallMonthlyBudget) {
                 $budgetStatus = ($projectedSpend / $overallMonthlyBudget) * 100;
+                // Whole-percent display must not round a true exceed (e.g. 100.4%) back to 100%.
+                $displayBudgetPercent = $budgetStatus > 100
+                    ? (int) max(101, (int) round($budgetStatus))
+                    : (int) round($budgetStatus);
 
                 if ($budgetStatus > 100) {
-                    $forecastDesc = sprintf('Projected to EXCEED budget (%.0f%%)', $budgetStatus);
+                    $forecastDesc = sprintf('Projected to EXCEED budget (%d%%)', $displayBudgetPercent);
                     $forecastColor = 'danger';
                 } else {
-                    $forecastDesc = sprintf('Projected at %.0f%% of budget (%s)', $budgetStatus, MoneyDisplay::withPrefix($overallMonthlyBudget));
+                    $forecastDesc = sprintf('Projected at %d%% of budget (%s)', $displayBudgetPercent, MoneyDisplay::withPrefix($overallMonthlyBudget));
                     $forecastColor = 'success';
                 }
             }
