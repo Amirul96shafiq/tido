@@ -12,6 +12,7 @@ use App\Models\Invoice;
 use App\Models\User;
 use App\Observers\InvoiceObserver;
 use App\View\Components\ButtonComponent;
+use BladeUI\Icons\Factory;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Auth\Http\Responses\Contracts\LogoutResponse as LogoutResponseContract;
@@ -51,6 +52,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->callAfterResolving(Factory::class, function (Factory $factory): void {
+            $factory->add('tido', [
+                'path' => resource_path('svg'),
+                'prefix' => 'icon',
+            ]);
+        });
+
         Invoice::observe(InvoiceObserver::class);
 
         Event::listen(BackupWasSuccessful::class, RegisterScheduledBackupCatalog::class);

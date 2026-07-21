@@ -36,7 +36,7 @@ class EvolutionApiPage extends Page implements HasTable
 
     protected static ?string $slug = 'evolution-api';
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-qr-code';
+    protected static string|\BackedEnum|null $navigationIcon = 'icon-evolution-api';
 
     protected static ?string $navigationLabel = 'EvolutionAPI';
 
@@ -1072,7 +1072,7 @@ class EvolutionApiPage extends Page implements HasTable
             ->title('EvolutionAPI disconnected')
             ->body('Your EvolutionAPI session is closed or disconnected. Use Connect to scan a QR or pair with a code.')
             ->warning()
-            ->icon('heroicon-o-qr-code')
+            ->icon('icon-evolution-api')
             ->actions([
                 Action::make('openEvolutionApi')
                     ->label('Open EvolutionAPI')

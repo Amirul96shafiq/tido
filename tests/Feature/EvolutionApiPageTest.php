@@ -6,8 +6,8 @@ use App\Enums\EvolutionApiConnectionEvent;
 use App\Enums\EvolutionApiConnectMethod;
 use App\Filament\Pages\EvolutionApiPage;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
-use App\Models\User;
 use App\Models\EvolutionApiConnectionLog;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -70,6 +70,7 @@ test('evolution api page uses evolution-api slug', function () {
     expect(EvolutionApiPage::getSlug())->toBe('evolution-api')
         ->and(EvolutionApiPage::getNavigationLabel())->toBe('EvolutionAPI')
         ->and(EvolutionApiPage::getNavigationGroup())->toBe('Integrations')
+        ->and(EvolutionApiPage::getNavigationIcon())->toBe('icon-evolution-api')
         ->and(EvolutionApiPage::getUrl())->toContain('/evolution-api');
 });
 
