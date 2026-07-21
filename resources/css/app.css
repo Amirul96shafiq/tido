@@ -916,12 +916,14 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /* Go to top — flush bottom-right square matching collapsed version footer (71×71)
- * right:1px clears .fi-body::after scrollbar rail (inset-inline-end:0) */
+ * right:1px clears .fi-body::after scrollbar rail (inset-inline-end:0)
+ * z-index must stay below .fi-topbar-ctn (20): user-menu panel is not teleported
+ * out of the topbar stacking context (same constraint as .tido-go-to-bottom). */
 .tido-go-to-top {
     position: fixed;
     right: 1px;
     bottom: 0;
-    z-index: 35;
+    z-index: 15;
     width: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
     height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
     box-sizing: border-box;
