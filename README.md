@@ -70,17 +70,17 @@ flowchart LR
   waImg[WhatsApp_image] --> pending[Pending_Invoice]
   waText[WhatsApp_manual_text] --> pendingManual[Pending_manual_Invoice]
   drive[Drive_sync_15m] --> pending
-  upload[Admin_upload] --> pending
+  upload[Web_upload] --> pending
   pending --> job[ExtractReceiptDataJob]
   job --> ollama[Ollama_vision]
   ollama --> items[Labels_and_line_items]
   items --> review[Parsed_or_manual_review]
   pendingManual --> labelJob[ParseManualWhatsAppInvoiceJob]
   labelJob --> ollamaText[Ollama_text_labels]
-  ollamaText --> manualReview[requires_manual_review]
+  ollamaText --> review
 ```
 
-Invoice statuses: `pending` → `parsed` → `reviewed` (or `requires_manual_review` / `failed`). WhatsApp **manual text** invoices skip vision OCR and land on `requires_manual_review` after label classification. Duplicates use SHA-256 `receipt_hash` (number + datetime + total). Expense tags are the **`Label`** model / `labels` table (UI: **Label** / **Labels**).
+Invoice statuses: `pending` → `parsed` → `reviewed` (or `requires_manual_review` / `failed`). Image receipts (WhatsApp, Drive, or Filament web upload) share the vision path; WhatsApp **manual text** skips vision OCR, uses Ollama for Labels only, and always lands on `requires_manual_review`. Both paths end at `Parsed_or_manual_review`. Duplicates use SHA-256 `receipt_hash` (number + datetime + total). Expense tags are the **`Label`** model / `labels` table (UI: **Label** / **Labels**).
 
 Scheduled jobs (`routes/console.php`): Drive sync every 15 minutes; `backup:run` daily 02:00; `backup:clean` daily 03:00.
 
