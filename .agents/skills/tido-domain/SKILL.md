@@ -66,7 +66,7 @@ Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`
 
 ## Filament map
 
-- Resources: Invoices, Budgets (Finances); Labels, Payment Methods (Settings) — models `Label`, `PaymentMethod`
+- Resources: Invoices, Budgets (Finances); Labels, Payment Methods (Settings); WhatsApp Connection (Integrations) — models `Label`, `PaymentMethod`
 - View records: always `ViewAction::make()->slideOver()` — never dedicated View pages
 - Upload UI: `ReceiptUploadPage` → creates pending invoices
 - Dashboard widgets use `DashboardMonthAnalytics` / month period helpers

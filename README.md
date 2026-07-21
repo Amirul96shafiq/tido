@@ -155,7 +155,8 @@ Integration setup guides: [Ollama](docs/ollama-setup.md) · [Evolution API](docs
 Admin nav:
 
 - **Finances** — Invoices, Budgets
-- **Settings** — Labels, WhatsApp Connection, Backups
+- **Settings** — Labels, Payment Methods, Backups
+- **Integrations** — WhatsApp Connection
 
 **WhatsApp OTP login:** Pair Evolution → set `PERSONAL_WHATSAPP_NUMBER` (and match the user’s phone) → `php artisan whatsapp:ping` → sign in with OTP at `/admin/login`.
 

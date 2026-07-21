@@ -298,6 +298,7 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 NavigationGroup::make('Finances'),
                 NavigationGroup::make('Settings'),
+                NavigationGroup::make('Integrations'),
             ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
