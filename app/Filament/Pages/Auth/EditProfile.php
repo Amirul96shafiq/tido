@@ -206,6 +206,7 @@ class EditProfile extends BaseEditProfile
     {
         return Section::make('Danger Zone')
             ->key('dangerZone')
+            ->collapsed(true)
             ->extraAttributes(['class' => 'fi-danger-zone-section'])
             ->schema([
                 Toggle::make('enable_reset_data')
