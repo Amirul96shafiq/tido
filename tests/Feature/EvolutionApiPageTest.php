@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Enums\WhatsAppConnectionEvent;
-use App\Enums\WhatsAppConnectMethod;
-use App\Filament\Pages\WhatsAppConnectionPage;
-use App\Jobs\SendWhatsAppConnectedAlertJob;
+use App\Enums\EvolutionApiConnectionEvent;
+use App\Enums\EvolutionApiConnectMethod;
+use App\Filament\Pages\EvolutionApiPage;
+use App\Jobs\SendEvolutionApiConnectedAlertJob;
+use App\Models\EvolutionApiConnectionLog;
 use App\Models\User;
-use App\Models\WhatsAppConnectionLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -66,14 +66,15 @@ beforeEach(function () {
     $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
 });
 
-test('whatsapp connection page uses whatsapp-connection slug', function () {
-    expect(WhatsAppConnectionPage::getSlug())->toBe('whatsapp-connection')
-        ->and(WhatsAppConnectionPage::getNavigationLabel())->toBe('WhatsApp Connection')
-        ->and(WhatsAppConnectionPage::getNavigationGroup())->toBe('Integrations')
-        ->and(WhatsAppConnectionPage::getUrl())->toContain('/whatsapp-connection');
+test('evolution api page uses evolution-api slug', function () {
+    expect(EvolutionApiPage::getSlug())->toBe('evolution-api')
+        ->and(EvolutionApiPage::getNavigationLabel())->toBe('EvolutionAPI')
+        ->and(EvolutionApiPage::getNavigationGroup())->toBe('Integrations')
+        ->and(EvolutionApiPage::getNavigationIcon())->toBe('icon-evolution-api')
+        ->and(EvolutionApiPage::getUrl())->toContain('/evolution-api');
 });
 
-test('whatsapp connection page loads for authenticated user', function () {
+test('evolution api page loads for authenticated user', function () {
     Http::fake([
         '*/instance/connectionState/*' => Http::response([
             'instance' => ['state' => 'close'],
@@ -81,7 +82,7 @@ test('whatsapp connection page loads for authenticated user', function () {
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->assertSuccessful()
         ->assertSet('connectionStatus', 'close')
         ->assertActionVisible('refreshStatus')
@@ -99,7 +100,7 @@ test('whatsapp connection page loads for authenticated user', function () {
 });
 
 test('connected status shows linked number and instance details', function () {
-    WhatsAppConnectionLog::factory()->connected()->create([
+    EvolutionApiConnectionLog::factory()->connected()->create([
         'connected_number' => '601115666887',
         'meta' => [
             'source' => 'page',
@@ -115,13 +116,13 @@ test('connected status shows linked number and instance details', function () {
         '*/webhook/find/*' => Http::response(fakeRegisteredWebhook()),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->assertSet('connectionStatus', 'open')
         ->assertSet('connectedNumber', '601115666887')
         ->assertSet('connectedProfileName', 'tido Bot')
         ->assertSet('connectedInstanceId', 'instance-uuid-tido')
         ->assertSet('connectedIntegration', 'WHATSAPP-BAILEYS')
-        ->assertSet('connectedVia', WhatsAppConnectMethod::PairingCode)
+        ->assertSet('connectedVia', EvolutionApiConnectMethod::PairingCode)
         ->assertSet('connectedMessageCount', 12)
         ->assertSet('webhookRegistered', true)
         ->assertSee('Connected number')
@@ -157,14 +158,14 @@ test('register webhook stays enabled when evolution has no webhook yet', functio
         '*/webhook/find/*' => Http::response(null),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->assertSet('connectionStatus', 'open')
         ->assertSet('webhookRegistered', false)
         ->assertActionEnabled('registerWebhook');
 });
 
 test('connected via qr code shows configured device label in details', function () {
-    WhatsAppConnectionLog::factory()->connected()->create([
+    EvolutionApiConnectionLog::factory()->connected()->create([
         'connected_number' => '601115666887',
         'meta' => [
             'source' => 'page',
@@ -179,8 +180,8 @@ test('connected via qr code shows configured device label in details', function 
         '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
-        ->assertSet('connectedVia', WhatsAppConnectMethod::QrCode)
+    Livewire::test(EvolutionApiPage::class)
+        ->assertSet('connectedVia', EvolutionApiConnectMethod::QrCode)
         ->assertSee('tido App (Evolution API)')
         ->assertDontSee('Google Chrome (Mac OS)');
 });
@@ -197,7 +198,7 @@ test('generate qr prefers connect for a fresh code when instance exists', functi
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->call('generateQr')
         ->assertSet('qrBase64', 'data:image/png;base64,BBB')
         ->assertSet('connectionStatus', 'connecting')
@@ -209,7 +210,7 @@ test('generate qr prefers connect for a fresh code when instance exists', functi
 });
 
 test('connect ttl matches evolution baileys qrTimeout of forty-five seconds', function () {
-    expect(WhatsAppConnectionPage::CONNECT_TTL_SECONDS)->toBe(45);
+    expect(EvolutionApiPage::CONNECT_TTL_SECONDS)->toBe(45);
 });
 
 test('pair with code modal uses compact width and blurred overlay hook', function () {
@@ -232,7 +233,7 @@ test('pair with code requests evolution connect with submitted number', function
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->callAction('pairWithCode', data: [
             'number' => '601115666887',
         ])
@@ -256,7 +257,7 @@ test('pair with code validates malaysian phone number', function () {
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->callAction('pairWithCode', data: [
             'number' => 'invalid',
         ])
@@ -279,7 +280,7 @@ test('refresh status does not call connect while a pairing code is active', func
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    $component = Livewire::test(WhatsAppConnectionPage::class)
+    $component = Livewire::test(EvolutionApiPage::class)
         ->callAction('pairWithCode', data: [
             'number' => '601115666887',
         ])
@@ -311,7 +312,7 @@ test('keeps polling while connecting even without a qr or pairing code', functio
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    $component = Livewire::test(WhatsAppConnectionPage::class)
+    $component = Livewire::test(EvolutionApiPage::class)
         ->assertSet('connectionStatus', 'connecting')
         ->assertSet('qrBase64', null)
         ->assertSet('pairingCode', null);
@@ -331,7 +332,7 @@ test('does not call connect sync while evolution reports close during restart', 
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->set('qrBase64', 'data:image/png;base64,old')
         ->set('qrGeneratedAt', time())
         ->set('connectionStatus', 'close')
@@ -355,7 +356,7 @@ test('cancel connecting logs out evolution and clears pairing display', function
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->callAction('pairWithCode', data: [
             'number' => '601115666887',
         ])
@@ -382,7 +383,7 @@ test('cancel connecting is hidden when disconnected without an active attempt', 
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->assertSet('connectionStatus', 'close')
         ->assertActionHidden('cancelConnecting');
 });
@@ -405,7 +406,7 @@ test('pair with code polls connect when evolution is connecting without a code y
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->callAction('pairWithCode', data: [
             'number' => '601115666887',
         ])
@@ -441,7 +442,7 @@ test('copy pairing code action notifies success', function () {
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->callAction('pairWithCode', data: [
             'number' => '601115666887',
         ])
@@ -466,7 +467,7 @@ test('generate qr clears pairing code display', function () {
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->callAction('pairWithCode', data: [
             'number' => '601115666887',
         ])
@@ -498,7 +499,7 @@ test('generate qr creates baileys instance when connect fails', function () {
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->call('generateQr')
         ->assertSet('qrBase64', 'data:image/png;base64,AAA')
         ->assertSet('connectionStatus', 'connecting')
@@ -520,7 +521,7 @@ test('logout session calls evolution logout endpoint', function () {
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->call('logoutSession')
         ->assertSet('qrBase64', null)
         ->assertNotified();
@@ -538,7 +539,7 @@ test('register webhook posts nested webhook payload', function () {
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->call('registerWebhook')
         ->assertSet('webhookRegistered', true)
         ->assertActionDisabled('registerWebhook')
@@ -560,7 +561,7 @@ test('send ping uses personal whatsapp number', function () {
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->call('sendPing')
         ->assertNotified();
 
@@ -592,7 +593,7 @@ test('does not auto-send welcome or webhook when page loads already connected', 
 
     $user = auth()->user();
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->assertSet('connectionStatus', 'open')
         ->assertSet('connectedNumber', '601115666887')
         ->assertSet('welcomePingSent', false)
@@ -606,7 +607,7 @@ test('does not auto-send welcome or webhook when page loads already connected', 
 
 test('auto-registers webhook and queues welcome when status becomes open', function () {
     Queue::fake([
-        SendWhatsAppConnectedAlertJob::class,
+        SendEvolutionApiConnectedAlertJob::class,
     ]);
 
     Http::fake([
@@ -619,7 +620,7 @@ test('auto-registers webhook and queues welcome when status becomes open', funct
 
     $user = auth()->user();
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->assertSet('connectionStatus', 'connecting')
         ->call('refreshStatus')
         ->assertSet('connectionStatus', 'open')
@@ -636,7 +637,7 @@ test('auto-registers webhook and queues welcome when status becomes open', funct
 
     Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/message/sendText/'));
 
-    Queue::assertPushed(SendWhatsAppConnectedAlertJob::class, function (SendWhatsAppConnectedAlertJob $job): bool {
+    Queue::assertPushed(SendEvolutionApiConnectedAlertJob::class, function (SendEvolutionApiConnectedAlertJob $job): bool {
         return $job->connectedNumber === '601115666887'
             && $job->connectMethod === null;
     });
@@ -645,14 +646,14 @@ test('auto-registers webhook and queues welcome when status becomes open', funct
     expect($user->notifications()->count())->toBe(1);
 
     $notification = $user->notifications()->first();
-    expect($notification->data['title'])->toBe('WhatsApp connected')
-        ->and($notification->data['actions'][0]['url'])->toBe(WhatsAppConnectionPage::getUrl())
+    expect($notification->data['title'])->toBe('EvolutionAPI connected')
+        ->and($notification->data['actions'][0]['url'])->toBe(EvolutionApiPage::getUrl())
         ->and($notification->data['actions'][0]['shouldOpenUrlInNewTab'])->toBeTrue();
 
-    expect(WhatsAppConnectionLog::query()->count())->toBe(1);
+    expect(EvolutionApiConnectionLog::query()->count())->toBe(1);
 
-    $log = WhatsAppConnectionLog::query()->first();
-    expect($log->event)->toBe(WhatsAppConnectionEvent::Connected)
+    $log = EvolutionApiConnectionLog::query()->first();
+    expect($log->event)->toBe(EvolutionApiConnectionEvent::Connected)
         ->and($log->connected_number)->toBe('601115666887')
         ->and($log->profile_name)->toBe('tido Bot')
         ->and($log->status)->toBe('open')
@@ -661,7 +662,7 @@ test('auto-registers webhook and queues welcome when status becomes open', funct
 
 test('auto-registers webhook and queues welcome with qr connect method after generate qr', function () {
     Queue::fake([
-        SendWhatsAppConnectedAlertJob::class,
+        SendEvolutionApiConnectedAlertJob::class,
     ]);
 
     Http::fake([
@@ -677,7 +678,7 @@ test('auto-registers webhook and queues welcome with qr connect method after gen
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->call('generateQr')
         ->call('refreshStatus')
         ->assertSet('connectionStatus', 'connecting')
@@ -685,17 +686,17 @@ test('auto-registers webhook and queues welcome with qr connect method after gen
         ->assertSet('connectionStatus', 'open')
         ->assertSet('welcomePingSent', true);
 
-    Queue::assertPushed(SendWhatsAppConnectedAlertJob::class, function (SendWhatsAppConnectedAlertJob $job): bool {
-        return $job->connectMethod === WhatsAppConnectMethod::QrCode;
+    Queue::assertPushed(SendEvolutionApiConnectedAlertJob::class, function (SendEvolutionApiConnectedAlertJob $job): bool {
+        return $job->connectMethod === EvolutionApiConnectMethod::QrCode;
     });
 
-    $log = WhatsAppConnectionLog::query()->latest('id')->first();
+    $log = EvolutionApiConnectionLog::query()->latest('id')->first();
     expect($log->meta['connect_method'] ?? null)->toBe('qr_code');
 });
 
 test('auto-registers webhook and queues welcome with pairing code connect method', function () {
     Queue::fake([
-        SendWhatsAppConnectedAlertJob::class,
+        SendEvolutionApiConnectedAlertJob::class,
     ]);
 
     Http::fake([
@@ -711,7 +712,7 @@ test('auto-registers webhook and queues welcome with pairing code connect method
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->callAction('pairWithCode', data: [
             'number' => '601115666887',
         ])
@@ -721,19 +722,19 @@ test('auto-registers webhook and queues welcome with pairing code connect method
         ->assertSet('connectionStatus', 'open')
         ->assertSet('welcomePingSent', true);
 
-    Queue::assertPushed(SendWhatsAppConnectedAlertJob::class, function (SendWhatsAppConnectedAlertJob $job): bool {
-        return $job->connectMethod === WhatsAppConnectMethod::PairingCode;
+    Queue::assertPushed(SendEvolutionApiConnectedAlertJob::class, function (SendEvolutionApiConnectedAlertJob $job): bool {
+        return $job->connectMethod === EvolutionApiConnectMethod::PairingCode;
     });
 
-    $log = WhatsAppConnectionLog::query()->latest('id')->first();
+    $log = EvolutionApiConnectionLog::query()->latest('id')->first();
     expect($log->meta['connect_method'] ?? null)->toBe('pairing_code');
 });
 
 test('skips whatsapp connection database notifications when preference is disabled', function () {
-    auth()->user()->update(['notify_whatsapp_connection' => false]);
+    auth()->user()->update(['notify_evolution_api' => false]);
 
     Queue::fake([
-        SendWhatsAppConnectedAlertJob::class,
+        SendEvolutionApiConnectedAlertJob::class,
     ]);
 
     Http::fake([
@@ -748,7 +749,7 @@ test('skips whatsapp connection database notifications when preference is disabl
 
     $user = auth()->user();
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->call('refreshStatus')
         ->assertSet('connectionStatus', 'open')
         ->assertSet('welcomePingSent', true)
@@ -758,12 +759,12 @@ test('skips whatsapp connection database notifications when preference is disabl
     $user->refresh();
 
     expect($user->notifications()->count())->toBe(0);
-    expect(WhatsAppConnectionLog::query()->count())->toBe(2);
+    expect(EvolutionApiConnectionLog::query()->count())->toBe(2);
 });
 
 test('welcome message and webhook are only sent once per connect session', function () {
     Queue::fake([
-        SendWhatsAppConnectedAlertJob::class,
+        SendEvolutionApiConnectedAlertJob::class,
     ]);
 
     Http::fake([
@@ -775,7 +776,7 @@ test('welcome message and webhook are only sent once per connect session', funct
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->call('refreshStatus')
         ->assertSet('welcomePingSent', true)
         ->assertSet('webhookRegistered', true)
@@ -783,7 +784,7 @@ test('welcome message and webhook are only sent once per connect session', funct
         ->assertSet('welcomePingSent', true)
         ->assertSet('webhookRegistered', true);
 
-    Queue::assertPushed(SendWhatsAppConnectedAlertJob::class, 1);
+    Queue::assertPushed(SendEvolutionApiConnectedAlertJob::class, 1);
 
     expect(
         collect(Http::recorded())
@@ -791,12 +792,12 @@ test('welcome message and webhook are only sent once per connect session', funct
             ->count()
     )->toBe(1);
 
-    expect(WhatsAppConnectionLog::query()->where('event', WhatsAppConnectionEvent::Connected)->count())->toBe(1);
+    expect(EvolutionApiConnectionLog::query()->where('event', EvolutionApiConnectionEvent::Connected)->count())->toBe(1);
 });
 
 test('refresh status logs disconnected when session closes', function () {
     Queue::fake([
-        SendWhatsAppConnectedAlertJob::class,
+        SendEvolutionApiConnectedAlertJob::class,
     ]);
 
     Http::fake([
@@ -808,7 +809,7 @@ test('refresh status logs disconnected when session closes', function () {
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->call('refreshStatus')
         ->assertSet('connectionStatus', 'open')
         ->call('refreshStatus')
@@ -817,14 +818,14 @@ test('refresh status logs disconnected when session closes', function () {
         ->assertSet('webhookRegistered', false)
         ->assertSee('Disconnected');
 
-    expect(WhatsAppConnectionLog::query()->latest('id')->pluck('event')->all())
+    expect(EvolutionApiConnectionLog::query()->latest('id')->pluck('event')->all())
         ->toBe([
-            WhatsAppConnectionEvent::Disconnected,
-            WhatsAppConnectionEvent::Connected,
+            EvolutionApiConnectionEvent::Disconnected,
+            EvolutionApiConnectionEvent::Connected,
         ]);
 
-    $disconnected = WhatsAppConnectionLog::query()
-        ->where('event', WhatsAppConnectionEvent::Disconnected)
+    $disconnected = EvolutionApiConnectionLog::query()
+        ->where('event', EvolutionApiConnectionEvent::Disconnected)
         ->first();
 
     expect($disconnected->connected_number)->toBe('601115666887')
@@ -833,7 +834,7 @@ test('refresh status logs disconnected when session closes', function () {
 
 test('reconnect after disconnect dispatches welcome alert again', function () {
     Queue::fake([
-        SendWhatsAppConnectedAlertJob::class,
+        SendEvolutionApiConnectedAlertJob::class,
     ]);
 
     Http::fake([
@@ -846,7 +847,7 @@ test('reconnect after disconnect dispatches welcome alert again', function () {
         '*/webhook/set/*' => Http::response(['status' => 'success'], 201),
     ]);
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->call('refreshStatus')
         ->assertSet('connectionStatus', 'open')
         ->assertSet('welcomePingSent', true)
@@ -860,15 +861,15 @@ test('reconnect after disconnect dispatches welcome alert again', function () {
         ->assertSet('welcomePingSent', true)
         ->assertSet('webhookRegistered', true);
 
-    Queue::assertPushed(SendWhatsAppConnectedAlertJob::class, 2);
+    Queue::assertPushed(SendEvolutionApiConnectedAlertJob::class, 2);
 
-    expect(WhatsAppConnectionLog::query()->where('event', WhatsAppConnectionEvent::Connected)->count())->toBe(2)
-        ->and(WhatsAppConnectionLog::query()->where('event', WhatsAppConnectionEvent::Disconnected)->count())->toBe(1);
+    expect(EvolutionApiConnectionLog::query()->where('event', EvolutionApiConnectionEvent::Connected)->count())->toBe(2)
+        ->and(EvolutionApiConnectionLog::query()->where('event', EvolutionApiConnectionEvent::Disconnected)->count())->toBe(1);
 });
 
 test('logout resets connect flags and stores disconnected database notification', function () {
     Queue::fake([
-        SendWhatsAppConnectedAlertJob::class,
+        SendEvolutionApiConnectedAlertJob::class,
     ]);
 
     Http::fake([
@@ -883,7 +884,7 @@ test('logout resets connect flags and stores disconnected database notification'
 
     $user = auth()->user();
 
-    Livewire::test(WhatsAppConnectionPage::class)
+    Livewire::test(EvolutionApiPage::class)
         ->call('refreshStatus')
         ->assertSet('welcomePingSent', true)
         ->assertSet('webhookRegistered', true)
@@ -898,24 +899,24 @@ test('logout resets connect flags and stores disconnected database notification'
 
     $titles = $user->notifications()->pluck('data')->map(fn (array $data): string => $data['title']);
 
-    expect($titles)->toContain('WhatsApp connected')
-        ->and($titles)->toContain('WhatsApp disconnected');
+    expect($titles)->toContain('EvolutionAPI connected')
+        ->and($titles)->toContain('EvolutionAPI disconnected');
 
     $disconnected = $user->notifications()
         ->get()
-        ->first(fn ($notification): bool => $notification->data['title'] === 'WhatsApp disconnected');
+        ->first(fn ($notification): bool => $notification->data['title'] === 'EvolutionAPI disconnected');
 
-    expect($disconnected->data['actions'][0]['url'])->toBe(WhatsAppConnectionPage::getUrl())
+    expect($disconnected->data['actions'][0]['url'])->toBe(EvolutionApiPage::getUrl())
         ->and($disconnected->data['actions'][0]['shouldOpenUrlInNewTab'])->toBeTrue();
 
-    expect(WhatsAppConnectionLog::query()->latest('id')->pluck('event')->all())
+    expect(EvolutionApiConnectionLog::query()->latest('id')->pluck('event')->all())
         ->toBe([
-            WhatsAppConnectionEvent::Logout,
-            WhatsAppConnectionEvent::Connected,
+            EvolutionApiConnectionEvent::Logout,
+            EvolutionApiConnectionEvent::Connected,
         ]);
 
-    $logout = WhatsAppConnectionLog::query()
-        ->where('event', WhatsAppConnectionEvent::Logout)
+    $logout = EvolutionApiConnectionLog::query()
+        ->where('event', EvolutionApiConnectionEvent::Logout)
         ->first();
 
     expect($logout->connected_number)->toBe('601115666887')
@@ -926,26 +927,26 @@ test('connection history section lists previous logs', function () {
     $when = now()->subHours(4);
     $relative = $when->diffForHumans();
 
-    $connected = WhatsAppConnectionLog::factory()->connected()->create([
+    $connected = EvolutionApiConnectionLog::factory()->connected()->create([
         'connected_number' => '601115666887',
-        'message' => 'WhatsApp session connected (601115666887).',
+        'message' => 'EvolutionAPI session connected (601115666887).',
         'created_at' => $when,
         'meta' => [
             'source' => 'page',
             'connect_method' => 'qr_code',
         ],
     ]);
-    $connectedViaPairing = WhatsAppConnectionLog::factory()->connected()->create([
+    $connectedViaPairing = EvolutionApiConnectionLog::factory()->connected()->create([
         'connected_number' => '601115666888',
-        'message' => 'WhatsApp session connected (601115666888).',
+        'message' => 'EvolutionAPI session connected (601115666888).',
         'meta' => [
             'source' => 'page',
             'connect_method' => 'pairing_code',
         ],
     ]);
-    $logout = WhatsAppConnectionLog::factory()->logout()->create([
+    $logout = EvolutionApiConnectionLog::factory()->logout()->create([
         'connected_number' => '601115666887',
-        'message' => 'WhatsApp session logged out (601115666887).',
+        'message' => 'EvolutionAPI session logged out (601115666887).',
     ]);
 
     Http::fake([
@@ -955,7 +956,7 @@ test('connection history section lists previous logs', function () {
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    $component = Livewire::test(WhatsAppConnectionPage::class)
+    $component = Livewire::test(EvolutionApiPage::class)
         ->assertSee('Connection history')
         ->assertSee('Connected via')
         ->assertSee('QR code')
@@ -966,7 +967,7 @@ test('connection history section lists previous logs', function () {
         ->assertCanSeeTableRecords([$logout])
         ->assertCanNotSeeTableRecords([$connected])
         ->searchTable(null)
-        ->filterTable('event', WhatsAppConnectionEvent::Connected->value)
+        ->filterTable('event', EvolutionApiConnectionEvent::Connected->value)
         ->assertCanSeeTableRecords([$connected])
         ->assertCanNotSeeTableRecords([$logout]);
 

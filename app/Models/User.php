@@ -33,7 +33,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
         'notify_budget_alerts',
         'notify_profile_updates',
         'notify_email_digest',
-        'notify_whatsapp_connection',
+        'notify_evolution_api',
     ];
 
     protected $hidden = [
@@ -49,7 +49,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
             'notify_budget_alerts' => 'boolean',
             'notify_profile_updates' => 'boolean',
             'notify_email_digest' => 'boolean',
-            'notify_whatsapp_connection' => 'boolean',
+            'notify_evolution_api' => 'boolean',
         ];
     }
 

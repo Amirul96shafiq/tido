@@ -152,9 +152,9 @@ class EditProfile extends BaseEditProfile
                                 Toggle::make('notify_profile_updates')
                                     ->label('Profile Update Alerts')
                                     ->helperText('Receive in-app notifications when your profile settings change.'),
-                                Toggle::make('notify_whatsapp_connection')
-                                    ->label('WhatsApp Connection')
-                                    ->helperText('Receive in-app notifications when WhatsApp connects or disconnects.'),
+                                Toggle::make('notify_evolution_api')
+                                    ->label('EvolutionAPI')
+                                    ->helperText('Receive in-app notifications when EvolutionAPI connects or disconnects.'),
                                 Toggle::make('notify_email_digest')
                                     ->label('Email Digest')
                                     ->helperText('Coming soon — preference saved for future digest emails.'),
@@ -493,7 +493,7 @@ class EditProfile extends BaseEditProfile
         $oldDateFormat = $record->date_format;
         $oldNotifyBudgetAlerts = (bool) $record->notify_budget_alerts;
         $oldNotifyProfileUpdates = (bool) $record->notify_profile_updates;
-        $oldNotifyWhatsAppConnection = (bool) $record->notify_whatsapp_connection;
+        $oldNotifyEvolutionApi = (bool) $record->notify_evolution_api;
         $oldNotifyEmailDigest = (bool) $record->notify_email_digest;
         $passwordChanged = filled($data['password'] ?? null);
 
@@ -530,8 +530,8 @@ class EditProfile extends BaseEditProfile
         if ($oldNotifyProfileUpdates !== (bool) $updatedRecord->notify_profile_updates) {
             $changes[] = 'Profile update alerts';
         }
-        if ($oldNotifyWhatsAppConnection !== (bool) $updatedRecord->notify_whatsapp_connection) {
-            $changes[] = 'WhatsApp connection alerts';
+        if ($oldNotifyEvolutionApi !== (bool) $updatedRecord->notify_evolution_api) {
+            $changes[] = 'EvolutionAPI alerts';
         }
         if ($oldNotifyEmailDigest !== (bool) $updatedRecord->notify_email_digest) {
             $changes[] = 'Email digest';

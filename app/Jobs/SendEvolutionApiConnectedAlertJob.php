@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Enums\WhatsAppConnectMethod;
+use App\Enums\EvolutionApiConnectMethod;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppMessage;
 use Illuminate\Bus\Queueable;
@@ -15,7 +15,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
-class SendWhatsAppConnectedAlertJob implements ShouldQueue
+class SendEvolutionApiConnectedAlertJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -23,7 +23,7 @@ class SendWhatsAppConnectedAlertJob implements ShouldQueue
 
     public function __construct(
         public ?string $connectedNumber = null,
-        public ?WhatsAppConnectMethod $connectMethod = null,
+        public ?EvolutionApiConnectMethod $connectMethod = null,
     ) {
         $this->onQueue('whatsapp');
     }
@@ -41,15 +41,15 @@ class SendWhatsAppConnectedAlertJob implements ShouldQueue
         $number = config('services.evolution.personal_number');
 
         if (! is_string($number) || $number === '') {
-            Log::warning('SendWhatsAppConnectedAlertJob skipped: PERSONAL_WHATSAPP_NUMBER is not configured');
+            Log::warning('SendEvolutionApiConnectedAlertJob skipped: PERSONAL_WHATSAPP_NUMBER is not configured');
 
             return;
         }
 
         $body = match ($this->connectMethod) {
-            WhatsAppConnectMethod::QrCode => 'WhatsApp session reconnected via QR code and is ready for document uploads.',
-            WhatsAppConnectMethod::PairingCode => 'WhatsApp session reconnected via pairing code and is ready for document uploads.',
-            null => 'WhatsApp session reconnected and is ready for document uploads.',
+            EvolutionApiConnectMethod::QrCode => 'EvolutionAPI session reconnected via QR code and is ready for document uploads.',
+            EvolutionApiConnectMethod::PairingCode => 'EvolutionAPI session reconnected via pairing code and is ready for document uploads.',
+            null => 'EvolutionAPI session reconnected and is ready for document uploads.',
         };
 
         if (is_string($this->connectedNumber) && $this->connectedNumber !== '') {
@@ -68,7 +68,7 @@ class SendWhatsAppConnectedAlertJob implements ShouldQueue
         );
 
         if (! $sent) {
-            throw new RuntimeException('Evolution sendText failed for WhatsApp connected alert.');
+            throw new RuntimeException('Evolution sendText failed for EvolutionAPI connected alert.');
         }
     }
 }

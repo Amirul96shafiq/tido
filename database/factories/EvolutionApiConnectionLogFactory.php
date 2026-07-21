@@ -4,29 +4,29 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Enums\WhatsAppConnectionEvent;
-use App\Models\WhatsAppConnectionLog;
+use App\Enums\EvolutionApiConnectionEvent;
+use App\Models\EvolutionApiConnectionLog;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<WhatsAppConnectionLog>
+ * @extends Factory<EvolutionApiConnectionLog>
  */
-class WhatsAppConnectionLogFactory extends Factory
+class EvolutionApiConnectionLogFactory extends Factory
 {
-    protected $model = WhatsAppConnectionLog::class;
+    protected $model = EvolutionApiConnectionLog::class;
 
     /**
      * @return array<string, mixed>
      */
     public function definition(): array
     {
-        $event = fake()->randomElement(WhatsAppConnectionEvent::cases());
+        $event = fake()->randomElement(EvolutionApiConnectionEvent::cases());
 
         return [
             'event' => $event,
             'status' => match ($event) {
-                WhatsAppConnectionEvent::Connected => 'open',
-                WhatsAppConnectionEvent::Disconnected, WhatsAppConnectionEvent::Logout => 'close',
+                EvolutionApiConnectionEvent::Connected => 'open',
+                EvolutionApiConnectionEvent::Disconnected, EvolutionApiConnectionEvent::Logout => 'close',
             },
             'connected_number' => '601'.fake()->numerify('########'),
             'profile_name' => fake()->userName(),
@@ -41,27 +41,27 @@ class WhatsAppConnectionLogFactory extends Factory
     public function connected(): static
     {
         return $this->state(fn (): array => [
-            'event' => WhatsAppConnectionEvent::Connected,
+            'event' => EvolutionApiConnectionEvent::Connected,
             'status' => 'open',
-            'message' => 'WhatsApp session connected.',
+            'message' => 'EvolutionAPI session connected.',
         ]);
     }
 
     public function disconnected(): static
     {
         return $this->state(fn (): array => [
-            'event' => WhatsAppConnectionEvent::Disconnected,
+            'event' => EvolutionApiConnectionEvent::Disconnected,
             'status' => 'close',
-            'message' => 'WhatsApp session disconnected.',
+            'message' => 'EvolutionAPI session disconnected.',
         ]);
     }
 
     public function logout(): static
     {
         return $this->state(fn (): array => [
-            'event' => WhatsAppConnectionEvent::Logout,
+            'event' => EvolutionApiConnectionEvent::Logout,
             'status' => 'close',
-            'message' => 'WhatsApp session logged out.',
+            'message' => 'EvolutionAPI session logged out.',
             'meta' => ['source' => 'logout'],
         ]);
     }

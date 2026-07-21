@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Enums\WhatsAppConnectionEvent;
-use App\Models\WhatsAppConnectionLog;
+use App\Enums\EvolutionApiConnectionEvent;
+use App\Models\EvolutionApiConnectionLog;
 use App\Support\PhoneNumber;
 
-class WhatsAppConnectionLogService
+class EvolutionApiConnectionLogService
 {
     /**
      * @param  array{
@@ -20,7 +20,7 @@ class WhatsAppConnectionLogService
      *     meta?: array<string, mixed>|null
      * }  $context
      */
-    public function log(WhatsAppConnectionEvent $event, array $context = []): WhatsAppConnectionLog
+    public function log(EvolutionApiConnectionEvent $event, array $context = []): EvolutionApiConnectionLog
     {
         $instanceName = $context['instance_name']
             ?? config('services.evolution.instance_name', 'tido');
@@ -51,7 +51,7 @@ class WhatsAppConnectionLogService
             ? $context['meta']
             : null;
 
-        return WhatsAppConnectionLog::query()->create([
+        return EvolutionApiConnectionLog::query()->create([
             'event' => $event,
             'status' => $status !== '' ? $status : null,
             'connected_number' => $connectedNumber,
@@ -62,14 +62,14 @@ class WhatsAppConnectionLogService
         ]);
     }
 
-    private function defaultMessage(WhatsAppConnectionEvent $event, ?string $connectedNumber): string
+    private function defaultMessage(EvolutionApiConnectionEvent $event, ?string $connectedNumber): string
     {
         $suffix = $connectedNumber !== null ? ' ('.$connectedNumber.')' : '';
 
         return match ($event) {
-            WhatsAppConnectionEvent::Connected => 'WhatsApp session connected'.$suffix.'.',
-            WhatsAppConnectionEvent::Disconnected => 'WhatsApp session disconnected'.$suffix.'.',
-            WhatsAppConnectionEvent::Logout => 'WhatsApp session logged out'.$suffix.'.',
+            EvolutionApiConnectionEvent::Connected => 'EvolutionAPI session connected'.$suffix.'.',
+            EvolutionApiConnectionEvent::Disconnected => 'EvolutionAPI session disconnected'.$suffix.'.',
+            EvolutionApiConnectionEvent::Logout => 'EvolutionAPI session logged out'.$suffix.'.',
         };
     }
 }

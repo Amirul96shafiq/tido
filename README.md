@@ -156,7 +156,7 @@ Admin nav:
 
 - **Finances** — Invoices, Budgets
 - **Settings** — Labels, Payment Methods, Backups
-- **Integrations** — WhatsApp Connection
+- **Integrations** — EvolutionAPI
 
 **WhatsApp OTP login:** Pair Evolution → set `PERSONAL_WHATSAPP_NUMBER` (and match the user’s phone) → `php artisan whatsapp:ping` → sign in with OTP at `/admin/login`.
 

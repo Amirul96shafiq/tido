@@ -2017,16 +2017,16 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
  * WhatsApp connection details slide-over: same backdrop blur as other panel modals.
  * See docs/ui-modal-overlay.md.
  */
-.fi-wa-connection-details > .fi-modal-close-overlay,
-.fi-modal.fi-wa-connection-details > .fi-modal-close-overlay {
+.fi-evolution-api-details > .fi-modal-close-overlay,
+.fi-modal.fi-evolution-api-details > .fi-modal-close-overlay {
     @apply backdrop-blur-md;
 }
 
-.fi-modal.fi-wa-connection-details .fi-modal-window-ctn > .fi-modal-window {
+.fi-modal.fi-evolution-api-details .fi-modal-window-ctn > .fi-modal-window {
     overflow-x: hidden;
 }
 
-.fi-modal.fi-wa-connection-details
+.fi-modal.fi-evolution-api-details
     .fi-modal-window-ctn
     > .fi-modal-window
     .fi-modal-content {
@@ -2038,7 +2038,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     text-align: start;
 }
 
-.fi-modal.fi-wa-connection-details .fi-wa-connection-details-list {
+.fi-modal.fi-evolution-api-details .fi-evolution-api-details-list {
     min-width: 0;
     max-width: 100%;
 }
