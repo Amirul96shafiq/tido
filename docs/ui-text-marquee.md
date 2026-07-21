@@ -56,24 +56,42 @@ Do not duplicate this CSS under a new class name. Reuse `.tido-text-marquee` / `
 
 ## Drop-in Blade + Alpine
 
+Budget Performance on mobile keeps icon + title/period on the left and spent/total stacked on the right of the same row. Period sits under the title; from `sm` up, title + period and spent + total return to inline rows. The title clip uses `flex-1 min-w-0` (no fixed `max-w-*`).
+
 ```blade
-<div
-    x-data="{ overflowing: false }"
-    x-init="
-        const measure = () => {
-            $el.style.setProperty('--tido-marquee-clip', $el.clientWidth + 'px');
-            overflowing = $refs.marqueeText.scrollWidth > $el.clientWidth;
-        };
-        measure();
-        new ResizeObserver(measure).observe($el);
-    "
-    class="tido-text-marquee-clip relative min-w-0 max-w-[9rem] overflow-hidden sm:max-w-[12rem]"
->
-    <span
-        x-ref="marqueeText"
-        class="inline-block whitespace-nowrap …"
-        :class="{ 'tido-text-marquee': overflowing }"
-    >{{ $label }}</span>
+{{-- Mobile: icon | title/period | spent/total (two columns). sm+: inline siblings --}}
+<div class="flex min-w-0 items-start justify-between gap-2 sm:items-center">
+    <div class="flex min-w-0 flex-1 items-center gap-2">
+        <span class="shrink-0">{{-- icon --}}</span>
+
+        <div class="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
+            <div
+                x-data="{ overflowing: false }"
+                x-init="
+                    const measure = () => {
+                        $el.style.setProperty('--tido-marquee-clip', $el.clientWidth + 'px');
+                        overflowing = $refs.marqueeText.scrollWidth > $el.clientWidth;
+                    };
+                    measure();
+                    new ResizeObserver(measure).observe($el);
+                "
+                class="tido-text-marquee-clip relative min-w-0 flex-1 overflow-hidden"
+            >
+                <span
+                    x-ref="marqueeText"
+                    class="inline-block whitespace-nowrap …"
+                    :class="{ 'tido-text-marquee': overflowing }"
+                >{{ $label }}</span>
+            </div>
+
+            <span class="w-fit shrink-0 whitespace-nowrap">{{-- period — below title on mobile --}}</span>
+        </div>
+    </div>
+
+    <div class="flex shrink-0 flex-col items-end gap-0.5 whitespace-nowrap text-right sm:flex-row sm:items-baseline sm:gap-1">
+        <span>{{-- spent (top on mobile) --}}</span>
+        <span>{{-- / total (bottom on mobile) --}}</span>
+    </div>
 </div>
 ```
 
@@ -81,7 +99,7 @@ Do not duplicate this CSS under a new class name. Reuse `.tido-text-marquee` / `
 
 1. Identify the text that wraps on narrow widths.
 2. Wrap it in the clip + Alpine block above (keep `x-ref="marqueeText"`).
-3. Choose `max-w-*` for that surface (or rely on `flex-1 min-w-0` without a fixed max if the clip should fill leftover space).
+3. Choose `max-w-*` for that surface (or rely on `flex-1 min-w-0` without a fixed max if the clip should fill leftover space). On dense mobile rows, put fixed meta (`shrink-0`) beside the title group — stack period under the title and spent over total so the clip is not crushed.
 4. Mark siblings that must stay visible (`badge`, amounts, icon buttons) with `shrink-0` and `whitespace-nowrap` where needed.
 5. Ensure every flex parent up to the clip has `min-w-0`.
 6. Do **not** copy a second keyframes block — use `.tido-text-marquee`.
@@ -135,17 +153,19 @@ Requirements:
 ## Flex row recipe (with siblings)
 
 ```blade
-<div class="flex min-w-0 items-center justify-between gap-2">
+{{-- Dense mobile: period under title; spent over total — same row as icon --}}
+<div class="flex min-w-0 items-start justify-between gap-2 sm:items-center">
     <div class="flex min-w-0 flex-1 items-center gap-2">
         <span class="shrink-0">{{-- icon --}}</span>
 
-        {{-- marquee clip here --}}
-
-        <span class="shrink-0 whitespace-nowrap">{{-- badge --}}</span>
+        <div class="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
+            {{-- marquee clip: flex-1 min-w-0 (fill leftover) --}}
+            <span class="w-fit shrink-0 whitespace-nowrap">{{-- period — below title on mobile --}}</span>
+        </div>
     </div>
 
-    <div class="shrink-0 whitespace-nowrap text-right">
-        {{-- amounts / meta that must not wrap --}}
+    <div class="flex shrink-0 flex-col items-end gap-0.5 whitespace-nowrap text-right sm:flex-row sm:items-baseline sm:gap-1">
+        {{-- spent (top) / total (bottom) on mobile; inline from sm --}}
     </div>
 </div>
 ```
@@ -164,8 +184,8 @@ Requirements:
 
 | Approach | When |
 |----------|------|
-| Fixed `max-w-[9rem] sm:max-w-[12rem]` | Dense widgets with important right-side meta (Budget Status) |
-| `flex-1 min-w-0` without fixed max | Label should take all leftover space between fixed siblings |
+| `flex-1 min-w-0` without fixed max | Label should take all leftover space between fixed siblings (Budget Performance) |
+| Fixed `max-w-[9rem] sm:max-w-[12rem]` | Dense widgets when you intentionally cap title width |
 | Smaller `max-w-*` | Very narrow columns (e.g. mobile list tiles) |
 | Select field width | Clip is the Filament `.fi-select-input-value-ctn` — no fixed `max-w-*` needed |
 
