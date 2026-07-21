@@ -202,47 +202,47 @@ test('updating profile with notify_profile_updates disabled does not trigger not
         ->and($user->notifications()->count())->toBe(0);
 });
 
-test('updating whatsapp connection notification preference persists value', function () {
+test('updating evolution api notification preference persists value', function () {
     $user = User::factory()->create([
         'phone' => '60123456789',
-        'notify_whatsapp_connection' => true,
+        'notify_evolution_api' => true,
     ]);
 
     $this->actingAs($user);
 
     Livewire::test(EditProfile::class)
-        ->set('data.notify_whatsapp_connection', false)
+        ->set('data.notify_evolution_api', false)
         ->call('save')
         ->assertHasNoErrors();
 
     $user->refresh();
 
-    expect($user->notify_whatsapp_connection)->toBeFalse()
+    expect($user->notify_evolution_api)->toBeFalse()
         ->and($user->phone)->toBe('60123456789')
         ->and($user->notifications()->count())->toBe(1);
 
     $notification = $user->notifications()->first();
-    expect($notification->data['body'])->toBe('You updated your profile settings: WhatsApp connection alerts.');
+    expect($notification->data['body'])->toBe('You updated your profile settings: EvolutionAPI alerts.');
 });
 
-test('enabling whatsapp connection notification reports that change only', function () {
+test('enabling evolution api notification reports that change only', function () {
     $user = User::factory()->create([
         'phone' => '60123456789',
-        'notify_whatsapp_connection' => false,
+        'notify_evolution_api' => false,
     ]);
 
     $this->actingAs($user);
 
     Livewire::test(EditProfile::class)
-        ->set('data.notify_whatsapp_connection', true)
+        ->set('data.notify_evolution_api', true)
         ->call('save')
         ->assertHasNoErrors();
 
     $user->refresh();
 
-    expect($user->notify_whatsapp_connection)->toBeTrue()
+    expect($user->notify_evolution_api)->toBeTrue()
         ->and($user->notifications()->count())->toBe(1);
 
     $notification = $user->notifications()->first();
-    expect($notification->data['body'])->toBe('You updated your profile settings: WhatsApp connection alerts.');
+    expect($notification->data['body'])->toBe('You updated your profile settings: EvolutionAPI alerts.');
 });

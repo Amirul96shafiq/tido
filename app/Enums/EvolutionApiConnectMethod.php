@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
-enum WhatsAppConnectMethod: string
+enum EvolutionApiConnectMethod: string
 {
     case QrCode = 'qr_code';
     case PairingCode = 'pairing_code';

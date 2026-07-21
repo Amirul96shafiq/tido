@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\WhatsAppConnectionEvent;
-use App\Enums\WhatsAppConnectMethod;
-use Database\Factories\WhatsAppConnectionLogFactory;
+use App\Enums\EvolutionApiConnectionEvent;
+use App\Enums\EvolutionApiConnectMethod;
+use Database\Factories\EvolutionApiConnectionLogFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class WhatsAppConnectionLog extends Model
+class EvolutionApiConnectionLog extends Model
 {
-    /** @use HasFactory<WhatsAppConnectionLogFactory> */
+    /** @use HasFactory<EvolutionApiConnectionLogFactory> */
     use HasFactory;
 
-    protected $table = 'whatsapp_connection_logs';
+    protected $table = 'evolution_api_connection_logs';
 
     protected $fillable = [
         'event',
@@ -33,12 +33,12 @@ class WhatsAppConnectionLog extends Model
     protected function casts(): array
     {
         return [
-            'event' => WhatsAppConnectionEvent::class,
+            'event' => EvolutionApiConnectionEvent::class,
             'meta' => 'array',
         ];
     }
 
-    public function connectMethod(): ?WhatsAppConnectMethod
+    public function connectMethod(): ?EvolutionApiConnectMethod
     {
         $value = data_get($this->meta, 'connect_method');
 
@@ -46,6 +46,6 @@ class WhatsAppConnectionLog extends Model
             return null;
         }
 
-        return WhatsAppConnectMethod::tryFrom($value);
+        return EvolutionApiConnectMethod::tryFrom($value);
     }
 }

@@ -83,5 +83,5 @@ When a draft includes a `NotesRichEditor` field, Livewire payload state is TipTa
 
 ## Out of scope
 
-- Custom Filament pages without Create/Edit record (`ReceiptUploadPage`, WhatsApp connection, profile) — opt in separately if needed.
+- Custom Filament pages without Create/Edit record (`ReceiptUploadPage`, EvolutionAPI, profile) — opt in separately if needed.
 - Client-only `localStorage` drafts — this feature is DB-backed so recovery works across devices/sessions for the same user.

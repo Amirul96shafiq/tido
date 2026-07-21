@@ -9,6 +9,7 @@ enum NotificationResource: string
     case Profile = 'profile';
     case Invoices = 'invoices';
     case WhatsApp = 'whatsapp';
+    case EvolutionApi = 'evolution-api';
     case Budgets = 'budgets';
 
     public function label(): string
@@ -17,6 +18,7 @@ enum NotificationResource: string
             self::Profile => 'Profile',
             self::Invoices => 'Invoices',
             self::WhatsApp => 'WhatsApp',
+            self::EvolutionApi => 'EvolutionAPI',
             self::Budgets => 'Budgets',
         };
     }
@@ -27,6 +29,7 @@ enum NotificationResource: string
             self::Profile => 'Profile%',
             self::Invoices => 'Receipt%',
             self::WhatsApp => 'WhatsApp%',
+            self::EvolutionApi => 'EvolutionAPI%',
             self::Budgets => 'Budget%',
         };
     }

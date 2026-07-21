@@ -8,11 +8,11 @@ use App\Enums\BackupType;
 use App\Models\Backup;
 use App\Models\Budget;
 use App\Models\ContentDraft;
+use App\Models\EvolutionApiConnectionLog;
 use App\Models\Invoice;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use App\Models\User;
-use App\Models\WhatsAppConnectionLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\Models\Activity;
@@ -68,7 +68,7 @@ class AccountDangerZoneService
             function (): void {
                 $this->wipeUserCreatedPaymentMethods();
             },
-            fn (): mixed => WhatsAppConnectionLog::query()->delete(),
+            fn (): mixed => EvolutionApiConnectionLog::query()->delete(),
             fn (): mixed => Activity::query()->delete(),
             fn (): mixed => $user->notifications()->delete(),
             fn (): mixed => ContentDraft::query()->where('user_id', $user->getKey())->delete(),

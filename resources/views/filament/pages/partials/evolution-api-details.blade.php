@@ -1,4 +1,4 @@
-<div class="fi-wa-connection-details-list divide-y divide-gray-200 text-left text-sm dark:divide-white/10">
+<div class="fi-evolution-api-details-list divide-y divide-gray-200 text-left text-sm dark:divide-white/10">
     <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
         <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Connected number</dt>
         <dd class="font-mono text-gray-950 dark:text-white">

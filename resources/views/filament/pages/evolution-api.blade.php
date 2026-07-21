@@ -91,7 +91,7 @@
                     <div
                         wire:key="wa-pair-timer-{{ $pairingCodeGeneratedAt }}"
                         x-data="{
-                            ttl: {{ \App\Filament\Pages\WhatsAppConnectionPage::CONNECT_TTL_SECONDS }},
+                            ttl: {{ \App\Filament\Pages\EvolutionApiPage::CONNECT_TTL_SECONDS }},
                             generatedAt: {{ $pairingCodeGeneratedAt }},
                             now: Math.floor(Date.now() / 1000),
                             get remaining() {
@@ -164,7 +164,7 @@
                     <div
                         wire:key="wa-qr-timer-{{ $qrGeneratedAt }}"
                         x-data="{
-                            ttl: {{ \App\Filament\Pages\WhatsAppConnectionPage::CONNECT_TTL_SECONDS }},
+                            ttl: {{ \App\Filament\Pages\EvolutionApiPage::CONNECT_TTL_SECONDS }},
                             generatedAt: {{ $qrGeneratedAt }},
                             now: Math.floor(Date.now() / 1000),
                             get remaining() {
@@ -263,15 +263,15 @@
                         </dl>
 
                         <div class="mt-5">
-                            <div class="fi-wa-connection-details">
+                            <div class="fi-evolution-api-details">
                                 <x-filament::modal
-                                    id="whatsapp-connection-details"
+                                    id="evolution-api-details"
                                     width="md"
                                     slide-over
                                     sticky-header
                                     teleport="body"
                                     :close-button="true"
-                                    class="fi-wa-connection-details"
+                                    class="fi-evolution-api-details"
                                 >
                                     <x-slot name="trigger">
                                         <x-filament::button color="gray" size="sm" type="button">
@@ -290,7 +290,7 @@
                                         </div>
                                     </x-slot>
 
-                                    @include('filament.pages.partials.whatsapp-connection-details', [
+                                    @include('filament.pages.partials.evolution-api-details', [
                                         'connectedNumber' => $connectedNumber,
                                         'connectedProfileName' => $connectedProfileName,
                                         'connectedVia' => $connectedVia?->label(),

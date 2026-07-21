@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
-use App\Enums\WhatsAppConnectionEvent;
-use App\Enums\WhatsAppConnectMethod;
-use App\Jobs\SendWhatsAppConnectedAlertJob;
+use App\Enums\EvolutionApiConnectionEvent;
+use App\Enums\EvolutionApiConnectMethod;
+use App\Jobs\SendEvolutionApiConnectedAlertJob;
+use App\Models\EvolutionApiConnectionLog;
 use App\Models\User;
-use App\Models\WhatsAppConnectionLog;
+use App\Services\EvolutionApiConnectionLogService;
 use App\Services\EvolutionInstanceService;
-use App\Services\WhatsAppConnectionLogService;
 use App\Services\WhatsAppNotificationService;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppMessage;
@@ -28,21 +28,21 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Js;
 
-class WhatsAppConnectionPage extends Page implements HasTable
+class EvolutionApiPage extends Page implements HasTable
 {
     use InteractsWithTable;
 
-    protected string $view = 'filament.pages.whatsapp-connection';
+    protected string $view = 'filament.pages.evolution-api';
 
-    protected static ?string $slug = 'whatsapp-connection';
+    protected static ?string $slug = 'evolution-api';
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-qr-code';
 
-    protected static ?string $navigationLabel = 'WhatsApp Connection';
+    protected static ?string $navigationLabel = 'EvolutionAPI';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Integrations';
 
-    protected static ?string $title = 'WhatsApp Connection';
+    protected static ?string $title = 'EvolutionAPI';
 
     protected static ?int $navigationSort = 20;
 
@@ -84,9 +84,9 @@ class WhatsAppConnectionPage extends Page implements HasTable
 
     public ?string $lastConnectedNumber = null;
 
-    public ?WhatsAppConnectMethod $pendingConnectMethod = null;
+    public ?EvolutionApiConnectMethod $pendingConnectMethod = null;
 
-    public ?WhatsAppConnectMethod $connectedVia = null;
+    public ?EvolutionApiConnectMethod $connectedVia = null;
 
     /** Matches Evolution Baileys `qrTimeout` (45_000 ms) — codes rotate server-side on this interval. */
     public const CONNECT_TTL_SECONDS = 45;
@@ -116,7 +116,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
 
         if ($this->isConnectionOpen()) {
             $this->clearConnectDisplay();
-            $this->statusMessage = 'WhatsApp is connected.';
+            $this->statusMessage = 'EvolutionAPI is connected.';
             $this->loadConnectedInstanceDetails($evolution);
             $this->syncWebhookRegistrationStatus($evolution);
 
@@ -146,7 +146,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
             $this->webhookRegistered = false;
             $this->pendingConnectMethod = null;
 
-            $this->logConnectionEvent(WhatsAppConnectionEvent::Disconnected, [
+            $this->logConnectionEvent(EvolutionApiConnectionEvent::Disconnected, [
                 'status' => $this->connectionStatus,
                 'connected_number' => $previousNumber,
                 'profile_name' => $previousProfile,
@@ -178,7 +178,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
 
     public function generateQr(): void
     {
-        $this->pendingConnectMethod = WhatsAppConnectMethod::QrCode;
+        $this->pendingConnectMethod = EvolutionApiConnectMethod::QrCode;
         $this->clearPairingDisplay();
 
         $evolution = app(EvolutionInstanceService::class);
@@ -250,7 +250,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
 
         $this->clearQrDisplay();
 
-        $this->pendingConnectMethod = WhatsAppConnectMethod::PairingCode;
+        $this->pendingConnectMethod = EvolutionApiConnectMethod::PairingCode;
 
         $evolution = app(EvolutionInstanceService::class);
         $wasOpen = $this->isConnectionOpen();
@@ -332,7 +332,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
         $this->statusMessage = $result['message'];
 
         if ($result['ok']) {
-            $this->logConnectionEvent(WhatsAppConnectionEvent::Logout, [
+            $this->logConnectionEvent(EvolutionApiConnectionEvent::Logout, [
                 'status' => $this->connectionStatus,
                 'connected_number' => $connectedNumber,
                 'profile_name' => $profileName,
@@ -663,7 +663,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
             $this->connectedVia = $this->pendingConnectMethod;
         }
 
-        $this->logConnectionEvent(WhatsAppConnectionEvent::Connected, [
+        $this->logConnectionEvent(EvolutionApiConnectionEvent::Connected, [
             'status' => $this->connectionStatus,
             'connected_number' => $this->connectedNumber,
             'profile_name' => $this->connectedProfileName,
@@ -681,13 +681,13 @@ class WhatsAppConnectionPage extends Page implements HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(WhatsAppConnectionLog::query())
+            ->query(EvolutionApiConnectionLog::query())
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('event')
                     ->badge()
-                    ->formatStateUsing(fn (WhatsAppConnectionEvent $state): string => $state->label())
-                    ->color(fn (WhatsAppConnectionEvent $state): string => $state->badgeColor())
+                    ->formatStateUsing(fn (EvolutionApiConnectionEvent $state): string => $state->label())
+                    ->color(fn (EvolutionApiConnectionEvent $state): string => $state->badgeColor())
                     ->sortable()
                     ->searchable(),
 
@@ -707,7 +707,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
 
                 TextColumn::make('connectMethod')
                     ->label('Connected via')
-                    ->getStateUsing(fn (WhatsAppConnectionLog $record): ?string => $record->connectMethod()?->label())
+                    ->getStateUsing(fn (EvolutionApiConnectionLog $record): ?string => $record->connectMethod()?->label())
                     ->placeholder('—')
                     ->toggleable(),
 
@@ -726,7 +726,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
             ->filters([
                 SelectFilter::make('event')
                     ->label('Event')
-                    ->options(WhatsAppConnectionEvent::options())
+                    ->options(EvolutionApiConnectionEvent::options())
                     ->searchable(),
             ])
             ->emptyStateHeading('No connection events yet')
@@ -744,9 +744,9 @@ class WhatsAppConnectionPage extends Page implements HasTable
      *     meta?: array<string, mixed>|null
      * }  $context
      */
-    private function logConnectionEvent(WhatsAppConnectionEvent $event, array $context = []): void
+    private function logConnectionEvent(EvolutionApiConnectionEvent $event, array $context = []): void
     {
-        app(WhatsAppConnectionLogService::class)->log($event, $context);
+        app(EvolutionApiConnectionLogService::class)->log($event, $context);
     }
 
     private function registerWebhookOnConnect(): void
@@ -909,7 +909,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
 
         if ($this->isConnectionOpen()) {
             $this->clearPairingDisplay();
-            $this->statusMessage = 'WhatsApp is connected.';
+            $this->statusMessage = 'EvolutionAPI is connected.';
             $this->loadConnectedInstanceDetails();
         }
     }
@@ -935,7 +935,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
 
         if ($this->isConnectionOpen()) {
             $this->clearQrDisplay();
-            $this->statusMessage = 'WhatsApp is connected.';
+            $this->statusMessage = 'EvolutionAPI is connected.';
             $this->loadConnectedInstanceDetails();
         }
     }
@@ -1011,8 +1011,8 @@ class WhatsAppConnectionPage extends Page implements HasTable
             return;
         }
 
-        $log = WhatsAppConnectionLog::query()
-            ->where('event', WhatsAppConnectionEvent::Connected)
+        $log = EvolutionApiConnectionLog::query()
+            ->where('event', EvolutionApiConnectionEvent::Connected)
             ->where('connected_number', $this->connectedNumber)
             ->latest('id')
             ->first();
@@ -1041,18 +1041,18 @@ class WhatsAppConnectionPage extends Page implements HasTable
     {
         $recipient = auth()->user();
 
-        if (! $recipient instanceof User || ! $recipient->notify_whatsapp_connection) {
+        if (! $recipient instanceof User || ! $recipient->notify_evolution_api) {
             return;
         }
 
         Notification::make()
-            ->title('WhatsApp connected')
-            ->body('Your WhatsApp instance is linked and ready. You can send receipt photos anytime.')
+            ->title('EvolutionAPI connected')
+            ->body('Your EvolutionAPI instance is linked and ready. You can send receipt photos anytime.')
             ->success()
             ->icon('heroicon-o-check-badge')
             ->actions([
-                Action::make('openWhatsAppConnection')
-                    ->label('Open WhatsApp Connection')
+                Action::make('openEvolutionApi')
+                    ->label('Open EvolutionAPI')
                     ->button()
                     ->url(static::getUrl(), shouldOpenInNewTab: true)
                     ->markAsRead(),
@@ -1064,18 +1064,18 @@ class WhatsAppConnectionPage extends Page implements HasTable
     {
         $recipient = auth()->user();
 
-        if (! $recipient instanceof User || ! $recipient->notify_whatsapp_connection) {
+        if (! $recipient instanceof User || ! $recipient->notify_evolution_api) {
             return;
         }
 
         Notification::make()
-            ->title('WhatsApp disconnected')
-            ->body('Your WhatsApp session is closed or disconnected. Use Connect to scan a QR or pair with a code.')
+            ->title('EvolutionAPI disconnected')
+            ->body('Your EvolutionAPI session is closed or disconnected. Use Connect to scan a QR or pair with a code.')
             ->warning()
             ->icon('heroicon-o-qr-code')
             ->actions([
-                Action::make('openWhatsAppConnection')
-                    ->label('Open WhatsApp Connection')
+                Action::make('openEvolutionApi')
+                    ->label('Open EvolutionAPI')
                     ->button()
                     ->url(static::getUrl(), shouldOpenInNewTab: true)
                     ->markAsRead(),
@@ -1106,7 +1106,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
         $connectMethod = $this->pendingConnectMethod;
         $this->pendingConnectMethod = null;
 
-        SendWhatsAppConnectedAlertJob::dispatch($this->connectedNumber, $connectMethod)
+        SendEvolutionApiConnectedAlertJob::dispatch($this->connectedNumber, $connectMethod)
             ->delay(now()->addSeconds(5));
 
         Notification::make()

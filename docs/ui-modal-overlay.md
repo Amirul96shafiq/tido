@@ -32,7 +32,7 @@ Action::make('pairWithCode')
 
 `merge: true` keeps Filament’s default overlay classes (`fi-modal-close-overlay`) and appends the blur hook.
 
-**Example in app:** `pairWithCode` on [`WhatsAppConnectionPage`](../app/Filament/Pages/WhatsAppConnectionPage.php).
+**Example in app:** `pairWithCode` on [`EvolutionApiPage`](../app/Filament/Pages/EvolutionApiPage.php).
 
 ### Modal width scale
 
@@ -51,19 +51,19 @@ Add a hook class on the modal root and target the overlay in `app.css`:
 
 ```blade
 <x-filament::modal
-    class="fi-wa-connection-details"
+    class="fi-evolution-api-details"
     slide-over
     ...
 >
 ```
 
 ```css
-.fi-modal.fi-wa-connection-details > .fi-modal-close-overlay {
+.fi-modal.fi-evolution-api-details > .fi-modal-close-overlay {
     @apply backdrop-blur-md;
 }
 ```
 
-**Example in app:** WhatsApp connection details slide-over in [`whatsapp-connection.blade.php`](../resources/views/filament/pages/whatsapp-connection.blade.php).
+**Example in app:** EvolutionAPI connection details slide-over in [`evolution-api.blade.php`](../resources/views/filament/pages/evolution-api.blade.php).
 
 ## Database notifications slide-over
 
