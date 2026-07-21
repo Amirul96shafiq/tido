@@ -293,8 +293,8 @@ test('labels table renders icon as graphic not name', function () {
     Livewire::test(ListLabels::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$label])
-        ->assertDontSee('heroicon-o-cake')
-        ->assertSeeHtml('<svg');
+        ->assertSeeHtml('<svg')
+        ->assertSeeHtml('class="fi-sr-only">heroicon-o-cake</span>');
 });
 
 test('label form exposes searchable heroicon options', function () {

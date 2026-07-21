@@ -84,7 +84,7 @@ test('otp step renders six digit input boxes', function () {
 
     expect($html)
         ->toContain('fi-one-time-code-input-ctn')
-        ->and(substr_count($html, 'fi-one-time-code-input-digit-field'))->toBe(6)
+        ->and(preg_match_all('/class="fi-one-time-code-input-digit"/', $html))->toBe(6)
         ->and($html)->not->toContain('placeholder="6-digit code"');
 });
 

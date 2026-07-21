@@ -58,7 +58,7 @@ test('recent receipts widget shows illustrated empty state', function () {
     Livewire::test(RecentReceipts::class)
         ->assertSuccessful()
         ->assertSee('No receipts')
-        ->assertSee('No receipts recorded for this month.')
+        ->assertSee('No receipts uploaded this month.')
         ->assertSee('Upload Receipts');
 });
 
