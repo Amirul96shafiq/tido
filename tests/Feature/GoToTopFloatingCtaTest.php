@@ -17,6 +17,24 @@ test('go to top is fixed flush bottom-right at collapsed chrome size', function 
         ->toContain("height: {$expectedSize};")
         ->toContain('border-top: 1px solid var(--color-gray-100);')
         ->toContain('border-left: 1px solid var(--color-gray-100);');
+
+    expect($css)
+        ->toContain('@media (max-width: 639px)')
+        ->toContain('top: calc(2 * (var(--collapsed-sidebar-width, 4.5rem) - 1px));')
+        ->toContain('bottom: auto;')
+        ->toContain('border-top: none;')
+        ->toContain('border-bottom: 1px solid var(--color-gray-100);')
+        ->toContain('.tido-go-to-top.tido-go-to-top--page-bottom {')
+        ->toContain('transition:');
+});
+
+test('go to top slides into go to bottom slot when page is scrolled to bottom on mobile', function () {
+    $blade = (string) file_get_contents(resource_path('views/components/go-to-top.blade.php'));
+
+    expect($blade)
+        ->toContain('atPageBottom')
+        ->toContain("scrollTop + viewportHeight >= scrollHeight - this.threshold")
+        ->toContain("'tido-go-to-top--page-bottom': atPageBottom");
 });
 
 test('go to top is registered on panel body end', function () {

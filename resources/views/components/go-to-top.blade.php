@@ -1,9 +1,15 @@
 <div
     x-data="{
         visible: false,
+        atPageBottom: false,
         threshold: 50,
         update() {
-            this.visible = (window.scrollY || document.documentElement.scrollTop) > this.threshold;
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            const viewportHeight = window.innerHeight;
+            const scrollHeight = document.documentElement.scrollHeight;
+
+            this.visible = scrollTop > this.threshold;
+            this.atPageBottom = scrollTop + viewportHeight >= scrollHeight - this.threshold;
         },
         goToTop() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -24,6 +30,7 @@
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
     class="tido-go-to-top"
+    :class="{ 'tido-go-to-top--page-bottom': atPageBottom }"
 >
     <button
         type="button"

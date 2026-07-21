@@ -965,6 +965,32 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     color: var(--color-slate-200);
 }
 
+@media (max-width: 639px) {
+    /* Stack go-to-top flush under go-to-bottom (top-end chrome column) */
+    .tido-go-to-top {
+        top: calc(2 * (var(--collapsed-sidebar-width, 4.5rem) - 1px));
+        bottom: auto;
+        border-top: none;
+        border-bottom: 1px solid var(--color-gray-100);
+        transition:
+            top 200ms ease,
+            border-color 200ms ease;
+    }
+
+    .tido-go-to-top.tido-go-to-top--page-bottom {
+        top: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
+    }
+
+    .dark .tido-go-to-top {
+        border-top: none;
+        border-bottom-color: color-mix(
+            in srgb,
+            var(--color-slate-700) 60%,
+            transparent
+        );
+    }
+}
+
 /*
  * Filament default .fi-dropdown-panel is z-20; raise for body-level / teleported panels.
  * Topbar user-menu panel stays in .fi-topbar-ctn (z-20) — see .tido-go-to-bottom.
