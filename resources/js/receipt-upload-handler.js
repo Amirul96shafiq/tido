@@ -2,13 +2,13 @@
  * Processes sessionStorage handoff on the Upload Receipts page (SPA-safe).
  */
 
-const dragDropLang = {
-    largeFileTitle:
-        window.dragDropLang?.large_file_title || 'Large receipt detected',
+const COPY = {
+    largeFileTitle: 'Large receipt detected',
     largeFileMessage:
-        window.dragDropLang?.large_file_message ||
         ':filename (:sizeMB) is too large for automatic upload. Please drop it on the upload field.',
 };
+
+const DEFAULT_UPLOAD_URL = '/admin/upload-receipts';
 
 let isProcessing = false;
 let lastHandledReceiptKey = null;
@@ -19,10 +19,10 @@ let submittedReceiptKey = null;
 function getUploadPagePath() {
     try {
         const uploadUrl =
-            window.dragDropLang?.uploadUrl || '/admin/upload-receipts';
+            window.dragDropConfig?.uploadUrl || DEFAULT_UPLOAD_URL;
         return new URL(uploadUrl, window.location.origin).pathname;
     } catch {
-        return '/admin/upload-receipts';
+        return DEFAULT_UPLOAD_URL;
     }
 }
 
@@ -164,7 +164,7 @@ function showLargeFileMessage(fileData) {
     }
 
     const fileSizeMB = (fileData.size / 1024 / 1024).toFixed(1);
-    const message = dragDropLang.largeFileMessage
+    const message = COPY.largeFileMessage
         .replace(':sizeMB', `${fileSizeMB}MB`)
         .replace(':filename', fileData.name);
 
@@ -190,7 +190,7 @@ function showLargeFileMessage(fileData) {
         <div class="flex w-full gap-3 p-4 bg-amber-50 dark:bg-amber-400/10">
             <div class="mt-0.5 grid flex-1">
                 <h3 class="fi-no-notification-title text-sm font-medium text-gray-950 dark:text-white">
-                    ${dragDropLang.largeFileTitle}
+                    ${COPY.largeFileTitle}
                 </h3>
                 <div class="fi-no-notification-body overflow-hidden break-words text-sm text-gray-500 dark:text-gray-400 mt-1">
                     ${message}

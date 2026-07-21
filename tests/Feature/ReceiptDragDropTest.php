@@ -27,7 +27,7 @@ test('drag drop source files exist', function () {
     expect(resource_path('js/drag-drop-upload.js'))->toBeReadableFile()
         ->and(resource_path('js/receipt-upload-handler.js'))->toBeReadableFile()
         ->and(resource_path('js/receipt-image-preview.js'))->toBeReadableFile()
-        ->and(resource_path('views/components/drag-drop-lang.blade.php'))->toBeReadableFile();
+        ->and(resource_path('views/components/drag-drop-config.blade.php'))->toBeReadableFile();
 });
 
 test('drag drop upload ignores non-file and sortable list drags', function () {
@@ -55,27 +55,26 @@ test('drag drop upload includes FilePond-style drip blob that follows the cursor
         ->toContain('scale3d');
 });
 
-test('drag drop language bootstrap includes expected copy', function () {
-    $this->get(Dashboard::getUrl())
-        ->assertSuccessful()
-        ->assertSee("drop_receipt: 'Drop receipt to upload'", false)
-        ->assertSee('5MB', false)
-        ->assertSee('JPEG', false);
+test('drag drop upload script includes expected copy', function () {
+    $source = (string) file_get_contents(resource_path('js/drag-drop-upload.js'));
+
+    expect($source)
+        ->toContain("dropReceipt: 'Drop receipt to upload'")
+        ->toContain('5MB')
+        ->toContain('JPEG');
 });
 
-test('admin dashboard includes drag drop language bootstrap', function () {
+test('admin dashboard includes drag drop config bootstrap', function () {
     $this->get(Dashboard::getUrl())
         ->assertSuccessful()
-        ->assertSee('window.dragDropLang', false)
-        ->assertSee('Drop receipt to upload', false)
+        ->assertSee('window.dragDropConfig', false)
         ->assertSee(ReceiptUploadPage::getUrl(), false);
 });
 
-test('upload receipts page includes drag drop language bootstrap', function () {
+test('upload receipts page includes drag drop config bootstrap', function () {
     $this->get(ReceiptUploadPage::getUrl())
         ->assertSuccessful()
-        ->assertSee('window.dragDropLang', false)
-        ->assertSee('Drop receipt to upload', false);
+        ->assertSee('window.dragDropConfig', false);
 });
 
 test('vite config includes drag drop scripts', function () {

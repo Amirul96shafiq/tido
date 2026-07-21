@@ -30,6 +30,21 @@ const DRIP_VISIBLE_OPACITY = 0.4;
 const DRIP_OPACITY_MS = 250;
 const DRIP_INITIAL_SCALE = 2.5;
 
+const COPY = {
+    dropReceipt: 'Drop receipt to upload',
+    dropReceiptHelper:
+        'Automatically uploads images below 5MB. Larger files require manual upload on the next page.',
+    unsupportedFileType:
+        'Only receipt images (JPEG, PNG, WebP, GIF) are supported.',
+    fileTooLarge: (sizeMB) =>
+        `File size exceeds 10MB limit. Your file is ${sizeMB}MB.`,
+    largeFileFallback:
+        'File too large for drag-and-drop. Please use the upload form directly.',
+    processingError: 'Error processing receipt. Please try again.',
+};
+
+const DEFAULT_UPLOAD_URL = '/admin/upload-receipts';
+
 const DragDropUpload = {
     overlay: null,
     drip: null,
@@ -150,14 +165,8 @@ const DragDropUpload = {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"></path>
             </svg>
             <div style="text-align: center;">
-                <div style="font-size: 24px; font-weight: bold; margin-bottom: 8px;">${
-                    window.dragDropLang?.drop_receipt ||
-                    'Drop receipt to upload'
-                }</div>
-                <div style="font-size: 16px; font-weight: 600; opacity: 0.8;">${
-                    window.dragDropLang?.drop_receipt_helper ||
-                    'Automatically uploads images below 5MB. Larger files require manual upload on the next page.'
-                }</div>
+                <div style="font-size: 24px; font-weight: bold; margin-bottom: 8px;">${COPY.dropReceipt}</div>
+                <div style="font-size: 16px; font-weight: 600; opacity: 0.8;">${COPY.dropReceiptHelper}</div>
             </div>
         `;
         this.overlay.appendChild(content);
@@ -475,10 +484,7 @@ const DragDropUpload = {
 
     validateFile(file) {
         if (!this.allowedTypes.includes(file.type)) {
-            alert(
-                window.dragDropLang?.unsupported_file_type ||
-                    'Only receipt images (JPEG, PNG, WebP, GIF) are supported.',
-            );
+            alert(COPY.unsupportedFileType);
             return false;
         }
 
@@ -488,13 +494,7 @@ const DragDropUpload = {
     processFile(file) {
         if (file.size > this.maxSizeBytes) {
             const fileSizeMB = (file.size / 1024 / 1024).toFixed(1);
-            const message =
-                window.dragDropLang?.file_too_large?.replace(
-                    ':sizeMB',
-                    fileSizeMB,
-                ) ||
-                `File size exceeds 10MB limit. Your file is ${fileSizeMB}MB.`;
-            alert(message);
+            alert(COPY.fileTooLarge(fileSizeMB));
             return;
         }
 
@@ -532,14 +532,7 @@ const DragDropUpload = {
             this.navigateToUpload();
         } catch (error) {
             console.error('Error storing large receipt metadata:', error);
-            const fileSizeMB = (fileData.size / 1024 / 1024).toFixed(1);
-            alert(
-                window.dragDropLang?.file_too_large?.replace(
-                    ':sizeMB',
-                    fileSizeMB,
-                ) ||
-                    'File too large for drag-and-drop. Please use the upload form directly.',
-            );
+            alert(COPY.largeFileFallback);
         }
     },
 
@@ -549,13 +542,13 @@ const DragDropUpload = {
             this.navigateToUpload();
         } catch (error) {
             console.error('Error storing receipt:', error);
-            alert('Error processing receipt. Please try again.');
+            alert(COPY.processingError);
         }
     },
 
     navigateToUpload() {
         const uploadUrl =
-            window.dragDropLang?.uploadUrl || '/admin/upload-receipts';
+            window.dragDropConfig?.uploadUrl || DEFAULT_UPLOAD_URL;
 
         if (window.Livewire?.navigate) {
             window.Livewire.navigate(uploadUrl);
