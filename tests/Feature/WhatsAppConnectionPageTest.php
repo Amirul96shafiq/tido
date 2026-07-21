@@ -69,6 +69,7 @@ beforeEach(function () {
 test('whatsapp connection page uses whatsapp-connection slug', function () {
     expect(WhatsAppConnectionPage::getSlug())->toBe('whatsapp-connection')
         ->and(WhatsAppConnectionPage::getNavigationLabel())->toBe('WhatsApp Connection')
+        ->and(WhatsAppConnectionPage::getNavigationGroup())->toBe('Integrations')
         ->and(WhatsAppConnectionPage::getUrl())->toContain('/whatsapp-connection');
 });
 

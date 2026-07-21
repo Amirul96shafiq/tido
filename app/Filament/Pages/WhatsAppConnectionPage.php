@@ -40,7 +40,7 @@ class WhatsAppConnectionPage extends Page implements HasTable
 
     protected static ?string $navigationLabel = 'WhatsApp Connection';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
+    protected static string|\UnitEnum|null $navigationGroup = 'Integrations';
 
     protected static ?string $title = 'WhatsApp Connection';
 
