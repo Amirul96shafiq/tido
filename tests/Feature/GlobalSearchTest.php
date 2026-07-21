@@ -206,5 +206,7 @@ test('topbar global search collapses to icon button on small screens', function 
         ->toContain('.fi-topbar .fi-global-search-field .fi-input')
         ->toContain('collapse topbar global search to a size-10 icon button')
         ->toContain('flex-none')
-        ->toContain('opacity-0');
+        ->toContain('opacity-0')
+        ->toContain('[id="global-search-modal::plugin"] .fi-modal-footer')
+        ->toContain('hide keyboard shortcut footer');
 });

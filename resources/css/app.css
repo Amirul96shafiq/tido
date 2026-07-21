@@ -1415,6 +1415,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 /*
  * Mobile: collapse topbar global search to a size-10 icon button.
  * Input stays the hit target so global-search-modal still opens on tap.
+ * Also hide keyboard shortcut footer (to select / navigate / close).
  */
 @media (max-width: 1023px) {
     .fi-topbar .fi-global-search {
@@ -1439,6 +1440,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
     .fi-topbar .fi-global-search-field .fi-input {
         @apply absolute inset-0 z-10 size-full min-w-0 flex-none cursor-pointer border-0 p-0 opacity-0;
+    }
+
+    [id="global-search-modal::plugin"] .fi-modal-footer {
+        @apply hidden;
     }
 }
 
