@@ -170,3 +170,54 @@ test('sidebar header swaps full and compact logos by state', function () {
         ->not->toContain('.fi-topbar-ctn-collapsed .fi-topbar-start')
         ->not->toContain('html.fi-sidebar-is-collapsed .fi-topbar-start');
 });
+
+test('sidebar collapse expand transition uses shared motion tokens and logo mask', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $collapsedFullBlock = Str::between(
+        $css,
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-logo-full {',
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-logo-compact {',
+    );
+    $collapsedCompactBlock = Str::between(
+        $css,
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-logo-compact {',
+        '.fi-sidebar-logo-compact .fi-logo {',
+    );
+    $sidebarHeaderBlock = Str::between(
+        $css,
+        '.fi-sidebar-header {',
+        '.dark .fi-sidebar-header {',
+    );
+    $reducedMotionBlock = Str::between(
+        $css,
+        '/* Honor prefers-reduced-motion: skip sidebar collapse/expand chrome motion */',
+        '/*\n * Filament .fi-page-header-main-ctn uses py-8.',
+    );
+
+    expect($css)
+        ->toContain('--tido-sidebar-duration: 300ms;')
+        ->toContain('--tido-sidebar-ease: cubic-bezier(0.4, 0, 0.2, 1);')
+        ->toContain('--tido-sidebar-content-delay: 120ms;')
+        ->toContain('html.fi-sidebar-preload .fi-sidebar-logo-full')
+        ->toContain('html.fi-sidebar-preload .fi-sidebar-logo-compact')
+        ->toContain(
+            'animation: fi-collapsed-chrome-enter var(--tido-sidebar-duration)',
+        )
+        ->toContain(
+            'transition: width var(--tido-sidebar-duration) var(--tido-sidebar-ease) !important;',
+        )
+        ->and($collapsedFullBlock)
+        ->toContain('display: none;')
+        ->and($collapsedCompactBlock)
+        ->toContain('display: flex;')
+        ->and($sidebarHeaderBlock)
+        ->toContain('overflow: hidden;')
+        ->and($reducedMotionBlock)
+        ->toContain('@media (prefers-reduced-motion: reduce)')
+        ->toContain('.fi-sidebar-logo-full')
+        ->toContain('.fi-sidebar-logo-compact')
+        ->toContain('.fi-sidebar-item-btn')
+        ->toContain('transition: none !important;')
+        ->toContain('animation: none !important;');
+});

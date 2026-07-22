@@ -162,6 +162,13 @@ html.dark::-webkit-scrollbar-thumb:hover,
     }
 }
 
+/* Sidebar collapse/expand motion tokens */
+:root {
+    --tido-sidebar-duration: 300ms;
+    --tido-sidebar-ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --tido-sidebar-content-delay: 120ms;
+}
+
 /* Sidebar visual separation line */
 .fi-sidebar {
     border-inline-end: 1px solid var(--color-gray-100) !important;
@@ -853,6 +860,8 @@ html.fi-sidebar-preload .fi-sidebar-nav,
 html.fi-sidebar-preload .fi-sidebar-collapse-footer,
 html.fi-sidebar-preload .fi-sidebar-item-btn,
 html.fi-sidebar-preload .fi-sidebar-group-dropdown-trigger-btn,
+html.fi-sidebar-preload .fi-sidebar-logo-full,
+html.fi-sidebar-preload .fi-sidebar-logo-compact,
 html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     transition: none !important;
     animation: none !important;
@@ -864,6 +873,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px) !important;
     min-height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px) !important;
     border-bottom: 1px solid var(--color-gray-100) !important;
+    overflow: hidden;
 }
 
 .dark .fi-sidebar-header {
@@ -888,6 +898,16 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
 .fi-sidebar-logo-compact {
     display: none;
+}
+
+/*
+ * Soft-dissolve logo swap: steady-state display:none/flex stays locked for tests,
+ * but opacity masking hides the clipped intermediate frame while width tweens.
+ */
+.fi-sidebar.fi-sidebar-open .fi-sidebar-logo-full,
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-logo-compact {
+    animation: fi-collapsed-chrome-enter var(--tido-sidebar-duration)
+        var(--tido-sidebar-ease) var(--tido-sidebar-content-delay) both;
 }
 
 /*
@@ -962,10 +982,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     max-width: 14rem;
     opacity: 1;
     transition:
-        max-width 300ms ease-in-out,
-        opacity 200ms ease-in-out,
-        margin 300ms ease-in-out,
-        padding 300ms ease-in-out;
+        max-width var(--tido-sidebar-duration) var(--tido-sidebar-ease),
+        opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease),
+        margin var(--tido-sidebar-duration) var(--tido-sidebar-ease),
+        padding var(--tido-sidebar-duration) var(--tido-sidebar-ease);
 }
 
 .fi-sidebar-header-logo-ctn {
@@ -974,10 +994,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     max-width: 14rem;
     opacity: 1;
     transition:
-        max-width 300ms ease-in-out,
-        opacity 200ms ease-in-out,
-        margin 300ms ease-in-out,
-        padding 300ms ease-in-out;
+        max-width var(--tido-sidebar-duration) var(--tido-sidebar-ease),
+        opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease),
+        margin var(--tido-sidebar-duration) var(--tido-sidebar-ease),
+        padding var(--tido-sidebar-duration) var(--tido-sidebar-ease);
 }
 
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-label,
@@ -1005,8 +1025,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     max-width: 1.5rem;
     opacity: 1;
     transition:
-        max-width 300ms ease-in-out,
-        opacity 200ms ease-in-out;
+        max-width var(--tido-sidebar-duration) var(--tido-sidebar-ease),
+        opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease);
 }
 
 .fi-sidebar-collapse-footer {
@@ -1264,10 +1284,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     opacity: 1;
     overflow: hidden;
     transition:
-        max-height 300ms ease-in-out,
-        opacity 200ms ease-in-out,
-        margin 300ms ease-in-out,
-        padding 300ms ease-in-out;
+        max-height var(--tido-sidebar-duration) var(--tido-sidebar-ease),
+        opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease),
+        margin var(--tido-sidebar-duration) var(--tido-sidebar-ease),
+        padding var(--tido-sidebar-duration) var(--tido-sidebar-ease);
 }
 
 /*
@@ -1277,7 +1297,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
  * opacity rules here previously killed the database notifications slide-in.
  */
 .fi-sidebar .fi-transition-enter {
-    transition: opacity 200ms ease-in-out 100ms !important;
+    transition: opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease)
+        var(--tido-sidebar-content-delay) !important;
 }
 
 .fi-sidebar .fi-transition-enter-start {
@@ -1290,7 +1311,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
 /*
  * Menu icons stay in the DOM (labels clip via CSS), so they cannot use Alpine x-show.
- * Match the version-icon enter: stay invisible for 100ms, then fade in over 200ms.
+ * Match the version-icon enter: stay invisible during the content delay, then fade in.
  * `both` keeps opacity at 0 during the delay so the mid-tween layout snap is hidden.
  */
 @keyframes fi-collapsed-chrome-enter {
@@ -1305,7 +1326,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn,
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-group-dropdown-trigger-btn {
-    animation: fi-collapsed-chrome-enter 200ms ease-in-out 100ms both;
+    animation: fi-collapsed-chrome-enter var(--tido-sidebar-duration)
+        var(--tido-sidebar-ease) var(--tido-sidebar-content-delay) both;
 }
 
 /* Desktop layout overrides for full-height sidebar and static topbar */
@@ -1319,7 +1341,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
     .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar {
         overflow-x: hidden;
-        transition: width 300ms ease-in-out !important;
+        transition: width var(--tido-sidebar-duration) var(--tido-sidebar-ease) !important;
     }
 
     .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar.fi-sidebar-open {
@@ -1335,11 +1357,13 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     }
 
     .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar-header {
-        transition: padding-inline 300ms ease-in-out;
+        transition: padding-inline var(--tido-sidebar-duration)
+            var(--tido-sidebar-ease);
     }
 
     .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar-nav {
-        transition: padding-inline 300ms ease-in-out;
+        transition: padding-inline var(--tido-sidebar-duration)
+            var(--tido-sidebar-ease);
     }
 
     .fi-topbar-ctn {
@@ -1350,7 +1374,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
     .fi-topbar {
         padding-inline-start: var(--sidebar-width, 18rem) !important;
-        transition: padding-inline-start 300ms ease-in-out;
+        transition: padding-inline-start var(--tido-sidebar-duration)
+            var(--tido-sidebar-ease);
     }
 
     .fi-topbar-ctn-collapsed .fi-topbar,
@@ -1366,7 +1391,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
      */
     .fi-body-has-sidebar-collapsible-on-desktop .fi-main-ctn {
         margin-inline-start: var(--collapsed-sidebar-width, 4.5rem);
-        transition: margin-inline-start 300ms ease-in-out;
+        transition: margin-inline-start var(--tido-sidebar-duration)
+            var(--tido-sidebar-ease);
         min-height: calc(
             100dvh - (var(--collapsed-sidebar-width, 4.5rem) - 1px)
         );
@@ -1374,6 +1400,32 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
     .fi-body-has-sidebar-collapsible-on-desktop .fi-main-ctn-sidebar-open {
         margin-inline-start: var(--sidebar-width, 18rem);
+    }
+}
+
+/* Honor prefers-reduced-motion: skip sidebar collapse/expand chrome motion */
+@media (prefers-reduced-motion: reduce) {
+    .fi-topbar,
+    .fi-sidebar,
+    .fi-main-ctn,
+    .fi-sidebar-header,
+    .fi-sidebar-nav,
+    .fi-sidebar-collapse-footer,
+    .fi-sidebar-item-btn,
+    .fi-sidebar-group-btn,
+    .fi-sidebar-group-dropdown-trigger-btn,
+    .fi-sidebar-item-label,
+    .fi-sidebar-item-badge-ctn,
+    .fi-sidebar-group-label,
+    .fi-sidebar-group-collapse-btn,
+    .fi-sidebar-header-logo-ctn,
+    .fi-sidebar-logo-full,
+    .fi-sidebar-logo-compact,
+    .fi-user-menu-trigger-text,
+    .fi-user-menu-trigger-chevron,
+    .fi-sidebar .fi-transition-enter {
+        transition: none !important;
+        animation: none !important;
     }
 }
 
@@ -1452,10 +1504,13 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .fi-sidebar-item-btn {
-    @apply transition-colors duration-200;
     position: relative;
     justify-content: flex-start;
     align-items: center;
+    transition:
+        color var(--tido-sidebar-duration) var(--tido-sidebar-ease),
+        background-color var(--tido-sidebar-duration) var(--tido-sidebar-ease),
+        opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease);
 }
 
 .fi-sidebar-item.fi-sidebar-item-has-url > .fi-sidebar-item-btn:hover {
