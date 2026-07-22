@@ -233,18 +233,24 @@ html.dark::-webkit-scrollbar-thumb:hover,
     @apply bg-gray-900 ring-white/10;
 }
 
-/* Auth simple pages — 30/70 split (mobile bottom image; desktop left image) */
+/* Auth simple pages — split (mobile bottom image; desktop left image) */
 .fi-body:has(.fi-simple-layout) {
     background-image: none !important;
 }
 
-/* Mobile / tablet: form top 70%, illustration bottom 30% */
+/* Auth pages never need page scroll CTAs */
+.fi-body:has(.fi-simple-layout) .tido-go-to-top,
+.fi-body:has(.fi-simple-layout) .tido-go-to-bottom {
+    display: none !important;
+}
+
+/* Mobile / tablet: form top 80%, illustration bottom 20% */
 .fi-simple-layout::before {
     content: '';
     position: fixed;
     inset-inline: 1.5rem;
     inset-block-end: 0;
-    height: calc(30% - 1.5rem);
+    height: calc(20% - 1.5rem);
     /* Top corners only — flush to viewport bottom */
     border-radius: 0.75rem 0.75rem 0 0;
     background-image: var(--tido-auth-bg-light);
@@ -259,9 +265,33 @@ html.dark::-webkit-scrollbar-thumb:hover,
     background-image: var(--tido-auth-bg-dark);
 }
 
-.fi-simple-main-ctn {
-    /* Keep form/scroll area above the fixed image */
-    padding-block-end: 30%;
+@media (max-width: 1023px) {
+    /* Lock auth to the viewport — no page scroll; fixed 80/20 */
+    .fi-body:has(.fi-simple-layout) {
+        overflow: hidden !important;
+        height: 100dvh;
+        max-height: 100dvh;
+    }
+
+    .fi-body:has(.fi-simple-layout) .fi-simple-layout {
+        height: 100dvh;
+        max-height: 100dvh;
+        min-height: 100dvh;
+        overflow: hidden;
+    }
+
+    .fi-body:has(.fi-simple-layout) .fi-simple-main-ctn {
+        height: 80%;
+        max-height: 80%;
+        flex-grow: 0;
+        overflow: hidden;
+        padding-block-end: 0;
+    }
+
+    .fi-body:has(.fi-simple-layout) .fi-simple-main {
+        margin-block: 0.75rem !important;
+        padding-block: 0.75rem !important;
+    }
 }
 
 @media (min-width: 1024px) {

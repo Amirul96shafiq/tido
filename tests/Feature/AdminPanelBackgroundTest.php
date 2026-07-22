@@ -68,28 +68,34 @@ test('admin panel provider injects auth background asset css variables', functio
         ->toContain('--tido-auth-bg-dark:');
 });
 
-test('auth simple pages use mobile bottom and desktop left 30/70 split layout', function () {
+test('auth simple pages use mobile bottom and desktop left split layout', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
     $authSplitBlock = Str::between(
         $css,
-        '/* Auth simple pages — 30/70 split',
+        '/* Auth simple pages — split',
         '/* Auth simple pages — Catalyst-style',
     );
 
     expect($authSplitBlock)
         ->toContain('.fi-body:has(.fi-simple-layout) {')
         ->toContain('background-image: none !important;')
+        ->toContain('.tido-go-to-top,')
+        ->toContain('.tido-go-to-bottom {')
+        ->toContain('display: none !important;')
         ->toContain('.fi-simple-layout::before {')
         ->toContain('inset-inline: 1.5rem;')
         ->toContain('inset-block-end: 0;')
-        ->toContain('height: calc(30% - 1.5rem);')
+        ->toContain('height: calc(20% - 1.5rem);')
         ->toContain('border-radius: 0.75rem 0.75rem 0 0;')
         ->toContain('background-image: var(--tido-auth-bg-light);')
         ->toContain('background-position: center bottom;')
         ->toContain('.dark .fi-simple-layout::before {')
         ->toContain('background-image: var(--tido-auth-bg-dark);')
-        ->toContain('padding-block-end: 30%;')
+        ->toContain('@media (max-width: 1023px)')
+        ->toContain('overflow: hidden !important;')
+        ->toContain('height: 100dvh;')
+        ->toContain('max-height: 80%;')
         ->toContain('@media (min-width: 1024px)')
         ->toContain('inset-block: 1.5rem;')
         ->toContain('inset-inline-start: 1.5rem;')
