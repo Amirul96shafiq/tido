@@ -7,6 +7,10 @@
 @endphp
 
 <div {{ $attributes->class(['tido-auth-login-tabs-wrap']) }}>
+    <p class="tido-auth-login-tabs-label mb-2 text-left text-sm font-medium text-gray-950 dark:text-white">
+        Sign in via
+    </p>
+
     <x-filament::tabs
         class="tido-auth-login-tabs w-full"
         label="Sign-in method"

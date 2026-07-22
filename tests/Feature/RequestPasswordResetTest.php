@@ -29,6 +29,7 @@ test('forgot password page shows back to login link below the form', function ()
 
 test('login page shows mode tabs and info toast', function () {
     Livewire::test(Login::class)
+        ->assertSee('Sign in via')
         ->assertSee('One-Time Password (OTP)')
         ->assertSee('Email & Password')
         ->assertDontSee('Sign in with email & password');
