@@ -52,3 +52,43 @@ test('dark mode form fields and repeater items match section surface and border'
         ->and($css)
         ->toContain('dark:bg-gray-900 dark:ring-white/10');
 });
+
+test('auth light and dark background images exist', function () {
+    expect(public_path('images/auth-bg-l.png'))->toBeFile()
+        ->and(public_path('images/auth-bg-d.png'))->toBeFile();
+});
+
+test('admin panel provider injects auth background asset css variables', function () {
+    $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
+
+    expect($provider)
+        ->toContain("asset('images/auth-bg-l.png')")
+        ->toContain("asset('images/auth-bg-d.png')")
+        ->toContain('--tido-auth-bg-light:')
+        ->toContain('--tido-auth-bg-dark:');
+});
+
+test('auth simple pages use desktop 30/70 split background layout', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $authSplitBlock = Str::between(
+        $css,
+        '/* Auth simple pages — 30/70 split',
+        '/* Auth simple pages — Catalyst-style',
+    );
+
+    expect($authSplitBlock)
+        ->toContain('.fi-body:has(.fi-simple-layout) {')
+        ->toContain('background-image: none !important;')
+        ->toContain('@media (min-width: 1024px)')
+        ->toContain('.fi-simple-layout::before {')
+        ->toContain('inset-inline-start: 0;')
+        ->toContain('width: 30%;')
+        ->toContain('background-image: var(--tido-auth-bg-light);')
+        ->toContain('background-position: center;')
+        ->toContain('.dark .fi-simple-layout::before {')
+        ->toContain('background-image: var(--tido-auth-bg-dark);')
+        ->toContain('.fi-simple-main-ctn {')
+        ->toContain('width: 70%;')
+        ->toContain('margin-inline-start: auto;');
+});

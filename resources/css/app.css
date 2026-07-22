@@ -233,6 +233,37 @@ html.dark::-webkit-scrollbar-thumb:hover,
     @apply bg-gray-900 ring-white/10;
 }
 
+/* Auth simple pages — 30/70 split (desktop illustration left, form right) */
+.fi-body:has(.fi-simple-layout) {
+    background-image: none !important;
+}
+
+@media (min-width: 1024px) {
+    .fi-simple-layout::before {
+        content: '';
+        position: fixed;
+        inset-block: 0;
+        inset-inline-start: 0;
+        width: 30%;
+        background-image: var(--tido-auth-bg-light);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .dark .fi-simple-layout::before {
+        background-image: var(--tido-auth-bg-dark);
+    }
+
+    .fi-simple-main-ctn {
+        width: 70%;
+        max-width: 70%;
+        margin-inline-start: auto;
+    }
+}
+
 /* Auth simple pages — Catalyst-style: larger logo, left-aligned copy, borderless */
 .fi-simple-page-content {
     row-gap: 2.5rem !important;
