@@ -242,9 +242,11 @@ html.dark::-webkit-scrollbar-thumb:hover,
     .fi-simple-layout::before {
         content: '';
         position: fixed;
-        inset-block: 0;
-        inset-inline-start: 0;
-        width: 30%;
+        /* Match Filament panel inset (p-6) + card radius (rounded-xl) */
+        inset-block: 1.5rem;
+        inset-inline-start: 1.5rem;
+        width: calc(30% - 2.25rem);
+        border-radius: 0.75rem;
         background-image: var(--tido-auth-bg-light);
         background-size: cover;
         background-position: center;
