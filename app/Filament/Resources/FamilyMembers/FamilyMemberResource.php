@@ -8,7 +8,6 @@ use App\Filament\Resources\FamilyMembers\Pages\CreateFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\EditFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\ListFamilyMembers;
 use App\Filament\Resources\FamilyMembers\Schemas\FamilyMemberForm;
-use App\Filament\Resources\FamilyMembers\Schemas\FamilyMemberInfolist;
 use App\Filament\Resources\FamilyMembers\Tables\FamilyMembersTable;
 use App\Models\FamilyMember;
 use Filament\Resources\Resource;
@@ -43,11 +42,6 @@ class FamilyMemberResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return FamilyMemberForm::configure($schema);
-    }
-
-    public static function infolist(Schema $schema): Schema
-    {
-        return FamilyMemberInfolist::configure($schema);
     }
 
     public static function table(Table $table): Table

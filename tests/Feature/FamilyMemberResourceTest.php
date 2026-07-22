@@ -8,9 +8,14 @@ use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Filament\Resources\FamilyMembers\Pages\CreateFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\EditFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\ListFamilyMembers;
+use App\Filament\Resources\FamilyMembers\Schemas\FamilyMemberForm;
 use App\Models\FamilyMember;
 use App\Models\User;
 use App\Support\PhoneNumber;
+use Filament\Actions\Testing\TestAction;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -189,6 +194,27 @@ test('list page can toggle allowlist column', function () {
 
     expect($member->fresh()->allowlist_enabled)->toBeFalse()
         ->and(PhoneNumber::isAllowedWhatsAppSender('60111111111'))->toBeFalse();
+});
+
+test('family members table has view slide-over action', function () {
+    $member = FamilyMember::factory()->create();
+
+    Livewire::test(ListFamilyMembers::class)
+        ->assertSuccessful()
+        ->assertActionExists(TestAction::make('view')->table($member));
+});
+
+test('family member form uses details plus profile photo sidebar layout', function () {
+    $schema = FamilyMemberForm::configure(Schema::make()->columns(2));
+    $components = $schema->getComponents();
+
+    expect($schema->getColumns('lg'))->toBe(10)
+        ->and($components)->toHaveCount(2)
+        ->and($components[0])->toBeInstanceOf(Grid::class)
+        ->and($components[0]->getColumnSpan('lg'))->toBe(7)
+        ->and($components[1])->toBeInstanceOf(Section::class)
+        ->and($components[1]->getColumnSpan('lg'))->toBe(3)
+        ->and($components[1]->getHeading())->toBe('Profile Photo');
 });
 
 test('profile whatsapp number is required', function () {
