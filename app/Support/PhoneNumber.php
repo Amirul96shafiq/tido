@@ -85,42 +85,50 @@ final class PhoneNumber
     }
 
     /**
+     * Owner account for Profile WhatsApp (always user id 1).
+     */
+    public static function primaryUser(): ?User
+    {
+        return User::query()->whereKey(1)->first();
+    }
+
+    /**
      * Owner outbound target for ping, welcome, and budget WhatsApp alerts.
-     * First user with a phone (by id).
+     * Profile phone on user id 1.
      */
     public static function primaryWhatsAppNumber(): ?string
     {
-        $phone = User::query()
-            ->whereNotNull('phone')
-            ->where('phone', '!=', '')
-            ->orderBy('id')
-            ->value('phone');
+        $user = self::primaryUser();
 
-        return self::normalize(is_string($phone) ? $phone : null);
+        if ($user === null) {
+            return null;
+        }
+
+        return self::normalize(is_string($user->phone) ? $user->phone : null);
     }
 
     /**
      * Numbers allowed to trigger WhatsApp bot replies / receipt import.
-     * Profile phones (users.phone) plus Family Members with allowlist enabled.
+     * User id 1 Profile phone plus Family Members with allowlist enabled.
      *
      * @return list<string>
      */
     public static function allowedWhatsAppSenders(): array
     {
-        $userPhones = User::query()
-            ->whereNotNull('phone')
-            ->where('phone', '!=', '')
-            ->pluck('phone')
-            ->all();
+        $numbers = [];
+
+        $primary = self::primaryWhatsAppNumber();
+
+        if ($primary !== null) {
+            $numbers[] = $primary;
+        }
 
         $familyPhones = FamilyMember::query()
             ->allowlisted()
             ->pluck('phone')
             ->all();
 
-        $numbers = [];
-
-        foreach ([...$userPhones, ...$familyPhones] as $phone) {
+        foreach ($familyPhones as $phone) {
             $normalized = self::normalize(is_string($phone) ? $phone : null);
 
             if ($normalized !== null) {
@@ -132,33 +140,31 @@ final class PhoneNumber
     }
 
     /**
-     * Allowlist entries for UI display (label + number).
+     * Allowlist entries grouped for EvolutionAPI UI.
      *
-     * @return list<array{label: string, phone: string}>
+     * @return array{
+     *     primary: list<array{name: string, phone: string}>,
+     *     family: list<array{name: string, phone: string}>
+     * }
      */
     public static function allowedWhatsAppSenderEntries(): array
     {
-        $entries = [];
+        $primary = [];
+        $family = [];
         $seen = [];
 
-        $users = User::query()
-            ->whereNotNull('phone')
-            ->where('phone', '!=', '')
-            ->orderBy('id')
-            ->get(['id', 'name', 'phone']);
+        $user = self::primaryUser();
 
-        foreach ($users as $user) {
-            $normalized = self::normalize($user->phone);
+        if ($user !== null) {
+            $normalized = self::normalize(is_string($user->phone) ? $user->phone : null);
 
-            if ($normalized === null || isset($seen[$normalized])) {
-                continue;
+            if ($normalized !== null) {
+                $seen[$normalized] = true;
+                $primary[] = [
+                    'name' => filled($user->name) ? (string) $user->name : 'Primary',
+                    'phone' => $normalized,
+                ];
             }
-
-            $seen[$normalized] = true;
-            $entries[] = [
-                'label' => filled($user->name) ? 'Profile · '.$user->name : 'Profile',
-                'phone' => $normalized,
-            ];
         }
 
         $members = FamilyMember::query()
@@ -174,13 +180,16 @@ final class PhoneNumber
             }
 
             $seen[$normalized] = true;
-            $entries[] = [
-                'label' => filled($member->name) ? (string) $member->name : 'Family member',
+            $family[] = [
+                'name' => filled($member->name) ? (string) $member->name : 'Family member',
                 'phone' => $normalized,
             ];
         }
 
-        return $entries;
+        return [
+            'primary' => $primary,
+            'family' => $family,
+        ];
     }
 
     public static function isAllowedWhatsAppSender(string $senderNumber): bool

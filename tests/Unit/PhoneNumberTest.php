@@ -80,17 +80,22 @@ test('isAllowedWhatsAppSender matches profile and allowlisted family only', func
         ->and(PhoneNumber::isAllowedWhatsAppSender('60199999999'))->toBeFalse();
 });
 
-test('primaryWhatsAppNumber returns first user phone by id', function () {
+test('primaryWhatsAppNumber uses only user id 1', function () {
     User::factory()->create(['phone' => '60111111111']);
     User::factory()->create(['phone' => '60122222222']);
 
-    expect(PhoneNumber::primaryWhatsAppNumber())->toBe('60111111111');
+    expect(PhoneNumber::primaryWhatsAppNumber())->toBe('60111111111')
+        ->and(PhoneNumber::isAllowedWhatsAppSender('60122222222'))->toBeFalse();
 });
 
-test('allowedWhatsAppSenderEntries labels profile and family members', function () {
+test('allowedWhatsAppSenderEntries lists only user id 1 under primary', function () {
     User::factory()->create([
         'name' => 'Admin User',
         'phone' => '60123456789',
+    ]);
+    User::factory()->create([
+        'name' => 'Other User',
+        'phone' => '60199999999',
     ]);
     FamilyMember::factory()->create([
         'name' => 'Spouse',
@@ -99,13 +104,17 @@ test('allowedWhatsAppSenderEntries labels profile and family members', function 
     ]);
 
     expect(PhoneNumber::allowedWhatsAppSenderEntries())->toBe([
-        [
-            'label' => 'Profile · Admin User',
-            'phone' => '60123456789',
+        'primary' => [
+            [
+                'name' => 'Admin User',
+                'phone' => '60123456789',
+            ],
         ],
-        [
-            'label' => 'Spouse',
-            'phone' => '60111111111',
+        'family' => [
+            [
+                'name' => 'Spouse',
+                'phone' => '60111111111',
+            ],
         ],
     ]);
 });

@@ -261,18 +261,11 @@
 
                             <div class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
                                 <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Contact allowlist</dt>
-                                <dd class="text-gray-950 dark:text-white">
-                                    @forelse ($this->allowedSenderEntries() as $entry)
-                                        <span @class(['block' => ! $loop->first])>
-                                            <span class="text-gray-500 dark:text-gray-400">{{ $entry['label'] }}</span>
-                                            <span class="font-mono"> {{ $entry['phone'] }}</span>
-                                        </span>
-                                    @empty
-                                        <span class="text-warning-600 dark:text-warning-400">
-                                            Not set —
-                                            <a href="{{ $this->profileEditUrl() }}" class="underline">set WhatsApp number in Profile</a>
-                                        </span>
-                                    @endforelse
+                                <dd class="min-w-0 sm:text-right">
+                                    @include('filament.pages.partials.evolution-api-allowlist', [
+                                        'allowedSenderEntries' => $this->allowedSenderEntries(),
+                                        'profileEditUrl' => $this->profileEditUrl(),
+                                    ])
                                 </dd>
                             </div>
                         </dl>
