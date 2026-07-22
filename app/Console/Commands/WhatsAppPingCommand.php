@@ -35,12 +35,26 @@ class WhatsAppPingCommand extends Command
             );
         }
 
+        $exists = $whatsApp->isWhatsAppNumber($phone);
+
+        if ($exists === false) {
+            $this->error("{$phone} is not registered on WhatsApp. Update Profile WhatsApp Number, then try again.");
+
+            return self::FAILURE;
+        }
+
         $this->info("Sending ping to {$phone}…");
 
-        $sent = $whatsApp->sendMessage($phone, $message);
+        $result = $whatsApp->sendMessageResult($phone, $message);
 
-        if (! $sent) {
-            $this->error('Failed to send. Check Evolution API URL, key, instance pairing, and logs.');
+        if (! $result->ok) {
+            $error = match ($result->reason) {
+                'not_on_whatsapp' => "{$phone} is not registered on WhatsApp. Update Profile WhatsApp Number, then try again.",
+                'connection_error' => 'Could not reach Evolution API. Is the service running?',
+                default => 'Failed to send. Check Evolution API URL, key, instance pairing, Profile WhatsApp Number, and logs.',
+            };
+
+            $this->error($error);
 
             return self::FAILURE;
         }

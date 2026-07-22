@@ -32,6 +32,16 @@ test('rejects empty and invalid values', function (mixed $value) {
     '12345',
     'abc',
     '+1-555-0100',
+    '6011163307051', // 13 digits — extra trailing digit typo
+]);
+
+test('accepts eleven and twelve digit Malaysian numbers', function (string $value, string $expected) {
+    expect(PhoneNumber::normalize($value))->toBe($expected);
+})->with([
+    ['60123456789', '60123456789'],
+    ['601123456789', '601123456789'],
+    ['0123456789', '60123456789'],
+    ['01123456789', '601123456789'],
 ]);
 
 test('parseList splits and normalizes multiple numbers', function () {

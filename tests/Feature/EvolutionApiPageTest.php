@@ -566,12 +566,19 @@ test('send ping uses personal whatsapp number', function () {
             'instance' => ['state' => 'open'],
         ]),
         '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/chat/whatsappNumbers/*' => Http::response([
+            [
+                'exists' => true,
+                'jid' => '60123456789@s.whatsapp.net',
+                'number' => '60123456789',
+            ],
+        ]),
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
 
     Livewire::test(EvolutionApiPage::class)
         ->call('sendPing')
-        ->assertNotified();
+        ->assertNotified('Ping sent');
 
     Http::assertSent(function (Request $request) {
         if (! str_contains($request->url(), '/message/sendText/')) {
@@ -586,6 +593,48 @@ test('send ping uses personal whatsapp number', function () {
             && str_contains($text, "\n\n")
             && ! str_contains($text, '\n');
     });
+});
+
+test('send ping reports invalid whatsapp number when evolution says missing', function () {
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/chat/whatsappNumbers/*' => Http::response([
+            [
+                'exists' => false,
+                'number' => '60123456789',
+            ],
+        ]),
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    Livewire::test(EvolutionApiPage::class)
+        ->call('sendPing')
+        ->assertNotified('Invalid WhatsApp number');
+
+    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/message/sendText/'));
+});
+
+test('send ping failure while connected blames recipient not connection', function () {
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/chat/whatsappNumbers/*' => Http::response([
+            [
+                'exists' => true,
+                'number' => '60123456789',
+            ],
+        ]),
+        '*/message/sendText/*' => Http::response(['error' => 'send failed'], 500),
+    ]);
+
+    Livewire::test(EvolutionApiPage::class)
+        ->call('sendPing')
+        ->assertNotified('Ping failed');
 });
 
 test('does not auto-send welcome or webhook when page loads already connected', function () {

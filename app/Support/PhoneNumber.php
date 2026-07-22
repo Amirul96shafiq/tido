@@ -44,7 +44,8 @@ final class PhoneNumber
 
         $length = strlen($digits);
 
-        if ($length < 11 || $length > 13) {
+        // MY mobiles: 60 + 9–10 national digits (11–12 total). Reject longer typos.
+        if ($length < 11 || $length > 12) {
             return null;
         }
 

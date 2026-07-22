@@ -424,22 +424,50 @@ class EvolutionApiPage extends Page implements HasTable
             return;
         }
 
-        $sent = app(WhatsAppNotificationService::class)
-            ->sendMessage(
-                $number,
-                WhatsAppMessage::compose(
-                    '✅',
-                    'Test ping',
-                    "Outbound WhatsApp delivery is working correctly.\n\nSend a document anytime to start tracking expenses.",
-                ),
-            );
+        $whatsApp = app(WhatsAppNotificationService::class);
+        $exists = $whatsApp->isWhatsAppNumber($number);
+
+        if ($exists === false) {
+            Notification::make()
+                ->title('Invalid WhatsApp number')
+                ->body($number.' is not registered on WhatsApp. Update your Profile WhatsApp Number, then try again.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $result = $whatsApp->sendMessageResult(
+            $number,
+            WhatsAppMessage::compose(
+                '✅',
+                'Test ping',
+                "Outbound WhatsApp delivery is working correctly.\n\nSend a document anytime to start tracking expenses.",
+            ),
+        );
+
+        if ($result->ok) {
+            Notification::make()
+                ->title('Ping sent')
+                ->body('Check WhatsApp on '.$number.'.')
+                ->success()
+                ->send();
+
+            return;
+        }
+
+        $body = match ($result->reason) {
+            'not_on_whatsapp' => $number.' is not registered on WhatsApp. Update your Profile WhatsApp Number, then try again.',
+            'connection_error' => 'Could not reach Evolution API. Is the service running?',
+            default => $this->isConnectionOpen()
+                ? 'Could not deliver to '.$number.'. Confirm the Profile WhatsApp Number is correct, then try again.'
+                : 'Evolution sendText failed. Is the instance connected?',
+        };
 
         Notification::make()
-            ->title($sent ? 'Ping sent' : 'Ping failed')
-            ->body($sent
-                ? 'Check WhatsApp on '.$number.'.'
-                : 'Evolution sendText failed. Is the instance connected?')
-            ->{$sent ? 'success' : 'danger'}()
+            ->title($result->reason === 'not_on_whatsapp' ? 'Invalid WhatsApp number' : 'Ping failed')
+            ->body($body)
+            ->danger()
             ->send();
     }
 
