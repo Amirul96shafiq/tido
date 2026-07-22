@@ -135,18 +135,25 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 function (): string {
+                    $currentUser = auth()->user();
+                    $backgroundEnabled = $currentUser === null
+                        || (bool) $currentUser->getAttribute('stylized_background_enabled');
                     $light = asset('images/bg-l.png');
                     $dark = asset('images/bg-d.png');
                     $authLightMobile = asset('images/auth-bg-l.png');
                     $authDarkMobile = asset('images/auth-bg-d.png');
                     $authLight = asset('images/auth-bg-l-v2.png');
                     $authDark = asset('images/auth-bg-d-v2.png');
+                    $lightBackground = $backgroundEnabled ? "url('{$light}')" : 'none';
+                    $darkBackground = $backgroundEnabled ? "url('{$dark}')" : 'none';
 
                     return <<<HTML
                         <style>
                             :root {
-                                --tido-bg-light: url('{$light}');
-                                --tido-bg-dark: url('{$dark}');
+                                --tido-bg-light: {$lightBackground};
+                                --tido-bg-dark: {$darkBackground};
+                                --tido-bg-color-light: #FFFFFF;
+                                --tido-bg-color-dark: #1D293D;
                                 --tido-auth-bg-light-mobile: url('{$authLightMobile}');
                                 --tido-auth-bg-dark-mobile: url('{$authDarkMobile}');
                                 --tido-auth-bg-light: url('{$authLight}');

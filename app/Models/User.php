@@ -34,6 +34,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
         'notify_profile_updates',
         'notify_email_digest',
         'notify_evolution_api',
+        'stylized_background_enabled',
+    ];
+
+    protected $attributes = [
+        'stylized_background_enabled' => true,
     ];
 
     protected $hidden = [
@@ -50,6 +55,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
             'notify_profile_updates' => 'boolean',
             'notify_email_digest' => 'boolean',
             'notify_evolution_api' => 'boolean',
+            'stylized_background_enabled' => 'boolean',
         ];
     }
 

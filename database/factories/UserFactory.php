@@ -40,6 +40,7 @@ class UserFactory extends Factory
             'notify_profile_updates' => true,
             'notify_email_digest' => false,
             'notify_evolution_api' => true,
+            'stylized_background_enabled' => true,
         ];
     }
 

@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 test('admin panel light and dark background images exist', function () {
     expect(public_path('images/bg-l.png'))->toBeFile()
-        ->and(public_path('images/bg-d.png'))->toBeFile();
+        ->and(public_path('images/bg-d.png'))->toBeFile()
+        ->and(public_path('images/bg-enabled-l-v2.png'))->toBeFile()
+        ->and(public_path('images/bg-enabled-d-v2.png'))->toBeFile()
+        ->and(public_path('images/bg-disabled-l-v2.png'))->toBeFile()
+        ->and(public_path('images/bg-disabled-d-v2.png'))->toBeFile();
 });
 
 test('admin panel css applies theme-aware background images', function () {
@@ -13,11 +17,13 @@ test('admin panel css applies theme-aware background images', function () {
     $bodyBlock = Str::between($css, '/* Theme-aware panel background', '/* Auth simple pages');
 
     expect($bodyBlock)
+        ->toContain('background-color: var(--tido-bg-color-light, var(--color-white)) !important;')
         ->toContain('background-image: var(--tido-bg-light);')
         ->toContain('background-size: cover;')
         ->toContain('background-attachment: fixed;')
         ->toContain('background-position: bottom center;')
         ->toContain('.dark .fi-body {')
+        ->toContain('background-color: var(--tido-bg-color-dark, var(--color-slate-800)) !important;')
         ->toContain('background-image: var(--tido-bg-dark);')
         ->not->toContain('background-size: contain')
         ->not->toContain('.fi-body::before')
@@ -30,8 +36,12 @@ test('admin panel provider injects theme background asset css variables', functi
     expect($provider)
         ->toContain("asset('images/bg-l.png')")
         ->toContain("asset('images/bg-d.png')")
+        ->toContain("getAttribute('stylized_background_enabled')")
+        ->toContain(": 'none';")
         ->toContain('--tido-bg-light:')
-        ->toContain('--tido-bg-dark:');
+        ->toContain('--tido-bg-dark:')
+        ->toContain('--tido-bg-color-light: #FFFFFF;')
+        ->toContain('--tido-bg-color-dark: #1D293D;');
 });
 
 test('dark mode form fields and repeater items match section surface and border', function () {

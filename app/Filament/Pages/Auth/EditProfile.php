@@ -28,6 +28,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Icons\Heroicon;
@@ -109,6 +110,19 @@ class EditProfile extends BaseEditProfile
                     ])
                     ->extraAttributes(['class' => 'fi-profile-main-column'])
                     ->schema([
+                        Section::make('Personalize')
+                            ->schema([
+                                Toggle::make('stylized_background_enabled')
+                                    ->label('Stylized Background')
+                                    ->live(),
+                                View::make('filament.schemas.components.background-preview')
+                                    ->viewData(fn (Get $get): array => [
+                                        'enabled' => (bool) $get('stylized_background_enabled'),
+                                    ])
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(1),
+
                         Section::make('Account & Security')
                             ->schema([
                                 $this->getEmailFormComponent(),
@@ -495,6 +509,7 @@ class EditProfile extends BaseEditProfile
         $oldNotifyProfileUpdates = (bool) $record->notify_profile_updates;
         $oldNotifyEvolutionApi = (bool) $record->notify_evolution_api;
         $oldNotifyEmailDigest = (bool) $record->notify_email_digest;
+        $oldStylizedBackgroundEnabled = (bool) $record->stylized_background_enabled;
         $passwordChanged = filled($data['password'] ?? null);
 
         $updatedRecord = parent::handleRecordUpdate($record, $data);
@@ -536,6 +551,9 @@ class EditProfile extends BaseEditProfile
         if ($oldNotifyEmailDigest !== (bool) $updatedRecord->notify_email_digest) {
             $changes[] = 'Email digest';
         }
+        if ($oldStylizedBackgroundEnabled !== (bool) $updatedRecord->stylized_background_enabled) {
+            $changes[] = 'Stylized background';
+        }
 
         if (! empty($changes) && $updatedRecord->notify_profile_updates) {
             $changeList = implode(', ', $changes);
@@ -553,7 +571,10 @@ class EditProfile extends BaseEditProfile
                 ->sendToDatabase($record);
         }
 
-        if ($oldAvatar !== $updatedRecord->avatar_url) {
+        if (
+            $oldAvatar !== $updatedRecord->avatar_url
+            || $oldStylizedBackgroundEnabled !== (bool) $updatedRecord->stylized_background_enabled
+        ) {
             $this->js('window.location.reload()');
         }
 
