@@ -1,7 +1,6 @@
 <div>
     @php
         $navigation = filament()->getNavigation();
-        $isRtl = __('filament-panels::layout.direction') === 'rtl';
         $isSidebarCollapsibleOnDesktop = filament()->isSidebarCollapsibleOnDesktop();
         $isSidebarFullyCollapsibleOnDesktop = filament()->isSidebarFullyCollapsibleOnDesktop();
         $hasNavigation = filament()->hasNavigation();
@@ -26,71 +25,43 @@
                 {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_LOGO_BEFORE) }}
 
                 <div class="fi-sidebar-header-wrap flex items-center justify-between w-full gap-2">
-                    @if ($isSidebarCollapsibleOnDesktop || $isSidebarFullyCollapsibleOnDesktop)
-                        <div class="fi-sidebar-collapse-btns flex shrink-0 items-center justify-center">
-                            <x-filament::icon-button
-                                color="gray"
-                                :icon="$isRtl ? \Filament\Support\Icons\Heroicon::OutlinedChevronRight : \Filament\Support\Icons\Heroicon::OutlinedChevronLeft"
-                                :icon-alias="
-                                    $isRtl
-                                    ? [
-                                        \Filament\View\PanelsIconAlias::SIDEBAR_COLLAPSE_BUTTON_RTL,
-                                        \Filament\View\PanelsIconAlias::SIDEBAR_COLLAPSE_BUTTON,
-                                    ]
-                                    : \Filament\View\PanelsIconAlias::SIDEBAR_COLLAPSE_BUTTON
-                                "
-                                icon-size="md"
-                                :label="__('filament-panels::layout.actions.sidebar.collapse.label')"
-                                :tooltip="__('filament-panels::layout.actions.sidebar.collapse.label')"
-                                x-cloak
-                                x-show="$store.sidebar.isOpen"
-                                x-transition:enter="fi-transition-enter"
-                                x-transition:enter-start="fi-transition-enter-start"
-                                x-transition:enter-end="fi-transition-enter-end"
-                                x-on:click="
-                                    $el.blur();
-                                    document.querySelectorAll('[data-tippy-root]').forEach((node) => node.remove());
-                                    $store.sidebar.close();
-                                "
-                                class="fi-version-icon-btn fi-sidebar-close-collapse-sidebar-btn"
-                            />
-
-                            <x-filament::icon-button
-                                color="gray"
-                                :icon="$isRtl ? \Filament\Support\Icons\Heroicon::OutlinedChevronLeft : \Filament\Support\Icons\Heroicon::OutlinedChevronRight"
-                                :icon-alias="
-                                    $isRtl
-                                    ? [
-                                        \Filament\View\PanelsIconAlias::SIDEBAR_EXPAND_BUTTON_RTL,
-                                        \Filament\View\PanelsIconAlias::SIDEBAR_EXPAND_BUTTON,
-                                    ]
-                                    : \Filament\View\PanelsIconAlias::SIDEBAR_EXPAND_BUTTON
-                                "
-                                icon-size="md"
-                                :label="__('filament-panels::layout.actions.sidebar.expand.label')"
-                                :tooltip="__('filament-panels::layout.actions.sidebar.expand.label')"
-                                x-cloak
-                                x-show="! $store.sidebar.isOpen"
-                                x-transition:enter="fi-transition-enter"
-                                x-transition:enter-start="fi-transition-enter-start"
-                                x-transition:enter-end="fi-transition-enter-end"
-                                x-on:click="
-                                    $el.blur();
-                                    document.querySelectorAll('[data-tippy-root]').forEach((node) => node.remove());
-                                    $store.sidebar.open();
-                                "
-                                class="fi-version-icon-btn fi-sidebar-open-collapse-sidebar-btn"
-                            />
-                        </div>
-                    @endif
-
                     <div class="fi-sidebar-header-logo-ctn flex-1">
                         @if ($homeUrl = filament()->getHomeUrl())
                             <a {{ \Filament\Support\generate_href_html($homeUrl) }}>
-                                <x-filament-panels::logo />
+                                <span class="fi-sidebar-logo-full">
+                                    <x-filament-panels::logo />
+                                </span>
+
+                                <span class="fi-sidebar-logo-compact" aria-hidden="true">
+                                    <img
+                                        class="fi-logo fi-logo-light"
+                                        src="{{ asset('images/tido_dark_logo_c.png') }}"
+                                        alt=""
+                                    />
+                                    <img
+                                        class="fi-logo fi-logo-dark"
+                                        src="{{ asset('images/tido_light_logo_c.png') }}"
+                                        alt=""
+                                    />
+                                </span>
                             </a>
                         @else
-                            <x-filament-panels::logo />
+                            <span class="fi-sidebar-logo-full">
+                                <x-filament-panels::logo />
+                            </span>
+
+                            <span class="fi-sidebar-logo-compact" aria-hidden="true">
+                                <img
+                                    class="fi-logo fi-logo-light"
+                                    src="{{ asset('images/tido_dark_logo_c.png') }}"
+                                    alt=""
+                                />
+                                <img
+                                    class="fi-logo fi-logo-dark"
+                                    src="{{ asset('images/tido_light_logo_c.png') }}"
+                                    alt=""
+                                />
+                            </span>
                         @endif
                     </div>
                 </div>

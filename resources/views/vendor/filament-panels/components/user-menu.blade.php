@@ -3,6 +3,7 @@
 ])
 
 @php
+    use App\Helpers\GitHelper;
     use Filament\Actions\Action;
     use Filament\Enums\UserMenuPosition;
     use Illuminate\Support\Arr;
@@ -28,6 +29,7 @@
     $position ??= filament()->getUserMenuPosition();
 
     $isSidebarCollapsibleOnDesktop = filament()->isSidebarCollapsibleOnDesktop();
+    $gitVersion = GitHelper::getVersionString();
 @endphp
 
 {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::USER_MENU_BEFORE) }}
@@ -222,6 +224,11 @@
             @endforeach
         </x-filament::dropdown.list>
     @endif
+
+    <div class="fi-user-menu-version-footer">
+        <span class="fi-user-menu-version-footer-label"> - tido App - </span>
+        <span class="fi-user-menu-version-footer-version">{{ $gitVersion }}</span>
+    </div>
 </x-filament::dropdown>
 
 {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::USER_MENU_AFTER) }}

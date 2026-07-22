@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\Dashboard;
+use App\Helpers\GitHelper;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
@@ -38,6 +39,25 @@ test('user menu orders profile changelogs notifications and logout', function ()
     expect($items['logout']->getSort())->toBeGreaterThan($items['notifications']->getSort());
     expect($items['logout']->getIcon())->toBe('heroicon-o-arrow-right-start-on-rectangle');
     expect($items['logout']->getColor())->toBe('danger');
+});
+
+test('user menu displays the app version and sidebar footer owns collapse controls', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $this->actingAs($user);
+
+    $response = $this->get(Dashboard::getUrl());
+
+    $response->assertSuccessful();
+    $response->assertSee('fi-user-menu-version-footer', false);
+    $response->assertSee('tido App', false);
+    $response->assertSee(GitHelper::getVersionString(), false);
+    $response->assertSee('fi-sidebar-collapse-footer', false);
+    $response->assertSee('fi-sidebar-close-collapse-sidebar-btn', false);
+    $response->assertSee('fi-sidebar-open-collapse-sidebar-btn', false);
+    $response->assertDontSee('fi-sidebar-version-footer', false);
+    $response->assertDontSee('fi-sidebar-version-expanded', false);
+    $response->assertDontSee('fi-sidebar-version-collapsed', false);
 });
 
 test('theme switcher keeps user menu open by not calling close', function () {

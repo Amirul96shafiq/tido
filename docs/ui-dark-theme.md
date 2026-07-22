@@ -38,7 +38,7 @@ PHP’s array spread **reindexes integer keys** (`50` → `0`, etc.). Filament t
 | Form fields + repeater/builder items | `gray-900` + `ring-white/10` | Same solid surface + border as sections/widgets (not Filament’s `white/5` / `white/20`) |
 | Borders / dividers on chrome | `slate-700` (often ~60% opacity) | Visible against slate-800 |
 | Nav / icon hovers & active fills | `slate-700` | e.g. `dark:hover:bg-slate-700/60` |
-| Sidebar version badge (expanded) | `slate-700/60` → hover `slate-700` | Border `slate-600/50`; see `AdminPanelProvider` footer hook |
+| User menu version footer | `slate-400` text with `slate-700` divider | See `.fi-user-menu-version-footer` in `app.css` |
 | UI tooltips (Tippy default / dark) | `slate-700` | Lighter than chrome so they don’t disappear |
 | Chart tooltips (dark) | `slate-700` via `--color-slate-700` | Fallback hex `#334155` |
 | Custom scrollbar thumb (dark) | slate-700 @ 50% → hover slate-600 @ 70% | `.custom-scrollbar` and `.fi-dropdown-panel` |
