@@ -233,14 +233,123 @@ html.dark::-webkit-scrollbar-thumb:hover,
     @apply bg-gray-900 ring-white/10;
 }
 
+/* Auth simple pages — split (mobile bottom image; desktop left image) */
+.fi-body:has(.fi-simple-layout) {
+    background-image: none !important;
+}
+
+/* Auth pages never need page scroll CTAs */
+.fi-body:has(.fi-simple-layout) .tido-go-to-top,
+.fi-body:has(.fi-simple-layout) .tido-go-to-bottom {
+    display: none !important;
+}
+
+/* Mobile / tablet: form top 80%, illustration bottom 20% */
+.fi-simple-layout::before {
+    content: '';
+    position: fixed;
+    inset-inline: 1.5rem;
+    inset-block-end: 0;
+    height: calc(20% - 1.5rem);
+    /* Top corners only — flush to viewport bottom */
+    border-radius: 0.75rem 0.75rem 0 0;
+    background-image: var(--tido-auth-bg-light);
+    background-size: cover;
+    /*
+     * Focal point (cat). Light: cat is ~center-x, lower frame.
+     * Dark: cat sits right of monitor (~65–70% x), lower frame.
+     * Override --tido-auth-bg-pos-x / -y to retune.
+     */
+    --tido-auth-bg-pos-x: 50%;
+    --tido-auth-bg-pos-y: 78%;
+    background-position: var(--tido-auth-bg-pos-x) var(--tido-auth-bg-pos-y);
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.dark .fi-simple-layout::before {
+    background-image: var(--tido-auth-bg-dark);
+    --tido-auth-bg-pos-x: 66%;
+    --tido-auth-bg-pos-y: 72%;
+}
+
+@media (max-width: 1023px) {
+    /* Mobile strip — nudge focal point up (light 50px, dark 30px) */
+    .fi-simple-layout::before {
+        --tido-auth-bg-pos-y: calc(78% - 50px);
+    }
+
+    .dark .fi-simple-layout::before {
+        --tido-auth-bg-pos-y: calc(72% - 30px);
+    }
+
+    /* Lock auth to the viewport — no page scroll; fixed 80/20 */
+    .fi-body:has(.fi-simple-layout) {
+        overflow: hidden !important;
+        height: 100dvh;
+        max-height: 100dvh;
+    }
+
+    .fi-body:has(.fi-simple-layout) .fi-simple-layout {
+        height: 100dvh;
+        max-height: 100dvh;
+        min-height: 100dvh;
+        overflow: hidden;
+    }
+
+    .fi-body:has(.fi-simple-layout) .fi-simple-main-ctn {
+        height: 80%;
+        max-height: 80%;
+        flex-grow: 0;
+        overflow: hidden;
+        padding-block-end: 0;
+    }
+
+    .fi-body:has(.fi-simple-layout) .fi-simple-main {
+        margin-block: 0.75rem !important;
+        padding-block: 0.75rem !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .fi-simple-layout::before {
+        /* Match Filament panel inset (p-6) + card radius (rounded-xl) */
+        inset-block: 1.5rem;
+        inset-inline-start: 1.5rem;
+        inset-inline-end: auto;
+        width: calc(30% - 2.25rem);
+        height: auto;
+        border-radius: 0.75rem;
+        /* Tall left panel — pull focal point slightly up vs mobile strip */
+        --tido-auth-bg-pos-x: 50%;
+        --tido-auth-bg-pos-y: 62%;
+    }
+
+    .dark .fi-simple-layout::before {
+        --tido-auth-bg-pos-x: 66%;
+        --tido-auth-bg-pos-y: 58%;
+    }
+
+    .fi-simple-main-ctn {
+        width: 70%;
+        max-width: 70%;
+        margin-inline-start: auto;
+        padding-block-end: 0;
+    }
+}
+
 /* Auth simple pages — Catalyst-style: larger logo, left-aligned copy, borderless */
 .fi-simple-page-content {
     row-gap: 2.5rem !important;
 }
 
-.fi-simple-page > .tido-auth-login-toast {
-    margin-bottom: 1.5rem;
+.fi-simple-page > .tido-auth-login-toast-root {
     width: 100%;
+}
+
+.fi-simple-page > .tido-auth-login-toast-root > .tido-auth-login-toast {
+    margin-bottom: 1.5rem;
 }
 
 .fi-simple-header {
@@ -634,6 +743,51 @@ html:not(.dark) .tido-auth-login-toast {
 
 html:not(.dark) .tido-auth-login-toast-close:hover {
     background-color: rgb(15 23 42 / 0.06);
+}
+
+/* Mobile auth toast modal (phone / password only) */
+.tido-auth-login-toast-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.tido-auth-login-toast-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: rgb(15 23 42 / 0.45);
+}
+
+.dark .tido-auth-login-toast-modal-backdrop {
+    background-color: rgb(2 6 23 / 0.65);
+}
+
+.tido-auth-login-toast-modal-panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 22rem;
+    padding: 1rem 1rem 1.125rem;
+    border-radius: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--warning-400) 45%, transparent);
+    background-color: color-mix(in srgb, var(--warning-300) 18%, var(--color-slate-800));
+    color: rgb(226 232 240);
+    box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.2),
+        0 4px 6px -4px rgb(0 0 0 / 0.15);
+}
+
+html:not(.dark) .tido-auth-login-toast-modal-panel {
+    border-color: color-mix(in srgb, var(--warning-500) 35%, transparent);
+    background-color: color-mix(in srgb, var(--warning-200) 55%, white);
+    color: rgb(51 65 85);
 }
 
 /* OTP digit boxes — Filament 5.7+ renders six .fi-one-time-code-input-digit inputs. */

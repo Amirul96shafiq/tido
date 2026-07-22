@@ -36,7 +36,9 @@ test('login page shows mode tabs and info toast', function () {
     $this->get('/admin/login')
         ->assertSuccessful()
         ->assertSee('Seamless login ready to use!')
-        ->assertSee('Use your personal WhatsApp number to login via One-Time Password (OTP) code.');
+        ->assertSee('Use your personal WhatsApp number to login via One-Time Password (OTP) code.')
+        ->assertSee('tido-auth-login-toast-modal', false)
+        ->assertSee("loginMode === 'phone' || this.loginMode === 'password'", false);
 });
 
 test('reset password page shows description below heading', function () {
