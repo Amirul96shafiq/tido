@@ -18,7 +18,6 @@ use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Filament\Resources\Labels\Pages\EditLabel;
 use App\Filament\Resources\PaymentMethods\Pages\CreatePaymentMethod;
 use App\Filament\Resources\PaymentMethods\Pages\EditPaymentMethod;
-use App\Helpers\GitHelper;
 use App\Http\Middleware\SetUserPreferences;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use Filament\Actions\Action;
@@ -231,67 +230,77 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::SIDEBAR_FOOTER,
                 function (): string {
-                    $gitVersion = GitHelper::getVersionString();
-                    $shortVersion = substr(GitHelper::getLatestCommitSha(), 0, 7);
+                    $isRtl = __('filament-panels::layout.direction') === 'rtl';
+                    $isSidebarCollapsibleOnDesktop = filament()->isSidebarCollapsibleOnDesktop();
+                    $isSidebarFullyCollapsibleOnDesktop = filament()->isSidebarFullyCollapsibleOnDesktop();
 
-                    return Blade::render('
+                    return Blade::render(<<<'BLADE'
                         <div
                             x-data="{}"
-                            class="fi-sidebar-version-footer"
-                            :class="$store.sidebar.isOpen ? \'px-6 py-0\' : \'px-0 py-0\'"
+                            class="fi-sidebar-collapse-footer"
                         >
-                            <!-- Expanded state -->
-                            <div
-                                x-show="$store.sidebar.isOpen"
-                                x-transition:enter="fi-transition-enter"
-                                x-transition:enter-start="fi-transition-enter-start"
-                                x-transition:enter-end="fi-transition-enter-end"
-                                class="fi-sidebar-version-expanded flex w-full min-w-0 items-center gap-2.5 px-3 py-2 text-[11px] font-mono text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-700/60 rounded-lg border border-gray-100 dark:border-slate-600/50 hover:bg-gray-100/50 dark:hover:bg-slate-700 transition-all duration-200 select-none cursor-default"
-                            >
-                                <svg class="h-4 w-4 text-amber-500 dark:text-amber-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="6" y1="3" x2="6" y2="15"></line>
-                                    <circle cx="18" cy="6" r="3" fill="currentColor" fill-opacity="0.2"></circle>
-                                    <circle cx="6" cy="18" r="3" fill="currentColor" fill-opacity="0.2"></circle>
-                                    <path d="M18 9a9 9 0 0 1-9 9"></path>
-                                </svg>
-                                <span class="flex-1 truncate">{{ $gitVersion }}</span>
-                                <span class="relative flex h-2 w-2 shrink-0">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                                </span>
-                            </div>
-                            <!-- Collapsed state -->
-                            <div
-                                x-show="!$store.sidebar.isOpen"
-                                x-transition:enter="fi-transition-enter"
-                                x-transition:enter-start="fi-transition-enter-start"
-                                x-transition:enter-end="fi-transition-enter-end"
-                                class="fi-sidebar-version-collapsed"
-                            >
-                                <div
-                                    x-tooltip="{
-                                        content: @js($gitVersion),
-                                        placement: document.dir === \'rtl\' ? \'left\' : \'right\',
-                                        theme: $store.theme,
-                                    }"
-                                    class="fi-version-icon-btn group cursor-default!"
-                                >
-                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="6" y1="3" x2="6" y2="15"></line>
-                                        <circle cx="18" cy="6" r="3" fill="currentColor" fill-opacity="0.2"></circle>
-                                        <circle cx="6" cy="18" r="3" fill="currentColor" fill-opacity="0.2"></circle>
-                                        <path d="M18 9a9 9 0 0 1-9 9"></path>
-                                    </svg>
-                                    <span class="absolute top-1.5 right-1.5 flex h-2 w-2">
-                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                                    </span>
+                            @if ($isSidebarCollapsibleOnDesktop || $isSidebarFullyCollapsibleOnDesktop)
+                                <div class="fi-sidebar-collapse-buttons flex h-full w-full items-center px-4">
+                                    <x-filament::icon-button
+                                        color="gray"
+                                        :icon="$isRtl ? \Filament\Support\Icons\Heroicon::OutlinedChevronRight : \Filament\Support\Icons\Heroicon::OutlinedChevronLeft"
+                                        :icon-alias="
+                                            $isRtl
+                                            ? [
+                                                \Filament\View\PanelsIconAlias::SIDEBAR_COLLAPSE_BUTTON_RTL,
+                                                \Filament\View\PanelsIconAlias::SIDEBAR_COLLAPSE_BUTTON,
+                                            ]
+                                            : \Filament\View\PanelsIconAlias::SIDEBAR_COLLAPSE_BUTTON
+                                        "
+                                        icon-size="md"
+                                        :label="__('filament-panels::layout.actions.sidebar.collapse.label')"
+                                        :tooltip="__('filament-panels::layout.actions.sidebar.collapse.label')"
+                                        x-cloak
+                                        x-show="$store.sidebar.isOpen"
+                                        x-transition:enter="fi-transition-enter"
+                                        x-transition:enter-start="fi-transition-enter-start"
+                                        x-transition:enter-end="fi-transition-enter-end"
+                                        x-on:click="
+                                            $el.blur();
+                                            document.querySelectorAll('[data-tippy-root]').forEach((node) => node.remove());
+                                            $store.sidebar.close();
+                                        "
+                                        class="fi-version-icon-btn fi-sidebar-close-collapse-sidebar-btn"
+                                    />
+
+                                    <x-filament::icon-button
+                                        color="gray"
+                                        :icon="$isRtl ? \Filament\Support\Icons\Heroicon::OutlinedChevronLeft : \Filament\Support\Icons\Heroicon::OutlinedChevronRight"
+                                        :icon-alias="
+                                            $isRtl
+                                            ? [
+                                                \Filament\View\PanelsIconAlias::SIDEBAR_EXPAND_BUTTON_RTL,
+                                                \Filament\View\PanelsIconAlias::SIDEBAR_EXPAND_BUTTON,
+                                            ]
+                                            : \Filament\View\PanelsIconAlias::SIDEBAR_EXPAND_BUTTON
+                                        "
+                                        icon-size="md"
+                                        :label="__('filament-panels::layout.actions.sidebar.expand.label')"
+                                        :tooltip="__('filament-panels::layout.actions.sidebar.expand.label')"
+                                        x-cloak
+                                        x-show="! $store.sidebar.isOpen"
+                                        x-transition:enter="fi-transition-enter"
+                                        x-transition:enter-start="fi-transition-enter-start"
+                                        x-transition:enter-end="fi-transition-enter-end"
+                                        x-on:click="
+                                            $el.blur();
+                                            document.querySelectorAll('[data-tippy-root]').forEach((node) => node.remove());
+                                            $store.sidebar.open();
+                                        "
+                                        class="fi-version-icon-btn fi-sidebar-open-collapse-sidebar-btn"
+                                    />
                                 </div>
-                            </div>
+                            @endif
                         </div>
-                    ', [
-                        'gitVersion' => $gitVersion,
-                        'shortVersion' => $shortVersion,
+                    BLADE, [
+                        'isRtl' => $isRtl,
+                        'isSidebarCollapsibleOnDesktop' => $isSidebarCollapsibleOnDesktop,
+                        'isSidebarFullyCollapsibleOnDesktop' => $isSidebarFullyCollapsibleOnDesktop,
                     ]);
                 }
             )

@@ -47,20 +47,20 @@ test('page header main container shaves 1px bottom padding for fold-packed lists
         ->toContain('padding-bottom: calc(2rem - 1px);');
 });
 
-test('open version footer matches topbar chrome height', function () {
+test('open sidebar collapse footer matches topbar chrome height', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
     $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
 
     $expectedHeight = 'calc(var(--collapsed-sidebar-width, 4.5rem) - 1px)';
     $footerBlock = Str::between(
         $css,
-        '.fi-sidebar.fi-sidebar-open .fi-sidebar-version-footer {',
-        '.fi-sidebar.fi-sidebar-open .fi-sidebar-version-expanded {',
+        '.fi-sidebar.fi-sidebar-open .fi-sidebar-collapse-footer {',
+        '.fi-sidebar.fi-sidebar-open .fi-sidebar-collapse-buttons {',
     );
-    $expandedBlock = Str::between(
+    $buttonsBlock = Str::between(
         $css,
-        '.fi-sidebar.fi-sidebar-open .fi-sidebar-version-expanded {',
-        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-version-footer {',
+        '.fi-sidebar.fi-sidebar-open .fi-sidebar-collapse-buttons {',
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-collapse-footer {',
     );
 
     expect($footerBlock)
@@ -68,15 +68,16 @@ test('open version footer matches topbar chrome height', function () {
         ->toContain("height: {$expectedHeight} !important;")
         ->toContain("min-height: {$expectedHeight} !important;")
         ->toContain("max-height: {$expectedHeight} !important;")
-        ->and($expandedBlock)
+        ->and($buttonsBlock)
         ->toContain('width: 100%;')
         ->toContain('min-width: 0;')
         ->and($provider)
-        ->toContain('fi-sidebar-version-expanded')
-        ->toContain('w-full min-w-0');
+        ->toContain('fi-sidebar-collapse-footer')
+        ->toContain('fi-sidebar-close-collapse-sidebar-btn')
+        ->toContain('fi-sidebar-open-collapse-sidebar-btn');
 });
 
-test('collapsed version footer is a square matching collapsed sidebar width', function () {
+test('collapsed sidebar collapse footer is a square matching collapsed sidebar width', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
     $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
 
@@ -85,8 +86,8 @@ test('collapsed version footer is a square matching collapsed sidebar width', fu
     $expectedHeight = 'var(--collapsed-sidebar-width, 4.5rem)';
     $footerBlock = Str::between(
         $css,
-        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-version-footer {',
-        '.fi-sidebar-version-collapsed {',
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-collapse-footer {',
+        '.fi-sidebar-collapse-buttons {',
     );
 
     expect($footerBlock)
@@ -95,16 +96,19 @@ test('collapsed version footer is a square matching collapsed sidebar width', fu
         ->toContain("max-height: {$expectedHeight} !important;")
         ->toContain('padding-block: 0 !important;')
         ->and($provider)
-        ->toContain('$store.sidebar.isOpen ? \\\'px-6 py-0\\\' : \\\'px-0 py-0\\\'');
+        ->toContain('class="fi-sidebar-collapse-footer"')
+        ->toContain('class="fi-sidebar-collapse-buttons');
 });
 
-test('open sidebar header places collapse button before logo', function () {
+test('sidebar footer owns collapse buttons and header only owns logo', function () {
     $sidebar = (string) file_get_contents(
         resource_path('views/vendor/filament-panels/livewire/sidebar.blade.php'),
     );
+    $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
-    $collapsePos = strpos($sidebar, 'fi-sidebar-collapse-btns');
+    $footerHookPos = strpos($provider, 'PanelsRenderHook::SIDEBAR_FOOTER');
+    $collapsePos = strpos($provider, 'fi-sidebar-collapse-footer');
     $logoPos = strpos($sidebar, 'fi-sidebar-header-logo-ctn');
     $openHeaderBlock = Str::between(
         $css,
@@ -112,9 +116,12 @@ test('open sidebar header places collapse button before logo', function () {
         '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-header {',
     );
 
-    expect($collapsePos)->not->toBeFalse()
+    expect($footerHookPos)->not->toBeFalse()
+        ->and($collapsePos)->not->toBeFalse()
+        ->and($collapsePos)->toBeGreaterThan($footerHookPos)
         ->and($logoPos)->not->toBeFalse()
-        ->and($collapsePos)->toBeLessThan($logoPos)
+        ->and($sidebar)
+        ->not->toContain('fi-sidebar-collapse-btns')
         ->and($css)
         ->toContain('.fi-sidebar.fi-sidebar-open .fi-sidebar-header-logo-ctn')
         ->toContain('justify-content: flex-end;')

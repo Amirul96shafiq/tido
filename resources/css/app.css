@@ -896,7 +896,7 @@ html.fi-sidebar-preload .fi-sidebar,
 html.fi-sidebar-preload .fi-main-ctn,
 html.fi-sidebar-preload .fi-sidebar-header,
 html.fi-sidebar-preload .fi-sidebar-nav,
-html.fi-sidebar-preload .fi-sidebar-version-footer,
+html.fi-sidebar-preload .fi-sidebar-collapse-footer,
 html.fi-sidebar-preload .fi-sidebar-item-btn,
 html.fi-sidebar-preload .fi-sidebar-group-dropdown-trigger-btn,
 html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
@@ -926,9 +926,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /*
- * Open + collapsed toggle share the same left rail (1rem).
- * Open nav item buttons sit at 1rem via px-6 + groups -mx-2;
- * matching header padding-inline keeps collapse/expand aligned.
+ * Header chrome and footer controls share the same left rail (1rem).
+ * Open nav item buttons sit at 1rem via px-6 + groups -mx-2.
  */
 .fi-sidebar.fi-sidebar-open .fi-sidebar-header {
     padding-inline: 1rem !important;
@@ -944,7 +943,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     gap: 0;
 }
 
-/* Remove logo from flex entirely when collapsed (gap-2 was shifting the toggle +8px) */
+/* Remove the logo from the collapsed header layout. */
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-header-logo-ctn {
     display: none !important;
 }
@@ -1010,18 +1009,12 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
         opacity 200ms ease-in-out;
 }
 
-.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-collapse-btns {
-    width: auto;
-    justify-content: flex-start;
-}
-
-.fi-sidebar-version-footer {
+.fi-sidebar-collapse-footer {
     border-top: 1px solid var(--color-gray-100);
-    transition: padding 300ms ease-in-out;
     box-sizing: border-box;
 }
 
-.dark .fi-sidebar-version-footer {
+.dark .fi-sidebar-collapse-footer {
     border-top-color: color-mix(
         in srgb,
         var(--color-slate-700) 60%,
@@ -1030,7 +1023,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /* Open sidebar: match topbar / sidebar-header chrome height (71px). */
-.fi-sidebar.fi-sidebar-open .fi-sidebar-version-footer {
+.fi-sidebar.fi-sidebar-open .fi-sidebar-collapse-footer {
     display: flex !important;
     align-items: center;
     width: 100%;
@@ -1039,16 +1032,15 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     max-height: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px) !important;
 }
 
-.fi-sidebar.fi-sidebar-open .fi-sidebar-version-expanded {
+.fi-sidebar.fi-sidebar-open .fi-sidebar-collapse-buttons {
     flex: 1 1 auto;
     width: 100%;
     min-width: 0;
 }
 
 /* Match collapsed sidebar content square: height compensates for 1px border-top
- * under border-box so the inner .fi-sidebar-version-collapsed is 71×71
- * (same as calc(4.5rem - 1px) content width target). */
-.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-version-footer {
+ * under border-box so the inner control area is 71px high. */
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-collapse-footer {
     display: flex !important;
     align-items: center;
     height: var(--collapsed-sidebar-width, 4.5rem) !important;
@@ -1057,23 +1049,20 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     padding-block: 0 !important;
 }
 
-.fi-sidebar-version-collapsed {
-    display: flex;
+.fi-sidebar-collapse-buttons {
     width: 100%;
     height: 100%;
     align-items: center;
     justify-content: flex-start;
-    padding-inline: 1rem;
 }
 
-.fi-sidebar-version-collapsed .fi-version-icon-btn {
+.fi-sidebar-collapse-buttons .fi-version-icon-btn {
     width: 2.5rem;
     height: 2.5rem;
     margin-inline: 0;
-    cursor: default;
 }
 
-/* Go to top — flush bottom-right square matching collapsed version footer (71×71)
+/* Go to top — flush bottom-right square matching collapsed collapse footer (71×71)
  * right:1px clears .fi-body::after scrollbar rail (inset-inline-end:0)
  * z-index must stay below .fi-topbar-ctn (20): user-menu panel is not teleported
  * out of the topbar stacking context (same constraint as .tido-go-to-bottom). */
@@ -1656,6 +1645,36 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
 .fi-user-menu-profile-preview-meta {
     @apply truncate text-xs text-gray-500 dark:text-gray-400;
+}
+
+.fi-user-menu-version-footer {
+    display: flex;
+    min-width: 0;
+    min-height: 2.5rem;
+    align-items: center;
+    border-top: 1px solid var(--color-gray-100);
+    padding-inline: 1rem;
+    color: var(--color-gray-500);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    user-select: none;
+}
+
+.fi-user-menu-version-footer span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dark .fi-user-menu-version-footer {
+    border-top-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
+    color: var(--color-slate-400);
 }
 
 .fi-profile-photo-section .fi-section-content {
