@@ -19,7 +19,7 @@ test('budget alert service triggers alerts on threshold breach', function () {
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->create(['phone' => '60123456789']);
 
     $label = Label::factory()->create([
         'name' => 'Food & Dining',
@@ -59,7 +59,6 @@ test('budget alert service triggers alerts on threshold breach', function () {
     // Force environment setting for WhatsApp number so WhatsApp notification dispatches
     config([
         'services.evolution.api_key' => 'tido-secret-key',
-        'services.evolution.personal_number' => '60123456789',
     ]);
 
     $invoice->update(['status' => 'parsed']);
@@ -81,8 +80,8 @@ test('budget alert service skips users who opted out of budget alerts', function
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
 
-    User::factory()->create(['notify_budget_alerts' => true]);
-    User::factory()->create(['notify_budget_alerts' => false]);
+    User::factory()->create(['notify_budget_alerts' => true, 'phone' => '60123456789']);
+    User::factory()->create(['notify_budget_alerts' => false, 'phone' => '60111111111']);
 
     $label = Label::factory()->create([
         'name' => 'Food & Dining',
@@ -121,7 +120,6 @@ test('budget alert service skips users who opted out of budget alerts', function
 
     config([
         'services.evolution.api_key' => 'tido-secret-key',
-        'services.evolution.personal_number' => '60123456789',
     ]);
 
     $invoice->update(['status' => 'parsed']);
@@ -134,7 +132,7 @@ test('budget alert service sends critical notification at critical threshold', f
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
 
-    User::factory()->create();
+    User::factory()->create(['phone' => '60123456789']);
 
     $label = Label::factory()->create([
         'name' => 'Food & Dining',
@@ -174,7 +172,6 @@ test('budget alert service sends critical notification at critical threshold', f
 
     config([
         'services.evolution.api_key' => 'tido-secret-key',
-        'services.evolution.personal_number' => '60123456789',
     ]);
 
     $invoice->update(['status' => 'parsed']);
@@ -193,7 +190,7 @@ test('budget alert service skips whatsapp when notify_whatsapp is false', functi
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
 
-    User::factory()->create();
+    User::factory()->create(['phone' => '60123456789']);
 
     $label = Label::factory()->create([
         'name' => 'Food & Dining',
@@ -235,7 +232,6 @@ test('budget alert service skips whatsapp when notify_whatsapp is false', functi
 
     config([
         'services.evolution.api_key' => 'tido-secret-key',
-        'services.evolution.personal_number' => '60123456789',
     ]);
 
     $invoice->update(['status' => 'parsed']);
@@ -249,7 +245,7 @@ test('budget alert service skips filament when notify_filament is false', functi
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
 
-    User::factory()->create();
+    User::factory()->create(['phone' => '60123456789']);
 
     $label = Label::factory()->create([
         'name' => 'Food & Dining',
@@ -291,7 +287,6 @@ test('budget alert service skips filament when notify_filament is false', functi
 
     config([
         'services.evolution.api_key' => 'tido-secret-key',
-        'services.evolution.personal_number' => '60123456789',
     ]);
 
     $invoice->update(['status' => 'parsed']);

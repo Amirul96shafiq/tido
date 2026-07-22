@@ -73,8 +73,8 @@ class WhatsAppWebhookController extends Controller
     }
 
     /**
-     * PERSONAL_WHATSAPP_NUMBER plus PERSONAL_WHATSAPP_EXTRA_NUMBERS may trigger
-     * bot replies / receipt import. Panel/OTP stay on the primary number only.
+     * Profile WhatsApp numbers plus allowlisted Family Members may trigger
+     * bot replies / receipt import. Panel/OTP stay on the Profile phone only.
      */
     protected function isAllowedSender(string $senderNumber): bool
     {

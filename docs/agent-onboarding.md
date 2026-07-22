@@ -71,6 +71,7 @@ docs/               architecture + integration setup + this file
 |---------|----------------|
 | Category | **`Label`** model / `labels` table (UI: **Label** / **Labels**) |
 | Payment method | **`PaymentMethod`** model / `payment_methods` table (Settings CRUD; AI/WhatsApp via aliases) |
+| Family member | **`FamilyMember`** model / `family_members` table (Settings CRUD; bot allowlist when enabled) |
 | Money | `decimal(12,2)`, cast `decimal:2`, currency `MYR`, UI `RM` |
 | Duplicate | `receipt_hash` SHA-256 of number + datetime + total |
 | Statuses | `pending`, `parsed`, `reviewed`, `requires_manual_review`, `failed` |
@@ -103,7 +104,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 5. Filter and Column Manager triggers also get Tippy tooltips globally via `filtersTriggerAction` / `columnManagerTriggerAction` in `AppServiceProvider`
 6. List-page “New …” CTAs use a plus Heroicon panel-wide (`AppServiceProvider` → `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`); new List pages only need `CreateAction::make()`
 7. Edit pages: use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the title ends with the singular model label (see `.cursor/rules/filament-conventions.mdc` — Edit page title)
-8. Nav groups: Finances (Invoices, Budgets) / Settings (Labels, Payment Methods, Backups) / Integrations (EvolutionAPI)
+8. Nav groups: Finances (Invoices, Budgets) / Settings (Labels, Payment Methods, Family Members, Backups) / Integrations (EvolutionAPI)
 9. Breadcrumbs use Filament native defaults plus `App\Filament\Concerns\PrependsHomeBreadcrumb` (Home → resource → page). Do not disable panel-wide or add a custom “Go back to table” header. New pages must use the trait; Create/Edit pages also register in the `PAGE_END` draft-poller scopes.
 10. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
 11. Resource table `created_at` columns use `->since()->dateTimeTooltip()` (relative time + full datetime on hover), matching Receipt Upload “Uploaded At”

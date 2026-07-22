@@ -7,11 +7,14 @@ use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Resources\Budgets\Pages\CreateBudget;
 use App\Filament\Resources\Budgets\Pages\EditBudget;
+use App\Filament\Resources\FamilyMembers\Pages\CreateFamilyMember;
+use App\Filament\Resources\FamilyMembers\Pages\EditFamilyMember;
 use App\Filament\Resources\Invoices\Pages\CreateInvoice;
 use App\Filament\Resources\Invoices\Pages\EditInvoice;
 use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Filament\Resources\Labels\Pages\EditLabel;
 use App\Models\Budget;
+use App\Models\FamilyMember;
 use App\Models\Invoice;
 use App\Models\Label;
 use App\Models\User;
@@ -22,9 +25,6 @@ use Livewire\Livewire;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    config([
-        'services.evolution.personal_number' => '60123456789',
-    ]);
 
     Queue::fake();
 
@@ -43,6 +43,8 @@ function stickyBlurFormActionPages(): array
         'edit label' => [EditLabel::class, []],
         'create budget' => [CreateBudget::class, []],
         'edit budget' => [EditBudget::class, []],
+        'create family member' => [CreateFamilyMember::class, []],
+        'edit family member' => [EditFamilyMember::class, []],
         'edit profile' => [EditProfile::class, []],
     ];
 }
@@ -60,6 +62,10 @@ test('create edit and profile pages use sticky blur form action markers', functi
 
     if ($pageClass === EditBudget::class) {
         $params['record'] = Budget::factory()->create()->getRouteKey();
+    }
+
+    if ($pageClass === EditFamilyMember::class) {
+        $params['record'] = FamilyMember::factory()->create()->getRouteKey();
     }
 
     Livewire::test($pageClass, $params)

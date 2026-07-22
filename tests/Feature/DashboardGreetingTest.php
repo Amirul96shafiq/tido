@@ -11,12 +11,6 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
-    config([
-        'services.evolution.personal_number' => '60123456789',
-    ]);
-});
-
 test('dashboard heading and subheading reflect morning in user timezone', function () {
     Carbon::setTestNow(Carbon::parse('2026-07-16 09:00:00', 'America/New_York'));
 

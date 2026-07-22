@@ -8,6 +8,7 @@ use App\Models\Budget;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -19,11 +20,21 @@ class DatabaseSeeder extends Seeder
             PaymentMethodSeeder::class,
         ]);
 
+        $phone = PhoneNumber::normalize(
+            is_string(config('services.evolution.personal_number'))
+                ? config('services.evolution.personal_number')
+                : null,
+        );
+
         User::factory()->create([
             'name' => 'Admin User',
             'email' => 'admin@tido.local',
             'password' => bcrypt('password'),
-            'phone' => config('services.evolution.personal_number'),
+            'phone' => $phone ?? '60123456789',
+        ]);
+
+        $this->call([
+            WhatsAppAllowlistFromEnvSeeder::class,
         ]);
 
         Budget::factory(5)->create();

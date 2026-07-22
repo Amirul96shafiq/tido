@@ -20,7 +20,6 @@ beforeEach(function () {
         'services.evolution.api_url' => 'http://evolution.test',
         'services.evolution.api_key' => 'tido-secret-key',
         'services.evolution.instance_name' => 'tido',
-        'services.evolution.personal_number' => '60123456789',
     ]);
 
     Http::fake([

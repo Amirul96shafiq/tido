@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Filament\Resources\Backups\BackupResource;
 use App\Filament\Resources\Budgets\BudgetResource;
+use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
@@ -34,9 +35,6 @@ test('admin panel opens global search with alt+k', function () {
 });
 
 test('admin panel includes spa-safe alt+k global search shortcut', function () {
-    config([
-        'services.evolution.personal_number' => '60123456789',
-    ]);
 
     $user = User::factory()->withWhatsAppPhone('60123456789')->create();
 
@@ -56,6 +54,7 @@ test('only configured resources are globally searchable', function () {
     expect($searchable)->toBe([
         BackupResource::class,
         BudgetResource::class,
+        FamilyMemberResource::class,
         InvoiceResource::class,
         LabelResource::class,
         PaymentMethodResource::class,

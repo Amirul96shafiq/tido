@@ -45,10 +45,9 @@ return [
         'api_url' => env('EVOLUTION_API_URL', 'http://127.0.0.1:8080'),
         'api_key' => env('EVOLUTION_API_KEY', 'tido-secret-key'),
         'instance_name' => env('EVOLUTION_INSTANCE_NAME', 'tido'),
-        // Primary: panel access, OTP, outbound alerts/ping (single number).
+        // Legacy install-only: copied into Profile / Family Members by DatabaseSeeder when empty.
+        // Bot allowlist and outbound alerts now use users.phone + family_members.
         'personal_number' => env('PERSONAL_WHATSAPP_NUMBER'),
-        // Extra senders allowed to talk to the bot / upload receipts (comma/space/semicolon separated).
-        // Does not grant panel or OTP login.
         'personal_extra_numbers' => env('PERSONAL_WHATSAPP_EXTRA_NUMBERS'),
         // Seconds to wait after the last saved WhatsApp receipt before sending a batched "Document received" ack.
         'document_received_debounce_seconds' => (int) env('WHATSAPP_DOCUMENT_RECEIVED_DEBOUNCE_SECONDS', 3),

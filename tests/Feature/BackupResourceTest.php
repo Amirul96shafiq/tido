@@ -18,10 +18,6 @@ use Livewire\Livewire;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    config([
-        'services.evolution.personal_number' => null,
-    ]);
-
     $this->admin = User::factory()->create();
     $this->actingAs($this->admin);
     Storage::fake('local');

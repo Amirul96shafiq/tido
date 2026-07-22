@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Enums\EvolutionApiConnectMethod;
 use App\Services\WhatsAppNotificationService;
+use App\Support\PhoneNumber;
 use App\Support\WhatsAppMessage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -38,10 +39,10 @@ class SendEvolutionApiConnectedAlertJob implements ShouldQueue
 
     public function handle(WhatsAppNotificationService $waService): void
     {
-        $number = config('services.evolution.personal_number');
+        $number = PhoneNumber::primaryWhatsAppNumber();
 
-        if (! is_string($number) || $number === '') {
-            Log::warning('SendEvolutionApiConnectedAlertJob skipped: PERSONAL_WHATSAPP_NUMBER is not configured');
+        if ($number === null) {
+            Log::warning('SendEvolutionApiConnectedAlertJob skipped: no profile WhatsApp number configured');
 
             return;
         }

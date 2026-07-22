@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Models\FamilyMember;
+use App\Models\User;
+
 final class PhoneNumber
 {
     /**
@@ -82,29 +85,102 @@ final class PhoneNumber
     }
 
     /**
+     * Owner outbound target for ping, welcome, and budget WhatsApp alerts.
+     * First user with a phone (by id).
+     */
+    public static function primaryWhatsAppNumber(): ?string
+    {
+        $phone = User::query()
+            ->whereNotNull('phone')
+            ->where('phone', '!=', '')
+            ->orderBy('id')
+            ->value('phone');
+
+        return self::normalize(is_string($phone) ? $phone : null);
+    }
+
+    /**
      * Numbers allowed to trigger WhatsApp bot replies / receipt import.
-     * Primary PERSONAL_WHATSAPP_NUMBER plus PERSONAL_WHATSAPP_EXTRA_NUMBERS.
+     * Profile phones (users.phone) plus Family Members with allowlist enabled.
      *
      * @return list<string>
      */
     public static function allowedWhatsAppSenders(): array
     {
+        $userPhones = User::query()
+            ->whereNotNull('phone')
+            ->where('phone', '!=', '')
+            ->pluck('phone')
+            ->all();
+
+        $familyPhones = FamilyMember::query()
+            ->allowlisted()
+            ->pluck('phone')
+            ->all();
+
         $numbers = [];
 
-        $primary = self::normalize(
-            is_string(config('services.evolution.personal_number'))
-                ? config('services.evolution.personal_number')
-                : null,
-        );
+        foreach ([...$userPhones, ...$familyPhones] as $phone) {
+            $normalized = self::normalize(is_string($phone) ? $phone : null);
 
-        if ($primary !== null) {
-            $numbers[] = $primary;
+            if ($normalized !== null) {
+                $numbers[] = $normalized;
+            }
         }
 
-        $extrasRaw = config('services.evolution.personal_extra_numbers');
-        $extras = self::parseList(is_string($extrasRaw) ? $extrasRaw : null);
+        return array_values(array_unique($numbers));
+    }
 
-        return array_values(array_unique([...$numbers, ...$extras]));
+    /**
+     * Allowlist entries for UI display (label + number).
+     *
+     * @return list<array{label: string, phone: string}>
+     */
+    public static function allowedWhatsAppSenderEntries(): array
+    {
+        $entries = [];
+        $seen = [];
+
+        $users = User::query()
+            ->whereNotNull('phone')
+            ->where('phone', '!=', '')
+            ->orderBy('id')
+            ->get(['id', 'name', 'phone']);
+
+        foreach ($users as $user) {
+            $normalized = self::normalize($user->phone);
+
+            if ($normalized === null || isset($seen[$normalized])) {
+                continue;
+            }
+
+            $seen[$normalized] = true;
+            $entries[] = [
+                'label' => filled($user->name) ? 'Profile · '.$user->name : 'Profile',
+                'phone' => $normalized,
+            ];
+        }
+
+        $members = FamilyMember::query()
+            ->allowlisted()
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone']);
+
+        foreach ($members as $member) {
+            $normalized = self::normalize($member->phone);
+
+            if ($normalized === null || isset($seen[$normalized])) {
+                continue;
+            }
+
+            $seen[$normalized] = true;
+            $entries[] = [
+                'label' => filled($member->name) ? (string) $member->name : 'Family member',
+                'phone' => $normalized,
+            ];
+        }
+
+        return $entries;
     }
 
     public static function isAllowedWhatsAppSender(string $senderNumber): bool

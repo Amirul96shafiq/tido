@@ -8,6 +8,7 @@ use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
 use App\Models\Invoice;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use App\Support\WhatsAppMessage;
 use Filament\Notifications\Notification as FilamentNotification;
 
@@ -83,9 +84,9 @@ class BudgetAlertService
                 ),
             );
 
-            $personalNumber = config('services.evolution.personal_number');
-            if (! empty($personalNumber)) {
-                $this->waService->sendMessage((string) $personalNumber, $message);
+            $personalNumber = PhoneNumber::primaryWhatsAppNumber();
+            if ($personalNumber !== null) {
+                $this->waService->sendMessage($personalNumber, $message);
             }
         }
 

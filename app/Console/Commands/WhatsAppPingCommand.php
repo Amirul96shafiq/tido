@@ -13,15 +13,14 @@ class WhatsAppPingCommand extends Command
 {
     protected $signature = 'whatsapp:ping {--message=}';
 
-    protected $description = 'Send a test WhatsApp message to PERSONAL_WHATSAPP_NUMBER via Evolution API';
+    protected $description = 'Send a test WhatsApp message to the profile WhatsApp number via Evolution API';
 
     public function handle(WhatsAppNotificationService $whatsApp): int
     {
-        $raw = config('services.evolution.personal_number');
-        $phone = PhoneNumber::normalize(is_string($raw) ? $raw : null);
+        $phone = PhoneNumber::primaryWhatsAppNumber();
 
         if ($phone === null) {
-            $this->error('Set PERSONAL_WHATSAPP_NUMBER in .env to a valid Malaysian number (e.g. 60123456789).');
+            $this->error('Set a WhatsApp number on a user Profile first (e.g. 60123456789).');
 
             return self::FAILURE;
         }

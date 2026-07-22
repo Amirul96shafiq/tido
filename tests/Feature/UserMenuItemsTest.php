@@ -11,12 +11,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
-    config([
-        'services.evolution.personal_number' => '60123456789',
-    ]);
-});
-
 test('user menu orders profile changelogs notifications and logout', function () {
     $user = User::factory()->withWhatsAppPhone('60123456789')->create();
 

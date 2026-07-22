@@ -58,7 +58,7 @@ Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`
 
 ## Filament map
 
-- Resources: Invoices, Budgets (Finances); Labels (Settings); EvolutionAPI (Integrations) — model `Label`
+- Resources: Invoices, Budgets (Finances); Labels, Payment Methods, Family Members (Settings); EvolutionAPI (Integrations) — models `Label`, `PaymentMethod`, `FamilyMember`
 - View records: always `ViewAction::make()->slideOver()` — never dedicated View pages
 - Upload UI: `ReceiptUploadPage` → creates pending invoices
 - Dashboard widgets use `DashboardMonthAnalytics` / month period helpers
@@ -69,7 +69,7 @@ Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`
 
 ## Config / env
 
-- `config/services.php` → `ollama.*`, `evolution.*`, `PERSONAL_WHATSAPP_NUMBER`, `PERSONAL_WHATSAPP_EXTRA_NUMBERS`
+- `config/services.php` → `ollama.*`, `evolution.*` (API URL/key/instance). Contact allowlist: Profile `users.phone` + Family Members with allowlist enabled (legacy `PERSONAL_WHATSAPP_*` env is seed-import only)
 - `config/filesystems.php` → `google` disk
 - Setup guides: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-manual-invoice.md`, `docs/google-drive-setup.md`
 

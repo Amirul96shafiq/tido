@@ -155,12 +155,12 @@ Integration setup guides: [Ollama](docs/ollama-setup.md) · [Evolution API](docs
 Admin nav:
 
 - **Finances** — Invoices, Budgets
-- **Settings** — Labels, Payment Methods, Backups
+- **Settings** — Labels, Payment Methods, Family Members, Backups
 - **Integrations** — EvolutionAPI
 
-**WhatsApp OTP login:** Pair Evolution → set `PERSONAL_WHATSAPP_NUMBER` (and match the user’s phone) → `php artisan whatsapp:ping` → sign in with OTP at `/admin/login`.
+**WhatsApp OTP login:** Pair Evolution → set WhatsApp number in Profile → `php artisan whatsapp:ping` → sign in with OTP at `/admin/login`.
 
-**WhatsApp receipt image:** Send a photo/document from an allowlisted number → batched “Document received” → Ollama vision parse → “Document parsed” with edit link.
+**WhatsApp receipt image:** Send a photo/document from an allowlisted number (Profile or Family Members with allowlist enabled) → batched “Document received” → Ollama vision parse → “Document parsed” with edit link.
 
 **WhatsApp manual invoice (no receipt image):** Send text in this format (each line ends with `;`). Optional payment token after the merchant: `qr`, `tngo`, `card` (Mastercard), `cash` (default if omitted), `visa`, etc.
 
@@ -204,8 +204,6 @@ Copy `.env.example` and set values for your environment. Notable groups:
 | `EVOLUTION_API_URL` | Evolution base URL |
 | `EVOLUTION_API_KEY` | API + webhook Bearer token |
 | `EVOLUTION_INSTANCE_NAME` | Instance name (default `tido`) |
-| `PERSONAL_WHATSAPP_NUMBER` | Primary number: OTP login, panel identity, budget alerts, seeded admin phone |
-| `PERSONAL_WHATSAPP_EXTRA_NUMBERS` | Extra numbers for receipt import / bot only (no panel OTP) |
 | `OLLAMA_HOST` | Ollama HTTP API (default `http://127.0.0.1:11434`) |
 | `OLLAMA_MODEL` | Vision model (default `qwen2.5vl:7b`) |
 | `OLLAMA_TIMEOUT` | Ollama HTTP timeout seconds (default `120`) |
