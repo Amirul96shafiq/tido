@@ -206,7 +206,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
    does not resolve root-relative paths against :5173. */
 .fi-body {
     position: relative;
-    background-color: var(--color-white) !important;
+    background-color: var(--tido-bg-color-light, var(--color-white)) !important;
     background-image: var(--tido-bg-light);
     background-size: cover;
     background-position: bottom center;
@@ -215,7 +215,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
 }
 
 .dark .fi-body {
-    background-color: var(--color-slate-800) !important;
+    background-color: var(--tido-bg-color-dark, var(--color-slate-800)) !important;
     background-image: var(--tido-bg-dark);
 }
 
