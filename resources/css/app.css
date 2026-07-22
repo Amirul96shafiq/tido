@@ -233,36 +233,54 @@ html.dark::-webkit-scrollbar-thumb:hover,
     @apply bg-gray-900 ring-white/10;
 }
 
-/* Auth simple pages — 30/70 split (desktop illustration left, form right) */
+/* Auth simple pages — 30/70 split (mobile bottom image; desktop left image) */
 .fi-body:has(.fi-simple-layout) {
     background-image: none !important;
 }
 
+/* Mobile / tablet: form top 70%, illustration bottom 30% */
+.fi-simple-layout::before {
+    content: '';
+    position: fixed;
+    inset-inline: 1.5rem;
+    inset-block-end: 0;
+    height: calc(30% - 1.5rem);
+    /* Top corners only — flush to viewport bottom */
+    border-radius: 0.75rem 0.75rem 0 0;
+    background-image: var(--tido-auth-bg-light);
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.dark .fi-simple-layout::before {
+    background-image: var(--tido-auth-bg-dark);
+}
+
+.fi-simple-main-ctn {
+    /* Keep form/scroll area above the fixed image */
+    padding-block-end: 30%;
+}
+
 @media (min-width: 1024px) {
     .fi-simple-layout::before {
-        content: '';
-        position: fixed;
         /* Match Filament panel inset (p-6) + card radius (rounded-xl) */
         inset-block: 1.5rem;
         inset-inline-start: 1.5rem;
+        inset-inline-end: auto;
         width: calc(30% - 2.25rem);
+        height: auto;
         border-radius: 0.75rem;
-        background-image: var(--tido-auth-bg-light);
-        background-size: cover;
         background-position: center;
-        background-repeat: no-repeat;
-        pointer-events: none;
-        z-index: 0;
-    }
-
-    .dark .fi-simple-layout::before {
-        background-image: var(--tido-auth-bg-dark);
     }
 
     .fi-simple-main-ctn {
         width: 70%;
         max-width: 70%;
         margin-inline-start: auto;
+        padding-block-end: 0;
     }
 }
 

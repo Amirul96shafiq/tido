@@ -68,7 +68,7 @@ test('admin panel provider injects auth background asset css variables', functio
         ->toContain('--tido-auth-bg-dark:');
 });
 
-test('auth simple pages use desktop 30/70 split background layout', function () {
+test('auth simple pages use mobile bottom and desktop left 30/70 split layout', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
     $authSplitBlock = Str::between(
@@ -80,17 +80,26 @@ test('auth simple pages use desktop 30/70 split background layout', function () 
     expect($authSplitBlock)
         ->toContain('.fi-body:has(.fi-simple-layout) {')
         ->toContain('background-image: none !important;')
-        ->toContain('@media (min-width: 1024px)')
         ->toContain('.fi-simple-layout::before {')
-        ->toContain('inset-block: 1.5rem;')
-        ->toContain('inset-inline-start: 1.5rem;')
-        ->toContain('width: calc(30% - 2.25rem);')
-        ->toContain('border-radius: 0.75rem;')
+        ->toContain('inset-inline: 1.5rem;')
+        ->toContain('inset-block-end: 0;')
+        ->toContain('height: calc(30% - 1.5rem);')
+        ->toContain('border-radius: 0.75rem 0.75rem 0 0;')
         ->toContain('background-image: var(--tido-auth-bg-light);')
-        ->toContain('background-position: center;')
+        ->toContain('background-position: center bottom;')
         ->toContain('.dark .fi-simple-layout::before {')
         ->toContain('background-image: var(--tido-auth-bg-dark);')
+        ->toContain('padding-block-end: 30%;')
+        ->toContain('@media (min-width: 1024px)')
+        ->toContain('inset-block: 1.5rem;')
+        ->toContain('inset-inline-start: 1.5rem;')
+        ->toContain('inset-inline-end: auto;')
+        ->toContain('width: calc(30% - 2.25rem);')
+        ->toContain('height: auto;')
+        ->toContain('border-radius: 0.75rem;')
+        ->toContain('background-position: center;')
         ->toContain('.fi-simple-main-ctn {')
         ->toContain('width: 70%;')
-        ->toContain('margin-inline-start: auto;');
+        ->toContain('margin-inline-start: auto;')
+        ->toContain('padding-block-end: 0;');
 });
