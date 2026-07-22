@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class FamilyMember extends Model
 {
@@ -22,6 +23,7 @@ class FamilyMember extends Model
 
     protected $fillable = [
         'name',
+        'avatar_url',
         'phone',
         'allowlist_enabled',
     ];
@@ -38,6 +40,13 @@ class FamilyMember extends Model
         return Attribute::make(
             set: fn (?string $value): ?string => PhoneNumber::normalize($value),
         );
+    }
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->avatar_url
+            ? Storage::disk('public')->url($this->avatar_url)
+            : null;
     }
 
     /**

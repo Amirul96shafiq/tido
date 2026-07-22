@@ -259,9 +259,9 @@
                                 </div>
                             @endif
 
-                            <div class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                            <div class="flex flex-col gap-3 px-4 py-3">
                                 <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Contact allowlist</dt>
-                                <dd class="min-w-0 sm:text-right">
+                                <dd class="min-w-0 w-full">
                                     @include('filament.pages.partials.evolution-api-allowlist', [
                                         'allowedSenderEntries' => $this->allowedSenderEntries(),
                                         'profileEditUrl' => $this->profileEditUrl(),

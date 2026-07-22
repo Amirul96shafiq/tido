@@ -12,7 +12,9 @@ use App\Models\FamilyMember;
 use App\Models\User;
 use App\Support\PhoneNumber;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -53,6 +55,55 @@ test('user can create a family member on the allowlist', function () {
         ->and($member->phone)->toBe('60116330785')
         ->and($member->allowlist_enabled)->toBeTrue()
         ->and(PhoneNumber::isAllowedWhatsAppSender('60116330785'))->toBeTrue();
+});
+
+test('user can upload a family member profile photo', function () {
+    Storage::fake('public');
+
+    $file = UploadedFile::fake()->image('spouse-avatar.jpg');
+
+    Livewire::test(CreateFamilyMember::class)
+        ->fillForm([
+            'name' => 'Spouse',
+            'phone' => '+60116330786',
+            'allowlist_enabled' => true,
+            'avatar_url' => [$file],
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $member = FamilyMember::query()->where('name', 'Spouse')->first();
+
+    expect($member)->not->toBeNull()
+        ->and($member->avatar_url)->not->toBeNull()
+        ->and($member->getFilamentAvatarUrl())->not->toBeNull();
+
+    Storage::disk('public')->assertExists($member->avatar_url);
+});
+
+test('user can replace a family member profile photo on edit', function () {
+    Storage::fake('public');
+
+    $member = FamilyMember::factory()->create([
+        'name' => 'Spouse',
+        'phone' => '60116330787',
+        'avatar_url' => null,
+    ]);
+
+    $file = UploadedFile::fake()->image('updated-avatar.jpg');
+
+    Livewire::test(EditFamilyMember::class, ['record' => $member->getRouteKey()])
+        ->fillForm([
+            'avatar_url' => [$file],
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $member->refresh();
+
+    expect($member->avatar_url)->not->toBeNull();
+
+    Storage::disk('public')->assertExists($member->avatar_url);
 });
 
 test('disabled family member is excluded from allowlist', function () {

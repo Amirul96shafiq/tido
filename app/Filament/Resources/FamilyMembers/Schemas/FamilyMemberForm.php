@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Filament\Resources\FamilyMembers\Schemas;
 
 use App\Support\PhoneNumber;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Pages\Page as ResourcePage;
+use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Livewire\Component as LivewireComponent;
@@ -18,6 +20,24 @@ class FamilyMemberForm
     {
         return $schema
             ->components([
+                Section::make('Profile Photo')
+                    ->extraAttributes(['class' => 'fi-profile-photo-section'])
+                    ->schema([
+                        Flex::make([
+                            FileUpload::make('avatar_url')
+                                ->hiddenLabel()
+                                ->fieldWrapperView('filament-forms::plain-field-wrapper')
+                                ->extraFieldWrapperAttributes(['class' => 'fi-profile-photo-field'])
+                                ->avatar()
+                                ->disk('public')
+                                ->directory('avatars')
+                                ->image()
+                                ->imageEditor()
+                                ->maxSize(2048)
+                                ->circleCropper(),
+                        ])->alignCenter(),
+                    ]),
+
                 Section::make(fn (LivewireComponent $livewire): string => self::modelLabel($livewire).' Details')
                     ->columns(2)
                     ->schema([

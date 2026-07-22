@@ -103,18 +103,56 @@ test('allowedWhatsAppSenderEntries lists only user id 1 under primary', function
         'allowlist_enabled' => true,
     ]);
 
-    expect(PhoneNumber::allowedWhatsAppSenderEntries())->toBe([
-        'primary' => [
-            [
-                'name' => 'Admin User',
-                'phone' => '60123456789',
-            ],
-        ],
-        'family' => [
-            [
-                'name' => 'Spouse',
-                'phone' => '60111111111',
-            ],
-        ],
+    $entries = PhoneNumber::allowedWhatsAppSenderEntries();
+
+    expect($entries['primary'])->toHaveCount(1)
+        ->and($entries['primary'][0])->toMatchArray([
+            'name' => 'Admin User',
+            'phone' => '60123456789',
+        ])
+        ->and($entries['primary'][0]['avatar_url'])->not->toBeEmpty()
+        ->and($entries['family'])->toHaveCount(1)
+        ->and($entries['family'][0])->toMatchArray([
+            'name' => 'Spouse',
+            'phone' => '60111111111',
+        ])
+        ->and($entries['family'][0]['avatar_url'])->not->toBeEmpty();
+});
+
+test('allowedWhatsAppSenderEntries uses uploaded avatars when set', function () {
+    User::factory()->create([
+        'name' => 'Admin User',
+        'phone' => '60123456789',
+        'avatar_url' => 'avatars/admin.png',
     ]);
+    FamilyMember::factory()->create([
+        'name' => 'Spouse',
+        'phone' => '60111111111',
+        'allowlist_enabled' => true,
+        'avatar_url' => 'avatars/spouse.png',
+    ]);
+
+    $entries = PhoneNumber::allowedWhatsAppSenderEntries();
+
+    expect($entries['primary'][0]['avatar_url'])->toContain('avatars/admin.png')
+        ->and($entries['family'][0]['avatar_url'])->toContain('avatars/spouse.png');
+});
+
+test('allowedWhatsAppSenderEntries falls back to ui-avatars when avatar missing', function () {
+    User::factory()->create([
+        'name' => 'Admin User',
+        'phone' => '60123456789',
+        'avatar_url' => null,
+    ]);
+    FamilyMember::factory()->create([
+        'name' => 'Spouse',
+        'phone' => '60111111111',
+        'allowlist_enabled' => true,
+        'avatar_url' => null,
+    ]);
+
+    $entries = PhoneNumber::allowedWhatsAppSenderEntries();
+
+    expect($entries['primary'][0]['avatar_url'])->toContain('ui-avatars.com')
+        ->and($entries['family'][0]['avatar_url'])->toContain('ui-avatars.com');
 });

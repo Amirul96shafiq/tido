@@ -138,7 +138,7 @@ test('connected status shows linked number and instance details', function () {
         ->assertSee('Contact allowlist')
         ->assertSee('Primary')
         ->assertSee('60123456789')
-        ->assertSee('Family Member')
+        ->assertSee('Family')
         ->assertSee('Spouse')
         ->assertSee('60111111111')
         ->assertSee('View details')

@@ -6,6 +6,9 @@ namespace App\Support;
 
 use App\Models\FamilyMember;
 use App\Models\User;
+use Filament\AvatarProviders\UiAvatarsProvider;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 final class PhoneNumber
 {
@@ -143,8 +146,8 @@ final class PhoneNumber
      * Allowlist entries grouped for EvolutionAPI UI.
      *
      * @return array{
-     *     primary: list<array{name: string, phone: string}>,
-     *     family: list<array{name: string, phone: string}>
+     *     primary: list<array{name: string, phone: string, avatar_url: string}>,
+     *     family: list<array{name: string, phone: string, avatar_url: string}>
      * }
      */
     public static function allowedWhatsAppSenderEntries(): array
@@ -163,6 +166,7 @@ final class PhoneNumber
                 $primary[] = [
                     'name' => filled($user->name) ? (string) $user->name : 'Primary',
                     'phone' => $normalized,
+                    'avatar_url' => self::avatarDisplayUrl($user),
                 ];
             }
         }
@@ -170,7 +174,7 @@ final class PhoneNumber
         $members = FamilyMember::query()
             ->allowlisted()
             ->orderBy('name')
-            ->get(['id', 'name', 'phone']);
+            ->get(['id', 'name', 'phone', 'avatar_url']);
 
         foreach ($members as $member) {
             $normalized = self::normalize($member->phone);
@@ -183,6 +187,7 @@ final class PhoneNumber
             $family[] = [
                 'name' => filled($member->name) ? (string) $member->name : 'Family member',
                 'phone' => $normalized,
+                'avatar_url' => self::avatarDisplayUrl($member),
             ];
         }
 
@@ -201,5 +206,19 @@ final class PhoneNumber
         }
 
         return in_array($normalized, self::allowedWhatsAppSenders(), true);
+    }
+
+    /**
+     * Uploaded public avatar URL, or Filament ui-avatars initials fallback.
+     */
+    private static function avatarDisplayUrl(Model $record): string
+    {
+        $path = $record->getAttribute('avatar_url');
+
+        if (is_string($path) && $path !== '') {
+            return Storage::disk('public')->url($path);
+        }
+
+        return app(UiAvatarsProvider::class)->get($record);
     }
 }

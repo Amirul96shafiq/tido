@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace App\Filament\Resources\FamilyMembers\Tables;
 
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
+use App\Models\FamilyMember;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\AvatarProviders\UiAvatarsProvider;
 use Filament\Support\Enums\FontFamily;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
@@ -23,6 +26,12 @@ class FamilyMembersTable
     {
         return $table
             ->columns([
+                ImageColumn::make('avatar_url')
+                    ->label('')
+                    ->disk('public')
+                    ->circular()
+                    ->defaultImageUrl(fn (FamilyMember $record): string => app(UiAvatarsProvider::class)->get($record)),
+
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable()

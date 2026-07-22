@@ -1,5 +1,5 @@
 @php
-    /** @var array{primary: list<array{name: string, phone: string}>, family: list<array{name: string, phone: string}>} $allowedSenderEntries */
+    /** @var array{primary: list<array{name: string, phone: string, avatar_url: string}>, family: list<array{name: string, phone: string, avatar_url: string}>} $allowedSenderEntries */
     $primaryEntries = $allowedSenderEntries['primary'] ?? [];
     $familyEntries = $allowedSenderEntries['family'] ?? [];
     $hasEntries = $primaryEntries !== [] || $familyEntries !== [];
@@ -15,33 +15,53 @@
         @endisset
     </span>
 @else
-    <div class="flex flex-col gap-3 text-right">
-        @if ($primaryEntries !== [])
-            <div class="flex flex-col gap-0.5">
-                <div class="text-xs font-medium text-gray-500 dark:text-gray-400">
+    <div class="flex w-full flex-col gap-2">
+        @foreach ($primaryEntries as $entry)
+            <div
+                wire:key="allowlist-primary-{{ $entry['phone'] }}"
+                class="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2.5 dark:border-slate-700"
+            >
+                <x-filament::avatar
+                    :src="$entry['avatar_url']"
+                    :alt="$entry['name']"
+                    size="sm"
+                />
+                <div class="min-w-0 flex-1 text-left">
+                    <div class="truncate font-medium text-gray-950 dark:text-white">
+                        {{ $entry['name'] }}
+                    </div>
+                    <div class="font-mono text-xs text-gray-500 dark:text-gray-400">
+                        {{ $entry['phone'] }}
+                    </div>
+                </div>
+                <x-filament::badge color="gray" size="sm">
                     Primary
-                </div>
-                @foreach ($primaryEntries as $entry)
-                    <div class="text-gray-950 dark:text-white">
-                        {{ $entry['name'] }}
-                        <span class="font-mono">({{ $entry['phone'] }})</span>
-                    </div>
-                @endforeach
+                </x-filament::badge>
             </div>
-        @endif
+        @endforeach
 
-        @if ($familyEntries !== [])
-            <div class="flex flex-col gap-0.5">
-                <div class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                    Family Member
-                </div>
-                @foreach ($familyEntries as $entry)
-                    <div class="text-gray-950 dark:text-white">
+        @foreach ($familyEntries as $entry)
+            <div
+                wire:key="allowlist-family-{{ $entry['phone'] }}"
+                class="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2.5 dark:border-slate-700"
+            >
+                <x-filament::avatar
+                    :src="$entry['avatar_url']"
+                    :alt="$entry['name']"
+                    size="sm"
+                />
+                <div class="min-w-0 flex-1 text-left">
+                    <div class="truncate font-medium text-gray-950 dark:text-white">
                         {{ $entry['name'] }}
-                        <span class="font-mono">({{ $entry['phone'] }})</span>
                     </div>
-                @endforeach
+                    <div class="font-mono text-xs text-gray-500 dark:text-gray-400">
+                        {{ $entry['phone'] }}
+                    </div>
+                </div>
+                <x-filament::badge color="gray" size="sm">
+                    Family
+                </x-filament::badge>
             </div>
-        @endif
+        @endforeach
     </div>
 @endif
