@@ -47,7 +47,7 @@ test('user can create a family member on the allowlist', function () {
             'phone' => '+60116330785',
             'email' => 'sibling@example.com',
             'relationship' => 'sibling',
-            'date_of_birth' => '1990-05-15',
+            'date_of_birth' => '15/05/1990',
             'allowlist_enabled' => true,
         ])
         ->call('create')
