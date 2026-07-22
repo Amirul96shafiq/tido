@@ -22,7 +22,7 @@ Use Filament `Schema` for forms (v5), not legacy Form API. Prefer native Form/Ta
 
 ## Navigation
 
-- Groups: **Finances** (Invoices, Budgets), **Settings** (Labels, Payment Methods, Family Members, Backups), **Integrations** (EvolutionAPI)
+- Groups: **Finances** (Invoices, Budgets), **Settings** (Labels, Payment Methods, Family Members), **Integrations** (EvolutionAPI), **Tools** (Backups) — Tools is last
 - Theme: amber/zinc accents + Slate dark surfaces (see `docs/ui-dark-theme.md`), Outfit font, SPA mode, collapsible sidebar, database notifications
 - Breadcrumbs: Filament native panel breadcrumbs with `PrependsHomeBreadcrumb` (Home → resource → page, e.g. Home > Invoices > List). Kept visible on small screens via `.fi-header .fi-breadcrumbs` override in `app.css` (Filament hides them below `sm`). Do not disable panel-wide or replace with a custom back link. When adding a new Create/Edit/List/custom page, use `PrependsHomeBreadcrumb` and register Create/Edit pages in the `PAGE_END` draft-poller scopes.
 - Custom pages: `Dashboard`, `ReceiptUploadPage`, `Auth/EditProfile`, `EvolutionApiPage`

@@ -28,6 +28,10 @@ test('authenticated user can load backups list', function () {
         ->assertSuccessful();
 });
 
+test('backups resource is under the tools navigation group', function () {
+    expect(BackupResource::getNavigationGroup())->toBe('Tools');
+});
+
 test('create backup header action registers a manual backup', function () {
     $backup = Backup::factory()->make([
         'type' => BackupType::Manual,

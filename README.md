@@ -155,8 +155,9 @@ Integration setup guides: [Ollama](docs/ollama-setup.md) · [Evolution API](docs
 Admin nav:
 
 - **Finances** — Invoices, Budgets
-- **Settings** — Labels, Payment Methods, Family Members, Backups
+- **Settings** — Labels, Payment Methods, Family Members
 - **Integrations** — EvolutionAPI
+- **Tools** — Backups
 
 **WhatsApp OTP login:** Pair Evolution → set WhatsApp number in Profile → `php artisan whatsapp:ping` → sign in with OTP at `/admin/login`.
 
@@ -174,7 +175,7 @@ Multiple merchant blocks in one message (or rapid messages) create multiple invo
 
 **WhatsApp text commands:** `spend` / `total` — this month’s spending; other text — help.
 
-**Backups:** Cataloged ZIPs under Settings → Backups. Restore tokens are shown once (email/UI); only a hash is stored. After Danger Zone account wipe, guest restore is available when no users exist. Details: [docs/backups-and-danger-zone.md](docs/backups-and-danger-zone.md).
+**Backups:** Cataloged ZIPs under Tools → Backups. Restore tokens are shown once (email/UI); only a hash is stored. After Danger Zone account wipe, guest restore is available when no users exist. Details: [docs/backups-and-danger-zone.md](docs/backups-and-danger-zone.md).
 
 Useful commands:
 

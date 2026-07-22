@@ -30,7 +30,7 @@ Cataloged ZIP backups, restore tokens, guest restore, and profile account deleti
 2. Validate guest restore with `GuestRestoreBackupRequest`; process via `BackupService` (no ad-hoc unzip in controllers).
 3. Keep restore-backup modal tooltips Tippy-based with high `zIndex` — see [ui-tooltips.md](ui-tooltips.md).
 4. Cover new backup/restore paths with Pest; fake storage / avoid real Spatie runs in unit tests where possible.
-5. Nav: Backups live under Settings (with Labels / Payment Methods), not Finances or Integrations.
+5. Nav: Backups live under Tools (bottom nav group), not Finances, Settings, or Integrations.
 
 ## Related
 

@@ -34,9 +34,9 @@ class BackupResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedCircleStack;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
+    protected static string|\UnitEnum|null $navigationGroup = 'Tools';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {
