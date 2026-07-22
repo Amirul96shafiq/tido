@@ -137,8 +137,8 @@ class AdminPanelProvider extends PanelProvider
                 function (): string {
                     $light = asset('images/bg-l.png');
                     $dark = asset('images/bg-d.png');
-                    $authLight = asset('images/auth-bg-l.png');
-                    $authDark = asset('images/auth-bg-d.png');
+                    $authLight = asset('images/auth-bg-l-v2.png');
+                    $authDark = asset('images/auth-bg-d-v2.png');
 
                     return <<<HTML
                         <style>

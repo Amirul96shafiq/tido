@@ -248,11 +248,9 @@ html.dark::-webkit-scrollbar-thumb:hover,
 .fi-simple-layout::before {
     content: '';
     position: fixed;
-    inset-inline: 1.5rem;
+    inset-inline: 0;
     inset-block-end: 0;
-    height: calc(20% - 1.5rem);
-    /* Top corners only — flush to viewport bottom */
-    border-radius: 0.75rem 0.75rem 0 0;
+    height: 20%;
     background-image: var(--tido-auth-bg-light);
     background-size: cover;
     /*
@@ -314,13 +312,17 @@ html.dark::-webkit-scrollbar-thumb:hover,
 
 @media (min-width: 1024px) {
     .fi-simple-layout::before {
-        /* Match Filament panel inset (p-6) + card radius (rounded-xl) */
-        inset-block: 1.5rem;
-        inset-inline-start: 1.5rem;
+        inset-block: 0;
+        inset-inline-start: 0;
         inset-inline-end: auto;
-        width: calc(30% - 2.25rem);
+        /*
+         * Match auth-bg-*-v2 aspect (1000×1536) so cover fills height
+         * without cropping left/right (fixed 30% was too narrow → side crop
+         * or 100% auto → top/bottom letterbox).
+         */
+        width: calc(100dvh * 1000 / 1536);
         height: auto;
-        border-radius: 0.75rem;
+        background-size: cover;
         /* Tall left panel — pull focal point slightly up vs mobile strip */
         --tido-auth-bg-pos-x: 50%;
         --tido-auth-bg-pos-y: 62%;
@@ -332,8 +334,8 @@ html.dark::-webkit-scrollbar-thumb:hover,
     }
 
     .fi-simple-main-ctn {
-        width: 70%;
-        max-width: 70%;
+        width: calc(100% - (100dvh * 1000 / 1536));
+        max-width: none;
         margin-inline-start: auto;
         padding-block-end: 0;
     }
