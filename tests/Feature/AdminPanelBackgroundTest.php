@@ -55,7 +55,9 @@ test('dark mode form fields and repeater items match section surface and border'
 
 test('auth light and dark background images exist', function () {
     expect(public_path('images/auth-bg-l.png'))->toBeFile()
-        ->and(public_path('images/auth-bg-d.png'))->toBeFile();
+        ->and(public_path('images/auth-bg-d.png'))->toBeFile()
+        ->and(public_path('images/auth-bg-l-v2.png'))->toBeFile()
+        ->and(public_path('images/auth-bg-d-v2.png'))->toBeFile();
 });
 
 test('admin panel provider injects auth background asset css variables', function () {
@@ -64,6 +66,10 @@ test('admin panel provider injects auth background asset css variables', functio
     expect($provider)
         ->toContain("asset('images/auth-bg-l.png')")
         ->toContain("asset('images/auth-bg-d.png')")
+        ->toContain("asset('images/auth-bg-l-v2.png')")
+        ->toContain("asset('images/auth-bg-d-v2.png')")
+        ->toContain('--tido-auth-bg-light-mobile:')
+        ->toContain('--tido-auth-bg-dark-mobile:')
         ->toContain('--tido-auth-bg-light:')
         ->toContain('--tido-auth-bg-dark:');
 });
@@ -84,16 +90,16 @@ test('auth simple pages use mobile bottom and desktop left split layout', functi
         ->toContain('.tido-go-to-bottom {')
         ->toContain('display: none !important;')
         ->toContain('.fi-simple-layout::before {')
-        ->toContain('inset-inline: 1.5rem;')
+        ->toContain('inset-inline: 0;')
         ->toContain('inset-block-end: 0;')
-        ->toContain('height: calc(20% - 1.5rem);')
-        ->toContain('border-radius: 0.75rem 0.75rem 0 0;')
-        ->toContain('background-image: var(--tido-auth-bg-light);')
+        ->toContain('height: 20%;')
+        ->not->toContain('border-radius: 0.75rem 0.75rem 0 0;')
+        ->toContain('background-image: var(--tido-auth-bg-light-mobile);')
         ->toContain('--tido-auth-bg-pos-x: 50%;')
         ->toContain('--tido-auth-bg-pos-y: 78%;')
         ->toContain('background-position: var(--tido-auth-bg-pos-x) var(--tido-auth-bg-pos-y);')
         ->toContain('.dark .fi-simple-layout::before {')
-        ->toContain('background-image: var(--tido-auth-bg-dark);')
+        ->toContain('background-image: var(--tido-auth-bg-dark-mobile);')
         ->toContain('--tido-auth-bg-pos-x: 66%;')
         ->toContain('--tido-auth-bg-pos-y: 72%;')
         ->toContain('@media (max-width: 1023px)')
@@ -103,16 +109,19 @@ test('auth simple pages use mobile bottom and desktop left split layout', functi
         ->toContain('height: 100dvh;')
         ->toContain('max-height: 80%;')
         ->toContain('@media (min-width: 1024px)')
-        ->toContain('inset-block: 1.5rem;')
-        ->toContain('inset-inline-start: 1.5rem;')
+        ->toContain('inset-block: 0;')
+        ->toContain('inset-inline-start: 0;')
         ->toContain('inset-inline-end: auto;')
-        ->toContain('width: calc(30% - 2.25rem);')
+        ->toContain('width: calc(100dvh * 1000 / 1536);')
         ->toContain('height: auto;')
-        ->toContain('border-radius: 0.75rem;')
+        ->toContain('background-image: var(--tido-auth-bg-light);')
+        ->toContain('background-image: var(--tido-auth-bg-dark);')
+        ->toContain('background-size: cover;')
+        ->not->toContain('border-radius: 0.75rem;')
         ->toContain('--tido-auth-bg-pos-y: 62%;')
         ->toContain('--tido-auth-bg-pos-y: 58%;')
         ->toContain('.fi-simple-main-ctn {')
-        ->toContain('width: 70%;')
+        ->toContain('width: calc(100% - (100dvh * 1000 / 1536));')
         ->toContain('margin-inline-start: auto;')
         ->toContain('padding-block-end: 0;');
 });
