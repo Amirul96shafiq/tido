@@ -43,7 +43,11 @@ test('user can create a family member on the allowlist', function () {
     Livewire::test(CreateFamilyMember::class)
         ->fillForm([
             'name' => 'Sibling',
+            'display_name' => 'Sib',
             'phone' => '+60116330785',
+            'email' => 'sibling@example.com',
+            'relationship' => 'sibling',
+            'date_of_birth' => '1990-05-15',
             'allowlist_enabled' => true,
         ])
         ->call('create')
@@ -53,8 +57,59 @@ test('user can create a family member on the allowlist', function () {
 
     expect($member)->not->toBeNull()
         ->and($member->phone)->toBe('60116330785')
+        ->and($member->display_name)->toBe('Sib')
+        ->and($member->email)->toBe('sibling@example.com')
+        ->and($member->relationship?->value)->toBe('sibling')
+        ->and($member->date_of_birth?->format('Y-m-d'))->toBe('1990-05-15')
         ->and($member->allowlist_enabled)->toBeTrue()
         ->and(PhoneNumber::isAllowedWhatsAppSender('60116330785'))->toBeTrue();
+});
+
+test('user can create a family member with a custom other relationship', function () {
+    Livewire::test(CreateFamilyMember::class)
+        ->fillForm([
+            'name' => 'Along',
+            'phone' => '+60116330790',
+            'relationship' => 'other',
+            'relationship_other' => 'Godfather',
+            'allowlist_enabled' => true,
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $member = FamilyMember::query()->where('name', 'Along')->first();
+
+    expect($member)->not->toBeNull()
+        ->and($member->relationship?->value)->toBe('other')
+        ->and($member->relationship_other)->toBe('Godfather')
+        ->and($member->relationshipLabel())->toBe('Godfather');
+});
+
+test('email is optional when creating a family member', function () {
+    Livewire::test(CreateFamilyMember::class)
+        ->fillForm([
+            'name' => 'Cousin',
+            'phone' => '+60116330791',
+            'email' => null,
+            'allowlist_enabled' => true,
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    expect(FamilyMember::query()->where('name', 'Cousin')->first()?->email)->toBeNull();
+});
+
+test('custom relationship is required when other is selected', function () {
+    Livewire::test(CreateFamilyMember::class)
+        ->fillForm([
+            'name' => 'Along',
+            'phone' => '+60116330792',
+            'relationship' => 'other',
+            'relationship_other' => null,
+            'allowlist_enabled' => true,
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['relationship_other' => 'required']);
 });
 
 test('user can upload a family member profile photo', function () {

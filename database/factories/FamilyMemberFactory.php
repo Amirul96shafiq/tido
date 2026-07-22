@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\FamilyRelationship;
 use App\Models\FamilyMember;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,7 +21,17 @@ class FamilyMemberFactory extends Factory
 
         return [
             'name' => $this->faker->name(),
+            'display_name' => $this->faker->optional()->firstName(),
             'phone' => '60'.$local,
+            'email' => $this->faker->optional()->safeEmail(),
+            'relationship' => $this->faker->optional()->randomElement(
+                array_filter(
+                    FamilyRelationship::cases(),
+                    fn (FamilyRelationship $case): bool => $case !== FamilyRelationship::Other,
+                ),
+            ),
+            'relationship_other' => null,
+            'date_of_birth' => $this->faker->optional()->date(),
             'allowlist_enabled' => true,
         ];
     }
@@ -36,6 +47,14 @@ class FamilyMemberFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'allowlist_enabled' => false,
+        ]);
+    }
+
+    public function otherRelationship(string $custom): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'relationship' => FamilyRelationship::Other,
+            'relationship_other' => $custom,
         ]);
     }
 }

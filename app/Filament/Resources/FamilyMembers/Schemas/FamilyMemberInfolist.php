@@ -28,10 +28,25 @@ class FamilyMemberInfolist
                             ->circular()
                             ->defaultImageUrl(fn (FamilyMember $record): string => app(UiAvatarsProvider::class)->get($record))
                             ->columnSpanFull(),
-                        TextEntry::make('name'),
+                        TextEntry::make('name')
+                            ->label('Full Name'),
+                        TextEntry::make('display_name')
+                            ->label('Display Name')
+                            ->placeholder('—'),
                         TextEntry::make('phone')
                             ->label('WhatsApp Number')
                             ->fontFamily(FontFamily::Mono),
+                        TextEntry::make('email')
+                            ->label('Email')
+                            ->placeholder('—'),
+                        TextEntry::make('relationship')
+                            ->label('Relationship')
+                            ->formatStateUsing(fn (FamilyMember $record): ?string => $record->relationshipLabel())
+                            ->placeholder('—'),
+                        TextEntry::make('date_of_birth')
+                            ->label('Date of Birth')
+                            ->date('d/m/Y')
+                            ->placeholder('—'),
                         IconEntry::make('allowlist_enabled')
                             ->label('Include in contact allowlist')
                             ->boolean()

@@ -76,7 +76,9 @@ class FamilyMemberResource extends Resource
     {
         return [
             'name',
+            'display_name',
             'phone',
+            'email',
         ];
     }
 
@@ -85,8 +87,15 @@ class FamilyMemberResource extends Resource
      */
     public static function getGlobalSearchResultDetails(Model $record): array
     {
-        return [
+        /** @var FamilyMember $record */
+        $details = [
             'WhatsApp' => (string) $record->phone,
         ];
+
+        if (filled($record->display_name)) {
+            $details['Display'] = (string) $record->display_name;
+        }
+
+        return $details;
     }
 }

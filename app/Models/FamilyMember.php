@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\FamilyRelationship;
 use App\Support\PhoneNumber;
 use Database\Factories\FamilyMemberFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,13 +24,20 @@ class FamilyMember extends Model
 
     protected $fillable = [
         'name',
+        'display_name',
         'avatar_url',
         'phone',
+        'email',
+        'relationship',
+        'relationship_other',
+        'date_of_birth',
         'allowlist_enabled',
     ];
 
     protected $casts = [
         'allowlist_enabled' => 'boolean',
+        'relationship' => FamilyRelationship::class,
+        'date_of_birth' => 'date',
     ];
 
     /**
@@ -40,6 +48,21 @@ class FamilyMember extends Model
         return Attribute::make(
             set: fn (?string $value): ?string => PhoneNumber::normalize($value),
         );
+    }
+
+    public function relationshipLabel(): ?string
+    {
+        if ($this->relationship === null) {
+            return null;
+        }
+
+        if ($this->relationship === FamilyRelationship::Other) {
+            return filled($this->relationship_other)
+                ? (string) $this->relationship_other
+                : FamilyRelationship::Other->label();
+        }
+
+        return $this->relationship->label();
     }
 
     public function getFilamentAvatarUrl(): ?string

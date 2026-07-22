@@ -33,8 +33,24 @@ class FamilyMembersTable
                     ->defaultImageUrl(fn (FamilyMember $record): string => app(UiAvatarsProvider::class)->get($record)),
 
                 TextColumn::make('name')
+                    ->label('Full Name')
                     ->searchable()
                     ->sortable()
+                    ->limit(24)
+                    ->tooltip(function (TextColumn $column, ?string $state): ?string {
+                        if (blank($state) || mb_strlen((string) $state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+
+                        return (string) $state;
+                    }),
+
+                TextColumn::make('display_name')
+                    ->label('Display Name')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable()
+                    ->placeholder('—')
                     ->limit(24)
                     ->tooltip(function (TextColumn $column, ?string $state): ?string {
                         if (blank($state) || mb_strlen((string) $state) <= $column->getCharacterLimit()) {
@@ -49,6 +65,13 @@ class FamilyMembersTable
                     ->searchable()
                     ->sortable()
                     ->fontFamily(FontFamily::Mono),
+
+                TextColumn::make('relationship')
+                    ->label('Relationship')
+                    ->formatStateUsing(fn (FamilyMember $record): ?string => $record->relationshipLabel())
+                    ->sortable()
+                    ->toggleable()
+                    ->placeholder('—'),
 
                 ToggleColumn::make('allowlist_enabled')
                     ->label('Allowlist')
