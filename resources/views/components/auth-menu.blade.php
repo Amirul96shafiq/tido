@@ -1,4 +1,4 @@
-<div class="fi-auth-menu fixed top-4 inset-e-4 z-50">
+<div class="fi-auth-menu">
     <x-filament::dropdown placement="bottom-end" teleport>
         <x-slot name="trigger">
             <button

@@ -66,3 +66,24 @@ test('guest auth pages show auth menu with theme switcher and changelogs', funct
         ],
     ),
 ]);
+
+test('auth menu chrome is flush top-right square with left and bottom borders', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+    $blade = (string) file_get_contents(resource_path('views/components/auth-menu.blade.php'));
+
+    $expectedSize = 'calc(var(--collapsed-sidebar-width, 4.5rem) - 1px)';
+    $block = Str::between($css, '.fi-auth-menu {', '.dark .fi-auth-menu {');
+
+    expect($block)
+        ->toContain('position: fixed;')
+        ->toContain('top: 0;')
+        ->toContain('right: 0;')
+        ->toContain("width: {$expectedSize};")
+        ->toContain("height: {$expectedSize};")
+        ->toContain('border-bottom: 1px solid var(--color-gray-100);')
+        ->toContain('border-left: 1px solid var(--color-gray-100);')
+        ->and($blade)
+        ->toContain('class="fi-auth-menu"')
+        ->not->toContain('top-4')
+        ->not->toContain('inset-e-4');
+});
