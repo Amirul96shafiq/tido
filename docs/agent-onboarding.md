@@ -99,7 +99,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 
 1. Follow nested Resource layout: `Resources/{Plural}/{Singular}Resource.php` + `Schemas/` + `Tables/` + `Pages/`
 2. Forms use Filament v5 `Schema`; prefer native components
-3. View is always a slide-over — never a dedicated View page. Tables: `ViewAction::make()->slideOver()` in `recordActions` (before Edit/Delete). Notification/deep-link View CTAs: `Resource::getUrl('index', ['tableAction' => 'view', 'tableActionRecord' => $record->getRouteKey()])`
+3. View is always a slide-over — never a dedicated View page. Tables: `ViewAction::make()->slideOver()` in `recordActions` (before Edit/Delete). The slide-over uses the resource **form** schema in disabled mode — do **not** add `Resource::infolist()` or `Schemas/*Infolist.php`. Notification/deep-link View CTAs: `Resource::getUrl('index', ['tableAction' => 'view', 'tableActionRecord' => $record->getRouteKey()])`
 4. Record actions are icon-only panel-wide (`AppServiceProvider` → `Table::configureUsing` → `modifyUngroupedRecordActionsUsing` → `iconButton()` + Filament `->tooltip()` from the action label); do not add visible labels on View/Edit/Delete — see `docs/ui-tooltips.md`
 5. Filter and Column Manager triggers also get Tippy tooltips globally via `filtersTriggerAction` / `columnManagerTriggerAction` in `AppServiceProvider`
 6. List-page “New …” CTAs use a plus Heroicon panel-wide (`AppServiceProvider` → `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`); new List pages only need `CreateAction::make()`
