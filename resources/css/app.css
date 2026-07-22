@@ -319,9 +319,12 @@ html.dark::-webkit-scrollbar-thumb:hover,
     row-gap: 2.5rem !important;
 }
 
-.fi-simple-page > .tido-auth-login-toast {
-    margin-bottom: 1.5rem;
+.fi-simple-page > .tido-auth-login-toast-root {
     width: 100%;
+}
+
+.fi-simple-page > .tido-auth-login-toast-root > .tido-auth-login-toast {
+    margin-bottom: 1.5rem;
 }
 
 .fi-simple-header {
@@ -715,6 +718,51 @@ html:not(.dark) .tido-auth-login-toast {
 
 html:not(.dark) .tido-auth-login-toast-close:hover {
     background-color: rgb(15 23 42 / 0.06);
+}
+
+/* Mobile auth toast modal (phone / password only) */
+.tido-auth-login-toast-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.tido-auth-login-toast-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: rgb(15 23 42 / 0.45);
+}
+
+.dark .tido-auth-login-toast-modal-backdrop {
+    background-color: rgb(2 6 23 / 0.65);
+}
+
+.tido-auth-login-toast-modal-panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 22rem;
+    padding: 1rem 1rem 1.125rem;
+    border-radius: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--warning-400) 45%, transparent);
+    background-color: color-mix(in srgb, var(--warning-300) 18%, var(--color-slate-800));
+    color: rgb(226 232 240);
+    box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.2),
+        0 4px 6px -4px rgb(0 0 0 / 0.15);
+}
+
+html:not(.dark) .tido-auth-login-toast-modal-panel {
+    border-color: color-mix(in srgb, var(--warning-500) 35%, transparent);
+    background-color: color-mix(in srgb, var(--warning-200) 55%, white);
+    color: rgb(51 65 85);
 }
 
 /* OTP digit boxes — Filament 5.7+ renders six .fi-one-time-code-input-digit inputs. */
