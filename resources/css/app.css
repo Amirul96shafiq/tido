@@ -255,7 +255,14 @@ html.dark::-webkit-scrollbar-thumb:hover,
     border-radius: 0.75rem 0.75rem 0 0;
     background-image: var(--tido-auth-bg-light);
     background-size: cover;
-    background-position: center bottom;
+    /*
+     * Focal point (cat). Light: cat is ~center-x, lower frame.
+     * Dark: cat sits right of monitor (~65–70% x), lower frame.
+     * Override --tido-auth-bg-pos-x / -y to retune.
+     */
+    --tido-auth-bg-pos-x: 50%;
+    --tido-auth-bg-pos-y: 78%;
+    background-position: var(--tido-auth-bg-pos-x) var(--tido-auth-bg-pos-y);
     background-repeat: no-repeat;
     pointer-events: none;
     z-index: 0;
@@ -263,9 +270,20 @@ html.dark::-webkit-scrollbar-thumb:hover,
 
 .dark .fi-simple-layout::before {
     background-image: var(--tido-auth-bg-dark);
+    --tido-auth-bg-pos-x: 66%;
+    --tido-auth-bg-pos-y: 72%;
 }
 
 @media (max-width: 1023px) {
+    /* Mobile strip — nudge focal point up (light 50px, dark 30px) */
+    .fi-simple-layout::before {
+        --tido-auth-bg-pos-y: calc(78% - 50px);
+    }
+
+    .dark .fi-simple-layout::before {
+        --tido-auth-bg-pos-y: calc(72% - 30px);
+    }
+
     /* Lock auth to the viewport — no page scroll; fixed 80/20 */
     .fi-body:has(.fi-simple-layout) {
         overflow: hidden !important;
@@ -303,7 +321,14 @@ html.dark::-webkit-scrollbar-thumb:hover,
         width: calc(30% - 2.25rem);
         height: auto;
         border-radius: 0.75rem;
-        background-position: center;
+        /* Tall left panel — pull focal point slightly up vs mobile strip */
+        --tido-auth-bg-pos-x: 50%;
+        --tido-auth-bg-pos-y: 62%;
+    }
+
+    .dark .fi-simple-layout::before {
+        --tido-auth-bg-pos-x: 66%;
+        --tido-auth-bg-pos-y: 58%;
     }
 
     .fi-simple-main-ctn {
