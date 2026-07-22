@@ -28,16 +28,16 @@
             src="{{ $initialLightImage }}"
             x-bind:src="lightSource()"
             alt="Background preview"
-            class="block w-full cursor-pointer transition-opacity duration-200 hover:opacity-80 dark:hidden"
-            style="aspect-ratio: 1919 / 991; object-fit: contain;"
+            class="block h-full w-full cursor-pointer object-cover transition-opacity duration-200 hover:opacity-80 dark:hidden"
+            style="aspect-ratio: 1919 / 1079;"
             x-on:click="window.open(lightSource(), '_blank', 'noopener,noreferrer')"
         />
         <img
             src="{{ $initialDarkImage }}"
             x-bind:src="darkSource()"
             alt="Background preview"
-            class="hidden w-full cursor-pointer transition-opacity duration-200 hover:opacity-80 dark:block"
-            style="aspect-ratio: 1919 / 991; object-fit: contain;"
+            class="hidden h-full w-full cursor-pointer object-cover transition-opacity duration-200 hover:opacity-80 dark:block"
+            style="aspect-ratio: 1919 / 1079;"
             x-on:click="window.open(darkSource(), '_blank', 'noopener,noreferrer')"
         />
 
