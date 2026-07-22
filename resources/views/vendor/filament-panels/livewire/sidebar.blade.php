@@ -28,10 +28,40 @@
                     <div class="fi-sidebar-header-logo-ctn flex-1">
                         @if ($homeUrl = filament()->getHomeUrl())
                             <a {{ \Filament\Support\generate_href_html($homeUrl) }}>
-                                <x-filament-panels::logo />
+                                <span class="fi-sidebar-logo-full">
+                                    <x-filament-panels::logo />
+                                </span>
+
+                                <span class="fi-sidebar-logo-compact" aria-hidden="true">
+                                    <img
+                                        class="fi-logo fi-logo-light"
+                                        src="{{ asset('images/tido_dark_logo_c.png') }}"
+                                        alt=""
+                                    />
+                                    <img
+                                        class="fi-logo fi-logo-dark"
+                                        src="{{ asset('images/tido_light_logo_c.png') }}"
+                                        alt=""
+                                    />
+                                </span>
                             </a>
                         @else
-                            <x-filament-panels::logo />
+                            <span class="fi-sidebar-logo-full">
+                                <x-filament-panels::logo />
+                            </span>
+
+                            <span class="fi-sidebar-logo-compact" aria-hidden="true">
+                                <img
+                                    class="fi-logo fi-logo-light"
+                                    src="{{ asset('images/tido_dark_logo_c.png') }}"
+                                    alt=""
+                                />
+                                <img
+                                    class="fi-logo fi-logo-dark"
+                                    src="{{ asset('images/tido_light_logo_c.png') }}"
+                                    alt=""
+                                />
+                            </span>
                         @endif
                     </div>
                 </div>

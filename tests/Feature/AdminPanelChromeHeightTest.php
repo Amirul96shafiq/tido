@@ -110,6 +110,11 @@ test('sidebar footer owns collapse buttons and header only owns logo', function 
     $footerHookPos = strpos($provider, 'PanelsRenderHook::SIDEBAR_FOOTER');
     $collapsePos = strpos($provider, 'fi-sidebar-collapse-footer');
     $logoPos = strpos($sidebar, 'fi-sidebar-header-logo-ctn');
+    $openLogoBlock = Str::between(
+        $css,
+        '.fi-sidebar.fi-sidebar-open .fi-sidebar-header-logo-ctn {',
+        "/*\n * Header chrome",
+    );
     $openHeaderBlock = Str::between(
         $css,
         '.fi-sidebar.fi-sidebar-open .fi-sidebar-header {',
@@ -124,7 +129,44 @@ test('sidebar footer owns collapse buttons and header only owns logo', function 
         ->not->toContain('fi-sidebar-collapse-btns')
         ->and($css)
         ->toContain('.fi-sidebar.fi-sidebar-open .fi-sidebar-header-logo-ctn')
-        ->toContain('justify-content: flex-end;')
+        ->toContain('justify-content: flex-start;')
+        ->and($openLogoBlock)
+        ->toContain('justify-content: flex-start;')
+        ->not->toContain('justify-content: flex-end;')
         ->and($openHeaderBlock)
         ->toContain('padding-inline: 1rem !important;');
+});
+
+test('sidebar header swaps full and compact logos by state', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+    $sidebar = (string) file_get_contents(
+        resource_path('views/vendor/filament-panels/livewire/sidebar.blade.php'),
+    );
+
+    $collapsedFullBlock = Str::between(
+        $css,
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-logo-full {',
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-logo-compact {',
+    );
+    $collapsedCompactBlock = Str::between(
+        $css,
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-logo-compact {',
+        '.fi-sidebar-logo-compact .fi-logo {',
+    );
+
+    expect($sidebar)
+        ->toContain('fi-sidebar-logo-full')
+        ->toContain('fi-sidebar-logo-compact')
+        ->toContain('tido_dark_logo_c.png')
+        ->toContain('tido_light_logo_c.png')
+        ->and($collapsedFullBlock)
+        ->toContain('display: none;')
+        ->and($collapsedCompactBlock)
+        ->toContain('display: flex;')
+        ->toContain('justify-content: center;')
+        ->and($css)
+        ->toContain('.fi-topbar .fi-logo')
+        ->toContain('.fi-topbar-start')
+        ->not->toContain('.fi-topbar-ctn-collapsed .fi-topbar-start')
+        ->not->toContain('html.fi-sidebar-is-collapsed .fi-topbar-start');
 });
