@@ -4,17 +4,22 @@ declare(strict_types=1);
 
 use App\Enums\EvolutionApiConnectMethod;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
+use App\Models\User;
 use App\Services\WhatsAppNotificationService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+
+uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
         'services.evolution.api_url' => 'http://evolution.test',
         'services.evolution.api_key' => 'tido-secret-key',
         'services.evolution.instance_name' => 'tido',
-        'services.evolution.personal_number' => '60123456789',
     ]);
+
+    User::factory()->create(['phone' => '60123456789']);
 });
 
 test('send evolution api connected alert job sends reconnect message to personal number', function () {
@@ -50,7 +55,8 @@ test('send evolution api connected alert job mentions qr code connect method', f
     Http::assertSent(function (Request $request) {
         $text = (string) data_get($request->data(), 'text', '');
 
-        return str_contains($text, 'via QR code');
+        return str_contains($request->url(), '/message/sendText/')
+            && str_contains($text, 'via QR code');
     });
 });
 
@@ -65,12 +71,13 @@ test('send evolution api connected alert job mentions pairing code connect metho
     Http::assertSent(function (Request $request) {
         $text = (string) data_get($request->data(), 'text', '');
 
-        return str_contains($text, 'via pairing code');
+        return str_contains($request->url(), '/message/sendText/')
+            && str_contains($text, 'via pairing code');
     });
 });
 
-test('send evolution api connected alert job skips when personal number is missing', function () {
-    config(['services.evolution.personal_number' => null]);
+test('send evolution api connected alert job skips when profile phone is missing', function () {
+    User::query()->update(['phone' => null]);
 
     Http::fake();
 

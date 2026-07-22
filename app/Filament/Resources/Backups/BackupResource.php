@@ -22,7 +22,7 @@ class BackupResource extends Resource
 
     protected static bool $isGloballySearchable = true;
 
-    protected static ?int $globalSearchSort = 4;
+    protected static ?int $globalSearchSort = 5;
 
     protected static ?string $slug = 'backups';
 
@@ -36,7 +36,7 @@ class BackupResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Settings';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

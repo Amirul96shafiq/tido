@@ -61,17 +61,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
 
     public function canAccessPanel(Panel $panel): bool
     {
-        $allowedPhone = PhoneNumber::normalize(
-            is_string(config('services.evolution.personal_number'))
-                ? config('services.evolution.personal_number')
-                : null,
-        );
-
-        if ($allowedPhone === null) {
-            return true;
-        }
-
-        return PhoneNumber::normalize($this->phone) === $allowedPhone;
+        return true;
     }
 
     /**

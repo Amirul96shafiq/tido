@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Models\FamilyMember;
+use App\Models\User;
+use Filament\AvatarProviders\UiAvatarsProvider;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
+
 final class PhoneNumber
 {
     /**
@@ -82,8 +88,31 @@ final class PhoneNumber
     }
 
     /**
+     * Owner account for Profile WhatsApp (always user id 1).
+     */
+    public static function primaryUser(): ?User
+    {
+        return User::query()->whereKey(1)->first();
+    }
+
+    /**
+     * Owner outbound target for ping, welcome, and budget WhatsApp alerts.
+     * Profile phone on user id 1.
+     */
+    public static function primaryWhatsAppNumber(): ?string
+    {
+        $user = self::primaryUser();
+
+        if ($user === null) {
+            return null;
+        }
+
+        return self::normalize(is_string($user->phone) ? $user->phone : null);
+    }
+
+    /**
      * Numbers allowed to trigger WhatsApp bot replies / receipt import.
-     * Primary PERSONAL_WHATSAPP_NUMBER plus PERSONAL_WHATSAPP_EXTRA_NUMBERS.
+     * User id 1 Profile phone plus Family Members with allowlist enabled.
      *
      * @return list<string>
      */
@@ -91,20 +120,81 @@ final class PhoneNumber
     {
         $numbers = [];
 
-        $primary = self::normalize(
-            is_string(config('services.evolution.personal_number'))
-                ? config('services.evolution.personal_number')
-                : null,
-        );
+        $primary = self::primaryWhatsAppNumber();
 
         if ($primary !== null) {
             $numbers[] = $primary;
         }
 
-        $extrasRaw = config('services.evolution.personal_extra_numbers');
-        $extras = self::parseList(is_string($extrasRaw) ? $extrasRaw : null);
+        $familyPhones = FamilyMember::query()
+            ->allowlisted()
+            ->pluck('phone')
+            ->all();
 
-        return array_values(array_unique([...$numbers, ...$extras]));
+        foreach ($familyPhones as $phone) {
+            $normalized = self::normalize(is_string($phone) ? $phone : null);
+
+            if ($normalized !== null) {
+                $numbers[] = $normalized;
+            }
+        }
+
+        return array_values(array_unique($numbers));
+    }
+
+    /**
+     * Allowlist entries grouped for EvolutionAPI UI.
+     *
+     * @return array{
+     *     primary: list<array{name: string, phone: string, avatar_url: string}>,
+     *     family: list<array{name: string, phone: string, avatar_url: string}>
+     * }
+     */
+    public static function allowedWhatsAppSenderEntries(): array
+    {
+        $primary = [];
+        $family = [];
+        $seen = [];
+
+        $user = self::primaryUser();
+
+        if ($user !== null) {
+            $normalized = self::normalize(is_string($user->phone) ? $user->phone : null);
+
+            if ($normalized !== null) {
+                $seen[$normalized] = true;
+                $primary[] = [
+                    'name' => filled($user->name) ? (string) $user->name : 'Primary',
+                    'phone' => $normalized,
+                    'avatar_url' => self::avatarDisplayUrl($user),
+                ];
+            }
+        }
+
+        $members = FamilyMember::query()
+            ->allowlisted()
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone', 'avatar_url']);
+
+        foreach ($members as $member) {
+            $normalized = self::normalize($member->phone);
+
+            if ($normalized === null || isset($seen[$normalized])) {
+                continue;
+            }
+
+            $seen[$normalized] = true;
+            $family[] = [
+                'name' => filled($member->name) ? (string) $member->name : 'Family member',
+                'phone' => $normalized,
+                'avatar_url' => self::avatarDisplayUrl($member),
+            ];
+        }
+
+        return [
+            'primary' => $primary,
+            'family' => $family,
+        ];
     }
 
     public static function isAllowedWhatsAppSender(string $senderNumber): bool
@@ -116,5 +206,19 @@ final class PhoneNumber
         }
 
         return in_array($normalized, self::allowedWhatsAppSenders(), true);
+    }
+
+    /**
+     * Uploaded public avatar URL, or Filament ui-avatars initials fallback.
+     */
+    private static function avatarDisplayUrl(Model $record): string
+    {
+        $path = $record->getAttribute('avatar_url');
+
+        if (is_string($path) && $path !== '') {
+            return Storage::disk('public')->url($path);
+        }
+
+        return app(UiAvatarsProvider::class)->get($record);
     }
 }

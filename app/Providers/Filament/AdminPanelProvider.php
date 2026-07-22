@@ -12,6 +12,8 @@ use App\Filament\Pages\Auth\ResetPassword;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\Budgets\Pages\CreateBudget;
 use App\Filament\Resources\Budgets\Pages\EditBudget;
+use App\Filament\Resources\FamilyMembers\Pages\CreateFamilyMember;
+use App\Filament\Resources\FamilyMembers\Pages\EditFamilyMember;
 use App\Filament\Resources\Invoices\Pages\CreateInvoice;
 use App\Filament\Resources\Invoices\Pages\EditInvoice;
 use App\Filament\Resources\Labels\Pages\CreateLabel;
@@ -317,6 +319,8 @@ class AdminPanelProvider extends PanelProvider
                     EditLabel::class,
                     CreatePaymentMethod::class,
                     EditPaymentMethod::class,
+                    CreateFamilyMember::class,
+                    EditFamilyMember::class,
                     CreateBudget::class,
                     EditBudget::class,
                 ],

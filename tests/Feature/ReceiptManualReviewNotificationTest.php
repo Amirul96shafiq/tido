@@ -81,9 +81,6 @@ test('extract job failed method sets requires_manual_review and notifies users',
 });
 
 test('view notification cta opens invoice list with view slide-over query params', function () {
-    config([
-        'services.evolution.personal_number' => '60123456789',
-    ]);
 
     $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
 

@@ -13,16 +13,16 @@ Panel: `admin` at `/admin` — configured only in `AdminPanelProvider` (no `conf
 ```
 app/Filament/Resources/{Plural}/
   {Singular}Resource.php
-  Schemas/{Singular}Form.php      # Form::configure(Schema $schema)
+  Schemas/{Singular}Form.php      # Form::configure(Schema $schema) — also used for View
   Tables/{Plural}Table.php        # Table::configure(Table $table)
   Pages/List|Create|Edit{...}.php
 ```
 
-Use Filament `Schema` for forms (v5), not legacy Form API. Prefer native Form/Table builders over custom Blade.
+Use Filament `Schema` for forms (v5), not legacy Form API. Prefer native Form/Table builders over custom Blade. Do **not** add `Schemas/{Singular}Infolist.php` or override `Resource::infolist()` for table View slide-overs.
 
 ## Navigation
 
-- Groups: **Finances** (Invoices, Budgets), **Settings** (Labels, Payment Methods, Backups), **Integrations** (EvolutionAPI)
+- Groups: **Finances** (Invoices, Budgets), **Settings** (Labels, Payment Methods, Family Members, Backups), **Integrations** (EvolutionAPI)
 - Theme: amber/zinc accents + Slate dark surfaces (see `docs/ui-dark-theme.md`), Outfit font, SPA mode, collapsible sidebar, database notifications
 - Breadcrumbs: Filament native panel breadcrumbs with `PrependsHomeBreadcrumb` (Home → resource → page, e.g. Home > Invoices > List). Kept visible on small screens via `.fi-header .fi-breadcrumbs` override in `app.css` (Filament hides them below `sm`). Do not disable panel-wide or replace with a custom back link. When adding a new Create/Edit/List/custom page, use `PrependsHomeBreadcrumb` and register Create/Edit pages in the `PAGE_END` draft-poller scopes.
 - Custom pages: `Dashboard`, `ReceiptUploadPage`, `Auth/EditProfile`, `EvolutionApiPage`
@@ -81,6 +81,7 @@ Custom Filament pages (`Dashboard`, `ReceiptUploadPage`, etc.) are not searchabl
 Always use slide-over view — never add a dedicated `ViewRecord` / `View{Model}` page.
 
 - Resource tables: `ViewAction::make()->slideOver()` in `recordActions` (before Edit/Delete)
+- **Schema:** rely on Filament’s default ViewAction behavior — the slide-over renders the resource **form** schema disabled (`disabledSchema()` + `fillForm()`). Do **not** define `public static function infolist(...)` on the resource and do **not** add a separate `*Infolist.php`. View layout must match Create/Edit because it is the same form.
 - Notification / deep-link “View” CTAs: open the resource list with Filament table-action query params so the same slide-over mounts:
 
 ```php
@@ -95,6 +96,7 @@ Resource::getUrl('index', [
 - Custom Blade unless native components cannot do the job
 - Putting business logic (Ollama, Drive sync, alerts) inside Resource classes — call Services/Jobs
 - Dedicated View pages (`ViewRecord`, `make:filament-page --type=ViewRecord`, `getPages()` `view` routes)
+- Custom resource `infolist()` / `Schemas/*Infolist.php` for table View slide-overs (use the disabled form instead)
 - Omitting View from resource table `recordActions`
 - Visible text labels on ungrouped table record actions (icons only; Filament Tippy tooltips + a11y labels remain — see `docs/ui-tooltips.md`)
 - Raw `->dateTime()` alone on `created_at` resource columns — use `since()` + `dateTimeTooltip()` instead

@@ -63,7 +63,7 @@ Unique on `receipt_hash`. Factories should set a unique hash.
 - Route: `POST /api/webhooks/whatsapp` (`routes/api.php`)
 - Auth: `Authorization: Bearer {services.evolution.api_key}`
 - Event: `messages.upsert`
-- Sender allowlist: `PERSONAL_WHATSAPP_NUMBER` + optional `PERSONAL_WHATSAPP_EXTRA_NUMBERS` (normalized); others → `ignored_sender` (no reply). Extras do not grant panel/OTP.
+- Sender allowlist: Profile `users.phone` + Family Members with `allowlist_enabled` (normalized); others → `ignored_sender` (no reply). Family members do not grant panel/OTP.
 - Self-chat allowed when `remoteJid` matches allowlist (including `fromMe: true`)
 - Image: fetch media → `receipts/` storage → pending Invoice → ack text
 - Text: spend/total keywords → monthly sum via Evolution `sendText`

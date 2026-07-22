@@ -9,12 +9,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
-    config([
-        'services.evolution.personal_number' => null,
-    ]);
-});
-
 test('logging out shows a success toast on the auth page', function () {
     $user = User::factory()->create();
 

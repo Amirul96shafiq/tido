@@ -71,6 +71,7 @@ docs/               architecture + integration setup + this file
 |---------|----------------|
 | Category | **`Label`** model / `labels` table (UI: **Label** / **Labels**) |
 | Payment method | **`PaymentMethod`** model / `payment_methods` table (Settings CRUD; AI/WhatsApp via aliases) |
+| Family member | **`FamilyMember`** model / `family_members` table (Settings CRUD; bot allowlist when enabled) |
 | Money | `decimal(12,2)`, cast `decimal:2`, currency `MYR`, UI `RM` |
 | Duplicate | `receipt_hash` SHA-256 of number + datetime + total |
 | Statuses | `pending`, `parsed`, `reviewed`, `requires_manual_review`, `failed` |
@@ -98,12 +99,12 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 
 1. Follow nested Resource layout: `Resources/{Plural}/{Singular}Resource.php` + `Schemas/` + `Tables/` + `Pages/`
 2. Forms use Filament v5 `Schema`; prefer native components
-3. View is always a slide-over — never a dedicated View page. Tables: `ViewAction::make()->slideOver()` in `recordActions` (before Edit/Delete). Notification/deep-link View CTAs: `Resource::getUrl('index', ['tableAction' => 'view', 'tableActionRecord' => $record->getRouteKey()])`
+3. View is always a slide-over — never a dedicated View page. Tables: `ViewAction::make()->slideOver()` in `recordActions` (before Edit/Delete). The slide-over uses the resource **form** schema in disabled mode — do **not** add `Resource::infolist()` or `Schemas/*Infolist.php`. Notification/deep-link View CTAs: `Resource::getUrl('index', ['tableAction' => 'view', 'tableActionRecord' => $record->getRouteKey()])`
 4. Record actions are icon-only panel-wide (`AppServiceProvider` → `Table::configureUsing` → `modifyUngroupedRecordActionsUsing` → `iconButton()` + Filament `->tooltip()` from the action label); do not add visible labels on View/Edit/Delete — see `docs/ui-tooltips.md`
 5. Filter and Column Manager triggers also get Tippy tooltips globally via `filtersTriggerAction` / `columnManagerTriggerAction` in `AppServiceProvider`
 6. List-page “New …” CTAs use a plus Heroicon panel-wide (`AppServiceProvider` → `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`); new List pages only need `CreateAction::make()`
 7. Edit pages: use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the title ends with the singular model label (see `.cursor/rules/filament-conventions.mdc` — Edit page title)
-8. Nav groups: Finances (Invoices, Budgets) / Settings (Labels, Payment Methods, Backups) / Integrations (EvolutionAPI)
+8. Nav groups: Finances (Invoices, Budgets) / Settings (Labels, Payment Methods, Family Members, Backups) / Integrations (EvolutionAPI)
 9. Breadcrumbs use Filament native defaults plus `App\Filament\Concerns\PrependsHomeBreadcrumb` (Home → resource → page). Do not disable panel-wide or add a custom “Go back to table” header. New pages must use the trait; Create/Edit pages also register in the `PAGE_END` draft-poller scopes.
 10. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
 11. Resource table `created_at` columns use `->since()->dateTimeTooltip()` (relative time + full datetime on hover), matching Receipt Upload “Uploaded At”

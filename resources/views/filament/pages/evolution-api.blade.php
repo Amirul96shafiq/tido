@@ -73,7 +73,30 @@
                 @endif
                 class="flex min-h-72 flex-col items-center justify-center gap-4 rounded-xl bg-white p-6 dark:bg-slate-800"
             >
-                @if (filled($pairingCode) && ! $this->isConnectionOpen())
+                @if (! $this->hasContactAllowlist() && ! $this->isConnectionOpen())
+                    <div class="flex w-full max-w-md flex-col items-center px-4 py-6 text-center">
+                        <x-filament::icon
+                            icon="heroicon-o-exclamation-triangle"
+                            class="mb-4 h-10 w-10 text-warning-500"
+                        />
+                        <h3 class="text-lg font-semibold text-gray-950 dark:text-white">
+                            Contact allowlist required
+                        </h3>
+                        <p class="mt-3 text-sm leading-6 text-gray-500 dark:text-gray-400">
+                            Set your WhatsApp number in Profile before connecting. Family Members with allowlist enabled are added automatically.
+                        </p>
+                        <div class="mt-5">
+                            <x-filament::button
+                                tag="a"
+                                :href="$this->profileEditUrl()"
+                                color="warning"
+                                size="sm"
+                            >
+                                Open Profile
+                            </x-filament::button>
+                        </div>
+                    </div>
+                @elseif (filled($pairingCode) && ! $this->isConnectionOpen())
                     <div
                         wire:key="wa-pair-timer-{{ $pairingCodeGeneratedAt }}"
                         x-data="{
@@ -236,14 +259,13 @@
                                 </div>
                             @endif
 
-                            <div class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                            <div class="flex flex-col gap-3 px-4 py-3">
                                 <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Contact allowlist</dt>
-                                <dd class="font-mono text-gray-950 dark:text-white">
-                                    @forelse ($this->allowedSenderNumbers() as $allowedNumber)
-                                        <span @class(['block' => ! $loop->first])>{{ $allowedNumber }}</span>
-                                    @empty
-                                        <span class="font-sans text-warning-600 dark:text-warning-400">Not set — set PERSONAL_WHATSAPP_NUMBER</span>
-                                    @endforelse
+                                <dd class="min-w-0 w-full">
+                                    @include('filament.pages.partials.evolution-api-allowlist', [
+                                        'allowedSenderEntries' => $this->allowedSenderEntries(),
+                                        'profileEditUrl' => $this->profileEditUrl(),
+                                    ])
                                 </dd>
                             </div>
                         </dl>
@@ -284,6 +306,7 @@
                                         'connectedChatCount' => $connectedChatCount,
                                         'connectedUpdatedAt' => $connectedUpdatedAt,
                                         'deviceLabel' => $this->effectiveDeviceLabel(),
+                                        'allowedSenderEntries' => $this->allowedSenderEntries(),
                                         'allowedSenderNumbers' => $this->allowedSenderNumbers(),
                                     ])
                                 </x-filament::modal>

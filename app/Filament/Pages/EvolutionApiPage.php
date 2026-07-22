@@ -7,6 +7,7 @@ namespace App\Filament\Pages;
 use App\Enums\EvolutionApiConnectionEvent;
 use App\Enums\EvolutionApiConnectMethod;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
+use App\Filament\Pages\Auth\EditProfile;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
 use App\Models\EvolutionApiConnectionLog;
 use App\Models\User;
@@ -180,6 +181,12 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function generateQr(): void
     {
+        if (! $this->hasContactAllowlist()) {
+            $this->notifyMissingContactAllowlist();
+
+            return;
+        }
+
         $this->pendingConnectMethod = EvolutionApiConnectMethod::QrCode;
         $this->clearPairingDisplay();
 
@@ -222,6 +229,12 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function generatePairingCode(string $number): void
     {
+        if (! $this->hasContactAllowlist()) {
+            $this->notifyMissingContactAllowlist();
+
+            return;
+        }
+
         $normalized = PhoneNumber::normalize($number);
 
         if ($normalized === null) {
@@ -399,12 +412,12 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function sendPing(): void
     {
-        $number = config('services.evolution.personal_number');
+        $number = PhoneNumber::primaryWhatsAppNumber();
 
-        if (! is_string($number) || $number === '') {
+        if ($number === null) {
             Notification::make()
-                ->title('Missing PERSONAL_WHATSAPP_NUMBER')
-                ->body('Set PERSONAL_WHATSAPP_NUMBER in .env first.')
+                ->title('Missing profile WhatsApp number')
+                ->body('Set your WhatsApp number in Profile first.')
                 ->danger()
                 ->send();
 
@@ -502,6 +515,16 @@ class EvolutionApiPage extends Page implements HasTable
                 ->extraAttributes(['wire:key' => 'wa-action-connect-disabled']);
         }
 
+        if (! $this->hasContactAllowlist()) {
+            return Action::make('connect')
+                ->label('Connect')
+                ->icon('heroicon-o-link')
+                ->button()
+                ->disabled()
+                ->tooltip('Set your WhatsApp number in Profile before connecting')
+                ->extraAttributes(['wire:key' => 'wa-action-connect-blocked']);
+        }
+
         return ActionGroup::make([
             Action::make('generateQr')
                 ->label('Scan QR code')
@@ -519,7 +542,7 @@ class EvolutionApiPage extends Page implements HasTable
                 ->form([
                     TextInput::make('number')
                         ->label('WhatsApp number to link')
-                        ->helperText('WhatsApp account to link as the Evolution device (not your alert number).')
+                        ->helperText('WhatsApp account to link as the Evolution device (not your allowlist contact).')
                         ->default(fn (): ?string => $this->lastConnectedNumber)
                         ->required()
                         ->rules([
@@ -969,6 +992,39 @@ class EvolutionApiPage extends Page implements HasTable
         return PhoneNumber::allowedWhatsAppSenders();
     }
 
+    /**
+     * @return list<array{label: string, phone: string}>
+     */
+    public function allowedSenderEntries(): array
+    {
+        return PhoneNumber::allowedWhatsAppSenderEntries();
+    }
+
+    public function hasContactAllowlist(): bool
+    {
+        return $this->allowedSenderNumbers() !== [];
+    }
+
+    public function profileEditUrl(): string
+    {
+        return EditProfile::getUrl();
+    }
+
+    private function notifyMissingContactAllowlist(): void
+    {
+        Notification::make()
+            ->title('Contact allowlist required')
+            ->body('Set your WhatsApp number in Profile before connecting EvolutionAPI.')
+            ->danger()
+            ->actions([
+                Action::make('editProfile')
+                    ->label('Open Profile')
+                    ->url($this->profileEditUrl())
+                    ->button(),
+            ])
+            ->send();
+    }
+
     public function configuredDeviceLabel(): string
     {
         $label = config('services.evolution.device_label');
@@ -1091,12 +1147,12 @@ class EvolutionApiPage extends Page implements HasTable
             return;
         }
 
-        $number = config('services.evolution.personal_number');
+        $number = PhoneNumber::primaryWhatsAppNumber();
 
-        if (! is_string($number) || $number === '') {
+        if ($number === null) {
             Notification::make()
                 ->title('Connected — welcome ping skipped')
-                ->body('Set PERSONAL_WHATSAPP_NUMBER in .env to auto-message yourself on connect.')
+                ->body('Set your WhatsApp number in Profile to auto-message yourself on connect.')
                 ->warning()
                 ->send();
 

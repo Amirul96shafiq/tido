@@ -11,12 +11,6 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
-    config([
-        'services.evolution.personal_number' => '60123456789',
-    ]);
-});
-
 function resetMonthAction(): TestAction
 {
     return TestAction::make('resetMonth')

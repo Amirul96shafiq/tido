@@ -93,10 +93,9 @@ In tido's `.env`:
 EVOLUTION_API_URL=http://127.0.0.1:8080
 EVOLUTION_API_KEY=<same long secret as Evolution AUTHENTICATION_API_KEY>
 EVOLUTION_INSTANCE_NAME=tido
-PERSONAL_WHATSAPP_NUMBER=60123456789
 ```
 
-Use your real number (digits only). Admin `User.phone` must match (Profile or tinker).
+Set your WhatsApp number in **Profile** (required). Optional family contacts: **Settings → Family Members** with “Include in contact allowlist”.
 
 Use `http://127.0.0.1:8080` — the default in `config/services.php` and `.env.example`.
 
@@ -106,12 +105,12 @@ Restart `npm run dev:full` after changing `.env` (or clear config cache if you u
 
 ## Step 3: Create instance and link WhatsApp
 
-**Preferred:** with tido running (`npm run dev:full`), open `/admin` → **Integrations → EvolutionAPI** → **Connect**:
+**Preferred:** with tido running (`npm run dev:full`), open `/admin` → **Integrations → EvolutionAPI** → **Connect** (requires Profile WhatsApp number first):
 
 - **Scan QR code** — scan from another screen (Linked Devices → Link a Device).
 - **Pair with code** — enter the WhatsApp number to link, copy the code, then Linked Devices → **Link with phone number instead** (works on one phone).
 
-`PERSONAL_WHATSAPP_NUMBER` is for alerts, OTP login, and bot allowlist — it can differ from the number you link to Evolution.
+Your **Profile** WhatsApp number is for alerts, OTP login, and the bot allowlist — it can differ from the number you link to Evolution. Family Members with allowlist enabled can also talk to the bot (not OTP/panel).
 
 Or via curl (include `integration`):
 
@@ -144,7 +143,7 @@ curl -X POST http://127.0.0.1:8080/webhook/set/tido \
   -d "{\"enabled\":true,\"url\":\"http://127.0.0.1:2000/api/webhooks/whatsapp\",\"headers\":{\"Authorization\":\"Bearer tido-secret-key\"},\"events\":[\"messages.upsert\"]}"
 ```
 
-Only `PERSONAL_WHATSAPP_NUMBER` plus optional `PERSONAL_WHATSAPP_EXTRA_NUMBERS` are allowlisted for bot replies. Self-chat (“Message yourself”) is supported when the JID matches an allowlisted number. Extra numbers cannot OTP-login or access the panel.
+Only Profile WhatsApp numbers plus Family Members with allowlist enabled are allowlisted for bot replies. Self-chat (“Message yourself”) is supported when the JID matches an allowlisted number. Family members cannot OTP-login.
 
 Inbound handling:
 
@@ -166,7 +165,7 @@ Terminal 2: Evolution running
 php artisan whatsapp:ping
 ```
 
-You should receive a WhatsApp on `PERSONAL_WHATSAPP_NUMBER`. Then open `/admin/login`, enter that number, **Send WhatsApp code**, enter the OTP.
+You should receive a WhatsApp on your Profile number. Then open `/admin/login`, enter that number, **Send WhatsApp code**, enter the OTP.
 
 If Evolution is down, use **Sign in with email & password**.
 

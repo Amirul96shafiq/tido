@@ -7,6 +7,7 @@ use App\Enums\EvolutionApiConnectMethod;
 use App\Filament\Pages\EvolutionApiPage;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
 use App\Models\EvolutionApiConnectionLog;
+use App\Models\FamilyMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -58,12 +59,16 @@ beforeEach(function () {
         'services.evolution.api_url' => 'http://evolution.test',
         'services.evolution.api_key' => 'tido-secret-key',
         'services.evolution.instance_name' => 'tido',
-        'services.evolution.personal_number' => '60123456789',
-        'services.evolution.personal_extra_numbers' => '60111111111',
         'services.evolution.device_label' => 'tido App (Evolution API)',
     ]);
 
     $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
+
+    FamilyMember::factory()->create([
+        'name' => 'Spouse',
+        'phone' => '60111111111',
+        'allowlist_enabled' => true,
+    ]);
 });
 
 test('evolution api page uses evolution-api slug', function () {
@@ -131,7 +136,10 @@ test('connected status shows linked number and instance details', function () {
         ->assertSee('Connected via')
         ->assertSee('pairing code')
         ->assertSee('Contact allowlist')
+        ->assertSee('Primary')
         ->assertSee('60123456789')
+        ->assertSee('Family')
+        ->assertSee('Spouse')
         ->assertSee('60111111111')
         ->assertSee('View details')
         ->assertSee('Connection details')

@@ -19,10 +19,6 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $this->seed(PaymentMethodSeeder::class);
 
-    config([
-        'services.evolution.personal_number' => '60123456789',
-    ]);
-
     $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
 });
 

@@ -20,7 +20,6 @@ beforeEach(function () {
         'services.evolution.api_url' => 'http://evolution.test',
         'services.evolution.api_key' => 'tido-secret-key',
         'services.evolution.instance_name' => 'tido',
-        'services.evolution.personal_number' => '60123456789',
     ]);
 
     Http::fake([
@@ -205,18 +204,15 @@ test('can switch between whatsapp and password login steps', function () {
         ->assertDontSee('Verify code & sign in');
 });
 
-test('user without matching personal number cannot access panel after otp', function () {
+test('any authenticated user can access panel in single-tenant mode', function () {
     $user = User::factory()->create([
         'phone' => '60987654321',
     ]);
 
     $panel = filament()->getPanel('admin');
 
-    expect($user->canAccessPanel($panel))->toBeFalse();
+    expect($user->canAccessPanel($panel))->toBeTrue();
 
-    // Bypass send (would require matching allowlist phone); plant OTP and pending phone via reflection-free path:
-    // use password allowlist mismatch by verifying through authenticate after manually advancing mode.
-    // Send is allowed for any matching User.phone; panel access is checked at login.
     $component = Livewire::test(Login::class)
         ->set('data.phone', '60987654321')
         ->call('sendOtp')
@@ -230,9 +226,10 @@ test('user without matching personal number cannot access panel after otp', func
     $component
         ->set('data.otp', '111111')
         ->call('authenticate')
-        ->assertHasErrors(['data.otp']);
+        ->assertHasNoErrors()
+        ->assertRedirect('/admin');
 
-    $this->assertGuest();
+    $this->assertAuthenticatedAs($user);
 });
 
 test('otp service verify is used end to end after send', function () {

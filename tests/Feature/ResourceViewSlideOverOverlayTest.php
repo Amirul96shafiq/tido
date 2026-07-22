@@ -7,6 +7,8 @@ test('resource view slide-overs use blurred modal overlay hook', function () {
         app_path('Filament/Resources/Invoices/Tables/InvoicesTable.php'),
         app_path('Filament/Resources/Labels/Tables/LabelsTable.php'),
         app_path('Filament/Resources/Budgets/Tables/BudgetsTable.php'),
+        app_path('Filament/Resources/PaymentMethods/Tables/PaymentMethodsTable.php'),
+        app_path('Filament/Resources/FamilyMembers/Tables/FamilyMembersTable.php'),
     ];
 
     foreach ($tables as $path) {

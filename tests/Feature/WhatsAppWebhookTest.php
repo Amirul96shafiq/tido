@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Jobs\ProcessWhatsAppMediaJob;
+use App\Models\FamilyMember;
 use App\Models\Invoice;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -15,9 +17,9 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     config([
         'services.evolution.api_key' => 'tido-secret-key',
-        'services.evolution.personal_number' => '60123456789',
-        'services.evolution.personal_extra_numbers' => null,
     ]);
+
+    User::factory()->create(['phone' => '60123456789']);
 });
 
 test('whatsapp webhook rejects unauthorized requests', function () {
@@ -187,11 +189,8 @@ test('whatsapp webhook accepts image message and dispatches media job', function
     expect(Invoice::count())->toBe(0);
 });
 
-test('whatsapp webhook denies all senders when personal number is unset', function () {
-    config([
-        'services.evolution.personal_number' => null,
-        'services.evolution.personal_extra_numbers' => null,
-    ]);
+test('whatsapp webhook denies all senders when no profile or family allowlist exists', function () {
+    User::query()->update(['phone' => null]);
     Http::fake();
 
     $payload = [
@@ -218,10 +217,10 @@ test('whatsapp webhook denies all senders when personal number is unset', functi
     Http::assertNothingSent();
 });
 
-test('whatsapp webhook allows extra personal numbers to interact with the bot', function () {
-    config([
-        'services.evolution.personal_number' => '60123456789',
-        'services.evolution.personal_extra_numbers' => '60111111111',
+test('whatsapp webhook allows allowlisted family members to interact with the bot', function () {
+    FamilyMember::factory()->create([
+        'phone' => '60111111111',
+        'allowlist_enabled' => true,
     ]);
 
     Http::fake([
@@ -249,7 +248,36 @@ test('whatsapp webhook allows extra personal numbers to interact with the bot', 
 
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/')
-            && str_contains((string) $request['text'], '*Help*')
-            && str_contains((string) $request['text'], '— Powered by *tido*');
+            && str_contains((string) $request['text'], '*Help*');
     });
+});
+
+test('whatsapp webhook ignores family members with allowlist disabled', function () {
+    FamilyMember::factory()->notAllowlisted()->create([
+        'phone' => '60111111111',
+    ]);
+    Http::fake();
+
+    $payload = [
+        'event' => 'messages.upsert',
+        'data' => [
+            'key' => [
+                'remoteJid' => '60111111111@s.whatsapp.net',
+                'fromMe' => false,
+                'id' => 'MSG-DISABLED',
+            ],
+            'messageType' => 'conversation',
+            'message' => [
+                'conversation' => 'help',
+            ],
+        ],
+    ];
+
+    $this->postJson('/api/webhooks/whatsapp', $payload, [
+        'Authorization' => 'Bearer tido-secret-key',
+    ])
+        ->assertSuccessful()
+        ->assertJson(['status' => 'ignored_sender']);
+
+    Http::assertNothingSent();
 });

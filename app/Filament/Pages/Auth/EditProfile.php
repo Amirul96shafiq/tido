@@ -201,6 +201,7 @@ class EditProfile extends BaseEditProfile
                                 TextInput::make('phone')
                                     ->label('WhatsApp Number')
                                     ->tel()
+                                    ->required()
                                     ->placeholder('+60123456789')
                                     ->maxLength(20)
                                     ->rule(fn (): \Closure => function (string $attribute, mixed $value, \Closure $fail): void {

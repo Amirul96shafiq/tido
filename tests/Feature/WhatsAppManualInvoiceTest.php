@@ -9,6 +9,7 @@ use App\Jobs\SendWhatsAppManualInvoiceReceivedAckJob;
 use App\Models\Invoice;
 use App\Models\Label;
 use App\Models\PaymentMethod;
+use App\Models\User;
 use App\Services\LabelMatcher;
 use App\Services\OllamaService;
 use App\Services\WhatsAppNotificationService;
@@ -30,13 +31,13 @@ beforeEach(function () {
         'services.evolution.api_key' => 'tido-secret-key',
         'services.evolution.api_url' => 'http://evolution-api.test',
         'services.evolution.instance_name' => 'tido',
-        'services.evolution.personal_number' => '60123456789',
-        'services.evolution.personal_extra_numbers' => null,
         'services.evolution.document_received_debounce_seconds' => 3,
         'services.ollama.host' => 'http://ollama.test',
         'services.ollama.model' => 'test-model',
         'services.ollama.timeout' => 30,
     ]);
+
+    User::factory()->create(['phone' => '60123456789']);
 
     Cache::flush();
 });

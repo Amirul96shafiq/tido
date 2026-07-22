@@ -33,6 +33,7 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'phone' => '60'.fake()->unique()->numerify('1########'),
             'timezone' => 'Asia/Kuala_Lumpur',
             'locale' => 'en',
             'date_format' => 'd/m/Y',
@@ -55,16 +56,12 @@ class UserFactory extends Factory
     }
 
     /**
-     * Align the user phone with PERSONAL_WHATSAPP_NUMBER for panel access + OTP login.
+     * Set a specific WhatsApp phone for OTP login and bot allowlist tests.
      */
     public function withWhatsAppPhone(?string $phone = null): static
     {
         return $this->state(function () use ($phone): array {
-            $resolved = $phone
-                ?? (is_string(config('services.evolution.personal_number'))
-                    ? config('services.evolution.personal_number')
-                    : null)
-                ?? '60123456789';
+            $resolved = $phone ?? '60123456789';
 
             return [
                 'phone' => PhoneNumber::normalize($resolved),

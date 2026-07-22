@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Models\FamilyMember;
+use App\Models\User;
 use App\Support\PhoneNumber;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-uses(TestCase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 test('normalizes local Malaysian numbers to 60 prefix', function () {
     expect(PhoneNumber::normalize('0123456789'))->toBe('60123456789');
@@ -41,23 +44,115 @@ test('parseList ignores invalid entries', function () {
         ->toBe(['60111111111']);
 });
 
-test('allowedWhatsAppSenders includes primary and extras', function () {
-    config([
-        'services.evolution.personal_number' => '60123456789',
-        'services.evolution.personal_extra_numbers' => '60111111111,60122222222',
+test('allowedWhatsAppSenders includes profile and allowlisted family members', function () {
+    User::factory()->create(['phone' => '60123456789']);
+    FamilyMember::factory()->create([
+        'name' => 'Spouse',
+        'phone' => '60111111111',
+        'allowlist_enabled' => true,
+    ]);
+    FamilyMember::factory()->create([
+        'name' => 'Sibling',
+        'phone' => '60122222222',
+        'allowlist_enabled' => true,
+    ]);
+    FamilyMember::factory()->notAllowlisted()->create([
+        'phone' => '60133333333',
     ]);
 
     expect(PhoneNumber::allowedWhatsAppSenders())
         ->toBe(['60123456789', '60111111111', '60122222222']);
 });
 
-test('isAllowedWhatsAppSender matches primary and extras only', function () {
-    config([
-        'services.evolution.personal_number' => '60123456789',
-        'services.evolution.personal_extra_numbers' => '60111111111',
+test('isAllowedWhatsAppSender matches profile and allowlisted family only', function () {
+    User::factory()->create(['phone' => '60123456789']);
+    FamilyMember::factory()->create([
+        'phone' => '60111111111',
+        'allowlist_enabled' => true,
+    ]);
+    FamilyMember::factory()->notAllowlisted()->create([
+        'phone' => '60133333333',
     ]);
 
     expect(PhoneNumber::isAllowedWhatsAppSender('60123456789'))->toBeTrue()
         ->and(PhoneNumber::isAllowedWhatsAppSender('60111111111'))->toBeTrue()
+        ->and(PhoneNumber::isAllowedWhatsAppSender('60133333333'))->toBeFalse()
         ->and(PhoneNumber::isAllowedWhatsAppSender('60199999999'))->toBeFalse();
+});
+
+test('primaryWhatsAppNumber uses only user id 1', function () {
+    User::factory()->create(['phone' => '60111111111']);
+    User::factory()->create(['phone' => '60122222222']);
+
+    expect(PhoneNumber::primaryWhatsAppNumber())->toBe('60111111111')
+        ->and(PhoneNumber::isAllowedWhatsAppSender('60122222222'))->toBeFalse();
+});
+
+test('allowedWhatsAppSenderEntries lists only user id 1 under primary', function () {
+    User::factory()->create([
+        'name' => 'Admin User',
+        'phone' => '60123456789',
+    ]);
+    User::factory()->create([
+        'name' => 'Other User',
+        'phone' => '60199999999',
+    ]);
+    FamilyMember::factory()->create([
+        'name' => 'Spouse',
+        'phone' => '60111111111',
+        'allowlist_enabled' => true,
+    ]);
+
+    $entries = PhoneNumber::allowedWhatsAppSenderEntries();
+
+    expect($entries['primary'])->toHaveCount(1)
+        ->and($entries['primary'][0])->toMatchArray([
+            'name' => 'Admin User',
+            'phone' => '60123456789',
+        ])
+        ->and($entries['primary'][0]['avatar_url'])->not->toBeEmpty()
+        ->and($entries['family'])->toHaveCount(1)
+        ->and($entries['family'][0])->toMatchArray([
+            'name' => 'Spouse',
+            'phone' => '60111111111',
+        ])
+        ->and($entries['family'][0]['avatar_url'])->not->toBeEmpty();
+});
+
+test('allowedWhatsAppSenderEntries uses uploaded avatars when set', function () {
+    User::factory()->create([
+        'name' => 'Admin User',
+        'phone' => '60123456789',
+        'avatar_url' => 'avatars/admin.png',
+    ]);
+    FamilyMember::factory()->create([
+        'name' => 'Spouse',
+        'phone' => '60111111111',
+        'allowlist_enabled' => true,
+        'avatar_url' => 'avatars/spouse.png',
+    ]);
+
+    $entries = PhoneNumber::allowedWhatsAppSenderEntries();
+
+    expect($entries['primary'][0]['avatar_url'])->toContain('avatars/admin.png')
+        ->and($entries['family'][0]['avatar_url'])->toContain('avatars/spouse.png');
+});
+
+test('allowedWhatsAppSenderEntries falls back to ui-avatars when avatar missing', function () {
+    User::factory()->create([
+        'name' => 'Admin User',
+        'phone' => '60123456789',
+        'avatar_url' => null,
+    ]);
+    FamilyMember::factory()->create([
+        'name' => 'Spouse',
+        'phone' => '60111111111',
+        'allowlist_enabled' => true,
+        'avatar_url' => null,
+    ]);
+
+    $entries = PhoneNumber::allowedWhatsAppSenderEntries();
+
+    expect($entries['primary'][0]['avatar_url'])->toContain('ui-avatars.com')
+        ->and($entries['family'][0]['avatar_url'])->toContain('ui-avatars.com');
 });
