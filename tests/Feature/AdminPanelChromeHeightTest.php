@@ -40,7 +40,7 @@ test('page header main container shaves 1px bottom padding for fold-packed lists
     $block = Str::between(
         $css,
         '.fi-page-header-main-ctn {',
-        '.fi-layout:has(.fi-fo-file-upload-editor',
+        '/*\n * Filament header.css hides breadcrumbs below sm',
     );
 
     expect($block)

@@ -43,8 +43,8 @@ test('authenticated user can access dashboard', function () {
         ->assertSuccessful();
 });
 
-test('admin panel has breadcrumbs disabled', function () {
-    expect(filament()->getCurrentOrDefaultPanel()->hasBreadcrumbs())->toBeFalse();
+test('admin panel has breadcrumbs enabled', function () {
+    expect(filament()->getCurrentOrDefaultPanel()->hasBreadcrumbs())->toBeTrue();
 });
 
 test('authenticated user can load labels list', function () {

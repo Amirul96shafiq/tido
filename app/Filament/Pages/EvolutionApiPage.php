@@ -6,6 +6,7 @@ namespace App\Filament\Pages;
 
 use App\Enums\EvolutionApiConnectionEvent;
 use App\Enums\EvolutionApiConnectMethod;
+use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
 use App\Models\EvolutionApiConnectionLog;
 use App\Models\User;
@@ -31,6 +32,7 @@ use Illuminate\Support\Js;
 class EvolutionApiPage extends Page implements HasTable
 {
     use InteractsWithTable;
+    use PrependsHomeBreadcrumb;
 
     protected string $view = 'filament.pages.evolution-api';
 

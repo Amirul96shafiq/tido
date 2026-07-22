@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Budgets\Pages;
 
 use App\Filament\Concerns\AppendsResourceLabelToEditTitle;
 use App\Filament\Concerns\HasStickyBlurFormActions;
+use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Budgets\BudgetResource;
 use Filament\Actions\DeleteAction;
@@ -15,6 +16,7 @@ class EditBudget extends EditRecord
 {
     use AppendsResourceLabelToEditTitle;
     use HasStickyBlurFormActions;
+    use PrependsHomeBreadcrumb;
     use RecoversContentDraft;
 
     protected static string $resource = BudgetResource::class;

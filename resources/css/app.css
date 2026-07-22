@@ -1440,6 +1440,20 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /*
+ * Filament header.css hides breadcrumbs below sm (`hidden sm:block`).
+ * Keep them visible and tappable on small viewports.
+ */
+.fi-header .fi-breadcrumbs {
+    display: block;
+    margin-bottom: 0.5rem;
+    min-width: 0;
+}
+
+.fi-header .fi-breadcrumbs .fi-breadcrumbs-item-label {
+    padding-block: 0.25rem;
+}
+
+/*
  * File upload image editor (profile avatar, etc.) is position:fixed inside
  * .fi-main-ctn, while our desktop sidebar/topbar overrides use z-20–z-30.
  * Lift the layout above chrome when the editor is open (Alpine x-show).

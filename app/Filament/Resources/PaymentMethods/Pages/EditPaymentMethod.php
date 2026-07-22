@@ -6,6 +6,7 @@ namespace App\Filament\Resources\PaymentMethods\Pages;
 
 use App\Filament\Concerns\AppendsResourceLabelToEditTitle;
 use App\Filament\Concerns\HasStickyBlurFormActions;
+use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use Filament\Actions\DeleteAction;
@@ -16,6 +17,7 @@ class EditPaymentMethod extends EditRecord
 {
     use AppendsResourceLabelToEditTitle;
     use HasStickyBlurFormActions;
+    use PrependsHomeBreadcrumb;
     use RecoversContentDraft;
 
     protected static string $resource = PaymentMethodResource::class;

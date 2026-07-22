@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Invoices\Pages;
 
 use App\Filament\Concerns\AppendsResourceLabelToEditTitle;
 use App\Filament\Concerns\HasStickyBlurFormActions;
+use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Models\Invoice;
@@ -23,6 +24,7 @@ class EditInvoice extends EditRecord
 {
     use AppendsResourceLabelToEditTitle;
     use HasStickyBlurFormActions;
+    use PrependsHomeBreadcrumb;
     use RecoversContentDraft;
 
     protected static string $resource = InvoiceResource::class;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Models\User;
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\Auth;
 class Dashboard extends BaseDashboard
 {
     use HasFiltersForm;
+    use PrependsHomeBreadcrumb;
 
     protected static bool $shouldRegisterNavigation = false;
 

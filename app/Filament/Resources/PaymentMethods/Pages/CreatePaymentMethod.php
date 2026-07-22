@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\PaymentMethods\Pages;
 
 use App\Filament\Concerns\HasStickyBlurFormActions;
+use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use Filament\Resources\Pages\CreateRecord;
@@ -13,6 +14,7 @@ use Illuminate\Support\Str;
 class CreatePaymentMethod extends CreateRecord
 {
     use HasStickyBlurFormActions;
+    use PrependsHomeBreadcrumb;
     use RecoversContentDraft;
 
     protected static string $resource = PaymentMethodResource::class;

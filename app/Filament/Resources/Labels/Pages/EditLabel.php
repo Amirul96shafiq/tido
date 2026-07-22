@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Labels\Pages;
 
 use App\Filament\Concerns\AppendsResourceLabelToEditTitle;
 use App\Filament\Concerns\HasStickyBlurFormActions;
+use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Labels\LabelResource;
 use Filament\Actions\DeleteAction;
@@ -16,6 +17,7 @@ class EditLabel extends EditRecord
 {
     use AppendsResourceLabelToEditTitle;
     use HasStickyBlurFormActions;
+    use PrependsHomeBreadcrumb;
     use RecoversContentDraft;
 
     protected static string $resource = LabelResource::class;

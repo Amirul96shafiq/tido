@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Helpers\FilenameDisplay;
 use App\Models\Invoice;
@@ -23,7 +24,9 @@ use Filament\Tables\Table;
 
 class ReceiptUploadPage extends Page implements HasForms, HasTable
 {
-    use InteractsWithForms, InteractsWithTable;
+    use InteractsWithForms;
+    use InteractsWithTable;
+    use PrependsHomeBreadcrumb;
 
     protected string $view = 'filament.pages.receipt-upload-page';
 
