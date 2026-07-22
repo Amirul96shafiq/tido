@@ -114,7 +114,6 @@ class EditProfile extends BaseEditProfile
                             ->schema([
                                 Toggle::make('stylized_background_enabled')
                                     ->label('Stylized Background')
-                                    ->helperText('Use themed background artwork across the admin panel.')
                                     ->live(),
                                 View::make('filament.schemas.components.background-preview')
                                     ->viewData(fn (Get $get): array => [
