@@ -4,9 +4,6 @@
             <x-slot name="heading">
                 Connection
             </x-slot>
-            <x-slot name="description">
-                Pair Evolution with your WhatsApp (Linked Devices).
-            </x-slot>
 
             <dl class="grid gap-4 text-sm">
                 <div>
@@ -68,17 +65,6 @@
         <x-filament::section class="order-1 lg:order-2">
             <x-slot name="heading">
                 Link device
-            </x-slot>
-            <x-slot name="description">
-                @if ($this->isConnectionOpen())
-                    Already connected — no link code needed.
-                @elseif (filled($pairingCode))
-                    Enter the code in WhatsApp before expiry. A new code is fetched automatically when the timer ends.
-                @elseif (filled($qrBase64))
-                    Scan before expiry. A new QR is fetched automatically when the timer ends.
-                @else
-                    Disconnected — use Connect to scan a QR or pair with a code.
-                @endif
             </x-slot>
 
             <div
@@ -284,9 +270,6 @@
                                             <h2 class="fi-modal-heading">
                                                 Connection details
                                             </h2>
-                                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                                Full Evolution instance information for this linked WhatsApp session.
-                                            </p>
                                         </div>
                                     </x-slot>
 
