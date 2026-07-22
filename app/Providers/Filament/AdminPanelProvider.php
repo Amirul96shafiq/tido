@@ -137,6 +137,8 @@ class AdminPanelProvider extends PanelProvider
                 function (): string {
                     $light = asset('images/bg-l.png');
                     $dark = asset('images/bg-d.png');
+                    $authLightMobile = asset('images/auth-bg-l.png');
+                    $authDarkMobile = asset('images/auth-bg-d.png');
                     $authLight = asset('images/auth-bg-l-v2.png');
                     $authDark = asset('images/auth-bg-d-v2.png');
 
@@ -145,6 +147,8 @@ class AdminPanelProvider extends PanelProvider
                             :root {
                                 --tido-bg-light: url('{$light}');
                                 --tido-bg-dark: url('{$dark}');
+                                --tido-auth-bg-light-mobile: url('{$authLightMobile}');
+                                --tido-auth-bg-dark-mobile: url('{$authDarkMobile}');
                                 --tido-auth-bg-light: url('{$authLight}');
                                 --tido-auth-bg-dark: url('{$authDark}');
                             }

@@ -244,14 +244,14 @@ html.dark::-webkit-scrollbar-thumb:hover,
     display: none !important;
 }
 
-/* Mobile / tablet: form top 80%, illustration bottom 20% */
+/* Mobile / tablet: form top 80%, illustration bottom 20% (non-v2 art) */
 .fi-simple-layout::before {
     content: '';
     position: fixed;
     inset-inline: 0;
     inset-block-end: 0;
     height: 20%;
-    background-image: var(--tido-auth-bg-light);
+    background-image: var(--tido-auth-bg-light-mobile);
     background-size: cover;
     /*
      * Focal point (cat). Light: cat is ~center-x, lower frame.
@@ -267,7 +267,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
 }
 
 .dark .fi-simple-layout::before {
-    background-image: var(--tido-auth-bg-dark);
+    background-image: var(--tido-auth-bg-dark-mobile);
     --tido-auth-bg-pos-x: 66%;
     --tido-auth-bg-pos-y: 72%;
 }
@@ -322,6 +322,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
          */
         width: calc(100dvh * 1000 / 1536);
         height: auto;
+        background-image: var(--tido-auth-bg-light);
         background-size: cover;
         /* Tall left panel — pull focal point slightly up vs mobile strip */
         --tido-auth-bg-pos-x: 50%;
@@ -329,6 +330,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
     }
 
     .dark .fi-simple-layout::before {
+        background-image: var(--tido-auth-bg-dark);
         --tido-auth-bg-pos-x: 66%;
         --tido-auth-bg-pos-y: 58%;
     }
