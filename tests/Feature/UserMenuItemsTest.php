@@ -50,6 +50,7 @@ test('user menu displays the app version and sidebar footer owns collapse contro
 
     $response->assertSuccessful();
     $response->assertSee('fi-user-menu-version-footer', false);
+    $response->assertSee('tido App', false);
     $response->assertSee(GitHelper::getVersionString(), false);
     $response->assertSee('fi-sidebar-collapse-footer', false);
     $response->assertSee('fi-sidebar-close-collapse-sidebar-btn', false);

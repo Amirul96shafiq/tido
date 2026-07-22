@@ -226,7 +226,8 @@
     @endif
 
     <div class="fi-user-menu-version-footer">
-        <span>{{ $gitVersion }}</span>
+        <span class="fi-user-menu-version-footer-label"> - tido App - </span>
+        <span class="fi-user-menu-version-footer-version">{{ $gitVersion }}</span>
     </div>
 </x-filament::dropdown>
 

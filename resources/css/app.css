@@ -1651,9 +1651,12 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     display: flex;
     min-width: 0;
     min-height: 2.5rem;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 0.125rem;
     border-top: 1px solid var(--color-gray-100);
+    padding-block: 0.5rem;
     padding-inline: 1rem;
     color: var(--color-gray-500);
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
@@ -1664,10 +1667,23 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     user-select: none;
 }
 
-.fi-user-menu-version-footer span {
+.fi-user-menu-version-footer-label {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-weight: 600;
+    color: var(--color-gray-700);
+}
+
+.fi-user-menu-version-footer-version {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: -0.325rem;
+}
+
+.dark .fi-user-menu-version-footer-label {
+    color: var(--color-slate-300);
 }
 
 .dark .fi-user-menu-version-footer {
