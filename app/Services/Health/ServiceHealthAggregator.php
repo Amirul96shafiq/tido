@@ -25,7 +25,7 @@ class ServiceHealthAggregator
      *         title: string,
      *         message: string,
      *     },
-     *     periodLabel: string,
+     *     periodDateRange: string,
      *     services: list<array{
      *         service: MonitoredService,
      *         label: string,
@@ -73,11 +73,7 @@ class ServiceHealthAggregator
 
         return [
             'summary' => $this->buildSummary($services),
-            'periodLabel' => sprintf(
-                'Last %d days · %s',
-                self::VISIBLE_DAYS,
-                $windowStart->format('j M Y').' – '.$windowEnd->format('j M Y'),
-            ),
+            'periodDateRange' => $windowStart->format('j M Y').' – '.$windowEnd->format('j M Y'),
             'services' => $services,
         ];
     }

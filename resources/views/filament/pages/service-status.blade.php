@@ -22,11 +22,7 @@
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
         <x-filament::section class="h-full">
             <x-slot name="heading">
-                Summary report
-            </x-slot>
-
-            <x-slot name="description">
-                {{ $this->periodLabel() }}
+                {{ $this->summaryReportHeading() }}
             </x-slot>
 
             <div class="flex flex-col gap-5">
@@ -109,11 +105,7 @@
 
         <x-filament::section class="h-full">
             <x-slot name="heading">
-                System status
-            </x-slot>
-
-            <x-slot name="description">
-                {{ $this->periodLabel() }}
+                {{ $this->systemStatusHeading() }}
             </x-slot>
 
             <div class="divide-y divide-gray-200 dark:divide-white/10">

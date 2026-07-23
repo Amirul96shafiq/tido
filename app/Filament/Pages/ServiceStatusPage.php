@@ -82,9 +82,19 @@ class ServiceStatusPage extends Page
         return (string) ($this->report['summary']['message'] ?? '');
     }
 
-    public function periodLabel(): string
+    public function periodDateRange(): string
     {
-        return (string) ($this->report['periodLabel'] ?? '');
+        return (string) ($this->report['periodDateRange'] ?? '');
+    }
+
+    public function summaryReportHeading(): string
+    {
+        return 'Summary report ('.$this->periodDateRange().')';
+    }
+
+    public function systemStatusHeading(): string
+    {
+        return 'System status ('.$this->periodDateRange().')';
     }
 
     /**
