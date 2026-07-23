@@ -153,6 +153,7 @@
                                     role="listitem"
                                 >
                                     <span
+                                        data-tippy-mobile
                                         @class([
                                             'block h-full w-full rounded-[1px]',
                                             $piece['status']->barColorClass(),

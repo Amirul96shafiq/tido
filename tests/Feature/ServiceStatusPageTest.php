@@ -41,6 +41,7 @@ test('service status page renders summary banner and uptime labels', function ()
         ->assertSee('uptime')
         ->assertSee('grid-cols-3', false)
         ->assertSee('allowHTML: true', false)
+        ->assertSee('data-tippy-mobile', false)
         ->assertSee('x-tooltip', false);
 });
 

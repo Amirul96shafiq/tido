@@ -1,6 +1,7 @@
 /**
  * Disable Filament Tippy (x-tooltip) below the Tailwind `sm` breakpoint.
  * Chart.js widget tooltips are unaffected (not Tippy).
+ * Elements marked with [data-tippy-mobile] keep Tippy on small screens.
  * See docs/ui-tooltips.md.
  */
 const MOBILE_MQ = window.matchMedia('(max-width: 639px)');
@@ -8,6 +9,59 @@ const patched = new WeakSet();
 
 function isMobile() {
     return MOBILE_MQ.matches;
+}
+
+/**
+ * @param {Element} el
+ */
+function allowsMobileTooltip(el) {
+    return el instanceof Element && el.closest('[data-tippy-mobile]') !== null;
+}
+
+/**
+ * @param {{ reference?: Element, popper?: Element, setProps: Function, hide: Function, state?: { isVisible?: boolean } } | undefined | null} tip
+ */
+function getAllowMobile(tip) {
+    const ref = tip?.reference;
+
+    return ref instanceof Element && allowsMobileTooltip(ref);
+}
+
+/**
+ * @param {{ reference?: Element, popper?: Element, setProps: Function, hide: Function, state?: { isVisible?: boolean } } | undefined | null} tip
+ */
+function tagMobileTooltipRoot(tip) {
+    tip?.popper
+        ?.closest('[data-tippy-root]')
+        ?.classList.add('tido-tippy-mobile-root');
+}
+
+/**
+ * @param {{ reference?: Element, popper?: Element, setProps: Function, hide: Function, state?: { isVisible?: boolean } } | undefined | null} tip
+ */
+function applyTooltipViewportRules(tip) {
+    const allowMobile = getAllowMobile(tip);
+
+    if (allowMobile) {
+        tip.setProps({
+            touch: true,
+            trigger: isMobile() ? 'click' : 'mouseenter focus',
+            onShow() {
+                tagMobileTooltipRoot(tip);
+
+                return true;
+            },
+        });
+
+        return;
+    }
+
+    tip.setProps({
+        touch: isMobile() ? false : true,
+        onShow() {
+            return !isMobile();
+        },
+    });
 }
 
 /**
@@ -20,14 +74,9 @@ function patchInstance(tip) {
 
     patched.add(tip);
 
-    tip.setProps({
-        touch: isMobile() ? false : true,
-        onShow() {
-            return !isMobile();
-        },
-    });
+    applyTooltipViewportRules(tip);
 
-    if (isMobile()) {
+    if (isMobile() && !getAllowMobile(tip)) {
         tip.hide();
     }
 }
@@ -61,7 +110,7 @@ function scan(root = document) {
 
     scope
         .querySelectorAll(
-            '[x-tooltip], [x-tooltip\\.html], [x-tooltip\\.raw], [data-tippy-root]',
+            '[x-tooltip], [x-tooltip\\.html], [x-tooltip\\.raw], [data-tippy-root], [data-tippy-mobile]',
         )
         .forEach((el) => patchElement(el));
 }
@@ -70,9 +119,15 @@ function hideVisibleTippies() {
     document.querySelectorAll('[data-tippy-root]').forEach((root) => {
         const tip = root._tippy;
 
-        if (tip?.state.isVisible) {
-            tip.hide();
+        if (!tip?.state.isVisible) {
+            return;
         }
+
+        if (getAllowMobile(tip)) {
+            return;
+        }
+
+        tip.hide();
     });
 }
 
@@ -81,7 +136,7 @@ function syncForViewport() {
 
     document
         .querySelectorAll(
-            '[x-tooltip], [x-tooltip\\.html], [x-tooltip\\.raw], [data-tippy-root]',
+            '[x-tooltip], [x-tooltip\\.html], [x-tooltip\\.raw], [data-tippy-root], [data-tippy-mobile]',
         )
         .forEach((el) => {
             const tip = el.__x_tippy ?? el._tippy;
@@ -90,11 +145,9 @@ function syncForViewport() {
                 return;
             }
 
-            tip.setProps({
-                touch: isMobile() ? false : true,
-            });
+            applyTooltipViewportRules(tip);
 
-            if (isMobile()) {
+            if (isMobile() && !getAllowMobile(tip)) {
                 tip.hide();
             }
         });
