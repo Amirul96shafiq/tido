@@ -23,6 +23,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
 
     protected $fillable = [
         'name',
+        'display_name',
         'email',
         'password',
         'avatar_url',

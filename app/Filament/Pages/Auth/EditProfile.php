@@ -99,6 +99,13 @@ class EditProfile extends BaseEditProfile
             ->circleCropper();
     }
 
+    protected function getNameFormComponent(): Component
+    {
+        return parent::getNameFormComponent()
+            ->label('Full Name')
+            ->placeholder('Full name');
+    }
+
     public function form(Schema $schema): Schema
     {
         return $schema
@@ -198,6 +205,10 @@ class EditProfile extends BaseEditProfile
                         Section::make('Personal Details')
                             ->schema([
                                 $this->getNameFormComponent(),
+                                TextInput::make('display_name')
+                                    ->label('Display Name')
+                                    ->maxLength(255)
+                                    ->placeholder('Display name'),
                                 TextInput::make('phone')
                                     ->label('WhatsApp Number')
                                     ->tel()
@@ -502,6 +513,7 @@ class EditProfile extends BaseEditProfile
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
         $oldName = $record->name;
+        $oldDisplayName = $record->display_name;
         $oldAvatar = $record->avatar_url;
         $oldEmail = $record->email;
         $oldPhone = $record->phone;
@@ -519,7 +531,10 @@ class EditProfile extends BaseEditProfile
 
         $changes = [];
         if ($oldName !== $updatedRecord->name) {
-            $changes[] = 'Name';
+            $changes[] = 'Full Name';
+        }
+        if ($oldDisplayName !== $updatedRecord->display_name) {
+            $changes[] = 'Display Name';
         }
         if ($oldAvatar !== $updatedRecord->avatar_url) {
             $changes[] = 'Profile photo';
