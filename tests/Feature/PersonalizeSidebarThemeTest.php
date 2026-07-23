@@ -19,7 +19,8 @@ test('profile personalize section renders live sidebar mode preview', function (
         ->assertSee('Sidebar Mode', false)
         ->assertSee('tido-sidebar-preview', false)
         ->assertSee('Expanded', false)
-        ->assertSeeHtml('sidebar_collapsed');
+        ->assertSee('$store.sidebar.open()', false)
+        ->assertSee('$store.sidebar.close()', false);
 });
 
 test('profile personalize section renders theme mode switcher', function (): void {
