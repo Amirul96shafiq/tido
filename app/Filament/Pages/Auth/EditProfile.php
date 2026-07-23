@@ -63,6 +63,32 @@ class EditProfile extends BaseEditProfile
         ];
     }
 
+    public function mount(): void
+    {
+        parent::mount();
+
+        $this->js(<<<'JS'
+            (() => {
+                const apply = () => {
+                    if (! window.Alpine?.store('sidebar')) {
+                        return;
+                    }
+
+                    const collapsed = ! Alpine.store('sidebar').isOpen;
+                    $wire.set('data.sidebar_collapsed', collapsed);
+                };
+
+                if (window.Alpine?.store('sidebar')) {
+                    apply();
+
+                    return;
+                }
+
+                document.addEventListener('alpine:initialized', apply, { once: true });
+            })();
+        JS);
+    }
+
     /**
      * @return array<string, string>
      */
@@ -121,6 +147,8 @@ class EditProfile extends BaseEditProfile
                     ->schema([
                         Section::make('Personalize')
                             ->schema([
+                                View::make('filament.schemas.components.theme-mode-field')
+                                    ->columnSpanFull(),
                                 Toggle::make('stylized_background_enabled')
                                     ->label('Stylized Background')
                                     ->live(),
@@ -128,6 +156,19 @@ class EditProfile extends BaseEditProfile
                                     ->viewData(fn (Get $get): array => [
                                         'enabled' => (bool) $get('stylized_background_enabled'),
                                     ])
+                                    ->columnSpanFull(),
+                                Toggle::make('sidebar_collapsed')
+                                    ->label('Sidebar Mode')
+                                    ->dehydrated(false)
+                                    ->live()
+                                    ->afterStateUpdated(function (?bool $state): void {
+                                        $this->js(
+                                            $state
+                                                ? 'Alpine.store("sidebar").close()'
+                                                : 'Alpine.store("sidebar").open()'
+                                        );
+                                    }),
+                                View::make('filament.schemas.components.sidebar-mode-field')
                                     ->columnSpanFull(),
                             ])
                             ->columns(1),
