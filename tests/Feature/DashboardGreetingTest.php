@@ -17,7 +17,8 @@ test('dashboard heading and subheading reflect morning in user timezone', functi
     $user = User::factory()
         ->withWhatsAppPhone('60123456789')
         ->create([
-            'name' => 'Ada',
+            'name' => 'Ada Lovelace',
+            'display_name' => 'Ada',
             'timezone' => 'America/New_York',
         ]);
 
@@ -44,7 +45,8 @@ test('dashboard greeting uses afternoon copy when local hour is midday', functio
     $user = User::factory()
         ->withWhatsAppPhone('60123456789')
         ->create([
-            'name' => 'Budi',
+            'name' => 'Budi Santoso',
+            'display_name' => 'Budi',
             'timezone' => 'Asia/Kuala_Lumpur',
         ]);
 
@@ -61,7 +63,8 @@ test('dashboard greeting uses evening copy when local hour is late night', funct
     $user = User::factory()
         ->withWhatsAppPhone('60123456789')
         ->create([
-            'name' => 'Citra',
+            'name' => 'Citra Dewi',
+            'display_name' => 'Citra',
             'timezone' => 'Asia/Kuala_Lumpur',
         ]);
 
@@ -72,13 +75,14 @@ test('dashboard greeting uses evening copy when local hour is late night', funct
         ->assertSee('Ready to wrap up? Start by <span class="underline">ti</span>dying up your files, then get it <span class="underline">do</span>ne.', false);
 });
 
-test('dashboard greeting shortens long user names in heading', function () {
+test('dashboard greeting shortens long display names in heading', function () {
     Carbon::setTestNow(Carbon::parse('2026-07-16 22:30:00', 'Asia/Kuala_Lumpur'));
 
     $user = User::factory()
         ->withWhatsAppPhone('60123456789')
         ->create([
-            'name' => 'Amirul Shafiq Harun',
+            'name' => 'Legal Full Name',
+            'display_name' => 'Amirul Shafiq Harun',
             'timezone' => 'Asia/Kuala_Lumpur',
         ]);
 
@@ -88,6 +92,23 @@ test('dashboard greeting shortens long user names in heading', function () {
         ->assertSee('Good Evening, <span class="text-primary-600 dark:text-primary-400">Amirul S. H.</span> 🌙', false);
 });
 
+test('dashboard greeting falls back to full name when display name is empty', function () {
+    Carbon::setTestNow(Carbon::parse('2026-07-16 09:00:00', 'Asia/Kuala_Lumpur'));
+
+    $user = User::factory()
+        ->withWhatsAppPhone('60123456789')
+        ->create([
+            'name' => 'Ada',
+            'display_name' => null,
+            'timezone' => 'Asia/Kuala_Lumpur',
+        ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(Dashboard::class)
+        ->assertSee('Good Morning, <span class="text-primary-600 dark:text-primary-400">Ada</span> ☀️', false);
+});
+
 test('dashboard header exposes profile and changelogs actions', function () {
     Carbon::setTestNow(Carbon::parse('2026-07-16 09:00:00', 'Asia/Kuala_Lumpur'));
 
@@ -95,6 +116,7 @@ test('dashboard header exposes profile and changelogs actions', function () {
         ->withWhatsAppPhone('60123456789')
         ->create([
             'name' => 'Ada',
+            'display_name' => 'Ada',
             'timezone' => 'Asia/Kuala_Lumpur',
         ]);
 
