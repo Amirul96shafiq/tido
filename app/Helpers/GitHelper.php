@@ -40,7 +40,7 @@ class GitHelper
     /**
      * Get the latest commit SHA with custom prefix + postfix
      */
-    public static function getVersionString(string $prefix = 'v_', string $suffix = '_local'): string
+    public static function getVersionString(string $prefix = 'v', string $suffix = '_local'): string
     {
         // Return cached value if we've already computed it for this PHP process.
         if (self::$cachedVersion !== null) {
