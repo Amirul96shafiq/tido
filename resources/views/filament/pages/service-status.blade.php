@@ -159,6 +159,7 @@
                                         ])
                                         x-tooltip="{
                                             content: @js($piece['tooltip']),
+                                            allowHTML: true,
                                             theme: $store.theme,
                                         }"
                                         aria-label="{{ $piece['ariaLabel'] }}"

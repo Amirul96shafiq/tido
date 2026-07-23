@@ -112,6 +112,7 @@ test('aggregator groups samples into twelve hour pieces and calculates uptime', 
         ->and($todayMorningPiece['status'])->toBe(ServiceHealthStatus::Operational)
         ->and($todayMorningPiece['detail'])->toBe('Healthy morning sample.')
         ->and($todayMorningPiece['tooltip'])->toContain('Operational')
+        ->and($todayMorningPiece['tooltip'])->toContain('<br>')
         ->and($todayAfternoonPiece['status'])->toBe(ServiceHealthStatus::Down)
         ->and($todayAfternoonPiece['detail'])->toBe('Afternoon outage.');
 });
@@ -165,7 +166,7 @@ test('aggregator summary reports fully operational when latest samples are healt
     $report = app(ServiceHealthAggregator::class)->report();
 
     expect($report['summary']['status'])->toBe(ServiceHealthStatus::Operational)
-        ->and($report['summary']['title'])->toBe("We're fully operational");
+        ->and($report['summary']['title'])->toBe('All services fully operational');
 });
 
 test('health prune command deletes old samples', function (): void {

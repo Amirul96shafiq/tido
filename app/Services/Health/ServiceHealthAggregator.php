@@ -331,11 +331,16 @@ class ServiceHealthAggregator
         ServiceHealthStatus $status,
         string $detail,
     ): string {
-        return implode("\n", [
-            $this->formatPieceRange($startsAt, $endsAt),
+        $lines = [
+            $startsAt->format('D, j M Y'),
+            sprintf('%s–%s', $startsAt->format('H:i'), $endsAt->format('H:i')),
             $status->label(),
             $detail,
-        ]);
+        ];
+
+        return collect($lines)
+            ->map(static fn (string $line): string => e($line))
+            ->implode('<br>');
     }
 
     private function buildAriaLabel(
