@@ -242,8 +242,9 @@ class AdminPanelProvider extends PanelProvider
                         >
                             @if ($isSidebarCollapsibleOnDesktop || $isSidebarFullyCollapsibleOnDesktop)
                                 <div class="fi-sidebar-collapse-buttons flex h-full w-full items-center px-4">
-                                    <x-filament::icon-button
-                                        color="gray"
+                                    <x-filament::button
+                                        color="primary"
+                                        size="sm"
                                         :icon="$isRtl ? \Filament\Support\Icons\Heroicon::OutlinedChevronRight : \Filament\Support\Icons\Heroicon::OutlinedChevronLeft"
                                         :icon-alias="
                                             $isRtl
@@ -254,8 +255,6 @@ class AdminPanelProvider extends PanelProvider
                                             : \Filament\View\PanelsIconAlias::SIDEBAR_COLLAPSE_BUTTON
                                         "
                                         icon-size="md"
-                                        :label="__('filament-panels::layout.actions.sidebar.collapse.label')"
-                                        :tooltip="__('filament-panels::layout.actions.sidebar.collapse.label')"
                                         x-cloak
                                         x-show="$store.sidebar.isOpen"
                                         x-transition:enter="fi-transition-enter"
@@ -266,11 +265,14 @@ class AdminPanelProvider extends PanelProvider
                                             document.querySelectorAll('[data-tippy-root]').forEach((node) => node.remove());
                                             $store.sidebar.close();
                                         "
-                                        class="fi-version-icon-btn fi-sidebar-close-collapse-sidebar-btn"
-                                    />
+                                        class="fi-sidebar-close-collapse-sidebar-btn"
+                                    >
+                                        {{ __('filament-panels::layout.actions.sidebar.collapse.label') }}
+                                    </x-filament::button>
 
-                                    <x-filament::icon-button
-                                        color="gray"
+                                    <x-filament::button
+                                        color="primary"
+                                        size="sm"
                                         :icon="$isRtl ? \Filament\Support\Icons\Heroicon::OutlinedChevronLeft : \Filament\Support\Icons\Heroicon::OutlinedChevronRight"
                                         :icon-alias="
                                             $isRtl
@@ -281,7 +283,7 @@ class AdminPanelProvider extends PanelProvider
                                             : \Filament\View\PanelsIconAlias::SIDEBAR_EXPAND_BUTTON
                                         "
                                         icon-size="md"
-                                        :label="__('filament-panels::layout.actions.sidebar.expand.label')"
+                                        label-sr-only
                                         :tooltip="__('filament-panels::layout.actions.sidebar.expand.label')"
                                         x-cloak
                                         x-show="! $store.sidebar.isOpen"
@@ -293,8 +295,10 @@ class AdminPanelProvider extends PanelProvider
                                             document.querySelectorAll('[data-tippy-root]').forEach((node) => node.remove());
                                             $store.sidebar.open();
                                         "
-                                        class="fi-version-icon-btn fi-sidebar-open-collapse-sidebar-btn"
-                                    />
+                                        class="fi-sidebar-open-collapse-sidebar-btn"
+                                    >
+                                        {{ __('filament-panels::layout.actions.sidebar.expand.label') }}
+                                    </x-filament::button>
                                 </div>
                             @endif
                         </div>

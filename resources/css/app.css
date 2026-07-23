@@ -1108,10 +1108,28 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     justify-content: flex-start;
 }
 
-.fi-sidebar-collapse-buttons .fi-version-icon-btn {
-    width: 2.5rem;
+/* Shared 40px (2.5rem) height for open collapse + collapsed expand CTAs. */
+.fi-sidebar-collapse-buttons .fi-sidebar-close-collapse-sidebar-btn,
+.fi-sidebar-collapse-buttons .fi-sidebar-open-collapse-sidebar-btn {
     height: 2.5rem;
+    min-height: 2.5rem;
+    max-height: 2.5rem;
+}
+
+/* Open: labeled primary collapse CTA (match New resource / header actions). */
+.fi-sidebar.fi-sidebar-open .fi-sidebar-close-collapse-sidebar-btn {
+    width: auto;
+    max-width: 100%;
     margin-inline: 0;
+    justify-content: flex-start;
+}
+
+/* Collapsed: icon-only primary expand CTA (filled primary, match New resource). */
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-open-collapse-sidebar-btn {
+    width: 2.5rem;
+    padding-inline: 0;
+    margin-inline: 0;
+    justify-content: center;
 }
 
 /* Go to top — flush bottom-right square matching collapsed collapse footer (71×71)

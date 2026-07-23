@@ -49,6 +49,7 @@ test('user menu displays the app version and sidebar footer owns collapse contro
     $response->assertSee('fi-sidebar-collapse-footer', false);
     $response->assertSee('fi-sidebar-close-collapse-sidebar-btn', false);
     $response->assertSee('fi-sidebar-open-collapse-sidebar-btn', false);
+    $response->assertSee('Collapse sidebar', false);
     $response->assertDontSee('fi-sidebar-version-footer', false);
     $response->assertDontSee('fi-sidebar-version-expanded', false);
     $response->assertDontSee('fi-sidebar-version-collapsed', false);

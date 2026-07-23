@@ -77,6 +77,72 @@ test('open sidebar collapse footer matches topbar chrome height', function () {
         ->toContain('fi-sidebar-open-collapse-sidebar-btn');
 });
 
+test('open sidebar collapse control is labeled button without tooltip', function () {
+    $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $buttonsMarkup = Str::between(
+        $provider,
+        'class="fi-sidebar-collapse-buttons flex h-full w-full items-center px-4">',
+        '@endif',
+    );
+
+    $collapseBtnBlock = Str::before($buttonsMarkup, 'class="fi-sidebar-open-collapse-sidebar-btn"');
+    $collapseBtnBlock = Str::beforeLast($collapseBtnBlock, '<x-filament::button');
+
+    $expandOpenTag = '<x-filament::button'.Str::afterLast(
+        Str::before($buttonsMarkup, 'class="fi-sidebar-open-collapse-sidebar-btn"'),
+        '<x-filament::button',
+    );
+    $expandBtnBlock = Str::after($buttonsMarkup, 'class="fi-sidebar-open-collapse-sidebar-btn"');
+
+    $labeledBtnCss = Str::between(
+        $css,
+        '/* Open: labeled primary collapse CTA (match New resource / header actions). */',
+        '/* Collapsed: icon-only primary expand CTA (filled primary, match New resource). */',
+    );
+    $expandBtnCss = Str::between(
+        $css,
+        '/* Collapsed: icon-only primary expand CTA (filled primary, match New resource). */',
+        '/* Go to top — flush bottom-right square matching collapsed collapse footer (71×71)',
+    );
+    $sharedHeightCss = Str::between(
+        $css,
+        '/* Shared 40px (2.5rem) height for open collapse + collapsed expand CTAs. */',
+        '/* Open: labeled primary collapse CTA (match New resource / header actions). */',
+    );
+
+    expect($collapseBtnBlock)
+        ->toContain('<x-filament::button')
+        ->toContain('color="primary"')
+        ->toContain('class="fi-sidebar-close-collapse-sidebar-btn"')
+        ->toContain("{{ __('filament-panels::layout.actions.sidebar.collapse.label') }}")
+        ->not->toContain(':tooltip=')
+        ->not->toContain('label-sr-only')
+        ->and($expandOpenTag)
+        ->toContain('color="primary"')
+        ->toContain('label-sr-only')
+        ->toContain(":tooltip=\"__('filament-panels::layout.actions.sidebar.expand.label')\"")
+        ->and($expandBtnBlock)
+        ->toContain("{{ __('filament-panels::layout.actions.sidebar.expand.label') }}")
+        ->and($provider)
+        ->not->toContain('<x-filament::icon-button')
+        ->and($sharedHeightCss)
+        ->toContain('.fi-sidebar-close-collapse-sidebar-btn')
+        ->toContain('.fi-sidebar-open-collapse-sidebar-btn')
+        ->toContain('height: 2.5rem;')
+        ->toContain('min-height: 2.5rem;')
+        ->toContain('max-height: 2.5rem;')
+        ->and($labeledBtnCss)
+        ->toContain('.fi-sidebar.fi-sidebar-open .fi-sidebar-close-collapse-sidebar-btn')
+        ->toContain('justify-content: flex-start;')
+        ->toContain('width: auto;')
+        ->and($expandBtnCss)
+        ->toContain('.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-open-collapse-sidebar-btn')
+        ->toContain('width: 2.5rem;')
+        ->toContain('justify-content: center;');
+});
+
 test('collapsed sidebar collapse footer is a square matching collapsed sidebar width', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
     $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
