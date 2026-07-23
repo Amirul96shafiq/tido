@@ -21,6 +21,7 @@
 | [ui-copy-style.md](ui-copy-style.md) | Agents + humans | Impersonal UI voice (no we/you); auth and panel copy |
 | [content-draft-recovery.md](content-draft-recovery.md) | Agents + humans | Auto-save drafts + crash recovery on Filament Create/Edit |
 | [backups-and-danger-zone.md](backups-and-danger-zone.md) | Agents + humans | Backup catalog, restore tokens, guest restore, profile Danger Zone |
+| [service-status.md](service-status.md) | Agents + humans | Tools Service Status page, health probes, uptime history |
 | [git-workflow.md](git-workflow.md) | Agents + humans | Feature/fix branches → PR → main; staging/production promotion |
 
 ## Cursor agent assets (outside `docs/`)

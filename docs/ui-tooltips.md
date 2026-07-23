@@ -58,6 +58,8 @@ Filament Tippy is **disabled** below Tailwind `sm` (`max-width: 639px`):
 
 **Exception:** Chart.js widget tooltips (tap a chart segment for details) are **not** Tippy — they stay enabled. Theming lives in [`filament-chart-js-plugins.js`](../resources/js/filament-chart-js-plugins.js).
 
+**Exception:** Service Status uptime bar segments use `data-tippy-mobile` — Tippy stays enabled below `sm` with `trigger: 'click'`. See [service-status.md](service-status.md).
+
 **Test:** `tests/Feature/MobileTippyTest.php`.
 
 ### High z-index custom modals
@@ -87,6 +89,7 @@ Without this, Tippy mounts and is “visible” in the DOM but renders **behind*
 | Filament modal Close | `resources/views/vendor/filament/components/modal/index.blade.php` (`:tooltip` on icon-button) |
 | Changelog CTAs | `resources/views/components/changelog-modal.blade.php` |
 | Restore backup Close | `resources/views/components/restore-backup-modal.blade.php` |
+| Service Status bars | `resources/views/filament/pages/service-status.blade.php` (`data-tippy-mobile`) |
 
 When publishing more Filament views for tooltip-only tweaks, keep the override set **minimal** (only the files that differ from vendor).
 

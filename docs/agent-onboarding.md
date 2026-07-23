@@ -38,7 +38,8 @@ Default login (seeded): `admin@tido.local` / `password`.
 16. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md`
 17. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
 18. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
-19. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+19. Service Status (health probes, uptime UI): `docs/service-status.md`
+20. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 
@@ -46,19 +47,19 @@ Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage)
 
 ```
 app/
-  Models/           Invoice, InvoiceItem, Label, PaymentMethod, Budget, User, ContentDraft, Backup
+  Models/           Invoice, InvoiceItem, Label, PaymentMethod, Budget, User, ContentDraft, Backup, ServiceHealthSample
   Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support, Livewire
-  Services/         Ollama, GoogleDrive, WhatsApp, BudgetAlert, SpendingForecast, Backup*, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
+  Services/         Ollama, GoogleDrive, WhatsApp, BudgetAlert, SpendingForecast, Backup*, Health/*, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
   Jobs/             ExtractReceiptDataJob, ProcessManualWhatsAppInvoiceJob, ParseManualWhatsAppInvoiceJob, SyncGoogleDriveJob, …
   Observers/        InvoiceObserver
   Prompts/          ReceiptExtractionPrompt, ManualInvoiceLabelPrompt
   Support/          ManualWhatsAppInvoiceParser, WhatsAppMessage, …
-  Enums/            LabelType, UserLocale, UserDateFormat
+  Enums/            LabelType, UserLocale, UserDateFormat, MonitoredService, ServiceHealthStatus
   Http/Controllers/ Api webhooks, BackupDownload, GuestRestoreBackup
 routes/
   web.php           / → /admin, changelog JSON, backup download / guest restore
   api.php           WhatsApp webhook
-  console.php       schedules (Drive sync, backups)
+  console.php       schedules (Drive sync, backups, health:probe / health:prune)
 database/
   migrations|factories|seeders
 docs/               architecture + integration setup + this file
@@ -105,7 +106,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 5. Filter and Column Manager triggers also get Tippy tooltips globally via `filtersTriggerAction` / `columnManagerTriggerAction` in `AppServiceProvider`
 6. List-page “New …” CTAs use a plus Heroicon panel-wide (`AppServiceProvider` → `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`); new List pages only need `CreateAction::make()`
 7. Edit pages: use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the title ends with the singular model label (see `.cursor/rules/filament-conventions.mdc` — Edit page title)
-8. Nav groups: Finances (Invoices, Budgets) / Settings (Labels, Payment Methods, Family Members) / Integrations (EvolutionAPI) / Tools (Backups) — Tools last
+8. Nav groups: Finances (Invoices, Budgets) / Settings (Labels, Payment Methods, Family Members) / Integrations (EvolutionAPI) / Tools (Backups, Service Status) — Tools last
 9. Breadcrumbs use Filament native defaults plus `App\Filament\Concerns\PrependsHomeBreadcrumb` (Home → resource → page). Do not disable panel-wide or add a custom “Go back to table” header. New pages must use the trait; Create/Edit pages also register in the `PAGE_END` draft-poller scopes.
 10. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
 11. Resource table `created_at` columns use `->since()->dateTimeTooltip()` (relative time + full datetime on hover), matching Receipt Upload “Uploaded At”
@@ -114,8 +115,9 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 14. Dark theme surfaces: Slate with slate-800 chrome — see `docs/ui-dark-theme.md` (do not reintroduce Zinc / `#333` tooltips, or white text on solid gold CTAs)
 15. UI copy: impersonal voice — no *we* / *you* / *your* in headings, descriptions, notifications; see `docs/ui-copy-style.md`
 16. Backups / Danger Zone / guest restore: see `docs/backups-and-danger-zone.md` — do not invent a second restore path
-17. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas
-18. Custom Blade toggles: use `get_component_color_classes(ToggleComponent::class, …)` and Profile `inlineLabel` markup — see `docs/ui-custom-toggles.md`
+17. Service Status / health probes: see `docs/service-status.md`
+18. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas
+19. Custom Blade toggles: use `get_component_color_classes(ToggleComponent::class, …)` and Profile `inlineLabel` markup — see `docs/ui-custom-toggles.md`
 
 ### Integrations
 

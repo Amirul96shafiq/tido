@@ -111,3 +111,10 @@ The interface utilizes FilamentPHP's native Tailwind CSS theming engine to achie
 * **Restore tokens:** Plain restore tokens are shown once; only `restore_token_hash` is stored. Guest restore (no users) uses the auth-menu Restore Backup modal — see `docs/backups-and-danger-zone.md`.
 * **Danger Zone:** Profile Danger Zone creates a final backup then wipes account data (`AccountDangerZoneService`).
 * **Orphaned File Cleanup:** Implement a scheduled task to purge base64-encoded image strings from temporary cache stores once the OCR pipeline completes to prevent disk bloat.
+
+### 6.5. Service Status (health probes)
+
+* **Filament UI:** **Tools → Service Status** — summary report + per-service 30-day uptime bars (12h pieces). See `docs/service-status.md`.
+* **Probes:** `health:probe` every 15 minutes stores samples in `service_health_samples` (App, Database, Ollama, Evolution, Queue, optional Google Drive).
+* **Retention:** `health:prune` daily; 30-day sample window matches the visible chart.
+* **Tests:** Mock Ollama/Evolution with `Http::fake()`; do not hit real services in CI.
