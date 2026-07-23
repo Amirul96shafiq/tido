@@ -73,8 +73,11 @@ class Dashboard extends BaseDashboard
         }
 
         $now = now()->timezone($user->preferredTimezone());
+        $greetingName = filled($user->display_name)
+            ? (string) $user->display_name
+            : $user->name;
 
-        return TimeOfDayGreeting::headingHtmlFor($now, $user->name);
+        return TimeOfDayGreeting::headingHtmlFor($now, $greetingName);
     }
 
     public function getSubheading(): string|Htmlable|null

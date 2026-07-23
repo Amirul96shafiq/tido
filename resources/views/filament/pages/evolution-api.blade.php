@@ -71,10 +71,10 @@
                 @if ($this->getPollingInterval())
                     wire:poll.{{ $this->getPollingInterval() }}.keep-alive="refreshStatus"
                 @endif
-                class="flex min-h-72 flex-col items-center justify-center gap-4 rounded-xl bg-white p-6 dark:bg-slate-800"
+                class="flex min-h-72 w-full flex-col items-center justify-center gap-4 rounded-xl bg-white px-0 py-4 lg:p-6 dark:bg-slate-800"
             >
                 @if (! $this->hasContactAllowlist() && ! $this->isConnectionOpen())
-                    <div class="flex w-full max-w-md flex-col items-center px-4 py-6 text-center">
+                    <div class="flex w-full flex-col items-center py-6 text-center lg:max-w-md">
                         <x-filament::icon
                             icon="heroicon-o-exclamation-triangle"
                             class="mb-4 h-10 w-10 text-warning-500"
@@ -222,7 +222,7 @@
                         />
                     </div>
                 @elseif ($this->isConnectionOpen())
-                    <div class="flex w-full max-w-md flex-col items-center px-4 py-6 text-center">
+                    <div class="flex w-full flex-col items-center py-6 text-center lg:max-w-md">
                         <div class="relative mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-success-500/10">
                             <span
                                 class="pointer-events-none absolute inset-0 rounded-full border-2 border-success-500/30"
@@ -242,33 +242,40 @@
                             Your WhatsApp instance is linked and ready. The webhook is registered automatically — send a test ping anytime to confirm outbound messages.
                         </p>
 
-                        <dl class="mt-6 w-full divide-y divide-gray-200 rounded-xl border border-gray-200 text-left text-sm dark:divide-slate-700 dark:border-slate-700">
-                            <div class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-                                <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Connected number</dt>
-                                <dd class="font-mono text-gray-950 dark:text-white">
-                                    {{ $connectedNumber ?? 'Unknown — refresh status' }}
-                                </dd>
-                            </div>
-
-                            @if (filled($connectedProfileName))
-                                <div class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-                                    <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Profile</dt>
-                                    <dd class="text-gray-950 dark:text-white">
-                                        {{ $connectedProfileName }}
+                        <div class="mt-6 flex w-full flex-col gap-3 text-left text-sm">
+                            <dl class="rounded-xl border border-gray-200 px-4 py-3 dark:border-slate-700">
+                                <div class="flex flex-row items-baseline justify-between gap-3">
+                                    <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Connected number</dt>
+                                    <dd class="min-w-0 truncate text-right font-mono text-gray-950 dark:text-white">
+                                        @if (filled($connectedNumber))
+                                            <a
+                                                href="{{ \App\Support\PhoneNumber::whatsAppMeUrl($connectedNumber) }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="text-primary-600 underline underline-offset-2 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+                                            >
+                                                {{ $connectedNumber }}
+                                            </a>
+                                        @else
+                                            Unknown — refresh status
+                                        @endif
                                     </dd>
                                 </div>
-                            @endif
+                            </dl>
 
-                            <div class="flex flex-col gap-3 px-4 py-3">
-                                <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Contact allowlist</dt>
-                                <dd class="min-w-0 w-full">
-                                    @include('filament.pages.partials.evolution-api-allowlist', [
-                                        'allowedSenderEntries' => $this->allowedSenderEntries(),
-                                        'profileEditUrl' => $this->profileEditUrl(),
-                                    ])
-                                </dd>
-                            </div>
-                        </dl>
+                            <dl class="rounded-xl border border-gray-200 px-4 py-3 dark:border-slate-700">
+                                <div class="flex flex-col gap-3">
+                                    <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Contact allowlist</dt>
+                                    <dd class="min-w-0 w-full">
+                                        @include('filament.pages.partials.evolution-api-allowlist', [
+                                            'allowedSenderEntries' => $this->allowedSenderEntries(),
+                                            'profileEditUrl' => $this->profileEditUrl(),
+                                            'familyMembersUrl' => $this->familyMembersUrl(),
+                                        ])
+                                    </dd>
+                                </div>
+                            </dl>
+                        </div>
 
                         <div class="mt-5">
                             <div class="fi-evolution-api-details">
@@ -308,6 +315,8 @@
                                         'deviceLabel' => $this->effectiveDeviceLabel(),
                                         'allowedSenderEntries' => $this->allowedSenderEntries(),
                                         'allowedSenderNumbers' => $this->allowedSenderNumbers(),
+                                        'profileEditUrl' => $this->profileEditUrl(),
+                                        'familyMembersUrl' => $this->familyMembersUrl(),
                                     ])
                                 </x-filament::modal>
                             </div>
@@ -327,7 +336,7 @@
                         }
                     </style>
                 @else
-                    <div class="flex w-full max-w-sm flex-col items-center px-4 py-6 text-center">
+                    <div class="flex w-full flex-col items-center py-6 text-center lg:max-w-sm">
                         <div class="relative mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-gray-500/10 dark:bg-slate-500/10">
                             <x-filament::icon
                                 icon="heroicon-o-link"

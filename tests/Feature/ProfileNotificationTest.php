@@ -31,7 +31,7 @@ test('updating profile name triggers database notification', function () {
 
     $notification = $user->notifications()->first();
     expect($notification->data['title'])->toBe('Profile Settings Updated');
-    expect($notification->data['body'])->toContain('Name');
+    expect($notification->data['body'])->toContain('Full Name');
     expect($notification->data['actions'][0]['url'])->toBe(EditProfile::getUrl());
     expect($notification->data['actions'][0]['shouldOpenUrlInNewTab'])->toBeTrue();
 });

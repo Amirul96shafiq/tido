@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\FamilyRelationship;
 use App\Models\FamilyMember;
 use App\Models\User;
 use App\Support\PhoneNumber;
@@ -20,6 +21,17 @@ test('normalizes plus-prefixed E.164 numbers', function () {
 
 test('keeps already-normalized digits', function () {
     expect(PhoneNumber::normalize('60123456789'))->toBe('60123456789');
+});
+
+test('builds wa.me chat url with default help text', function () {
+    expect(PhoneNumber::whatsAppMeUrl('0123456789'))
+        ->toBe('https://wa.me/60123456789?text=help')
+        ->and(PhoneNumber::whatsAppMeUrl('+60123456789', 'ping'))
+        ->toBe('https://wa.me/60123456789?text=ping')
+        ->and(PhoneNumber::whatsAppMeUrl(null))
+        ->toBeNull()
+        ->and(PhoneNumber::whatsAppMeUrl('invalid'))
+        ->toBeNull();
 });
 
 test('rejects empty and invalid values', function (mixed $value) {
@@ -101,15 +113,18 @@ test('primaryWhatsAppNumber uses only user id 1', function () {
 test('allowedWhatsAppSenderEntries lists only user id 1 under primary', function () {
     User::factory()->create([
         'name' => 'Admin User',
+        'display_name' => 'Admin',
         'phone' => '60123456789',
     ]);
     User::factory()->create([
         'name' => 'Other User',
         'phone' => '60199999999',
     ]);
-    FamilyMember::factory()->create([
-        'name' => 'Spouse',
+    $familyMember = FamilyMember::factory()->create([
+        'name' => 'Spouse Full',
+        'display_name' => 'Spouse',
         'phone' => '60111111111',
+        'relationship' => FamilyRelationship::Sibling,
         'allowlist_enabled' => true,
     ]);
 
@@ -118,15 +133,54 @@ test('allowedWhatsAppSenderEntries lists only user id 1 under primary', function
     expect($entries['primary'])->toHaveCount(1)
         ->and($entries['primary'][0])->toMatchArray([
             'name' => 'Admin User',
+            'display_name' => 'Admin',
             'phone' => '60123456789',
         ])
         ->and($entries['primary'][0]['avatar_url'])->not->toBeEmpty()
         ->and($entries['family'])->toHaveCount(1)
         ->and($entries['family'][0])->toMatchArray([
-            'name' => 'Spouse',
+            'id' => $familyMember->id,
+            'name' => 'Spouse Full',
+            'display_name' => 'Spouse',
+            'relationship_label' => 'Sibling',
             'phone' => '60111111111',
         ])
         ->and($entries['family'][0]['avatar_url'])->not->toBeEmpty();
+});
+
+test('allowedWhatsAppSenderEntries orders family members newest first', function () {
+    User::factory()->create([
+        'name' => 'Admin User',
+        'phone' => '60123456789',
+    ]);
+
+    FamilyMember::factory()->create([
+        'name' => 'Oldest Member',
+        'phone' => '60111111111',
+        'allowlist_enabled' => true,
+        'created_at' => now()->subDays(3),
+    ]);
+    FamilyMember::factory()->create([
+        'name' => 'Middle Member',
+        'phone' => '60122222222',
+        'allowlist_enabled' => true,
+        'created_at' => now()->subDays(2),
+    ]);
+    FamilyMember::factory()->create([
+        'name' => 'Newest Member',
+        'phone' => '60133333333',
+        'allowlist_enabled' => true,
+        'created_at' => now()->subDay(),
+    ]);
+
+    $entries = PhoneNumber::allowedWhatsAppSenderEntries();
+
+    expect($entries['family'])->toHaveCount(3)
+        ->and(collect($entries['family'])->pluck('name')->all())->toBe([
+            'Newest Member',
+            'Middle Member',
+            'Oldest Member',
+        ]);
 });
 
 test('allowedWhatsAppSenderEntries uses uploaded avatars when set', function () {

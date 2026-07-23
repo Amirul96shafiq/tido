@@ -8,6 +8,7 @@ use App\Enums\EvolutionApiConnectionEvent;
 use App\Enums\EvolutionApiConnectMethod;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
 use App\Models\EvolutionApiConnectionLog;
 use App\Models\User;
@@ -1021,7 +1022,10 @@ class EvolutionApiPage extends Page implements HasTable
     }
 
     /**
-     * @return list<array{label: string, phone: string}>
+     * @return array{
+     *     primary: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>,
+     *     family: list<array{id: int, name: string, display_name: string|null, relationship_label: string|null, phone: string, avatar_url: string}>
+     * }
      */
     public function allowedSenderEntries(): array
     {
@@ -1036,6 +1040,11 @@ class EvolutionApiPage extends Page implements HasTable
     public function profileEditUrl(): string
     {
         return EditProfile::getUrl();
+    }
+
+    public function familyMembersUrl(): string
+    {
+        return FamilyMemberResource::getUrl('index');
     }
 
     private function notifyMissingContactAllowlist(): void
