@@ -1116,9 +1116,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     max-height: 2.5rem;
 }
 
-/* Open: labeled primary collapse CTA (match New resource / header actions). */
+/* Open: labeled primary collapse CTA (match New resource / header actions).
+ * Full width of footer row (same inset as sidebar menu items via parent px-4). */
 .fi-sidebar.fi-sidebar-open .fi-sidebar-close-collapse-sidebar-btn {
-    width: auto;
+    width: 100%;
     max-width: 100%;
     margin-inline: 0;
     justify-content: flex-start;

@@ -136,7 +136,7 @@ test('open sidebar collapse control is labeled button without tooltip', function
         ->and($labeledBtnCss)
         ->toContain('.fi-sidebar.fi-sidebar-open .fi-sidebar-close-collapse-sidebar-btn')
         ->toContain('justify-content: flex-start;')
-        ->toContain('width: auto;')
+        ->toContain('width: 100%;')
         ->and($expandBtnCss)
         ->toContain('.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-open-collapse-sidebar-btn')
         ->toContain('width: 2.5rem;')
