@@ -1556,16 +1556,44 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply text-gray-500 dark:text-slate-400 transition-all duration-200;
 }
 
-.fi-sidebar-group-btn:hover > .fi-icon,
-.fi-sidebar-item.fi-sidebar-item-has-url
-    > .fi-sidebar-item-btn:hover
-    > .fi-icon {
-    @apply text-amber-500 dark:text-amber-400;
+/* Sidebar navigation — match user-menu profile active / theme-switcher tokens */
+.fi-sidebar-group.fi-active .fi-sidebar-group-dropdown-trigger-btn .fi-icon {
+    color: var(--primary-500);
 }
 
-.fi-sidebar-group.fi-active .fi-sidebar-group-dropdown-trigger-btn .fi-icon,
-.fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-icon {
-    @apply text-amber-500 dark:text-amber-400;
+.dark
+    .fi-sidebar-group.fi-active
+    .fi-sidebar-group-dropdown-trigger-btn
+    .fi-icon {
+    color: var(--primary-400);
+}
+
+.fi-sidebar-item.fi-sidebar-item-has-url:not(.fi-active)
+    > .fi-sidebar-item-btn:hover {
+    background-color: var(--gray-50);
+}
+
+.dark
+    .fi-sidebar-item.fi-sidebar-item-has-url:not(.fi-active)
+    > .fi-sidebar-item-btn:hover {
+    background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
+}
+
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn:hover {
+    background-color: var(--gray-50);
+    color: var(--primary-500);
+}
+
+.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
+.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn:hover {
+    background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
+    color: var(--primary-400);
+}
+
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-icon,
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-sidebar-item-label {
+    color: inherit;
 }
 
 .fi-sidebar-item-btn {
@@ -1576,18 +1604,6 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
         color var(--tido-sidebar-duration) var(--tido-sidebar-ease),
         background-color var(--tido-sidebar-duration) var(--tido-sidebar-ease),
         opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease);
-}
-
-.fi-sidebar-item.fi-sidebar-item-has-url > .fi-sidebar-item-btn:hover {
-    @apply bg-gray-100 dark:bg-slate-700/60;
-}
-
-.fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
-    @apply bg-gray-100 dark:bg-slate-700/60;
-}
-
-.fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-sidebar-item-label {
-    @apply text-amber-600 dark:text-amber-400;
 }
 
 .fi-sidebar-group-dropdown-trigger-btn.fi-version-icon-btn {
