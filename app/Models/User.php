@@ -28,6 +28,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
         'password',
         'avatar_url',
         'phone',
+        'date_of_birth',
         'timezone',
         'locale',
         'date_format',
@@ -51,6 +52,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
     {
         return [
             'email_verified_at' => 'datetime',
+            'date_of_birth' => 'date',
             'password' => 'hashed',
             'notify_budget_alerts' => 'boolean',
             'notify_profile_updates' => 'boolean',

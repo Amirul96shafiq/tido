@@ -57,6 +57,43 @@ test('updating profile saves display name', function () {
     expect($user->refresh()->display_name)->toBe('Ada');
 });
 
+test('updating profile saves date of birth', function () {
+    $user = User::factory()->create([
+        'name' => 'Ada Lovelace',
+        'date_of_birth' => null,
+        'notify_profile_updates' => false,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->set('data.date_of_birth', '15/05/1990')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($user->refresh()->date_of_birth?->format('Y-m-d'))->toBe('1990-05-15');
+});
+
+test('updating date of birth triggers database notification', function () {
+    $user = User::factory()->create([
+        'name' => 'Ada Lovelace',
+        'date_of_birth' => null,
+        'notify_profile_updates' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->set('data.date_of_birth', '15/05/1990')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $notification = $user->notifications()->first();
+
+    expect($user->notifications()->count())->toBe(1)
+        ->and($notification->data['body'])->toContain('Date of birth');
+});
+
 test('updating display name triggers database notification', function () {
     $user = User::factory()->create([
         'name' => 'Ada Lovelace',
