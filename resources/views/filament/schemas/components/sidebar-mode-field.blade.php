@@ -48,19 +48,25 @@
         </div>
 
         <div class="fi-fo-field-content-col">
-            <button
-                type="button"
-                role="switch"
-                x-bind:aria-checked="collapsed ? 'true' : 'false'"
-                x-bind:class="collapsed ? @js($onClasses) : @js($offClasses)"
-                x-on:click="toggle()"
-                aria-label="Sidebar Mode"
-            >
-                <div>
-                    <div aria-hidden="true"></div>
-                    <div aria-hidden="true"></div>
-                </div>
-            </button>
+            <div class="flex w-full items-center justify-between gap-2">
+                <button
+                    type="button"
+                    role="switch"
+                    x-bind:aria-checked="collapsed ? 'true' : 'false'"
+                    x-bind:class="collapsed ? @js($onClasses) : @js($offClasses)"
+                    x-on:click="toggle()"
+                    aria-label="Sidebar Mode"
+                >
+                    <div>
+                        <div aria-hidden="true"></div>
+                        <div aria-hidden="true"></div>
+                    </div>
+                </button>
+
+                <span class="rounded-full bg-primary-500/90 px-2 py-1 text-xs font-medium text-primary-900">
+                    <span x-text="collapsed ? 'Collapsed' : 'Expanded'">Expanded</span>
+                </span>
+            </div>
         </div>
     </div>
 

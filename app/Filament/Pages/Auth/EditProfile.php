@@ -18,6 +18,7 @@ use Filament\Auth\Notifications\NoticeOfEmailChangeRequest;
 use Filament\Auth\Pages\EditProfile as BaseEditProfile;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -123,10 +124,8 @@ class EditProfile extends BaseEditProfile
                             ->schema([
                                 View::make('filament.schemas.components.theme-mode-field')
                                     ->columnSpanFull(),
-                                Toggle::make('stylized_background_enabled')
-                                    ->label('Stylized Background')
-                                    ->live(),
-                                View::make('filament.schemas.components.background-preview')
+                                Hidden::make('stylized_background_enabled'),
+                                View::make('filament.schemas.components.stylized-background-field')
                                     ->viewData(fn (Get $get): array => [
                                         'enabled' => (bool) $get('stylized_background_enabled'),
                                     ])

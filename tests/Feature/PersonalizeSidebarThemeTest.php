@@ -19,6 +19,7 @@ test('profile personalize section renders live sidebar mode preview', function (
         ->assertSee('Sidebar Mode', false)
         ->assertSee('tido-sidebar-preview', false)
         ->assertSee('Expanded', false)
+        ->assertSee('collapsed ? \'Collapsed\' : \'Expanded\'', false)
         ->assertSee('$store.sidebar.open()', false)
         ->assertSee('$store.sidebar.close()', false);
 });
@@ -31,9 +32,27 @@ test('profile personalize section renders theme mode switcher', function (): voi
     Livewire::test(EditProfile::class)
         ->assertSee('Theme Mode', false)
         ->assertSee('fi-theme-switcher', false)
+        ->assertSee('theme-changed.window', false)
+        ->assertSee('light: \'Light\'', false)
+        ->assertSee('dark: \'Dark\'', false)
+        ->assertSee('system: \'System\'', false)
         ->assertSee('theme = \'light\'', false)
         ->assertSee('theme = \'dark\'', false)
         ->assertSee('theme = \'system\'', false);
+});
+
+test('profile personalize section renders stylized background indicators', function (): void {
+    $user = User::factory()->create([
+        'stylized_background_enabled' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->assertSee('Stylized Background', false)
+        ->assertSee('Enabled: Stylized Mode', false)
+        ->assertSee('Disabled: Focus Mode', false)
+        ->assertSee('data.stylized_background_enabled', false);
 });
 
 test('sidebar and theme preferences are not stored on users table', function (): void {
