@@ -58,6 +58,20 @@ final class PhoneNumber
     }
 
     /**
+     * Build a https://wa.me/{digits}?text=… chat link for a Malaysian number.
+     */
+    public static function whatsAppMeUrl(?string $value, string $text = 'help'): ?string
+    {
+        $normalized = self::normalize($value);
+
+        if ($normalized === null) {
+            return null;
+        }
+
+        return 'https://wa.me/'.$normalized.'?'.http_build_query(['text' => $text]);
+    }
+
+    /**
      * Parse a comma/space/semicolon-separated list of Malaysian numbers.
      *
      * @return list<string>

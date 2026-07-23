@@ -2,7 +2,18 @@
     <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
         <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Connected number</dt>
         <dd class="font-mono text-gray-950 dark:text-white">
-            {{ $connectedNumber ?? 'Unknown — refresh status' }}
+            @if (filled($connectedNumber))
+                <a
+                    href="{{ \App\Support\PhoneNumber::whatsAppMeUrl($connectedNumber) }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-primary-600 underline underline-offset-2 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+                >
+                    {{ $connectedNumber }}
+                </a>
+            @else
+                Unknown — refresh status
+            @endif
         </dd>
     </div>
 

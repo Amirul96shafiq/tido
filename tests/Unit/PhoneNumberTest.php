@@ -22,6 +22,17 @@ test('keeps already-normalized digits', function () {
     expect(PhoneNumber::normalize('60123456789'))->toBe('60123456789');
 });
 
+test('builds wa.me chat url with default help text', function () {
+    expect(PhoneNumber::whatsAppMeUrl('0123456789'))
+        ->toBe('https://wa.me/60123456789?text=help')
+        ->and(PhoneNumber::whatsAppMeUrl('+60123456789', 'ping'))
+        ->toBe('https://wa.me/60123456789?text=ping')
+        ->and(PhoneNumber::whatsAppMeUrl(null))
+        ->toBeNull()
+        ->and(PhoneNumber::whatsAppMeUrl('invalid'))
+        ->toBeNull();
+});
+
 test('rejects empty and invalid values', function (mixed $value) {
     expect(PhoneNumber::normalize(is_string($value) ? $value : null))->toBeNull()
         ->and(PhoneNumber::isValid(is_string($value) ? $value : null))->toBeFalse();

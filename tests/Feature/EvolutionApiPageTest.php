@@ -136,6 +136,7 @@ test('connected status shows linked number and instance details', function () {
         ->assertSet('webhookRegistered', true)
         ->assertSee('Connected number')
         ->assertSee('601115666887')
+        ->assertSeeHtml('href="https://wa.me/601115666887?text=help"')
         ->assertSee('Profile name')
         ->assertSee('tido Bot')
         ->assertSee('Connected via')
