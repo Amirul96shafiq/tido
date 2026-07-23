@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-tido is a localized, single-tenant MYR expense tracker built for frictionless financial logging. Ingest receipts via WhatsApp (image or text manual invoice), scheduled Google Drive sync, or admin upload, and parse on-device with Ollama (`qwen2.5vl:7b`). Manage parsed line items as labels, track strict budgets, and review analytics instantly within a streamlined Filament dashboard.
+tido is a localized, single-tenant MYR expense tracker built for frictionless financial logging. Ingest receipts via WhatsApp (image or text manual invoice), scheduled Google Drive sync (coming soon), or admin upload, and parse on-device with local Ollama. Manage parsed line items as labels, track strict budgets, and review analytics instantly within a streamlined Filament dashboard.
 </p>
 
 ## Table of Contents
@@ -39,12 +39,11 @@ tido is a localized, single-tenant MYR expense tracker built for frictionless fi
 
 ## Features
 
-- Receipt ingestion from WhatsApp (Evolution API: **images** + **text manual invoices**), Google Drive **scheduled** sync (every 15m), and admin upload
-- Local OCR via Ollama (`qwen2.5vl:7b`) with JSON-formatted extraction; manual WhatsApp text uses Ollama for **Labels** only
-- Line-item **Labels**, duplicate detection (`receipt_hash`), and manual review
+- Receipt ingestion from WhatsApp (**images** + **text manual invoices**), Google Drive scheduled sync (coming soon), and admin upload
+- Local OCR via Ollama with JSON-formatted extraction; manual WhatsApp text uses Ollama for **Labels** only
+- Line-item **Labels**, duplicate detection, and manual review
 - Per-label budgets with WhatsApp threshold alerts
 - Month-scoped dashboard analytics and spending forecast
-- Redis queues via Laravel Horizon (`default`, `receipts`, `whatsapp`) in production; `database` queue locally
 - Form draft auto-save and crash recovery on Filament Create/Edit
 - Spatie backups, one-time restore tokens, guest restore, and profile Danger Zone
 
@@ -80,11 +79,7 @@ flowchart LR
   ollamaText --> review
 ```
 
-Invoice statuses: `pending` → `parsed` → `reviewed` (or `requires_manual_review` / `failed`). Image receipts (WhatsApp, Drive, or Filament web upload) share the vision path; WhatsApp **manual text** skips vision OCR, uses Ollama for Labels only, and always lands on `requires_manual_review`. Both paths end at `Parsed_or_manual_review`. Duplicates use SHA-256 `receipt_hash` (number + datetime + total). Expense tags are the **`Label`** model / `labels` table (UI: **Label** / **Labels**).
-
-Scheduled jobs (`routes/console.php`): Drive sync every 15 minutes; `backup:run` daily 02:00; `backup:clean` daily 03:00.
-
-Full blueprint: [docs/system-architecture.md](docs/system-architecture.md).
+Statuses, duplicates, Labels, and schedules: [docs/system-architecture.md](docs/system-architecture.md). Domain cheat sheet: [docs/agent-onboarding.md](docs/agent-onboarding.md).
 
 ## Installation
 
@@ -116,12 +111,7 @@ npm install
 npm run build
 ```
 
-Pull the Ollama vision model (once):
-
-```bash
-ollama pull qwen2.5vl:7b
-curl http://127.0.0.1:11434/api/tags
-```
+Pull the vision model once — see [docs/ollama-setup.md](docs/ollama-setup.md).
 
 ### Run locally
 
@@ -147,7 +137,7 @@ Default seeded login: `admin@tido.local` / `password`.
 
 Outside `local`, allow Horizon dashboard access by adding emails to the `viewHorizon` gate in [`app/Providers/HorizonServiceProvider.php`](app/Providers/HorizonServiceProvider.php) (the allowlist starts empty).
 
-Integration setup guides: [Ollama](docs/ollama-setup.md) · [Evolution API](docs/evolution-local-windows.md) · [Google Drive](docs/google-drive-setup.md).
+Setup guides: [Ollama](docs/ollama-setup.md) · [Evolution API](docs/evolution-local-windows.md) · [Google Drive](docs/google-drive-setup.md).
 
 ## Usage
 
@@ -162,57 +152,15 @@ Admin nav:
 
 **WhatsApp receipt image:** Send a photo/document from an allowlisted number (Profile or Family Members with allowlist enabled) → batched “Document received” → Ollama vision parse → “Document parsed” with edit link.
 
-**WhatsApp manual invoice (no receipt image):** Send text in this format (each line ends with `;`). Optional payment token after the merchant: `qr`, `tngo`, `card` (Mastercard), `cash` (default if omitted), `visa`, etc.
-
-```
-Kedai Makan Seri Ayu, qr;
-Nasi + ikan keli, 1, 12;
-Teh o ais, 1, 2.5;
-```
-
-Multiple merchant blocks in one message (or rapid messages) create multiple invoices. Totals are summed from line totals; currency is MYR; status becomes `requires_manual_review` after AI labels. Full format, tokens, and replies: [docs/whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md).
+**WhatsApp manual invoice (no receipt image):** Text format, payment tokens, and replies: [docs/whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md).
 
 **WhatsApp text commands:** `spend` / `total` — this month’s spending; other text — help.
 
 **Backups:** Cataloged ZIPs under Tools → Backups. Restore tokens are shown once (email/UI); only a hash is stored. After Danger Zone account wipe, guest restore is available when no users exist. Details: [docs/backups-and-danger-zone.md](docs/backups-and-danger-zone.md).
 
-Useful commands:
-
-```bash
-php artisan horizon
-php artisan schedule:work
-php artisan whatsapp:ping
-php artisan backup:run
-php artisan test --compact
-composer test
-npm run build
-npm run dev:full
-```
-
 ## Configuration
 
-Copy `.env.example` and set values for your environment. Notable groups:
-
-<details>
-<summary>Notable environment variables</summary>
-
-| Variable                     | Purpose                                                  |
-| ---------------------------- | -------------------------------------------------------- |
-| `DB_*`                       | Database (SQLite default locally)                        |
-| `QUEUE_CONNECTION`           | `database` locally; `redis` + Horizon in production      |
-| `SESSION_LIFETIME`           | Session minutes (default `10080` = 7 days)               |
-| `EVOLUTION_API_URL`          | Evolution base URL                                       |
-| `EVOLUTION_API_KEY`          | API + webhook Bearer token                               |
-| `EVOLUTION_INSTANCE_NAME`    | Instance name (default `tido`)                           |
-| `OLLAMA_HOST`                | Ollama HTTP API (default `http://127.0.0.1:11434`)       |
-| `OLLAMA_MODEL`               | Vision model (default `qwen2.5vl:7b`)                    |
-| `OLLAMA_TIMEOUT`             | Ollama HTTP timeout seconds (default `120`)              |
-| `GOOGLE_DRIVE_CLIENT_ID`     | Drive OAuth client                                       |
-| `GOOGLE_DRIVE_CLIENT_SECRET` | Drive OAuth secret                                       |
-| `GOOGLE_DRIVE_REFRESH_TOKEN` | Drive refresh token                                      |
-| `GOOGLE_DRIVE_FOLDER_ID`     | Folder polled by `SyncGoogleDriveJob` (not push/Pub/Sub) |
-
-</details>
+Copy [`.env.example`](.env.example) and set values for your environment. Notable groups (`DB_*`, `QUEUE_CONNECTION`, `EVOLUTION_*`, `OLLAMA_*`, `GOOGLE_DRIVE_*`) are documented there and in the [setup guides](#installation).
 
 ## Testing
 
@@ -226,22 +174,7 @@ Tests use in-memory SQLite. Mock external HTTP and queues with `Http::fake()` / 
 
 ## Documentation
 
-Deep docs live under [`docs/`](docs/README.md):
-
-| Doc                                                                                                                                                                                                                             | Purpose                                     |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| [agent-onboarding.md](docs/agent-onboarding.md)                                                                                                                                                                                 | Product map for agents and contributors     |
-| [system-architecture.md](docs/system-architecture.md)                                                                                                                                                                           | Architecture blueprint                      |
-| [ollama-setup.md](docs/ollama-setup.md)                                                                                                                                                                                         | Native host Ollama / qwen2.5vl:7b           |
-| [evolution-local-windows.md](docs/evolution-local-windows.md)                                                                                                                                                                   | Evolution instance + webhook (Windows host) |
-| [whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md)                                                                                                                                                                   | Text-only WhatsApp manual invoice format    |
-| [google-drive-setup.md](docs/google-drive-setup.md)                                                                                                                                                                             | Drive folder sync credentials               |
-| [backups-and-danger-zone.md](docs/backups-and-danger-zone.md)                                                                                                                                                                   | Backups, restore tokens, Danger Zone        |
-| [content-draft-recovery.md](docs/content-draft-recovery.md)                                                                                                                                                                     | Form draft auto-save / crash recovery       |
-| [git-workflow.md](docs/git-workflow.md)                                                                                                                                                                                         | Branching and PRs                           |
-| [ui-tooltips.md](docs/ui-tooltips.md) · [ui-dark-theme.md](docs/ui-dark-theme.md) · [ui-empty-states.md](docs/ui-empty-states.md) · [ui-copy-style.md](docs/ui-copy-style.md) · [ui-modal-overlay.md](docs/ui-modal-overlay.md) | Filament UI conventions                     |
-
-Full index: [docs/README.md](docs/README.md).
+Full index: [docs/README.md](docs/README.md). Product map for agents and contributors: [docs/agent-onboarding.md](docs/agent-onboarding.md).
 
 ## Contributing
 
