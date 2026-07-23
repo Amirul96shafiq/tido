@@ -157,7 +157,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
 
 /* Hide Tippy below `sm` (JS also cancels show — see disable-mobile-tippy.js) */
 @media (max-width: 639px) {
-    [data-tippy-root] {
+    [data-tippy-root]:not(.tido-tippy-mobile-root) {
         display: none !important;
     }
 }
