@@ -165,10 +165,32 @@ test('sidebar header swaps full and compact logos by state', function () {
         ->toContain('display: flex;')
         ->toContain('justify-content: center;')
         ->and($css)
+        ->toContain('.fi-topbar-start {')
+        ->toContain('.fi-topbar-start .fi-logo')
         ->toContain('.fi-topbar .fi-logo')
-        ->toContain('.fi-topbar-start')
+        ->toContain('display: flex !important;')
+        ->toContain('@media (min-width: 1024px)')
         ->not->toContain('.fi-topbar-ctn-collapsed .fi-topbar-start')
         ->not->toContain('html.fi-sidebar-is-collapsed .fi-topbar-start');
+
+    $mobileTopbarLogoSection = Str::between(
+        $css,
+        '/*\n * Mobile topbar: brand logo beside the sidebar open/close buttons.',
+        '/* Skip layout/chrome motion on the first paint after a hard refresh */',
+    );
+    $mobileTopbarStartBlock = Str::between(
+        $mobileTopbarLogoSection,
+        '.fi-topbar-start {',
+        '.fi-topbar-start .fi-logo {',
+    );
+
+    expect($mobileTopbarStartBlock)
+        ->toContain('display: flex !important;')
+        ->and($mobileTopbarLogoSection)
+        ->toContain('@media (min-width: 1024px)')
+        ->toContain('.fi-topbar .fi-logo')
+        ->toContain('display: none !important;')
+        ->toContain('height: 2.5rem !important;');
 });
 
 test('sidebar collapse expand transition uses shared motion tokens and logo mask', function () {

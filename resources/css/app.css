@@ -847,13 +847,40 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
     color: inherit;
 }
 
-/* Keep the full logo in the sidebar header; hide the topbar logo. */
-.fi-topbar .fi-logo {
-    display: none !important;
+/*
+ * Mobile topbar: brand logo beside the sidebar open/close buttons.
+ * Theme swap stays on Filament .fi-logo-light / .fi-logo-dark (do not force
+ * display on .fi-logo here — that would show both images).
+ * Desktop (≥1024px): brand stays in the sidebar header only.
+ */
+.fi-topbar-start {
+    display: flex !important;
+    align-items: center;
+    margin-inline-start: 0.5rem;
+    margin-inline-end: 0;
+    min-width: 0;
 }
 
-.fi-topbar-start {
-    display: none !important;
+.fi-topbar-start .fi-logo {
+    margin-inline-start: 0;
+}
+
+.fi-topbar-start .fi-logo,
+.fi-topbar-start .fi-logo img {
+    height: 2.5rem !important;
+    width: auto;
+    max-width: min(10rem, 45vw);
+    object-fit: contain;
+}
+
+@media (min-width: 1024px) {
+    .fi-topbar .fi-logo {
+        display: none !important;
+    }
+
+    .fi-topbar-start {
+        display: none !important;
+    }
 }
 
 /* Skip layout/chrome motion on the first paint after a hard refresh */
