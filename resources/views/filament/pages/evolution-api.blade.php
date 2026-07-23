@@ -71,10 +71,10 @@
                 @if ($this->getPollingInterval())
                     wire:poll.{{ $this->getPollingInterval() }}.keep-alive="refreshStatus"
                 @endif
-                class="flex min-h-72 flex-col items-center justify-center gap-4 rounded-xl bg-white p-6 dark:bg-slate-800"
+                class="flex min-h-72 w-full flex-col items-center justify-center gap-4 rounded-xl bg-white px-0 py-4 lg:p-6 dark:bg-slate-800"
             >
                 @if (! $this->hasContactAllowlist() && ! $this->isConnectionOpen())
-                    <div class="flex w-full max-w-md flex-col items-center px-4 py-6 text-center">
+                    <div class="flex w-full flex-col items-center py-6 text-center lg:max-w-md">
                         <x-filament::icon
                             icon="heroicon-o-exclamation-triangle"
                             class="mb-4 h-10 w-10 text-warning-500"
@@ -222,7 +222,7 @@
                         />
                     </div>
                 @elseif ($this->isConnectionOpen())
-                    <div class="flex w-full max-w-md flex-col items-center px-4 py-6 text-center">
+                    <div class="flex w-full flex-col items-center py-6 text-center lg:max-w-md">
                         <div class="relative mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-success-500/10">
                             <span
                                 class="pointer-events-none absolute inset-0 rounded-full border-2 border-success-500/30"
@@ -336,7 +336,7 @@
                         }
                     </style>
                 @else
-                    <div class="flex w-full max-w-sm flex-col items-center px-4 py-6 text-center">
+                    <div class="flex w-full flex-col items-center py-6 text-center lg:max-w-sm">
                         <div class="relative mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-gray-500/10 dark:bg-slate-500/10">
                             <x-filament::icon
                                 icon="heroicon-o-link"
