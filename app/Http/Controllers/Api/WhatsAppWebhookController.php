@@ -133,11 +133,14 @@ class WhatsAppWebhookController extends Controller
             return response()->json(['status' => 'success', 'reply' => $reply]);
         }
 
-        $help = WhatsAppMessage::compose(
-            '🤖',
-            'Help',
-            "• Send a *document* to upload and parse it.\n• Send a *manual invoice* text (merchant[, qr|tngo|card|cash]; then item, qty, total; lines).\n• Type *spend* or *total* to view this month's expenses.",
-        );
+        if (str_contains($text, 'manual way')) {
+            $reply = WhatsAppMessage::manualApproach();
+            $waService->sendMessage($senderNumber, $reply);
+
+            return response()->json(['status' => 'success', 'reply' => $reply]);
+        }
+
+        $help = WhatsAppMessage::help();
 
         $waService->sendMessage($senderNumber, $help);
 

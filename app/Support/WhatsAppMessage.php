@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support;
 
 use App\Helpers\MoneyDisplay;
+use App\Models\PaymentMethod;
 
 final class WhatsAppMessage
 {
@@ -29,6 +30,45 @@ final class WhatsAppMessage
         ));
 
         return implode("\n\n", $sections);
+    }
+
+    public static function help(): string
+    {
+        return self::compose(
+            '🤖',
+            'Help',
+            implode("\n", [
+                'Use one of the approaches below in WhatsApp chat to start AI parsing and store it as an invoice:',
+                '- Upload a *document(s)* or *image(s)*',
+                '- Type a *manual invoice text* (type "*manual way*" to learn more)',
+                '- Type *spend* or *total* to view the current month\'s expenses',
+            ]),
+        );
+    }
+
+    public static function manualApproach(): string
+    {
+        $paymentMethodLines = PaymentMethod::orderedForSelect()
+            ->map(static fn (PaymentMethod $method): string => '- '.$method->name)
+            ->implode("\n");
+
+        $body = implode("\n", array_filter([
+            'Type the exact format below in this WhatsApp chat:',
+            '',
+            '[Invoice title], [Payment method];',
+            '[Line item 1  label], [quantity], [total price];',
+            '...',
+            '',
+            'Sample:',
+            '',
+            'ASNB Investment, FPX;',
+            'Amanah Saham Bumiputera (Class A), 1, 200;',
+            '',
+            'Payment method supported:',
+            $paymentMethodLines !== '' ? $paymentMethodLines : null,
+        ], static fn (?string $line): bool => $line !== null));
+
+        return self::compose('💬', 'Manual Approach', $body);
     }
 
     public static function receiptUploadFailed(int $attempt, int $maxAttempts = 3): string

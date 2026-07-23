@@ -151,6 +151,7 @@ test('whatsapp webhook allows self-chat fromMe when sender is allowlisted', func
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/')
             && str_contains((string) $request['text'], '*Help*')
+            && str_contains((string) $request['text'], '*document(s)*')
             && str_contains((string) $request['text'], '— Powered by *tido*');
     });
 });

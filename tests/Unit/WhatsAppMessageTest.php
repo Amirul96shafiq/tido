@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 use App\Support\WhatsAppMessage;
+use Database\Seeders\PaymentMethodSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+uses(TestCase::class, RefreshDatabase::class);
 
 test('compose joins header body and footer with blank lines', function () {
     $message = WhatsAppMessage::compose(
@@ -22,6 +27,32 @@ test('compose trims body and uses custom footer', function () {
     $message = WhatsAppMessage::compose('🔐', 'Login code', '  Code: *123456*  ', 'Custom footer');
 
     expect($message)->toBe("🔐 *Login code*\n\nCode: *123456*\n\nCustom footer");
+});
+
+test('help includes updated approaches and manual way hint', function () {
+    $message = WhatsAppMessage::help();
+
+    expect($message)
+        ->toContain('🤖 *Help*')
+        ->toContain('*document(s)*')
+        ->toContain('*image(s)*')
+        ->toContain('*manual way*')
+        ->toContain('— Powered by *tido*');
+});
+
+test('manual approach includes format sample and payment methods', function () {
+    $this->seed(PaymentMethodSeeder::class);
+
+    $message = WhatsAppMessage::manualApproach();
+
+    expect($message)
+        ->toContain('💬 *Manual Approach*')
+        ->toContain('[Invoice title], [Payment method];')
+        ->toContain('ASNB Investment, FPX;')
+        ->toContain('Payment method supported:')
+        ->toContain('- Cash')
+        ->toContain('- Mastercard')
+        ->toContain('— Powered by *tido*');
 });
 
 test('receipt upload failed includes retry count for non-final attempts', function () {

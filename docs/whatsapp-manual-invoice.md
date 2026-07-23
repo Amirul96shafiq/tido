@@ -108,7 +108,8 @@ https://…/admin/invoices/{id}/edit
 ## Other WhatsApp text commands
 
 - `spend` / `total` — month spending summary
-- Anything else (non-format) — help text (includes a short manual-invoice hint)
+- `manual way` — manual invoice format, sample, and supported payment methods
+- Anything else (non-format) — help text (points to `manual way` for manual invoice details)
 
 ## Key code
 
