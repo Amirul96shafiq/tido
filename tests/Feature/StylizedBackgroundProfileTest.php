@@ -45,7 +45,7 @@ test('changing the stylized background preference reports the profile change', f
         ->and($notification->data['body'])->toContain('Stylized background');
 });
 
-test('background preview reflects the current toggle state', function (): void {
+test('background preview shows real panel art at full height', function (): void {
     $user = User::factory()->create([
         'stylized_background_enabled' => false,
     ]);
@@ -53,7 +53,13 @@ test('background preview reflects the current toggle state', function (): void {
     $this->actingAs($user);
 
     Livewire::test(EditProfile::class)
-        ->assertSee('bg-disabled-l-v2.png')
-        ->set('data.stylized_background_enabled', true)
-        ->assertSee('bg-enabled-l-v2.png');
+        ->assertSee('tido-stylized-preview', false)
+        ->assertSee('images/bg-l.png', false)
+        ->assertSee('images/bg-d.png', false)
+        ->assertSee('tido_dark_logo', false)
+        ->assertSee('aspect-ratio: 1919 / 1079', false)
+        ->assertSee('Enabled: Stylized Mode', false)
+        ->assertSee('Disabled: Focus Mode', false)
+        ->assertDontSee('bg-disabled-l-v2.png')
+        ->assertDontSee('bg-enabled-l-v2.png');
 });

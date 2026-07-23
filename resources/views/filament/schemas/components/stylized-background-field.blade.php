@@ -18,29 +18,15 @@
         ...get_component_color_classes(ToggleComponent::class, 'gray'),
     ]);
 
-    $enabledLightImage = asset('images/bg-enabled-l-v2.png');
-    $enabledDarkImage = asset('images/bg-enabled-d-v2.png');
-    $disabledLightImage = asset('images/bg-disabled-l-v2.png');
-    $disabledDarkImage = asset('images/bg-disabled-d-v2.png');
     $initialEnabled = (bool) ($enabled ?? false);
-    $initialLightImage = $initialEnabled ? $enabledLightImage : $disabledLightImage;
-    $initialDarkImage = $initialEnabled ? $enabledDarkImage : $disabledDarkImage;
+    $lightBackground = asset('images/bg-l.png');
+    $darkBackground = asset('images/bg-d.png');
 @endphp
 
 <div
     class="flex flex-col gap-3"
     x-data="{
         enabled: $wire.entangle('data.stylized_background_enabled').live,
-        enabledLight: @js($enabledLightImage),
-        enabledDark: @js($enabledDarkImage),
-        disabledLight: @js($disabledLightImage),
-        disabledDark: @js($disabledDarkImage),
-        lightSource() {
-            return this.enabled ? this.enabledLight : this.disabledLight;
-        },
-        darkSource() {
-            return this.enabled ? this.enabledDark : this.disabledDark;
-        },
         toggle() {
             this.enabled = ! this.enabled;
         },
@@ -80,25 +66,42 @@
         </div>
     </div>
 
-    <div class="relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-        <img
-            src="{{ $initialLightImage }}"
-            x-bind:src="lightSource()"
-            alt="Background preview"
-            class="block h-full w-full cursor-pointer object-cover transition-opacity duration-200 hover:opacity-80 dark:hidden"
-            style="aspect-ratio: 1919 / 1079;"
-            x-on:click="window.open(lightSource(), '_blank', 'noopener,noreferrer')"
-        />
-        <img
-            src="{{ $initialDarkImage }}"
-            x-bind:src="darkSource()"
-            alt="Background preview"
-            class="hidden h-full w-full cursor-pointer object-cover transition-opacity duration-200 hover:opacity-80 dark:block"
-            style="aspect-ratio: 1919 / 1079;"
-            x-on:click="window.open(darkSource(), '_blank', 'noopener,noreferrer')"
-        />
+    <div
+        class="tido-stylized-preview relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
+        style="aspect-ratio: 1919 / 1079;"
+    >
+        <x-tido.panel-preview-chrome class="h-full">
+            <x-slot:background>
+                <div
+                    class="absolute inset-0 bg-white transition-opacity duration-200 dark:bg-slate-900"
+                    x-bind:class="enabled ? 'opacity-0' : 'opacity-100'"
+                    aria-hidden="true"
+                ></div>
 
-        <div class="absolute inset-block-start-2 inset-inline-start-2 rounded-full bg-primary-500/90 px-2 py-1 text-xs font-medium text-primary-900">
+                <div
+                    class="absolute inset-0 bg-cover bg-bottom bg-no-repeat transition-opacity duration-200 dark:hidden"
+                    style="background-image: url('{{ $lightBackground }}');"
+                    x-bind:class="enabled ? 'opacity-100' : 'opacity-0'"
+                    aria-hidden="true"
+                ></div>
+
+                <div
+                    class="absolute inset-0 hidden bg-cover bg-bottom bg-no-repeat transition-opacity duration-200 dark:block"
+                    style="background-image: url('{{ $darkBackground }}');"
+                    x-bind:class="enabled ? 'opacity-100' : 'opacity-0'"
+                    aria-hidden="true"
+                ></div>
+            </x-slot:background>
+
+            <div class="h-3 w-1/3 rounded-full bg-gray-200/90 dark:bg-gray-700/90"></div>
+            <div class="h-16 w-full rounded-md bg-white/80 ring-1 ring-gray-200/80 dark:bg-slate-800/80 dark:ring-white/10"></div>
+            <div class="flex gap-2">
+                <div class="h-10 flex-1 rounded-md bg-white/80 ring-1 ring-gray-200/80 dark:bg-slate-800/80 dark:ring-white/10"></div>
+                <div class="h-10 flex-1 rounded-md bg-white/80 ring-1 ring-gray-200/80 dark:bg-slate-800/80 dark:ring-white/10"></div>
+            </div>
+        </x-tido.panel-preview-chrome>
+
+        <div class="absolute inset-block-start-2 inset-inline-start-2 z-20 rounded-full bg-primary-500/90 px-2 py-1 text-xs font-medium text-primary-900">
             <span x-text="enabled ? 'Enabled: Stylized Mode' : 'Disabled: Focus Mode'">
                 {{ $initialEnabled ? 'Enabled: Stylized Mode' : 'Disabled: Focus Mode' }}
             </span>

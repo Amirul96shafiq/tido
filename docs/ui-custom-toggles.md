@@ -8,7 +8,7 @@ Prefer Filament’s native `Toggle::make()` whenever the value lives in form/`$w
 **Canonical examples:**
 
 - Sidebar (Alpine store): [`sidebar-mode-field.blade.php`](../resources/views/filament/schemas/components/sidebar-mode-field.blade.php)
-- Stylized background (entangled form field + pill + preview): [`stylized-background-field.blade.php`](../resources/views/filament/schemas/components/stylized-background-field.blade.php)
+- Stylized background (entangled form field + pill + CSS mock preview): [`stylized-background-field.blade.php`](../resources/views/filament/schemas/components/stylized-background-field.blade.php)
 
 ## Prefer native first
 
@@ -20,7 +20,7 @@ Toggle::make('notify_budget_alerts')
     ->live();
 ```
 
-On Edit Profile Personalize, stylized background uses a custom field so a CheQQme-style status pill can sit next to the control; dehydrate via `Hidden::make('stylized_background_enabled')`.
+On Edit Profile Personalize, stylized background uses a custom field so a CheQQme-style status pill can sit next to the control; dehydrate via `Hidden::make('stylized_background_enabled')`. Previews share [`panel-preview-chrome`](../resources/views/components/tido/panel-preview-chrome.blade.php) (real sidebar logos; topbar profile circle only). Stylized preview is full-height over live panel art (`images/bg-l.png` / `bg-d.png`).
 
 On Edit Profile, `defaultForm()` sets `inlineLabel(! static::isSimple())`, so native toggles render **label left / control right** in the `fi-fo-field-has-inline-label` grid. Custom toggles on that page must mirror that markup (see Layout below).
 
