@@ -36,8 +36,9 @@ Default login (seeded): `admin@tido.local` / `password`.
 14. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
 15. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
 16. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md`
-17. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
-18. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+17. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
+18. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
+19. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 
@@ -114,6 +115,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 15. UI copy: impersonal voice — no *we* / *you* / *your* in headings, descriptions, notifications; see `docs/ui-copy-style.md`
 16. Backups / Danger Zone / guest restore: see `docs/backups-and-danger-zone.md` — do not invent a second restore path
 17. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas
+18. Custom Blade toggles: use `get_component_color_classes(ToggleComponent::class, …)` and Profile `inlineLabel` markup — see `docs/ui-custom-toggles.md`
 
 ### Integrations
 

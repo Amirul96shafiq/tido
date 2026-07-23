@@ -34,8 +34,9 @@ No multi-tenancy, no roles/policies package. Any authenticated user can access `
 8. Single-line text marquee (reusable) — `docs/ui-text-marquee.md`
 9. Notes rich editor (`notes` fields) — `docs/ui-notes-rich-editor.md`
 10. Resource form empty placeholders / defaults — `docs/ui-form-empty-defaults.md`
-11. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`
-12. WhatsApp text manual invoices — `docs/whatsapp-manual-invoice.md`
+11. Custom Blade toggles (Filament color classes + Profile inlineLabel) — `docs/ui-custom-toggles.md`
+12. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`
+13. WhatsApp text manual invoices — `docs/whatsapp-manual-invoice.md`
 
 ## Do not
 

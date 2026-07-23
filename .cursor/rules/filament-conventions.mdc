@@ -47,6 +47,10 @@ Any form field backed by a `notes` (or note-like HTML) column must use `App\Fila
 
 When adding or extending a resource `*Form.php`, give empty Create/Edit fields a clear empty state: `placeholder()` for UI hints (not saved), `default()` for real starting values, and restore-on-blur only when an empty value breaks UX. See `docs/ui-form-empty-defaults.md`.
 
+## Custom Blade toggles
+
+Prefer native `Toggle::make()`. When a custom Alpine toggle is required (e.g. Filament `$store.sidebar` / localStorage), build on/off classes with `get_component_color_classes(ToggleComponent::class, 'primary'|'gray')` — never only `fi-color-primary`. On Edit Profile, mirror `fi-fo-field-has-inline-label` markup. See `docs/ui-custom-toggles.md`.
+
 ## Edit page title
 
 Every `EditRecord` page must use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the heading ends with the singular model label (e.g. `Edit Overall Budget · Monthly 2026 Budget`, `Edit Food & Dining Label`, `Edit Starbucks Invoice`). The record-title segment is highlighted with primary color (`text-primary-600 dark:text-primary-400`). Does not apply to Create pages, List pages, or `EditProfile`.

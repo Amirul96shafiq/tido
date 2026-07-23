@@ -11,6 +11,7 @@ Before coding, read **[docs/agent-onboarding.md](docs/agent-onboarding.md)** for
 - Text marquee (overflow RTL): **[docs/ui-text-marquee.md](docs/ui-text-marquee.md)** — reuse `.tido-text-marquee` anywhere
 - Notes rich editor: **[docs/ui-notes-rich-editor.md](docs/ui-notes-rich-editor.md)** — `NotesRichEditor` for `notes` fields
 - Form empty defaults: **[docs/ui-form-empty-defaults.md](docs/ui-form-empty-defaults.md)** — placeholders vs defaults on resource forms
+- Custom Blade toggles: **[docs/ui-custom-toggles.md](docs/ui-custom-toggles.md)** — `get_component_color_classes(ToggleComponent)` + Profile inlineLabel layout
 - Backups / Danger Zone: **[docs/backups-and-danger-zone.md](docs/backups-and-danger-zone.md)**
 - WhatsApp manual text invoices: **[docs/whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md)**
 - Product name: **tido** only · expense tags: **Label** / **Labels** (model: `Label`, not Category)
