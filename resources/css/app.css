@@ -1767,6 +1767,23 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply truncate text-xs text-gray-500 dark:text-gray-400;
 }
 
+.fi-user-menu .fi-dropdown-list-item.fi-user-menu-profile-active {
+    background-color: var(--gray-50);
+    color: var(--primary-500);
+}
+
+.dark .fi-user-menu .fi-dropdown-list-item.fi-user-menu-profile-active {
+    background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
+    color: var(--primary-400);
+}
+
+.fi-user-menu .fi-dropdown-list-item.fi-user-menu-profile-active > .fi-icon,
+.fi-user-menu
+    .fi-dropdown-list-item.fi-user-menu-profile-active
+    .fi-dropdown-list-item-label {
+    color: inherit;
+}
+
 .fi-user-menu-version-footer {
     display: flex;
     min-width: 0;

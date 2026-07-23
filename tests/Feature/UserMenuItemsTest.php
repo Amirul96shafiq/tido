@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Dashboard;
 use App\Helpers\GitHelper;
 use App\Models\User;
@@ -95,6 +96,20 @@ test('topbar hides notification bell and exposes notifications in user menu', fu
     $response->assertSee("getAttribute('aria-expanded') === 'true'", false);
     $response->assertDontSee("dropdownTrigger.getAttribute('aria-expanded') === 'true'", false);
     $response->assertSee('offset: -39', false);
+});
+
+test('user menu marks profile item active on profile edit page', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $this->actingAs($user);
+
+    $dashboardResponse = $this->get(Dashboard::getUrl());
+    $dashboardResponse->assertSuccessful();
+    $dashboardResponse->assertDontSee('fi-user-menu-profile-active', false);
+
+    $profileResponse = $this->get(EditProfile::getUrl());
+    $profileResponse->assertSuccessful();
+    $profileResponse->assertSee('fi-user-menu-profile-active', false);
 });
 
 test('topbar user menu chrome matches collapsed sidebar square with left border', function () {

@@ -212,7 +212,10 @@ class AdminPanelProvider extends PanelProvider
                 // (theme → profile → changelogs → notifications → logout)
                 'profile' => fn (Action $action): Action => $action
                     ->icon('heroicon-o-user')
-                    ->sort(0),
+                    ->sort(0)
+                    ->extraAttributes(fn (): array => request()->routeIs(EditProfile::getRouteName())
+                        ? ['class' => 'fi-user-menu-profile-active']
+                        : []),
                 Action::make('changelogs')
                     ->label('Changelogs')
                     ->icon('heroicon-o-code-bracket')
