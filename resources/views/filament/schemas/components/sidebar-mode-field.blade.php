@@ -64,7 +64,7 @@
                 </button>
 
                 <span class="rounded-full bg-primary-500/90 px-2 py-1 text-xs font-medium text-primary-900">
-                    <span x-text="collapsed ? 'Collapsed' : 'Expanded'">Expanded</span>
+                    <span x-text="collapsed ? 'Collapsed style' : 'Expanded style'">Expanded style</span>
                 </span>
             </div>
         </div>
@@ -136,7 +136,7 @@
         </div>
 
         <div class="absolute inset-block-start-2 inset-inline-start-2 rounded-full bg-primary-500/90 px-2 py-1 text-xs font-medium text-primary-900">
-            <span x-text="collapsed ? 'Collapsed' : 'Expanded'">Expanded</span>
+            <span x-text="collapsed ? 'Collapsed style' : 'Expanded style'">Expanded style</span>
         </div>
     </div>
 </div>

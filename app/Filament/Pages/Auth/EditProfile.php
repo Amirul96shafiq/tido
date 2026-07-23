@@ -124,13 +124,13 @@ class EditProfile extends BaseEditProfile
                             ->schema([
                                 View::make('filament.schemas.components.theme-mode-field')
                                     ->columnSpanFull(),
+                                View::make('filament.schemas.components.sidebar-mode-field')
+                                    ->columnSpanFull(),
                                 Hidden::make('stylized_background_enabled'),
                                 View::make('filament.schemas.components.stylized-background-field')
                                     ->viewData(fn (Get $get): array => [
                                         'enabled' => (bool) $get('stylized_background_enabled'),
                                     ])
-                                    ->columnSpanFull(),
-                                View::make('filament.schemas.components.sidebar-mode-field')
                                     ->columnSpanFull(),
                             ])
                             ->columns(1),

@@ -18,8 +18,8 @@ test('profile personalize section renders live sidebar mode preview', function (
     Livewire::test(EditProfile::class)
         ->assertSee('Sidebar Mode', false)
         ->assertSee('tido-sidebar-preview', false)
-        ->assertSee('Expanded', false)
-        ->assertSee('collapsed ? \'Collapsed\' : \'Expanded\'', false)
+        ->assertSee('Expanded style', false)
+        ->assertSee('collapsed ? \'Collapsed style\' : \'Expanded style\'', false)
         ->assertSee('$store.sidebar.open()', false)
         ->assertSee('$store.sidebar.close()', false);
 });

@@ -32,7 +32,7 @@ Personalize preference rows show a live primary pill beside the control (and kee
 |---------|-----------|
 | Theme Mode | `Light` / `Dark` / `System` (`theme-changed` / `localStorage.theme`) |
 | Stylized Background | `Enabled: Stylized Mode` / `Disabled: Focus Mode` |
-| Sidebar Mode | `Collapsed` / `Expanded` |
+| Sidebar Mode | `Collapsed style` / `Expanded style` |
 
 Shared classes: `rounded-full bg-primary-500/90 px-2 py-1 text-xs font-medium text-primary-900`. Place the pill in a `flex w-full items-center justify-between gap-2` wrapper with the control inside `fi-fo-field-content-col` so the pill aligns to the end of the row.
 
