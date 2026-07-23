@@ -22,13 +22,27 @@
 <div
     class="flex flex-col gap-3"
     x-data="{
+        isDesktop: window.innerWidth >= 1024,
+        init() {
+            this.updateViewport();
+            window.addEventListener('resize', () => this.updateViewport());
+        },
+        updateViewport() {
+            this.isDesktop = window.innerWidth >= 1024;
+        },
+        get isRestricted() {
+            return ! this.isDesktop;
+        },
         get collapsed() {
-            const isDesktop = window.innerWidth >= 1024;
-            return isDesktop
+            return this.isDesktop
                 ? ! this.$store.sidebar.isOpenDesktop
                 : ! this.$store.sidebar.isOpen;
         },
         toggle() {
+            if (this.isRestricted) {
+                return;
+            }
+
             if (this.collapsed) {
                 this.$store.sidebar.open();
             } else {
@@ -53,6 +67,8 @@
                     type="button"
                     role="switch"
                     x-bind:aria-checked="collapsed ? 'true' : 'false'"
+                    x-bind:aria-disabled="isRestricted ? 'true' : 'false'"
+                    x-bind:disabled="isRestricted"
                     x-bind:class="collapsed ? @js($onClasses) : @js($offClasses)"
                     x-on:click="toggle()"
                     aria-label="Sidebar Mode"
@@ -67,6 +83,10 @@
                     <span x-text="collapsed ? 'Collapsed style' : 'Expanded style'">Expanded style</span>
                 </span>
             </div>
+
+            <p class="fi-sc-text">
+                Restricted to larger responsive users.
+            </p>
         </div>
     </div>
 

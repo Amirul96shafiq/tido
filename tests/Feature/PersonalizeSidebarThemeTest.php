@@ -17,11 +17,14 @@ test('profile personalize section renders live sidebar mode preview', function (
 
     Livewire::test(EditProfile::class)
         ->assertSee('Sidebar Mode', false)
+        ->assertSee('Restricted to larger responsive users.', false)
         ->assertSee('tido-sidebar-preview', false)
         ->assertSee('Expanded style', false)
         ->assertSee('collapsed ? \'Collapsed style\' : \'Expanded style\'', false)
         ->assertSee('tido_dark_logo', false)
         ->assertSee('tido_dark_logo_c', false)
+        ->assertSee('isRestricted', false)
+        ->assertSee('x-bind:disabled="isRestricted"', false)
         ->assertSee('$store.sidebar.open()', false)
         ->assertSee('$store.sidebar.close()', false);
 });
