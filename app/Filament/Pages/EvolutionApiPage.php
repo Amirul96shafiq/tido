@@ -1022,7 +1022,10 @@ class EvolutionApiPage extends Page implements HasTable
     }
 
     /**
-     * @return list<array{label: string, phone: string}>
+     * @return array{
+     *     primary: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>,
+     *     family: list<array{id: int, name: string, display_name: string|null, phone: string, avatar_url: string}>
+     * }
      */
     public function allowedSenderEntries(): array
     {

@@ -162,7 +162,7 @@ final class PhoneNumber
      *
      * @return array{
      *     primary: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>,
-     *     family: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>
+     *     family: list<array{id: int, name: string, display_name: string|null, phone: string, avatar_url: string}>
      * }
      */
     public static function allowedWhatsAppSenderEntries(): array
@@ -202,6 +202,7 @@ final class PhoneNumber
 
             $seen[$normalized] = true;
             $family[] = [
+                'id' => (int) $member->id,
                 'name' => filled($member->name) ? (string) $member->name : 'Family member',
                 'display_name' => filled($member->display_name) ? (string) $member->display_name : null,
                 'phone' => $normalized,

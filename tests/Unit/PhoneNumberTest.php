@@ -119,7 +119,7 @@ test('allowedWhatsAppSenderEntries lists only user id 1 under primary', function
         'name' => 'Other User',
         'phone' => '60199999999',
     ]);
-    FamilyMember::factory()->create([
+    $familyMember = FamilyMember::factory()->create([
         'name' => 'Spouse Full',
         'display_name' => 'Spouse',
         'phone' => '60111111111',
@@ -137,6 +137,7 @@ test('allowedWhatsAppSenderEntries lists only user id 1 under primary', function
         ->and($entries['primary'][0]['avatar_url'])->not->toBeEmpty()
         ->and($entries['family'])->toHaveCount(1)
         ->and($entries['family'][0])->toMatchArray([
+            'id' => $familyMember->id,
             'name' => 'Spouse Full',
             'display_name' => 'Spouse',
             'phone' => '60111111111',

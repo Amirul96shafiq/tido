@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\EvolutionApiConnectionEvent;
 use App\Enums\EvolutionApiConnectMethod;
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\EvolutionApiPage;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
@@ -68,7 +69,7 @@ beforeEach(function () {
         'display_name' => 'Primary Display',
     ]));
 
-    FamilyMember::factory()->create([
+    $this->familyMember = FamilyMember::factory()->create([
         'name' => 'Spouse Full Name',
         'display_name' => 'Spouse',
         'phone' => '60111111111',
@@ -147,10 +148,12 @@ test('connected status shows linked number and instance details', function () {
         ->assertSee('Primary Display')
         ->assertSee('Primary Full Name')
         ->assertSee('60123456789')
+        ->assertSeeHtml('href="'.e(EditProfile::getUrl()).'"')
         ->assertSee('Family')
         ->assertSee('Spouse')
         ->assertSee('Spouse Full Name')
         ->assertSee('60111111111')
+        ->assertSeeHtml('href="'.e(FamilyMemberResource::getUrl('edit', ['record' => $this->familyMember])).'"')
         ->assertSee('View details')
         ->assertSee('Connection details')
         ->assertSee('Google Chrome (Mac OS)')

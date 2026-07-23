@@ -315,6 +315,7 @@
                                         'deviceLabel' => $this->effectiveDeviceLabel(),
                                         'allowedSenderEntries' => $this->allowedSenderEntries(),
                                         'allowedSenderNumbers' => $this->allowedSenderNumbers(),
+                                        'profileEditUrl' => $this->profileEditUrl(),
                                         'familyMembersUrl' => $this->familyMembersUrl(),
                                     ])
                                 </x-filament::modal>

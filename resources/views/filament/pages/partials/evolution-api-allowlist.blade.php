@@ -1,10 +1,14 @@
 @php
-    /** @var array{primary: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>, family: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>} $allowedSenderEntries */
+    use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
+
+    /** @var array{primary: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>, family: list<array{id: int, name: string, display_name: string|null, phone: string, avatar_url: string}>} $allowedSenderEntries */
     $primaryEntries = $allowedSenderEntries['primary'] ?? [];
     $familyEntries = $allowedSenderEntries['family'] ?? [];
     $visibleFamily = array_slice($familyEntries, 0, 3);
     $hiddenFamilyCount = max(0, count($familyEntries) - 3);
     $hasEntries = $primaryEntries !== [] || $familyEntries !== [];
+    $cardClasses = 'flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2.5 transition dark:border-slate-700';
+    $linkCardClasses = $cardClasses.' hover:border-primary-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:border-primary-500';
 @endphp
 
 @if (! $hasEntries)
@@ -22,10 +26,19 @@
             @php
                 $heading = filled($entry['display_name'] ?? null) ? $entry['display_name'] : $entry['name'];
             @endphp
-            <div
-                wire:key="allowlist-primary-{{ $entry['phone'] }}"
-                class="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2.5 dark:border-slate-700"
-            >
+            @if (isset($profileEditUrl))
+                <a
+                    href="{{ $profileEditUrl }}"
+                    wire:key="allowlist-primary-{{ $entry['phone'] }}"
+                    wire:navigate
+                    class="{{ $linkCardClasses }}"
+                >
+            @else
+                <div
+                    wire:key="allowlist-primary-{{ $entry['phone'] }}"
+                    class="{{ $cardClasses }}"
+                >
+            @endif
                 <x-filament::avatar
                     :src="$entry['avatar_url']"
                     :alt="$heading"
@@ -45,17 +58,33 @@
                 <x-filament::badge color="gray" size="sm">
                     Primary
                 </x-filament::badge>
-            </div>
+            @if (isset($profileEditUrl))
+                </a>
+            @else
+                </div>
+            @endif
         @endforeach
 
         @foreach ($visibleFamily as $entry)
             @php
                 $heading = filled($entry['display_name'] ?? null) ? $entry['display_name'] : $entry['name'];
+                $familyEditUrl = isset($entry['id'])
+                    ? FamilyMemberResource::getUrl('edit', ['record' => $entry['id']])
+                    : null;
             @endphp
-            <div
-                wire:key="allowlist-family-{{ $entry['phone'] }}"
-                class="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2.5 dark:border-slate-700"
-            >
+            @if (filled($familyEditUrl))
+                <a
+                    href="{{ $familyEditUrl }}"
+                    wire:key="allowlist-family-{{ $entry['phone'] }}"
+                    wire:navigate
+                    class="{{ $linkCardClasses }}"
+                >
+            @else
+                <div
+                    wire:key="allowlist-family-{{ $entry['phone'] }}"
+                    class="{{ $cardClasses }}"
+                >
+            @endif
                 <x-filament::avatar
                     :src="$entry['avatar_url']"
                     :alt="$heading"
@@ -75,7 +104,11 @@
                 <x-filament::badge color="gray" size="sm">
                     Family
                 </x-filament::badge>
-            </div>
+            @if (filled($familyEditUrl))
+                </a>
+            @else
+                </div>
+            @endif
         @endforeach
 
         @if ($hiddenFamilyCount > 0)
@@ -86,6 +119,7 @@
                 @isset($familyMembersUrl)
                     <a
                         href="{{ $familyMembersUrl }}"
+                        wire:navigate
                         class="text-primary-600 underline underline-offset-2 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
                     >
                         {{ $moreLabel }}

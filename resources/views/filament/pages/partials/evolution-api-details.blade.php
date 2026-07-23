@@ -74,6 +74,7 @@
         <dd class="min-w-0 w-full">
             @include('filament.pages.partials.evolution-api-allowlist', [
                 'allowedSenderEntries' => $allowedSenderEntries,
+                'profileEditUrl' => $profileEditUrl ?? null,
                 'familyMembersUrl' => $familyMembersUrl ?? null,
             ])
         </dd>
