@@ -40,8 +40,28 @@ final class WhatsAppMessage
             implode("\n", [
                 'Use one of the approaches below in WhatsApp chat to start AI parsing and store it as an invoice:',
                 '- Upload a *document(s)* or *image(s)*',
-                '- Type a *manual invoice text* (type "*manual way*" to learn more)',
-                '- Type *spend* or *total* to view the current month\'s expenses',
+                '- Type a *manual invoice text* (type *manual* to learn more)',
+                '- Type *spend* or *total* for spending summary (type *finance others* to learn more)',
+            ]),
+        );
+    }
+
+    public static function financeKeywords(): string
+    {
+        return self::compose(
+            '📈',
+            'Finance Keywords',
+            implode("\n", [
+                'Use one of the keywords below in WhatsApp chat to retrieve according details:',
+                '- *spend* or *total* — monthly spending summary',
+                '- *spend labels* — label breakdown (up to 8)',
+                '- *spend merchants* — top 5 merchants',
+                '- *spend budgets* — all active budgets with status',
+                '- *spend trend* — last 6 months spending',
+                '- *spend payment* — spending by payment method',
+                '- *spend recent* — last 5 receipts',
+                '- *spend last month* — summary for the previous month',
+                '- *spend march* / *spend 2025-03* — summary for a specific month',
             ]),
         );
     }

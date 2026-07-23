@@ -106,11 +106,12 @@ test('whatsapp help mentions manual invoice format', function () {
             && str_contains((string) $request['text'], '*Help*')
             && str_contains((string) $request['text'], '*document(s)*')
             && str_contains((string) $request['text'], '*image(s)*')
-            && str_contains((string) $request['text'], '*manual way*');
+            && str_contains((string) $request['text'], '*manual* to learn more')
+            && str_contains((string) $request['text'], '*finance others* to learn more');
     });
 });
 
-test('whatsapp manual way reply lists payment methods and format', function () {
+test('whatsapp manual reply lists payment methods and format', function () {
     Http::fake([
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
@@ -121,11 +122,11 @@ test('whatsapp manual way reply lists payment methods and format', function () {
             'key' => [
                 'remoteJid' => '60123456789@s.whatsapp.net',
                 'fromMe' => false,
-                'id' => 'MSG-MANUAL-WAY',
+                'id' => 'MSG-MANUAL',
             ],
             'messageType' => 'conversation',
             'message' => [
-                'conversation' => 'manual way',
+                'conversation' => 'manual',
             ],
         ],
     ];
@@ -142,6 +143,40 @@ test('whatsapp manual way reply lists payment methods and format', function () {
             && str_contains($text, 'ASNB Investment, FPX;')
             && str_contains($text, 'Payment method supported:')
             && str_contains($text, '- Cash');
+    });
+});
+
+test('whatsapp finance others reply lists spending keywords', function () {
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    $payload = [
+        'event' => 'messages.upsert',
+        'data' => [
+            'key' => [
+                'remoteJid' => '60123456789@s.whatsapp.net',
+                'fromMe' => false,
+                'id' => 'MSG-FINANCE',
+            ],
+            'messageType' => 'conversation',
+            'message' => [
+                'conversation' => 'finance others',
+            ],
+        ],
+    ];
+
+    $this->postJson('/api/webhooks/whatsapp', $payload, [
+        'Authorization' => 'Bearer tido-secret-key',
+    ])->assertSuccessful();
+
+    Http::assertSent(function (Request $request): bool {
+        $text = (string) $request['text'];
+
+        return str_contains($request->url(), '/message/sendText/')
+            && str_contains($text, '*Finance Keywords*')
+            && str_contains($text, '*spend labels*')
+            && str_contains($text, '*spend merchants*');
     });
 });
 

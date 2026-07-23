@@ -29,14 +29,29 @@ test('compose trims body and uses custom footer', function () {
     expect($message)->toBe("🔐 *Login code*\n\nCode: *123456*\n\nCustom footer");
 });
 
-test('help includes updated approaches and manual way hint', function () {
+test('help includes updated approaches and command hints', function () {
     $message = WhatsAppMessage::help();
 
     expect($message)
         ->toContain('🤖 *Help*')
         ->toContain('*document(s)*')
         ->toContain('*image(s)*')
-        ->toContain('*manual way*')
+        ->toContain('type *manual* to learn more')
+        ->toContain('type *finance others* to learn more')
+        ->toContain('— Powered by *tido*');
+});
+
+test('finance keywords lists spending commands', function () {
+    $message = WhatsAppMessage::financeKeywords();
+
+    expect($message)
+        ->toContain('📈 *Finance Keywords*')
+        ->toContain('*spend labels* — label breakdown (up to 8)')
+        ->toContain('*spend merchants* — top 5 merchants')
+        ->toContain('*spend budgets*')
+        ->toContain('*spend trend*')
+        ->toContain('*spend payment*')
+        ->toContain('*spend recent*')
         ->toContain('— Powered by *tido*');
 });
 

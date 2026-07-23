@@ -107,9 +107,12 @@ https://…/admin/invoices/{id}/edit
 
 ## Other WhatsApp text commands
 
-- `spend` / `total` — month spending summary
-- `manual way` — manual invoice format, sample, and supported payment methods
-- Anything else (non-format) — help text (points to `manual way` for manual invoice details)
+- `spend` / `total` — month spending summary (MoM, forecast, top labels/merchants, budgets at risk)
+- `spend labels` / `spend merchants` / `spend budgets` / `spend trend` / `spend payment` / `spend recent` — detailed breakdowns
+- `spend march` / `spend 2025-03` / `spend last month` — same commands for a specific month
+- `manual` / `manual way` — manual invoice format, sample, and supported payment methods
+- `finance others` — finance keyword reference for spending commands
+- Anything else (non-format) — help text (points to `manual` and `finance others` for details)
 
 ## Key code
 
