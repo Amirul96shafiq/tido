@@ -62,10 +62,20 @@ enum ServiceHealthStatus: string
     public function barColorClass(): string
     {
         return match ($this) {
-            self::Operational => 'bg-success-500',
+            self::Operational => 'bg-emerald-500',
             self::Degraded => 'bg-warning-500',
             self::Down => 'bg-danger-500',
             self::Unknown => 'bg-gray-300 dark:bg-gray-600',
+        };
+    }
+
+    public function iconColorClass(): string
+    {
+        return match ($this) {
+            self::Operational => 'text-emerald-500',
+            self::Degraded => 'text-warning-500',
+            self::Down => 'text-danger-500',
+            self::Unknown => 'text-gray-400',
         };
     }
 }

@@ -172,15 +172,23 @@ class ServiceHealthAggregator
             ];
         }
 
-        $status = ServiceHealthStatus::Operational;
+        $isInProgress = $endsAt->isFuture();
 
-        foreach ($samples as $sample) {
-            if ($sample->status->isWorseThan($status)) {
-                $status = $sample->status;
+        if ($isInProgress) {
+            $latestSample = $samples->sortByDesc('checked_at')->first();
+            $status = $latestSample?->status ?? ServiceHealthStatus::Unknown;
+            $detail = $this->resolveLatestSampleDetail($latestSample, $status);
+        } else {
+            $status = ServiceHealthStatus::Operational;
+
+            foreach ($samples as $sample) {
+                if ($sample->status->isWorseThan($status)) {
+                    $status = $sample->status;
+                }
             }
-        }
 
-        $detail = $this->resolvePieceDetail($samples, $status);
+            $detail = $this->resolvePieceDetail($samples, $status);
+        }
 
         return [
             'startsAt' => $startsAt,
@@ -207,6 +215,21 @@ class ServiceHealthAggregator
             if (is_string($message) && $message !== '') {
                 return $message;
             }
+        }
+
+        return $status->label();
+    }
+
+    private function resolveLatestSampleDetail(?ServiceHealthSample $sample, ServiceHealthStatus $status): string
+    {
+        if ($sample === null) {
+            return $status->label();
+        }
+
+        $message = data_get($sample->meta, 'message');
+
+        if (is_string($message) && $message !== '') {
+            return $message;
         }
 
         return $status->label();

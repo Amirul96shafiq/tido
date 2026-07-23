@@ -69,10 +69,7 @@
                                     }"
                                     @class([
                                         'size-5 shrink-0',
-                                        'text-success-500' => $service['currentStatus'] === \App\Enums\ServiceHealthStatus::Operational,
-                                        'text-warning-500' => $service['currentStatus'] === \App\Enums\ServiceHealthStatus::Degraded,
-                                        'text-danger-500' => $service['currentStatus'] === \App\Enums\ServiceHealthStatus::Down,
-                                        'text-gray-400' => $service['currentStatus'] === \App\Enums\ServiceHealthStatus::Unknown,
+                                        $service['currentStatus']->iconColorClass(),
                                     ])
                                 />
 

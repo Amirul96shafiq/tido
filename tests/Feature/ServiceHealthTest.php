@@ -116,6 +116,42 @@ test('aggregator groups samples into twelve hour pieces and calculates uptime', 
         ->and($todayAfternoonPiece['detail'])->toBe('Afternoon outage.');
 });
 
+test('aggregator uses latest sample for in progress piece instead of worst', function (): void {
+    $timezone = 'Asia/Kuala_Lumpur';
+    $now = now($timezone);
+    $pieceStart = $now->copy()->startOfDay()->addHours(12);
+    $pieceEnd = $pieceStart->copy()->addHours(12);
+
+    expect($pieceEnd->isFuture())->toBeTrue();
+
+    ServiceHealthSample::query()->create([
+        'service' => MonitoredService::Ollama,
+        'status' => ServiceHealthStatus::Down,
+        'checked_at' => $pieceStart->copy()->addHour(),
+        'meta' => ['message' => 'Earlier outage.'],
+    ]);
+
+    ServiceHealthSample::query()->create([
+        'service' => MonitoredService::Ollama,
+        'status' => ServiceHealthStatus::Operational,
+        'checked_at' => $now->copy()->subMinutes(5),
+        'meta' => ['message' => 'Recovered.'],
+    ]);
+
+    $report = app(ServiceHealthAggregator::class)->report($timezone);
+    $ollama = collect($report['services'])->firstWhere(
+        static fn (array $service): bool => $service['service'] === MonitoredService::Ollama,
+    );
+
+    $currentPiece = collect($ollama['pieces'])->first(
+        static fn (array $piece): bool => $piece['startsAt']->equalTo($pieceStart),
+    );
+
+    expect($currentPiece['status'])->toBe(ServiceHealthStatus::Operational)
+        ->and($currentPiece['detail'])->toBe('Recovered.')
+        ->and($currentPiece['status']->barColorClass())->toBe('bg-emerald-500');
+});
+
 test('aggregator summary reports fully operational when latest samples are healthy', function (): void {
     Http::fake([
         'http://ollama.test/api/tags' => Http::response(['models' => []]),
