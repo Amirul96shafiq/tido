@@ -50,18 +50,18 @@ tido is a localized, single-tenant MYR expense tracker built for frictionless fi
 
 ## Stack
 
-| Layer | Technology |
-|-------|------------|
-| App | Laravel 12, PHP 8.2+ |
-| Admin UI | Filament v5, Livewire 4, Tailwind CSS v4 |
-| Database | SQLite (default local); PostgreSQL 17 (production target) |
-| Queues | `database` driver locally; Redis + Horizon in production |
-| OCR | Ollama (`qwen2.5vl:7b`, native host) |
-| WhatsApp | Evolution API (native host) |
-| Drive | `masbug/flysystem-google-drive-ext` |
-| Backups / audit | Spatie Laravel Backup, Spatie Activity Log |
-| Tests | Pest v3 |
-| Dev env | Windows host PHP (`npm run dev:full`) |
+| Layer           | Technology                                                |
+| --------------- | --------------------------------------------------------- |
+| App             | Laravel 12, PHP 8.2+                                      |
+| Admin UI        | Filament v5, Livewire 4, Tailwind CSS v4                  |
+| Database        | SQLite (default local); PostgreSQL 17 (production target) |
+| Queues          | `database` driver locally; Redis + Horizon in production  |
+| OCR             | Ollama (`qwen2.5vl:7b`, native host)                      |
+| WhatsApp        | Evolution API (native host)                               |
+| Drive           | `masbug/flysystem-google-drive-ext`                       |
+| Backups / audit | Spatie Laravel Backup, Spatie Activity Log                |
+| Tests           | Pest v3                                                   |
+| Dev env         | Windows host PHP (`npm run dev:full`)                     |
 
 ## Architecture
 
@@ -125,16 +125,15 @@ curl http://127.0.0.1:11434/api/tags
 
 ### Run locally
 
-| Process | Command / notes |
-|---------|-----------------|
-| All-in-one | `npm run dev:all` — Vite + serve :2000 + queue + Evolution + Ollama helper |
-| tido only | `npm run dev:full` — Vite + `artisan serve --host=0.0.0.0 --port=2000` + queue listener |
-| Evolution | `npm run evolution` — API at `http://127.0.0.1:8080` |
-| Scheduler (optional) | `php artisan schedule:work` — Drive sync + backups |
-
-Webhook URL while developing: `http://127.0.0.1:2000/api/webhooks/whatsapp`.
-
-Also available: `composer run dev` (serve + queue + Pail + Vite, no Evolution).
+| Command | Process and notes |
+|---------|-------------------|
+| `npm run build` | Build assets — Vite production build |
+| `npm run dev` | Vite only — Vite HMR (Hot Module Replacement) |
+| `npm run dev:full` | tido only — Vite + `artisan serve` :2000 + queue |
+| `npm run evolution` | Evolution — Evolution API :8080 (standalone) |
+| `npm run dev:whatsapp` | tido + Evolution — tido (`dev:full`) + Evolution |
+| `npm run dev:ollama` | Ollama helper — Ollama serve helper (standalone) |
+| `npm run dev:all` | All-in-one — WhatsApp stack (`dev:whatsapp`) + Ollama |
 
 **Mobile (same Wi‑Fi):**
 
@@ -197,21 +196,21 @@ Copy `.env.example` and set values for your environment. Notable groups:
 <details>
 <summary>Notable environment variables</summary>
 
-| Variable | Purpose |
-|----------|---------|
-| `DB_*` | Database (SQLite default locally) |
-| `QUEUE_CONNECTION` | `database` locally; `redis` + Horizon in production |
-| `SESSION_LIFETIME` | Session minutes (default `10080` = 7 days) |
-| `EVOLUTION_API_URL` | Evolution base URL |
-| `EVOLUTION_API_KEY` | API + webhook Bearer token |
-| `EVOLUTION_INSTANCE_NAME` | Instance name (default `tido`) |
-| `OLLAMA_HOST` | Ollama HTTP API (default `http://127.0.0.1:11434`) |
-| `OLLAMA_MODEL` | Vision model (default `qwen2.5vl:7b`) |
-| `OLLAMA_TIMEOUT` | Ollama HTTP timeout seconds (default `120`) |
-| `GOOGLE_DRIVE_CLIENT_ID` | Drive OAuth client |
-| `GOOGLE_DRIVE_CLIENT_SECRET` | Drive OAuth secret |
-| `GOOGLE_DRIVE_REFRESH_TOKEN` | Drive refresh token |
-| `GOOGLE_DRIVE_FOLDER_ID` | Folder polled by `SyncGoogleDriveJob` (not push/Pub/Sub) |
+| Variable                     | Purpose                                                  |
+| ---------------------------- | -------------------------------------------------------- |
+| `DB_*`                       | Database (SQLite default locally)                        |
+| `QUEUE_CONNECTION`           | `database` locally; `redis` + Horizon in production      |
+| `SESSION_LIFETIME`           | Session minutes (default `10080` = 7 days)               |
+| `EVOLUTION_API_URL`          | Evolution base URL                                       |
+| `EVOLUTION_API_KEY`          | API + webhook Bearer token                               |
+| `EVOLUTION_INSTANCE_NAME`    | Instance name (default `tido`)                           |
+| `OLLAMA_HOST`                | Ollama HTTP API (default `http://127.0.0.1:11434`)       |
+| `OLLAMA_MODEL`               | Vision model (default `qwen2.5vl:7b`)                    |
+| `OLLAMA_TIMEOUT`             | Ollama HTTP timeout seconds (default `120`)              |
+| `GOOGLE_DRIVE_CLIENT_ID`     | Drive OAuth client                                       |
+| `GOOGLE_DRIVE_CLIENT_SECRET` | Drive OAuth secret                                       |
+| `GOOGLE_DRIVE_REFRESH_TOKEN` | Drive refresh token                                      |
+| `GOOGLE_DRIVE_FOLDER_ID`     | Folder polled by `SyncGoogleDriveJob` (not push/Pub/Sub) |
 
 </details>
 
@@ -229,18 +228,18 @@ Tests use in-memory SQLite. Mock external HTTP and queues with `Http::fake()` / 
 
 Deep docs live under [`docs/`](docs/README.md):
 
-| Doc | Purpose |
-|-----|---------|
-| [agent-onboarding.md](docs/agent-onboarding.md) | Product map for agents and contributors |
-| [system-architecture.md](docs/system-architecture.md) | Architecture blueprint |
-| [ollama-setup.md](docs/ollama-setup.md) | Native host Ollama / qwen2.5vl:7b |
-| [evolution-local-windows.md](docs/evolution-local-windows.md) | Evolution instance + webhook (Windows host) |
-| [whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md) | Text-only WhatsApp manual invoice format |
-| [google-drive-setup.md](docs/google-drive-setup.md) | Drive folder sync credentials |
-| [backups-and-danger-zone.md](docs/backups-and-danger-zone.md) | Backups, restore tokens, Danger Zone |
-| [content-draft-recovery.md](docs/content-draft-recovery.md) | Form draft auto-save / crash recovery |
-| [git-workflow.md](docs/git-workflow.md) | Branching and PRs |
-| [ui-tooltips.md](docs/ui-tooltips.md) · [ui-dark-theme.md](docs/ui-dark-theme.md) · [ui-empty-states.md](docs/ui-empty-states.md) · [ui-copy-style.md](docs/ui-copy-style.md) · [ui-modal-overlay.md](docs/ui-modal-overlay.md) | Filament UI conventions |
+| Doc                                                                                                                                                                                                                             | Purpose                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| [agent-onboarding.md](docs/agent-onboarding.md)                                                                                                                                                                                 | Product map for agents and contributors     |
+| [system-architecture.md](docs/system-architecture.md)                                                                                                                                                                           | Architecture blueprint                      |
+| [ollama-setup.md](docs/ollama-setup.md)                                                                                                                                                                                         | Native host Ollama / qwen2.5vl:7b           |
+| [evolution-local-windows.md](docs/evolution-local-windows.md)                                                                                                                                                                   | Evolution instance + webhook (Windows host) |
+| [whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md)                                                                                                                                                                   | Text-only WhatsApp manual invoice format    |
+| [google-drive-setup.md](docs/google-drive-setup.md)                                                                                                                                                                             | Drive folder sync credentials               |
+| [backups-and-danger-zone.md](docs/backups-and-danger-zone.md)                                                                                                                                                                   | Backups, restore tokens, Danger Zone        |
+| [content-draft-recovery.md](docs/content-draft-recovery.md)                                                                                                                                                                     | Form draft auto-save / crash recovery       |
+| [git-workflow.md](docs/git-workflow.md)                                                                                                                                                                                         | Branching and PRs                           |
+| [ui-tooltips.md](docs/ui-tooltips.md) · [ui-dark-theme.md](docs/ui-dark-theme.md) · [ui-empty-states.md](docs/ui-empty-states.md) · [ui-copy-style.md](docs/ui-copy-style.md) · [ui-modal-overlay.md](docs/ui-modal-overlay.md) | Filament UI conventions                     |
 
 Full index: [docs/README.md](docs/README.md).
 
