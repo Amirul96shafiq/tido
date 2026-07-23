@@ -1,7 +1,7 @@
 <div class="fi-evolution-api-details-list divide-y divide-gray-200 text-left text-sm dark:divide-white/10">
-    <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+    <div class="flex flex-row items-baseline justify-between gap-3 px-6 py-4">
         <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Connected number</dt>
-        <dd class="font-mono text-gray-950 dark:text-white">
+        <dd class="min-w-0 truncate text-right font-mono text-gray-950 dark:text-white">
             @if (filled($connectedNumber))
                 <a
                     href="{{ \App\Support\PhoneNumber::whatsAppMeUrl($connectedNumber) }}"

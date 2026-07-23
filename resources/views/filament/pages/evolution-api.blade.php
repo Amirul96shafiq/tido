@@ -244,9 +244,9 @@
 
                         <div class="mt-6 flex w-full flex-col gap-3 text-left text-sm">
                             <dl class="rounded-xl border border-gray-200 px-4 py-3 dark:border-slate-700">
-                                <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                                <div class="flex flex-row items-baseline justify-between gap-3">
                                     <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Connected number</dt>
-                                    <dd class="font-mono text-gray-950 dark:text-white">
+                                    <dd class="min-w-0 truncate text-right font-mono text-gray-950 dark:text-white">
                                         @if (filled($connectedNumber))
                                             <a
                                                 href="{{ \App\Support\PhoneNumber::whatsAppMeUrl($connectedNumber) }}"
