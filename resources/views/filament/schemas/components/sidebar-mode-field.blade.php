@@ -1,3 +1,24 @@
+@php
+    use Filament\Support\View\Components\ToggleComponent;
+    use Illuminate\Support\Arr;
+
+    use function Filament\Support\get_component_color_classes;
+
+    $onClasses = Arr::toCssClasses([
+        'fi-toggle',
+        'fi-fo-toggle',
+        'fi-toggle-on',
+        ...get_component_color_classes(ToggleComponent::class, 'primary'),
+    ]);
+
+    $offClasses = Arr::toCssClasses([
+        'fi-toggle',
+        'fi-fo-toggle',
+        'fi-toggle-off',
+        ...get_component_color_classes(ToggleComponent::class, 'gray'),
+    ]);
+@endphp
+
 <div
     class="flex flex-col gap-3"
     x-data="{
@@ -30,9 +51,8 @@
             <button
                 type="button"
                 role="switch"
-                class="fi-toggle fi-fo-toggle"
                 x-bind:aria-checked="collapsed ? 'true' : 'false'"
-                x-bind:class="collapsed ? 'fi-toggle-on fi-color-primary' : 'fi-toggle-off fi-color-gray'"
+                x-bind:class="collapsed ? @js($onClasses) : @js($offClasses)"
                 x-on:click="toggle()"
                 aria-label="Sidebar Mode"
             >
