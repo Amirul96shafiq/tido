@@ -121,6 +121,8 @@ class EditProfile extends BaseEditProfile
                     ->schema([
                         Section::make('Personalize')
                             ->schema([
+                                View::make('filament.schemas.components.theme-mode-field')
+                                    ->columnSpanFull(),
                                 Toggle::make('stylized_background_enabled')
                                     ->label('Stylized Background')
                                     ->live(),
@@ -128,6 +130,8 @@ class EditProfile extends BaseEditProfile
                                     ->viewData(fn (Get $get): array => [
                                         'enabled' => (bool) $get('stylized_background_enabled'),
                                     ])
+                                    ->columnSpanFull(),
+                                View::make('filament.schemas.components.sidebar-mode-field')
                                     ->columnSpanFull(),
                             ])
                             ->columns(1),
