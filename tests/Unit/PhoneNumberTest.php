@@ -101,6 +101,7 @@ test('primaryWhatsAppNumber uses only user id 1', function () {
 test('allowedWhatsAppSenderEntries lists only user id 1 under primary', function () {
     User::factory()->create([
         'name' => 'Admin User',
+        'display_name' => 'Admin',
         'phone' => '60123456789',
     ]);
     User::factory()->create([
@@ -108,7 +109,8 @@ test('allowedWhatsAppSenderEntries lists only user id 1 under primary', function
         'phone' => '60199999999',
     ]);
     FamilyMember::factory()->create([
-        'name' => 'Spouse',
+        'name' => 'Spouse Full',
+        'display_name' => 'Spouse',
         'phone' => '60111111111',
         'allowlist_enabled' => true,
     ]);
@@ -118,12 +120,14 @@ test('allowedWhatsAppSenderEntries lists only user id 1 under primary', function
     expect($entries['primary'])->toHaveCount(1)
         ->and($entries['primary'][0])->toMatchArray([
             'name' => 'Admin User',
+            'display_name' => 'Admin',
             'phone' => '60123456789',
         ])
         ->and($entries['primary'][0]['avatar_url'])->not->toBeEmpty()
         ->and($entries['family'])->toHaveCount(1)
         ->and($entries['family'][0])->toMatchArray([
-            'name' => 'Spouse',
+            'name' => 'Spouse Full',
+            'display_name' => 'Spouse',
             'phone' => '60111111111',
         ])
         ->and($entries['family'][0]['avatar_url'])->not->toBeEmpty();

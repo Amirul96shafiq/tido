@@ -147,8 +147,8 @@ final class PhoneNumber
      * Allowlist entries grouped for EvolutionAPI UI.
      *
      * @return array{
-     *     primary: list<array{name: string, phone: string, avatar_url: string}>,
-     *     family: list<array{name: string, phone: string, avatar_url: string}>
+     *     primary: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>,
+     *     family: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>
      * }
      */
     public static function allowedWhatsAppSenderEntries(): array
@@ -166,6 +166,7 @@ final class PhoneNumber
                 $seen[$normalized] = true;
                 $primary[] = [
                     'name' => filled($user->name) ? (string) $user->name : 'Primary',
+                    'display_name' => filled($user->display_name) ? (string) $user->display_name : null,
                     'phone' => $normalized,
                     'avatar_url' => self::avatarDisplayUrl($user),
                 ];
@@ -175,7 +176,7 @@ final class PhoneNumber
         $members = FamilyMember::query()
             ->allowlisted()
             ->orderBy('name')
-            ->get(['id', 'name', 'phone', 'avatar_url']);
+            ->get(['id', 'name', 'display_name', 'phone', 'avatar_url']);
 
         foreach ($members as $member) {
             $normalized = self::normalize($member->phone);
@@ -187,6 +188,7 @@ final class PhoneNumber
             $seen[$normalized] = true;
             $family[] = [
                 'name' => filled($member->name) ? (string) $member->name : 'Family member',
+                'display_name' => filled($member->display_name) ? (string) $member->display_name : null,
                 'phone' => $normalized,
                 'avatar_url' => self::avatarDisplayUrl($member),
             ];

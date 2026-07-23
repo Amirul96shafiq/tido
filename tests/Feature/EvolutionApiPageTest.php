@@ -62,10 +62,14 @@ beforeEach(function () {
         'services.evolution.device_label' => 'tido App (Evolution API)',
     ]);
 
-    $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
+    $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create([
+        'name' => 'Primary Full Name',
+        'display_name' => 'Primary Display',
+    ]));
 
     FamilyMember::factory()->create([
-        'name' => 'Spouse',
+        'name' => 'Spouse Full Name',
+        'display_name' => 'Spouse',
         'phone' => '60111111111',
         'allowlist_enabled' => true,
     ]);
@@ -137,9 +141,12 @@ test('connected status shows linked number and instance details', function () {
         ->assertSee('pairing code')
         ->assertSee('Contact allowlist')
         ->assertSee('Primary')
+        ->assertSee('Primary Display')
+        ->assertSee('Primary Full Name')
         ->assertSee('60123456789')
         ->assertSee('Family')
         ->assertSee('Spouse')
+        ->assertSee('Spouse Full Name')
         ->assertSee('60111111111')
         ->assertSee('View details')
         ->assertSee('Connection details')

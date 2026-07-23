@@ -1,5 +1,5 @@
 @php
-    /** @var array{primary: list<array{name: string, phone: string, avatar_url: string}>, family: list<array{name: string, phone: string, avatar_url: string}>} $allowedSenderEntries */
+    /** @var array{primary: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>, family: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>} $allowedSenderEntries */
     $primaryEntries = $allowedSenderEntries['primary'] ?? [];
     $familyEntries = $allowedSenderEntries['family'] ?? [];
     $hasEntries = $primaryEntries !== [] || $familyEntries !== [];
@@ -17,17 +17,23 @@
 @else
     <div class="flex w-full flex-col gap-2">
         @foreach ($primaryEntries as $entry)
+            @php
+                $heading = filled($entry['display_name'] ?? null) ? $entry['display_name'] : $entry['name'];
+            @endphp
             <div
                 wire:key="allowlist-primary-{{ $entry['phone'] }}"
                 class="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2.5 dark:border-slate-700"
             >
                 <x-filament::avatar
                     :src="$entry['avatar_url']"
-                    :alt="$entry['name']"
+                    :alt="$heading"
                     size="sm"
                 />
                 <div class="min-w-0 flex-1 text-left">
                     <div class="truncate font-medium text-gray-950 dark:text-white">
+                        {{ $heading }}
+                    </div>
+                    <div class="truncate text-xs text-gray-500 dark:text-gray-400">
                         {{ $entry['name'] }}
                     </div>
                     <div class="font-mono text-xs text-gray-500 dark:text-gray-400">
@@ -41,17 +47,23 @@
         @endforeach
 
         @foreach ($familyEntries as $entry)
+            @php
+                $heading = filled($entry['display_name'] ?? null) ? $entry['display_name'] : $entry['name'];
+            @endphp
             <div
                 wire:key="allowlist-family-{{ $entry['phone'] }}"
                 class="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2.5 dark:border-slate-700"
             >
                 <x-filament::avatar
                     :src="$entry['avatar_url']"
-                    :alt="$entry['name']"
+                    :alt="$heading"
                     size="sm"
                 />
                 <div class="min-w-0 flex-1 text-left">
                     <div class="truncate font-medium text-gray-950 dark:text-white">
+                        {{ $heading }}
+                    </div>
+                    <div class="truncate text-xs text-gray-500 dark:text-gray-400">
                         {{ $entry['name'] }}
                     </div>
                     <div class="font-mono text-xs text-gray-500 dark:text-gray-400">
