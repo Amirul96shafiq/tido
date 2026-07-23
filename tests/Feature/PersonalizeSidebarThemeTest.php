@@ -26,7 +26,10 @@ test('profile personalize section renders live sidebar mode preview', function (
         ->assertSee('isRestricted', false)
         ->assertSee('x-bind:disabled="isRestricted"', false)
         ->assertSee('$store.sidebar.open()', false)
-        ->assertSee('$store.sidebar.close()', false);
+        ->assertSee('$store.sidebar.close()', false)
+        ->assertSee('data.stylized_background_enabled', false)
+        ->assertSee('images/bg-l.png', false)
+        ->assertSee('images/bg-d.png', false);
 });
 
 test('profile personalize section renders theme mode switcher', function (): void {
@@ -57,7 +60,10 @@ test('profile personalize section renders stylized background indicators', funct
         ->assertSee('Stylized Background', false)
         ->assertSee('Enabled: Stylized Mode', false)
         ->assertSee('Disabled: Focus Mode', false)
-        ->assertSee('data.stylized_background_enabled', false);
+        ->assertSee('data.stylized_background_enabled', false)
+        ->assertSee('$store.sidebar.isOpenDesktop', false)
+        ->assertSee('tido-sidebar-preview-rail', false)
+        ->assertSee('collapsed ? \'Collapsed style\' : \'Expanded style\'', false);
 });
 
 test('sidebar and theme preferences are not stored on users table', function (): void {

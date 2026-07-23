@@ -1,45 +1,30 @@
-@props([
-    'collapsible' => false,
-])
-
 @php
     $logoFullLight = asset('images/tido_dark_logo.png');
     $logoFullDark = asset('images/tido_light_logo.png');
     $logoCompactLight = asset('images/tido_dark_logo_c.png');
     $logoCompactDark = asset('images/tido_light_logo_c.png');
-    $collapsible = (bool) $collapsible;
+    $lightBackground = asset('images/bg-l.png');
+    $darkBackground = asset('images/bg-d.png');
 @endphp
 
 {{--
     Mini panel chrome for Personalize previews.
+    Requires parent x-data with `collapsed` and `enabled`.
     Desktop arrangement: brand in sidebar; topbar has empty profile circle.
 --}}
 <div {{ $attributes->class(['flex h-full w-full']) }}>
     <div
-        @class([
-            'flex h-full shrink-0 flex-col gap-2 border-e border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-slate-800',
-            'tido-sidebar-preview-rail transition-[width] duration-200' => $collapsible,
-            'tido-stylized-preview-rail w-28' => ! $collapsible,
-        ])
-        @if ($collapsible)
-            x-bind:class="collapsed ? 'w-12' : 'w-28'"
-        @endif
+        class="tido-sidebar-preview-rail flex h-full shrink-0 flex-col gap-2 border-e border-gray-200 bg-gray-50 p-2 transition-[width] duration-200 dark:border-gray-700 dark:bg-slate-800"
+        x-bind:class="collapsed ? 'w-12' : 'w-28'"
     >
         <div
-            @class([
-                'mb-1 flex h-8 items-center',
-                'px-1' => ! $collapsible,
-            ])
-            @if ($collapsible)
-                x-bind:class="collapsed ? 'justify-center px-0' : 'px-1'"
-            @endif
+            class="mb-1 flex h-8 items-center"
+            x-bind:class="collapsed ? 'justify-center px-0' : 'px-1'"
         >
             <span
                 class="flex w-full items-center"
-                @if ($collapsible)
-                    x-show="! collapsed"
-                    x-cloak
-                @endif
+                x-show="! collapsed"
+                x-cloak
             >
                 <img
                     src="{{ $logoFullLight }}"
@@ -53,24 +38,22 @@
                 />
             </span>
 
-            @if ($collapsible)
-                <span
-                    class="flex items-center justify-center"
-                    x-show="collapsed"
-                    x-cloak
-                >
-                    <img
-                        src="{{ $logoCompactLight }}"
-                        alt=""
-                        class="size-7 object-contain dark:hidden"
-                    />
-                    <img
-                        src="{{ $logoCompactDark }}"
-                        alt=""
-                        class="hidden size-7 object-contain dark:block"
-                    />
-                </span>
-            @endif
+            <span
+                class="flex items-center justify-center"
+                x-show="collapsed"
+                x-cloak
+            >
+                <img
+                    src="{{ $logoCompactLight }}"
+                    alt=""
+                    class="size-7 object-contain dark:hidden"
+                />
+                <img
+                    src="{{ $logoCompactDark }}"
+                    alt=""
+                    class="hidden size-7 object-contain dark:block"
+                />
+            </span>
         </div>
 
         @foreach (range(1, 3) as $item)
@@ -78,11 +61,8 @@
                 @class([
                     'flex h-6 items-center rounded',
                     $item === 1 ? 'bg-amber-500/20' : 'bg-transparent',
-                    ! $collapsible ? 'gap-1.5 px-1.5' : null,
                 ])
-                @if ($collapsible)
-                    x-bind:class="collapsed ? 'justify-center px-0' : 'gap-1.5 px-1.5'"
-                @endif
+                x-bind:class="collapsed ? 'justify-center px-0' : 'gap-1.5 px-1.5'"
             >
                 <span
                     @class([
@@ -95,17 +75,33 @@
                         'h-1.5 flex-1 rounded-full',
                         $item === 1 ? 'bg-amber-500/60' : 'bg-gray-300 dark:bg-gray-600',
                     ])
-                    @if ($collapsible)
-                        x-show="! collapsed"
-                        x-cloak
-                    @endif
+                    x-show="! collapsed"
+                    x-cloak
                 ></span>
             </div>
         @endforeach
     </div>
 
     <div class="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-        {{ $background ?? '' }}
+        <div
+            class="absolute inset-0 bg-white transition-opacity duration-200 dark:bg-slate-900"
+            x-bind:class="enabled ? 'opacity-0' : 'opacity-100'"
+            aria-hidden="true"
+        ></div>
+
+        <div
+            class="absolute inset-0 bg-cover bg-bottom bg-no-repeat transition-opacity duration-200 dark:hidden"
+            style="background-image: url('{{ $lightBackground }}');"
+            x-bind:class="enabled ? 'opacity-100' : 'opacity-0'"
+            aria-hidden="true"
+        ></div>
+
+        <div
+            class="absolute inset-0 hidden bg-cover bg-bottom bg-no-repeat transition-opacity duration-200 dark:block"
+            style="background-image: url('{{ $darkBackground }}');"
+            x-bind:class="enabled ? 'opacity-100' : 'opacity-0'"
+            aria-hidden="true"
+        ></div>
 
         <div class="relative z-10 flex h-9 shrink-0 items-center justify-end gap-2 border-b border-gray-200 bg-white/90 px-2 dark:border-gray-700 dark:bg-slate-800/90">
             <span

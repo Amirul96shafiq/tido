@@ -22,6 +22,7 @@
 <div
     class="flex flex-col gap-3"
     x-data="{
+        enabled: $wire.entangle('data.stylized_background_enabled').live,
         isDesktop: window.innerWidth >= 1024,
         init() {
             this.updateViewport();
@@ -95,12 +96,12 @@
         style="aspect-ratio: 32 / 9;"
     >
         <div class="bg-white dark:bg-slate-900" style="height: 200%;">
-            <x-tido.panel-preview-chrome collapsible>
-                <div class="h-3 w-1/3 rounded-full bg-gray-200 dark:bg-gray-700"></div>
-                <div class="h-16 w-full rounded-md bg-gray-100 dark:bg-slate-800"></div>
+            <x-tido.panel-preview-chrome>
+                <div class="h-3 w-1/3 rounded-full bg-gray-200/90 dark:bg-gray-700/90"></div>
+                <div class="h-16 w-full rounded-md bg-white/80 ring-1 ring-gray-200/80 dark:bg-slate-800/80 dark:ring-white/10"></div>
                 <div class="flex gap-2">
-                    <div class="h-10 flex-1 rounded-md bg-gray-100 dark:bg-slate-800"></div>
-                    <div class="h-10 flex-1 rounded-md bg-gray-100 dark:bg-slate-800"></div>
+                    <div class="h-10 flex-1 rounded-md bg-white/80 ring-1 ring-gray-200/80 dark:bg-slate-800/80 dark:ring-white/10"></div>
+                    <div class="h-10 flex-1 rounded-md bg-white/80 ring-1 ring-gray-200/80 dark:bg-slate-800/80 dark:ring-white/10"></div>
                 </div>
             </x-tido.panel-preview-chrome>
         </div>

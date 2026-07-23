@@ -19,14 +19,25 @@
     ]);
 
     $initialEnabled = (bool) ($enabled ?? false);
-    $lightBackground = asset('images/bg-l.png');
-    $darkBackground = asset('images/bg-d.png');
 @endphp
 
 <div
     class="flex flex-col gap-3"
     x-data="{
         enabled: $wire.entangle('data.stylized_background_enabled').live,
+        isDesktop: window.innerWidth >= 1024,
+        init() {
+            this.updateViewport();
+            window.addEventListener('resize', () => this.updateViewport());
+        },
+        updateViewport() {
+            this.isDesktop = window.innerWidth >= 1024;
+        },
+        get collapsed() {
+            return this.isDesktop
+                ? ! this.$store.sidebar.isOpenDesktop
+                : ! this.$store.sidebar.isOpen;
+        },
         toggle() {
             this.enabled = ! this.enabled;
         },
@@ -75,28 +86,6 @@
         style="aspect-ratio: 1919 / 1079;"
     >
         <x-tido.panel-preview-chrome class="h-full">
-            <x-slot:background>
-                <div
-                    class="absolute inset-0 bg-white transition-opacity duration-200 dark:bg-slate-900"
-                    x-bind:class="enabled ? 'opacity-0' : 'opacity-100'"
-                    aria-hidden="true"
-                ></div>
-
-                <div
-                    class="absolute inset-0 bg-cover bg-bottom bg-no-repeat transition-opacity duration-200 dark:hidden"
-                    style="background-image: url('{{ $lightBackground }}');"
-                    x-bind:class="enabled ? 'opacity-100' : 'opacity-0'"
-                    aria-hidden="true"
-                ></div>
-
-                <div
-                    class="absolute inset-0 hidden bg-cover bg-bottom bg-no-repeat transition-opacity duration-200 dark:block"
-                    style="background-image: url('{{ $darkBackground }}');"
-                    x-bind:class="enabled ? 'opacity-100' : 'opacity-0'"
-                    aria-hidden="true"
-                ></div>
-            </x-slot:background>
-
             <div class="h-3 w-1/3 rounded-full bg-gray-200/90 dark:bg-gray-700/90"></div>
             <div class="h-16 w-full rounded-md bg-white/80 ring-1 ring-gray-200/80 dark:bg-slate-800/80 dark:ring-white/10"></div>
             <div class="flex gap-2">
