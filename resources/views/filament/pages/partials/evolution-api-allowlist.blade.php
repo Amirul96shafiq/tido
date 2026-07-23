@@ -1,7 +1,7 @@
 @php
     use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 
-    /** @var array{primary: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>, family: list<array{id: int, name: string, display_name: string|null, phone: string, avatar_url: string}>} $allowedSenderEntries */
+    /** @var array{primary: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>, family: list<array{id: int, name: string, display_name: string|null, relationship_label: string|null, phone: string, avatar_url: string}>} $allowedSenderEntries */
     $primaryEntries = $allowedSenderEntries['primary'] ?? [];
     $familyEntries = $allowedSenderEntries['family'] ?? [];
     $visibleFamily = array_slice($familyEntries, 0, 3);
@@ -24,7 +24,8 @@
     <div class="flex w-full flex-col gap-2">
         @foreach ($primaryEntries as $entry)
             @php
-                $heading = filled($entry['display_name'] ?? null) ? $entry['display_name'] : $entry['name'];
+                $baseHeading = filled($entry['display_name'] ?? null) ? $entry['display_name'] : $entry['name'];
+                $heading = $baseHeading.' (You)';
             @endphp
             @if (isset($profileEditUrl))
                 <a
@@ -46,7 +47,8 @@
                 />
                 <div class="min-w-0 flex-1 text-left">
                     <div class="truncate font-medium text-gray-950 dark:text-white">
-                        {{ $heading }}
+                        {{ $baseHeading }}
+                        <span class="text-xs font-normal text-gray-500 dark:text-gray-400">(You)</span>
                     </div>
                     <div class="truncate text-xs text-gray-500 dark:text-gray-400">
                         {{ $entry['name'] }}
@@ -67,7 +69,11 @@
 
         @foreach ($visibleFamily as $entry)
             @php
-                $heading = filled($entry['display_name'] ?? null) ? $entry['display_name'] : $entry['name'];
+                $baseHeading = filled($entry['display_name'] ?? null) ? $entry['display_name'] : $entry['name'];
+                $relationshipLabel = $entry['relationship_label'] ?? null;
+                $heading = filled($relationshipLabel)
+                    ? $baseHeading.' ('.$relationshipLabel.')'
+                    : $baseHeading;
                 $familyEditUrl = isset($entry['id'])
                     ? FamilyMemberResource::getUrl('edit', ['record' => $entry['id']])
                     : null;
@@ -92,7 +98,10 @@
                 />
                 <div class="min-w-0 flex-1 text-left">
                     <div class="truncate font-medium text-gray-950 dark:text-white">
-                        {{ $heading }}
+                        {{ $baseHeading }}
+                        @if (filled($relationshipLabel))
+                            <span class="text-xs font-normal text-gray-500 dark:text-gray-400">({{ $relationshipLabel }})</span>
+                        @endif
                     </div>
                     <div class="truncate text-xs text-gray-500 dark:text-gray-400">
                         {{ $entry['name'] }}

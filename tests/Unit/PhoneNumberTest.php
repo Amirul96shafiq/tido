@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\FamilyRelationship;
 use App\Models\FamilyMember;
 use App\Models\User;
 use App\Support\PhoneNumber;
@@ -123,6 +124,7 @@ test('allowedWhatsAppSenderEntries lists only user id 1 under primary', function
         'name' => 'Spouse Full',
         'display_name' => 'Spouse',
         'phone' => '60111111111',
+        'relationship' => FamilyRelationship::Sibling,
         'allowlist_enabled' => true,
     ]);
 
@@ -140,6 +142,7 @@ test('allowedWhatsAppSenderEntries lists only user id 1 under primary', function
             'id' => $familyMember->id,
             'name' => 'Spouse Full',
             'display_name' => 'Spouse',
+            'relationship_label' => 'Sibling',
             'phone' => '60111111111',
         ])
         ->and($entries['family'][0]['avatar_url'])->not->toBeEmpty();

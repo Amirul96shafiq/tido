@@ -162,7 +162,7 @@ final class PhoneNumber
      *
      * @return array{
      *     primary: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>,
-     *     family: list<array{id: int, name: string, display_name: string|null, phone: string, avatar_url: string}>
+     *     family: list<array{id: int, name: string, display_name: string|null, relationship_label: string|null, phone: string, avatar_url: string}>
      * }
      */
     public static function allowedWhatsAppSenderEntries(): array
@@ -191,7 +191,7 @@ final class PhoneNumber
             ->allowlisted()
             ->latest('created_at')
             ->orderByDesc('id')
-            ->get(['id', 'name', 'display_name', 'phone', 'avatar_url']);
+            ->get(['id', 'name', 'display_name', 'relationship', 'relationship_other', 'phone', 'avatar_url']);
 
         foreach ($members as $member) {
             $normalized = self::normalize($member->phone);
@@ -205,6 +205,7 @@ final class PhoneNumber
                 'id' => (int) $member->id,
                 'name' => filled($member->name) ? (string) $member->name : 'Family member',
                 'display_name' => filled($member->display_name) ? (string) $member->display_name : null,
+                'relationship_label' => $member->relationshipLabel(),
                 'phone' => $normalized,
                 'avatar_url' => self::avatarDisplayUrl($member),
             ];

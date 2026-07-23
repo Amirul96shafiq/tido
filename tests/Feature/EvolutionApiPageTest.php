@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\EvolutionApiConnectionEvent;
 use App\Enums\EvolutionApiConnectMethod;
+use App\Enums\FamilyRelationship;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\EvolutionApiPage;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
@@ -73,6 +74,7 @@ beforeEach(function () {
         'name' => 'Spouse Full Name',
         'display_name' => 'Spouse',
         'phone' => '60111111111',
+        'relationship' => FamilyRelationship::Sibling,
         'allowlist_enabled' => true,
     ]);
 });
@@ -146,11 +148,13 @@ test('connected status shows linked number and instance details', function () {
         ->assertSee('Contact allowlist')
         ->assertSee('Primary')
         ->assertSee('Primary Display')
+        ->assertSeeHtml('<span class="text-xs font-normal text-gray-500 dark:text-gray-400">(You)</span>')
         ->assertSee('Primary Full Name')
         ->assertSee('60123456789')
         ->assertSeeHtml('href="'.e(EditProfile::getUrl()).'"')
         ->assertSee('Family')
         ->assertSee('Spouse')
+        ->assertSeeHtml('<span class="text-xs font-normal text-gray-500 dark:text-gray-400">(Sibling)</span>')
         ->assertSee('Spouse Full Name')
         ->assertSee('60111111111')
         ->assertSeeHtml('href="'.e(FamilyMemberResource::getUrl('edit', ['record' => $this->familyMember])).'"')
