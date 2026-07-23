@@ -103,10 +103,30 @@ test('verify otp action stays disabled until all six digits are entered', functi
     expect($partialTag)->not->toBeNull()
         ->and($partialTag[0])->toContain('disabled="disabled"');
 
-    $completeTag = verifyOtpButtonTag($component->set('data.otp', '123456')->html());
+    $completeHtml = $component->set('data.otp', '123456')->html();
+    $completeTag = verifyOtpButtonTag($completeHtml);
     expect($completeTag)->not->toBeNull()
-        ->and($completeTag[0])->not->toContain('disabled="disabled"')
-        ->and($completeTag[0])->not->toContain('fi-disabled');
+        ->and($completeTag[0])->not->toContain('disabled="disabled"');
+
+    preg_match('/\bclass="([^"]*)"/', $completeTag[0], $classMatch);
+    expect($classMatch[1] ?? '')->not->toContain('fi-disabled');
+});
+
+test('verify otp action renders loading indicator like send otp', function () {
+    User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $html = Livewire::test(Login::class)
+        ->set('data.phone', '60123456789')
+        ->call('sendOtp')
+        ->set('data.otp', '123456')
+        ->assertSet('loginMode', 'otp')
+        ->html();
+
+    expect($html)
+        ->toContain('wire:target="authenticate"')
+        ->toContain('fi-loading-indicator')
+        ->toContain('tido-auth-btn-loading')
+        ->toContain('x-on:click');
 });
 
 test('send otp fails for unknown phone without revealing details', function () {

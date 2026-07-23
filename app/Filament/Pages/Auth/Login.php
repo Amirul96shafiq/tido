@@ -243,6 +243,21 @@ class Login extends BaseLogin
             ->submit('authenticate')
             // Server-side initial state; Alpine store updates enablement without Livewire remorph.
             ->disabled(fn (): bool => ! $this->isOtpCodeComplete())
+            // Show Filament loading spinner immediately (wire:loading.delay skips fast auth requests).
+            ->alpineClickHandler(<<<'JS'
+                if ($el.disabled) {
+                    return
+                }
+
+                $el.classList.add('tido-auth-btn-loading')
+
+                const stop = Livewire.hook('commit', ({ respond }) => {
+                    respond(() => {
+                        $el.classList.remove('tido-auth-btn-loading')
+                        stop()
+                    })
+                })
+            JS)
             ->extraAttributes([
                 // Client-side enablement without OTP ->live() remorph (keeps painted digits visible).
                 'x-bind:disabled' => '(typeof isProcessing !== \'undefined\' && isProcessing) || ! window.Alpine || ! $store.tidoLoginOtp || $store.tidoLoginOtp.len < 6',

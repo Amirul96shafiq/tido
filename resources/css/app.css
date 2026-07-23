@@ -657,6 +657,11 @@ html.dark::-webkit-scrollbar-thumb:hover,
     animation: tido-login-panel-in 260ms ease-out;
 }
 
+/* Show Filament wire:loading spinner immediately on Verify (skip Livewire delay). */
+.fi-btn.tido-auth-btn-loading > .fi-loading-indicator:not([x-show]) {
+    display: inline-block !important;
+}
+
 @keyframes tido-login-panel-in {
     from {
         opacity: 0;
