@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\EvolutionApiConnectionEvent;
 use App\Enums\EvolutionApiConnectMethod;
 use App\Filament\Pages\EvolutionApiPage;
+use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
 use App\Models\EvolutionApiConnectionLog;
 use App\Models\FamilyMember;
@@ -164,6 +165,66 @@ test('connected status shows linked number and instance details', function () {
 
     Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/fetchInstances'));
     Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/webhook/find/tido'));
+});
+
+test('connected allowlist shows only three newest family members with more link', function () {
+    FamilyMember::query()->delete();
+
+    FamilyMember::factory()->create([
+        'name' => 'Oldest Family Full',
+        'display_name' => 'OldestFamily',
+        'phone' => '60100000001',
+        'allowlist_enabled' => true,
+        'created_at' => now()->subDays(4),
+    ]);
+    FamilyMember::factory()->create([
+        'name' => 'Third Newest Full',
+        'display_name' => 'ThirdNewest',
+        'phone' => '60100000002',
+        'allowlist_enabled' => true,
+        'created_at' => now()->subDays(3),
+    ]);
+    FamilyMember::factory()->create([
+        'name' => 'Second Newest Full',
+        'display_name' => 'SecondNewest',
+        'phone' => '60100000003',
+        'allowlist_enabled' => true,
+        'created_at' => now()->subDays(2),
+    ]);
+    FamilyMember::factory()->create([
+        'name' => 'Newest Family Full',
+        'display_name' => 'NewestFamily',
+        'phone' => '60100000004',
+        'allowlist_enabled' => true,
+        'created_at' => now()->subDay(),
+    ]);
+
+    EvolutionApiConnectionLog::factory()->connected()->create([
+        'connected_number' => '601115666887',
+        'meta' => [
+            'source' => 'page',
+            'connect_method' => 'pairing_code',
+        ],
+    ]);
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/webhook/find/*' => Http::response(fakeRegisteredWebhook()),
+    ]);
+
+    Livewire::test(EvolutionApiPage::class)
+        ->assertSee('Contact allowlist')
+        ->assertSee('Primary')
+        ->assertSee('NewestFamily')
+        ->assertSee('SecondNewest')
+        ->assertSee('ThirdNewest')
+        ->assertDontSee('OldestFamily')
+        ->assertDontSee('Oldest Family Full')
+        ->assertSee('+1 more Family Member')
+        ->assertSeeHtml('href="'.FamilyMemberResource::getUrl('index').'"');
 });
 
 test('register webhook stays enabled when evolution has no webhook yet', function () {

@@ -2,6 +2,8 @@
     /** @var array{primary: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>, family: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>} $allowedSenderEntries */
     $primaryEntries = $allowedSenderEntries['primary'] ?? [];
     $familyEntries = $allowedSenderEntries['family'] ?? [];
+    $visibleFamily = array_slice($familyEntries, 0, 3);
+    $hiddenFamilyCount = max(0, count($familyEntries) - 3);
     $hasEntries = $primaryEntries !== [] || $familyEntries !== [];
 @endphp
 
@@ -46,7 +48,7 @@
             </div>
         @endforeach
 
-        @foreach ($familyEntries as $entry)
+        @foreach ($visibleFamily as $entry)
             @php
                 $heading = filled($entry['display_name'] ?? null) ? $entry['display_name'] : $entry['name'];
             @endphp
@@ -75,5 +77,23 @@
                 </x-filament::badge>
             </div>
         @endforeach
+
+        @if ($hiddenFamilyCount > 0)
+            @php
+                $moreLabel = '+'.$hiddenFamilyCount.' more Family Member'.($hiddenFamilyCount === 1 ? '' : 's');
+            @endphp
+            <div class="px-1 pt-0.5 text-left text-xs text-gray-500 dark:text-gray-400">
+                @isset($familyMembersUrl)
+                    <a
+                        href="{{ $familyMembersUrl }}"
+                        class="text-primary-600 underline underline-offset-2 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+                    >
+                        {{ $moreLabel }}
+                    </a>
+                @else
+                    {{ $moreLabel }}
+                @endisset
+            </div>
+        @endif
     </div>
 @endif

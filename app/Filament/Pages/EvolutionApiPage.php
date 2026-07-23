@@ -8,6 +8,7 @@ use App\Enums\EvolutionApiConnectionEvent;
 use App\Enums\EvolutionApiConnectMethod;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
 use App\Models\EvolutionApiConnectionLog;
 use App\Models\User;
@@ -1036,6 +1037,11 @@ class EvolutionApiPage extends Page implements HasTable
     public function profileEditUrl(): string
     {
         return EditProfile::getUrl();
+    }
+
+    public function familyMembersUrl(): string
+    {
+        return FamilyMemberResource::getUrl('index');
     }
 
     private function notifyMissingContactAllowlist(): void

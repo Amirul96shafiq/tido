@@ -189,7 +189,8 @@ final class PhoneNumber
 
         $members = FamilyMember::query()
             ->allowlisted()
-            ->orderBy('name')
+            ->latest('created_at')
+            ->orderByDesc('id')
             ->get(['id', 'name', 'display_name', 'phone', 'avatar_url']);
 
         foreach ($members as $member) {

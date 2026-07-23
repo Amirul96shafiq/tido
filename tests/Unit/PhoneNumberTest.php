@@ -144,6 +144,41 @@ test('allowedWhatsAppSenderEntries lists only user id 1 under primary', function
         ->and($entries['family'][0]['avatar_url'])->not->toBeEmpty();
 });
 
+test('allowedWhatsAppSenderEntries orders family members newest first', function () {
+    User::factory()->create([
+        'name' => 'Admin User',
+        'phone' => '60123456789',
+    ]);
+
+    FamilyMember::factory()->create([
+        'name' => 'Oldest Member',
+        'phone' => '60111111111',
+        'allowlist_enabled' => true,
+        'created_at' => now()->subDays(3),
+    ]);
+    FamilyMember::factory()->create([
+        'name' => 'Middle Member',
+        'phone' => '60122222222',
+        'allowlist_enabled' => true,
+        'created_at' => now()->subDays(2),
+    ]);
+    FamilyMember::factory()->create([
+        'name' => 'Newest Member',
+        'phone' => '60133333333',
+        'allowlist_enabled' => true,
+        'created_at' => now()->subDay(),
+    ]);
+
+    $entries = PhoneNumber::allowedWhatsAppSenderEntries();
+
+    expect($entries['family'])->toHaveCount(3)
+        ->and(collect($entries['family'])->pluck('name')->all())->toBe([
+            'Newest Member',
+            'Middle Member',
+            'Oldest Member',
+        ]);
+});
+
 test('allowedWhatsAppSenderEntries uses uploaded avatars when set', function () {
     User::factory()->create([
         'name' => 'Admin User',

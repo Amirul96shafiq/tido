@@ -270,6 +270,7 @@
                                         @include('filament.pages.partials.evolution-api-allowlist', [
                                             'allowedSenderEntries' => $this->allowedSenderEntries(),
                                             'profileEditUrl' => $this->profileEditUrl(),
+                                            'familyMembersUrl' => $this->familyMembersUrl(),
                                         ])
                                     </dd>
                                 </div>
@@ -314,6 +315,7 @@
                                         'deviceLabel' => $this->effectiveDeviceLabel(),
                                         'allowedSenderEntries' => $this->allowedSenderEntries(),
                                         'allowedSenderNumbers' => $this->allowedSenderNumbers(),
+                                        'familyMembersUrl' => $this->familyMembersUrl(),
                                     ])
                                 </x-filament::modal>
                             </div>
