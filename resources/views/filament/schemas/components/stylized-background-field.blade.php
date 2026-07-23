@@ -63,6 +63,10 @@
                     </span>
                 </span>
             </div>
+
+            <p class="fi-sc-text">
+                Save changes needed to take effect.
+            </p>
         </div>
     </div>
 
