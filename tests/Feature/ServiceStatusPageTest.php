@@ -33,9 +33,12 @@ test('service status page renders summary banner and uptime labels', function ()
     ]);
 
     Livewire::test(ServiceStatusPage::class)
+        ->assertSee('Summary report')
         ->assertSee('System status')
+        ->assertSee('Monitored services')
         ->assertSee('Ollama')
         ->assertSee('uptime')
+        ->assertSee('grid-cols-3', false)
         ->assertSee('x-tooltip', false);
 });
 
