@@ -170,7 +170,6 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                 EditAction::make()
                     ->url(
                         fn (Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record]),
-                        shouldOpenInNewTab: true,
                     ),
             ])
             ->filters([

@@ -113,7 +113,6 @@ class RecentReceipts extends BaseWidget
                 EditAction::make()
                     ->url(
                         fn (Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record]),
-                        shouldOpenInNewTab: true,
                     ),
             ])
             ->filters([

@@ -7,6 +7,7 @@ use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Models\Invoice;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -95,15 +96,25 @@ test('upload button shows loading spinner while saving', function () {
         ->assertSee('Upload and Start AI Extraction');
 });
 
-test('receipt upload page edit action links to invoice edit in a new tab', function () {
-    $invoice = Invoice::factory()->create();
+test('receipt upload page edit action spa navigates to invoice edit', function () {
+    Filament::setCurrentPanel(Filament::getPanel('admin'));
+    Filament::bootCurrentPanel();
+
+    $invoice = Invoice::factory()->create([
+        'original_filename' => null,
+        'image_path' => null,
+    ]);
 
     $editUrl = InvoiceResource::getUrl('edit', ['record' => $invoice]);
+    $editAction = TestAction::make('edit')->table($invoice);
 
     $table = Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
-        ->assertActionExists(TestAction::make('edit')->table($invoice))
-        ->assertActionHasUrl(TestAction::make('edit')->table($invoice), $editUrl)
+        ->assertActionExists($editAction)
+        ->assertActionHasUrl($editAction, $editUrl)
+        ->assertActionShouldNotOpenUrlInNewTab($editAction)
+        ->assertSee($editUrl, false)
+        ->assertSee('wire:navigate', false)
         ->instance()
         ->getTable();
 
@@ -112,9 +123,4 @@ test('receipt upload page edit action links to invoice edit in a new tab', funct
     expect($action)->not->toBeNull()
         ->and($action->isIconButton())->toBeTrue()
         ->and($action->getTooltip())->toBe($action->getLabel());
-
-    Livewire::test(ReceiptUploadPage::class)
-        ->assertSuccessful()
-        ->assertSeeHtml('target="_blank"')
-        ->assertSeeHtml(e($editUrl));
 });

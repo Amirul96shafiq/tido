@@ -10,6 +10,7 @@ use App\Models\PaymentMethod;
 use App\Models\User;
 use Database\Seeders\PaymentMethodSeeder;
 use Filament\Actions\Testing\TestAction;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -162,17 +163,26 @@ test('recent receipts widget includes uploads whose receipt date is outside sele
         ->assertSee('Tenaga Nasional');
 });
 
-test('recent receipts widget edit action links to invoice edit in a new tab', function () {
+test('recent receipts widget edit action spa navigates to invoice edit', function () {
+    Filament::setCurrentPanel(Filament::getPanel('admin'));
+    Filament::bootCurrentPanel();
+
     $invoice = Invoice::factory()->create([
         'date_time' => now(),
+        'original_filename' => null,
+        'image_path' => null,
     ]);
 
     $editUrl = InvoiceResource::getUrl('edit', ['record' => $invoice]);
+    $editAction = TestAction::make('edit')->table($invoice);
 
     $table = Livewire::test(RecentReceipts::class)
         ->assertSuccessful()
-        ->assertActionExists(TestAction::make('edit')->table($invoice))
-        ->assertActionHasUrl(TestAction::make('edit')->table($invoice), $editUrl)
+        ->assertActionExists($editAction)
+        ->assertActionHasUrl($editAction, $editUrl)
+        ->assertActionShouldNotOpenUrlInNewTab($editAction)
+        ->assertSee($editUrl, false)
+        ->assertSee('wire:navigate', false)
         ->instance()
         ->getTable();
 
@@ -181,9 +191,4 @@ test('recent receipts widget edit action links to invoice edit in a new tab', fu
     expect($action)->not->toBeNull()
         ->and($action->isIconButton())->toBeTrue()
         ->and($action->getTooltip())->toBe($action->getLabel());
-
-    Livewire::test(RecentReceipts::class)
-        ->assertSuccessful()
-        ->assertSeeHtml('target="_blank"')
-        ->assertSeeHtml(e($editUrl));
 });
