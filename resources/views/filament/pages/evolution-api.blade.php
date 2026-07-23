@@ -242,24 +242,28 @@
                             Your WhatsApp instance is linked and ready. The webhook is registered automatically — send a test ping anytime to confirm outbound messages.
                         </p>
 
-                        <dl class="mt-6 w-full divide-y divide-gray-200 rounded-xl border border-gray-200 text-left text-sm dark:divide-slate-700 dark:border-slate-700">
-                            <div class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-                                <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Connected number</dt>
-                                <dd class="font-mono text-gray-950 dark:text-white">
-                                    {{ $connectedNumber ?? 'Unknown — refresh status' }}
-                                </dd>
-                            </div>
+                        <div class="mt-6 flex w-full flex-col gap-3 text-left text-sm">
+                            <dl class="rounded-xl border border-gray-200 px-4 py-3 dark:border-slate-700">
+                                <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                                    <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Connected number</dt>
+                                    <dd class="font-mono text-gray-950 dark:text-white">
+                                        {{ $connectedNumber ?? 'Unknown — refresh status' }}
+                                    </dd>
+                                </div>
+                            </dl>
 
-                            <div class="flex flex-col gap-3 px-4 py-3">
-                                <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Contact allowlist</dt>
-                                <dd class="min-w-0 w-full">
-                                    @include('filament.pages.partials.evolution-api-allowlist', [
-                                        'allowedSenderEntries' => $this->allowedSenderEntries(),
-                                        'profileEditUrl' => $this->profileEditUrl(),
-                                    ])
-                                </dd>
-                            </div>
-                        </dl>
+                            <dl class="rounded-xl border border-gray-200 px-4 py-3 dark:border-slate-700">
+                                <div class="flex flex-col gap-3">
+                                    <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Contact allowlist</dt>
+                                    <dd class="min-w-0 w-full">
+                                        @include('filament.pages.partials.evolution-api-allowlist', [
+                                            'allowedSenderEntries' => $this->allowedSenderEntries(),
+                                            'profileEditUrl' => $this->profileEditUrl(),
+                                        ])
+                                    </dd>
+                                </div>
+                            </dl>
+                        </div>
 
                         <div class="mt-5">
                             <div class="fi-evolution-api-details">
