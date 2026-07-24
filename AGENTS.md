@@ -14,6 +14,7 @@ Before coding, read **[docs/agent-onboarding.md](docs/agent-onboarding.md)** for
 - Custom Blade toggles: **[docs/ui-custom-toggles.md](docs/ui-custom-toggles.md)** — `get_component_color_classes(ToggleComponent)` + Profile inlineLabel layout
 - Backups / Danger Zone: **[docs/backups-and-danger-zone.md](docs/backups-and-danger-zone.md)**
 - Service Status / health probes: **[docs/service-status.md](docs/service-status.md)**
+- Profile Active Sessions: **[docs/active-sessions.md](docs/active-sessions.md)**
 - WhatsApp manual text invoices: **[docs/whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md)**
 - WhatsApp bot commands: **[docs/whatsapp-bot-commands.md](docs/whatsapp-bot-commands.md)**
 - Product name: **tido** only · expense tags: **Label** / **Labels** (model: `Label`, not Category)

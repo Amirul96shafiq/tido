@@ -39,7 +39,8 @@ Default login (seeded): `admin@tido.local` / `password`.
 17. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
 18. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
 19. Service Status (health probes, uptime UI): `docs/service-status.md`
-20. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+20. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
+21. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 
@@ -49,7 +50,7 @@ Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage)
 app/
   Models/           Invoice, InvoiceItem, Label, PaymentMethod, Budget, User, ContentDraft, Backup, ServiceHealthSample
   Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support, Livewire
-  Services/         Ollama, GoogleDrive, WhatsApp, BudgetAlert, SpendingForecast, Backup*, Health/*, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
+  Services/         Ollama, GoogleDrive, WhatsApp, BudgetAlert, SpendingForecast, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
   Jobs/             ExtractReceiptDataJob, ProcessManualWhatsAppInvoiceJob, ParseManualWhatsAppInvoiceJob, SyncGoogleDriveJob, …
   Observers/        InvoiceObserver
   Prompts/          ReceiptExtractionPrompt, ManualInvoiceLabelPrompt
@@ -116,8 +117,9 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 15. UI copy: impersonal voice — no *we* / *you* / *your* in headings, descriptions, notifications; see `docs/ui-copy-style.md`
 16. Backups / Danger Zone / guest restore: see `docs/backups-and-danger-zone.md` — do not invent a second restore path
 17. Service Status / health probes: see `docs/service-status.md`
-18. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas
-19. Custom Blade toggles: use `get_component_color_classes(ToggleComponent::class, …)` and Profile `inlineLabel` markup — see `docs/ui-custom-toggles.md`
+18. Profile Active Sessions (embedded table, revoke): see `docs/active-sessions.md`
+19. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas
+20. Custom Blade toggles: use `get_component_color_classes(ToggleComponent::class, …)` and Profile `inlineLabel` markup — see `docs/ui-custom-toggles.md`
 
 ### Integrations
 
