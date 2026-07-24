@@ -1730,6 +1730,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     }
 }
 
+/* Global search section anchors — offset sticky topbar when scrolling to hash. */
+.fi-main-ctn [id] {
+    scroll-margin-top: 5rem;
+}
+
 /* Auth menu — flush top-right 71×71 chrome square (matches topbar user menu). */
 .fi-auth-menu {
     position: fixed;

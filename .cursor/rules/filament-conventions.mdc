@@ -59,15 +59,19 @@ Every `EditRecord` page must use `App\Filament\Concerns\AppendsResourceLabelToEd
 
 Panel uses `charrafimed/global-search-modal` with `globalSearchResourceOptIn()` — resources must **explicitly** opt in on the resource class itself (a shared trait property does not satisfy Filament’s reflection check).
 
-When adding a new `*Resource.php`:
+**Page & section navigation** is merged via `AdminDestinationSearch` in `AdminPanelProvider` (`searchUsing(..., mergeWithCore: true)`). When adding a new resource index page, custom Filament page, or in-page section that should be searchable:
+
+1. Register the page/section in [`app/Filament/GlobalSearch/AdminDestinationSearch.php`](app/Filament/GlobalSearch/AdminDestinationSearch.php) (`Pages` or `Sections` group).
+2. For form sections, add a stable `->id('kebab-case')` on `Section::make(...)` (or `id="..."` on Blade `<x-filament::section>`).
+3. Section result URLs use `#anchor` fragments; SPA scroll is handled by `<x-hash-scroll />`.
+
+When adding a new `*Resource.php` (record search):
 
 1. Decide whether records should appear in global search.
 2. If yes: set `protected static bool $isGloballySearchable = true` on the resource class, plus `$recordTitleAttribute` and `getGloballySearchableAttributes()`.
 3. Add `getGlobalSearchEloquentQuery()` when searching relationship dot-notation or showing details that need eager loading.
 4. Override `getGlobalSearchResultUrl()` for index-only resources (e.g. Backups).
 5. Set `$globalSearchSort` for sensible result group ordering.
-
-Custom Filament pages (`Dashboard`, `ReceiptUploadPage`, etc.) are not searchable via this plugin — only Eloquent resources.
 
 ## Prefer
 

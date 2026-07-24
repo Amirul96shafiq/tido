@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers\Filament;
 
+use App\Filament\GlobalSearch\AdminDestinationSearch;
 use App\Filament\Livewire\DatabaseNotifications;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\Login;
@@ -22,6 +23,7 @@ use App\Filament\Resources\PaymentMethods\Pages\CreatePaymentMethod;
 use App\Filament\Resources\PaymentMethods\Pages\EditPaymentMethod;
 use App\Http\Middleware\SetUserPreferences;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
+use CharrafiMed\GlobalSearchModal\GlobalSearchResults;
 use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -205,6 +207,10 @@ class AdminPanelProvider extends PanelProvider
                     ->modal(
                         width: Width::TwoExtraLarge,
                         hasCloseButton: false,
+                    )
+                    ->searchUsing(
+                        fn (string $query, GlobalSearchResults $builder): GlobalSearchResults => AdminDestinationSearch::search($query, $builder),
+                        mergeWithCore: true,
                     ),
             ])
             ->userMenuItems([
@@ -314,7 +320,7 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,
-                fn (): string => Blade::render('<x-changelog-modal /><x-restore-backup-modal /><x-drag-drop-config /><x-go-to-top /><x-go-to-bottom /><x-global-search-shortcut />'),
+                fn (): string => Blade::render('<x-changelog-modal /><x-restore-backup-modal /><x-drag-drop-config /><x-go-to-top /><x-go-to-bottom /><x-global-search-shortcut /><x-hash-scroll />'),
             )
             ->renderHook(
                 PanelsRenderHook::PAGE_END,

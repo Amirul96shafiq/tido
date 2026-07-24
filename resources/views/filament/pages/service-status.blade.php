@@ -20,7 +20,7 @@
     @endphp
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
-        <x-filament::section class="h-full">
+        <x-filament::section class="h-full" id="service-summary-report">
             <x-slot name="heading">
                 {{ $this->summaryReportHeading() }}
             </x-slot>
@@ -103,7 +103,7 @@
             </style>
         </x-filament::section>
 
-        <x-filament::section class="h-full">
+        <x-filament::section class="h-full" id="service-system-status">
             <x-slot name="heading">
                 {{ $this->systemStatusHeading() }}
             </x-slot>

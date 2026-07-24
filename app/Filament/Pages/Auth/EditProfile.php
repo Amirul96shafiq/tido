@@ -124,6 +124,7 @@ class EditProfile extends BaseEditProfile
                     ->extraAttributes(['class' => 'fi-profile-main-column'])
                     ->schema([
                         Section::make('Personalize')
+                            ->id('personalize')
                             ->schema([
                                 View::make('filament.schemas.components.theme-mode-field')
                                     ->columnSpanFull(),
@@ -139,6 +140,7 @@ class EditProfile extends BaseEditProfile
                             ->columns(1),
 
                         Section::make('Account & Security')
+                            ->id('account-security')
                             ->schema([
                                 $this->getEmailFormComponent(),
                                 Toggle::make('change_password')
@@ -152,6 +154,7 @@ class EditProfile extends BaseEditProfile
                             ]),
 
                         Section::make('Regional Preferences')
+                            ->id('regional-preferences')
                             ->schema([
                                 Select::make('locale')
                                     ->label('Language')
@@ -174,6 +177,7 @@ class EditProfile extends BaseEditProfile
                             ]),
 
                         Section::make('Notifications')
+                            ->id('notifications')
                             ->schema([
                                 Toggle::make('notify_budget_alerts')
                                     ->label('Budget Alerts')
@@ -201,6 +205,7 @@ class EditProfile extends BaseEditProfile
                     ->extraAttributes(['class' => 'fi-profile-sidebar-sticky'])
                     ->schema([
                         Section::make('Profile Photo')
+                            ->id('profile-photo')
                             ->extraAttributes(['class' => 'fi-profile-photo-section'])
                             ->schema([
                                 Flex::make([
@@ -209,6 +214,7 @@ class EditProfile extends BaseEditProfile
                             ]),
 
                         Section::make('Personal Details')
+                            ->id('personal-details')
                             ->schema([
                                 $this->getNameFormComponent(),
                                 TextInput::make('display_name')
@@ -360,6 +366,7 @@ class EditProfile extends BaseEditProfile
     protected function getDangerZoneSection(): Section
     {
         return Section::make('Danger Zone')
+            ->id('danger-zone')
             ->key('dangerZone')
             ->collapsed(true)
             ->extraAttributes(['class' => 'fi-danger-zone-section'])

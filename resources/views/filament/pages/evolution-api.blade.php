@@ -1,6 +1,6 @@
 <x-filament-panels::page>
     <div class="grid gap-6 lg:grid-cols-2">
-        <x-filament::section class="order-2 lg:order-1">
+        <x-filament::section class="order-2 lg:order-1" id="evolution-connection">
             <x-slot name="heading">
                 Connection
             </x-slot>
@@ -62,7 +62,7 @@
             </div>
         </x-filament::section>
 
-        <x-filament::section class="order-1 lg:order-2">
+        <x-filament::section class="order-1 lg:order-2" id="evolution-link-device">
             <x-slot name="heading">
                 Link device
             </x-slot>
@@ -357,7 +357,7 @@
         </x-filament::section>
     </div>
 
-    <x-filament::section class="mt-6">
+    <x-filament::section class="mt-6" id="evolution-connection-history">
         <x-slot name="heading">
             Connection history
         </x-slot>
