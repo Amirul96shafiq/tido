@@ -31,15 +31,16 @@ No multi-tenancy, no roles/policies package. Any authenticated user can access `
 5. Use feature/fix branches per `docs/git-workflow.md` — do not develop features on `main`
 6. UI icon CTAs: Filament Tippy tooltips — `docs/ui-tooltips.md`
 7. Sticky top/bottom bars + blur veil — `docs/ui-sticky-blur.md`
-8. Single-line text marquee (reusable) — `docs/ui-text-marquee.md`
-9. Notes rich editor (`notes` fields) — `docs/ui-notes-rich-editor.md`
-10. Resource form empty placeholders / defaults — `docs/ui-form-empty-defaults.md`
-11. Custom Blade toggles (Filament color classes + Profile inlineLabel) — `docs/ui-custom-toggles.md`
-12. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`
-13. Service Status / health probes — `docs/service-status.md`
-14. Profile Active Sessions — `docs/active-sessions.md`
-15. WhatsApp text manual invoices — `docs/whatsapp-manual-invoice.md`
-16. WhatsApp bot commands / keywords — `docs/whatsapp-bot-commands.md`
+8. Profile sticky section tabs + smooth scroll — `docs/ui-profile-section-nav.md`
+9. Single-line text marquee (reusable) — `docs/ui-text-marquee.md`
+10. Notes rich editor (`notes` fields) — `docs/ui-notes-rich-editor.md`
+11. Resource form empty placeholders / defaults — `docs/ui-form-empty-defaults.md`
+12. Custom Blade toggles (Filament color classes + Profile inlineLabel) — `docs/ui-custom-toggles.md`
+13. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`
+14. Service Status / health probes — `docs/service-status.md`
+15. Profile Active Sessions — `docs/active-sessions.md`
+16. WhatsApp text manual invoices — `docs/whatsapp-manual-invoice.md`
+17. WhatsApp bot commands / keywords — `docs/whatsapp-bot-commands.md`
 
 ## Do not
 
