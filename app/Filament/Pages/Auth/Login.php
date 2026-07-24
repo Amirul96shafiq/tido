@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Pages\Auth;
 
 use App\Models\User;
+use App\Services\ActiveSessionService;
 use App\Services\WhatsAppLoginOtpService;
 use App\Support\PhoneNumber;
 use App\Support\TidoBrandCopy;
@@ -650,6 +651,7 @@ class Login extends BaseLogin
 
         session()->regenerate();
 
+        $this->scheduleSessionCreatedAtStamp();
         $this->sendLoginSuccessNotification();
 
         return app(LoginResponse::class);
@@ -690,9 +692,19 @@ class Login extends BaseLogin
 
         session()->regenerate();
 
+        $this->scheduleSessionCreatedAtStamp();
         $this->sendLoginSuccessNotification();
 
         return app(LoginResponse::class);
+    }
+
+    protected function scheduleSessionCreatedAtStamp(): void
+    {
+        $sessionId = session()->getId();
+
+        app()->terminating(function () use ($sessionId): void {
+            app(ActiveSessionService::class)->stampCreatedAt($sessionId);
+        });
     }
 
     protected function findUserByPhone(string $normalizedPhone): ?User

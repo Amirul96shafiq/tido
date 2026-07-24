@@ -113,6 +113,13 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Profile'],
             ],
             [
+                'title' => 'Active Sessions',
+                'keywords' => ['active', 'sessions', 'devices', 'revoke', 'logout', 'browser'],
+                'group' => 'Sections',
+                'url' => $profileUrl.'#active-sessions',
+                'details' => ['Page' => 'Profile'],
+            ],
+            [
                 'title' => 'Regional Preferences',
                 'keywords' => ['regional', 'preferences', 'locale', 'language', 'timezone', 'date'],
                 'group' => 'Sections',

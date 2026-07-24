@@ -11,6 +11,7 @@ use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Models\User;
 use App\Notifications\VerifyEmailChange;
 use App\Services\AccountDangerZoneService;
+use App\Services\ActiveSessionService;
 use App\Support\FilamentAuthLogout;
 use App\Support\PhoneNumber;
 use Carbon\Carbon;
@@ -56,6 +57,15 @@ class EditProfile extends BaseEditProfile
     private const RESET_CONFIRMATION_PHRASE = 'CONFIRM RESET DATA';
 
     private const DELETE_CONFIRMATION_PHRASE = 'CONFIRM DELETE ACCOUNT';
+
+    public ?string $pendingRevokeSessionId = null;
+
+    public function mount(): void
+    {
+        parent::mount();
+
+        app(ActiveSessionService::class)->stampCreatedAt(session()->getId());
+    }
 
     /**
      * @return array<string>
@@ -151,6 +161,17 @@ class EditProfile extends BaseEditProfile
                                 $this->getPasswordFormComponent(),
                                 $this->getPasswordConfirmationFormComponent(),
                                 $this->getCurrentPasswordFormComponent(),
+                            ]),
+
+                        Section::make('Active Sessions')
+                            ->id('active-sessions')
+                            ->schema([
+                                View::make('filament.schemas.components.active-sessions-field')
+                                    ->viewData(fn (): array => [
+                                        'sessions' => app(ActiveSessionService::class)->listFor($this->getUser()),
+                                        'currentId' => session()->getId(),
+                                    ])
+                                    ->columnSpanFull(),
                             ]),
 
                         Section::make('Regional Preferences')
@@ -361,6 +382,41 @@ class EditProfile extends BaseEditProfile
                             ]),
                     ]),
             ]);
+    }
+
+    public function prepareRevokeSession(string $sessionId): void
+    {
+        $this->pendingRevokeSessionId = $sessionId;
+
+        $this->mountAction('revokeSession');
+    }
+
+    public function revokeSessionAction(): Action
+    {
+        return Action::make('revokeSession')
+            ->requiresConfirmation()
+            ->modalHeading('Revoke session')
+            ->modalDescription('This device will be signed out immediately.')
+            ->modalSubmitActionLabel('Revoke')
+            ->color('danger')
+            ->action(function (): void {
+                if ($this->pendingRevokeSessionId === null) {
+                    return;
+                }
+
+                app(ActiveSessionService::class)->revoke(
+                    $this->getUser(),
+                    $this->pendingRevokeSessionId,
+                    session()->getId(),
+                );
+
+                $this->pendingRevokeSessionId = null;
+
+                FilamentNotification::make()
+                    ->title('Session revoked')
+                    ->success()
+                    ->send();
+            });
     }
 
     protected function getDangerZoneSection(): Section
