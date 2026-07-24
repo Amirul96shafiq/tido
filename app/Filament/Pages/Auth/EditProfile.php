@@ -400,7 +400,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                     ->weight(FontWeight::Medium),
 
                 TextColumn::make('is_current')
-                    ->label('This device')
+                    ->label('Current Session')
                     ->badge(fn (bool $state): bool => $state)
                     ->color('primary')
                     ->formatStateUsing(fn (bool $state): ?string => $state ? 'This device' : null),
