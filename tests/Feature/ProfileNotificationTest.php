@@ -222,7 +222,7 @@ test('updating evolution api notification preference persists value', function (
         ->and($user->notifications()->count())->toBe(1);
 
     $notification = $user->notifications()->first();
-    expect($notification->data['body'])->toBe('You updated your profile settings: EvolutionAPI alerts.');
+    expect($notification->data['body'])->toBe('You updated your profile settings: Evolution API alerts.');
 });
 
 test('enabling evolution api notification reports that change only', function () {
@@ -244,5 +244,5 @@ test('enabling evolution api notification reports that change only', function ()
         ->and($user->notifications()->count())->toBe(1);
 
     $notification = $user->notifications()->first();
-    expect($notification->data['body'])->toBe('You updated your profile settings: EvolutionAPI alerts.');
+    expect($notification->data['body'])->toBe('You updated your profile settings: Evolution API alerts.');
 });

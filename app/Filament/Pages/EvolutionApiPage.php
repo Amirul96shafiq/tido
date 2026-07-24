@@ -42,11 +42,11 @@ class EvolutionApiPage extends Page implements HasTable
 
     protected static string|\BackedEnum|null $navigationIcon = 'icon-evolution-api';
 
-    protected static ?string $navigationLabel = 'EvolutionAPI';
+    protected static ?string $navigationLabel = 'Evolution API';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Integrations';
 
-    protected static ?string $title = 'EvolutionAPI';
+    protected static ?string $title = 'Evolution API';
 
     protected static ?int $navigationSort = 20;
 
@@ -120,7 +120,7 @@ class EvolutionApiPage extends Page implements HasTable
 
         if ($this->isConnectionOpen()) {
             $this->clearConnectDisplay();
-            $this->statusMessage = 'EvolutionAPI is connected.';
+            $this->statusMessage = 'Evolution API is connected.';
             $this->loadConnectedInstanceDetails($evolution);
             $this->syncWebhookRegistrationStatus($evolution);
 
@@ -963,7 +963,7 @@ class EvolutionApiPage extends Page implements HasTable
 
         if ($this->isConnectionOpen()) {
             $this->clearPairingDisplay();
-            $this->statusMessage = 'EvolutionAPI is connected.';
+            $this->statusMessage = 'Evolution API is connected.';
             $this->loadConnectedInstanceDetails();
         }
     }
@@ -989,7 +989,7 @@ class EvolutionApiPage extends Page implements HasTable
 
         if ($this->isConnectionOpen()) {
             $this->clearQrDisplay();
-            $this->statusMessage = 'EvolutionAPI is connected.';
+            $this->statusMessage = 'Evolution API is connected.';
             $this->loadConnectedInstanceDetails();
         }
     }
@@ -1051,7 +1051,7 @@ class EvolutionApiPage extends Page implements HasTable
     {
         Notification::make()
             ->title('Contact allowlist required')
-            ->body('Set your WhatsApp number in Profile before connecting EvolutionAPI.')
+            ->body('Set your WhatsApp number in Profile before connecting Evolution API.')
             ->danger()
             ->actions([
                 Action::make('editProfile')
@@ -1141,13 +1141,13 @@ class EvolutionApiPage extends Page implements HasTable
         }
 
         Notification::make()
-            ->title('EvolutionAPI connected')
-            ->body('Your EvolutionAPI instance is linked and ready. You can send receipt photos anytime.')
+            ->title('Evolution API connected')
+            ->body('Your Evolution API instance is linked and ready. You can send receipt photos anytime.')
             ->success()
             ->icon('heroicon-o-check-badge')
             ->actions([
                 Action::make('openEvolutionApi')
-                    ->label('Open EvolutionAPI')
+                    ->label('Open Evolution API')
                     ->button()
                     ->url(static::getUrl(), shouldOpenInNewTab: true)
                     ->markAsRead(),
@@ -1164,13 +1164,13 @@ class EvolutionApiPage extends Page implements HasTable
         }
 
         Notification::make()
-            ->title('EvolutionAPI disconnected')
-            ->body('Your EvolutionAPI session is closed or disconnected. Use Connect to scan a QR or pair with a code.')
+            ->title('Evolution API disconnected')
+            ->body('Your Evolution API session is closed or disconnected. Use Connect to scan a QR or pair with a code.')
             ->warning()
             ->icon('icon-evolution-api')
             ->actions([
                 Action::make('openEvolutionApi')
-                    ->label('Open EvolutionAPI')
+                    ->label('Open Evolution API')
                     ->button()
                     ->url(static::getUrl(), shouldOpenInNewTab: true)
                     ->markAsRead(),

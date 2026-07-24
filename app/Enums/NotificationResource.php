@@ -18,7 +18,7 @@ enum NotificationResource: string
             self::Profile => 'Profile',
             self::Invoices => 'Invoices',
             self::WhatsApp => 'WhatsApp',
-            self::EvolutionApi => 'EvolutionAPI',
+            self::EvolutionApi => 'Evolution API',
             self::Budgets => 'Budgets',
         };
     }
@@ -29,7 +29,7 @@ enum NotificationResource: string
             self::Profile => 'Profile%',
             self::Invoices => 'Receipt%',
             self::WhatsApp => 'WhatsApp%',
-            self::EvolutionApi => 'EvolutionAPI%',
+            self::EvolutionApi => 'Evolution API%',
             self::Budgets => 'Budget%',
         };
     }

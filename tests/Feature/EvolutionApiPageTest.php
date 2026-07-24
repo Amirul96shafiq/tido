@@ -81,7 +81,7 @@ beforeEach(function () {
 
 test('evolution api page uses evolution-api slug', function () {
     expect(EvolutionApiPage::getSlug())->toBe('evolution-api')
-        ->and(EvolutionApiPage::getNavigationLabel())->toBe('EvolutionAPI')
+        ->and(EvolutionApiPage::getNavigationLabel())->toBe('Evolution API')
         ->and(EvolutionApiPage::getNavigationGroup())->toBe('Integrations')
         ->and(EvolutionApiPage::getNavigationIcon())->toBe('icon-evolution-api')
         ->and(EvolutionApiPage::getUrl())->toContain('/evolution-api');
@@ -780,7 +780,7 @@ test('auto-registers webhook and queues welcome when status becomes open', funct
     expect($user->notifications()->count())->toBe(1);
 
     $notification = $user->notifications()->first();
-    expect($notification->data['title'])->toBe('EvolutionAPI connected')
+    expect($notification->data['title'])->toBe('Evolution API connected')
         ->and($notification->data['actions'][0]['url'])->toBe(EvolutionApiPage::getUrl())
         ->and($notification->data['actions'][0]['shouldOpenUrlInNewTab'])->toBeTrue();
 
@@ -1033,12 +1033,12 @@ test('logout resets connect flags and stores disconnected database notification'
 
     $titles = $user->notifications()->pluck('data')->map(fn (array $data): string => $data['title']);
 
-    expect($titles)->toContain('EvolutionAPI connected')
-        ->and($titles)->toContain('EvolutionAPI disconnected');
+    expect($titles)->toContain('Evolution API connected')
+        ->and($titles)->toContain('Evolution API disconnected');
 
     $disconnected = $user->notifications()
         ->get()
-        ->first(fn ($notification): bool => $notification->data['title'] === 'EvolutionAPI disconnected');
+        ->first(fn ($notification): bool => $notification->data['title'] === 'Evolution API disconnected');
 
     expect($disconnected->data['actions'][0]['url'])->toBe(EvolutionApiPage::getUrl())
         ->and($disconnected->data['actions'][0]['shouldOpenUrlInNewTab'])->toBeTrue();
@@ -1063,7 +1063,7 @@ test('connection history section lists previous logs', function () {
 
     $connected = EvolutionApiConnectionLog::factory()->connected()->create([
         'connected_number' => '601115666887',
-        'message' => 'EvolutionAPI session connected (601115666887).',
+        'message' => 'Evolution API session connected (601115666887).',
         'created_at' => $when,
         'meta' => [
             'source' => 'page',
@@ -1072,7 +1072,7 @@ test('connection history section lists previous logs', function () {
     ]);
     $connectedViaPairing = EvolutionApiConnectionLog::factory()->connected()->create([
         'connected_number' => '601115666888',
-        'message' => 'EvolutionAPI session connected (601115666888).',
+        'message' => 'Evolution API session connected (601115666888).',
         'meta' => [
             'source' => 'page',
             'connect_method' => 'pairing_code',
@@ -1080,7 +1080,7 @@ test('connection history section lists previous logs', function () {
     ]);
     $logout = EvolutionApiConnectionLog::factory()->logout()->create([
         'connected_number' => '601115666887',
-        'message' => 'EvolutionAPI session logged out (601115666887).',
+        'message' => 'Evolution API session logged out (601115666887).',
     ]);
 
     Http::fake([

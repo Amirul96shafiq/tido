@@ -67,9 +67,9 @@ class EvolutionApiConnectionLogService
         $suffix = $connectedNumber !== null ? ' ('.$connectedNumber.')' : '';
 
         return match ($event) {
-            EvolutionApiConnectionEvent::Connected => 'EvolutionAPI session connected'.$suffix.'.',
-            EvolutionApiConnectionEvent::Disconnected => 'EvolutionAPI session disconnected'.$suffix.'.',
-            EvolutionApiConnectionEvent::Logout => 'EvolutionAPI session logged out'.$suffix.'.',
+            EvolutionApiConnectionEvent::Connected => 'Evolution API session connected'.$suffix.'.',
+            EvolutionApiConnectionEvent::Disconnected => 'Evolution API session disconnected'.$suffix.'.',
+            EvolutionApiConnectionEvent::Logout => 'Evolution API session logged out'.$suffix.'.',
         };
     }
 }

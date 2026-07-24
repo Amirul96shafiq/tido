@@ -158,7 +158,7 @@ final class PhoneNumber
     }
 
     /**
-     * Allowlist entries grouped for EvolutionAPI UI.
+     * Allowlist entries grouped for Evolution API UI.
      *
      * @return array{
      *     primary: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>,

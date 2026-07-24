@@ -81,7 +81,7 @@ final class AdminDestinationSearch
                 'url' => BackupResource::getUrl('index'),
             ],
             [
-                'title' => 'EvolutionAPI',
+                'title' => 'Evolution API',
                 'keywords' => ['evolution', 'evolutionapi', 'whatsapp', 'integration', 'qr', 'webhook'],
                 'group' => 'Pages',
                 'url' => $evolutionUrl,
@@ -152,21 +152,21 @@ final class AdminDestinationSearch
                 'keywords' => ['connection', 'instance', 'webhook', 'status', 'evolution'],
                 'group' => 'Sections',
                 'url' => $evolutionUrl.'#evolution-connection',
-                'details' => ['Page' => 'EvolutionAPI'],
+                'details' => ['Page' => 'Evolution API'],
             ],
             [
                 'title' => 'Link device',
                 'keywords' => ['link', 'device', 'qr', 'pairing', 'code', 'whatsapp'],
                 'group' => 'Sections',
                 'url' => $evolutionUrl.'#evolution-link-device',
-                'details' => ['Page' => 'EvolutionAPI'],
+                'details' => ['Page' => 'Evolution API'],
             ],
             [
                 'title' => 'Connection history',
                 'keywords' => ['connection', 'history', 'log', 'events', 'evolution'],
                 'group' => 'Sections',
                 'url' => $evolutionUrl.'#evolution-connection-history',
-                'details' => ['Page' => 'EvolutionAPI'],
+                'details' => ['Page' => 'Evolution API'],
             ],
             [
                 'title' => 'Summary report',

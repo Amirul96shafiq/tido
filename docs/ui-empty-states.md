@@ -127,7 +127,7 @@ Do not invent a second empty layout for tables.
 | Backups list | `app/Filament/Resources/Backups/Tables/BackupsTable.php` |
 | Recent Receipts (dashboard) | `app/Filament/Widgets/RecentReceipts.php` |
 | Upload Receipts page table | `app/Filament/Pages/ReceiptUploadPage.php` |
-| EvolutionAPI connection history | `app/Filament/Pages/EvolutionApiPage.php` |
+| Evolution API connection history | `app/Filament/Pages/EvolutionApiPage.php` |
 
 ## Agent checklist
 

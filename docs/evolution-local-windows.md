@@ -105,7 +105,7 @@ Restart `npm run dev:full` after changing `.env` (or clear config cache if you u
 
 ## Step 3: Create instance and link WhatsApp
 
-**Preferred:** with tido running (`npm run dev:full`), open `/admin` → **Integrations → EvolutionAPI** → **Connect** (requires Profile WhatsApp number first):
+**Preferred:** with tido running (`npm run dev:full`), open `/admin` → **Integrations → Evolution API** → **Connect** (requires Profile WhatsApp number first):
 
 - **Scan QR code** — scan from another screen (Linked Devices → Link a Device).
 - **Pair with code** — enter the WhatsApp number to link, copy the code, then Linked Devices → **Link with phone number instead** (works on one phone).

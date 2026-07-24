@@ -45,10 +45,10 @@ test('destination search finds profile account and security section', function (
 });
 
 test('destination search finds evolutionapi page', function () {
-    $results = AdminDestinationSearch::search('EvolutionAPI', GlobalSearchResults::make());
+    $results = AdminDestinationSearch::search('Evolution API', GlobalSearchResults::make());
     $pages = collect($results->getCategories()->get('Pages', []));
 
-    $match = $pages->first(fn ($result): bool => $result->title === 'EvolutionAPI');
+    $match = $pages->first(fn ($result): bool => $result->title === 'Evolution API');
 
     expect($match)->not->toBeNull()
         ->and($match->url)->toBe(EvolutionApiPage::getUrl());

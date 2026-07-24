@@ -43,7 +43,7 @@ class EvolutionApiConnectionLogFactory extends Factory
         return $this->state(fn (): array => [
             'event' => EvolutionApiConnectionEvent::Connected,
             'status' => 'open',
-            'message' => 'EvolutionAPI session connected.',
+            'message' => 'Evolution API session connected.',
         ]);
     }
 
@@ -52,7 +52,7 @@ class EvolutionApiConnectionLogFactory extends Factory
         return $this->state(fn (): array => [
             'event' => EvolutionApiConnectionEvent::Disconnected,
             'status' => 'close',
-            'message' => 'EvolutionAPI session disconnected.',
+            'message' => 'Evolution API session disconnected.',
         ]);
     }
 
@@ -61,7 +61,7 @@ class EvolutionApiConnectionLogFactory extends Factory
         return $this->state(fn (): array => [
             'event' => EvolutionApiConnectionEvent::Logout,
             'status' => 'close',
-            'message' => 'EvolutionAPI session logged out.',
+            'message' => 'Evolution API session logged out.',
             'meta' => ['source' => 'logout'],
         ]);
     }

@@ -58,7 +58,7 @@ Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`
 
 ## Filament map
 
-- Resources: Invoices, Budgets (Finances); Labels, Payment Methods, Family Members (Settings); EvolutionAPI (Integrations) — models `Label`, `PaymentMethod`, `FamilyMember`
+- Resources: Invoices, Budgets (Finances); Labels, Payment Methods, Family Members (Settings); Evolution API (Integrations) — models `Label`, `PaymentMethod`, `FamilyMember`
 - View records: always `ViewAction::make()->slideOver()` — never dedicated View pages; use the disabled form schema (no custom `infolist()` / `*Infolist.php`)
 - Upload UI: `ReceiptUploadPage` → creates pending invoices
 - Dashboard widgets use `DashboardMonthAnalytics` / month period helpers

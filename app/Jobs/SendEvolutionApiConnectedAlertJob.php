@@ -48,9 +48,9 @@ class SendEvolutionApiConnectedAlertJob implements ShouldQueue
         }
 
         $body = match ($this->connectMethod) {
-            EvolutionApiConnectMethod::QrCode => 'EvolutionAPI session reconnected via QR code and is ready for document uploads.',
-            EvolutionApiConnectMethod::PairingCode => 'EvolutionAPI session reconnected via pairing code and is ready for document uploads.',
-            null => 'EvolutionAPI session reconnected and is ready for document uploads.',
+            EvolutionApiConnectMethod::QrCode => 'Evolution API session reconnected via QR code and is ready for document uploads.',
+            EvolutionApiConnectMethod::PairingCode => 'Evolution API session reconnected via pairing code and is ready for document uploads.',
+            null => 'Evolution API session reconnected and is ready for document uploads.',
         };
 
         if (is_string($this->connectedNumber) && $this->connectedNumber !== '') {
@@ -69,7 +69,7 @@ class SendEvolutionApiConnectedAlertJob implements ShouldQueue
         );
 
         if (! $sent) {
-            throw new RuntimeException('Evolution sendText failed for EvolutionAPI connected alert.');
+            throw new RuntimeException('Evolution sendText failed for Evolution API connected alert.');
         }
     }
 }

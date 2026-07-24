@@ -186,8 +186,8 @@ class EditProfile extends BaseEditProfile
                                     ->label('Profile Update Alerts')
                                     ->helperText('Receive in-app notifications when your profile settings change.'),
                                 Toggle::make('notify_evolution_api')
-                                    ->label('EvolutionAPI')
-                                    ->helperText('Receive in-app notifications when EvolutionAPI connects or disconnects.'),
+                                    ->label('Evolution API')
+                                    ->helperText('Receive in-app notifications when Evolution API connects or disconnects.'),
                                 Toggle::make('notify_email_digest')
                                     ->label('Email Digest')
                                     ->helperText('Coming soon — preference saved for future digest emails.'),
@@ -702,7 +702,7 @@ class EditProfile extends BaseEditProfile
             $changes[] = 'Profile update alerts';
         }
         if ($oldNotifyEvolutionApi !== (bool) $updatedRecord->notify_evolution_api) {
-            $changes[] = 'EvolutionAPI alerts';
+            $changes[] = 'Evolution API alerts';
         }
         if ($oldNotifyEmailDigest !== (bool) $updatedRecord->notify_email_digest) {
             $changes[] = 'Email digest';

@@ -316,7 +316,7 @@ class EvolutionInstanceService
 
             return [
                 'ok' => true,
-                'message' => 'Logged out of EvolutionAPI session. Generate a new QR to pair again.',
+                'message' => 'Logged out of Evolution API session. Generate a new QR to pair again.',
             ];
         } catch (\Throwable $e) {
             return [
