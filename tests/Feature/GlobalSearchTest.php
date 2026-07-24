@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Filament\GlobalSearch\AdminDestinationSearch;
+use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Pages\EvolutionApiPage;
 use App\Filament\Resources\Backups\BackupResource;
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
@@ -15,7 +18,9 @@ use App\Models\InvoiceItem;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use App\Models\User;
+use CharrafiMed\GlobalSearchModal\GlobalSearchResults;
 use CharrafiMed\GlobalSearchModal\Livewire\GlobalSearchModal;
+use CharrafiMed\GlobalSearchModal\SearchEngine;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -24,6 +29,86 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->actingAs(User::factory()->create());
+
+    Filament::setCurrentPanel(Filament::getPanel('admin'));
+});
+
+test('destination search finds profile account and security section', function () {
+    $results = AdminDestinationSearch::search('Account Security', GlobalSearchResults::make());
+    $sections = collect($results->getCategories()->get('Sections', []));
+
+    $match = $sections->first(fn ($result): bool => $result->title === 'Account & Security');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toEndWith('#account-security')
+        ->and($match->details)->toBe(['Page' => 'Profile']);
+});
+
+test('destination search finds evolutionapi page', function () {
+    $results = AdminDestinationSearch::search('EvolutionAPI', GlobalSearchResults::make());
+    $pages = collect($results->getCategories()->get('Pages', []));
+
+    $match = $pages->first(fn ($result): bool => $result->title === 'EvolutionAPI');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toBe(EvolutionApiPage::getUrl());
+});
+
+test('destination search finds invoices list page', function () {
+    $results = AdminDestinationSearch::search('Invoices', GlobalSearchResults::make());
+    $pages = collect($results->getCategories()->get('Pages', []));
+
+    $match = $pages->first(fn ($result): bool => $result->title === 'Invoices');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toBe(InvoiceResource::getUrl('index'));
+});
+
+test('destination search finds backups list page', function () {
+    $results = AdminDestinationSearch::search('Backups', GlobalSearchResults::make());
+    $pages = collect($results->getCategories()->get('Pages', []));
+
+    $match = $pages->first(fn ($result): bool => $result->title === 'Backups');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toBe(BackupResource::getUrl('index'));
+});
+
+test('search engine merges destination results with resource records', function () {
+    Invoice::factory()->create([
+        'merchant_name' => 'Invoices Corner Shop',
+    ]);
+
+    $results = app(SearchEngine::class)->search('Invoices');
+
+    expect($results)->not->toBeNull()
+        ->and($results->getCategories()->has('Pages'))->toBeTrue()
+        ->and($results->getCategories()->has('invoices'))->toBeTrue();
+});
+
+test('profile edit page exposes searchable section anchors', function () {
+    $html = Livewire::test(EditProfile::class)->html();
+
+    expect($html)
+        ->toContain('id="account-security"')
+        ->toContain('id="personalize"')
+        ->toContain('id="danger-zone"')
+        ->toContain('id="profile-photo"')
+        ->toContain('id="personal-details"');
+});
+
+test('admin panel includes spa-safe hash scroll helper', function () {
+    $this->get('/admin')
+        ->assertOk()
+        ->assertSee('__tidoHashScrollInstalled', false);
+});
+
+test('section anchors include scroll margin offset for sticky topbar', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.fi-main-ctn [id]')
+        ->toContain('scroll-margin-top: 5rem');
 });
 
 test('admin panel requires global search resource opt-in', function () {

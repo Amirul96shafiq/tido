@@ -1,6 +1,6 @@
 <x-filament-panels::page>
     <form wire:submit="save">
-        <x-filament::section>
+        <x-filament::section id="upload-receipts">
             <x-slot name="heading">
                 Upload Receipts
             </x-slot>
@@ -15,7 +15,7 @@
         </x-filament::section>
     </form>
 
-    <div class="mt-4">
+    <div class="mt-4" id="recent-uploads">
         <h2 class="mb-4 text-lg font-semibold tracking-tight text-gray-950 dark:text-white">
             Recent Uploads & Processing Status
         </h2>
