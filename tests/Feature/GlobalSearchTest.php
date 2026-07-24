@@ -44,6 +44,17 @@ test('destination search finds profile account and security section', function (
         ->and($match->details)->toBe(['Page' => 'Profile']);
 });
 
+test('destination search finds profile active sessions section', function () {
+    $results = AdminDestinationSearch::search('Active Sessions', GlobalSearchResults::make());
+    $sections = collect($results->getCategories()->get('Sections', []));
+
+    $match = $sections->first(fn ($result): bool => $result->title === 'Active Sessions');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toEndWith('#active-sessions')
+        ->and($match->details)->toBe(['Page' => 'Profile']);
+});
+
 test('destination search finds evolutionapi page', function () {
     $results = AdminDestinationSearch::search('Evolution API', GlobalSearchResults::make());
     $pages = collect($results->getCategories()->get('Pages', []));
@@ -91,6 +102,7 @@ test('profile edit page exposes searchable section anchors', function () {
 
     expect($html)
         ->toContain('id="account-security"')
+        ->toContain('id="active-sessions"')
         ->toContain('id="personalize"')
         ->toContain('id="danger-zone"')
         ->toContain('id="profile-photo"')
