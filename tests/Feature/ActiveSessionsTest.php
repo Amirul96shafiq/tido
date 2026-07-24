@@ -115,11 +115,18 @@ test('revoke deletes another session but not the current one', function () {
         ],
     );
 
-    insertActiveSession($this->user, 'other-session');
+    insertActiveSession($this->user, 'other-session', [
+        'ip_address' => '192.168.1.99',
+        'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+    ]);
 
     Livewire::test(EditProfile::class)
+        ->assertSee('Firefox on Windows')
+        ->assertSee('192.168.1.99')
         ->callAction(TestAction::make('revoke')->table('other-session'))
-        ->assertNotified('Session revoked');
+        ->assertNotified('Session revoked')
+        ->assertDontSee('Firefox on Windows')
+        ->assertDontSee('192.168.1.99');
 
     expect(DB::table('sessions')->where('id', 'other-session')->exists())->toBeFalse()
         ->and(DB::table('sessions')->where('id', $currentSessionId)->exists())->toBeTrue();

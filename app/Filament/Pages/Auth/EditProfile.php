@@ -428,6 +428,8 @@ class EditProfile extends BaseEditProfile implements HasTable
                             session()->getId(),
                         );
 
+                        $this->resetTable();
+
                         FilamentNotification::make()
                             ->title('Session revoked')
                             ->success()
