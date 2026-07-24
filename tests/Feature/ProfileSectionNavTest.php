@@ -71,3 +71,12 @@ test('profile section nav items match sectionNavItems helper', function () {
         ['label' => 'Danger Zone', 'id' => 'danger-zone'],
     ]);
 });
+
+test('profile section nav smooth scrolls on tab click', function () {
+    Livewire::test(EditProfile::class)
+        ->assertSuccessful()
+        ->assertSee('scrollToSection', false)
+        ->assertSee("behavior: 'smooth'", false)
+        ->assertSee('onNavClick($event)', false)
+        ->assertSee('x-on:click.capture', false);
+});

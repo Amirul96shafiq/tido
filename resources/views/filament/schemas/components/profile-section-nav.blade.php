@@ -8,6 +8,37 @@
     x-data="{
         activeId: @js($sections[0]['id'] ?? ''),
         sectionIds: @js($sectionIds),
+        scrollToSection(id) {
+            const element = document.getElementById(id);
+
+            if (! element) {
+                return;
+            }
+
+            this.activeId = id;
+
+            if (decodeURIComponent(window.location.hash.slice(1)) !== id) {
+                history.replaceState(null, '', '#' + encodeURIComponent(id));
+            }
+
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+        onNavClick(event) {
+            const link = event.target.closest('a[href^=\'#\']');
+
+            if (! link || ! this.$el.contains(link)) {
+                return;
+            }
+
+            const id = decodeURIComponent((link.getAttribute('href') || '').slice(1));
+
+            if (! this.sectionIds.includes(id)) {
+                return;
+            }
+
+            event.preventDefault();
+            this.scrollToSection(id);
+        },
         init() {
             const syncHash = () => {
                 const hash = decodeURIComponent(window.location.hash.slice(1));
@@ -44,6 +75,7 @@
             });
         },
     }"
+    x-on:click.capture="onNavClick($event)"
     x-on:open-section.window="if ($event.detail?.id) { activeId = $event.detail.id }"
 >
     <x-filament::tabs label="Profile sections">
