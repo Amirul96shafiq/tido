@@ -8,6 +8,7 @@ Before coding, read **[docs/agent-onboarding.md](docs/agent-onboarding.md)** for
 - Git workflow: **[docs/git-workflow.md](docs/git-workflow.md)** — feature/fix branches → PR → `main`; do not develop on `main`
 - Icon CTA tooltips: **[docs/ui-tooltips.md](docs/ui-tooltips.md)** — Filament Tippy, not browser `title`
 - Sticky bars + blur veil: **[docs/ui-sticky-blur.md](docs/ui-sticky-blur.md)** — top/bottom pin with frosted veil
+- Profile section tabs: **[docs/ui-profile-section-nav.md](docs/ui-profile-section-nav.md)** — sticky top tabs, smooth scroll, hash deep links
 - Text marquee (overflow RTL): **[docs/ui-text-marquee.md](docs/ui-text-marquee.md)** — reuse `.tido-text-marquee` anywhere
 - Notes rich editor: **[docs/ui-notes-rich-editor.md](docs/ui-notes-rich-editor.md)** — `NotesRichEditor` for `notes` fields
 - Form empty defaults: **[docs/ui-form-empty-defaults.md](docs/ui-form-empty-defaults.md)** — placeholders vs defaults on resource forms

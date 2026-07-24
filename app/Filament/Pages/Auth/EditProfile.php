@@ -29,9 +29,12 @@ use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification as FilamentNotification;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\EmbeddedTable;
 use Filament\Schemas\Components\Flex;
+use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -80,6 +83,45 @@ class EditProfile extends BaseEditProfile implements HasTable
         return [
             'fi-profile-page',
         ];
+    }
+
+    /**
+     * @return list<array{label: string, id: string}>
+     */
+    public static function sectionNavItems(): array
+    {
+        return [
+            ['label' => 'Personalize', 'id' => 'personalize'],
+            ['label' => 'Account & Security', 'id' => 'account-security'],
+            ['label' => 'Active Sessions', 'id' => 'active-sessions'],
+            ['label' => 'Regional Preferences', 'id' => 'regional-preferences'],
+            ['label' => 'Notifications', 'id' => 'notifications'],
+            ['label' => 'Danger Zone', 'id' => 'danger-zone'],
+        ];
+    }
+
+    public function getFormContentComponent(): Component
+    {
+        return Group::make([
+            Group::make([
+                View::make('filament.schemas.components.profile-section-nav')
+                    ->viewData(fn (): array => [
+                        'sections' => static::sectionNavItems(),
+                    ]),
+            ])->extraAttributes([
+                'class' => 'tido-sticky-marker tido-sticky-marker--top',
+            ]),
+            Form::make([EmbeddedSchema::make('form')])
+                ->id('form')
+                ->livewireSubmitHandler($this->getStickyBlurFormLivewireSubmitHandler()),
+            Group::make([
+                $this->getFormActionsContentComponent(),
+            ])->extraAttributes([
+                'class' => 'tido-sticky-marker tido-sticky-marker--bottom',
+            ]),
+        ])->extraAttributes([
+            'class' => 'tido-sticky-scope',
+        ]);
     }
 
     /**

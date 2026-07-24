@@ -1735,6 +1735,27 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     scroll-margin-top: 5rem;
 }
 
+/* Profile section nav — offset topbar + sticky tab bar when scrolling to hash. */
+.fi-profile-page .fi-sc-section[id] {
+    scroll-margin-top: calc(
+        var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
+            var(--tido-profile-section-nav-height, 2.75rem) + 1rem
+    );
+}
+
+.tido-profile-section-nav {
+    --tido-profile-section-nav-height: 2.75rem;
+    @apply max-w-full;
+    min-height: var(--tido-profile-section-nav-height);
+    overflow: visible;
+}
+
+/* Content-fit width only — ring/bg/shadow come from Filament native .fi-tabs. */
+.tido-profile-section-nav .fi-tabs {
+    @apply w-max max-w-full flex-nowrap;
+    margin-inline: 0;
+}
+
 /* Auth menu — flush top-right 71×71 chrome square (matches topbar user menu). */
 .fi-auth-menu {
     position: fixed;
@@ -2016,8 +2037,19 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     .fi-budget-form-page .fi-sc-form .fi-grid-col:has(.fi-budget-sidebar-sticky),
     .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-sidebar-sticky) {
         position: sticky;
-        top: calc(4rem + 1.5rem);
         align-self: start;
+    }
+
+    .fi-profile-page .fi-sc-form .fi-grid-col:has(.fi-profile-sidebar-sticky) {
+        top: calc(
+            var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
+                var(--tido-profile-section-nav-height, 2.75rem) + 0.75rem
+        );
+    }
+
+    .fi-budget-form-page .fi-sc-form .fi-grid-col:has(.fi-budget-sidebar-sticky),
+    .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-sidebar-sticky) {
+        top: calc(4rem + 1.5rem);
     }
 }
 
