@@ -107,8 +107,7 @@ https://…/admin/invoices/{id}/edit
 
 ## Other WhatsApp text commands
 
-- `spend` / `total` — month spending summary
-- Anything else (non-format) — help text (includes a short manual-invoice hint)
+See **[whatsapp-bot-commands.md](whatsapp-bot-commands.md)** for the full command / keyword reference (help, manual, finance, spend sub-commands, month filters).
 
 ## Key code
 
@@ -124,6 +123,7 @@ https://…/admin/invoices/{id}/edit
 
 ## Related
 
+- Bot commands: [whatsapp-bot-commands.md](whatsapp-bot-commands.md)
 - Pipeline detail: [`.agents/skills/tido-domain/pipeline.md`](../.agents/skills/tido-domain/pipeline.md)
 - Evolution setup: [evolution-local-windows.md](evolution-local-windows.md)
 - Architecture: [system-architecture.md](system-architecture.md)

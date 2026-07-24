@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 use App\Support\WhatsAppMessage;
+use Database\Seeders\PaymentMethodSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+uses(TestCase::class, RefreshDatabase::class);
 
 test('compose joins header body and footer with blank lines', function () {
     $message = WhatsAppMessage::compose(
@@ -22,6 +27,47 @@ test('compose trims body and uses custom footer', function () {
     $message = WhatsAppMessage::compose('🔐', 'Login code', '  Code: *123456*  ', 'Custom footer');
 
     expect($message)->toBe("🔐 *Login code*\n\nCode: *123456*\n\nCustom footer");
+});
+
+test('help includes updated approaches and command hints', function () {
+    $message = WhatsAppMessage::help();
+
+    expect($message)
+        ->toContain('🤖 *Help*')
+        ->toContain('*document(s)*')
+        ->toContain('*image(s)*')
+        ->toContain('type *manual* to learn more')
+        ->toContain('type *finance others* to learn more')
+        ->toContain('— Powered by *tido*');
+});
+
+test('finance keywords lists spending commands', function () {
+    $message = WhatsAppMessage::financeKeywords();
+
+    expect($message)
+        ->toContain('📈 *Finance Keywords*')
+        ->toContain('*spend labels* — label breakdown (up to 8)')
+        ->toContain('*spend merchants* — top 5 merchants')
+        ->toContain('*spend budgets*')
+        ->toContain('*spend trend*')
+        ->toContain('*spend payment*')
+        ->toContain('*spend recent*')
+        ->toContain('— Powered by *tido*');
+});
+
+test('manual approach includes format sample and payment methods', function () {
+    $this->seed(PaymentMethodSeeder::class);
+
+    $message = WhatsAppMessage::manualApproach();
+
+    expect($message)
+        ->toContain('💬 *Manual Approach*')
+        ->toContain('[Invoice title], [Payment method];')
+        ->toContain('ASNB Investment, FPX;')
+        ->toContain('Payment method supported:')
+        ->toContain('- Cash')
+        ->toContain('- Mastercard')
+        ->toContain('— Powered by *tido*');
 });
 
 test('receipt upload failed includes retry count for non-final attempts', function () {

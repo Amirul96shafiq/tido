@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support;
 
 use App\Helpers\MoneyDisplay;
+use App\Models\PaymentMethod;
 
 final class WhatsAppMessage
 {
@@ -29,6 +30,65 @@ final class WhatsAppMessage
         ));
 
         return implode("\n\n", $sections);
+    }
+
+    public static function help(): string
+    {
+        return self::compose(
+            '🤖',
+            'Help',
+            implode("\n", [
+                'Use one of the approaches below in WhatsApp chat to start AI parsing and store it as an invoice:',
+                '- Upload a *document(s)* or *image(s)*',
+                '- Type a *manual invoice text* (type *manual* to learn more)',
+                '- Type *spend* or *total* for spending summary (type *finance others* to learn more)',
+            ]),
+        );
+    }
+
+    public static function financeKeywords(): string
+    {
+        return self::compose(
+            '📈',
+            'Finance Keywords',
+            implode("\n", [
+                'Use one of the keywords below in WhatsApp chat to retrieve according details:',
+                '- *spend* or *total* — monthly spending summary',
+                '- *spend labels* — label breakdown (up to 8)',
+                '- *spend merchants* — top 5 merchants',
+                '- *spend budgets* — all active budgets with status',
+                '- *spend trend* — last 6 months spending',
+                '- *spend payment* — spending by payment method',
+                '- *spend recent* — last 5 receipts',
+                '- *spend last month* — summary for the previous month',
+                '- *spend march* / *spend 2025-03* — summary for a specific month',
+            ]),
+        );
+    }
+
+    public static function manualApproach(): string
+    {
+        $paymentMethodLines = PaymentMethod::orderedForSelect()
+            ->map(static fn (PaymentMethod $method): string => '- '.$method->name)
+            ->implode("\n");
+
+        $body = implode("\n", array_filter([
+            'Type the exact format below in this WhatsApp chat:',
+            '',
+            '[Invoice title], [Payment method];',
+            '[Line item 1  label], [quantity], [total price];',
+            '...',
+            '',
+            'Sample:',
+            '',
+            'ASNB Investment, FPX;',
+            'Amanah Saham Bumiputera (Class A), 1, 200;',
+            '',
+            'Payment method supported:',
+            $paymentMethodLines !== '' ? $paymentMethodLines : null,
+        ], static fn (?string $line): bool => $line !== null));
+
+        return self::compose('💬', 'Manual Approach', $body);
     }
 
     public static function receiptUploadFailed(int $attempt, int $maxAttempts = 3): string

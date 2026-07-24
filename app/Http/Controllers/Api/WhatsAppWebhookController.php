@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Helpers\MoneyDisplay;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessManualWhatsAppInvoiceJob;
 use App\Jobs\ProcessWhatsAppMediaJob;
-use App\Models\Invoice;
 use App\Services\WhatsAppNotificationService;
 use App\Support\ManualWhatsAppInvoiceParser;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppMessage;
+use App\Support\WhatsAppSpendingCommandParser;
+use App\Support\WhatsAppSpendingReplyBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -108,36 +108,35 @@ class WhatsAppWebhookController extends Controller
             return response()->json(['status' => 'accepted']);
         }
 
-        $text = strtolower($originalText);
+        $spendingCommand = WhatsAppSpendingCommandParser::parse($originalText);
 
-        if (str_contains($text, 'spend') || str_contains($text, 'total')) {
-            $now = now();
-            $start = $now->copy()->startOfMonth();
-            $end = $now->copy()->endOfMonth();
-
-            $total = Invoice::whereBetween('date_time', [$start, $end])
-                ->whereIn('status', ['parsed', 'reviewed'])
-                ->sum('total_amount');
-
-            $reply = WhatsAppMessage::compose(
-                '💰',
-                'Monthly spending',
-                sprintf(
-                    "Period: *%s*\n\nTotal spent: *RM %s*",
-                    $now->format('F Y'),
-                    MoneyDisplay::format((float) $total),
-                ),
-            );
+        if ($spendingCommand !== null) {
+            $reply = (new WhatsAppSpendingReplyBuilder(
+                $spendingCommand['month'],
+                $spendingCommand['mode'],
+            ))->build();
             $waService->sendMessage($senderNumber, $reply);
 
             return response()->json(['status' => 'success', 'reply' => $reply]);
         }
 
-        $help = WhatsAppMessage::compose(
-            '🤖',
-            'Help',
-            "• Send a *document* to upload and parse it.\n• Send a *manual invoice* text (merchant[, qr|tngo|card|cash]; then item, qty, total; lines).\n• Type *spend* or *total* to view this month's expenses.",
-        );
+        $text = strtolower($originalText);
+
+        if (str_contains($text, 'finance others')) {
+            $reply = WhatsAppMessage::financeKeywords();
+            $waService->sendMessage($senderNumber, $reply);
+
+            return response()->json(['status' => 'success', 'reply' => $reply]);
+        }
+
+        if (str_contains($text, 'manual way') || preg_match('/\bmanual\b/u', $text) === 1) {
+            $reply = WhatsAppMessage::manualApproach();
+            $waService->sendMessage($senderNumber, $reply);
+
+            return response()->json(['status' => 'success', 'reply' => $reply]);
+        }
+
+        $help = WhatsAppMessage::help();
 
         $waService->sendMessage($senderNumber, $help);
 
