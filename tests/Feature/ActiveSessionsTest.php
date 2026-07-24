@@ -6,6 +6,7 @@ use App\Filament\Pages\Auth\EditProfile;
 use App\Models\User;
 use App\Services\ActiveSessionService;
 use App\Support\UserAgentDevice;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -117,8 +118,7 @@ test('revoke deletes another session but not the current one', function () {
     insertActiveSession($this->user, 'other-session');
 
     Livewire::test(EditProfile::class)
-        ->call('prepareRevokeSession', 'other-session')
-        ->callMountedAction()
+        ->callAction(TestAction::make('revoke')->table('other-session'))
         ->assertNotified('Session revoked');
 
     expect(DB::table('sessions')->where('id', 'other-session')->exists())->toBeFalse()
@@ -159,14 +159,20 @@ test('user agent device parser classifies web and mobile web', function () {
         ->and($mobile->os)->toBe('Android');
 });
 
-test('active sessions revoke button wire click is compiled', function () {
+test('active sessions uses native filament table markup', function () {
     insertActiveSession($this->user, 'wire-click-session');
 
     $html = Livewire::test(EditProfile::class)->html();
 
+    Livewire::test(EditProfile::class)
+        ->assertSee('This device')
+        ->assertSee('Revoke');
+
     expect($html)
-        ->toContain('wire:click="prepareRevokeSession(')
-        ->not->toContain('prepareRevokeSession(@js');
+        ->toContain('fi-ta-ctn')
+        ->toContain('fi-ta-table')
+        ->toContain('fi-ac-btn-action')
+        ->toContain('fi-color-danger');
 });
 
 test('stamp created at only fills missing values', function () {

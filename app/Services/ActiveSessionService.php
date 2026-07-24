@@ -30,6 +30,24 @@ class ActiveSessionService
             ->map(fn (object $row): ActiveSessionData => $this->mapSession($row, $currentSessionId, $user));
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function recordsForTable(User $user, ?string $currentSessionId = null): array
+    {
+        return $this->listFor($user, $currentSessionId)
+            ->mapWithKeys(fn (ActiveSessionData $session): array => [
+                $session->id => [
+                    'id' => $session->id,
+                    'device_class' => $session->deviceClass,
+                    'device_detail' => $session->deviceDetail,
+                    'created_at' => $session->createdAt,
+                    'is_current' => $session->isCurrent,
+                ],
+            ])
+            ->all();
+    }
+
     public function stampCreatedAt(?string $sessionId): void
     {
         if ($sessionId === null || $sessionId === '') {

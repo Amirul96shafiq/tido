@@ -29,6 +29,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification as FilamentNotification;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\EmbeddedTable;
 use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -37,7 +38,12 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
@@ -49,16 +55,15 @@ use Illuminate\Validation\Rule;
 use League\Uri\Components\Query;
 use LogicException;
 
-class EditProfile extends BaseEditProfile
+class EditProfile extends BaseEditProfile implements HasTable
 {
     use HasStickyBlurFormActions;
+    use InteractsWithTable;
     use PrependsHomeBreadcrumb;
 
     private const RESET_CONFIRMATION_PHRASE = 'CONFIRM RESET DATA';
 
     private const DELETE_CONFIRMATION_PHRASE = 'CONFIRM DELETE ACCOUNT';
-
-    public ?string $pendingRevokeSessionId = null;
 
     public function mount(): void
     {
@@ -166,11 +171,7 @@ class EditProfile extends BaseEditProfile
                         Section::make('Active Sessions')
                             ->id('active-sessions')
                             ->schema([
-                                View::make('filament.schemas.components.active-sessions-field')
-                                    ->viewData(fn (): array => [
-                                        'sessions' => app(ActiveSessionService::class)->listFor($this->getUser()),
-                                        'currentId' => session()->getId(),
-                                    ])
+                                EmbeddedTable::make()
                                     ->columnSpanFull(),
                             ]),
 
@@ -384,39 +385,59 @@ class EditProfile extends BaseEditProfile
             ]);
     }
 
-    public function prepareRevokeSession(string $sessionId): void
+    public function table(Table $table): Table
     {
-        $this->pendingRevokeSessionId = $sessionId;
+        return $table
+            ->queryStringIdentifier('activeSessions')
+            ->records(fn (): array => app(ActiveSessionService::class)->recordsForTable(
+                $this->getUser(),
+                session()->getId(),
+            ))
+            ->columns([
+                TextColumn::make('device_class')
+                    ->label('Device')
+                    ->description(fn (array $record): string => $record['device_detail'])
+                    ->weight(FontWeight::Medium),
 
-        $this->mountAction('revokeSession');
-    }
+                TextColumn::make('is_current')
+                    ->label('This device')
+                    ->badge(fn (bool $state): bool => $state)
+                    ->color('primary')
+                    ->formatStateUsing(fn (bool $state): ?string => $state ? 'This device' : null),
 
-    public function revokeSessionAction(): Action
-    {
-        return Action::make('revokeSession')
-            ->requiresConfirmation()
-            ->modalHeading('Revoke session')
-            ->modalDescription('This device will be signed out immediately.')
-            ->modalSubmitActionLabel('Revoke')
-            ->color('danger')
-            ->action(function (): void {
-                if ($this->pendingRevokeSessionId === null) {
-                    return;
-                }
+                TextColumn::make('created_at')
+                    ->label('Created At')
+                    ->since()
+                    ->dateTimeTooltip(),
+            ])
+            ->modifyUngroupedRecordActionsUsing(fn (Action $action): Action => $action->button())
+            ->recordActions([
+                Action::make('revoke')
+                    ->label('Revoke')
+                    ->button()
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Revoke session')
+                    ->modalDescription('This device will be signed out immediately.')
+                    ->modalSubmitActionLabel('Revoke')
+                    ->visible(fn (array $record): bool => ! $record['is_current'])
+                    ->action(function (array $record): void {
+                        app(ActiveSessionService::class)->revoke(
+                            $this->getUser(),
+                            $record['id'],
+                            session()->getId(),
+                        );
 
-                app(ActiveSessionService::class)->revoke(
-                    $this->getUser(),
-                    $this->pendingRevokeSessionId,
-                    session()->getId(),
-                );
-
-                $this->pendingRevokeSessionId = null;
-
-                FilamentNotification::make()
-                    ->title('Session revoked')
-                    ->success()
-                    ->send();
-            });
+                        FilamentNotification::make()
+                            ->title('Session revoked')
+                            ->success()
+                            ->send();
+                    }),
+            ])
+            ->recordActionsColumnLabel('Actions')
+            ->paginated([10, 25, 50])
+            ->emptyStateHeading('No active sessions found')
+            ->emptyStateIcon(Heroicon::OutlinedComputerDesktop);
     }
 
     protected function getDangerZoneSection(): Section
