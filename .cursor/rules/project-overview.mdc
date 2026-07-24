@@ -38,6 +38,7 @@ No multi-tenancy, no roles/policies package. Any authenticated user can access `
 12. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`
 13. Service Status / health probes — `docs/service-status.md`
 14. WhatsApp text manual invoices — `docs/whatsapp-manual-invoice.md`
+15. WhatsApp bot commands / keywords — `docs/whatsapp-bot-commands.md`
 
 ## Do not
 

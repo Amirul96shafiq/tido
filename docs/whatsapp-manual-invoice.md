@@ -107,12 +107,7 @@ https://…/admin/invoices/{id}/edit
 
 ## Other WhatsApp text commands
 
-- `spend` / `total` — month spending summary (MoM, forecast, top labels/merchants, budgets at risk)
-- `spend labels` / `spend merchants` / `spend budgets` / `spend trend` / `spend payment` / `spend recent` — detailed breakdowns
-- `spend march` / `spend 2025-03` / `spend last month` — same commands for a specific month
-- `manual` / `manual way` — manual invoice format, sample, and supported payment methods
-- `finance others` — finance keyword reference for spending commands
-- Anything else (non-format) — help text (points to `manual` and `finance others` for details)
+See **[whatsapp-bot-commands.md](whatsapp-bot-commands.md)** for the full command / keyword reference (help, manual, finance, spend sub-commands, month filters).
 
 ## Key code
 
@@ -128,6 +123,7 @@ https://…/admin/invoices/{id}/edit
 
 ## Related
 
+- Bot commands: [whatsapp-bot-commands.md](whatsapp-bot-commands.md)
 - Pipeline detail: [`.agents/skills/tido-domain/pipeline.md`](../.agents/skills/tido-domain/pipeline.md)
 - Evolution setup: [evolution-local-windows.md](evolution-local-windows.md)
 - Architecture: [system-architecture.md](system-architecture.md)

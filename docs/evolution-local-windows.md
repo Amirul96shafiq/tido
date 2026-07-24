@@ -145,12 +145,12 @@ curl -X POST http://127.0.0.1:8080/webhook/set/tido \
 
 Only Profile WhatsApp numbers plus Family Members with allowlist enabled are allowlisted for bot replies. Self-chat (“Message yourself”) is supported when the JID matches an allowlisted number. Family members cannot OTP-login.
 
-Inbound handling:
+Inbound handling — full command list: [whatsapp-bot-commands.md](whatsapp-bot-commands.md)
 
 - **Image / document** — receipt upload + OCR
 - **Manual invoice text** — structured `merchant[, payment];` + line items (no image); see [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md)
-- **`spend` / `total`** — monthly spending reply
-- Other text — help
+- **`spend` / `total`** and sub-commands — spending analytics replies
+- **`manual`**, **`finance others`**, or other text — guides / help
 
 OTP login only needs outbound `sendText`; webhook is for inbound receipts/commands.
 
