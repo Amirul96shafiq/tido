@@ -172,7 +172,7 @@ test('active sessions uses native filament table markup', function () {
     $html = Livewire::test(EditProfile::class)->html();
 
     Livewire::test(EditProfile::class)
-        ->assertSee('This device')
+        ->assertSee('Current Session')
         ->assertSee('Revoke');
 
     expect($html)
