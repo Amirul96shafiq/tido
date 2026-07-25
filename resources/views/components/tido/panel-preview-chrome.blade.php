@@ -83,23 +83,24 @@
     </div>
 
     <div class="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+        {{-- Art under the focus-mode veil. Do not toggle art via Tailwind opacity-* —
+            .tido-panel-bg-art sets opacity in CSS and wins over utility classes. --}}
         <div
-            class="absolute inset-0 bg-white transition-opacity duration-200 dark:bg-slate-900"
-            x-bind:class="enabled ? 'opacity-0' : 'opacity-100'"
-            aria-hidden="true"
-        ></div>
-
-        <div
-            class="tido-panel-bg-art tido-panel-bg-art--light absolute inset-0 transition-opacity duration-200 dark:hidden"
+            class="tido-panel-bg-art tido-panel-bg-art--light absolute inset-0 dark:hidden"
             style="--tido-panel-bg-url: url('{{ $lightBackground }}');"
-            x-bind:class="enabled ? 'opacity-100' : 'opacity-0'"
             aria-hidden="true"
         ></div>
 
         <div
-            class="tido-panel-bg-art tido-panel-bg-art--dark absolute inset-0 hidden transition-opacity duration-200 dark:block"
+            class="tido-panel-bg-art tido-panel-bg-art--dark absolute inset-0 hidden dark:block"
             style="--tido-panel-bg-url: url('{{ $darkBackground }}');"
-            x-bind:class="enabled ? 'opacity-100' : 'opacity-0'"
+            aria-hidden="true"
+        ></div>
+
+        <div
+            class="absolute inset-0 z-[1] bg-white transition-opacity duration-200 dark:bg-slate-900"
+            x-bind:class="enabled ? 'opacity-0' : 'opacity-100'"
+            data-tido-preview-veil
             aria-hidden="true"
         ></div>
 
