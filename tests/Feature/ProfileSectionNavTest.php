@@ -93,3 +93,17 @@ test('profile section nav exposes horizontal scroll hint affordances', function 
         ->assertSee('tido-profile-section-nav--can-scroll-right', false)
         ->assertSee('scrollActiveTabIntoView', false);
 });
+
+test('profile section nav supports click drag horizontal scroll', function () {
+    Livewire::test(EditProfile::class)
+        ->assertSuccessful()
+        ->assertSee('isDragging', false)
+        ->assertSee('dragMoved', false)
+        ->assertSee('onTabPointerDown', false)
+        ->assertSee('onTabPointerMove', false)
+        ->assertSee('endTabDrag', false)
+        ->assertSee('setPointerCapture', false)
+        ->assertSee('tido-profile-section-nav--dragging', false)
+        ->assertSee("dragstart', (event) => event.preventDefault()", false)
+        ->assertSee('draggable="false"', false);
+});

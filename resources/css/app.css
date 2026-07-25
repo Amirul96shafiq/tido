@@ -2014,6 +2014,17 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     margin-inline: 0;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    cursor: grab;
+    touch-action: pan-y;
+}
+
+.tido-profile-section-nav--dragging .fi-tabs {
+    cursor: grabbing;
+    user-select: none;
+}
+
+.tido-profile-section-nav .fi-tabs .fi-tabs-item {
+    -webkit-user-drag: none;
 }
 
 .tido-profile-section-nav .fi-tabs::-webkit-scrollbar {

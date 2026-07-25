@@ -26,6 +26,7 @@ Sticky pin mechanics are shared with [`ui-sticky-blur.md`](ui-sticky-blur.md). T
 4. Marks the active tab from `IntersectionObserver` while scrolling, and from the URL hash / `open-section` window events.
 5. Leaves sidebar-only blocks (Profile Photo, Personal Details) out of the tab list.
 6. Hides the native horizontal scrollbar on overflow tabs; shows left/right gradient fades when more tabs are off-screen (`updateScrollHints`, `tido-profile-section-nav--can-scroll-left` / `--can-scroll-right`).
+7. Supports click-and-hold horizontal drag on the tab strip (`onTabPointerDown` / `onTabPointerMove` / `endTabDrag`); suppresses tab navigation when the pointer moved past the drag threshold (`dragMoved` guard in `onNavClick`). Native `<a>` drag is blocked (`dragstart` `preventDefault`, `draggable="false"`, `-webkit-user-drag: none`) so the browser does not cancel the pointer with `pointercancel`.
 
 ## Contract (do not invent a second pattern)
 
@@ -41,6 +42,9 @@ Sticky pin mechanics are shared with [`ui-sticky-blur.md`](ui-sticky-blur.md). T
 | `open-section` CustomEvent | Hash scroll sets active tab; nav listens and updates `activeId` |
 | `.tido-profile-section-nav__frame` / `__fade` | Scroll frame + conditional edge gradient cues |
 | `updateScrollHints` / `canScrollLeft` / `canScrollRight` | Alpine scroll overflow detection (scroll + `ResizeObserver`) |
+| `onTabPointerDown` / `onTabPointerMove` / `endTabDrag` | Pointer drag-to-scroll on `.fi-tabs`; `setPointerCapture` |
+| `dragMoved` / `dragThreshold` | Suppress tab click after a real horizontal drag |
+| `tido-profile-section-nav--dragging` | Active while pointer is captured; `cursor: grabbing` + `user-select: none` |
 
 ## Adding or renaming a profile section
 

@@ -11,6 +11,11 @@
         sectionIds: @js($sectionIds),
         canScrollLeft: false,
         canScrollRight: false,
+        isDragging: false,
+        dragMoved: false,
+        dragStartX: 0,
+        dragScrollLeft: 0,
+        dragThreshold: 6,
         scrollToSection(id) {
             const element = document.getElementById(id);
 
@@ -28,6 +33,13 @@
             this.$nextTick(() => this.scrollActiveTabIntoView());
         },
         onNavClick(event) {
+            if (this.dragMoved) {
+                event.preventDefault();
+                this.dragMoved = false;
+
+                return;
+            }
+
             const link = event.target.closest('a[href^=\'#\']');
 
             if (! link || ! this.$el.contains(link)) {
@@ -74,6 +86,57 @@
 
             this.updateScrollHints();
         },
+        onTabPointerDown(event) {
+            if (event.button !== 0) {
+                return;
+            }
+
+            const tabs = this.$refs.tabs;
+
+            if (! tabs) {
+                return;
+            }
+
+            this.isDragging = true;
+            this.dragMoved = false;
+            this.dragStartX = event.clientX;
+            this.dragScrollLeft = tabs.scrollLeft;
+            tabs.setPointerCapture(event.pointerId);
+        },
+        onTabPointerMove(event) {
+            if (! this.isDragging) {
+                return;
+            }
+
+            const tabs = this.$refs.tabs;
+
+            if (! tabs) {
+                return;
+            }
+
+            const delta = event.clientX - this.dragStartX;
+
+            if (! this.dragMoved && Math.abs(delta) < this.dragThreshold) {
+                return;
+            }
+
+            this.dragMoved = true;
+            tabs.scrollLeft = this.dragScrollLeft - delta;
+            this.updateScrollHints();
+        },
+        endTabDrag(event) {
+            if (! this.isDragging) {
+                return;
+            }
+
+            const tabs = this.$refs.tabs;
+
+            if (tabs?.hasPointerCapture?.(event.pointerId)) {
+                tabs.releasePointerCapture(event.pointerId);
+            }
+
+            this.isDragging = false;
+        },
         init() {
             const syncHash = () => {
                 const hash = decodeURIComponent(window.location.hash.slice(1));
@@ -115,6 +178,15 @@
                 }
 
                 tabs.addEventListener('scroll', () => this.updateScrollHints(), { passive: true });
+                tabs.addEventListener('pointerdown', (event) => this.onTabPointerDown(event));
+                tabs.addEventListener('pointermove', (event) => this.onTabPointerMove(event));
+                tabs.addEventListener('pointerup', (event) => this.endTabDrag(event));
+                tabs.addEventListener('pointercancel', (event) => this.endTabDrag(event));
+                tabs.addEventListener('lostpointercapture', (event) => this.endTabDrag(event));
+                tabs.addEventListener('dragstart', (event) => event.preventDefault());
+                tabs.querySelectorAll('a[href]').forEach((link) => {
+                    link.setAttribute('draggable', 'false');
+                });
 
                 const resizeObserver = new ResizeObserver(() => {
                     this.updateScrollHints();
@@ -133,6 +205,7 @@
     x-bind:class="{
         'tido-profile-section-nav--can-scroll-left': canScrollLeft,
         'tido-profile-section-nav--can-scroll-right': canScrollRight,
+        'tido-profile-section-nav--dragging': isDragging,
     }"
     x-on:click.capture="onNavClick($event)"
     x-on:open-section.window="if ($event.detail?.id) { activeId = $event.detail.id }"
@@ -153,6 +226,7 @@
                     tag="a"
                     :href="'#' . $section['id']"
                     :spa-mode="false"
+                    draggable="false"
                 >
                     {{ $section['label'] }}
                 </x-filament::tabs.item>
