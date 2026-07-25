@@ -1,18 +1,29 @@
 # UI modal overlay blur
 
-Canonical pattern for blurred modal backdrops in tido (matches the changelog modal).
+Canonical pattern for blurred modal backdrops in tido.
 
 ## Reference implementation
 
-**Changelog (custom Alpine modal):** [`resources/views/components/changelog-modal.blade.php`](../resources/views/components/changelog-modal.blade.php)
+**Filament slide-over panels** (database notifications, changelog): use `<x-filament::modal slide-over>` — blur comes from `.fi-modal-close-overlay` in [`resources/css/app.css`](../resources/css/app.css).
+
+**Changelog slide-over:** [`resources/views/components/changelog-modal.blade.php`](../resources/views/components/changelog-modal.blade.php)
 
 ```blade
-<div class="absolute inset-0 bg-gray-950/50 dark:bg-gray-950/75 backdrop-blur-md transition-opacity"
-     @click="show = false"
-     aria-hidden="true"></div>
+<x-filament::modal
+    id="changelog"
+    slide-over
+    sticky-header
+    sticky-footer
+    teleport="body"
+    width="md"
+    close-button
+    class="fi-changelog"
+>
 ```
 
-**Shared CSS hook:** [`resources/css/app.css`](../resources/css/app.css) — class `.fi-modal-overlay-blur` on Filament’s `.fi-modal-close-overlay`.
+Opened via `$dispatch('open-modal', { id: 'changelog' })` (user menu, dashboard header, guest auth menu).
+
+**Shared CSS hook:** class `.fi-modal-overlay-blur` on Filament’s `.fi-modal-close-overlay` for action modals.
 
 ## Filament action modals (header actions, table actions)
 
@@ -79,7 +90,7 @@ Uses the same blur via a panel hook — no PHP change needed:
 
 ## Custom Alpine / Blade modals
 
-Inline on the backdrop element (same tokens as changelog):
+Inline on the backdrop element (same tokens as restore backup):
 
 ```html
 class="absolute inset-0 bg-gray-950/50 dark:bg-gray-950/75 backdrop-blur-md transition-opacity"
@@ -90,5 +101,5 @@ class="absolute inset-0 bg-gray-950/50 dark:bg-gray-950/75 backdrop-blur-md tran
 1. Choose **Filament action** vs **`<x-filament::modal>`** vs **custom Alpine**.
 2. Apply blur using one of the patterns above — do not ship a dim-only overlay when other modals in the panel use blur.
 3. For action modals with one or two fields, set `modalWidth(Width::Small)` (or `Medium`) so the dialog is not full-page wide.
-4. Icon CTAs inside the modal must use Filament Tippy (`x-tooltip` / `:tooltip`) — see [ui-tooltips.md](ui-tooltips.md). If the shell uses `z-index` ≥ 9999 (e.g. changelog / restore backup at `99999`), set Tippy `zIndex` higher (e.g. `100000`).
+4. Icon CTAs inside the modal must use Filament Tippy (`x-tooltip` / `:tooltip`) — see [ui-tooltips.md](ui-tooltips.md). Custom shells at `z-index: 99999` (e.g. restore backup) need Tippy `zIndex: 100000`.
 5. After CSS changes, run `npm run build` or `npm run dev` so Filament panel picks up `app.css`.

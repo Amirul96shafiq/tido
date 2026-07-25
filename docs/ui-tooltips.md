@@ -64,7 +64,7 @@ Filament Tippy is **disabled** below Tailwind `sm` (`max-width: 639px`):
 
 ### High z-index custom modals
 
-Tippy defaults to `zIndex: 9999`. Custom shells that use `z-index: 99999` (changelog, restore backup) must raise Tippy above the shell:
+Tippy defaults to `zIndex: 9999`. Custom shells that use `z-index: 99999` (restore backup) must raise Tippy above the shell:
 
 ```blade
 x-tooltip="{
@@ -76,7 +76,7 @@ x-tooltip="{
 
 Without this, Tippy mounts and is “visible” in the DOM but renders **behind** the modal.
 
-**Reference:** [`changelog-modal.blade.php`](../resources/views/components/changelog-modal.blade.php), [`restore-backup-modal.blade.php`](../resources/views/components/restore-backup-modal.blade.php).
+**Reference:** [`restore-backup-modal.blade.php`](../resources/views/components/restore-backup-modal.blade.php).
 
 ## Published / custom triggers already covered
 

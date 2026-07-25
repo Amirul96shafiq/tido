@@ -33,7 +33,7 @@
             <x-filament::dropdown.list.item
                 icon="heroicon-o-code-bracket"
                 tag="button"
-                x-on:click="window.showChangelogModal(); close()"
+                x-on:click="$dispatch('open-modal', { id: 'changelog' }); close()"
             >
                 Changelogs
             </x-filament::dropdown.list.item>

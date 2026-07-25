@@ -2468,21 +2468,21 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /*
- * Shared modal overlay blur — match changelog modal (backdrop-blur-md).
+ * Shared modal overlay blur (backdrop-blur-md).
  * Apply to all Filament close overlays (resource view slide-overs, actions,
- * notifications). Opt-in class `.fi-modal-overlay-blur` remains for explicit hooks.
+ * notifications, changelog). Opt-in class `.fi-modal-overlay-blur` remains for explicit hooks.
  * See docs/ui-modal-overlay.md.
  */
 .fi-modal-close-overlay,
 .fi-modal-close-overlay.fi-modal-overlay-blur,
-.fi-no-database > .fi-modal-close-overlay {
+.fi-no-database > .fi-modal-close-overlay,
+.fi-changelog > .fi-modal-close-overlay {
     @apply backdrop-blur-md;
 }
 
 /*
- * Database notifications slide-over: match changelog modal backdrop blur,
- * and fix Filament's -mx-6 / px-6 on .fi-modal-content which widens past the
- * modal and shows a horizontal scrollbar.
+ * Filament slide-over panels: fix Filament's -mx-6 / px-6 on .fi-modal-content which
+ * widens past the modal and shows a horizontal scrollbar.
  */
 /*
  * Do not set overflow-x on the modal window or .fi-modal-content.
@@ -2587,6 +2587,25 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 .fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-header {
     /* Above empty-state icon so filter date pickers are not covered */
     z-index: 20;
+}
+
+/*
+ * Changelog slide-over: same content bleed fixes as database notifications.
+ */
+.fi-changelog .fi-modal-window-ctn > .fi-modal-window .fi-modal-content {
+    margin-inline: 0;
+    padding-inline: 0;
+    padding-block: 0;
+    row-gap: 0;
+    max-width: 100%;
+}
+
+.fi-changelog
+    .fi-modal-window-ctn
+    > .fi-modal-window
+    .fi-modal-content
+    > :first-child {
+    padding-top: calc(var(--spacing) * 4);
 }
 
 /*

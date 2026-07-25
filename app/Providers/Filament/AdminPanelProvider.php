@@ -259,7 +259,7 @@ class AdminPanelProvider extends PanelProvider
                 Action::make('changelogs')
                     ->label('Changelogs')
                     ->icon('heroicon-o-code-bracket')
-                    ->url('javascript:void(0)')
+                    ->alpineClickHandler("\$dispatch('open-modal', { id: 'changelog' })")
                     ->sort(10),
                 Action::make('notifications')
                     ->label('Notifications')
