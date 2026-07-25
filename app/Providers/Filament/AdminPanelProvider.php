@@ -141,8 +141,8 @@ class AdminPanelProvider extends PanelProvider
                     $currentUser = auth()->user();
                     $backgroundEnabled = $currentUser === null
                         || (bool) $currentUser->getAttribute('stylized_background_enabled');
-                    $light = asset('images/bg-l.png');
-                    $dark = asset('images/bg-d.png');
+                    $light = asset('images/bg-l-v7.png');
+                    $dark = asset('images/bg-d-v7.png');
                     $authLightMobile = asset('images/auth-bg-l.png');
                     $authDarkMobile = asset('images/auth-bg-d.png');
                     $authLight = asset('images/auth-bg-l-v2.png');

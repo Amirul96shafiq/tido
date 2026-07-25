@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 test('admin panel light and dark background images exist', function () {
-    expect(public_path('images/bg-l.png'))->toBeFile()
-        ->and(public_path('images/bg-d.png'))->toBeFile();
+    expect(public_path('images/bg-l-v7.png'))->toBeFile()
+        ->and(public_path('images/bg-d-v7.png'))->toBeFile();
 });
 
 test('admin panel css applies theme-aware background images', function () {
@@ -30,8 +30,8 @@ test('admin panel provider injects theme background asset css variables', functi
     $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
 
     expect($provider)
-        ->toContain("asset('images/bg-l.png')")
-        ->toContain("asset('images/bg-d.png')")
+        ->toContain("asset('images/bg-l-v7.png')")
+        ->toContain("asset('images/bg-d-v7.png')")
         ->toContain("getAttribute('stylized_background_enabled')")
         ->toContain(": 'none';")
         ->toContain('--tido-bg-light:')

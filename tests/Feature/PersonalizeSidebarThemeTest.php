@@ -28,8 +28,8 @@ test('profile personalize section renders live sidebar mode preview', function (
         ->assertSee('$store.sidebar.open()', false)
         ->assertSee('$store.sidebar.close()', false)
         ->assertSee('data.stylized_background_enabled', false)
-        ->assertSee('images/bg-l.png', false)
-        ->assertSee('images/bg-d.png', false);
+        ->assertSee('images/bg-l-v7.png', false)
+        ->assertSee('images/bg-d-v7.png', false);
 });
 
 test('profile personalize section renders theme mode switcher', function (): void {

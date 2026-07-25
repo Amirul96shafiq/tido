@@ -3,8 +3,8 @@
     $logoFullDark = asset('images/tido_light_logo.png');
     $logoCompactLight = asset('images/tido_dark_logo_c.png');
     $logoCompactDark = asset('images/tido_light_logo_c.png');
-    $lightBackground = asset('images/bg-l.png');
-    $darkBackground = asset('images/bg-d.png');
+    $lightBackground = asset('images/bg-l-v7.png');
+    $darkBackground = asset('images/bg-d-v7.png');
 @endphp
 
 {{--
