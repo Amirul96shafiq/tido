@@ -30,6 +30,22 @@ test('changelog slide-over css fixes content bleed like database notifications',
         ->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window .fi-modal-content');
 });
 
+test('changelog and database notification slide-overs use the shared custom scrollbar theme', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window,')
+        ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window {')
+        ->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,')
+        ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar {')
+        ->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,')
+        ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb {');
+
+    $blade = (string) file_get_contents(resource_path('views/components/changelog-modal.blade.php'));
+
+    expect($blade)->not->toContain('custom-scrollbar');
+});
+
 test('dashboard renders changelog slide-over shell', function () {
     $user = User::factory()->withWhatsAppPhone('60123456789')->create();
 

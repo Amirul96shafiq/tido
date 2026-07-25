@@ -25,10 +25,14 @@
  * Do NOT set scrollbar-width/scrollbar-color on the main page scroller in
  * Chromium: those standard props win and suppress ::-webkit-scrollbar-track
  * borders (needed to match the sidebar separator). Firefox gets them via
- * @supports below. */
+ * @supports below.
+ * Changelog + database notification slide-overs scroll on .fi-modal-window
+ * (Filament overflow-y-auto), not an inner custom-scrollbar region. */
 .fi-sidebar-nav,
 .custom-scrollbar,
-.fi-dropdown-panel {
+.fi-dropdown-panel,
+.fi-changelog .fi-modal-window-ctn > .fi-modal-window,
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window {
     scrollbar-width: thin;
     scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
 }
@@ -56,7 +60,9 @@ body::-webkit-scrollbar,
 .fi-main-ctn::-webkit-scrollbar,
 .fi-sidebar-nav::-webkit-scrollbar,
 .custom-scrollbar::-webkit-scrollbar,
-.fi-dropdown-panel::-webkit-scrollbar {
+.fi-dropdown-panel::-webkit-scrollbar,
+.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
@@ -67,7 +73,9 @@ body::-webkit-scrollbar-track,
 .fi-main-ctn::-webkit-scrollbar-track,
 .fi-sidebar-nav::-webkit-scrollbar-track,
 .custom-scrollbar::-webkit-scrollbar-track,
-.fi-dropdown-panel::-webkit-scrollbar-track {
+.fi-dropdown-panel::-webkit-scrollbar-track,
+.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-track,
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-track {
     background: transparent;
 }
 
@@ -105,7 +113,9 @@ body::-webkit-scrollbar-thumb,
 .fi-main-ctn::-webkit-scrollbar-thumb,
 .fi-sidebar-nav::-webkit-scrollbar-thumb,
 .custom-scrollbar::-webkit-scrollbar-thumb,
-.fi-dropdown-panel::-webkit-scrollbar-thumb {
+.fi-dropdown-panel::-webkit-scrollbar-thumb,
+.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb {
     background-color: rgba(156, 163, 175, 0.3);
     border-radius: 0;
 }
@@ -116,13 +126,17 @@ body::-webkit-scrollbar-thumb:hover,
 .fi-main-ctn::-webkit-scrollbar-thumb:hover,
 .fi-sidebar-nav::-webkit-scrollbar-thumb:hover,
 .custom-scrollbar::-webkit-scrollbar-thumb:hover,
-.fi-dropdown-panel::-webkit-scrollbar-thumb:hover {
+.fi-dropdown-panel::-webkit-scrollbar-thumb:hover,
+.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb:hover,
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb:hover {
     background-color: rgba(156, 163, 175, 0.5);
 }
 
 .dark .fi-sidebar-nav,
 .dark .custom-scrollbar,
-.dark .fi-dropdown-panel {
+.dark .fi-dropdown-panel,
+.dark .fi-changelog .fi-modal-window-ctn > .fi-modal-window,
+.dark .fi-no-database .fi-modal-window-ctn > .fi-modal-window {
     scrollbar-color: rgba(51, 65, 85, 0.5) transparent;
 }
 
@@ -132,7 +146,9 @@ html.dark::-webkit-scrollbar-thumb,
 .dark .fi-main-ctn::-webkit-scrollbar-thumb,
 .dark .fi-sidebar-nav::-webkit-scrollbar-thumb,
 .dark .custom-scrollbar::-webkit-scrollbar-thumb,
-.dark .fi-dropdown-panel::-webkit-scrollbar-thumb {
+.dark .fi-dropdown-panel::-webkit-scrollbar-thumb,
+.dark .fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,
+.dark .fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb {
     background-color: rgba(51, 65, 85, 0.5);
 }
 
@@ -142,7 +158,9 @@ html.dark::-webkit-scrollbar-thumb:hover,
 .dark .fi-main-ctn::-webkit-scrollbar-thumb:hover,
 .dark .fi-sidebar-nav::-webkit-scrollbar-thumb:hover,
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover,
-.dark .fi-dropdown-panel::-webkit-scrollbar-thumb:hover {
+.dark .fi-dropdown-panel::-webkit-scrollbar-thumb:hover,
+.dark .fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb:hover,
+.dark .fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb:hover {
     background-color: rgba(71, 85, 105, 0.7);
 }
 

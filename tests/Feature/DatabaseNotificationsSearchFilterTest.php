@@ -71,11 +71,14 @@ test('database notifications modal content does not create a nested scrollport',
     $css = (string) file_get_contents(resource_path('css/app.css'));
     $databaseNotificationsBlock = Str::between(
         $css,
-        '.fi-no-database > .fi-modal-close-overlay {',
-        '.fi-no-empty-panel {',
+        '.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-header {',
+        '* Changelog slide-over: same content bleed fixes as database notifications.',
     );
 
-    expect($databaseNotificationsBlock)->not->toContain('overflow-x: hidden');
+    expect($databaseNotificationsBlock)
+        ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window .fi-modal-content')
+        ->not->toContain('overflow-x: hidden')
+        ->not->toContain('overflow-x:hidden');
 });
 
 test('can search database notifications by title', function () {

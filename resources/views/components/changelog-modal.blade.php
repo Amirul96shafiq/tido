@@ -107,7 +107,7 @@
         </div>
 
         {{-- Commits List --}}
-        <div x-show="!loading && commits.length > 0" class="space-y-0 px-6 py-4 custom-scrollbar">
+        <div x-show="!loading && commits.length > 0" class="space-y-0 px-6 py-4">
             <template x-for="commit in commits" :key="commit.short_hash">
                 <div class="group border-b border-gray-200 py-4 transition-colors last:border-b-0 dark:border-gray-700">
                     <div class="mb-2 flex items-start justify-between gap-3">
