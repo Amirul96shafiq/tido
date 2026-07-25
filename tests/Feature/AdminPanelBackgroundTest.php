@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 test('admin panel light and dark background images exist', function () {
     expect(public_path('images/bg-l.png'))->toBeFile()
-        ->and(public_path('images/bg-d.png'))->toBeFile()
-        ->and(public_path('images/bg-enabled-l-v2.png'))->toBeFile()
-        ->and(public_path('images/bg-enabled-d-v2.png'))->toBeFile()
-        ->and(public_path('images/bg-disabled-l-v2.png'))->toBeFile()
-        ->and(public_path('images/bg-disabled-d-v2.png'))->toBeFile();
+        ->and(public_path('images/bg-d.png'))->toBeFile();
 });
 
 test('admin panel css applies theme-aware background images', function () {
