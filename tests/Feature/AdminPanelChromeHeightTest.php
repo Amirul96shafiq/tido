@@ -2,6 +2,36 @@
 
 declare(strict_types=1);
 
+test('desktop sidebar stacks above topbar without trapping in layout z-index', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $stackingComment = 'Do not put z-index on .fi-layout:';
+    $stackingSection = Str::between(
+        $css,
+        $stackingComment,
+        '.fi-body:has(.fi-simple-layout) .tido-stylized-bg {',
+    );
+    $layoutBlock = Str::between($stackingSection, '.fi-layout {', '.fi-main-ctn {');
+    $mainCtnLiftBlock = Str::after($stackingSection, '.fi-main-ctn {');
+    $desktopChromeBlock = Str::between(
+        $css,
+        '/* Desktop layout overrides for full-height sidebar and static topbar */',
+        '/* Honor prefers-reduced-motion: skip sidebar collapse/expand chrome motion */',
+    );
+
+    expect($css)
+        ->toContain($stackingComment)
+        ->and($layoutBlock)
+        ->toContain('position: relative;')
+        ->not->toContain('z-index:')
+        ->and($mainCtnLiftBlock)
+        ->toContain('position: relative;')
+        ->toContain('z-index: 1;')
+        ->and($desktopChromeBlock)
+        ->toContain('z-index: 30 !important;')
+        ->toContain('z-index: 20 !important;');
+});
+
 test('topbar and sidebar header height match collapsed sidebar width', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 

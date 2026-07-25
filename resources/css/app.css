@@ -292,7 +292,16 @@ html.dark::-webkit-scrollbar-thumb:hover,
     opacity: 0.68;
 }
 
+/*
+ * Do not put z-index on .fi-layout: topbar is a sibling OUTSIDE .fi-layout, and a
+ * stacking context here traps .fi-sidebar (even at z-30) under .fi-topbar-ctn.
+ * Lift only the main column above .tido-stylized-bg (z-0); sidebar keeps root z-30.
+ */
 .fi-layout {
+    position: relative;
+}
+
+.fi-main-ctn {
     position: relative;
     z-index: 1;
 }
