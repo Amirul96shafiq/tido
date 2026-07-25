@@ -31,6 +31,8 @@ class BudgetResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Finances';
 
+    protected static ?int $navigationSort = 3;
+
     public static function form(Schema $schema): Schema
     {
         return BudgetForm::configure($schema);

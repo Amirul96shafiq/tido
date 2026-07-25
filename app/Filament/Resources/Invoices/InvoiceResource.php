@@ -38,6 +38,8 @@ class InvoiceResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Finances';
 
+    protected static ?int $navigationSort = 2;
+
     public static function form(Schema $schema): Schema
     {
         return InvoiceForm::configure($schema);

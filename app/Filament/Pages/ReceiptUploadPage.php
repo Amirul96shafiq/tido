@@ -38,6 +38,8 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
 
     protected static string|\UnitEnum|null $navigationGroup = 'Finances';
 
+    protected static ?int $navigationSort = 1;
+
     protected static ?string $title = 'Upload Receipts';
 
     public ?array $data = [];
