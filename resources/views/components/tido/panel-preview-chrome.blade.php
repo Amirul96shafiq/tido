@@ -105,14 +105,15 @@
             aria-hidden="true"
         ></div>
 
-        <div class="relative z-10 flex h-9 shrink-0 items-center justify-end gap-2 border-b border-gray-200 bg-white/90 px-2 dark:border-gray-700 dark:bg-slate-800/90">
+        {{-- z-[2] stays above preview veil (z-[1]) but below sticky section tabs (z-10). --}}
+        <div class="relative z-[2] flex h-9 shrink-0 items-center justify-end gap-2 border-b border-gray-200 bg-white/90 px-2 dark:border-gray-700 dark:bg-slate-800/90">
             <span
                 class="size-6 shrink-0 rounded-full bg-gray-200 ring-1 ring-gray-300 dark:bg-slate-700 dark:ring-slate-600"
                 aria-hidden="true"
             ></span>
         </div>
 
-        <div class="relative z-10 flex min-h-0 flex-1 flex-col gap-2 p-3">
+        <div class="relative z-[2] flex min-h-0 flex-1 flex-col gap-2 p-3">
             {{ $slot }}
         </div>
     </div>
