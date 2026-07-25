@@ -9,6 +9,8 @@
     x-data="{
         activeId: @js($sections[0]['id'] ?? ''),
         sectionIds: @js($sectionIds),
+        canScrollLeft: false,
+        canScrollRight: false,
         scrollToSection(id) {
             const element = document.getElementById(id);
 
@@ -23,6 +25,7 @@
             }
 
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            this.$nextTick(() => this.scrollActiveTabIntoView());
         },
         onNavClick(event) {
             const link = event.target.closest('a[href^=\'#\']');
@@ -39,6 +42,37 @@
 
             event.preventDefault();
             this.scrollToSection(id);
+        },
+        updateScrollHints() {
+            const tabs = this.$refs.tabs;
+
+            if (! tabs) {
+                this.canScrollLeft = false;
+                this.canScrollRight = false;
+
+                return;
+            }
+
+            const epsilon = 1;
+            const maxScrollLeft = tabs.scrollWidth - tabs.clientWidth;
+
+            this.canScrollLeft = tabs.scrollLeft > epsilon;
+            this.canScrollRight = tabs.scrollLeft < maxScrollLeft - epsilon;
+        },
+        scrollActiveTabIntoView() {
+            const tabs = this.$refs.tabs;
+
+            if (! tabs || ! this.activeId) {
+                return;
+            }
+
+            const activeTab = tabs.querySelector(`a[href='#${CSS.escape(this.activeId)}']`);
+
+            if (activeTab) {
+                activeTab.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+            }
+
+            this.updateScrollHints();
         },
         init() {
             const syncHash = () => {
@@ -73,22 +107,56 @@
                         observer.observe(element);
                     }
                 });
+
+                const tabs = this.$refs.tabs;
+
+                if (! tabs) {
+                    return;
+                }
+
+                tabs.addEventListener('scroll', () => this.updateScrollHints(), { passive: true });
+
+                const resizeObserver = new ResizeObserver(() => {
+                    this.updateScrollHints();
+                    this.scrollActiveTabIntoView();
+                });
+
+                resizeObserver.observe(tabs);
+                this.updateScrollHints();
+            });
+
+            this.$watch('activeId', () => {
+                this.$nextTick(() => this.scrollActiveTabIntoView());
             });
         },
+    }"
+    x-bind:class="{
+        'tido-profile-section-nav--can-scroll-left': canScrollLeft,
+        'tido-profile-section-nav--can-scroll-right': canScrollRight,
     }"
     x-on:click.capture="onNavClick($event)"
     x-on:open-section.window="if ($event.detail?.id) { activeId = $event.detail.id }"
 >
-    <x-filament::tabs :label="$ariaLabel">
-        @foreach ($sections as $section)
-            <x-filament::tabs.item
-                :alpine-active="'activeId === \'' . e($section['id']) . '\''"
-                tag="a"
-                :href="'#' . $section['id']"
-                :spa-mode="false"
-            >
-                {{ $section['label'] }}
-            </x-filament::tabs.item>
-        @endforeach
-    </x-filament::tabs>
+    <div class="tido-profile-section-nav__frame">
+        <div
+            class="tido-profile-section-nav__fade tido-profile-section-nav__fade--left"
+            aria-hidden="true"
+        ></div>
+        <div
+            class="tido-profile-section-nav__fade tido-profile-section-nav__fade--right"
+            aria-hidden="true"
+        ></div>
+        <x-filament::tabs :label="$ariaLabel" x-ref="tabs">
+            @foreach ($sections as $section)
+                <x-filament::tabs.item
+                    :alpine-active="'activeId === \'' . e($section['id']) . '\''"
+                    tag="a"
+                    :href="'#' . $section['id']"
+                    :spa-mode="false"
+                >
+                    {{ $section['label'] }}
+                </x-filament::tabs.item>
+            @endforeach
+        </x-filament::tabs>
+    </div>
 </div>

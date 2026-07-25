@@ -1946,15 +1946,78 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
 .tido-profile-section-nav {
     --tido-profile-section-nav-height: 2.75rem;
+    --tido-profile-section-nav-fade-width: 1.75rem;
     @apply max-w-full;
     min-height: var(--tido-profile-section-nav-height);
     overflow: visible;
+}
+
+.tido-profile-section-nav__frame {
+    @apply relative max-w-full;
+}
+
+.tido-profile-section-nav__fade {
+    @apply pointer-events-none absolute top-0 z-10 hidden h-full;
+    width: var(--tido-profile-section-nav-fade-width);
+}
+
+.tido-profile-section-nav--can-scroll-left .tido-profile-section-nav__fade--left,
+.tido-profile-section-nav--can-scroll-right .tido-profile-section-nav__fade--right {
+    @apply block;
+}
+
+.tido-profile-section-nav__fade--left {
+    left: 0;
+    border-top-left-radius: var(--radius-xl);
+    border-bottom-left-radius: var(--radius-xl);
+    background: linear-gradient(
+        to right,
+        var(--color-white) 0%,
+        color-mix(in srgb, var(--color-white) 70%, transparent) 55%,
+        transparent 100%
+    );
+}
+
+.tido-profile-section-nav__fade--right {
+    right: 0;
+    border-top-right-radius: var(--radius-xl);
+    border-bottom-right-radius: var(--radius-xl);
+    background: linear-gradient(
+        to left,
+        var(--color-white) 0%,
+        color-mix(in srgb, var(--color-white) 70%, transparent) 55%,
+        transparent 100%
+    );
+}
+
+.dark .tido-profile-section-nav__fade--left {
+    background: linear-gradient(
+        to right,
+        var(--color-gray-900) 0%,
+        color-mix(in srgb, var(--color-gray-900) 70%, transparent) 55%,
+        transparent 100%
+    );
+}
+
+.dark .tido-profile-section-nav__fade--right {
+    background: linear-gradient(
+        to left,
+        var(--color-gray-900) 0%,
+        color-mix(in srgb, var(--color-gray-900) 70%, transparent) 55%,
+        transparent 100%
+    );
 }
 
 /* Content-fit width only — ring/bg/shadow come from Filament native .fi-tabs. */
 .tido-profile-section-nav .fi-tabs {
     @apply w-max max-w-full flex-nowrap;
     margin-inline: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.tido-profile-section-nav .fi-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 /* Auth menu — flush top-right 71×71 chrome square (matches topbar user menu). */

@@ -65,6 +65,19 @@ test('dashboard section nav smooth scrolls on tab click', function () {
         ->assertSee('x-on:click.capture', false);
 });
 
+test('dashboard section nav exposes horizontal scroll hint affordances', function () {
+    Livewire::test(Dashboard::class)
+        ->assertSuccessful()
+        ->assertSee('updateScrollHints', false)
+        ->assertSee('canScrollLeft', false)
+        ->assertSee('canScrollRight', false)
+        ->assertSee('tido-profile-section-nav__fade--left', false)
+        ->assertSee('tido-profile-section-nav__fade--right', false)
+        ->assertSee('tido-profile-section-nav--can-scroll-left', false)
+        ->assertSee('tido-profile-section-nav--can-scroll-right', false)
+        ->assertSee('scrollActiveTabIntoView', false);
+});
+
 test('dashboard widgets expose section anchor ids', function () {
     $html = Livewire::test(Dashboard::class)
         ->assertSuccessful()
