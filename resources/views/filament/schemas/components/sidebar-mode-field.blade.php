@@ -95,8 +95,8 @@
         class="tido-sidebar-preview relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
         style="aspect-ratio: 32 / 9;"
     >
-        <div class="bg-white dark:bg-slate-900" style="height: 200%;">
-            <x-tido.panel-preview-chrome>
+        <div class="h-full">
+            <x-tido.panel-preview-chrome class="h-full">
                 <div class="h-3 w-1/3 rounded-full bg-gray-200/90 dark:bg-gray-700/90"></div>
                 <div class="h-16 w-full rounded-md bg-white/80 ring-1 ring-gray-200/80 dark:bg-slate-800/80 dark:ring-white/10"></div>
                 <div class="flex gap-2">
