@@ -82,9 +82,10 @@
         @endforeach
     </div>
 
-    <div class="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+    <div class="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-slate-900">
         {{-- Art under the focus-mode veil. Do not toggle art via Tailwind opacity-* —
-            .tido-panel-bg-art sets opacity in CSS and wins over utility classes. --}}
+            .tido-panel-bg-art sets opacity in CSS and wins over utility classes.
+            Solid chrome underlay keeps preview intensity identical across Personalize mocks. --}}
         <div
             class="tido-panel-bg-art tido-panel-bg-art--light absolute inset-0 dark:hidden"
             style="--tido-panel-bg-url: url('{{ $lightBackground }}');"
