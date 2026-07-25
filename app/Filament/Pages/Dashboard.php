@@ -46,14 +46,14 @@ class Dashboard extends BaseDashboard
     public static function widgetNavItems(): array
     {
         return [
-            ['label' => 'Overview', 'id' => 'overview'],
-            ['label' => 'Trend', 'id' => 'monthly-trend'],
-            ['label' => 'Labels', 'id' => 'spending-by-label'],
-            ['label' => 'Budgets', 'id' => 'budget-status'],
-            ['label' => 'Merchants', 'id' => 'top-merchants'],
-            ['label' => 'Payments', 'id' => 'spending-by-payment-method'],
-            ['label' => 'Sources', 'id' => 'receipts-by-source'],
-            ['label' => 'Recent', 'id' => 'recent-receipts'],
+            ['label' => 'Finance Overview', 'id' => 'overview'],
+            ['label' => 'Monthly Spending Trend', 'id' => 'monthly-trend'],
+            ['label' => 'Spending by Label', 'id' => 'spending-by-label'],
+            ['label' => 'Budget Performance', 'id' => 'budget-status'],
+            ['label' => 'Top Merchants', 'id' => 'top-merchants'],
+            ['label' => 'Spending by Payment Method', 'id' => 'spending-by-payment-method'],
+            ['label' => 'Receipts by Upload Source', 'id' => 'receipts-by-source'],
+            ['label' => 'Recent Receipts', 'id' => 'recent-receipts'],
         ];
     }
 

@@ -40,14 +40,14 @@ final class AdminDestinationSearch
                 'url' => $dashboardUrl,
             ],
             [
-                'title' => 'Overview',
-                'keywords' => ['overview', 'dashboard', 'spending', 'stats', 'total'],
+                'title' => 'Finance Overview',
+                'keywords' => ['overview', 'finance', 'dashboard', 'spending', 'stats', 'total'],
                 'group' => 'Sections',
                 'url' => $dashboardUrl.'#overview',
                 'details' => ['Page' => 'Dashboard'],
             ],
             [
-                'title' => 'Monthly Trend',
+                'title' => 'Monthly Spending Trend',
                 'keywords' => ['trend', 'monthly', 'chart', 'dashboard', 'spending'],
                 'group' => 'Sections',
                 'url' => $dashboardUrl.'#monthly-trend',
@@ -82,7 +82,7 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Dashboard'],
             ],
             [
-                'title' => 'Receipts by Source',
+                'title' => 'Receipts by Upload Source',
                 'keywords' => ['receipts', 'source', 'upload', 'dashboard', 'whatsapp'],
                 'group' => 'Sections',
                 'url' => $dashboardUrl.'#receipts-by-source',

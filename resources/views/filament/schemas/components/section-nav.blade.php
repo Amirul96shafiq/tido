@@ -101,7 +101,8 @@
             this.dragMoved = false;
             this.dragStartX = event.clientX;
             this.dragScrollLeft = tabs.scrollLeft;
-            tabs.setPointerCapture(event.pointerId);
+            // Defer setPointerCapture until drag threshold — capturing on
+            // pointerdown retargets click to <nav.fi-tabs> and breaks tab links.
         },
         onTabPointerMove(event) {
             if (! this.isDragging) {
@@ -120,7 +121,14 @@
                 return;
             }
 
-            this.dragMoved = true;
+            if (! this.dragMoved) {
+                this.dragMoved = true;
+
+                if (tabs.hasPointerCapture?.(event.pointerId) !== true) {
+                    tabs.setPointerCapture(event.pointerId);
+                }
+            }
+
             tabs.scrollLeft = this.dragScrollLeft - delta;
             this.updateScrollHints();
         },

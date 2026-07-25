@@ -34,10 +34,10 @@ beforeEach(function () {
 });
 
 test('destination search finds dashboard overview section', function () {
-    $results = AdminDestinationSearch::search('Overview', GlobalSearchResults::make());
+    $results = AdminDestinationSearch::search('Finance Overview', GlobalSearchResults::make());
     $sections = collect($results->getCategories()->get('Sections', []));
 
-    $match = $sections->first(fn ($result): bool => $result->title === 'Overview');
+    $match = $sections->first(fn ($result): bool => $result->title === 'Finance Overview');
 
     expect($match)->not->toBeNull()
         ->and($match->url)->toEndWith('#overview')

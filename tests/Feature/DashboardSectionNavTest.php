@@ -25,14 +25,14 @@ test('dashboard renders sticky toolbar with widget section nav', function () {
 test('dashboard section nav lists all widgets as anchor tabs', function () {
     Livewire::test(Dashboard::class)
         ->assertSuccessful()
-        ->assertSee('Overview')
-        ->assertSee('Trend')
-        ->assertSee('Labels')
-        ->assertSee('Budgets')
-        ->assertSee('Merchants')
-        ->assertSee('Payments')
-        ->assertSee('Sources')
-        ->assertSee('Recent')
+        ->assertSee('Finance Overview')
+        ->assertSee('Monthly Spending Trend')
+        ->assertSee('Spending by Label')
+        ->assertSee('Budget Performance')
+        ->assertSee('Top Merchants')
+        ->assertSee('Spending by Payment Method')
+        ->assertSee('Receipts by Upload Source')
+        ->assertSee('Recent Receipts')
         ->assertSee('#overview', false)
         ->assertSee('#monthly-trend', false)
         ->assertSee('#spending-by-label', false)
@@ -45,14 +45,14 @@ test('dashboard section nav lists all widgets as anchor tabs', function () {
 
 test('dashboard section nav items match widgetNavItems helper', function () {
     expect(Dashboard::widgetNavItems())->toBe([
-        ['label' => 'Overview', 'id' => 'overview'],
-        ['label' => 'Trend', 'id' => 'monthly-trend'],
-        ['label' => 'Labels', 'id' => 'spending-by-label'],
-        ['label' => 'Budgets', 'id' => 'budget-status'],
-        ['label' => 'Merchants', 'id' => 'top-merchants'],
-        ['label' => 'Payments', 'id' => 'spending-by-payment-method'],
-        ['label' => 'Sources', 'id' => 'receipts-by-source'],
-        ['label' => 'Recent', 'id' => 'recent-receipts'],
+        ['label' => 'Finance Overview', 'id' => 'overview'],
+        ['label' => 'Monthly Spending Trend', 'id' => 'monthly-trend'],
+        ['label' => 'Spending by Label', 'id' => 'spending-by-label'],
+        ['label' => 'Budget Performance', 'id' => 'budget-status'],
+        ['label' => 'Top Merchants', 'id' => 'top-merchants'],
+        ['label' => 'Spending by Payment Method', 'id' => 'spending-by-payment-method'],
+        ['label' => 'Receipts by Upload Source', 'id' => 'receipts-by-source'],
+        ['label' => 'Recent Receipts', 'id' => 'recent-receipts'],
     ]);
 });
 
@@ -87,6 +87,7 @@ test('dashboard section nav supports click drag horizontal scroll', function () 
         ->assertSee('onTabPointerMove', false)
         ->assertSee('endTabDrag', false)
         ->assertSee('setPointerCapture', false)
+        ->assertSee('dragThreshold', false)
         ->assertSee('tido-section-nav--dragging', false)
         ->assertSee("dragstart', (event) => event.preventDefault()", false)
         ->assertSee('draggable="false"', false);

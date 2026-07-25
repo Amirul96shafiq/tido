@@ -22,7 +22,7 @@ Sticky pin mechanics are shared with [`ui-sticky-blur.md`](ui-sticky-blur.md). T
 3. On tab click: `preventDefault` → `scrollIntoView({ behavior: 'smooth' })` → `history.replaceState` for the hash (avoids the browser’s instant jump).
 4. Marks the active tab from `IntersectionObserver` while scrolling, and from the URL hash / `open-section` window events.
 5. Hides the native horizontal scrollbar on overflow tabs; shows left/right gradient fades when more tabs are off-screen (`updateScrollHints`, `tido-section-nav--can-scroll-left` / `--can-scroll-right`).
-6. Supports click-and-hold horizontal drag on the tab strip (`onTabPointerDown` / `onTabPointerMove` / `endTabDrag`); suppresses tab navigation when the pointer moved past the drag threshold (`dragMoved` guard in `onNavClick`). Native `<a>` drag is blocked (`dragstart` `preventDefault`, `draggable="false"`, `-webkit-user-drag: none`) so the browser does not cancel the pointer with `pointercancel`.
+6. Supports click-and-hold horizontal drag on the tab strip (`onTabPointerDown` / `onTabPointerMove` / `endTabDrag`); suppresses tab navigation when the pointer moved past the drag threshold (`dragMoved` guard in `onNavClick`). `setPointerCapture` is applied only after the threshold so a plain click still targets the `<a>` tab link. Native `<a>` drag is blocked (`dragstart` `preventDefault`, `draggable="false"`, `-webkit-user-drag: none`) so the browser does not cancel the pointer with `pointercancel`.
 
 ## Contract (do not invent a second pattern)
 
@@ -38,7 +38,7 @@ Sticky pin mechanics are shared with [`ui-sticky-blur.md`](ui-sticky-blur.md). T
 | `open-section` CustomEvent | Hash scroll sets active tab; nav listens and updates `activeId` |
 | `.tido-section-nav__frame` / `__fade` | Scroll frame + conditional edge gradient cues |
 | `updateScrollHints` / `canScrollLeft` / `canScrollRight` | Alpine scroll overflow detection (scroll + `ResizeObserver`) |
-| `onTabPointerDown` / `onTabPointerMove` / `endTabDrag` | Pointer drag-to-scroll on `.fi-tabs`; `setPointerCapture` |
+| `onTabPointerDown` / `onTabPointerMove` / `endTabDrag` | Pointer drag-to-scroll on `.fi-tabs`; `setPointerCapture` only after `dragThreshold` (capturing on pointerdown retargets click to `<nav>` and breaks tab links) |
 | `dragMoved` / `dragThreshold` | Suppress tab click after a real horizontal drag |
 | `tido-section-nav--dragging` | Active while pointer is captured; `cursor: grabbing` + `user-select: none` |
 
