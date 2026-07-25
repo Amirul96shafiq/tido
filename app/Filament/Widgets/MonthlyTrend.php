@@ -88,7 +88,7 @@ class MonthlyTrend extends ChartWidget
                             label: (item) => {
                                 const value = item.parsed?.y ?? item.raw ?? 0;
 
-                                return `Spent: RM ${Number(value).toFixed(2)}`;
+                                return `Spent: RM ${window.tidoFormatMoney(value)}`;
                             },
                             afterTitle: (items) => {
                                 const item = items[0];
@@ -108,7 +108,7 @@ class MonthlyTrend extends ChartWidget
 
                                     if (delta !== undefined && delta !== null) {
                                         const sign = delta >= 0 ? '+' : '-';
-                                        let momText = `${sign}RM ${Math.abs(delta).toFixed(2)}`;
+                                        let momText = `${sign}RM ${window.tidoFormatMoney(Math.abs(delta))}`;
 
                                         if (percent !== undefined && percent !== null) {
                                             momText += ` (${sign}${Math.abs(percent).toFixed(1)}% vs ${priorLabel ?? 'prior month'})`;
@@ -155,7 +155,7 @@ class MonthlyTrend extends ChartWidget
                                     ...names.map((name, labelIndex) => {
                                         const total = totals?.[labelIndex] ?? 0;
 
-                                        return `${name} RM ${Number(total).toFixed(2)}`;
+                                        return `${name} RM ${window.tidoFormatMoney(total)}`;
                                     }),
                                 ];
                             },

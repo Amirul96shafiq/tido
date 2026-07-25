@@ -1,3 +1,9 @@
+window.tidoFormatMoney = (value) =>
+    Number(value).toLocaleString('en-MY', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })
+
 const filamentTooltipThemePlugin = {
     id: 'filamentTooltipTheme',
 

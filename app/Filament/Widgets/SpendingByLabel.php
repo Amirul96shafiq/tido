@@ -105,7 +105,7 @@ class SpendingByLabel extends ChartWidget
                             label: (item) => {
                                 const value = item.raw ?? 0;
 
-                                return `Spent: RM ${Number(value).toFixed(2)}`;
+                                return `Spent: RM ${window.tidoFormatMoney(value)}`;
                             },
                             afterTitle: (items) => {
                                 const item = items[0];
@@ -136,7 +136,7 @@ class SpendingByLabel extends ChartWidget
 
                                 if (delta !== undefined && delta !== null) {
                                     const sign = delta >= 0 ? '+' : '-';
-                                    let momText = `${sign}RM ${Math.abs(delta).toFixed(2)}`;
+                                    let momText = `${sign}RM ${window.tidoFormatMoney(Math.abs(delta))}`;
 
                                     if (percent !== undefined && percent !== null) {
                                         momText += ` (${sign}${Math.abs(percent).toFixed(1)}% vs ${priorMonthLabel ?? 'prior month'})`;
@@ -165,7 +165,7 @@ class SpendingByLabel extends ChartWidget
                                     return [];
                                 }
 
-                                return [`Top: ${merchantName} RM ${Number(merchantTotal).toFixed(2)}`];
+                                return [`Top: ${merchantName} RM ${window.tidoFormatMoney(merchantTotal)}`];
                             },
                         },
                     },

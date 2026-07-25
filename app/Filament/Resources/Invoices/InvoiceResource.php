@@ -9,6 +9,7 @@ use App\Filament\Resources\Invoices\Pages\EditInvoice;
 use App\Filament\Resources\Invoices\Pages\ListInvoices;
 use App\Filament\Resources\Invoices\Schemas\InvoiceForm;
 use App\Filament\Resources\Invoices\Tables\InvoicesTable;
+use App\Helpers\MoneyDisplay;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use Filament\Resources\Resource;
@@ -104,7 +105,7 @@ class InvoiceResource extends Resource
         $details = [
             'Invoice #' => $record->invoice_number ?? '—',
             'Date' => $record->date_time?->format('d M Y') ?? '—',
-            'Total' => 'RM '.number_format((float) $record->total_amount, 2),
+            'Total' => MoneyDisplay::withPrefix($record->total_amount),
             'Status' => $record->status,
         ];
 

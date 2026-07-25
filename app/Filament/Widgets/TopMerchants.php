@@ -136,7 +136,7 @@ class TopMerchants extends ChartWidget
                                 }
 
                                 if (avgSpend !== undefined) {
-                                    parts.push(`RM ${avgSpend.toFixed(2)} avg/visit`);
+                                    parts.push(`RM ${window.tidoFormatMoney(avgSpend)} avg/visit`);
                                 }
 
                                 return parts;
@@ -144,7 +144,7 @@ class TopMerchants extends ChartWidget
                             label: (item) => {
                                 const value = item.parsed?.y ?? item.raw ?? 0;
 
-                                return `${item.dataset.label}: RM ${Number(value).toFixed(2)}`;
+                                return `${item.dataset.label}: RM ${window.tidoFormatMoney(value)}`;
                             },
                         },
                     },

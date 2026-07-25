@@ -9,6 +9,7 @@ use App\Filament\Resources\Budgets\Pages\EditBudget;
 use App\Filament\Resources\Budgets\Pages\ListBudgets;
 use App\Filament\Resources\Budgets\Schemas\BudgetForm;
 use App\Filament\Resources\Budgets\Tables\BudgetsTable;
+use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -80,7 +81,7 @@ class BudgetResource extends Resource
     public static function getGlobalSearchResultDetails(Model $record): array
     {
         return [
-            'Amount' => 'RM '.number_format((float) $record->amount, 2),
+            'Amount' => MoneyDisplay::withPrefix($record->amount),
             'Period' => ucfirst((string) $record->period),
             'Active' => $record->is_active ? 'Yes' : 'No',
         ];

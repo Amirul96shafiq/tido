@@ -13,6 +13,7 @@ test('money state cast formats values for display', function (mixed $input, ?str
     [5.4, '5.40'],
     [0, '0.00'],
     ['12.5', '12.50'],
+    [1234.5, '1,234.50'],
     [null, null],
     ['', null],
 ]);
@@ -25,6 +26,7 @@ test('money state cast parses display values for storage', function (mixed $inpu
     ['5.40', 5.4],
     ['0.00', 0.0],
     [12.5, 12.5],
+    ['1,234.50', 1234.5],
     [null, null],
     ['', null],
 ]);
@@ -36,4 +38,13 @@ test('money display round trip preserves amount', function (): void {
     expect($display)->toBe('5.40')
         ->and($cast->get($display))->toBe(5.4)
         ->and(MoneyDisplay::format($cast->get($display)))->toBe('5.40');
+});
+
+test('money display round trip preserves large amounts', function (): void {
+    $cast = new MoneyStateCast;
+    $display = $cast->set(1234.5);
+
+    expect($display)->toBe('1,234.50')
+        ->and($cast->get($display))->toBe(1234.5)
+        ->and(MoneyDisplay::format($cast->get($display)))->toBe('1,234.50');
 });

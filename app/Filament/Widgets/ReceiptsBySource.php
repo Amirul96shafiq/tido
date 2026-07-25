@@ -130,7 +130,7 @@ class ReceiptsBySource extends ChartWidget
                                 const spent = dataset.totalSpent?.[index];
 
                                 if (spent !== undefined && spent !== null) {
-                                    parts.push(`RM ${Number(spent).toFixed(2)} spent`);
+                                    parts.push(`RM ${window.tidoFormatMoney(spent)} spent`);
                                 }
 
                                 const share = dataset.receiptSharePercents?.[index];
