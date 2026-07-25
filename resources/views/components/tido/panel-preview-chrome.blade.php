@@ -90,15 +90,15 @@
         ></div>
 
         <div
-            class="absolute inset-0 bg-cover bg-bottom bg-no-repeat transition-opacity duration-200 dark:hidden"
-            style="background-image: url('{{ $lightBackground }}');"
+            class="tido-panel-bg-art tido-panel-bg-art--light absolute inset-0 transition-opacity duration-200 dark:hidden"
+            style="--tido-panel-bg-url: url('{{ $lightBackground }}');"
             x-bind:class="enabled ? 'opacity-100' : 'opacity-0'"
             aria-hidden="true"
         ></div>
 
         <div
-            class="absolute inset-0 hidden bg-cover bg-bottom bg-no-repeat transition-opacity duration-200 dark:block"
-            style="background-image: url('{{ $darkBackground }}');"
+            class="tido-panel-bg-art tido-panel-bg-art--dark absolute inset-0 hidden transition-opacity duration-200 dark:block"
+            style="--tido-panel-bg-url: url('{{ $darkBackground }}');"
             x-bind:class="enabled ? 'opacity-100' : 'opacity-0'"
             aria-hidden="true"
         ></div>

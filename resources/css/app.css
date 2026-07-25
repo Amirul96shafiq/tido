@@ -209,21 +209,163 @@ html.dark::-webkit-scrollbar-thumb:hover,
 }
 
 /* Theme-aware panel background (light/dark illustrations).
-   Image URLs come from --tido-bg-* (Blade asset()) so Vite HMR
-   does not resolve root-relative paths against :5173. */
+   Body stays solid chrome. Soft-edged art is a fixed masked layer
+   (.tido-stylized-bg) so hard PNG silhouettes dissolve into the page. */
 .fi-body {
     position: relative;
     background-color: var(--tido-bg-color-light, var(--color-white)) !important;
-    background-image: var(--tido-bg-light);
-    background-size: cover;
-    background-position: bottom center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+    background-image: none;
 }
 
 .dark .fi-body {
     background-color: var(--tido-bg-color-dark, var(--color-slate-800)) !important;
-    background-image: var(--tido-bg-dark);
+    background-image: none;
+}
+
+.tido-stylized-bg {
+    display: var(--tido-stylized-bg-display, none);
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-color: transparent;
+    background-image:
+        linear-gradient(
+            var(--tido-bg-tint-light, var(--color-white)),
+            var(--tido-bg-tint-light, var(--color-white))
+        ),
+        var(--tido-bg-art-light);
+    background-blend-mode: color, normal;
+    background-size: cover;
+    background-position: bottom center;
+    background-repeat: no-repeat;
+    opacity: 0.62;
+    filter: blur(0.5px);
+    /* Mild center dip + smooth ramp — art stays visible. */
+    -webkit-mask-image:
+        linear-gradient(
+            to top,
+            transparent 0%,
+            rgba(0, 0, 0, 0.35) 8%,
+            rgba(0, 0, 0, 0.75) 16%,
+            #000 28%,
+            #000 100%
+        ),
+        radial-gradient(
+            ellipse 100% 90% at 50% 45%,
+            rgba(0, 0, 0, 0.55) 0%,
+            rgba(0, 0, 0, 0.68) 30%,
+            rgba(0, 0, 0, 0.82) 55%,
+            rgba(0, 0, 0, 0.94) 75%,
+            #000 90%,
+            #000 100%
+        );
+    -webkit-mask-composite: source-in;
+    mask-image:
+        linear-gradient(
+            to top,
+            transparent 0%,
+            rgba(0, 0, 0, 0.35) 8%,
+            rgba(0, 0, 0, 0.75) 16%,
+            #000 28%,
+            #000 100%
+        ),
+        radial-gradient(
+            ellipse 100% 90% at 50% 45%,
+            rgba(0, 0, 0, 0.55) 0%,
+            rgba(0, 0, 0, 0.68) 30%,
+            rgba(0, 0, 0, 0.82) 55%,
+            rgba(0, 0, 0, 0.94) 75%,
+            #000 90%,
+            #000 100%
+        );
+    mask-composite: intersect;
+}
+
+.dark .tido-stylized-bg {
+    background-image:
+        linear-gradient(
+            var(--tido-bg-tint-dark, var(--color-slate-800)),
+            var(--tido-bg-tint-dark, var(--color-slate-800))
+        ),
+        var(--tido-bg-art-dark);
+    opacity: 0.68;
+}
+
+.fi-layout {
+    position: relative;
+    z-index: 1;
+}
+
+.fi-body:has(.fi-simple-layout) .tido-stylized-bg {
+    display: none !important;
+}
+
+/* Personalize preview — same chrome tint + soft mask as live layer */
+.tido-panel-bg-art {
+    background-size: cover;
+    background-position: bottom center;
+    background-repeat: no-repeat;
+    background-blend-mode: color, normal;
+    opacity: 0.62;
+    filter: blur(0.45px);
+    -webkit-mask-image:
+        linear-gradient(
+            to top,
+            transparent 0%,
+            rgba(0, 0, 0, 0.35) 8%,
+            rgba(0, 0, 0, 0.75) 16%,
+            #000 28%,
+            #000 100%
+        ),
+        radial-gradient(
+            ellipse 100% 90% at 50% 45%,
+            rgba(0, 0, 0, 0.55) 0%,
+            rgba(0, 0, 0, 0.68) 30%,
+            rgba(0, 0, 0, 0.82) 55%,
+            rgba(0, 0, 0, 0.94) 75%,
+            #000 90%,
+            #000 100%
+        );
+    -webkit-mask-composite: source-in;
+    mask-image:
+        linear-gradient(
+            to top,
+            transparent 0%,
+            rgba(0, 0, 0, 0.35) 8%,
+            rgba(0, 0, 0, 0.75) 16%,
+            #000 28%,
+            #000 100%
+        ),
+        radial-gradient(
+            ellipse 100% 90% at 50% 45%,
+            rgba(0, 0, 0, 0.55) 0%,
+            rgba(0, 0, 0, 0.68) 30%,
+            rgba(0, 0, 0, 0.82) 55%,
+            rgba(0, 0, 0, 0.94) 75%,
+            #000 90%,
+            #000 100%
+        );
+    mask-composite: intersect;
+}
+
+.tido-panel-bg-art--light {
+    background-image:
+        linear-gradient(
+            var(--tido-bg-tint-light, var(--color-white)),
+            var(--tido-bg-tint-light, var(--color-white))
+        ),
+        var(--tido-panel-bg-url);
+}
+
+.tido-panel-bg-art--dark {
+    background-image:
+        linear-gradient(
+            var(--tido-bg-tint-dark, var(--color-slate-800)),
+            var(--tido-bg-tint-dark, var(--color-slate-800))
+        ),
+        var(--tido-panel-bg-url);
+    opacity: 0.68;
 }
 
 /*

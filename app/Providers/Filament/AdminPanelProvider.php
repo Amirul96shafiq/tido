@@ -147,16 +147,23 @@ class AdminPanelProvider extends PanelProvider
                     $authDarkMobile = asset('images/auth-bg-d.png');
                     $authLight = asset('images/auth-bg-l-v2.png');
                     $authDark = asset('images/auth-bg-d-v2.png');
-                    $lightBackground = $backgroundEnabled ? "url('{$light}')" : 'none';
-                    $darkBackground = $backgroundEnabled ? "url('{$dark}')" : 'none';
+                    // Chrome-matched tint; art lives on .tido-stylized-bg with soft masks.
+                    $lightTint = 'var(--color-white)';
+                    $darkTint = 'var(--color-slate-800)';
+                    $lightArt = $backgroundEnabled ? "url('{$light}')" : 'none';
+                    $darkArt = $backgroundEnabled ? "url('{$dark}')" : 'none';
+                    $stylizedDisplay = $backgroundEnabled ? 'block' : 'none';
 
                     return <<<HTML
                         <style>
                             :root {
-                                --tido-bg-light: {$lightBackground};
-                                --tido-bg-dark: {$darkBackground};
-                                --tido-bg-color-light: #FFFFFF;
-                                --tido-bg-color-dark: #1D293D;
+                                --tido-bg-art-light: {$lightArt};
+                                --tido-bg-art-dark: {$darkArt};
+                                --tido-bg-tint-light: {$lightTint};
+                                --tido-bg-tint-dark: {$darkTint};
+                                --tido-bg-color-light: var(--color-white);
+                                --tido-bg-color-dark: var(--color-slate-800);
+                                --tido-stylized-bg-display: {$stylizedDisplay};
                                 --tido-auth-bg-light-mobile: url('{$authLightMobile}');
                                 --tido-auth-bg-dark-mobile: url('{$authDarkMobile}');
                                 --tido-auth-bg-light: url('{$authLight}');
@@ -315,6 +322,10 @@ class AdminPanelProvider extends PanelProvider
                         'isSidebarFullyCollapsibleOnDesktop' => $isSidebarFullyCollapsibleOnDesktop,
                     ]);
                 }
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_START,
+                fn (): string => '<div class="tido-stylized-bg" aria-hidden="true"></div>',
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,
