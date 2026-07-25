@@ -6,6 +6,7 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\HasChartEmptyState;
+use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
@@ -15,6 +16,7 @@ use Illuminate\Support\Str;
 class TopMerchants extends ChartWidget
 {
     use HasChartEmptyState;
+    use HasDashboardSectionId;
     use InteractsWithDashboardMonth;
 
     /**
@@ -26,12 +28,19 @@ class TopMerchants extends ChartWidget
 
     protected static ?int $sort = 5;
 
+    protected static bool $isLazy = false;
+
     protected int|string|array $columnSpan = [
         'default' => 'full',
         'xl' => 4,
     ];
 
     protected ?string $maxHeight = DashboardWidgetHeights::STANDARD_CHART;
+
+    public static function dashboardSectionId(): string
+    {
+        return 'top-merchants';
+    }
 
     public function getHeading(): string|Htmlable|null
     {

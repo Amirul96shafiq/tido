@@ -33,6 +33,17 @@ beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 });
 
+test('destination search finds dashboard overview section', function () {
+    $results = AdminDestinationSearch::search('Overview', GlobalSearchResults::make());
+    $sections = collect($results->getCategories()->get('Sections', []));
+
+    $match = $sections->first(fn ($result): bool => $result->title === 'Overview');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toEndWith('#overview')
+        ->and($match->details)->toBe(['Page' => 'Dashboard']);
+});
+
 test('destination search finds profile account and security section', function () {
     $results = AdminDestinationSearch::search('Account Security', GlobalSearchResults::make());
     $sections = collect($results->getCategories()->get('Sections', []));

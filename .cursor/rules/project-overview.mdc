@@ -31,7 +31,7 @@ No multi-tenancy, no roles/policies package. Any authenticated user can access `
 5. Use feature/fix branches per `docs/git-workflow.md` — do not develop features on `main`
 6. UI icon CTAs: Filament Tippy tooltips — `docs/ui-tooltips.md`
 7. Sticky top/bottom bars + blur veil — `docs/ui-sticky-blur.md`
-8. Profile sticky section tabs + smooth scroll — `docs/ui-profile-section-nav.md`
+8. Sticky section tabs + smooth scroll — `docs/ui-section-nav.md`
 9. Single-line text marquee (reusable) — `docs/ui-text-marquee.md`
 10. Notes rich editor (`notes` fields) — `docs/ui-notes-rich-editor.md`
 11. Resource form empty placeholders / defaults — `docs/ui-form-empty-defaults.md`

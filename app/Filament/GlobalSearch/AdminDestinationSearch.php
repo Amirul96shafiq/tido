@@ -27,6 +27,7 @@ final class AdminDestinationSearch
     public static function destinations(): array
     {
         $profileUrl = EditProfile::getUrl();
+        $dashboardUrl = Dashboard::getUrl();
         $evolutionUrl = EvolutionApiPage::getUrl();
         $serviceStatusUrl = ServiceStatusPage::getUrl();
         $uploadUrl = ReceiptUploadPage::getUrl();
@@ -36,7 +37,63 @@ final class AdminDestinationSearch
                 'title' => 'Dashboard',
                 'keywords' => ['dashboard', 'home', 'analytics', 'finances'],
                 'group' => 'Pages',
-                'url' => Dashboard::getUrl(),
+                'url' => $dashboardUrl,
+            ],
+            [
+                'title' => 'Overview',
+                'keywords' => ['overview', 'dashboard', 'spending', 'stats', 'total'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#overview',
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
+                'title' => 'Monthly Trend',
+                'keywords' => ['trend', 'monthly', 'chart', 'dashboard', 'spending'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#monthly-trend',
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
+                'title' => 'Spending by Label',
+                'keywords' => ['label', 'labels', 'spending', 'dashboard', 'chart'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#spending-by-label',
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
+                'title' => 'Budget Performance',
+                'keywords' => ['budget', 'budgets', 'performance', 'dashboard'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#budget-status',
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
+                'title' => 'Top Merchants',
+                'keywords' => ['merchant', 'merchants', 'top', 'dashboard', 'chart'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#top-merchants',
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
+                'title' => 'Spending by Payment Method',
+                'keywords' => ['payment', 'method', 'methods', 'dashboard', 'spending'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#spending-by-payment-method',
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
+                'title' => 'Receipts by Source',
+                'keywords' => ['receipts', 'source', 'upload', 'dashboard', 'whatsapp'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#receipts-by-source',
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
+                'title' => 'Recent Receipts',
+                'keywords' => ['recent', 'receipts', 'dashboard', 'invoices'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#recent-receipts',
+                'details' => ['Page' => 'Dashboard'],
             ],
             [
                 'title' => 'Upload Receipts',

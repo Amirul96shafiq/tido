@@ -560,6 +560,56 @@ html.dark::-webkit-scrollbar-thumb:hover,
     }
 }
 
+/* Dashboard sticky toolbar — month filter + widget section tabs. */
+.tido-dashboard-sticky-toolbar {
+    @apply flex w-full flex-col items-start gap-4;
+}
+
+.tido-dashboard-sticky-toolbar-filters {
+    @apply w-full shrink-0;
+}
+
+.tido-dashboard-sticky-toolbar-nav {
+    @apply w-full min-w-0;
+}
+
+.tido-dashboard-sticky-toolbar-nav .tido-section-nav {
+    @apply w-full;
+}
+
+@media (min-width: 1024px) {
+    .tido-dashboard-sticky-toolbar {
+        @apply flex-row items-end justify-between gap-5;
+        --tido-dashboard-section-nav-offset: 0;
+    }
+
+    .tido-dashboard-sticky-toolbar-filters {
+        @apply w-auto flex-none;
+    }
+
+    .tido-dashboard-sticky-toolbar-nav {
+        @apply ml-auto flex w-full min-w-0 justify-end;
+    }
+
+    .tido-dashboard-sticky-toolbar-nav .tido-section-nav {
+        @apply flex w-full justify-end;
+    }
+}
+
+/* Dashboard widget anchors — offset topbar + sticky toolbar when scrolling to hash. */
+.tido-dashboard-page .fi-wi-widget[id] {
+    scroll-margin-top: calc(
+        var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
+            var(--tido-dashboard-section-nav-offset, 6.5rem) + 1rem
+    );
+}
+
+@media (min-width: 1024px) {
+    .tido-dashboard-page .fi-wi-widget[id] {
+        --tido-dashboard-section-nav-offset: 3.25rem;
+    }
+}
+
 /*
  * overflow-x-clip on .fi-layout breaks position: sticky for descendants.
  * Scope lives inside .fi-page — use :has() on .fi-layout, not a descendant selector.
@@ -1886,25 +1936,99 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     scroll-margin-top: 5rem;
 }
 
-/* Profile section nav — offset topbar + sticky tab bar when scrolling to hash. */
+/* Section nav — offset topbar + sticky tab bar when scrolling to hash. */
 .fi-profile-page .fi-sc-section[id] {
     scroll-margin-top: calc(
         var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
-            var(--tido-profile-section-nav-height, 2.75rem) + 1rem
+            var(--tido-section-nav-height, 2.75rem) + 1rem
     );
 }
 
-.tido-profile-section-nav {
-    --tido-profile-section-nav-height: 2.75rem;
+.tido-section-nav {
+    --tido-section-nav-height: 2.75rem;
+    --tido-section-nav-fade-width: 1.75rem;
     @apply max-w-full;
-    min-height: var(--tido-profile-section-nav-height);
+    min-height: var(--tido-section-nav-height);
     overflow: visible;
 }
 
+.tido-section-nav__frame {
+    @apply relative max-w-full;
+}
+
+.tido-section-nav__fade {
+    @apply pointer-events-none absolute top-0 z-10 hidden h-full;
+    width: var(--tido-section-nav-fade-width);
+}
+
+.tido-section-nav--can-scroll-left .tido-section-nav__fade--left,
+.tido-section-nav--can-scroll-right .tido-section-nav__fade--right {
+    @apply block;
+}
+
+.tido-section-nav__fade--left {
+    left: 0;
+    border-top-left-radius: var(--radius-xl);
+    border-bottom-left-radius: var(--radius-xl);
+    background: linear-gradient(
+        to right,
+        var(--color-white) 0%,
+        color-mix(in srgb, var(--color-white) 70%, transparent) 55%,
+        transparent 100%
+    );
+}
+
+.tido-section-nav__fade--right {
+    right: 0;
+    border-top-right-radius: var(--radius-xl);
+    border-bottom-right-radius: var(--radius-xl);
+    background: linear-gradient(
+        to left,
+        var(--color-white) 0%,
+        color-mix(in srgb, var(--color-white) 70%, transparent) 55%,
+        transparent 100%
+    );
+}
+
+.dark .tido-section-nav__fade--left {
+    background: linear-gradient(
+        to right,
+        var(--color-gray-900) 0%,
+        color-mix(in srgb, var(--color-gray-900) 70%, transparent) 55%,
+        transparent 100%
+    );
+}
+
+.dark .tido-section-nav__fade--right {
+    background: linear-gradient(
+        to left,
+        var(--color-gray-900) 0%,
+        color-mix(in srgb, var(--color-gray-900) 70%, transparent) 55%,
+        transparent 100%
+    );
+}
+
 /* Content-fit width only — ring/bg/shadow come from Filament native .fi-tabs. */
-.tido-profile-section-nav .fi-tabs {
+.tido-section-nav .fi-tabs {
     @apply w-max max-w-full flex-nowrap;
     margin-inline: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    cursor: grab;
+    touch-action: pan-y;
+}
+
+.tido-section-nav--dragging .fi-tabs {
+    cursor: grabbing;
+    user-select: none;
+}
+
+.tido-section-nav .fi-tabs .fi-tabs-item {
+    -webkit-user-drag: none;
+}
+
+.tido-section-nav .fi-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 /* Auth menu — flush top-right 71×71 chrome square (matches topbar user menu). */
@@ -2194,7 +2318,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     .fi-profile-page .fi-sc-form .fi-grid-col:has(.fi-profile-sidebar-sticky) {
         top: calc(
             var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
-                var(--tido-profile-section-nav-height, 2.75rem) + 0.75rem
+                var(--tido-section-nav-height, 2.75rem) + 0.75rem
         );
     }
 

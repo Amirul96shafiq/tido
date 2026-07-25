@@ -20,7 +20,15 @@
     ], fn ($value): bool => filled($value))));
 @endphp
 
-<x-filament-widgets::widget class="fi-wi-chart">
+<x-filament-widgets::widget
+    :attributes="
+        (new \Filament\Support\View\ComponentAttributeBag)
+            ->merge([
+                'id' => method_exists($this, 'getDashboardSectionId') ? $this->getDashboardSectionId() : null,
+            ])
+            ->class(['fi-wi-chart'])
+    "
+>
     <x-filament::section
         :description="$description"
         :heading="$heading"

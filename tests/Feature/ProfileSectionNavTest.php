@@ -24,7 +24,7 @@ test('profile page renders top and bottom sticky blur markers', function () {
 test('profile section nav lists main column sections as anchor tabs', function () {
     Livewire::test(EditProfile::class)
         ->assertSuccessful()
-        ->assertSee('tido-profile-section-nav', false)
+        ->assertSee('tido-section-nav', false)
         ->assertSee('Personalize')
         ->assertSee('Account &amp; Security', false)
         ->assertSee('Active Sessions')
@@ -45,12 +45,12 @@ test('profile section nav excludes sidebar photo and personal details', function
 
     $html = $response->html();
 
-    expect($html)->toContain('tido-profile-section-nav')
+    expect($html)->toContain('tido-section-nav')
         ->and($html)->not->toContain('href="#profile-photo"')
         ->and($html)->not->toContain('href="#personal-details"');
 
     preg_match(
-        '/<div[^>]*class="[^"]*tido-profile-section-nav[^"]*"[^>]*>.*?<\/div>\s*<\/div>/s',
+        '/<div[^>]*class="[^"]*tido-section-nav[^"]*"[^>]*>.*?<\/div>\s*<\/div>/s',
         $html,
         $navMatch,
     );
@@ -79,4 +79,31 @@ test('profile section nav smooth scrolls on tab click', function () {
         ->assertSee("behavior: 'smooth'", false)
         ->assertSee('onNavClick($event)', false)
         ->assertSee('x-on:click.capture', false);
+});
+
+test('profile section nav exposes horizontal scroll hint affordances', function () {
+    Livewire::test(EditProfile::class)
+        ->assertSuccessful()
+        ->assertSee('updateScrollHints', false)
+        ->assertSee('canScrollLeft', false)
+        ->assertSee('canScrollRight', false)
+        ->assertSee('tido-section-nav__fade--left', false)
+        ->assertSee('tido-section-nav__fade--right', false)
+        ->assertSee('tido-section-nav--can-scroll-left', false)
+        ->assertSee('tido-section-nav--can-scroll-right', false)
+        ->assertSee('scrollActiveTabIntoView', false);
+});
+
+test('profile section nav supports click drag horizontal scroll', function () {
+    Livewire::test(EditProfile::class)
+        ->assertSuccessful()
+        ->assertSee('isDragging', false)
+        ->assertSee('dragMoved', false)
+        ->assertSee('onTabPointerDown', false)
+        ->assertSee('onTabPointerMove', false)
+        ->assertSee('endTabDrag', false)
+        ->assertSee('setPointerCapture', false)
+        ->assertSee('tido-section-nav--dragging', false)
+        ->assertSee("dragstart', (event) => event.preventDefault()", false)
+        ->assertSee('draggable="false"', false);
 });

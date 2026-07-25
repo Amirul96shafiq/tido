@@ -6,6 +6,7 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Invoices\InvoiceResource;
+use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Helpers\FilenameDisplay;
 use App\Models\Invoice;
@@ -20,13 +21,21 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class RecentReceipts extends BaseWidget
 {
+    use HasDashboardSectionId;
     use InteractsWithDashboardMonth;
 
     protected static ?int $sort = 8;
 
+    protected static bool $isLazy = false;
+
     protected int|string|array $columnSpan = 'full';
 
     protected string $view = 'filament.widgets.recent-receipts';
+
+    public static function dashboardSectionId(): string
+    {
+        return 'recent-receipts';
+    }
 
     public function table(Table $table): Table
     {

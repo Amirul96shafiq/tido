@@ -6,6 +6,7 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\HasChartEmptyState;
+use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
@@ -14,6 +15,7 @@ use Illuminate\Contracts\Support\Htmlable;
 class ReceiptsBySource extends ChartWidget
 {
     use HasChartEmptyState;
+    use HasDashboardSectionId;
     use InteractsWithDashboardMonth;
 
     /**
@@ -23,12 +25,19 @@ class ReceiptsBySource extends ChartWidget
 
     protected static ?int $sort = 7;
 
+    protected static bool $isLazy = false;
+
     protected int|string|array $columnSpan = [
         'default' => 'full',
         'xl' => 4,
     ];
 
     protected ?string $maxHeight = DashboardWidgetHeights::STANDARD_CHART;
+
+    public static function dashboardSectionId(): string
+    {
+        return 'receipts-by-source';
+    }
 
     public function getHeading(): string|Htmlable|null
     {

@@ -2,7 +2,7 @@
 
 Reusable pattern for a Filament schema bar that sticks to the **top** (below the panel topbar) or **bottom** of the viewport, with a frosted blur + tint veil behind it while pinned.
 
-- **Top reference:** dashboard month filter in [`app/Filament/Pages/Dashboard.php`](../app/Filament/Pages/Dashboard.php)
+- **Top reference:** dashboard month filter + widget section tabs in [`app/Filament/Pages/Dashboard.php`](../app/Filament/Pages/Dashboard.php)
 - **Bottom form CTAs:** trait [`HasStickyBlurFormActions`](../app/Filament/Concerns/HasStickyBlurFormActions.php) on Create/Edit resource pages and profile
 
 ## Why Filament needs a special structure
@@ -95,7 +95,7 @@ Do **not** use Filament’s `stickyFormActions()` — that applies an opaque fix
 | `CreateInvoice` / `EditInvoice` | Resource CTAs |
 | `CreateLabel` / `EditLabel` | Resource CTAs |
 | `CreateBudget` / `EditBudget` | Resource CTAs |
-| `Auth/EditProfile` | Top section tabs + Save / Cancel / Danger Zone CTAs — see [`ui-profile-section-nav.md`](ui-profile-section-nav.md) for the sticky tab menu |
+| `Auth/EditProfile` | Top section tabs + Save / Cancel / Danger Zone CTAs — see [`ui-section-nav.md`](ui-section-nav.md) for the sticky tab menu |
 
 ### Opt in a new Create / Edit page
 
