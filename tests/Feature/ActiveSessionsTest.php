@@ -100,6 +100,31 @@ test('active sessions shows mobile web device class', function () {
         ->assertSee('Safari on iOS');
 });
 
+test('revoke is shown disabled for the current session and enabled for others', function () {
+    $currentSessionId = session()->getId();
+
+    DB::table('sessions')->updateOrInsert(
+        ['id' => $currentSessionId],
+        [
+            'user_id' => $this->user->getKey(),
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'payload' => 'test-payload',
+            'last_activity' => now()->timestamp,
+            'created_at' => now()->subMinutes(30)->timestamp,
+        ],
+    );
+
+    insertActiveSession($this->user, 'other-session', [
+        'ip_address' => '192.168.1.99',
+        'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+    ]);
+
+    Livewire::test(EditProfile::class)
+        ->assertActionDisabled(TestAction::make('revoke')->table($currentSessionId))
+        ->assertActionEnabled(TestAction::make('revoke')->table('other-session'));
+});
+
 test('revoke deletes another session but not the current one', function () {
     $currentSessionId = session()->getId();
 

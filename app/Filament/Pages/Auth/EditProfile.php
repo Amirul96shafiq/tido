@@ -462,7 +462,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                     ->modalHeading('Revoke session')
                     ->modalDescription('This device will be signed out immediately.')
                     ->modalSubmitActionLabel('Revoke')
-                    ->visible(fn (array $record): bool => ! $record['is_current'])
+                    ->disabled(fn (array $record): bool => $record['is_current'])
                     ->action(function (array $record): void {
                         app(ActiveSessionService::class)->revoke(
                             $this->getUser(),

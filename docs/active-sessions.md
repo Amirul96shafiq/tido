@@ -78,7 +78,7 @@ public function table(Table $table): Table
 
 | Action | Behavior |
 |--------|----------|
-| Revoke | Danger button, confirmation modal; hidden for current session; deletes the `sessions` row |
+| Revoke | Danger button, confirmation modal; shown on every row, disabled for current session; deletes the `sessions` row |
 
 After revoke: `resetTable()` + success notification (“Session revoked”).
 
