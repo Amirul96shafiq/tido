@@ -641,12 +641,18 @@ html.dark::-webkit-scrollbar-thumb:hover,
  * Sticky bottom CTAs (z-index: 10 + isolation) paint above the form column.
  * Select/date panels stay position:absolute inside that column (z-20 is trapped),
  * so open menus sit under Save/Cancel. Lift the form column while a panel is open.
+ * Same for Filament action modals (e.g. Date of Birth) rendered inside the form column.
  */
 .tido-sticky-scope
     > .fi-sc
     > .fi-grid-col:has(.fi-dropdown-panel:not([style*='display: none'])):not(
         :has(.tido-sticky-marker)
-    ) {
+    ),
+.tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(
+        .fi-modal.fi-modal-open:not([style*='display: none'])
+    ):not(:has(.tido-sticky-marker)) {
     position: relative;
     z-index: 15;
 }
@@ -1821,14 +1827,19 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
  * File upload image editor (profile avatar, etc.) is position:fixed inside
  * .fi-main-ctn, while our desktop sidebar/topbar overrides use z-20–z-30.
  * Lift the layout above chrome when the editor is open (Alpine x-show).
+ * Same for Filament action modals (Date of Birth, confirms, etc.): modal z-40
+ * is trapped in .fi-main-ctn (z-1) under sidebar (z-30) / topbar (z-20).
  */
-.fi-layout:has(.fi-fo-file-upload-editor:not([style*="display: none"])) {
+.fi-layout:has(.fi-fo-file-upload-editor:not([style*="display: none"])),
+.fi-layout:has(.fi-modal.fi-modal-open:not([style*="display: none"])) {
     position: relative;
     z-index: 40;
     overflow: visible;
 }
 
 .fi-layout:has(.fi-fo-file-upload-editor:not([style*="display: none"]))
+    .fi-main-ctn,
+.fi-layout:has(.fi-modal.fi-modal-open:not([style*="display: none"]))
     .fi-main-ctn {
     position: relative;
     z-index: 35;

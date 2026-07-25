@@ -33,3 +33,13 @@ test('filament modal close overlays apply backdrop blur', function () {
         ->toContain('.fi-modal-close-overlay')
         ->toContain('@apply backdrop-blur-md;');
 });
+
+test('open filament modals lift above sticky form actions and panel chrome', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.fi-layout:has(.fi-modal.fi-modal-open:not([style*="display: none"]))')
+        ->toContain('.fi-modal.fi-modal-open:not([style*=\'display: none\'])')
+        ->toContain('z-index: 35;')
+        ->toContain('z-index: 15;');
+});
