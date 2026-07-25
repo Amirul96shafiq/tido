@@ -26,51 +26,50 @@
     }}
 >
     @if ($label)
-        <div
-            @if ($collapsible)
-                x-on:click="$store.sidebar.toggleCollapsedGroup(label)"
-            @endif
-            class="fi-sidebar-group-btn"
-        >
-            @if ($icon)
-                {{ \Filament\Support\generate_icon_html($icon, size: \Filament\Support\Enums\IconSize::Medium) }}
-            @endif
-
-            <span class="fi-sidebar-group-label">
-                {{ $label }}
-            </span>
-
-            @if ($collapsible)
-                <x-filament::icon-button
-                    color="gray"
-                    :icon="\Filament\Support\Icons\Heroicon::ChevronUp"
-                    :icon-alias="\Filament\View\PanelsIconAlias::SIDEBAR_GROUP_COLLAPSE_BUTTON"
-                    :label="$label"
-                    x-bind:aria-expanded="! $store.sidebar.groupIsCollapsed(label)"
-                    x-on:click.stop="$store.sidebar.toggleCollapsedGroup(label)"
-                    class="fi-sidebar-group-collapse-btn"
-                />
-            @endif
-        </div>
-
-        <div
-            x-cloak
-            x-show="! $store.sidebar.isOpen"
-            x-transition:enter="fi-transition-enter"
-            x-transition:enter-start="fi-transition-enter-start"
-            x-transition:enter-end="fi-transition-enter-end"
-            class="fi-sidebar-group-collapsed-label flex flex-col items-center justify-center py-2"
-        >
-            <span
-                class="text-[9px] font-bold tracking-wider text-gray-400 uppercase dark:text-slate-500 truncate max-w-[48px] text-center"
-                x-tooltip="{
-                    content: @js($label),
-                    placement: document.dir === 'rtl' ? 'left' : 'right',
-                    theme: $store.theme,
-                }"
+        <div class="fi-sidebar-group-heading">
+            <div
+                @if ($collapsible)
+                    x-on:click="$store.sidebar.toggleCollapsedGroup(label)"
+                @endif
+                class="fi-sidebar-group-btn"
             >
-                {{ str($label)->substr(0, 3)->upper() }}
-            </span>
+                @if ($icon)
+                    {{ \Filament\Support\generate_icon_html($icon, size: \Filament\Support\Enums\IconSize::Medium) }}
+                @endif
+
+                <span class="fi-sidebar-group-label">
+                    {{ $label }}
+                </span>
+
+                @if ($collapsible)
+                    <x-filament::icon-button
+                        color="gray"
+                        :icon="\Filament\Support\Icons\Heroicon::ChevronUp"
+                        :icon-alias="\Filament\View\PanelsIconAlias::SIDEBAR_GROUP_COLLAPSE_BUTTON"
+                        :label="$label"
+                        x-bind:aria-expanded="! $store.sidebar.groupIsCollapsed(label)"
+                        x-on:click.stop="$store.sidebar.toggleCollapsedGroup(label)"
+                        class="fi-sidebar-group-collapse-btn"
+                    />
+                @endif
+            </div>
+
+            @if ($sidebarCollapsible)
+                <div
+                    class="fi-sidebar-group-collapsed-label flex flex-col items-center justify-center"
+                >
+                    <span
+                        class="text-[9px] font-bold tracking-wider text-gray-400 uppercase dark:text-slate-500 truncate max-w-[48px] text-center"
+                        x-tooltip="{
+                            content: @js($label),
+                            placement: document.dir === 'rtl' ? 'left' : 'right',
+                            theme: $store.theme,
+                        }"
+                    >
+                        {{ str($label)->substr(0, 3)->upper() }}
+                    </span>
+                </div>
+            @endif
         </div>
     @endif
 

@@ -164,9 +164,13 @@ html.dark::-webkit-scrollbar-thumb:hover,
 
 /* Sidebar collapse/expand motion tokens */
 :root {
-    --tido-sidebar-duration: 300ms;
-    --tido-sidebar-ease: cubic-bezier(0.4, 0, 0.2, 1);
-    --tido-sidebar-content-delay: 120ms;
+    /* Slower width morph; content stays masked until width is nearly settled (A). */
+    --tido-sidebar-duration: 520ms;
+    --tido-sidebar-ease: cubic-bezier(0.45, 0.05, 0.15, 1);
+    --tido-sidebar-content-delay: 340ms;
+    /* Match Filament .fi-sidebar-nav px-6 so collapsed/expanded icons share X */
+    --tido-sidebar-nav-pad: 1.5rem;
+    --tido-sidebar-icon-pad: 0.5rem; /* matches Filament item p-2 */
 }
 
 /* Sidebar visual separation line */
@@ -181,14 +185,15 @@ html.dark::-webkit-scrollbar-thumb:hover,
     background-color: var(--color-slate-800) !important;
 }
 
-/* Collapsed nav: left-aligned icon rail with equal horizontal padding */
+/* Collapsed nav: same horizontal pad as Filament expanded px-6 (1.5rem).
+ * Groups keep -mx-2 (-0.5rem); item pad 0.5rem → icon left edge at 1.5rem. */
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav {
     scrollbar-gutter: auto;
-    padding-inline: 1rem;
+    padding-inline: var(--tido-sidebar-nav-pad);
 }
 
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav-groups {
-    margin-inline: 0;
+    margin-inline: -0.5rem; /* match expanded -mx-2 so icons share the same rail */
 }
 
 /* Header visual styles matching sidebar */
@@ -1202,8 +1207,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /*
- * Menu labels stay in the layout and clip with the sidebar width.
- * Do not use Alpine x-show here — it removes labels and recenters icons mid-tween.
+ * Menu labels stay in the layout (absolute when collapsed) so icons do not recenter.
+ * Crossfade with icons (C): opacity uses the same delay as chrome enter — no mid-tween
+ * max-width reveal while the sidebar width is still moving.
  */
 .fi-sidebar-item-label,
 .fi-sidebar-item-badge-ctn,
@@ -1214,11 +1220,22 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     white-space: nowrap;
     max-width: 14rem;
     opacity: 1;
-    transition:
-        max-width var(--tido-sidebar-duration) var(--tido-sidebar-ease),
-        opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease),
-        margin var(--tido-sidebar-duration) var(--tido-sidebar-ease),
-        padding var(--tido-sidebar-duration) var(--tido-sidebar-ease);
+}
+
+.fi-sidebar.fi-sidebar-open .fi-sidebar-item-label,
+.fi-sidebar.fi-sidebar-open .fi-sidebar-item-badge-ctn,
+.fi-sidebar.fi-sidebar-open .fi-sidebar-group-label,
+.fi-sidebar.fi-sidebar-open .fi-sidebar-group-collapse-btn {
+    /* steady open: fully visible; fade only while .fi-sidebar-animating */
+    opacity: 1;
+}
+
+.fi-sidebar.fi-sidebar-animating.fi-sidebar-open .fi-sidebar-item-label,
+.fi-sidebar.fi-sidebar-animating.fi-sidebar-open .fi-sidebar-item-badge-ctn,
+.fi-sidebar.fi-sidebar-animating.fi-sidebar-open .fi-sidebar-group-label,
+.fi-sidebar.fi-sidebar-animating.fi-sidebar-open .fi-sidebar-group-collapse-btn {
+    animation: fi-sidebar-expand-chrome-enter var(--tido-sidebar-duration)
+        var(--tido-sidebar-ease) var(--tido-sidebar-content-delay) both;
 }
 
 .fi-sidebar-header-logo-ctn {
@@ -1226,11 +1243,6 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     white-space: nowrap;
     max-width: 14rem;
     opacity: 1;
-    transition:
-        max-width var(--tido-sidebar-duration) var(--tido-sidebar-ease),
-        opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease),
-        margin var(--tido-sidebar-duration) var(--tido-sidebar-ease),
-        padding var(--tido-sidebar-duration) var(--tido-sidebar-ease);
 }
 
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-label,
@@ -1257,9 +1269,6 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     overflow: hidden;
     max-width: 1.5rem;
     opacity: 1;
-    transition:
-        max-width var(--tido-sidebar-duration) var(--tido-sidebar-ease),
-        opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease);
 }
 
 .fi-sidebar-collapse-footer {
@@ -1309,29 +1318,83 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     justify-content: flex-start;
 }
 
-/* Shared 40px (2.5rem) height for open collapse + collapsed expand CTAs. */
-.fi-sidebar-collapse-buttons .fi-sidebar-close-collapse-sidebar-btn,
-.fi-sidebar-collapse-buttons .fi-sidebar-open-collapse-sidebar-btn {
+/*
+ * Square → rectangle morph shell (grows left → right with sidebar width).
+ * Icon stays pinned at the square’s center X; label crossfades in after content delay.
+ */
+.fi-sidebar-collapse-morph {
+    position: relative;
+    display: block;
+    width: 2.5rem;
     height: 2.5rem;
     min-height: 2.5rem;
     max-height: 2.5rem;
+    overflow: hidden;
+    transition: width var(--tido-sidebar-duration) var(--tido-sidebar-ease);
 }
 
-/* Open: labeled primary collapse CTA (match New resource / header actions).
- * Full width of footer row (same inset as sidebar menu items via parent px-4). */
-.fi-sidebar.fi-sidebar-open .fi-sidebar-close-collapse-sidebar-btn {
+.fi-sidebar.fi-sidebar-open .fi-sidebar-collapse-morph {
     width: 100%;
-    max-width: 100%;
-    margin-inline: 0;
-    justify-content: flex-start;
 }
 
-/* Collapsed: icon-only primary expand CTA (filled primary, match New resource). */
+.fi-sidebar-collapse-morph .fi-sidebar-close-collapse-sidebar-btn,
+.fi-sidebar-collapse-morph .fi-sidebar-open-collapse-sidebar-btn {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    max-width: none !important;
+    height: 2.5rem !important;
+    min-height: 2.5rem !important;
+    max-height: 2.5rem !important;
+    margin: 0 !important;
+    justify-content: flex-start !important;
+    /* Pin glyph at center of the 2.5rem square: (40 - 20) / 2 = 10px */
+    padding-inline-start: 0.625rem !important;
+    padding-inline-end: 0.5rem !important;
+    gap: 0.5rem;
+    transition: opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease)
+        var(--tido-sidebar-content-delay);
+}
+
+.fi-sidebar.fi-sidebar-open .fi-sidebar-open-collapse-sidebar-btn {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-close-collapse-sidebar-btn {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.fi-sidebar.fi-sidebar-open .fi-sidebar-close-collapse-sidebar-btn {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+}
+
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-open-collapse-sidebar-btn {
-    width: 2.5rem;
-    padding-inline: 0;
-    margin-inline: 0;
-    justify-content: center;
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+}
+
+/* Label rides beside the pinned icon; fade with chrome delay (C + A). */
+.fi-sidebar-collapse-toggle-label {
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: 0;
+}
+
+.fi-sidebar.fi-sidebar-open .fi-sidebar-collapse-toggle-label {
+    opacity: 1;
+}
+
+.fi-sidebar.fi-sidebar-animating.fi-sidebar-open
+    .fi-sidebar-collapse-toggle-label {
+    animation: fi-sidebar-expand-chrome-enter var(--tido-sidebar-duration)
+        var(--tido-sidebar-ease) var(--tido-sidebar-content-delay) both;
 }
 
 /* Go to top — flush bottom-right square matching collapsed collapse footer (71×71)
@@ -1515,31 +1578,54 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     flex-shrink: 0;
 }
 
-/* Collapsed FIN/SET labels: Alpine x-show + fi-transition-enter (same delay as footer version icon) */
+/* Collapsed FIN/SET labels: stacked in a fixed-height heading cell (no Y jump). */
+.fi-sidebar-group-heading {
+    position: relative;
+    height: 2.75rem;
+    margin-block: 0;
+}
+
+.fi-sidebar-group-heading .fi-sidebar-group-btn,
+.fi-sidebar-group-heading .fi-sidebar-group-collapsed-label {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 2.75rem;
+    display: flex;
+    align-items: center;
+}
+
 .fi-sidebar-group-collapsed-label {
     width: 2.5rem;
-    align-items: center;
     justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-group-collapsed-label {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    animation: fi-collapsed-chrome-enter var(--tido-sidebar-duration)
+        var(--tido-sidebar-ease) var(--tido-sidebar-content-delay) both;
 }
 
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-group-btn {
-    max-height: 0;
     opacity: 0;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
     pointer-events: none;
+    visibility: hidden;
 }
 
-.fi-sidebar-group-btn {
-    max-height: 3rem;
+.fi-sidebar.fi-sidebar-open .fi-sidebar-group-btn {
     opacity: 1;
-    overflow: hidden;
-    transition:
-        max-height var(--tido-sidebar-duration) var(--tido-sidebar-ease),
-        opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease),
-        margin var(--tido-sidebar-duration) var(--tido-sidebar-ease),
-        padding var(--tido-sidebar-duration) var(--tido-sidebar-ease);
+    pointer-events: auto;
+    visibility: visible;
+}
+
+.fi-sidebar.fi-sidebar-animating.fi-sidebar-open .fi-sidebar-group-btn {
+    animation: fi-sidebar-expand-chrome-enter var(--tido-sidebar-duration)
+        var(--tido-sidebar-ease) var(--tido-sidebar-content-delay) both;
 }
 
 /*
@@ -1565,8 +1651,21 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
  * Menu icons stay in the DOM (labels clip via CSS), so they cannot use Alpine x-show.
  * Match the version-icon enter: stay invisible during the content delay, then fade in.
  * `both` keeps opacity at 0 during the delay so the mid-tween layout snap is hidden.
+ * Applied on both open and collapsed so expand also masks until width settles (A + C).
  */
 @keyframes fi-collapsed-chrome-enter {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Distinct name so expand restarts after collapsed chrome-enter has already finished
+ * at opacity 1 — browsers skip re-running an identical animation name in-place. */
+@keyframes fi-sidebar-expand-chrome-enter {
     from {
         opacity: 0;
     }
@@ -1579,6 +1678,19 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn,
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-group-dropdown-trigger-btn {
     animation: fi-collapsed-chrome-enter var(--tido-sidebar-duration)
+        var(--tido-sidebar-ease) var(--tido-sidebar-content-delay) both;
+}
+
+/*
+ * Expand mask (A): keep menu icons/items invisible for the content delay, same as
+ * labels/logo. Requires .fi-sidebar-animating (set before open/close toggles).
+ * MUST use fi-sidebar-expand-chrome-enter (not fi-collapsed-chrome-enter) or the
+ * browser keeps the finished collapsed enter at opacity 1 for the whole width tween.
+ */
+.fi-sidebar.fi-sidebar-animating.fi-sidebar-open .fi-sidebar-item-btn,
+.fi-sidebar.fi-sidebar-animating.fi-sidebar-open
+    .fi-sidebar-group-dropdown-trigger-btn {
+    animation: fi-sidebar-expand-chrome-enter var(--tido-sidebar-duration)
         var(--tido-sidebar-ease) var(--tido-sidebar-content-delay) both;
 }
 
@@ -1801,10 +1913,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     position: relative;
     justify-content: flex-start;
     align-items: center;
+    /* Do not transition opacity — it fights fi-collapsed-chrome-enter and keeps
+     * icons visible during the width tween while labels stay masked (A). */
     transition:
         color var(--tido-sidebar-duration) var(--tido-sidebar-ease),
-        background-color var(--tido-sidebar-duration) var(--tido-sidebar-ease),
-        opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease);
+        background-color var(--tido-sidebar-duration) var(--tido-sidebar-ease);
 }
 
 .fi-sidebar-group-dropdown-trigger-btn.fi-version-icon-btn {
@@ -1815,10 +1928,14 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     .fi-sidebar-group-dropdown-trigger-btn.fi-version-icon-btn {
     @apply size-10 p-0;
     margin-inline: 0;
+    justify-content: flex-start;
+    padding-inline-start: var(--tido-sidebar-icon-pad);
+    padding-inline-end: 0;
 }
 
 /*
  * Collapsed: left-aligned size-10 box (equal rail padding handles spacing).
+ * Icon inset matches expanded p-2 (1rem rail + 0.5rem pad = 1.5rem).
  * Avoid margin-inline: auto — it recenters icons mid-width tween.
  * opacity: 0 until fi-collapsed-chrome-enter finishes (same delay as version icon).
  */
@@ -1826,9 +1943,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     width: 2.5rem;
     height: 2.5rem;
     margin-inline: 0;
-    padding: 0;
+    padding-inline-start: var(--tido-sidebar-icon-pad);
+    padding-inline-end: 0;
+    padding-block: 0;
     gap: 0;
-    justify-content: center;
+    justify-content: flex-start;
     overflow: hidden;
     opacity: 0;
 }

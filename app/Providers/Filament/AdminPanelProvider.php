@@ -198,6 +198,35 @@ class AdminPanelProvider extends PanelProvider
                                             'fi-sidebar-is-collapsed',
                                         );
                                     });
+
+                                    var sidebar = document.querySelector('.fi-main-sidebar');
+                                    if (! sidebar) {
+                                        return;
+                                    }
+
+                                    var lastOpen = sidebar.classList.contains('fi-sidebar-open');
+                                    var animTimer = null;
+
+                                    new MutationObserver(function () {
+                                        var open = sidebar.classList.contains('fi-sidebar-open');
+                                        if (open === lastOpen) {
+                                            return;
+                                        }
+                                        lastOpen = open;
+                                        if (! sidebar.classList.contains('fi-sidebar-animating')) {
+                                            sidebar.classList.add('fi-sidebar-animating');
+                                        }
+                                        if (animTimer) {
+                                            clearTimeout(animTimer);
+                                        }
+                                        var styles = getComputedStyle(document.documentElement);
+                                        var duration = parseFloat(styles.getPropertyValue('--tido-sidebar-duration')) || 520;
+                                        var delay = parseFloat(styles.getPropertyValue('--tido-sidebar-content-delay')) || 340;
+                                        animTimer = setTimeout(function () {
+                                            sidebar.classList.remove('fi-sidebar-animating');
+                                            animTimer = null;
+                                        }, duration + delay + 40);
+                                    }).observe(sidebar, { attributes: true, attributeFilter: ['class'] });
                                 });
                             } catch (e) {}
                         })();
@@ -256,63 +285,65 @@ class AdminPanelProvider extends PanelProvider
                         >
                             @if ($isSidebarCollapsibleOnDesktop || $isSidebarFullyCollapsibleOnDesktop)
                                 <div class="fi-sidebar-collapse-buttons flex h-full w-full items-center px-4">
-                                    <x-filament::button
-                                        color="primary"
-                                        size="sm"
-                                        :icon="$isRtl ? \Filament\Support\Icons\Heroicon::OutlinedChevronRight : \Filament\Support\Icons\Heroicon::OutlinedChevronLeft"
-                                        :icon-alias="
-                                            $isRtl
-                                            ? [
-                                                \Filament\View\PanelsIconAlias::SIDEBAR_COLLAPSE_BUTTON_RTL,
-                                                \Filament\View\PanelsIconAlias::SIDEBAR_COLLAPSE_BUTTON,
-                                            ]
-                                            : \Filament\View\PanelsIconAlias::SIDEBAR_COLLAPSE_BUTTON
-                                        "
-                                        icon-size="md"
-                                        x-cloak
-                                        x-show="$store.sidebar.isOpen"
-                                        x-transition:enter="fi-transition-enter"
-                                        x-transition:enter-start="fi-transition-enter-start"
-                                        x-transition:enter-end="fi-transition-enter-end"
-                                        x-on:click="
-                                            $el.blur();
-                                            document.querySelectorAll('[data-tippy-root]').forEach((node) => node.remove());
-                                            $store.sidebar.close();
-                                        "
-                                        class="fi-sidebar-close-collapse-sidebar-btn"
-                                    >
-                                        {{ __('filament-panels::layout.actions.sidebar.collapse.label') }}
-                                    </x-filament::button>
+                                    <div class="fi-sidebar-collapse-morph">
+                                        <x-filament::button
+                                            color="primary"
+                                            size="sm"
+                                            :icon="$isRtl ? \Filament\Support\Icons\Heroicon::OutlinedChevronRight : \Filament\Support\Icons\Heroicon::OutlinedChevronLeft"
+                                            :icon-alias="
+                                                $isRtl
+                                                ? [
+                                                    \Filament\View\PanelsIconAlias::SIDEBAR_COLLAPSE_BUTTON_RTL,
+                                                    \Filament\View\PanelsIconAlias::SIDEBAR_COLLAPSE_BUTTON,
+                                                ]
+                                                : \Filament\View\PanelsIconAlias::SIDEBAR_COLLAPSE_BUTTON
+                                            "
+                                            icon-size="md"
+                                            x-on:click="
+                                                const sidebar = $el.closest('.fi-sidebar');
+                                                if (sidebar) {
+                                                    sidebar.classList.add('fi-sidebar-animating');
+                                                }
+                                                $el.blur();
+                                                document.querySelectorAll('[data-tippy-root]').forEach((node) => node.remove());
+                                                $store.sidebar.close();
+                                            "
+                                            class="fi-sidebar-close-collapse-sidebar-btn"
+                                        >
+                                            <span class="fi-sidebar-collapse-toggle-label">
+                                                {{ __('filament-panels::layout.actions.sidebar.collapse.label') }}
+                                            </span>
+                                        </x-filament::button>
 
-                                    <x-filament::button
-                                        color="primary"
-                                        size="sm"
-                                        :icon="$isRtl ? \Filament\Support\Icons\Heroicon::OutlinedChevronLeft : \Filament\Support\Icons\Heroicon::OutlinedChevronRight"
-                                        :icon-alias="
-                                            $isRtl
-                                            ? [
-                                                \Filament\View\PanelsIconAlias::SIDEBAR_EXPAND_BUTTON_RTL,
-                                                \Filament\View\PanelsIconAlias::SIDEBAR_EXPAND_BUTTON,
-                                            ]
-                                            : \Filament\View\PanelsIconAlias::SIDEBAR_EXPAND_BUTTON
-                                        "
-                                        icon-size="md"
-                                        label-sr-only
-                                        :tooltip="__('filament-panels::layout.actions.sidebar.expand.label')"
-                                        x-cloak
-                                        x-show="! $store.sidebar.isOpen"
-                                        x-transition:enter="fi-transition-enter"
-                                        x-transition:enter-start="fi-transition-enter-start"
-                                        x-transition:enter-end="fi-transition-enter-end"
-                                        x-on:click="
-                                            $el.blur();
-                                            document.querySelectorAll('[data-tippy-root]').forEach((node) => node.remove());
-                                            $store.sidebar.open();
-                                        "
-                                        class="fi-sidebar-open-collapse-sidebar-btn"
-                                    >
-                                        {{ __('filament-panels::layout.actions.sidebar.expand.label') }}
-                                    </x-filament::button>
+                                        <x-filament::button
+                                            color="primary"
+                                            size="sm"
+                                            :icon="$isRtl ? \Filament\Support\Icons\Heroicon::OutlinedChevronLeft : \Filament\Support\Icons\Heroicon::OutlinedChevronRight"
+                                            :icon-alias="
+                                                $isRtl
+                                                ? [
+                                                    \Filament\View\PanelsIconAlias::SIDEBAR_EXPAND_BUTTON_RTL,
+                                                    \Filament\View\PanelsIconAlias::SIDEBAR_EXPAND_BUTTON,
+                                                ]
+                                                : \Filament\View\PanelsIconAlias::SIDEBAR_EXPAND_BUTTON
+                                            "
+                                            icon-size="md"
+                                            label-sr-only
+                                            :tooltip="__('filament-panels::layout.actions.sidebar.expand.label')"
+                                            x-on:click="
+                                                const sidebar = $el.closest('.fi-sidebar');
+                                                if (sidebar) {
+                                                    sidebar.classList.add('fi-sidebar-animating');
+                                                }
+                                                $el.blur();
+                                                document.querySelectorAll('[data-tippy-root]').forEach((node) => node.remove());
+                                                $store.sidebar.open();
+                                            "
+                                            class="fi-sidebar-open-collapse-sidebar-btn"
+                                        >
+                                            {{ __('filament-panels::layout.actions.sidebar.expand.label') }}
+                                        </x-filament::button>
+                                    </div>
                                 </div>
                             @endif
                         </div>

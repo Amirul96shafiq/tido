@@ -117,60 +117,28 @@ test('open sidebar collapse control is labeled button without tooltip', function
         '@endif',
     );
 
-    $collapseBtnBlock = Str::before($buttonsMarkup, 'class="fi-sidebar-open-collapse-sidebar-btn"');
-    $collapseBtnBlock = Str::beforeLast($collapseBtnBlock, '<x-filament::button');
-
-    $expandOpenTag = '<x-filament::button'.Str::afterLast(
-        Str::before($buttonsMarkup, 'class="fi-sidebar-open-collapse-sidebar-btn"'),
-        '<x-filament::button',
-    );
-    $expandBtnBlock = Str::after($buttonsMarkup, 'class="fi-sidebar-open-collapse-sidebar-btn"');
-
-    $labeledBtnCss = Str::between(
+    $morphCss = Str::between(
         $css,
-        '/* Open: labeled primary collapse CTA (match New resource / header actions). */',
-        '/* Collapsed: icon-only primary expand CTA (filled primary, match New resource). */',
-    );
-    $expandBtnCss = Str::between(
-        $css,
-        '/* Collapsed: icon-only primary expand CTA (filled primary, match New resource). */',
+        '/* Square → rectangle morph shell',
         '/* Go to top — flush bottom-right square matching collapsed collapse footer (71×71)',
     );
-    $sharedHeightCss = Str::between(
-        $css,
-        '/* Shared 40px (2.5rem) height for open collapse + collapsed expand CTAs. */',
-        '/* Open: labeled primary collapse CTA (match New resource / header actions). */',
-    );
 
-    expect($collapseBtnBlock)
-        ->toContain('<x-filament::button')
-        ->toContain('color="primary"')
-        ->toContain('class="fi-sidebar-close-collapse-sidebar-btn"')
+    expect($buttonsMarkup)
+        ->toContain('fi-sidebar-collapse-morph')
+        ->toContain('fi-sidebar-close-collapse-sidebar-btn')
+        ->toContain('fi-sidebar-open-collapse-sidebar-btn')
+        ->toContain('fi-sidebar-collapse-toggle-label')
         ->toContain("{{ __('filament-panels::layout.actions.sidebar.collapse.label') }}")
-        ->not->toContain(':tooltip=')
-        ->not->toContain('label-sr-only')
-        ->and($expandOpenTag)
-        ->toContain('color="primary"')
         ->toContain('label-sr-only')
         ->toContain(":tooltip=\"__('filament-panels::layout.actions.sidebar.expand.label')\"")
-        ->and($expandBtnBlock)
-        ->toContain("{{ __('filament-panels::layout.actions.sidebar.expand.label') }}")
-        ->and($provider)
+        ->not->toContain('x-show="$store.sidebar.isOpen"')
         ->not->toContain('<x-filament::icon-button')
-        ->and($sharedHeightCss)
-        ->toContain('.fi-sidebar-close-collapse-sidebar-btn')
-        ->toContain('.fi-sidebar-open-collapse-sidebar-btn')
-        ->toContain('height: 2.5rem;')
-        ->toContain('min-height: 2.5rem;')
-        ->toContain('max-height: 2.5rem;')
-        ->and($labeledBtnCss)
-        ->toContain('.fi-sidebar.fi-sidebar-open .fi-sidebar-close-collapse-sidebar-btn')
-        ->toContain('justify-content: flex-start;')
-        ->toContain('width: 100%;')
-        ->and($expandBtnCss)
-        ->toContain('.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-open-collapse-sidebar-btn')
+        ->and($morphCss)
+        ->toContain('.fi-sidebar-collapse-morph')
         ->toContain('width: 2.5rem;')
-        ->toContain('justify-content: center;');
+        ->toContain('.fi-sidebar.fi-sidebar-open .fi-sidebar-collapse-morph')
+        ->toContain('width: 100%;')
+        ->toContain('padding-inline-start: 0.625rem !important;');
 });
 
 test('collapsed sidebar collapse footer is a square matching collapsed sidebar width', function () {
@@ -314,17 +282,23 @@ test('sidebar collapse expand transition uses shared motion tokens and logo mask
     );
 
     expect($css)
-        ->toContain('--tido-sidebar-duration: 300ms;')
-        ->toContain('--tido-sidebar-ease: cubic-bezier(0.4, 0, 0.2, 1);')
-        ->toContain('--tido-sidebar-content-delay: 120ms;')
+        ->toContain('--tido-sidebar-duration: 520ms;')
+        ->toContain('--tido-sidebar-ease: cubic-bezier(0.45, 0.05, 0.15, 1);')
+        ->toContain('--tido-sidebar-content-delay: 340ms;')
         ->toContain('html.fi-sidebar-preload .fi-sidebar-logo-full')
         ->toContain('html.fi-sidebar-preload .fi-sidebar-logo-compact')
         ->toContain(
             'animation: fi-collapsed-chrome-enter var(--tido-sidebar-duration)',
         )
         ->toContain(
+            'animation: fi-sidebar-expand-chrome-enter var(--tido-sidebar-duration)',
+        )
+        ->toContain('@keyframes fi-sidebar-expand-chrome-enter')
+        ->toContain(
             'transition: width var(--tido-sidebar-duration) var(--tido-sidebar-ease) !important;',
         )
+        ->toContain('fi-sidebar-animating')
+        ->toContain('fi-sidebar-group-heading')
         ->and($collapsedFullBlock)
         ->toContain('display: none;')
         ->and($collapsedCompactBlock)
@@ -338,4 +312,36 @@ test('sidebar collapse expand transition uses shared motion tokens and logo mask
         ->toContain('.fi-sidebar-item-btn')
         ->toContain('transition: none !important;')
         ->toContain('animation: none !important;');
+});
+
+test('collapsed sidebar nav icons share expanded icon inset via flex-start rail', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $collapsedItemBtnBlock = Str::between(
+        $css,
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn {',
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-group-dropdown-trigger-btn {',
+    );
+    $collapsedGroupTriggerBlock = Str::between(
+        $css,
+        '.fi-sidebar:not(.fi-sidebar-open)
+    .fi-sidebar-group-dropdown-trigger-btn.fi-version-icon-btn {',
+        '/*
+ * Collapsed: left-aligned size-10 box',
+    );
+
+    expect($css)
+        ->toContain('--tido-sidebar-nav-pad: 1.5rem;')
+        ->toContain('--tido-sidebar-icon-pad: 0.5rem;')
+        ->and($collapsedItemBtnBlock)
+        ->toContain('justify-content: flex-start;')
+        ->toContain('padding-inline-start: var(--tido-sidebar-icon-pad);')
+        ->not->toContain('justify-content: center;')
+        ->and($collapsedGroupTriggerBlock)
+        ->toContain('justify-content: flex-start;')
+        ->toContain('padding-inline-start: var(--tido-sidebar-icon-pad);')
+        ->and($css)
+        ->toContain('.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav-groups')
+        ->toContain('margin-inline: -0.5rem;')
+        ->toContain('padding-inline: var(--tido-sidebar-nav-pad);');
 });
