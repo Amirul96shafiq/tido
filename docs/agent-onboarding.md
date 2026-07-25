@@ -29,7 +29,7 @@ Default login (seeded): `admin@tido.local` / `password`.
 7. UI empty panels: `docs/ui-empty-states.md`
 8. Modal blur / width: `docs/ui-modal-overlay.md`
 9. Sticky top/bottom bars + blur veil: `docs/ui-sticky-blur.md`
-10. Profile sticky section tabs + smooth scroll: `docs/ui-profile-section-nav.md`
+10. Sticky section tabs + smooth scroll: `docs/ui-section-nav.md`
 11. Icon CTA tooltips (Filament Tippy, not browser `title`): `docs/ui-tooltips.md`
 12. Single-line text marquee (overflow RTL scroll): `docs/ui-text-marquee.md`
 13. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
@@ -119,7 +119,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 16. Backups / Danger Zone / guest restore: see `docs/backups-and-danger-zone.md` — do not invent a second restore path
 17. Service Status / health probes: see `docs/service-status.md`
 18. Profile Active Sessions (embedded table, revoke): see `docs/active-sessions.md`
-19. Profile sticky section tabs + smooth scroll: see `docs/ui-profile-section-nav.md`
+19. Sticky section tabs + smooth scroll: see `docs/ui-section-nav.md`
 20. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas
 21. Custom Blade toggles: use `get_component_color_classes(ToggleComponent::class, …)` and Profile `inlineLabel` markup — see `docs/ui-custom-toggles.md`
 

@@ -224,7 +224,7 @@ class Dashboard extends BaseDashboard
                                 'class' => 'tido-dashboard-sticky-toolbar-filters',
                             ]),
                             Group::make([
-                                View::make('filament.schemas.components.profile-section-nav')
+                                View::make('filament.schemas.components.section-nav')
                                     ->viewData(fn (): array => [
                                         'sections' => static::widgetNavItems(),
                                         'ariaLabel' => 'Dashboard widgets',

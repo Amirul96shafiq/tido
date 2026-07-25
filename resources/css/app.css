@@ -573,7 +573,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
     @apply w-full min-w-0;
 }
 
-.tido-dashboard-sticky-toolbar-nav .tido-profile-section-nav {
+.tido-dashboard-sticky-toolbar-nav .tido-section-nav {
     @apply w-full;
 }
 
@@ -591,7 +591,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
         @apply ml-auto flex w-full min-w-0 justify-end;
     }
 
-    .tido-dashboard-sticky-toolbar-nav .tido-profile-section-nav {
+    .tido-dashboard-sticky-toolbar-nav .tido-section-nav {
         @apply flex w-full justify-end;
     }
 }
@@ -1936,37 +1936,37 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     scroll-margin-top: 5rem;
 }
 
-/* Profile section nav — offset topbar + sticky tab bar when scrolling to hash. */
+/* Section nav — offset topbar + sticky tab bar when scrolling to hash. */
 .fi-profile-page .fi-sc-section[id] {
     scroll-margin-top: calc(
         var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
-            var(--tido-profile-section-nav-height, 2.75rem) + 1rem
+            var(--tido-section-nav-height, 2.75rem) + 1rem
     );
 }
 
-.tido-profile-section-nav {
-    --tido-profile-section-nav-height: 2.75rem;
-    --tido-profile-section-nav-fade-width: 1.75rem;
+.tido-section-nav {
+    --tido-section-nav-height: 2.75rem;
+    --tido-section-nav-fade-width: 1.75rem;
     @apply max-w-full;
-    min-height: var(--tido-profile-section-nav-height);
+    min-height: var(--tido-section-nav-height);
     overflow: visible;
 }
 
-.tido-profile-section-nav__frame {
+.tido-section-nav__frame {
     @apply relative max-w-full;
 }
 
-.tido-profile-section-nav__fade {
+.tido-section-nav__fade {
     @apply pointer-events-none absolute top-0 z-10 hidden h-full;
-    width: var(--tido-profile-section-nav-fade-width);
+    width: var(--tido-section-nav-fade-width);
 }
 
-.tido-profile-section-nav--can-scroll-left .tido-profile-section-nav__fade--left,
-.tido-profile-section-nav--can-scroll-right .tido-profile-section-nav__fade--right {
+.tido-section-nav--can-scroll-left .tido-section-nav__fade--left,
+.tido-section-nav--can-scroll-right .tido-section-nav__fade--right {
     @apply block;
 }
 
-.tido-profile-section-nav__fade--left {
+.tido-section-nav__fade--left {
     left: 0;
     border-top-left-radius: var(--radius-xl);
     border-bottom-left-radius: var(--radius-xl);
@@ -1978,7 +1978,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     );
 }
 
-.tido-profile-section-nav__fade--right {
+.tido-section-nav__fade--right {
     right: 0;
     border-top-right-radius: var(--radius-xl);
     border-bottom-right-radius: var(--radius-xl);
@@ -1990,7 +1990,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     );
 }
 
-.dark .tido-profile-section-nav__fade--left {
+.dark .tido-section-nav__fade--left {
     background: linear-gradient(
         to right,
         var(--color-gray-900) 0%,
@@ -1999,7 +1999,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     );
 }
 
-.dark .tido-profile-section-nav__fade--right {
+.dark .tido-section-nav__fade--right {
     background: linear-gradient(
         to left,
         var(--color-gray-900) 0%,
@@ -2009,7 +2009,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /* Content-fit width only — ring/bg/shadow come from Filament native .fi-tabs. */
-.tido-profile-section-nav .fi-tabs {
+.tido-section-nav .fi-tabs {
     @apply w-max max-w-full flex-nowrap;
     margin-inline: 0;
     scrollbar-width: none;
@@ -2018,16 +2018,16 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     touch-action: pan-y;
 }
 
-.tido-profile-section-nav--dragging .fi-tabs {
+.tido-section-nav--dragging .fi-tabs {
     cursor: grabbing;
     user-select: none;
 }
 
-.tido-profile-section-nav .fi-tabs .fi-tabs-item {
+.tido-section-nav .fi-tabs .fi-tabs-item {
     -webkit-user-drag: none;
 }
 
-.tido-profile-section-nav .fi-tabs::-webkit-scrollbar {
+.tido-section-nav .fi-tabs::-webkit-scrollbar {
     display: none;
 }
 
@@ -2318,7 +2318,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     .fi-profile-page .fi-sc-form .fi-grid-col:has(.fi-profile-sidebar-sticky) {
         top: calc(
             var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
-                var(--tido-profile-section-nav-height, 2.75rem) + 0.75rem
+                var(--tido-section-nav-height, 2.75rem) + 0.75rem
         );
     }
 

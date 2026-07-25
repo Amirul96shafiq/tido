@@ -19,7 +19,7 @@ test('dashboard renders sticky toolbar with widget section nav', function () {
         ->assertSee('tido-sticky-scope', false)
         ->assertSee('tido-sticky-marker--top', false)
         ->assertSee('tido-dashboard-sticky-toolbar', false)
-        ->assertSee('tido-profile-section-nav', false);
+        ->assertSee('tido-section-nav', false);
 });
 
 test('dashboard section nav lists all widgets as anchor tabs', function () {
@@ -71,10 +71,10 @@ test('dashboard section nav exposes horizontal scroll hint affordances', functio
         ->assertSee('updateScrollHints', false)
         ->assertSee('canScrollLeft', false)
         ->assertSee('canScrollRight', false)
-        ->assertSee('tido-profile-section-nav__fade--left', false)
-        ->assertSee('tido-profile-section-nav__fade--right', false)
-        ->assertSee('tido-profile-section-nav--can-scroll-left', false)
-        ->assertSee('tido-profile-section-nav--can-scroll-right', false)
+        ->assertSee('tido-section-nav__fade--left', false)
+        ->assertSee('tido-section-nav__fade--right', false)
+        ->assertSee('tido-section-nav--can-scroll-left', false)
+        ->assertSee('tido-section-nav--can-scroll-right', false)
         ->assertSee('scrollActiveTabIntoView', false);
 });
 
@@ -87,7 +87,7 @@ test('dashboard section nav supports click drag horizontal scroll', function () 
         ->assertSee('onTabPointerMove', false)
         ->assertSee('endTabDrag', false)
         ->assertSee('setPointerCapture', false)
-        ->assertSee('tido-profile-section-nav--dragging', false)
+        ->assertSee('tido-section-nav--dragging', false)
         ->assertSee("dragstart', (event) => event.preventDefault()", false)
         ->assertSee('draggable="false"', false);
 });

@@ -104,9 +104,10 @@ class EditProfile extends BaseEditProfile implements HasTable
     {
         return Group::make([
             Group::make([
-                View::make('filament.schemas.components.profile-section-nav')
+                View::make('filament.schemas.components.section-nav')
                     ->viewData(fn (): array => [
                         'sections' => static::sectionNavItems(),
+                        'ariaLabel' => 'Profile sections',
                     ]),
             ])->extraAttributes([
                 'class' => 'tido-sticky-marker tido-sticky-marker--top',

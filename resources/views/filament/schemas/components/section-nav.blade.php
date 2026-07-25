@@ -1,11 +1,11 @@
 @php
     /** @var list<array{label: string, id: string}> $sections */
     $sectionIds = collect($sections)->pluck('id')->values()->all();
-    $ariaLabel = $ariaLabel ?? 'Profile sections';
+    $ariaLabel = $ariaLabel ?? 'Page sections';
 @endphp
 
 <div
-    class="tido-profile-section-nav"
+    class="tido-section-nav"
     x-data="{
         activeId: @js($sections[0]['id'] ?? ''),
         sectionIds: @js($sectionIds),
@@ -203,20 +203,20 @@
         },
     }"
     x-bind:class="{
-        'tido-profile-section-nav--can-scroll-left': canScrollLeft,
-        'tido-profile-section-nav--can-scroll-right': canScrollRight,
-        'tido-profile-section-nav--dragging': isDragging,
+        'tido-section-nav--can-scroll-left': canScrollLeft,
+        'tido-section-nav--can-scroll-right': canScrollRight,
+        'tido-section-nav--dragging': isDragging,
     }"
     x-on:click.capture="onNavClick($event)"
     x-on:open-section.window="if ($event.detail?.id) { activeId = $event.detail.id }"
 >
-    <div class="tido-profile-section-nav__frame">
+    <div class="tido-section-nav__frame">
         <div
-            class="tido-profile-section-nav__fade tido-profile-section-nav__fade--left"
+            class="tido-section-nav__fade tido-section-nav__fade--left"
             aria-hidden="true"
         ></div>
         <div
-            class="tido-profile-section-nav__fade tido-profile-section-nav__fade--right"
+            class="tido-section-nav__fade tido-section-nav__fade--right"
             aria-hidden="true"
         ></div>
         <x-filament::tabs :label="$ariaLabel" x-ref="tabs">

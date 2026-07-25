@@ -13,7 +13,7 @@
 | [ui-empty-states.md](ui-empty-states.md) | Agents + humans | Illustrated empty panels (email-change expiry pattern) |
 | [ui-modal-overlay.md](ui-modal-overlay.md) | Agents + humans | Modal backdrop blur + Filament action modal width |
 | [ui-sticky-blur.md](ui-sticky-blur.md) | Agents + humans | Sticky top/bottom bars with progressive blur veil |
-| [ui-profile-section-nav.md](ui-profile-section-nav.md) | Agents + humans | Profile sticky section tabs + smooth scroll / hash deep links |
+| [ui-section-nav.md](ui-section-nav.md) | Agents + humans | Shared sticky section tabs + smooth scroll / hash deep links |
 | [ui-tooltips.md](ui-tooltips.md) | Agents + humans | Filament Tippy tooltips on icon CTAs (not browser `title`) |
 | [ui-text-marquee.md](ui-text-marquee.md) | Agents + humans | Single-line overflowing text (RTL marquee) — reusable |
 | [ui-notes-rich-editor.md](ui-notes-rich-editor.md) | Agents + humans | Shared `NotesRichEditor` for `notes` fields (toolbar + height) |

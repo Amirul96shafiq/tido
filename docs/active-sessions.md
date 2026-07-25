@@ -101,7 +101,7 @@ Registered in `AdminDestinationSearch` under group **Sections**:
 - URL: profile URL + `#active-sessions`
 - Keywords: `active`, `sessions`, `devices`, `revoke`, `logout`, `browser`
 
-The section must keep `->id('active-sessions')` so hash navigation, the sticky profile section tabs, and `<x-hash-scroll />` work in SPA mode. See [`ui-profile-section-nav.md`](ui-profile-section-nav.md).
+The section must keep `->id('active-sessions')` so hash navigation, the sticky section tabs, and `<x-hash-scroll />` work in SPA mode. See [`ui-section-nav.md`](ui-section-nav.md).
 
 ## Agent rules
 
