@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
@@ -12,13 +13,26 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class MonthlySpendingOverview extends BaseWidget
 {
+    use HasDashboardSectionId;
     use InteractsWithDashboardMonth;
 
     protected static ?int $sort = 1;
 
+    protected static bool $isLazy = false;
+
     protected int|string|array $columnSpan = 'full';
 
     protected ?string $pollingInterval = null;
+
+    /**
+     * @var view-string
+     */
+    protected string $view = 'filament.widgets.stats-overview-with-section-id';
+
+    public static function dashboardSectionId(): string
+    {
+        return 'overview';
+    }
 
     protected function getPollingInterval(): ?string
     {

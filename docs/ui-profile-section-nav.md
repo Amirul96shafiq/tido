@@ -2,7 +2,7 @@
 
 Sticky **in-page tab menu** on Edit Profile that jumps between main-column sections with smooth scroll, active-tab sync, and hash-aware deep links.
 
-**Canonical use:** [`EditProfile`](../app/Filament/Pages/Auth/EditProfile.php) at `/admin/profile`.
+**Canonical use:** [`EditProfile`](../app/Filament/Pages/Auth/EditProfile.php) at `/admin/profile`. Also used on [`Dashboard`](../app/Filament/Pages/Dashboard.php) for widget jump tabs beside the month filter.
 
 ## Source of truth
 
@@ -64,6 +64,8 @@ Do **not** rely on bare `<a href="#id">` alone for in-page tabs — the browser 
 4. `scroll-margin-top` that accounts for topbar **and** sticky nav height.
 5. Click intercept with `behavior: 'smooth'` + hash `replaceState`.
 6. Optional: register sections in `AdminDestinationSearch` + rely on panel `<x-hash-scroll />`.
+
+**Dashboard reuse:** `Dashboard::widgetNavItems()` + `HasDashboardSectionId` on widgets; sticky toolbar CSS in `.tido-dashboard-sticky-toolbar`; scroll-margin on `.tido-dashboard-page .fi-wi-widget[id]`. Tests: [`tests/Feature/DashboardSectionNavTest.php`](../tests/Feature/DashboardSectionNavTest.php).
 
 ## Do not
 

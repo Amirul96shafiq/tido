@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Widgets;
 
 use App\Filament\Support\DashboardWidgetHeights;
+use App\Filament\Widgets\Concerns\HasChartEmptyState;
+use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
@@ -12,13 +14,32 @@ use Illuminate\Contracts\Support\Htmlable;
 
 class MonthlyTrend extends ChartWidget
 {
+    use HasChartEmptyState;
+    use HasDashboardSectionId;
     use InteractsWithDashboardMonth;
 
+    /**
+     * @var view-string
+     */
+    protected string $view = 'filament.widgets.chart-with-empty-state';
+
     protected static ?int $sort = 2;
+
+    protected static bool $isLazy = false;
 
     protected int|string|array $columnSpan = 'full';
 
     protected ?string $maxHeight = DashboardWidgetHeights::TREND_CHART;
+
+    public static function dashboardSectionId(): string
+    {
+        return 'monthly-trend';
+    }
+
+    protected function isChartEmpty(): bool
+    {
+        return array_sum($this->analytics()->trend(12)['data']) <= 0;
+    }
 
     public function getHeading(): string|Htmlable|null
     {

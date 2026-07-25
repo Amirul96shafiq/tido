@@ -3,8 +3,14 @@
 @endphp
 
 <x-filament-widgets::widget
-    class="h-full fi-wi-budget-status"
-    wire:poll.5s
+    :attributes="
+        (new \Illuminate\View\ComponentAttributeBag)
+            ->merge([
+                'id' => $this->getDashboardSectionId(),
+                'wire:poll.5s' => true,
+            ], escape: false)
+            ->class(['h-full', 'fi-wi-budget-status'])
+    "
 >
     <x-filament::section class="h-full">
         <x-slot name="heading">

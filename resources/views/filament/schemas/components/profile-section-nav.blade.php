@@ -1,6 +1,7 @@
 @php
     /** @var list<array{label: string, id: string}> $sections */
     $sectionIds = collect($sections)->pluck('id')->values()->all();
+    $ariaLabel = $ariaLabel ?? 'Profile sections';
 @endphp
 
 <div
@@ -78,7 +79,7 @@
     x-on:click.capture="onNavClick($event)"
     x-on:open-section.window="if ($event.detail?.id) { activeId = $event.detail.id }"
 >
-    <x-filament::tabs label="Profile sections">
+    <x-filament::tabs :label="$ariaLabel">
         @foreach ($sections as $section)
             <x-filament::tabs.item
                 :alpine-active="'activeId === \'' . e($section['id']) . '\''"

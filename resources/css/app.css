@@ -560,6 +560,56 @@ html.dark::-webkit-scrollbar-thumb:hover,
     }
 }
 
+/* Dashboard sticky toolbar — month filter + widget section tabs. */
+.tido-dashboard-sticky-toolbar {
+    @apply flex w-full flex-col items-start gap-4;
+}
+
+.tido-dashboard-sticky-toolbar-filters {
+    @apply w-full shrink-0;
+}
+
+.tido-dashboard-sticky-toolbar-nav {
+    @apply w-full min-w-0;
+}
+
+.tido-dashboard-sticky-toolbar-nav .tido-profile-section-nav {
+    @apply w-full;
+}
+
+@media (min-width: 1024px) {
+    .tido-dashboard-sticky-toolbar {
+        @apply flex-row items-end justify-between gap-5;
+        --tido-dashboard-section-nav-offset: 0;
+    }
+
+    .tido-dashboard-sticky-toolbar-filters {
+        @apply w-auto flex-none;
+    }
+
+    .tido-dashboard-sticky-toolbar-nav {
+        @apply ml-auto flex w-full min-w-0 justify-end;
+    }
+
+    .tido-dashboard-sticky-toolbar-nav .tido-profile-section-nav {
+        @apply flex w-full justify-end;
+    }
+}
+
+/* Dashboard widget anchors — offset topbar + sticky toolbar when scrolling to hash. */
+.tido-dashboard-page .fi-wi-widget[id] {
+    scroll-margin-top: calc(
+        var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
+            var(--tido-dashboard-section-nav-offset, 6.5rem) + 1rem
+    );
+}
+
+@media (min-width: 1024px) {
+    .tido-dashboard-page .fi-wi-widget[id] {
+        --tido-dashboard-section-nav-offset: 3.25rem;
+    }
+}
+
 /*
  * overflow-x-clip on .fi-layout breaks position: sticky for descendants.
  * Scope lives inside .fi-page — use :has() on .fi-layout, not a descendant selector.

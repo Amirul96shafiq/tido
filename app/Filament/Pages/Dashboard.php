@@ -16,6 +16,7 @@ use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\VerticalAlignment;
 use Illuminate\Contracts\Support\Htmlable;
@@ -35,6 +36,24 @@ class Dashboard extends BaseDashboard
     {
         return [
             'tido-dashboard-greeting',
+            'tido-dashboard-page',
+        ];
+    }
+
+    /**
+     * @return list<array{label: string, id: string}>
+     */
+    public static function widgetNavItems(): array
+    {
+        return [
+            ['label' => 'Overview', 'id' => 'overview'],
+            ['label' => 'Trend', 'id' => 'monthly-trend'],
+            ['label' => 'Labels', 'id' => 'spending-by-label'],
+            ['label' => 'Budgets', 'id' => 'budget-status'],
+            ['label' => 'Merchants', 'id' => 'top-merchants'],
+            ['label' => 'Payments', 'id' => 'spending-by-payment-method'],
+            ['label' => 'Sources', 'id' => 'receipts-by-source'],
+            ['label' => 'Recent', 'id' => 'recent-receipts'],
         ];
     }
 
@@ -198,7 +217,24 @@ class Dashboard extends BaseDashboard
             ->components([
                 Group::make([
                     Group::make([
-                        $this->getFiltersFormContentComponent(),
+                        Flex::make([
+                            Group::make([
+                                $this->getFiltersFormContentComponent(),
+                            ])->extraAttributes([
+                                'class' => 'tido-dashboard-sticky-toolbar-filters',
+                            ]),
+                            Group::make([
+                                View::make('filament.schemas.components.profile-section-nav')
+                                    ->viewData(fn (): array => [
+                                        'sections' => static::widgetNavItems(),
+                                        'ariaLabel' => 'Dashboard widgets',
+                                    ]),
+                            ])->extraAttributes([
+                                'class' => 'tido-dashboard-sticky-toolbar-nav',
+                            ]),
+                        ])->extraAttributes([
+                            'class' => 'tido-dashboard-sticky-toolbar',
+                        ]),
                     ])->extraAttributes([
                         'class' => 'tido-sticky-marker tido-sticky-marker--top',
                     ]),
