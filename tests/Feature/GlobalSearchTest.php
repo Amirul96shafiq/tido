@@ -33,14 +33,36 @@ beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 });
 
-test('destination search finds dashboard overview section', function () {
-    $results = AdminDestinationSearch::search('Finance Overview', GlobalSearchResults::make());
+test('destination search finds dashboard total spent section', function () {
+    $results = AdminDestinationSearch::search('Total Spent', GlobalSearchResults::make());
     $sections = collect($results->getCategories()->get('Sections', []));
 
-    $match = $sections->first(fn ($result): bool => $result->title === 'Finance Overview');
+    $match = $sections->first(fn ($result): bool => $result->title === 'Total Spent');
 
     expect($match)->not->toBeNull()
-        ->and($match->url)->toEndWith('#overview')
+        ->and($match->url)->toEndWith('#total-spent')
+        ->and($match->details)->toBe(['Page' => 'Dashboard']);
+});
+
+test('destination search finds dashboard spending forecast section', function () {
+    $results = AdminDestinationSearch::search('Spending Forecast', GlobalSearchResults::make());
+    $sections = collect($results->getCategories()->get('Sections', []));
+
+    $match = $sections->first(fn ($result): bool => $result->title === 'Spending Forecast');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toEndWith('#spending-forecast')
+        ->and($match->details)->toBe(['Page' => 'Dashboard']);
+});
+
+test('destination search finds dashboard daily average section', function () {
+    $results = AdminDestinationSearch::search('Daily Average', GlobalSearchResults::make());
+    $sections = collect($results->getCategories()->get('Sections', []));
+
+    $match = $sections->first(fn ($result): bool => $result->title === 'Daily Average');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toEndWith('#spending-forecast')
         ->and($match->details)->toBe(['Page' => 'Dashboard']);
 });
 

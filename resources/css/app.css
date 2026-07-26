@@ -620,7 +620,8 @@ html.dark::-webkit-scrollbar-thumb:hover,
 }
 
 /* Dashboard widget anchors — offset topbar + sticky toolbar when scrolling to hash. */
-.tido-dashboard-page .fi-wi-widget[id] {
+.tido-dashboard-page .fi-wi-widget[id],
+.tido-dashboard-page .fi-wi-stats-overview-stat[id] {
     scroll-margin-top: calc(
         var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
             var(--tido-dashboard-section-nav-offset, 6.5rem) + 1rem
@@ -628,7 +629,8 @@ html.dark::-webkit-scrollbar-thumb:hover,
 }
 
 @media (min-width: 1024px) {
-    .tido-dashboard-page .fi-wi-widget[id] {
+    .tido-dashboard-page .fi-wi-widget[id],
+    .tido-dashboard-page .fi-wi-stats-overview-stat[id] {
         --tido-dashboard-section-nav-offset: 3.25rem;
     }
 }

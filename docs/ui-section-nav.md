@@ -84,10 +84,11 @@ Sticky pin mechanics are shared with [`ui-sticky-blur.md`](ui-sticky-blur.md). T
 | Layer | Path |
 |-------|------|
 | Section list | `Dashboard::widgetNavItems()` |
-| Widget anchor ids | `HasDashboardSectionId` on widgets |
+| Finance overview anchors | Per-stat `id`s on `MonthlySpendingOverview` via `Stat::extraAttributes()` (`total-spent`, `spending-forecast`, `sst-tax-paid`, `receipts-processed`) |
+| Other widget anchor ids | `HasDashboardSectionId` on chart/table widgets |
 | Sticky toolbar | `.tido-dashboard-sticky-toolbar` + `.tido-dashboard-sticky-toolbar-nav` |
 | Page class | `.tido-dashboard-page` |
-| Scroll offset CSS | [`.tido-dashboard-page .fi-wi-widget[id]`](../resources/css/app.css) + `--tido-dashboard-section-nav-offset` |
+| Scroll offset CSS | [`.tido-dashboard-page .fi-wi-widget[id]`](../resources/css/app.css), [`.tido-dashboard-page .fi-wi-stats-overview-stat[id]`](../resources/css/app.css) + `--tido-dashboard-section-nav-offset` |
 | Tests | [`tests/Feature/DashboardSectionNavTest.php`](../tests/Feature/DashboardSectionNavTest.php) |
 
 ## Upload Receipts
