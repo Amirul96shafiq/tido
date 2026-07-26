@@ -7,23 +7,47 @@
         <x-filament::tabs.item
             wire:click="setDashboardView('finances')"
             :active="$activeView === \App\Filament\Pages\Dashboard::VIEW_FINANCES"
-            icon="heroicon-m-calculator"
             aria-label="Finances"
             x-tooltip="{
                 content: {{ \Illuminate\Support\Js::from('Finances') }},
                 theme: $store.theme,
             }"
-        ></x-filament::tabs.item>
+        >
+            <x-filament::icon
+                icon="heroicon-m-calculator"
+                class="fi-icon fi-size-md"
+                wire:loading.remove
+                wire:target="setDashboardView('finances')"
+            />
+
+            <x-filament::loading-indicator
+                class="fi-icon fi-size-md"
+                wire:loading
+                wire:target="setDashboardView('finances')"
+            />
+        </x-filament::tabs.item>
 
         <x-filament::tabs.item
             wire:click="setDashboardView('training')"
             :active="$activeView === \App\Filament\Pages\Dashboard::VIEW_TRAINING"
-            icon="heroicon-m-bolt"
             aria-label="Training"
             x-tooltip="{
                 content: {{ \Illuminate\Support\Js::from('Training') }},
                 theme: $store.theme,
             }"
-        ></x-filament::tabs.item>
+        >
+            <x-filament::icon
+                icon="heroicon-m-bolt"
+                class="fi-icon fi-size-md"
+                wire:loading.remove
+                wire:target="setDashboardView('training')"
+            />
+
+            <x-filament::loading-indicator
+                class="fi-icon fi-size-md"
+                wire:loading
+                wire:target="setDashboardView('training')"
+            />
+        </x-filament::tabs.item>
     </x-filament::tabs>
 </div>

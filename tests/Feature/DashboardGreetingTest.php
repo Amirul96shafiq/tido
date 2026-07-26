@@ -127,6 +127,9 @@ test('dashboard header exposes finances and training view tabs', function () {
         ->assertSee('aria-label="Finances"', false)
         ->assertSee('aria-label="Training"', false)
         ->assertSee('setDashboardView', false)
+        ->assertSee('fi-loading-indicator', false)
+        ->assertSee('wire:target="setDashboardView(\'finances\')"', false)
+        ->assertSee('wire:target="setDashboardView(\'training\')"', false)
         ->assertDontSee('Coming soon', false)
         ->assertDontSee('wire:click="mountAction(\'profile\')"', false)
         ->assertDontSee('wire:click="mountAction(\'changelogs\')"', false);
