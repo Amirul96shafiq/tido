@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <sub><em>// <ins>tido</ins> is derived from how people in Terengganu (one of the East state of Malaysia) say and write "tidur", which translates to "sleep" in English.</em></sub>
+  <sub><em>// <ins>tido</ins> is derived from how people in Terengganu (one of the East Coast states of Peninsular Malaysia) say and write "tidur", which translates to "sleep" in English.</em></sub>
 </p>
 
 <p align="center">
