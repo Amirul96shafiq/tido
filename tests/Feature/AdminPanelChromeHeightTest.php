@@ -138,7 +138,18 @@ test('open sidebar collapse control is labeled button without tooltip', function
         ->toContain('width: 2.5rem;')
         ->toContain('.fi-sidebar.fi-sidebar-open .fi-sidebar-collapse-morph')
         ->toContain('width: 100%;')
-        ->toContain('padding-inline-start: 0.625rem !important;');
+        ->toContain('padding-inline-start: 0.625rem !important;')
+        ->toContain('.fi-sidebar-collapse-morph .fi-sidebar-close-collapse-sidebar-btn')
+        ->toContain('z-index: 1;')
+        ->toContain('.fi-sidebar-collapse-morph .fi-sidebar-open-collapse-sidebar-btn')
+        ->toContain('z-index: 2;')
+        ->toContain('.fi-sidebar.fi-sidebar-open .fi-sidebar-close-collapse-sidebar-btn')
+        ->toContain('opacity: 1;')
+        ->toContain('opacity 0s')
+        ->toContain('.fi-sidebar.fi-sidebar-open .fi-sidebar-open-collapse-sidebar-btn')
+        ->toContain(
+            'visibility 0s linear',
+        );
 });
 
 test('collapsed sidebar collapse footer is a square matching collapsed sidebar width', function () {

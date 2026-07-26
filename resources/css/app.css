@@ -1378,32 +1378,63 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     padding-inline-start: 0.625rem !important;
     padding-inline-end: 0.5rem !important;
     gap: 0.5rem;
-    transition: opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease)
-        var(--tido-sidebar-content-delay);
+}
+
+/* Expand stays above collapse so expand→open can reveal collapse underneath. */
+.fi-sidebar-collapse-morph .fi-sidebar-close-collapse-sidebar-btn {
+    z-index: 1;
+}
+
+.fi-sidebar-collapse-morph .fi-sidebar-open-collapse-sidebar-btn {
+    z-index: 2;
+}
+
+/*
+ * Incoming control snaps visible immediately; outgoing fades on top.
+ * Delay visibility:hidden until opacity finishes so the fade stays painted.
+ */
+.fi-sidebar.fi-sidebar-open .fi-sidebar-close-collapse-sidebar-btn {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transition:
+        opacity 0s,
+        visibility 0s;
 }
 
 .fi-sidebar.fi-sidebar-open .fi-sidebar-open-collapse-sidebar-btn {
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
-}
-
-.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-close-collapse-sidebar-btn {
-    opacity: 0;
-    pointer-events: none;
-    visibility: hidden;
-}
-
-.fi-sidebar.fi-sidebar-open .fi-sidebar-close-collapse-sidebar-btn {
-    opacity: 1;
-    pointer-events: auto;
-    visibility: visible;
+    transition:
+        opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease)
+            var(--tido-sidebar-content-delay),
+        visibility 0s linear
+            calc(
+                var(--tido-sidebar-content-delay) + var(--tido-sidebar-duration)
+            );
 }
 
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-open-collapse-sidebar-btn {
     opacity: 1;
     pointer-events: auto;
     visibility: visible;
+    transition:
+        opacity 0s,
+        visibility 0s;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-close-collapse-sidebar-btn {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition:
+        opacity var(--tido-sidebar-duration) var(--tido-sidebar-ease)
+            var(--tido-sidebar-content-delay),
+        visibility 0s linear
+            calc(
+                var(--tido-sidebar-content-delay) + var(--tido-sidebar-duration)
+            );
 }
 
 /* Label rides beside the pinned icon; fade with chrome delay (C + A). */
