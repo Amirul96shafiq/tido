@@ -78,6 +78,31 @@ class BudgetForm
                                     ]),
                             ]),
 
+                        Section::make('Budget Settings')
+                            ->schema([
+                                Select::make('label_id')
+                                    ->label('Label')
+                                    ->relationship(
+                                        name: 'label',
+                                        titleAttribute: 'name',
+                                        modifyQueryUsing: fn ($query) => $query->where('type', LabelType::Finance)->orderBy('name'),
+                                    )
+                                    ->placeholder('Overall (All Labels)')
+                                    ->searchable()
+                                    ->preload()
+                                    ->live()
+                                    ->afterStateUpdated(function (mixed $state, Get $get, Set $set): void {
+                                        self::syncAppearanceFromLabel($state, $get, $set);
+                                    })
+                                    ->helperText('Leave empty for an overall spending cap across all labels. Selecting a Label fills empty Title and Icon.'),
+
+                                Toggle::make('is_active')
+                                    ->label('Active budget')
+                                    ->default(true)
+                                    ->required()
+                                    ->helperText('Inactive budgets are hidden from the dashboard and alerts.'),
+                            ]),
+
                         Section::make('Alert Settings')
                             ->schema([
                                 Slider::make('alert_threshold')
@@ -172,31 +197,6 @@ class BudgetForm
                                     ->live(onBlur: true)
                                     ->placeholder('e.g. Pet Supplies — Monthly')
                                     ->helperText('Auto-fills from the Label when empty. Clear to use the Label name at display time.'),
-                            ]),
-
-                        Section::make('Budget Settings')
-                            ->schema([
-                                Select::make('label_id')
-                                    ->label('Label')
-                                    ->relationship(
-                                        name: 'label',
-                                        titleAttribute: 'name',
-                                        modifyQueryUsing: fn ($query) => $query->where('type', LabelType::Finance)->orderBy('name'),
-                                    )
-                                    ->placeholder('Overall (All Labels)')
-                                    ->searchable()
-                                    ->preload()
-                                    ->live()
-                                    ->afterStateUpdated(function (mixed $state, Get $get, Set $set): void {
-                                        self::syncAppearanceFromLabel($state, $get, $set);
-                                    })
-                                    ->helperText('Leave empty for an overall spending cap across all labels. Selecting a Label fills empty Title and Icon.'),
-
-                                Toggle::make('is_active')
-                                    ->label('Active budget')
-                                    ->default(true)
-                                    ->required()
-                                    ->helperText('Inactive budgets are hidden from the dashboard and alerts.'),
                             ]),
                     ]),
             ]);
