@@ -20,6 +20,20 @@ use Filament\Schemas\Schema;
 
 class InvoiceForm
 {
+    /**
+     * @return list<array{label: string, id: string}>
+     */
+    public static function sectionNavItems(): array
+    {
+        return [
+            ['label' => 'Image & Uploads', 'id' => 'image-uploads'],
+            ['label' => 'Receipt Details', 'id' => 'receipt-details'],
+            ['label' => 'Invoice Notes', 'id' => 'invoice-notes'],
+            ['label' => 'Line Items', 'id' => 'line-items'],
+            ['label' => 'Invoice Status', 'id' => 'invoice-status'],
+        ];
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -34,6 +48,7 @@ class InvoiceForm
                     ->extraAttributes(['class' => 'fi-invoice-main-column'])
                     ->schema([
                         Section::make('Receipt Details')
+                            ->id('receipt-details')
                             ->schema([
                                 Grid::make(3)
                                     ->schema([
@@ -106,6 +121,7 @@ class InvoiceForm
                             ]),
 
                         Section::make('Invoice Notes')
+                            ->id('invoice-notes')
                             ->schema([
                                 NotesRichEditor::make('notes')
                                     ->hiddenLabel()
@@ -113,6 +129,7 @@ class InvoiceForm
                             ]),
 
                         Section::make('Line Items')
+                            ->id('line-items')
                             ->schema([
                                 Repeater::make('invoiceItems')
                                     ->relationship('invoiceItems')
@@ -197,6 +214,7 @@ class InvoiceForm
                             ]),
 
                         Section::make('Invoice Status')
+                            ->id('invoice-status')
                             ->schema([
                                 Select::make('status')
                                     ->hiddenLabel()
@@ -222,6 +240,7 @@ class InvoiceForm
                     ->extraAttributes(['class' => 'fi-invoice-sidebar-sticky'])
                     ->schema([
                         Section::make('Image & Uploads')
+                            ->id('image-uploads')
                             ->schema([
                                 FileUpload::make('image_path')
                                     ->label('Receipt Image')

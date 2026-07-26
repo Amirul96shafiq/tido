@@ -6,6 +6,7 @@ namespace App\Filament\Pages;
 
 use App\Enums\EvolutionApiConnectionEvent;
 use App\Enums\EvolutionApiConnectMethod;
+use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
@@ -22,6 +23,8 @@ use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\View as SchemaView;
+use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontFamily;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\TextColumn;
@@ -33,10 +36,9 @@ use Illuminate\Support\Js;
 
 class EvolutionApiPage extends Page implements HasTable
 {
+    use HasSectionNav;
     use InteractsWithTable;
     use PrependsHomeBreadcrumb;
-
-    protected string $view = 'filament.pages.evolution-api';
 
     protected static ?string $slug = 'evolution-api';
 
@@ -94,6 +96,43 @@ class EvolutionApiPage extends Page implements HasTable
 
     /** Matches Evolution Baileys `qrTimeout` (45_000 ms) — codes rotate server-side on this interval. */
     public const CONNECT_TTL_SECONDS = 45;
+
+    /**
+     * @return array<string>
+     */
+    public function getPageClasses(): array
+    {
+        return [
+            'fi-evolution-api-page',
+        ];
+    }
+
+    /**
+     * @return list<array{label: string, id: string}>
+     */
+    public static function sectionNavItems(): array
+    {
+        return [
+            ['label' => 'Link device', 'id' => 'evolution-link-device'],
+            ['label' => 'Connection', 'id' => 'evolution-connection'],
+            ['label' => 'Connection history', 'id' => 'evolution-connection-history'],
+        ];
+    }
+
+    public function sectionNavAriaLabel(): string
+    {
+        return 'Evolution API sections';
+    }
+
+    public function content(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                $this->wrapInSectionNavScope([
+                    SchemaView::make('filament.pages.partials.evolution-api-content'),
+                ]),
+            ]);
+    }
 
     public function mount(EvolutionInstanceService $evolution): void
     {

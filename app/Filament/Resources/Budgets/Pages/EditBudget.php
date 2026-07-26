@@ -9,6 +9,7 @@ use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Budgets\BudgetResource;
+use App\Filament\Resources\Budgets\Schemas\BudgetForm;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
@@ -42,5 +43,18 @@ class EditBudget extends EditRecord
         return [
             DeleteAction::make(),
         ];
+    }
+
+    /**
+     * @return list<array{label: string, id: string}>
+     */
+    public static function sectionNavItems(): array
+    {
+        return BudgetForm::sectionNavItems(includePerformance: true);
+    }
+
+    public function sectionNavAriaLabel(): string
+    {
+        return 'Budget sections';
     }
 }

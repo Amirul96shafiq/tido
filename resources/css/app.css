@@ -2085,7 +2085,17 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /* Section nav — offset topbar + sticky tab bar when scrolling to hash. */
-.fi-profile-page .fi-sc-section[id] {
+.fi-profile-page .fi-sc-section[id],
+.fi-invoice-form-page .fi-sc-section[id],
+.fi-budget-form-page .fi-sc-section[id] {
+    scroll-margin-top: calc(
+        var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
+            var(--tido-section-nav-height, 2.75rem) + 1rem
+    );
+}
+
+.fi-upload-receipts-page [id],
+.fi-evolution-api-page [id] {
     scroll-margin-top: calc(
         var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
             var(--tido-section-nav-height, 2.75rem) + 1rem
@@ -2452,7 +2462,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     /* overflow-x-clip on .fi-layout breaks position: sticky for descendants */
     .fi-layout:has(.fi-profile-page),
     .fi-layout:has(.fi-budget-form-page),
-    .fi-layout:has(.fi-invoice-form-page) {
+    .fi-layout:has(.fi-invoice-form-page),
+    .fi-layout:has(.fi-upload-receipts-page),
+    .fi-layout:has(.fi-evolution-api-page) {
         overflow-x: visible;
     }
 
@@ -2472,7 +2484,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
     .fi-budget-form-page .fi-sc-form .fi-grid-col:has(.fi-budget-sidebar-sticky),
     .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-sidebar-sticky) {
-        top: calc(4rem + 1.5rem);
+        top: calc(
+            var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
+                var(--tido-section-nav-height, 2.75rem) + 0.75rem
+        );
     }
 }
 
