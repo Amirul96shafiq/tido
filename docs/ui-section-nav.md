@@ -2,7 +2,20 @@
 
 Shared sticky **in-page tab menu** for long Filament pages. Jumps between anchored sections with smooth scroll, active-tab sync, and hash-aware deep links.
 
-**Consumers:** [`EditProfile`](../app/Filament/Pages/Auth/EditProfile.php) at `/admin/profile`, [`Dashboard`](../app/Filament/Pages/Dashboard.php) for widget jump tabs beside the month filter, [`ReceiptUploadPage`](../app/Filament/Pages/ReceiptUploadPage.php), Invoice/Budget Create/Edit resource pages, and [`EvolutionApiPage`](../app/Filament/Pages/EvolutionApiPage.php).
+**Consumers:** [`EditProfile`](../app/Filament/Pages/Auth/EditProfile.php) at `/admin/profile`, [`Dashboard`](../app/Filament/Pages/Dashboard.php) for widget jump tabs beside the month filter, [`ReceiptUploadPage`](../app/Filament/Pages/ReceiptUploadPage.php), Invoice/Budget Create/Edit resource pages, [`EvolutionApiPage`](../app/Filament/Pages/EvolutionApiPage.php), [`ServiceStatusPage`](../app/Filament/Pages/ServiceStatusPage.php), and Label / Payment Method / Family Member Create/Edit resource pages.
+
+## When to use
+
+Add sticky section tab navigation when a Filament page has **two or more distinct in-page sections** with stable anchor ids (`Section::make(...)->id('kebab-case')` or `id="..."` on Blade `<x-filament::section>`).
+
+**Responsive stacking:** sidebar + main forms, multi-block custom pages, and tables below forms will scroll on small viewports — do **not** wait for a fixed viewport-height threshold. Mobile will exceed any height rule first.
+
+**Opt in via:**
+
+- Custom / content pages: `HasSectionNav` + `sectionNavItems()` + `wrapInSectionNavScope()` (or `content(Schema)`).
+- Create/Edit resource pages: `HasStickyBlurFormActions` (composes `HasSectionNav`) + `sectionNavItems()` on the page or form schema.
+
+**Do not use** on list-only pages, single short auth forms, or pages with one undifferentiated block.
 
 ## Source of truth
 
@@ -116,6 +129,46 @@ Sticky pin mechanics are shared with [`ui-sticky-blur.md`](ui-sticky-blur.md). T
 | Page class | `.fi-evolution-api-page` |
 | Anchors | `#evolution-link-device`, `#evolution-connection`, `#evolution-connection-history` in [`evolution-api-content.blade.php`](../resources/views/filament/pages/partials/evolution-api-content.blade.php) |
 | Tests | [`tests/Feature/EvolutionApiSectionNavTest.php`](../tests/Feature/EvolutionApiSectionNavTest.php) |
+
+## Service Status
+
+| Layer | Path |
+|-------|------|
+| Section list | `ServiceStatusPage::sectionNavItems()` |
+| Sticky pin + content scope | `ServiceStatusPage::content()` — `wrapInSectionNavScope()` + content partial |
+| Page class | `.fi-service-status-page` |
+| Anchors | `#service-summary-report`, `#service-system-status` in [`service-status-content.blade.php`](../resources/views/filament/pages/partials/service-status-content.blade.php) |
+| Tests | [`tests/Feature/ServiceStatusSectionNavTest.php`](../tests/Feature/ServiceStatusSectionNavTest.php) |
+
+## Label Create / Edit
+
+| Layer | Path |
+|-------|------|
+| Section list | `LabelForm::sectionNavItems()` — wired on Create/Edit pages |
+| Sticky pin | `HasStickyBlurFormActions` + `sectionNavItems()` on page |
+| Page class | `.fi-label-form-page` |
+| Anchors | `->id(...)` on each `Section::make(...)` in [`LabelForm.php`](../app/Filament/Resources/Labels/Schemas/LabelForm.php) |
+| Tests | [`tests/Feature/LabelFormSectionNavTest.php`](../tests/Feature/LabelFormSectionNavTest.php) |
+
+## Payment Method Create / Edit
+
+| Layer | Path |
+|-------|------|
+| Section list | `PaymentMethodForm::sectionNavItems()` — wired on Create/Edit pages |
+| Sticky pin | `HasStickyBlurFormActions` + `sectionNavItems()` on page |
+| Page class | `.fi-payment-method-form-page` |
+| Anchors | `->id(...)` on each `Section::make(...)` in [`PaymentMethodForm.php`](../app/Filament/Resources/PaymentMethods/Schemas/PaymentMethodForm.php) |
+| Tests | [`tests/Feature/PaymentMethodFormSectionNavTest.php`](../tests/Feature/PaymentMethodFormSectionNavTest.php) |
+
+## Family Member Create / Edit
+
+| Layer | Path |
+|-------|------|
+| Section list | `FamilyMemberForm::sectionNavItems()` — wired on Create/Edit pages |
+| Sticky pin | `HasStickyBlurFormActions` + `sectionNavItems()` on page |
+| Page class | `.fi-family-member-form-page` |
+| Anchors | `->id(...)` on each `Section::make(...)` in [`FamilyMemberForm.php`](../app/Filament/Resources/FamilyMembers/Schemas/FamilyMemberForm.php) |
+| Tests | [`tests/Feature/FamilyMemberFormSectionNavTest.php`](../tests/Feature/FamilyMemberFormSectionNavTest.php) |
 
 ## Smooth scroll vs hash-scroll
 

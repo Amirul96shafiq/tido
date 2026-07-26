@@ -2087,7 +2087,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 /* Section nav — offset topbar + sticky tab bar when scrolling to hash. */
 .fi-profile-page .fi-sc-section[id],
 .fi-invoice-form-page .fi-sc-section[id],
-.fi-budget-form-page .fi-sc-section[id] {
+.fi-budget-form-page .fi-sc-section[id],
+.fi-label-form-page .fi-sc-section[id],
+.fi-payment-method-form-page .fi-sc-section[id],
+.fi-family-member-form-page .fi-sc-section[id] {
     scroll-margin-top: calc(
         var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
             var(--tido-section-nav-height, 2.75rem) + 1rem
@@ -2095,7 +2098,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .fi-upload-receipts-page [id],
-.fi-evolution-api-page [id] {
+.fi-evolution-api-page [id],
+.fi-service-status-page [id] {
     scroll-margin-top: calc(
         var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
             var(--tido-section-nav-height, 2.75rem) + 1rem
@@ -2359,6 +2363,30 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-main-column) {
         order: 2;
     }
+
+    .fi-label-form-page .fi-sc-form .fi-grid-col:has(.fi-label-sidebar-sticky) {
+        order: 1;
+    }
+
+    .fi-label-form-page .fi-sc-form .fi-grid-col:has(.fi-label-main-column) {
+        order: 2;
+    }
+
+    .fi-payment-method-form-page .fi-sc-form .fi-grid-col:has(.fi-payment-method-sidebar-sticky) {
+        order: 1;
+    }
+
+    .fi-payment-method-form-page .fi-sc-form .fi-grid-col:has(.fi-payment-method-main-column) {
+        order: 2;
+    }
+
+    .fi-family-member-form-page .fi-sc-form .fi-grid-col:has(.fi-family-member-sidebar-sticky) {
+        order: 1;
+    }
+
+    .fi-family-member-form-page .fi-sc-form .fi-grid-col:has(.fi-family-member-main-column) {
+        order: 2;
+    }
 }
 
 .fi-notes-rich-editor .fi-fo-rich-editor-content {
@@ -2463,14 +2491,21 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     .fi-layout:has(.fi-profile-page),
     .fi-layout:has(.fi-budget-form-page),
     .fi-layout:has(.fi-invoice-form-page),
+    .fi-layout:has(.fi-label-form-page),
+    .fi-layout:has(.fi-payment-method-form-page),
+    .fi-layout:has(.fi-family-member-form-page),
     .fi-layout:has(.fi-upload-receipts-page),
-    .fi-layout:has(.fi-evolution-api-page) {
+    .fi-layout:has(.fi-evolution-api-page),
+    .fi-layout:has(.fi-service-status-page) {
         overflow-x: visible;
     }
 
     .fi-profile-page .fi-sc-form .fi-grid-col:has(.fi-profile-sidebar-sticky),
     .fi-budget-form-page .fi-sc-form .fi-grid-col:has(.fi-budget-sidebar-sticky),
-    .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-sidebar-sticky) {
+    .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-sidebar-sticky),
+    .fi-label-form-page .fi-sc-form .fi-grid-col:has(.fi-label-sidebar-sticky),
+    .fi-payment-method-form-page .fi-sc-form .fi-grid-col:has(.fi-payment-method-sidebar-sticky),
+    .fi-family-member-form-page .fi-sc-form .fi-grid-col:has(.fi-family-member-sidebar-sticky) {
         position: sticky;
         align-self: start;
     }
@@ -2483,7 +2518,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     }
 
     .fi-budget-form-page .fi-sc-form .fi-grid-col:has(.fi-budget-sidebar-sticky),
-    .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-sidebar-sticky) {
+    .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-sidebar-sticky),
+    .fi-label-form-page .fi-sc-form .fi-grid-col:has(.fi-label-sidebar-sticky),
+    .fi-payment-method-form-page .fi-sc-form .fi-grid-col:has(.fi-payment-method-sidebar-sticky),
+    .fi-family-member-form-page .fi-sc-form .fi-grid-col:has(.fi-family-member-sidebar-sticky) {
         top: calc(
             var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
                 var(--tido-section-nav-height, 2.75rem) + 0.75rem

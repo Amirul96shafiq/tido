@@ -14,7 +14,6 @@ use App\Models\User;
 use App\Support\PhoneNumber;
 use Filament\Actions\Testing\TestAction;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -212,9 +211,12 @@ test('family member form uses details plus profile photo sidebar layout', functi
         ->and($components)->toHaveCount(2)
         ->and($components[0])->toBeInstanceOf(Grid::class)
         ->and($components[0]->getColumnSpan('lg'))->toBe(7)
-        ->and($components[1])->toBeInstanceOf(Section::class)
+        ->and($components[1])->toBeInstanceOf(Grid::class)
         ->and($components[1]->getColumnSpan('lg'))->toBe(3)
-        ->and($components[1]->getHeading())->toBe('Profile Photo');
+        ->and(FamilyMemberForm::sectionNavItems())->toBe([
+            ['label' => 'Profile Photo', 'id' => 'profile-photo'],
+            ['label' => 'Family Member Details', 'id' => 'family-member-details'],
+        ]);
 });
 
 test('profile whatsapp number is required', function () {

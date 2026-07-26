@@ -9,6 +9,7 @@ use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
+use App\Filament\Resources\PaymentMethods\Schemas\PaymentMethodForm;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
@@ -21,6 +22,17 @@ class EditPaymentMethod extends EditRecord
     use RecoversContentDraft;
 
     protected static string $resource = PaymentMethodResource::class;
+
+    /**
+     * @return array<string>
+     */
+    public function getPageClasses(): array
+    {
+        return [
+            ...parent::getPageClasses(),
+            'fi-payment-method-form-page',
+        ];
+    }
 
     protected function contentDraftKey(): string
     {
@@ -45,5 +57,18 @@ class EditPaymentMethod extends EditRecord
                 ->visible(fn () => ! (bool) $this->record->is_system),
             RestoreAction::make(),
         ];
+    }
+
+    /**
+     * @return list<array{label: string, id: string}>
+     */
+    public static function sectionNavItems(): array
+    {
+        return PaymentMethodForm::sectionNavItems();
+    }
+
+    public function sectionNavAriaLabel(): string
+    {
+        return 'Payment method sections';
     }
 }

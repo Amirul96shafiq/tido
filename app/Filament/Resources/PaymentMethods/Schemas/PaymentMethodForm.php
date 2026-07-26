@@ -20,6 +20,18 @@ use Livewire\Component as LivewireComponent;
 
 class PaymentMethodForm
 {
+    /**
+     * @return list<array{label: string, id: string}>
+     */
+    public static function sectionNavItems(): array
+    {
+        return [
+            ['label' => 'Payment Method Appearance', 'id' => 'payment-method-appearance'],
+            ['label' => 'Payment Method Details', 'id' => 'payment-method-details'],
+            ['label' => 'Payment Method Notes', 'id' => 'payment-method-notes'],
+        ];
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -27,8 +39,14 @@ class PaymentMethodForm
             ->components([
                 Grid::make(1)
                     ->columnSpan(2)
+                    ->columnOrder([
+                        'default' => 2,
+                        'lg' => 1,
+                    ])
+                    ->extraAttributes(['class' => 'fi-payment-method-main-column'])
                     ->schema([
                         Section::make(fn (LivewireComponent $livewire): string => self::modelLabel($livewire).' Details')
+                            ->id('payment-method-details')
                             ->columns(2)
                             ->schema([
                                 TextInput::make('name')
@@ -54,6 +72,7 @@ class PaymentMethodForm
                             ]),
 
                         Section::make('Payment Method Notes')
+                            ->id('payment-method-notes')
                             ->schema([
                                 NotesRichEditor::make('notes')
                                     ->hiddenLabel()
@@ -61,24 +80,33 @@ class PaymentMethodForm
                             ]),
                     ]),
 
-                Section::make(fn (LivewireComponent $livewire): string => self::modelLabel($livewire).' Appearance')
+                Grid::make(1)
                     ->columnSpan(1)
+                    ->columnOrder([
+                        'default' => 1,
+                        'lg' => 2,
+                    ])
+                    ->extraAttributes(['class' => 'fi-payment-method-sidebar-sticky'])
                     ->schema([
-                        View::make('filament.forms.components.label-icon-preview')
-                            ->viewData(fn (Get $get, LivewireComponent $livewire): array => [
-                                'icon' => filled($get('icon')) ? (string) $get('icon') : 'heroicon-o-credit-card',
-                                'color' => filled($get('color')) ? (string) $get('color') : '#a1a1aa',
-                                'name' => filled($get('name'))
-                                    ? (string) $get('name')
-                                    : self::modelLabel($livewire).' preview',
+                        Section::make(fn (LivewireComponent $livewire): string => self::modelLabel($livewire).' Appearance')
+                            ->id('payment-method-appearance')
+                            ->schema([
+                                View::make('filament.forms.components.label-icon-preview')
+                                    ->viewData(fn (Get $get, LivewireComponent $livewire): array => [
+                                        'icon' => filled($get('icon')) ? (string) $get('icon') : 'heroicon-o-credit-card',
+                                        'color' => filled($get('color')) ? (string) $get('color') : '#a1a1aa',
+                                        'name' => filled($get('name'))
+                                            ? (string) $get('name')
+                                            : self::modelLabel($livewire).' preview',
+                                    ]),
+
+                                IconPicker::make('icon')
+                                    ->label('Icon')
+                                    ->live(),
+
+                                ColorPicker::make('color')
+                                    ->live(),
                             ]),
-
-                        IconPicker::make('icon')
-                            ->label('Icon')
-                            ->live(),
-
-                        ColorPicker::make('color')
-                            ->live(),
                     ]),
             ]);
     }

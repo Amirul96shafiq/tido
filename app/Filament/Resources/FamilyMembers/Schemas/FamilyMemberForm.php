@@ -26,6 +26,17 @@ use Livewire\Component as LivewireComponent;
 
 class FamilyMemberForm
 {
+    /**
+     * @return list<array{label: string, id: string}>
+     */
+    public static function sectionNavItems(): array
+    {
+        return [
+            ['label' => 'Profile Photo', 'id' => 'profile-photo'],
+            ['label' => 'Family Member Details', 'id' => 'family-member-details'],
+        ];
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -33,8 +44,14 @@ class FamilyMemberForm
             ->components([
                 Grid::make(1)
                     ->columnSpan(7)
+                    ->columnOrder([
+                        'default' => 2,
+                        'lg' => 1,
+                    ])
+                    ->extraAttributes(['class' => 'fi-family-member-main-column'])
                     ->schema([
                         Section::make(fn (LivewireComponent $livewire): string => self::modelLabel($livewire).' Details')
+                            ->id('family-member-details')
                             ->columns(2)
                             ->schema([
                                 TextInput::make('name')
@@ -229,23 +246,32 @@ class FamilyMemberForm
                             ]),
                     ]),
 
-                Section::make('Profile Photo')
+                Grid::make(1)
                     ->columnSpan(3)
-                    ->extraAttributes(['class' => 'fi-profile-photo-section'])
+                    ->columnOrder([
+                        'default' => 1,
+                        'lg' => 2,
+                    ])
+                    ->extraAttributes(['class' => 'fi-family-member-sidebar-sticky'])
                     ->schema([
-                        Flex::make([
-                            FileUpload::make('avatar_url')
-                                ->hiddenLabel()
-                                ->fieldWrapperView('filament-forms::plain-field-wrapper')
-                                ->extraFieldWrapperAttributes(['class' => 'fi-profile-photo-field'])
-                                ->avatar()
-                                ->disk('public')
-                                ->directory('avatars')
-                                ->image()
-                                ->imageEditor()
-                                ->maxSize(2048)
-                                ->circleCropper(),
-                        ])->alignCenter(),
+                        Section::make('Profile Photo')
+                            ->id('profile-photo')
+                            ->extraAttributes(['class' => 'fi-profile-photo-section'])
+                            ->schema([
+                                Flex::make([
+                                    FileUpload::make('avatar_url')
+                                        ->hiddenLabel()
+                                        ->fieldWrapperView('filament-forms::plain-field-wrapper')
+                                        ->extraFieldWrapperAttributes(['class' => 'fi-profile-photo-field'])
+                                        ->avatar()
+                                        ->disk('public')
+                                        ->directory('avatars')
+                                        ->image()
+                                        ->imageEditor()
+                                        ->maxSize(2048)
+                                        ->circleCropper(),
+                                ])->alignCenter(),
+                            ]),
                     ]),
             ]);
     }

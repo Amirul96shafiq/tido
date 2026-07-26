@@ -5,21 +5,23 @@ declare(strict_types=1);
 namespace App\Filament\Pages;
 
 use App\Enums\ServiceHealthStatus;
+use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Services\Health\ServiceHealthAggregator;
 use App\Services\Health\ServiceHealthRecorder;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\View as SchemaView;
+use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
 class ServiceStatusPage extends Page
 {
+    use HasSectionNav;
     use PrependsHomeBreadcrumb;
 
     protected static ?string $slug = 'service-status';
-
-    protected string $view = 'filament.pages.service-status';
 
     protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedSignal;
 
@@ -35,6 +37,42 @@ class ServiceStatusPage extends Page
      * @var array<string, mixed>
      */
     public array $report = [];
+
+    /**
+     * @return array<string>
+     */
+    public function getPageClasses(): array
+    {
+        return [
+            'fi-service-status-page',
+        ];
+    }
+
+    /**
+     * @return list<array{label: string, id: string}>
+     */
+    public static function sectionNavItems(): array
+    {
+        return [
+            ['label' => 'Summary report', 'id' => 'service-summary-report'],
+            ['label' => 'System status', 'id' => 'service-system-status'],
+        ];
+    }
+
+    public function sectionNavAriaLabel(): string
+    {
+        return 'Service status sections';
+    }
+
+    public function content(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                $this->wrapInSectionNavScope([
+                    SchemaView::make('filament.pages.partials.service-status-content'),
+                ]),
+            ]);
+    }
 
     public function mount(ServiceHealthAggregator $aggregator): void
     {
