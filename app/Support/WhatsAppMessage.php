@@ -122,6 +122,30 @@ final class WhatsAppMessage
      */
     public static function documentParsed(string $editUrl, array $details = []): string
     {
+        return self::compose(
+            '🎉',
+            'Document parsed',
+            self::documentDetailsBody($editUrl, $details),
+        );
+    }
+
+    /**
+     * @param  array{merchant_name?: string|null, total_amount?: float|int|string|null, payment_method?: string|null}  $details
+     */
+    public static function documentNeedsReview(string $editUrl, array $details = []): string
+    {
+        return self::compose(
+            '⚠️',
+            'Document needs review',
+            self::documentDetailsBody($editUrl, $details)."\n\nPlease review and confirm the details in the admin panel.",
+        );
+    }
+
+    /**
+     * @param  array{merchant_name?: string|null, total_amount?: float|int|string|null, payment_method?: string|null}  $details
+     */
+    private static function documentDetailsBody(string $editUrl, array $details = []): string
+    {
         $editUrl = trim($editUrl);
         $merchant = trim((string) ($details['merchant_name'] ?? ''));
         $paymentMethod = trim((string) ($details['payment_method'] ?? ''));
@@ -136,7 +160,7 @@ final class WhatsAppMessage
 
         $totalAmount = MoneyDisplay::withPrefix($details['total_amount'] ?? 0);
 
-        $body = implode("\n", [
+        return implode("\n", [
             "Merchant: *{$merchant}*",
             "Total Amount: *{$totalAmount}*",
             "Payment Method: *{$paymentMethod}*",
@@ -144,8 +168,6 @@ final class WhatsAppMessage
             'Go to *invoice edit*',
             $editUrl,
         ]);
-
-        return self::compose('🎉', 'Document parsed', $body);
     }
 
     public static function manualInvoiceReceived(int $count): string

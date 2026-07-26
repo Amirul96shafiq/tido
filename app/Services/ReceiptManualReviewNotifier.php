@@ -6,7 +6,7 @@ namespace App\Services;
 
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Models\Invoice;
-use App\Models\User;
+use App\Support\NotificationRecipient;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
@@ -14,6 +14,12 @@ class ReceiptManualReviewNotifier
 {
     public function notify(Invoice $invoice): void
     {
+        $recipient = NotificationRecipient::forInvoice($invoice);
+
+        if ($recipient === null) {
+            return;
+        }
+
         $merchant = filled($invoice->merchant_name)
             ? (string) $invoice->merchant_name
             : 'Unknown merchant';
@@ -32,26 +38,24 @@ class ReceiptManualReviewNotifier
         ]);
         $editUrl = InvoiceResource::getUrl('edit', ['record' => $invoice]);
 
-        foreach (User::query()->cursor() as $user) {
-            Notification::make()
-                ->title('Receipt requires manual review')
-                ->body($body)
-                ->warning()
-                ->icon('heroicon-o-exclamation-triangle')
-                ->actions([
-                    Action::make('view')
-                        ->label('View')
-                        ->button()
-                        ->url($viewUrl, shouldOpenInNewTab: true)
-                        ->markAsRead(),
-                    Action::make('edit')
-                        ->label('Edit')
-                        ->button()
-                        ->color('gray')
-                        ->url($editUrl, shouldOpenInNewTab: true)
-                        ->markAsRead(),
-                ])
-                ->sendToDatabase($user);
-        }
+        Notification::make()
+            ->title('Receipt requires manual review')
+            ->body($body)
+            ->warning()
+            ->icon('heroicon-o-exclamation-triangle')
+            ->actions([
+                Action::make('view')
+                    ->label('View')
+                    ->button()
+                    ->url($viewUrl, shouldOpenInNewTab: true)
+                    ->markAsRead(),
+                Action::make('edit')
+                    ->label('Edit')
+                    ->button()
+                    ->color('gray')
+                    ->url($editUrl, shouldOpenInNewTab: true)
+                    ->markAsRead(),
+            ])
+            ->sendToDatabase($recipient);
     }
 }

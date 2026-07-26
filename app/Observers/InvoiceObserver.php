@@ -40,7 +40,14 @@ class InvoiceObserver
         }
 
         if (in_array($invoice->status, ['parsed', 'reviewed'], true)) {
-            app(BudgetAlertService::class)->checkAlertsForInvoice($invoice);
+            // WhatsApp "parsed" alerts run after document parsed/needs-review replies
+            // (and after any remaining pending OCR for the same sender).
+            $deferForWhatsAppParsed = $invoice->source === 'whatsapp'
+                && $invoice->status === 'parsed';
+
+            if (! $deferForWhatsAppParsed) {
+                app(BudgetAlertService::class)->checkAlertsForInvoice($invoice);
+            }
         }
 
         if ($invoice->status === 'requires_manual_review') {

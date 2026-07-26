@@ -20,6 +20,8 @@ class DangerZoneTestUsersSeeder extends Seeder
                 'name' => 'Reset Data Test User',
                 'password' => 'password',
                 'email_verified_at' => now(),
+                'phone' => null,
+                'notify_budget_alerts' => false,
             ],
         );
 
@@ -29,6 +31,8 @@ class DangerZoneTestUsersSeeder extends Seeder
                 'name' => 'Delete Account Test User',
                 'password' => 'password',
                 'email_verified_at' => now(),
+                'phone' => null,
+                'notify_budget_alerts' => false,
             ],
         );
 

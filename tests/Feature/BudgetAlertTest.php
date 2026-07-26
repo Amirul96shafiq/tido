@@ -294,3 +294,132 @@ test('budget alert service skips filament when notify_filament is false', functi
     Http::assertSent(fn (Request $request) => str_contains($request->url(), '/message/sendText/'));
     $this->assertDatabaseCount('notifications', 0);
 });
+
+test('budget alert service notifies only the primary admin even when other users opted in', function () {
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    $primary = User::factory()->create(['notify_budget_alerts' => true, 'phone' => '60123456789']);
+    $other = User::factory()->create(['notify_budget_alerts' => true, 'phone' => '60111111111']);
+
+    $label = Label::factory()->create([
+        'name' => 'Food & Dining',
+        'slug' => 'food-dining',
+    ]);
+
+    Budget::create([
+        'label_id' => $label->id,
+        'amount' => 100.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+        'alert_threshold' => 80,
+        'is_active' => true,
+    ]);
+
+    $invoice = Invoice::create([
+        'merchant_name' => 'McDonalds',
+        'invoice_number' => 'INV-666',
+        'date_time' => now(),
+        'subtotal' => 90.00,
+        'total_tax' => 0.00,
+        'total_amount' => 90.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'pending',
+    ]);
+
+    InvoiceItem::create([
+        'invoice_id' => $invoice->id,
+        'label_id' => $label->id,
+        'description' => 'Burgers',
+        'quantity' => 1,
+        'unit_price' => 90.00,
+        'line_total' => 90.00,
+    ]);
+
+    config([
+        'services.evolution.api_key' => 'tido-secret-key',
+    ]);
+
+    $invoice->update(['status' => 'parsed']);
+
+    expect($primary->fresh()->notifications()->count())->toBe(1)
+        ->and($other->fresh()->notifications()->count())->toBe(0);
+    $this->assertDatabaseCount('notifications', 1);
+});
+
+test('budget alert service does not re-alert the same budget level in the same period', function () {
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    User::factory()->create(['phone' => '60123456789']);
+
+    $label = Label::factory()->create([
+        'name' => 'Food & Dining',
+        'slug' => 'food-dining',
+    ]);
+
+    Budget::create([
+        'label_id' => $label->id,
+        'amount' => 100.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+        'alert_threshold' => 80,
+        'is_active' => true,
+    ]);
+
+    $first = Invoice::create([
+        'merchant_name' => 'McDonalds',
+        'invoice_number' => 'INV-777',
+        'date_time' => now(),
+        'subtotal' => 90.00,
+        'total_tax' => 0.00,
+        'total_amount' => 90.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'pending',
+    ]);
+
+    InvoiceItem::create([
+        'invoice_id' => $first->id,
+        'label_id' => $label->id,
+        'description' => 'Burgers',
+        'quantity' => 1,
+        'unit_price' => 90.00,
+        'line_total' => 90.00,
+    ]);
+
+    config([
+        'services.evolution.api_key' => 'tido-secret-key',
+    ]);
+
+    $first->update(['status' => 'parsed']);
+
+    $second = Invoice::create([
+        'merchant_name' => 'Starbucks',
+        'invoice_number' => 'INV-778',
+        'date_time' => now(),
+        'subtotal' => 5.00,
+        'total_tax' => 0.00,
+        'total_amount' => 5.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'pending',
+    ]);
+
+    InvoiceItem::create([
+        'invoice_id' => $second->id,
+        'label_id' => $label->id,
+        'description' => 'Coffee',
+        'quantity' => 1,
+        'unit_price' => 5.00,
+        'line_total' => 5.00,
+    ]);
+
+    $second->update(['status' => 'parsed']);
+
+    $this->assertDatabaseCount('notifications', 1);
+    Http::assertSentCount(1);
+});
