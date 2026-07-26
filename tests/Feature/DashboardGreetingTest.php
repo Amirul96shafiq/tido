@@ -108,7 +108,7 @@ test('dashboard greeting falls back to full name when display name is empty', fu
         ->assertSee('Good Morning, <span class="text-primary-600 dark:text-primary-400">Ada</span> ☀️', false);
 });
 
-test('dashboard header exposes finances and training view tabs', function () {
+test('dashboard header exposes finances training health and task view tabs', function () {
     Carbon::setTestNow(Carbon::parse('2026-07-16 09:00:00', 'Asia/Kuala_Lumpur'));
 
     $user = User::factory()
@@ -126,10 +126,14 @@ test('dashboard header exposes finances and training view tabs', function () {
         ->assertSee('tido-dashboard-view-tabs', false)
         ->assertSee('aria-label="Finances"', false)
         ->assertSee('aria-label="Training"', false)
+        ->assertSee('aria-label="Health"', false)
+        ->assertSee('aria-label="Task"', false)
         ->assertSee('setDashboardView', false)
         ->assertSee('fi-loading-indicator', false)
         ->assertSee('wire:target="setDashboardView(\'finances\')"', false)
         ->assertSee('wire:target="setDashboardView(\'training\')"', false)
+        ->assertSee('wire:target="setDashboardView(\'health\')"', false)
+        ->assertSee('wire:target="setDashboardView(\'task\')"', false)
         ->assertDontSee('Coming soon', false)
         ->assertDontSee('wire:click="mountAction(\'profile\')"', false)
         ->assertDontSee('wire:click="mountAction(\'changelogs\')"', false);

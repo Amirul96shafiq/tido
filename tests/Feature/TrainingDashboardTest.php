@@ -10,7 +10,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-test('dashboard switches to training view without leaving the page', function () {
+test('dashboard switches to coming soon views without leaving the page', function (string $view, string $overviewId, string $message) {
     Carbon::setTestNow(Carbon::parse('2026-07-16 09:00:00', 'Asia/Kuala_Lumpur'));
 
     $user = User::factory()
@@ -27,19 +27,35 @@ test('dashboard switches to training view without leaving the page', function ()
         ->assertSet('dashboardView', Dashboard::VIEW_FINANCES)
         ->assertDontSee('Coming soon', false)
         ->assertSee('tido-dashboard-sticky-toolbar', false)
-        ->call('setDashboardView', Dashboard::VIEW_TRAINING)
-        ->assertSet('dashboardView', Dashboard::VIEW_TRAINING)
-        ->assertSee('training-overview', false)
+        ->call('setDashboardView', $view)
+        ->assertSet('dashboardView', $view)
+        ->assertSee($overviewId, false)
         ->assertSee('Coming soon', false)
-        ->assertSee('Training dashboard is not available yet', false)
+        ->assertSee($message, false)
         ->assertDontSee('tido-dashboard-sticky-toolbar', false)
         ->call('setDashboardView', Dashboard::VIEW_FINANCES)
         ->assertSet('dashboardView', Dashboard::VIEW_FINANCES)
         ->assertSee('tido-dashboard-sticky-toolbar', false)
         ->assertDontSee('Coming soon', false);
-});
+})->with([
+    'training' => [
+        Dashboard::VIEW_TRAINING,
+        'training-overview',
+        'Training dashboard is not available yet',
+    ],
+    'health' => [
+        Dashboard::VIEW_HEALTH,
+        'health-overview',
+        'Health dashboard is not available yet',
+    ],
+    'task' => [
+        Dashboard::VIEW_TASK,
+        'task-overview',
+        'Task dashboard is not available yet',
+    ],
+]);
 
-test('dashboard training view is reachable via query string', function () {
+test('dashboard coming soon views are reachable via query string', function (string $view, string $overviewId) {
     Carbon::setTestNow(Carbon::parse('2026-07-16 09:00:00', 'Asia/Kuala_Lumpur'));
 
     $user = User::factory()
@@ -52,13 +68,17 @@ test('dashboard training view is reachable via query string', function () {
 
     $this->actingAs($user);
 
-    $this->get(Dashboard::getUrl().'?view=training')
+    $this->get(Dashboard::getUrl().'?view='.$view)
         ->assertSuccessful()
         ->assertSee('tido-dashboard-view-tabs', false)
-        ->assertSee('training-overview', false)
+        ->assertSee($overviewId, false)
         ->assertSee('Coming soon', false)
         ->assertSee('Good Morning, <span class="text-primary-600 dark:text-primary-400">Ada</span> ☀️', false);
-});
+})->with([
+    'training' => [Dashboard::VIEW_TRAINING, 'training-overview'],
+    'health' => [Dashboard::VIEW_HEALTH, 'health-overview'],
+    'task' => [Dashboard::VIEW_TASK, 'task-overview'],
+]);
 
 test('dashboard ignores invalid dashboard view values', function () {
     $user = User::factory()

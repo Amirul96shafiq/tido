@@ -32,13 +32,48 @@ class Dashboard extends BaseDashboard
 
     public const VIEW_TRAINING = 'training';
 
+    public const VIEW_HEALTH = 'health';
+
+    public const VIEW_TASK = 'task';
+
     /**
      * @var list<string>
      */
     public const VIEWS = [
         self::VIEW_FINANCES,
         self::VIEW_TRAINING,
+        self::VIEW_HEALTH,
+        self::VIEW_TASK,
     ];
+
+    /**
+     * @return list<array{view: string, label: string, icon: string}>
+     */
+    public static function viewTabs(): array
+    {
+        return [
+            [
+                'view' => self::VIEW_FINANCES,
+                'label' => 'Finances',
+                'icon' => 'heroicon-m-calculator',
+            ],
+            [
+                'view' => self::VIEW_TRAINING,
+                'label' => 'Training',
+                'icon' => 'heroicon-m-bolt',
+            ],
+            [
+                'view' => self::VIEW_HEALTH,
+                'label' => 'Health',
+                'icon' => 'heroicon-m-heart',
+            ],
+            [
+                'view' => self::VIEW_TASK,
+                'label' => 'Task',
+                'icon' => 'heroicon-m-rectangle-stack',
+            ],
+        ];
+    }
 
     #[Url(as: 'view', except: 'finances', history: true)]
     public string $dashboardView = self::VIEW_FINANCES;
@@ -202,10 +237,13 @@ class Dashboard extends BaseDashboard
 
     public function content(Schema $schema): Schema
     {
-        if ($this->dashboardView === self::VIEW_TRAINING) {
+        $comingSoon = $this->comingSoonDashboardContent();
+
+        if ($comingSoon !== null) {
             return $schema
                 ->components([
-                    View::make('filament.pages.partials.training-dashboard-content'),
+                    View::make('filament.pages.partials.coming-soon-dashboard-content')
+                        ->viewData($comingSoon),
                 ]);
         }
 
@@ -239,6 +277,34 @@ class Dashboard extends BaseDashboard
                     'class' => 'tido-sticky-scope',
                 ]),
             ]);
+    }
+
+    /**
+     * @return array{id: string, heading: string, icon: string, description: string}|null
+     */
+    protected function comingSoonDashboardContent(): ?array
+    {
+        return match ($this->dashboardView) {
+            self::VIEW_TRAINING => [
+                'id' => 'training-overview',
+                'heading' => 'Training',
+                'icon' => 'heroicon-o-bolt',
+                'description' => 'Training dashboard is not available yet. Check back later for workouts, progress, and insights.',
+            ],
+            self::VIEW_HEALTH => [
+                'id' => 'health-overview',
+                'heading' => 'Health',
+                'icon' => 'heroicon-o-heart',
+                'description' => 'Health dashboard is not available yet. Check back later for vitals, habits, and insights.',
+            ],
+            self::VIEW_TASK => [
+                'id' => 'task-overview',
+                'heading' => 'Task',
+                'icon' => 'heroicon-o-rectangle-stack',
+                'description' => 'Task dashboard is not available yet. Check back later for to-dos, priorities, and progress.',
+            ],
+            default => null,
+        };
     }
 
     protected function shiftDashboardMonth(int $months): void
