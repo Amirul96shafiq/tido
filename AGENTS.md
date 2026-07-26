@@ -2,10 +2,13 @@
 
 Before coding, read **[docs/agent-onboarding.md](docs/agent-onboarding.md)** for product map, directory layout, and how to implement features.
 
+**tido** is a single-tenant personal hub: **Finances** shipped (MYR expenses); **Training** / **Health** / **Task** planned dashboard modules — **[docs/dashboard-views.md](docs/dashboard-views.md)**.
+
 - Cursor rules: `.cursor/rules/*.mdc` (auto-applied)
 - Domain skill: `.cursor/skills/tido-domain/` (activate for invoices, OCR, WhatsApp, Drive, budgets)
 - Architecture gate: do not contradict `docs/system-architecture.md` without warning the user
 - Git workflow: **[docs/git-workflow.md](docs/git-workflow.md)** — feature/fix branches → PR → `main`; do not develop on `main`
+- Dashboard modules: **[docs/dashboard-views.md](docs/dashboard-views.md)** — Finances / Training / Health / Task view tabs
 - Icon CTA tooltips: **[docs/ui-tooltips.md](docs/ui-tooltips.md)** — Filament Tippy, not browser `title`
 - Sticky bars + blur veil: **[docs/ui-sticky-blur.md](docs/ui-sticky-blur.md)** — top/bottom pin with frosted veil
 - Section nav (sticky tabs): **[docs/ui-section-nav.md](docs/ui-section-nav.md)** — shared sticky tabs, smooth scroll, hash deep links (Profile + Dashboard)

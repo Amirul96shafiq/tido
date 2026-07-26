@@ -21,7 +21,10 @@
 </p>
 
 <p align="center">
-tido is a localized, single-tenant MYR expense tracker built for frictionless financial logging. Ingest receipts via WhatsApp (image or text manual invoice), scheduled Google Drive sync (coming soon), or admin upload, and parse on-device with local Ollama. Manage parsed line items as labels, track strict budgets, and review analytics instantly within a streamlined Filament dashboard.
+<code>tido</code> is a single-tenant Life OS designed to bring personal finance, health, training, and everyday productivity into one private hub. <strong>Finances</strong> is currently in active development as a localized MYR expense tracker. It supports receipt ingestion through WhatsApp, scheduled Google Drive sync (coming soon), and manual admin uploads, with on-device parsing powered by local Ollama. Users can manage line items with labels, track budgets, and review spending analytics from the Finances dashboard.
+<strong>Training</strong> (workouts, running activities, and Strava
+  sync. (TBD)), <strong>Health</strong> (calorie tracking and
+  AI-assisted meal analysis from food photos), and <strong>Tasks</strong> (reminders and practical real-life task management) modules are coming soon!
 </p>
 
 ## Table of Contents
@@ -39,11 +42,12 @@ tido is a localized, single-tenant MYR expense tracker built for frictionless fi
 
 ## Features
 
-- Receipt ingestion from WhatsApp (**images** + **text manual invoices**), Google Drive scheduled sync (coming soon), and admin upload
+- Modular Home dashboard: **Finances** (Ongoing), **Training** / **Health** / **Task** (coming soon) — see [docs/dashboard-views.md](docs/dashboard-views.md)
+- Receipt ingestion from WhatsApp (**images** + **text manual invoices**), Google Drive scheduled sync (Coming Soon), and admin upload
 - Local OCR via Ollama with JSON-formatted extraction; manual WhatsApp text uses Ollama for **Labels** only
 - Line-item **Labels**, duplicate detection, and manual review
 - Per-label budgets with WhatsApp threshold alerts
-- Month-scoped dashboard analytics and spending forecast
+- Month-scoped Finances dashboard analytics and spending forecast
 - Form draft auto-save and crash recovery on Filament Create/Edit
 - Spatie backups, one-time restore tokens, guest restore, and profile Danger Zone
 
@@ -174,7 +178,7 @@ Tests use in-memory SQLite. Mock external HTTP and queues with `Http::fake()` / 
 
 ## Documentation
 
-Full index: [docs/README.md](docs/README.md). Product map for agents and contributors: [docs/agent-onboarding.md](docs/agent-onboarding.md).
+Full index: [docs/README.md](docs/README.md). Product map for agents and contributors: [docs/agent-onboarding.md](docs/agent-onboarding.md). Dashboard modules: [docs/dashboard-views.md](docs/dashboard-views.md).
 
 ## Contributing
 

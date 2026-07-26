@@ -46,6 +46,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Livewire\Livewire;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -115,6 +116,22 @@ class AdminPanelProvider extends PanelProvider
                     Vite::asset('resources/js/receipt-image-preview.js'),
                 )->module(),
             ])
+            ->renderHook(
+                PanelsRenderHook::PAGE_HEADER_ACTIONS_BEFORE,
+                function (): View {
+                    $livewire = Livewire::current();
+                    $activeView = $livewire instanceof Dashboard
+                        ? $livewire->getDashboardView()
+                        : Dashboard::VIEW_FINANCES;
+
+                    return view('filament.pages.partials.dashboard-view-tabs', [
+                        'activeView' => $activeView,
+                    ]);
+                },
+                scopes: [
+                    Dashboard::class,
+                ],
+            )
             ->renderHook(
                 PanelsRenderHook::SIMPLE_LAYOUT_START,
                 fn (): string => Blade::render('<x-auth-menu />'),

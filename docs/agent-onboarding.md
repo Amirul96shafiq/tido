@@ -4,9 +4,18 @@ How this project works and how to change it safely. Cursor loads `.cursor/rules/
 
 ## 1. What you are building
 
-**tido** is a single-tenant personal finance app for **Malaysian Ringgit (MYR)**. It ingests receipt **images** and WhatsApp **text manual invoices**, extracts or classifies data with a **local Ollama** model, categorizes line items as **Labels** (model: `Label`), tracks **Budgets**, and surfaces analytics in a **Filament v5** admin at `/admin`.
+**tido** is a single-tenant **personal hub** in a **Filament v5** admin at `/admin`. The Home dashboard switches modules via icon tabs (see [`dashboard-views.md`](dashboard-views.md)):
 
-Primary ingestion paths:
+| Dashboard view | Status |
+|----------------|--------|
+| **Finances** | Shipped — MYR receipts, budgets, analytics |
+| **Training** | Coming soon |
+| **Health** | Coming soon |
+| **Task** | Coming soon |
+
+**Finances** (shipped today) uses **Malaysian Ringgit (MYR)**. It ingests receipt **images** and WhatsApp **text manual invoices**, extracts or classifies data with a **local Ollama** model, categorizes line items as **Labels** (model: `Label`), tracks **Budgets**, and surfaces analytics. Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD surface for that module — distinct from the dashboard view tabs.
+
+Primary Finances ingestion paths:
 
 | Channel | Entry | Creates |
 |---------|-------|---------|
@@ -23,25 +32,26 @@ Default login (seeded): `admin@tido.local` / `password`.
 1. This file
 2. `.cursorrules` — hard coding/security constraints
 3. `docs/system-architecture.md` — product blueprint (note: some version numbers are outdated; trust Laravel 12 / PG 17 / stack in `AGENTS.md`)
-4. Domain skill: `.cursor/skills/tido-domain/SKILL.md` (+ `pipeline.md` when touching OCR/webhooks)
-5. Existing skills: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
-6. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-bot-commands.md`, `docs/whatsapp-manual-invoice.md`, `docs/google-drive-setup.md`
-7. UI empty panels: `docs/ui-empty-states.md`
-8. Modal blur / width: `docs/ui-modal-overlay.md`
-9. Sticky top/bottom bars + blur veil: `docs/ui-sticky-blur.md`
-10. Sticky section tabs + smooth scroll: `docs/ui-section-nav.md`
-11. Icon CTA tooltips (Filament Tippy, not browser `title`): `docs/ui-tooltips.md`
-12. Single-line text marquee (overflow RTL scroll): `docs/ui-text-marquee.md`
-13. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
-14. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
-15. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
-16. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
-17. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md`
-18. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
-19. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
-20. Service Status (health probes, uptime UI): `docs/service-status.md`
-21. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
-22. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+4. Dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md`
+5. Domain skill: `.cursor/skills/tido-domain/SKILL.md` (+ `pipeline.md` when touching OCR/webhooks) — Finances domain
+6. Existing skills: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
+7. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-bot-commands.md`, `docs/whatsapp-manual-invoice.md`, `docs/google-drive-setup.md`
+8. UI empty panels: `docs/ui-empty-states.md`
+9. Modal blur / width: `docs/ui-modal-overlay.md`
+10. Sticky top/bottom bars + blur veil: `docs/ui-sticky-blur.md`
+11. Sticky section tabs + smooth scroll: `docs/ui-section-nav.md` (Finances widget jump tabs — not dashboard view tabs)
+12. Icon CTA tooltips (Filament Tippy, not browser `title`): `docs/ui-tooltips.md`
+13. Single-line text marquee (overflow RTL scroll): `docs/ui-text-marquee.md`
+14. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
+15. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
+16. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
+17. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
+18. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md`
+19. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
+20. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
+21. Service Status (health probes, uptime UI): `docs/service-status.md`
+22. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
+23. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 
@@ -108,7 +118,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 5. Filter and Column Manager triggers also get Tippy tooltips globally via `filtersTriggerAction` / `columnManagerTriggerAction` in `AppServiceProvider`
 6. List-page “New …” CTAs use a plus Heroicon panel-wide (`AppServiceProvider` → `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`); new List pages only need `CreateAction::make()`
 7. Edit pages: use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the title ends with the singular model label (see `.cursor/rules/filament-conventions.mdc` — Edit page title)
-8. Nav groups: Finances (Upload Receipts, Invoices, Budgets) / Settings (Labels, Payment Methods, Family Members) / Integrations (Evolution API) / Tools (Backups, Service Status) — Tools last
+8. Nav groups: Finances (Upload Receipts, Invoices, Budgets) / Settings (Labels, Payment Methods, Family Members) / Integrations (Evolution API) / Tools (Backups, Service Status) — Tools last. Home dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md` (not sidebar groups)
 9. Breadcrumbs use Filament native defaults plus `App\Filament\Concerns\PrependsHomeBreadcrumb` (Home → resource → page). Do not disable panel-wide or add a custom “Go back to table” header. New pages must use the trait; Create/Edit pages also register in the `PAGE_END` draft-poller scopes.
 10. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
 11. Resource table `created_at` columns use `->since()->dateTimeTooltip()` (relative time + full datetime on hover), matching Receipt Upload “Uploaded At”

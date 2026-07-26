@@ -566,8 +566,24 @@ html.dark::-webkit-scrollbar-thumb:hover,
     @apply text-base;
 }
 
-.tido-dashboard-greeting .fi-header-actions-ctn > .fi-ac:not(.fi-width-full) {
+.tido-dashboard-greeting .fi-header-actions-ctn {
     @apply justify-start sm:justify-end;
+}
+
+.tido-dashboard-greeting .fi-header-actions-ctn .tido-dashboard-view-tabs {
+    @apply w-full sm:w-auto;
+}
+
+.tido-dashboard-view-tabs .fi-tabs-item-label {
+    @apply inline-flex items-center justify-center;
+}
+
+.tido-dashboard-view-tabs .fi-tabs-item-label .fi-icon {
+    @apply shrink-0 text-gray-400 transition duration-75 dark:text-gray-500;
+}
+
+.tido-dashboard-view-tabs .fi-tabs-item.fi-active .fi-tabs-item-label .fi-icon {
+    @apply text-primary-700 dark:text-primary-400;
 }
 
 /* Dashboard month Select — width lives here; arbitrary Tailwind in PHP is not scanned */

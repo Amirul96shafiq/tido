@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\HasDashboardGreeting;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
-use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Filament\Widgets\MonthlySpendingOverview;
-use App\Models\User;
-use App\Support\TimeOfDayGreeting;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard as BaseDashboard;
@@ -20,26 +18,65 @@ use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\VerticalAlignment;
-use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Url;
 
 class Dashboard extends BaseDashboard
 {
+    use HasDashboardGreeting;
     use HasFiltersForm;
     use PrependsHomeBreadcrumb;
 
     protected static bool $shouldRegisterNavigation = false;
 
+    public const VIEW_FINANCES = 'finances';
+
+    public const VIEW_TRAINING = 'training';
+
+    public const VIEW_HEALTH = 'health';
+
+    public const VIEW_TASK = 'task';
+
     /**
-     * @return array<string>
+     * @var list<string>
      */
-    public function getPageClasses(): array
+    public const VIEWS = [
+        self::VIEW_FINANCES,
+        self::VIEW_TRAINING,
+        self::VIEW_HEALTH,
+        self::VIEW_TASK,
+    ];
+
+    /**
+     * @return list<array{view: string, label: string, icon: string}>
+     */
+    public static function viewTabs(): array
     {
         return [
-            'tido-dashboard-greeting',
-            'tido-dashboard-page',
+            [
+                'view' => self::VIEW_FINANCES,
+                'label' => 'Finances',
+                'icon' => 'heroicon-m-calculator',
+            ],
+            [
+                'view' => self::VIEW_TRAINING,
+                'label' => 'Training',
+                'icon' => 'heroicon-m-bolt',
+            ],
+            [
+                'view' => self::VIEW_HEALTH,
+                'label' => 'Health',
+                'icon' => 'heroicon-m-heart',
+            ],
+            [
+                'view' => self::VIEW_TASK,
+                'label' => 'Task',
+                'icon' => 'heroicon-m-rectangle-stack',
+            ],
         ];
     }
+
+    #[Url(as: 'view', except: 'finances', history: true)]
+    public string $dashboardView = self::VIEW_FINANCES;
 
     /**
      * @return list<array{label: string, id: string}>
@@ -79,6 +116,10 @@ class Dashboard extends BaseDashboard
 
     public function booted(): void
     {
+        if (! in_array($this->dashboardView, self::VIEWS, true)) {
+            $this->dashboardView = self::VIEW_FINANCES;
+        }
+
         if (! isset($this->filters['month'])) {
             $this->filters = [
                 'month' => DashboardMonthPeriod::fromFilters($this->filters)->format('Y-m'),
@@ -86,38 +127,24 @@ class Dashboard extends BaseDashboard
         }
     }
 
+    public function getDashboardView(): string
+    {
+        return $this->dashboardView;
+    }
+
+    public function setDashboardView(string $view): void
+    {
+        if (! in_array($view, self::VIEWS, true)) {
+            return;
+        }
+
+        $this->dashboardView = $view;
+        $this->cacheSchema('content', null);
+    }
+
     public function updatedFiltersMonth(): void
     {
         $this->updatedFilters();
-    }
-
-    public function getHeading(): string|Htmlable
-    {
-        $user = Auth::user();
-
-        if (! $user instanceof User) {
-            return parent::getHeading();
-        }
-
-        $now = now()->timezone($user->preferredTimezone());
-        $greetingName = filled($user->display_name)
-            ? (string) $user->display_name
-            : $user->name;
-
-        return TimeOfDayGreeting::headingHtmlFor($now, $greetingName);
-    }
-
-    public function getSubheading(): string|Htmlable|null
-    {
-        $user = Auth::user();
-
-        if (! $user instanceof User) {
-            return parent::getSubheading();
-        }
-
-        $now = now()->timezone($user->preferredTimezone());
-
-        return TimeOfDayGreeting::subheadingHtml($now);
     }
 
     /**
@@ -125,18 +152,7 @@ class Dashboard extends BaseDashboard
      */
     protected function getHeaderActions(): array
     {
-        return [
-            Action::make('profile')
-                ->label('Profile')
-                ->icon('heroicon-o-user')
-                ->color('primary')
-                ->url(EditProfile::getUrl()),
-            Action::make('changelogs')
-                ->label('Changelogs')
-                ->icon('heroicon-o-code-bracket')
-                ->color('primary')
-                ->action(fn (): mixed => $this->js('window.showChangelogModal()')),
-        ];
+        return [];
     }
 
     public function getFiltersForm(): Schema
@@ -221,6 +237,16 @@ class Dashboard extends BaseDashboard
 
     public function content(Schema $schema): Schema
     {
+        $comingSoon = $this->comingSoonDashboardContent();
+
+        if ($comingSoon !== null) {
+            return $schema
+                ->components([
+                    View::make('filament.pages.partials.coming-soon-dashboard-content')
+                        ->viewData($comingSoon),
+                ]);
+        }
+
         return $schema
             ->components([
                 Group::make([
@@ -251,6 +277,34 @@ class Dashboard extends BaseDashboard
                     'class' => 'tido-sticky-scope',
                 ]),
             ]);
+    }
+
+    /**
+     * @return array{id: string, heading: string, icon: string, description: string}|null
+     */
+    protected function comingSoonDashboardContent(): ?array
+    {
+        return match ($this->dashboardView) {
+            self::VIEW_TRAINING => [
+                'id' => 'training-overview',
+                'heading' => 'Training',
+                'icon' => 'heroicon-o-bolt',
+                'description' => 'Training dashboard is not available yet. Check back later for workouts, progress, and insights.',
+            ],
+            self::VIEW_HEALTH => [
+                'id' => 'health-overview',
+                'heading' => 'Health',
+                'icon' => 'heroicon-o-heart',
+                'description' => 'Health dashboard is not available yet. Check back later for vitals, habits, and insights.',
+            ],
+            self::VIEW_TASK => [
+                'id' => 'task-overview',
+                'heading' => 'Task',
+                'icon' => 'heroicon-o-rectangle-stack',
+                'description' => 'Task dashboard is not available yet. Check back later for to-dos, priorities, and progress.',
+            ],
+            default => null,
+        };
     }
 
     protected function shiftDashboardMonth(int $months): void

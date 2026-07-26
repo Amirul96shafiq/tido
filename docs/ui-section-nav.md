@@ -2,7 +2,9 @@
 
 Shared sticky **in-page tab menu** for long Filament pages. Jumps between anchored sections with smooth scroll, active-tab sync, and hash-aware deep links.
 
-**Consumers:** [`EditProfile`](../app/Filament/Pages/Auth/EditProfile.php) at `/admin/profile`, [`Dashboard`](../app/Filament/Pages/Dashboard.php) for widget jump tabs beside the month filter, [`ReceiptUploadPage`](../app/Filament/Pages/ReceiptUploadPage.php), Invoice/Budget Create/Edit resource pages, [`EvolutionApiPage`](../app/Filament/Pages/EvolutionApiPage.php), [`ServiceStatusPage`](../app/Filament/Pages/ServiceStatusPage.php), and Label / Payment Method / Family Member Create/Edit resource pages.
+**Not the Home dashboard module switcher.** Finances / Training / Health / Task header icon tabs are documented in [`dashboard-views.md`](dashboard-views.md). On the Finances view, this section-nav pattern is the **widget jump strip** beside the month filter.
+
+**Consumers:** [`EditProfile`](../app/Filament/Pages/Auth/EditProfile.php) at `/admin/profile`, [`Dashboard`](../app/Filament/Pages/Dashboard.php) Finances widget jump tabs beside the month filter, [`ReceiptUploadPage`](../app/Filament/Pages/ReceiptUploadPage.php), Invoice/Budget Create/Edit resource pages, [`EvolutionApiPage`](../app/Filament/Pages/EvolutionApiPage.php), [`ServiceStatusPage`](../app/Filament/Pages/ServiceStatusPage.php), and Label / Payment Method / Family Member Create/Edit resource pages.
 
 ## When to use
 
@@ -81,9 +83,11 @@ Sticky pin mechanics are shared with [`ui-sticky-blur.md`](ui-sticky-blur.md). T
 
 ## Dashboard
 
+Home module tabs (Finances / Training / Health / Task) are **not** section nav — see [`dashboard-views.md`](dashboard-views.md).
+
 | Layer | Path |
 |-------|------|
-| Section list | `Dashboard::widgetNavItems()` |
+| Section list | `Dashboard::widgetNavItems()` (Finances view only) |
 | Finance overview anchors | Per-stat `id`s on `MonthlySpendingOverview` via `Stat::extraAttributes()` (`total-spent`, `spending-forecast`, `sst-tax-paid`, `receipts-processed`) |
 | Other widget anchor ids | `HasDashboardSectionId` on chart/table widgets |
 | Sticky toolbar | `.tido-dashboard-sticky-toolbar` + `.tido-dashboard-sticky-toolbar-nav` |
