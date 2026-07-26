@@ -116,6 +116,13 @@ class AdminPanelProvider extends PanelProvider
                 )->module(),
             ])
             ->renderHook(
+                PanelsRenderHook::PAGE_HEADER_ACTIONS_BEFORE,
+                fn (): View => view('filament.pages.partials.dashboard-view-tabs'),
+                scopes: [
+                    Dashboard::class,
+                ],
+            )
+            ->renderHook(
                 PanelsRenderHook::SIMPLE_LAYOUT_START,
                 fn (): string => Blade::render('<x-auth-menu />'),
                 scopes: [

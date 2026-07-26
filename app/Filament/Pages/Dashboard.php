@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Filament\Pages;
 
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
-use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Filament\Widgets\MonthlySpendingOverview;
 use App\Models\User;
@@ -125,18 +124,7 @@ class Dashboard extends BaseDashboard
      */
     protected function getHeaderActions(): array
     {
-        return [
-            Action::make('profile')
-                ->label('Profile')
-                ->icon('heroicon-o-user')
-                ->color('primary')
-                ->url(EditProfile::getUrl()),
-            Action::make('changelogs')
-                ->label('Changelogs')
-                ->icon('heroicon-o-code-bracket')
-                ->color('primary')
-                ->action(fn (): mixed => $this->js('window.showChangelogModal()')),
-        ];
+        return [];
     }
 
     public function getFiltersForm(): Schema

@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Dashboard;
 use App\Models\User;
 use Carbon\Carbon;
@@ -109,7 +108,7 @@ test('dashboard greeting falls back to full name when display name is empty', fu
         ->assertSee('Good Morning, <span class="text-primary-600 dark:text-primary-400">Ada</span> ☀️', false);
 });
 
-test('dashboard header exposes profile and changelogs actions', function () {
+test('dashboard header exposes finances and training view tabs', function () {
     Carbon::setTestNow(Carbon::parse('2026-07-16 09:00:00', 'Asia/Kuala_Lumpur'));
 
     $user = User::factory()
@@ -122,16 +121,20 @@ test('dashboard header exposes profile and changelogs actions', function () {
 
     $this->actingAs($user);
 
-    Livewire::test(Dashboard::class)
-        ->assertActionVisible('profile')
-        ->assertActionVisible('changelogs')
-        ->callAction('changelogs');
-
-    $this->get(Dashboard::getUrl())
+    $html = $this->get(Dashboard::getUrl())
         ->assertSuccessful()
-        ->assertSee('Profile', false)
-        ->assertSee('Changelogs', false)
-        ->assertSee(EditProfile::getUrl(), false);
+        ->assertSee('tido-dashboard-view-tabs', false)
+        ->assertSee('Finances', false)
+        ->assertSee('Training', false)
+        ->assertSee('Coming soon', false)
+        ->assertSee('Training (coming soon)', false)
+        ->assertDontSee('wire:click="mountAction(\'profile\')"', false)
+        ->assertDontSee('wire:click="mountAction(\'changelogs\')"', false)
+        ->getContent();
+
+    expect($html)
+        ->toContain('disabled')
+        ->toContain('x-tooltip');
 });
 
 afterEach(function () {
