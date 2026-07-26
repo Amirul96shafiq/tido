@@ -6,15 +6,20 @@
     $description = $this->getDescription();
     $hasHeading = filled($heading);
     $hasDescription = filled($description);
+
+    $widgetAttributes = [
+        'wire:poll.' . $pollingInterval => $pollingInterval ? true : null,
+    ];
+
+    if (method_exists($this, 'getDashboardSectionId')) {
+        $widgetAttributes['id'] = $this->getDashboardSectionId();
+    }
 @endphp
 
 <x-filament-widgets::widget
     :attributes="
         (new \Filament\Support\View\ComponentAttributeBag)
-            ->merge([
-                'id' => $this->getDashboardSectionId(),
-                'wire:poll.' . $pollingInterval => $pollingInterval ? true : null,
-            ], escape: false)
+            ->merge($widgetAttributes, escape: false)
             ->class([
                 'fi-wi-stats-overview',
             ])

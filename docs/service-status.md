@@ -46,6 +46,8 @@ Section titles use dashboard widget date format: `Summary report (24 Jun 2026 â€
 
 **Header action:** Run check now â€” calls `ServiceHealthRecorder::recordAll()` and refreshes the report.
 
+**Section navigation:** Sticky in-page tabs jump between `#service-summary-report` and `#service-system-status` (see [ui-section-nav.md](ui-section-nav.md)).
+
 ## Aggregation rules
 
 - **Visible window:** last 30 calendar days (60 pieces: two 12-hour blocks per day, app/user timezone).

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Helpers\FilenameDisplay;
@@ -14,6 +15,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\View as SchemaView;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\TextColumn;
@@ -24,11 +26,10 @@ use Filament\Tables\Table;
 
 class ReceiptUploadPage extends Page implements HasForms, HasTable
 {
+    use HasSectionNav;
     use InteractsWithForms;
     use InteractsWithTable;
     use PrependsHomeBreadcrumb;
-
-    protected string $view = 'filament.pages.receipt-upload-page';
 
     protected static ?string $slug = 'upload-receipts';
 
@@ -43,6 +44,42 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
     protected static ?string $title = 'Upload Receipts';
 
     public ?array $data = [];
+
+    /**
+     * @return array<string>
+     */
+    public function getPageClasses(): array
+    {
+        return [
+            'fi-upload-receipts-page',
+        ];
+    }
+
+    /**
+     * @return list<array{label: string, id: string}>
+     */
+    public static function sectionNavItems(): array
+    {
+        return [
+            ['label' => 'Upload Receipts', 'id' => 'upload-receipts'],
+            ['label' => 'Recent Uploads & Processing Status', 'id' => 'recent-uploads'],
+        ];
+    }
+
+    public function sectionNavAriaLabel(): string
+    {
+        return 'Upload receipts sections';
+    }
+
+    public function content(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                $this->wrapInSectionNavScope([
+                    SchemaView::make('filament.pages.partials.receipt-upload-content'),
+                ]),
+            ]);
+    }
 
     public function mount(): void
     {

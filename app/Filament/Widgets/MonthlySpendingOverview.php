@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
-use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
@@ -13,8 +12,15 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class MonthlySpendingOverview extends BaseWidget
 {
-    use HasDashboardSectionId;
     use InteractsWithDashboardMonth;
+
+    public const SECTION_TOTAL_SPENT = 'total-spent';
+
+    public const SECTION_SPENDING_FORECAST = 'spending-forecast';
+
+    public const SECTION_SST_TAX_PAID = 'sst-tax-paid';
+
+    public const SECTION_RECEIPTS_PROCESSED = 'receipts-processed';
 
     protected static ?int $sort = 1;
 
@@ -28,11 +34,6 @@ class MonthlySpendingOverview extends BaseWidget
      * @var view-string
      */
     protected string $view = 'filament.widgets.stats-overview-with-section-id';
-
-    public static function dashboardSectionId(): string
-    {
-        return 'overview';
-    }
 
     protected function getPollingInterval(): ?string
     {
@@ -64,17 +65,20 @@ class MonthlySpendingOverview extends BaseWidget
             Stat::make('Total Spent ('.$monthLabel.')', MoneyDisplay::withPrefix($thisMonthTotal))
                 ->description($description)
                 ->descriptionIcon($descriptionIcon)
-                ->color($descriptionColor),
+                ->color($descriptionColor)
+                ->extraAttributes(['id' => self::SECTION_TOTAL_SPENT]),
 
             Stat::make('SST Tax Paid', MoneyDisplay::withPrefix($summary['current_tax']))
                 ->description('Estimated 6% local taxation')
                 ->descriptionIcon('heroicon-m-banknotes')
-                ->color('gray'),
+                ->color('gray')
+                ->extraAttributes(['id' => self::SECTION_SST_TAX_PAID]),
 
             Stat::make('Receipts Processed', (string) $summary['processed_count'])
                 ->description($summary['pending_count'].' pending parsing')
                 ->descriptionIcon('heroicon-m-document-text')
-                ->color($summary['pending_count'] > 0 ? 'warning' : 'success'),
+                ->color($summary['pending_count'] > 0 ? 'warning' : 'success')
+                ->extraAttributes(['id' => self::SECTION_RECEIPTS_PROCESSED]),
         ];
 
         if ($this->isCurrentMonthSelected()) {
@@ -115,7 +119,8 @@ class MonthlySpendingOverview extends BaseWidget
                 Stat::make('Spending Forecast (End of Month)', MoneyDisplay::withPrefix($projectedSpend))
                     ->description($forecastDesc)
                     ->descriptionIcon('heroicon-m-chart-bar')
-                    ->color($forecastColor),
+                    ->color($forecastColor)
+                    ->extraAttributes(['id' => self::SECTION_SPENDING_FORECAST]),
             ]);
         } else {
             $daysInMonth = $bounds['start']->daysInMonth;
@@ -125,7 +130,8 @@ class MonthlySpendingOverview extends BaseWidget
                 Stat::make('Daily Average ('.$monthLabel.')', MoneyDisplay::withPrefix($dailyAverage))
                     ->description(sprintf('Across %d days in month', $daysInMonth))
                     ->descriptionIcon('heroicon-m-calculator')
-                    ->color('info'),
+                    ->color('info')
+                    ->extraAttributes(['id' => self::SECTION_SPENDING_FORECAST]),
             ]);
         }
 

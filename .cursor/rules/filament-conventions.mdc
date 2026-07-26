@@ -39,6 +39,10 @@ Create/Edit resource pages use `App\Filament\Concerns\RecoversContentDraft` (Inv
 
 Create/Edit resource pages and `Auth/EditProfile` must use `App\Filament\Concerns\HasStickyBlurFormActions` so Create / Save / Cancel (and other `getFormActions()` CTAs) stick to the bottom with the frosted blur veil. See `docs/ui-sticky-blur.md` — do not call Filament `stickyFormActions()`.
 
+## Section nav (sticky tabs)
+
+Multi-section Create/Edit resource pages and custom content pages with **2+ in-page sections** must use `HasSectionNav` (or `HasStickyBlurFormActions`, which composes it) with `sectionNavItems()`, stable `->id()` anchors on each section, page-scoped CSS, and section-nav tests. See `docs/ui-section-nav.md` — do not invent a second tab pattern.
+
 ## Notes fields (rich editor)
 
 Any form field backed by a `notes` (or note-like HTML) column must use `App\Filament\Forms\Components\NotesRichEditor`, not `Textarea` or a one-off `RichEditor`. Shared toolbar + `.fi-notes-rich-editor` height live in that component / `app.css`. See `docs/ui-notes-rich-editor.md`.

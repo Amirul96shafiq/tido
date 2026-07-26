@@ -8,6 +8,7 @@ use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Budgets\BudgetResource;
+use App\Filament\Resources\Budgets\Schemas\BudgetForm;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateBudget extends CreateRecord
@@ -32,5 +33,18 @@ class CreateBudget extends CreateRecord
     protected function contentDraftKey(): string
     {
         return 'budget-create';
+    }
+
+    /**
+     * @return list<array{label: string, id: string}>
+     */
+    public static function sectionNavItems(): array
+    {
+        return BudgetForm::sectionNavItems(includePerformance: false);
+    }
+
+    public function sectionNavAriaLabel(): string
+    {
+        return 'Budget sections';
     }
 }

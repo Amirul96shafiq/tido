@@ -19,9 +19,11 @@ use Filament\Schemas\Components\Group;
  */
 trait HasStickyBlurFormActions
 {
+    use HasSectionNav;
+
     public function getFormContentComponent(): Component
     {
-        return Group::make([
+        return $this->wrapInSectionNavScope([
             Form::make([EmbeddedSchema::make('form')])
                 ->id('form')
                 ->livewireSubmitHandler($this->getStickyBlurFormLivewireSubmitHandler()),
@@ -30,8 +32,6 @@ trait HasStickyBlurFormActions
             ])->extraAttributes([
                 'class' => 'tido-sticky-marker tido-sticky-marker--bottom',
             ]),
-        ])->extraAttributes([
-            'class' => 'tido-sticky-scope',
         ]);
     }
 

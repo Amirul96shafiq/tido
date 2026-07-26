@@ -8,6 +8,7 @@ use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Invoices\InvoiceResource;
+use App\Filament\Resources\Invoices\Schemas\InvoiceForm;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateInvoice extends CreateRecord
@@ -32,5 +33,18 @@ class CreateInvoice extends CreateRecord
     protected function contentDraftKey(): string
     {
         return 'invoice-create';
+    }
+
+    /**
+     * @return list<array{label: string, id: string}>
+     */
+    public static function sectionNavItems(): array
+    {
+        return InvoiceForm::sectionNavItems();
+    }
+
+    public function sectionNavAriaLabel(): string
+    {
+        return 'Invoice sections';
     }
 }

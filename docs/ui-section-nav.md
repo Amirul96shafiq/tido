@@ -2,12 +2,26 @@
 
 Shared sticky **in-page tab menu** for long Filament pages. Jumps between anchored sections with smooth scroll, active-tab sync, and hash-aware deep links.
 
-**Consumers:** [`EditProfile`](../app/Filament/Pages/Auth/EditProfile.php) at `/admin/profile` and [`Dashboard`](../app/Filament/Pages/Dashboard.php) for widget jump tabs beside the month filter.
+**Consumers:** [`EditProfile`](../app/Filament/Pages/Auth/EditProfile.php) at `/admin/profile`, [`Dashboard`](../app/Filament/Pages/Dashboard.php) for widget jump tabs beside the month filter, [`ReceiptUploadPage`](../app/Filament/Pages/ReceiptUploadPage.php), Invoice/Budget Create/Edit resource pages, [`EvolutionApiPage`](../app/Filament/Pages/EvolutionApiPage.php), [`ServiceStatusPage`](../app/Filament/Pages/ServiceStatusPage.php), and Label / Payment Method / Family Member Create/Edit resource pages.
+
+## When to use
+
+Add sticky section tab navigation when a Filament page has **two or more distinct in-page sections** with stable anchor ids (`Section::make(...)->id('kebab-case')` or `id="..."` on Blade `<x-filament::section>`).
+
+**Responsive stacking:** sidebar + main forms, multi-block custom pages, and tables below forms will scroll on small viewports — do **not** wait for a fixed viewport-height threshold. Mobile will exceed any height rule first.
+
+**Opt in via:**
+
+- Custom / content pages: `HasSectionNav` + `sectionNavItems()` + `wrapInSectionNavScope()` (or `content(Schema)`).
+- Create/Edit resource pages: `HasStickyBlurFormActions` (composes `HasSectionNav`) + `sectionNavItems()` on the page or form schema.
+
+**Do not use** on list-only pages, single short auth forms, or pages with one undifferentiated block.
 
 ## Source of truth
 
 | Layer | Path |
 |-------|------|
+| Shared trait (form + custom pages) | [`HasSectionNav`](../app/Filament/Concerns/HasSectionNav.php) — also composed into [`HasStickyBlurFormActions`](../app/Filament/Concerns/HasStickyBlurFormActions.php) |
 | Tab UI + Alpine | [`resources/views/filament/schemas/components/section-nav.blade.php`](../resources/views/filament/schemas/components/section-nav.blade.php) |
 | Shared nav CSS | `.tido-section-nav` in [`resources/css/app.css`](../resources/css/app.css) |
 | SPA / global-search hash scroll | [`<x-hash-scroll />`](../resources/views/components/hash-scroll.blade.php) (panel render hook) |
@@ -70,11 +84,92 @@ Sticky pin mechanics are shared with [`ui-sticky-blur.md`](ui-sticky-blur.md). T
 | Layer | Path |
 |-------|------|
 | Section list | `Dashboard::widgetNavItems()` |
-| Widget anchor ids | `HasDashboardSectionId` on widgets |
+| Finance overview anchors | Per-stat `id`s on `MonthlySpendingOverview` via `Stat::extraAttributes()` (`total-spent`, `spending-forecast`, `sst-tax-paid`, `receipts-processed`) |
+| Other widget anchor ids | `HasDashboardSectionId` on chart/table widgets |
 | Sticky toolbar | `.tido-dashboard-sticky-toolbar` + `.tido-dashboard-sticky-toolbar-nav` |
 | Page class | `.tido-dashboard-page` |
-| Scroll offset CSS | [`.tido-dashboard-page .fi-wi-widget[id]`](../resources/css/app.css) + `--tido-dashboard-section-nav-offset` |
+| Scroll offset CSS | [`.tido-dashboard-page .fi-wi-widget[id]`](../resources/css/app.css), [`.tido-dashboard-page .fi-wi-stats-overview-stat[id]`](../resources/css/app.css) + `--tido-dashboard-section-nav-offset` |
 | Tests | [`tests/Feature/DashboardSectionNavTest.php`](../tests/Feature/DashboardSectionNavTest.php) |
+
+## Upload Receipts
+
+| Layer | Path |
+|-------|------|
+| Section list | `ReceiptUploadPage::sectionNavItems()` |
+| Sticky pin + content scope | `ReceiptUploadPage::content()` — `wrapInSectionNavScope()` + content partial |
+| Page class | `.fi-upload-receipts-page` |
+| Anchors | `#upload-receipts`, `#recent-uploads` in [`receipt-upload-content.blade.php`](../resources/views/filament/pages/partials/receipt-upload-content.blade.php) |
+| Tests | [`tests/Feature/ReceiptUploadSectionNavTest.php`](../tests/Feature/ReceiptUploadSectionNavTest.php) |
+
+## Invoice Create / Edit
+
+| Layer | Path |
+|-------|------|
+| Section list | `InvoiceForm::sectionNavItems()` — wired on Create/Edit pages |
+| Sticky pin | `HasStickyBlurFormActions` + `sectionNavItems()` on page |
+| Page class | `.fi-invoice-form-page` |
+| Anchors | `->id(...)` on each `Section::make(...)` in [`InvoiceForm.php`](../app/Filament/Resources/Invoices/Schemas/InvoiceForm.php) |
+| Tests | [`tests/Feature/InvoiceFormSectionNavTest.php`](../tests/Feature/InvoiceFormSectionNavTest.php) |
+
+## Budget Create / Edit
+
+| Layer | Path |
+|-------|------|
+| Section list | `BudgetForm::sectionNavItems($includePerformance)` — Create omits performance tab |
+| Sticky pin | `HasStickyBlurFormActions` + `sectionNavItems()` on page |
+| Page class | `.fi-budget-form-page` |
+| Anchors | `->id(...)` on each `Section::make(...)` in [`BudgetForm.php`](../app/Filament/Resources/Budgets/Schemas/BudgetForm.php) |
+| Tests | [`tests/Feature/BudgetFormSectionNavTest.php`](../tests/Feature/BudgetFormSectionNavTest.php) |
+
+## Evolution API
+
+| Layer | Path |
+|-------|------|
+| Section list | `EvolutionApiPage::sectionNavItems()` |
+| Sticky pin + content scope | `EvolutionApiPage::content()` — `wrapInSectionNavScope()` + content partial |
+| Page class | `.fi-evolution-api-page` |
+| Anchors | `#evolution-link-device`, `#evolution-connection`, `#evolution-connection-history` in [`evolution-api-content.blade.php`](../resources/views/filament/pages/partials/evolution-api-content.blade.php) |
+| Tests | [`tests/Feature/EvolutionApiSectionNavTest.php`](../tests/Feature/EvolutionApiSectionNavTest.php) |
+
+## Service Status
+
+| Layer | Path |
+|-------|------|
+| Section list | `ServiceStatusPage::sectionNavItems()` |
+| Sticky pin + content scope | `ServiceStatusPage::content()` — `wrapInSectionNavScope()` + content partial |
+| Page class | `.fi-service-status-page` |
+| Anchors | `#service-summary-report`, `#service-system-status` in [`service-status-content.blade.php`](../resources/views/filament/pages/partials/service-status-content.blade.php) |
+| Tests | [`tests/Feature/ServiceStatusSectionNavTest.php`](../tests/Feature/ServiceStatusSectionNavTest.php) |
+
+## Label Create / Edit
+
+| Layer | Path |
+|-------|------|
+| Section list | `LabelForm::sectionNavItems()` — wired on Create/Edit pages |
+| Sticky pin | `HasStickyBlurFormActions` + `sectionNavItems()` on page |
+| Page class | `.fi-label-form-page` |
+| Anchors | `->id(...)` on each `Section::make(...)` in [`LabelForm.php`](../app/Filament/Resources/Labels/Schemas/LabelForm.php) |
+| Tests | [`tests/Feature/LabelFormSectionNavTest.php`](../tests/Feature/LabelFormSectionNavTest.php) |
+
+## Payment Method Create / Edit
+
+| Layer | Path |
+|-------|------|
+| Section list | `PaymentMethodForm::sectionNavItems()` — wired on Create/Edit pages |
+| Sticky pin | `HasStickyBlurFormActions` + `sectionNavItems()` on page |
+| Page class | `.fi-payment-method-form-page` |
+| Anchors | `->id(...)` on each `Section::make(...)` in [`PaymentMethodForm.php`](../app/Filament/Resources/PaymentMethods/Schemas/PaymentMethodForm.php) |
+| Tests | [`tests/Feature/PaymentMethodFormSectionNavTest.php`](../tests/Feature/PaymentMethodFormSectionNavTest.php) |
+
+## Family Member Create / Edit
+
+| Layer | Path |
+|-------|------|
+| Section list | `FamilyMemberForm::sectionNavItems()` — wired on Create/Edit pages |
+| Sticky pin | `HasStickyBlurFormActions` + `sectionNavItems()` on page |
+| Page class | `.fi-family-member-form-page` |
+| Anchors | `->id(...)` on each `Section::make(...)` in [`FamilyMemberForm.php`](../app/Filament/Resources/FamilyMembers/Schemas/FamilyMemberForm.php) |
+| Tests | [`tests/Feature/FamilyMemberFormSectionNavTest.php`](../tests/Feature/FamilyMemberFormSectionNavTest.php) |
 
 ## Smooth scroll vs hash-scroll
 

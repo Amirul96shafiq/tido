@@ -15,6 +15,7 @@ use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
+use App\Filament\Widgets\MonthlySpendingOverview;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResult;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResults;
 use Illuminate\Support\Str;
@@ -40,10 +41,38 @@ final class AdminDestinationSearch
                 'url' => $dashboardUrl,
             ],
             [
-                'title' => 'Finance Overview',
-                'keywords' => ['overview', 'finance', 'dashboard', 'spending', 'stats', 'total'],
+                'title' => 'Total Spent',
+                'keywords' => ['total', 'spent', 'spending', 'finance', 'dashboard', 'stats', 'overview'],
                 'group' => 'Sections',
-                'url' => $dashboardUrl.'#overview',
+                'url' => $dashboardUrl.'#'.MonthlySpendingOverview::SECTION_TOTAL_SPENT,
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
+                'title' => 'Spending Forecast',
+                'keywords' => ['forecast', 'projected', 'spending', 'finance', 'dashboard', 'budget'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#'.MonthlySpendingOverview::SECTION_SPENDING_FORECAST,
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
+                'title' => 'Daily Average',
+                'keywords' => ['daily', 'average', 'spending', 'finance', 'dashboard'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#'.MonthlySpendingOverview::SECTION_SPENDING_FORECAST,
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
+                'title' => 'SST Tax Paid',
+                'keywords' => ['sst', 'tax', 'taxation', 'finance', 'dashboard', 'stats'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#'.MonthlySpendingOverview::SECTION_SST_TAX_PAID,
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
+                'title' => 'Receipts Processed',
+                'keywords' => ['receipts', 'processed', 'parsing', 'pending', 'finance', 'dashboard', 'stats'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#'.MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED,
                 'details' => ['Page' => 'Dashboard'],
             ],
             [

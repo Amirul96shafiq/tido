@@ -8,6 +8,7 @@ use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
+use App\Filament\Resources\PaymentMethods\Schemas\PaymentMethodForm;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Str;
 
@@ -18,6 +19,17 @@ class CreatePaymentMethod extends CreateRecord
     use RecoversContentDraft;
 
     protected static string $resource = PaymentMethodResource::class;
+
+    /**
+     * @return array<string>
+     */
+    public function getPageClasses(): array
+    {
+        return [
+            ...parent::getPageClasses(),
+            'fi-payment-method-form-page',
+        ];
+    }
 
     protected function contentDraftKey(): string
     {
@@ -63,5 +75,18 @@ class CreatePaymentMethod extends CreateRecord
         }
 
         return array_values(array_unique($normalized));
+    }
+
+    /**
+     * @return list<array{label: string, id: string}>
+     */
+    public static function sectionNavItems(): array
+    {
+        return PaymentMethodForm::sectionNavItems();
+    }
+
+    public function sectionNavAriaLabel(): string
+    {
+        return 'Payment method sections';
     }
 }

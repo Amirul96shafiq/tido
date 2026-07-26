@@ -7,6 +7,7 @@ namespace App\Filament\Pages;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Support\DashboardMonthPeriod;
+use App\Filament\Widgets\MonthlySpendingOverview;
 use App\Models\User;
 use App\Support\TimeOfDayGreeting;
 use Filament\Actions\Action;
@@ -43,10 +44,17 @@ class Dashboard extends BaseDashboard
     /**
      * @return list<array{label: string, id: string}>
      */
-    public static function widgetNavItems(): array
+    public function widgetNavItems(): array
     {
+        $forecastLabel = DashboardMonthPeriod::isCurrentMonth(
+            DashboardMonthPeriod::fromFilters($this->filters),
+        ) ? 'Spending Forecast' : 'Daily Average';
+
         return [
-            ['label' => 'Finance Overview', 'id' => 'overview'],
+            ['label' => 'Total Spent', 'id' => MonthlySpendingOverview::SECTION_TOTAL_SPENT],
+            ['label' => $forecastLabel, 'id' => MonthlySpendingOverview::SECTION_SPENDING_FORECAST],
+            ['label' => 'SST Tax Paid', 'id' => MonthlySpendingOverview::SECTION_SST_TAX_PAID],
+            ['label' => 'Receipts Processed', 'id' => MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED],
             ['label' => 'Monthly Spending Trend', 'id' => 'monthly-trend'],
             ['label' => 'Spending by Label', 'id' => 'spending-by-label'],
             ['label' => 'Budget Performance', 'id' => 'budget-status'],
@@ -226,7 +234,7 @@ class Dashboard extends BaseDashboard
                             Group::make([
                                 View::make('filament.schemas.components.section-nav')
                                     ->viewData(fn (): array => [
-                                        'sections' => static::widgetNavItems(),
+                                        'sections' => $this->widgetNavItems(),
                                         'ariaLabel' => 'Dashboard widgets',
                                     ]),
                             ])->extraAttributes([

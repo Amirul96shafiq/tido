@@ -23,6 +23,26 @@ use Filament\Support\RawJs;
 
 class BudgetForm
 {
+    /**
+     * @return list<array{label: string, id: string}>
+     */
+    public static function sectionNavItems(bool $includePerformance = false): array
+    {
+        $items = [
+            ['label' => 'Budget Appearance', 'id' => 'budget-appearance'],
+            ['label' => 'Limit & Period', 'id' => 'limit-period'],
+            ['label' => 'Budget Settings', 'id' => 'budget-settings'],
+            ['label' => 'Alert Settings', 'id' => 'alert-settings'],
+            ['label' => 'Budget Notes', 'id' => 'budget-notes'],
+        ];
+
+        if ($includePerformance) {
+            $items[] = ['label' => 'Budget Performance', 'id' => 'budget-performance'];
+        }
+
+        return $items;
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -37,6 +57,7 @@ class BudgetForm
                     ->extraAttributes(['class' => 'fi-budget-main-column'])
                     ->schema([
                         Section::make('Limit & Period')
+                            ->id('limit-period')
                             ->schema([
                                 Grid::make(3)
                                     ->schema([
@@ -79,6 +100,7 @@ class BudgetForm
                             ]),
 
                         Section::make('Budget Settings')
+                            ->id('budget-settings')
                             ->schema([
                                 Select::make('label_id')
                                     ->label('Label')
@@ -104,6 +126,7 @@ class BudgetForm
                             ]),
 
                         Section::make('Alert Settings')
+                            ->id('alert-settings')
                             ->schema([
                                 Slider::make('alert_threshold')
                                     ->label('Warn Threshold (%)')
@@ -151,6 +174,7 @@ class BudgetForm
                             ]),
 
                         Section::make('Budget Notes')
+                            ->id('budget-notes')
                             ->schema([
                                 NotesRichEditor::make('notes')
                                     ->hiddenLabel()
@@ -158,6 +182,7 @@ class BudgetForm
                             ]),
 
                         Section::make('Budget Performance')
+                            ->id('budget-performance')
                             ->visible(fn (string $operation): bool => $operation === 'edit')
                             ->schema([
                                 View::make('filament.forms.components.budget-performance')
@@ -174,6 +199,7 @@ class BudgetForm
                     ->extraAttributes(['class' => 'fi-budget-sidebar-sticky'])
                     ->schema([
                         Section::make('Budget Appearance')
+                            ->id('budget-appearance')
                             ->schema([
                                 View::make('filament.forms.components.label-icon-preview')
                                     ->viewData(fn (Get $get): array => [
