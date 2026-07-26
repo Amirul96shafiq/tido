@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\HasDashboardGreeting;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Filament\Widgets\MonthlySpendingOverview;
-use App\Models\User;
-use App\Support\TimeOfDayGreeting;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard as BaseDashboard;
@@ -19,26 +18,14 @@ use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\VerticalAlignment;
-use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Support\Facades\Auth;
 
 class Dashboard extends BaseDashboard
 {
+    use HasDashboardGreeting;
     use HasFiltersForm;
     use PrependsHomeBreadcrumb;
 
     protected static bool $shouldRegisterNavigation = false;
-
-    /**
-     * @return array<string>
-     */
-    public function getPageClasses(): array
-    {
-        return [
-            'tido-dashboard-greeting',
-            'tido-dashboard-page',
-        ];
-    }
 
     /**
      * @return list<array{label: string, id: string}>
@@ -88,35 +75,6 @@ class Dashboard extends BaseDashboard
     public function updatedFiltersMonth(): void
     {
         $this->updatedFilters();
-    }
-
-    public function getHeading(): string|Htmlable
-    {
-        $user = Auth::user();
-
-        if (! $user instanceof User) {
-            return parent::getHeading();
-        }
-
-        $now = now()->timezone($user->preferredTimezone());
-        $greetingName = filled($user->display_name)
-            ? (string) $user->display_name
-            : $user->name;
-
-        return TimeOfDayGreeting::headingHtmlFor($now, $greetingName);
-    }
-
-    public function getSubheading(): string|Htmlable|null
-    {
-        $user = Auth::user();
-
-        if (! $user instanceof User) {
-            return parent::getSubheading();
-        }
-
-        $now = now()->timezone($user->preferredTimezone());
-
-        return TimeOfDayGreeting::subheadingHtml($now);
     }
 
     /**

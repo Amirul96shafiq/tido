@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\TrainingDashboard;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -121,20 +122,15 @@ test('dashboard header exposes finances and training view tabs', function () {
 
     $this->actingAs($user);
 
-    $html = $this->get(Dashboard::getUrl())
+    $this->get(Dashboard::getUrl())
         ->assertSuccessful()
         ->assertSee('tido-dashboard-view-tabs', false)
         ->assertSee('Finances', false)
         ->assertSee('Training', false)
-        ->assertSee('Coming soon', false)
-        ->assertSee('Training (coming soon)', false)
+        ->assertSee(TrainingDashboard::getUrl(), false)
+        ->assertDontSee('Coming soon', false)
         ->assertDontSee('wire:click="mountAction(\'profile\')"', false)
-        ->assertDontSee('wire:click="mountAction(\'changelogs\')"', false)
-        ->getContent();
-
-    expect($html)
-        ->toContain('disabled')
-        ->toContain('x-tooltip');
+        ->assertDontSee('wire:click="mountAction(\'changelogs\')"', false);
 });
 
 afterEach(function () {
