@@ -18,6 +18,7 @@ use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\VerticalAlignment;
+use Livewire\Attributes\Url;
 
 class Dashboard extends BaseDashboard
 {
@@ -26,6 +27,21 @@ class Dashboard extends BaseDashboard
     use PrependsHomeBreadcrumb;
 
     protected static bool $shouldRegisterNavigation = false;
+
+    public const VIEW_FINANCES = 'finances';
+
+    public const VIEW_TRAINING = 'training';
+
+    /**
+     * @var list<string>
+     */
+    public const VIEWS = [
+        self::VIEW_FINANCES,
+        self::VIEW_TRAINING,
+    ];
+
+    #[Url(as: 'view', except: 'finances', history: true)]
+    public string $dashboardView = self::VIEW_FINANCES;
 
     /**
      * @return list<array{label: string, id: string}>
@@ -65,11 +81,30 @@ class Dashboard extends BaseDashboard
 
     public function booted(): void
     {
+        if (! in_array($this->dashboardView, self::VIEWS, true)) {
+            $this->dashboardView = self::VIEW_FINANCES;
+        }
+
         if (! isset($this->filters['month'])) {
             $this->filters = [
                 'month' => DashboardMonthPeriod::fromFilters($this->filters)->format('Y-m'),
             ];
         }
+    }
+
+    public function getDashboardView(): string
+    {
+        return $this->dashboardView;
+    }
+
+    public function setDashboardView(string $view): void
+    {
+        if (! in_array($view, self::VIEWS, true)) {
+            return;
+        }
+
+        $this->dashboardView = $view;
+        $this->cacheSchema('content', null);
     }
 
     public function updatedFiltersMonth(): void
@@ -167,6 +202,13 @@ class Dashboard extends BaseDashboard
 
     public function content(Schema $schema): Schema
     {
+        if ($this->dashboardView === self::VIEW_TRAINING) {
+            return $schema
+                ->components([
+                    View::make('filament.pages.partials.training-dashboard-content'),
+                ]);
+        }
+
         return $schema
             ->components([
                 Group::make([

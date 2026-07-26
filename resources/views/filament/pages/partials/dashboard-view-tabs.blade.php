@@ -1,23 +1,19 @@
 @php
-    $activeView = $activeView ?? 'finances';
-    $financesUrl = $financesUrl ?? \App\Filament\Pages\Dashboard::getUrl();
-    $trainingUrl = $trainingUrl ?? \App\Filament\Pages\TrainingDashboard::getUrl();
+    $activeView = $activeView ?? \App\Filament\Pages\Dashboard::VIEW_FINANCES;
 @endphp
 
 <div class="tido-dashboard-view-tabs">
     <x-filament::tabs label="Dashboard views">
         <x-filament::tabs.item
-            tag="a"
-            :href="$financesUrl"
-            :active="$activeView === 'finances'"
+            wire:click="setDashboardView('finances')"
+            :active="$activeView === \App\Filament\Pages\Dashboard::VIEW_FINANCES"
         >
             Finances
         </x-filament::tabs.item>
 
         <x-filament::tabs.item
-            tag="a"
-            :href="$trainingUrl"
-            :active="$activeView === 'training'"
+            wire:click="setDashboardView('training')"
+            :active="$activeView === \App\Filament\Pages\Dashboard::VIEW_TRAINING"
         >
             Training
         </x-filament::tabs.item>

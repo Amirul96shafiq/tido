@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\Dashboard;
-use App\Filament\Pages\TrainingDashboard;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -127,7 +126,7 @@ test('dashboard header exposes finances and training view tabs', function () {
         ->assertSee('tido-dashboard-view-tabs', false)
         ->assertSee('Finances', false)
         ->assertSee('Training', false)
-        ->assertSee(TrainingDashboard::getUrl(), false)
+        ->assertSee('setDashboardView', false)
         ->assertDontSee('Coming soon', false)
         ->assertDontSee('wire:click="mountAction(\'profile\')"', false)
         ->assertDontSee('wire:click="mountAction(\'changelogs\')"', false);

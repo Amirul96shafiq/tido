@@ -11,7 +11,6 @@ use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Auth\ResetPassword;
 use App\Filament\Pages\Dashboard;
-use App\Filament\Pages\TrainingDashboard;
 use App\Filament\Resources\Budgets\Pages\CreateBudget;
 use App\Filament\Resources\Budgets\Pages\EditBudget;
 use App\Filament\Resources\FamilyMembers\Pages\CreateFamilyMember;
@@ -121,18 +120,16 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::PAGE_HEADER_ACTIONS_BEFORE,
                 function (): View {
                     $livewire = Livewire::current();
-                    $isTraining = $livewire instanceof TrainingDashboard
-                        || request()->routeIs(TrainingDashboard::getRouteName());
+                    $activeView = $livewire instanceof Dashboard
+                        ? $livewire->getDashboardView()
+                        : Dashboard::VIEW_FINANCES;
 
                     return view('filament.pages.partials.dashboard-view-tabs', [
-                        'activeView' => $isTraining ? 'training' : 'finances',
-                        'financesUrl' => Dashboard::getUrl(),
-                        'trainingUrl' => TrainingDashboard::getUrl(),
+                        'activeView' => $activeView,
                     ]);
                 },
                 scopes: [
                     Dashboard::class,
-                    TrainingDashboard::class,
                 ],
             )
             ->renderHook(
