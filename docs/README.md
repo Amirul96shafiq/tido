@@ -5,6 +5,7 @@
 | [../README.md](../README.md) | Humans (GitHub) | Product overview, install, usage, license |
 | [agent-onboarding.md](agent-onboarding.md) | Cursor / AI agents | How the app works and how to code for it |
 | [system-architecture.md](system-architecture.md) | Agents + humans | Product blueprint; do not contradict without warning |
+| [dashboard-views.md](dashboard-views.md) | Agents + humans | Modular Home dashboard (Finances / Training / Health / Task) |
 | [ollama-setup.md](ollama-setup.md) | Ops | Native host Ollama / qwen2.5vl:7b (no Docker) |
 | [evolution-local-windows.md](evolution-local-windows.md) | Ops | WhatsApp Evolution instance + webhook (Windows host) |
 | [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md) | Humans + agents | Text-only WhatsApp manual invoice format and pipeline |

@@ -14,6 +14,8 @@ description: >-
 
 Read this skill before changing receipt ingestion, AI parsing, categories (labels), budgets, or spending analytics. For deeper pipeline detail see [pipeline.md](pipeline.md).
 
+This skill covers the **Finances** module. Home also has Training / Health / Task dashboard shells (coming soon) — module tabs and how to add views: `docs/dashboard-views.md`. Do not invent non-Finances domain models here.
+
 ## Domain model (5 models)
 
 | Model | Role |
@@ -61,7 +63,7 @@ Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`
 - Resources: Upload Receipts, Invoices, Budgets (Finances); Labels, Payment Methods, Family Members (Settings); Evolution API (Integrations) — models `Label`, `PaymentMethod`, `FamilyMember`
 - View records: always `ViewAction::make()->slideOver()` — never dedicated View pages; use the disabled form schema (no custom `infolist()` / `*Infolist.php`)
 - Upload UI: `ReceiptUploadPage` → creates pending invoices
-- Dashboard widgets use `DashboardMonthAnalytics` / month period helpers
+- Dashboard: Finances widgets use `DashboardMonthAnalytics` / month period helpers; Training / Health / Task are coming-soon shells — `docs/dashboard-views.md`
 - Single-line overflowing labels: `docs/ui-text-marquee.md` (Blade + Alpine; Filament Select via `SelectValueMarquee`)
 
 - Notes fields: `NotesRichEditor` — `docs/ui-notes-rich-editor.md` (Budget `notes`, Invoice `notes`, Label `description` as Label Notes)

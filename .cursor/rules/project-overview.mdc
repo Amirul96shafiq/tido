@@ -5,7 +5,9 @@ alwaysApply: true
 
 # tido — Project Overview
 
-Personal MYR expense & receipt tracker. Ingest receipts (WhatsApp image or text manual invoice, Google Drive, Filament upload), parse with local Ollama, categorize line items, detect duplicates, show budgets/analytics.
+Single-tenant personal hub. **Finances** is shipped (MYR expense & receipt tracking). **Training**, **Health**, and **Task** are planned dashboard modules (coming-soon placeholders). See `docs/dashboard-views.md`.
+
+Finances today: ingest receipts (WhatsApp image or text manual invoice, Google Drive, Filament upload), parse with local Ollama, categorize line items, detect duplicates, show budgets/analytics.
 
 ## Naming
 
@@ -29,18 +31,19 @@ No multi-tenancy, no roles/policies package. Any authenticated user can access `
 3. Use Laravel Boost MCP (`search-docs`, `database-schema`, `database-query`) before inventing APIs
 4. If a request contradicts `docs/system-architecture.md`, halt and warn the user
 5. Use feature/fix branches per `docs/git-workflow.md` — do not develop features on `main`
-6. UI icon CTAs: Filament Tippy tooltips — `docs/ui-tooltips.md`
-7. Sticky top/bottom bars + blur veil — `docs/ui-sticky-blur.md`
-8. Sticky section tabs + smooth scroll — `docs/ui-section-nav.md`
-9. Single-line text marquee (reusable) — `docs/ui-text-marquee.md`
-10. Notes rich editor (`notes` fields) — `docs/ui-notes-rich-editor.md`
-11. Resource form empty placeholders / defaults — `docs/ui-form-empty-defaults.md`
-12. Custom Blade toggles (Filament color classes + Profile inlineLabel) — `docs/ui-custom-toggles.md`
-13. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`
-14. Service Status / health probes — `docs/service-status.md`
-15. Profile Active Sessions — `docs/active-sessions.md`
-16. WhatsApp text manual invoices — `docs/whatsapp-manual-invoice.md`
-17. WhatsApp bot commands / keywords — `docs/whatsapp-bot-commands.md`
+6. Dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md`
+7. UI icon CTAs: Filament Tippy tooltips — `docs/ui-tooltips.md`
+8. Sticky top/bottom bars + blur veil — `docs/ui-sticky-blur.md`
+9. Sticky section tabs + smooth scroll — `docs/ui-section-nav.md`
+10. Single-line text marquee (reusable) — `docs/ui-text-marquee.md`
+11. Notes rich editor (`notes` fields) — `docs/ui-notes-rich-editor.md`
+12. Resource form empty placeholders / defaults — `docs/ui-form-empty-defaults.md`
+13. Custom Blade toggles (Filament color classes + Profile inlineLabel) — `docs/ui-custom-toggles.md`
+14. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`
+15. Service Status / health probes — `docs/service-status.md`
+16. Profile Active Sessions — `docs/active-sessions.md`
+17. WhatsApp text manual invoices — `docs/whatsapp-manual-invoice.md`
+18. WhatsApp bot commands / keywords — `docs/whatsapp-bot-commands.md`
 
 ## Do not
 
