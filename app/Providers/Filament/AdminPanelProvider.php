@@ -257,12 +257,12 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(0)
                     ->extraAttributes(['wire:current' => 'fi-user-menu-profile-active']),
                 Action::make('changelogs')
-                    ->label('Changelogs')
+                    ->label('Changelogs 🡥')
                     ->icon('heroicon-o-code-bracket')
                     ->alpineClickHandler("\$dispatch('open-modal', { id: 'changelog' })")
                     ->sort(10),
                 Action::make('notifications')
-                    ->label('Notifications')
+                    ->label('Notifications 🡥')
                     ->icon('heroicon-o-bell')
                     ->alpineClickHandler("\$dispatch('open-modal', { id: 'database-notifications' })")
                     ->sort(20),
