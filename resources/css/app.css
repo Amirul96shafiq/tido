@@ -574,6 +574,10 @@ html.dark::-webkit-scrollbar-thumb:hover,
     @apply w-full sm:w-auto;
 }
 
+.tido-dashboard-view-tabs .fi-tabs-item-label {
+    @apply hidden;
+}
+
 /* Dashboard month Select — width lives here; arbitrary Tailwind in PHP is not scanned */
 .fi-dashboard-month-filter {
     flex: 0 0 auto;

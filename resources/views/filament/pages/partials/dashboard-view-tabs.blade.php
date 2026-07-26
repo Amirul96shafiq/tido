@@ -7,15 +7,23 @@
         <x-filament::tabs.item
             wire:click="setDashboardView('finances')"
             :active="$activeView === \App\Filament\Pages\Dashboard::VIEW_FINANCES"
-        >
-            Finances
-        </x-filament::tabs.item>
+            icon="heroicon-m-calculator"
+            aria-label="Finances"
+            x-tooltip="{
+                content: {{ \Illuminate\Support\Js::from('Finances') }},
+                theme: $store.theme,
+            }"
+        ></x-filament::tabs.item>
 
         <x-filament::tabs.item
             wire:click="setDashboardView('training')"
             :active="$activeView === \App\Filament\Pages\Dashboard::VIEW_TRAINING"
-        >
-            Training
-        </x-filament::tabs.item>
+            icon="heroicon-m-bolt"
+            aria-label="Training"
+            x-tooltip="{
+                content: {{ \Illuminate\Support\Js::from('Training') }},
+                theme: $store.theme,
+            }"
+        ></x-filament::tabs.item>
     </x-filament::tabs>
 </div>
