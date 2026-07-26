@@ -59,11 +59,15 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
 
         $paymentMethod = $invoice->paymentMethod?->name;
 
-        $message = WhatsAppMessage::documentParsed($editUrl, [
+        $details = [
             'merchant_name' => $invoice->merchant_name,
             'total_amount' => $invoice->total_amount,
             'payment_method' => $paymentMethod,
-        ]);
+        ];
+
+        $message = $invoice->status === 'requires_manual_review'
+            ? WhatsAppMessage::documentNeedsReview($editUrl, $details)
+            : WhatsAppMessage::documentParsed($editUrl, $details);
 
         $waService->sendMessage($sender, $message);
     }

@@ -112,6 +112,21 @@ test('document parsed includes merchant total payment method and invoice edit ur
     );
 });
 
+test('document needs review includes merchant total payment method and review note', function () {
+    $message = WhatsAppMessage::documentNeedsReview(
+        'https://tido.test/admin/invoices/1/edit',
+        [
+            'merchant_name' => 'Luckin Coffee',
+            'total_amount' => '4.23',
+            'payment_method' => 'Other',
+        ],
+    );
+
+    expect($message)->toBe(
+        "⚠️ *Document needs review*\n\nMerchant: *Luckin Coffee*\nTotal Amount: *RM 4.23*\nPayment Method: *Other*\n\nGo to *invoice edit*\nhttps://tido.test/admin/invoices/1/edit\n\nPlease review and confirm the details in the admin panel.\n\n— Powered by *tido*",
+    );
+});
+
 test('manual invoice received includes invoice count', function () {
     $message = WhatsAppMessage::manualInvoiceReceived(2);
 

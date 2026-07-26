@@ -7,10 +7,11 @@ namespace App\Services;
 use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
 use App\Models\Invoice;
-use App\Models\User;
+use App\Support\NotificationRecipient;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppMessage;
 use Filament\Notifications\Notification as FilamentNotification;
+use Illuminate\Support\Facades\Cache;
 
 class BudgetAlertService
 {
@@ -64,6 +65,10 @@ class BudgetAlertService
         float $percentage,
         string $level,
     ): void {
+        if (! $this->claimAlertSlot($budget, $level)) {
+            return;
+        }
+
         $labelName = $budget->display_title;
         $periodName = ucfirst((string) $budget->period);
         $isCritical = $level === 'critical';
@@ -94,24 +99,34 @@ class BudgetAlertService
             return;
         }
 
-        $users = User::all();
+        $user = NotificationRecipient::primaryAdmin();
 
-        foreach ($users as $user) {
-            if (! $user->notify_budget_alerts) {
-                continue;
-            }
-
-            $notification = FilamentNotification::make()
-                ->title(($isCritical ? 'Budget Critical: ' : 'Budget Alert: ').$labelName)
-                ->body(MoneyDisplay::withPrefix($spent).' / '.MoneyDisplay::withPrefix($budgetAmount).' ('.round($percentage).'%)');
-
-            if ($isCritical) {
-                $notification->danger();
-            } else {
-                $notification->warning();
-            }
-
-            $notification->sendToDatabase($user);
+        if ($user === null || ! $user->notify_budget_alerts) {
+            return;
         }
+
+        $notification = FilamentNotification::make()
+            ->title(($isCritical ? 'Budget Critical: ' : 'Budget Alert: ').$labelName)
+            ->body(MoneyDisplay::withPrefix($spent).' / '.MoneyDisplay::withPrefix($budgetAmount).' ('.round($percentage).'%)');
+
+        if ($isCritical) {
+            $notification->danger();
+        } else {
+            $notification->warning();
+        }
+
+        $notification->sendToDatabase($user);
+    }
+
+    /**
+     * @param  'warn'|'critical'  $level
+     */
+    private function claimAlertSlot(Budget $budget, string $level): bool
+    {
+        $periodStart = $budget->getStartDate()->toDateString();
+        $cacheKey = sprintf('budget-alert:%d:%s:%s', $budget->id, $level, $periodStart);
+        $ttlSeconds = max(60, (int) now()->diffInSeconds($budget->getEndDate(), false));
+
+        return Cache::add($cacheKey, true, $ttlSeconds);
     }
 }
