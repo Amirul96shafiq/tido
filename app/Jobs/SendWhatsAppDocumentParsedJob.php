@@ -70,5 +70,10 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
             : WhatsAppMessage::documentParsed($editUrl, $details);
 
         $waService->sendMessage($sender, $message);
+
+        if ($invoice->status === 'parsed') {
+            SendDeferredWhatsAppBudgetAlertJob::dispatch($sender, $invoice->id)
+                ->delay(now()->addSeconds(2));
+        }
     }
 }
