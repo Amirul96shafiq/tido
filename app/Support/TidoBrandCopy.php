@@ -32,13 +32,13 @@ final class TidoBrandCopy
 
     public static function dashboardActionPhrase(): string
     {
-        return 'Start by tidying up your files, then get it done.';
+        return 'Start by tidying up your life, then get it done.';
     }
 
     public static function dashboardActionPhraseHtml(): HtmlString
     {
         return new HtmlString(
-            'Start by <span class="underline">ti</span>dying up your files, then get it <span class="underline">do</span>ne.',
+            'Start by <span class="underline">ti</span>dying up your life, then get it <span class="underline">do</span>ne.',
         );
     }
 }

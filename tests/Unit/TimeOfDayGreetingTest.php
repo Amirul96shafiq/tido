@@ -13,7 +13,7 @@ test('resolves morning period between 05:00 and 11:59', function (string $time) 
         ->and(TimeOfDayGreeting::emoji($now))->toBe('☀️')
         ->and(TimeOfDayGreeting::greeting($now))->toBe('Good Morning')
         ->and(TimeOfDayGreeting::subheading($now))
-        ->toBe('Ready to start the day? Start by tidying up your files, then get it done.');
+        ->toBe('Ready to start the day? Start by tidying up your life, then get it done.');
 })->with([
     '05:00' => ['2026-07-16 05:00:00'],
     '11:59' => ['2026-07-16 11:59:59'],
@@ -26,7 +26,7 @@ test('resolves afternoon period between 12:00 and 17:59', function (string $time
         ->and(TimeOfDayGreeting::emoji($now))->toBe('🌤️')
         ->and(TimeOfDayGreeting::greeting($now))->toBe('Good Afternoon')
         ->and(TimeOfDayGreeting::subheading($now))
-        ->toBe('Ready to keep going? Start by tidying up your files, then get it done.');
+        ->toBe('Ready to keep going? Start by tidying up your life, then get it done.');
 })->with([
     '12:00' => ['2026-07-16 12:00:00'],
     '17:59' => ['2026-07-16 17:59:59'],
@@ -39,7 +39,7 @@ test('resolves evening period outside morning and afternoon hours', function (st
         ->and(TimeOfDayGreeting::emoji($now))->toBe('🌙')
         ->and(TimeOfDayGreeting::greeting($now))->toBe('Good Evening')
         ->and(TimeOfDayGreeting::subheading($now))
-        ->toBe('Ready to wrap up? Start by tidying up your files, then get it done.');
+        ->toBe('Ready to wrap up? Start by tidying up your life, then get it done.');
 })->with([
     '00:00' => ['2026-07-16 00:00:00'],
     '04:59' => ['2026-07-16 04:59:59'],
@@ -51,7 +51,7 @@ test('subheading html underlines ti and do in brand phrase', function () {
     $now = Carbon::parse('2026-07-16 08:30:00', 'Asia/Kuala_Lumpur');
 
     expect((string) TimeOfDayGreeting::subheadingHtml($now))
-        ->toBe('Ready to start the day? Start by <span class="underline">ti</span>dying up your files, then get it <span class="underline">do</span>ne.');
+        ->toBe('Ready to start the day? Start by <span class="underline">ti</span>dying up your life, then get it <span class="underline">do</span>ne.');
 });
 
 test('heading places emoji after greeting and shortened name', function () {

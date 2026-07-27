@@ -16,5 +16,5 @@ test('login subheading html underlines ti in tidy done and whole tido', function
 
 test('dashboard action phrase html underlines ti and do', function () {
     expect((string) TidoBrandCopy::dashboardActionPhraseHtml())
-        ->toBe('Start by <span class="underline">ti</span>dying up your files, then get it <span class="underline">do</span>ne.');
+        ->toBe('Start by <span class="underline">ti</span>dying up your life, then get it <span class="underline">do</span>ne.');
 });

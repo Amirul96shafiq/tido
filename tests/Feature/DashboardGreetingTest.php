@@ -28,7 +28,7 @@ test('dashboard heading and subheading reflect morning in user timezone', functi
     expect((string) $page->instance()->getHeading())
         ->toContain('Good Morning, <span class="text-primary-600 dark:text-primary-400">Ada</span> ☀️')
         ->and((string) $page->instance()->getSubheading())
-        ->toBe('Ready to start the day? Start by <span class="underline">ti</span>dying up your files, then get it <span class="underline">do</span>ne.');
+        ->toBe('Ready to start the day? Start by <span class="underline">ti</span>dying up your life, then get it <span class="underline">do</span>ne.');
 
     $this->get(Dashboard::getUrl())
         ->assertSuccessful()
@@ -53,7 +53,7 @@ test('dashboard greeting uses afternoon copy when local hour is midday', functio
 
     Livewire::test(Dashboard::class)
         ->assertSee('Good Afternoon, <span class="text-primary-600 dark:text-primary-400">Budi</span> 🌤️', false)
-        ->assertSee('Ready to keep going? Start by <span class="underline">ti</span>dying up your files, then get it <span class="underline">do</span>ne.', false);
+        ->assertSee('Ready to keep going? Start by <span class="underline">ti</span>dying up your life, then get it <span class="underline">do</span>ne.', false);
 });
 
 test('dashboard greeting uses evening copy when local hour is late night', function () {
@@ -71,7 +71,7 @@ test('dashboard greeting uses evening copy when local hour is late night', funct
 
     Livewire::test(Dashboard::class)
         ->assertSee('Good Evening, <span class="text-primary-600 dark:text-primary-400">Citra</span> 🌙', false)
-        ->assertSee('Ready to wrap up? Start by <span class="underline">ti</span>dying up your files, then get it <span class="underline">do</span>ne.', false);
+        ->assertSee('Ready to wrap up? Start by <span class="underline">ti</span>dying up your life, then get it <span class="underline">do</span>ne.', false);
 });
 
 test('dashboard greeting shortens long display names in heading', function () {
