@@ -17,24 +17,22 @@ test('go to top is fixed flush bottom-right at collapsed chrome size', function 
         ->toContain("height: {$expectedSize};")
         ->toContain('border-top: 1px solid var(--color-gray-100);')
         ->toContain('border-left: 1px solid var(--color-gray-100);');
-
-    expect($css)
-        ->toContain('@media (max-width: 639px)')
-        ->toContain('top: calc(2 * (var(--collapsed-sidebar-width, 4.5rem) - 1px));')
-        ->toContain('bottom: auto;')
-        ->toContain('border-top: none;')
-        ->toContain('border-bottom: 1px solid var(--color-gray-100);')
-        ->toContain('.tido-go-to-top.tido-go-to-top--page-bottom {')
-        ->toContain('transition:');
 });
 
-test('go to top slides into go to bottom slot when page is scrolled to bottom on mobile', function () {
-    $blade = (string) file_get_contents(resource_path('views/components/go-to-top.blade.php'));
+test('go to top is hidden on small viewports', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
 
-    expect($blade)
-        ->toContain('atPageBottom')
-        ->toContain("scrollTop + viewportHeight >= scrollHeight - this.threshold")
-        ->toContain("'tido-go-to-top--page-bottom': atPageBottom");
+    expect(Str::between(
+        $css,
+        '/* Hide sticky scroll CTAs on small viewports',
+        '/*',
+    ))
+        ->toContain('@media (max-width: 639px)')
+        ->toContain('.tido-go-to-top,')
+        ->toContain('.tido-go-to-bottom {')
+        ->toContain('display: none !important;');
+
+    expect($css)->not->toContain('tido-go-to-top--page-bottom');
 });
 
 test('go to top is registered on panel body end', function () {
@@ -49,6 +47,8 @@ test('go to top uses arrow up icon without amber indicator', function () {
     expect($blade)
         ->toContain('heroicon-o-arrow-up')
         ->toContain('Go to top')
+        ->not->toContain('atPageBottom')
+        ->not->toContain('tido-go-to-top--page-bottom')
         ->not->toContain('animate-ping')
         ->not->toContain('bg-amber-500')
         ->not->toContain('bg-amber-400');

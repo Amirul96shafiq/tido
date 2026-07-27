@@ -25,14 +25,18 @@ test('go to bottom is registered on panel body end', function () {
     expect($provider)->toContain('<x-go-to-bottom />');
 });
 
-test('go to bottom keeps bottom border on mobile', function () {
+test('go to bottom is hidden on small viewports', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
-    preg_match('/@media \(max-width: 639px\)\s*\{(.+?)\n\}/s', $css, $matches);
-
-    expect($matches[1] ?? '')
-        ->not->toContain('.tido-go-to-bottom')
-        ->not->toContain('border-bottom: none;');
+    expect(Str::between(
+        $css,
+        '/* Hide sticky scroll CTAs on small viewports',
+        '/*',
+    ))
+        ->toContain('@media (max-width: 639px)')
+        ->toContain('.tido-go-to-top,')
+        ->toContain('.tido-go-to-bottom {')
+        ->toContain('display: none !important;');
 });
 
 test('go to bottom uses arrow down icon without amber indicator', function () {
