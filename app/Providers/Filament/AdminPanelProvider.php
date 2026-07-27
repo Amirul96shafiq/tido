@@ -22,6 +22,7 @@ use App\Filament\Resources\Labels\Pages\EditLabel;
 use App\Filament\Resources\PaymentMethods\Pages\CreatePaymentMethod;
 use App\Filament\Resources\PaymentMethods\Pages\EditPaymentMethod;
 use App\Http\Middleware\SetUserPreferences;
+use App\Support\FilamentAuthLogout;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResults;
 use Filament\Actions\Action;
@@ -46,6 +47,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Livewire\Component;
 use Livewire\Livewire;
 
 class AdminPanelProvider extends PanelProvider
@@ -290,7 +292,16 @@ class AdminPanelProvider extends PanelProvider
                 'logout' => fn (Action $action): Action => $action
                     ->icon('heroicon-o-arrow-right-start-on-rectangle')
                     ->color('danger')
-                    ->sort(30),
+                    ->sort(30)
+                    ->url(null)
+                    ->postToUrl(false)
+                    ->requiresConfirmation()
+                    ->modalHeading('Sign out')
+                    ->modalDescription('Are you sure you want to sign out of your account?')
+                    ->modalSubmitActionLabel('Sign out')
+                    ->action(function (Component $livewire): void {
+                        FilamentAuthLogout::logoutToLogin($livewire);
+                    }),
             ])
             ->renderHook(
                 PanelsRenderHook::SIDEBAR_FOOTER,

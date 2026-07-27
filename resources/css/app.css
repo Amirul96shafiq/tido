@@ -1894,6 +1894,15 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     overflow: visible;
 }
 
+/*
+ * Topbar-hosted action modals (e.g. Sign out confirm) render inside
+ * .fi-topbar-ctn (z-20 !important). Overlay z-40 is trapped under .fi-sidebar
+ * (z-30) and body-teleported .fi-dropdown-panel (z-50). Lift above both.
+ */
+.fi-topbar-ctn:has(.fi-modal.fi-modal-open:not([style*="display: none"])) {
+    z-index: 60 !important;
+}
+
 .fi-layout:has(.fi-fo-file-upload-editor:not([style*="display: none"]))
     .fi-main-ctn,
 .fi-layout:has(.fi-modal.fi-modal-open:not([style*="display: none"]))
