@@ -6,12 +6,12 @@ Top-level **dashboard modules** on the Filament Home page. These are distinct fr
 
 | View | Status | Tab icon | Query |
 |------|--------|----------|-------|
-| **Finances** | Shipped — MYR receipts, budgets, month analytics | `heroicon-m-calculator` | default (`?view=` omitted) |
+| **Finance** | Shipped — MYR receipts, budgets, month analytics | `heroicon-m-calculator` | default (`?view=` omitted) |
 | **Training** | Coming soon | `heroicon-m-bolt` | `?view=training` |
 | **Health** | Coming soon | `heroicon-m-heart` | `?view=health` |
 | **Task** | Coming soon | `heroicon-m-rectangle-stack` | `?view=task` |
 
-Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD surface for the Finances module. It is not the same as the dashboard view tab.
+Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD surface for the Finance module. It is not the same as the dashboard view tab (**Finance**).
 
 ## Source of truth
 
@@ -28,9 +28,9 @@ Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD 
 
 1. Header tabs are **icon-only** with a leading **Focus:** label, Filament Tippy tooltips + `aria-label` (see [`ui-tooltips.md`](ui-tooltips.md)).
 2. While `setDashboardView('…')` is in flight, that tab’s icon swaps to `<x-filament::loading-indicator>` (`wire:loading` / `wire:target`).
-3. **Finances** renders month filter + widget section nav + widgets (sticky toolbar — [`ui-sticky-blur.md`](ui-sticky-blur.md), [`ui-section-nav.md`](ui-section-nav.md)).
+3. **Finance** renders month filter + widget section nav + widgets (sticky toolbar — [`ui-sticky-blur.md`](ui-sticky-blur.md), [`ui-section-nav.md`](ui-section-nav.md)).
 4. Non-finances views that return meta from `comingSoonDashboardContent()` render the shared coming-soon partial (no finance widgets).
-5. Invalid `?view=` values fall back to Finances in `booted()`.
+5. Invalid `?view=` values fall back to Finance in `booted()`.
 
 ## Adding a dashboard module
 

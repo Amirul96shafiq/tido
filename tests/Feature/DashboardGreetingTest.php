@@ -123,10 +123,10 @@ test('dashboard header exposes finances training health and task view tabs', fun
 
     $this->get(Dashboard::getUrl())
         ->assertSuccessful()
-        ->assertSee('Dashboard - <span class="text-primary-600 dark:text-primary-400">Finances</span>', false)
+        ->assertSee('Dashboard - <span class="text-primary-600 dark:text-primary-400">Finance</span>', false)
         ->assertSee('tido-dashboard-view-tabs', false)
         ->assertSee('Focus:', false)
-        ->assertSee('aria-label="Finances"', false)
+        ->assertSee('aria-label="Finance"', false)
         ->assertSee('aria-label="Training"', false)
         ->assertSee('aria-label="Health"', false)
         ->assertSee('aria-label="Task"', false)
@@ -158,7 +158,7 @@ test('dashboard title follows the active focus view', function (string $view, st
         ->assertSet('dashboardView', Dashboard::VIEW_FINANCES);
 
     expect((string) $page->instance()->getTitle())
-        ->toBe('Dashboard - <span class="text-primary-600 dark:text-primary-400">Finances</span>');
+        ->toBe('Dashboard - <span class="text-primary-600 dark:text-primary-400">Finance</span>');
 
     $page->call('setDashboardView', $view)
         ->assertSet('dashboardView', $view)

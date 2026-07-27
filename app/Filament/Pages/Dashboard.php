@@ -56,7 +56,7 @@ class Dashboard extends BaseDashboard
         return [
             [
                 'view' => self::VIEW_FINANCES,
-                'label' => 'Finances',
+                'label' => 'Finance',
                 'icon' => 'heroicon-m-calculator',
             ],
             [
@@ -136,7 +136,7 @@ class Dashboard extends BaseDashboard
 
     public function getTitle(): string|Htmlable
     {
-        $label = 'Finances';
+        $label = 'Finance';
 
         foreach (self::viewTabs() as $tab) {
             if ($tab['view'] === $this->dashboardView) {
