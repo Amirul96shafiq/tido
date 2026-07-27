@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Filament\Notifications\Notification as AppNotification;
 use App\Helpers\MoneyDisplay;
 use App\Helpers\UserDateDisplay;
 use App\Http\Responses\LogoutResponse;
@@ -18,6 +19,7 @@ use Filament\Actions\CreateAction;
 use Filament\Auth\Http\Responses\Contracts\LogoutResponse as LogoutResponseContract;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification as FilamentNotification;
 use Filament\Schemas\Schema;
 use Filament\Support\Facades\FilamentTimezone;
 use Filament\Support\Icons\Heroicon;
@@ -44,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(FilamentButtonComponent::class, ButtonComponent::class);
+        $this->app->bind(FilamentNotification::class, AppNotification::class);
         $this->app->bind(LogoutResponseContract::class, LogoutResponse::class);
     }
 

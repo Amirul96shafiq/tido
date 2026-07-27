@@ -115,6 +115,10 @@ class AdminPanelProvider extends PanelProvider
                     'receipt-image-preview',
                     Vite::asset('resources/js/receipt-image-preview.js'),
                 )->module(),
+                Js::make(
+                    'notification-swipe-dismiss',
+                    Vite::asset('resources/js/notification-swipe-dismiss.js'),
+                )->module(),
             ])
             ->renderHook(
                 PanelsRenderHook::PAGE_HEADER_ACTIONS_BEFORE,
