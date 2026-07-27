@@ -369,6 +369,18 @@ final class DashboardMonthAnalytics
     }
 
     /**
+     * Fixed upload channels shown on the Receipts by Source chart (including zeros).
+     *
+     * @var list<string>
+     */
+    private const SOURCE_CHANNELS = [
+        'whatsapp_parse',
+        'whatsapp_manual',
+        'google_drive',
+        'manual',
+    ];
+
+    /**
      * @return Collection<int, object{
      *     key: string,
      *     label: string,
@@ -379,45 +391,50 @@ final class DashboardMonthAnalytics
      *     mom_change: array{delta: float, percent: ?float},
      * }>
      */
-    public function receiptsBySource(int $limit = 3): Collection
+    public function receiptsBySource(): Collection
     {
         $start = $this->bounds['start'];
         $end = $this->bounds['end'];
         $previousStart = $this->bounds['previous_start'];
         $previousEnd = $this->bounds['previous_end'];
+        $channelExpression = $this->sourceChannelExpression();
 
         $rows = Invoice::query()
             ->processed()
             ->inPeriod($start, $end)
-            ->selectRaw('source, COUNT(*) as receipt_count, SUM(total_amount) as total_spent')
-            ->groupBy('source')
-            ->orderByDesc('receipt_count')
-            ->get();
+            ->selectRaw("{$channelExpression} as source_channel, COUNT(*) as receipt_count, SUM(total_amount) as total_spent")
+            ->groupByRaw($channelExpression)
+            ->get()
+            ->keyBy(fn ($row): string => $this->sourceKey($row->source_channel));
+
+        if ($rows->isEmpty()) {
+            return collect();
+        }
 
         $priorCounts = Invoice::query()
             ->processed()
             ->inPeriod($previousStart, $previousEnd)
-            ->selectRaw('source, COUNT(*) as receipt_count')
-            ->groupBy('source')
+            ->selectRaw("{$channelExpression} as source_channel, COUNT(*) as receipt_count")
+            ->groupByRaw($channelExpression)
             ->get()
-            ->keyBy(fn ($row): string => $this->sourceKey($row->source))
+            ->keyBy(fn ($row): string => $this->sourceKey($row->source_channel))
             ->map(fn ($row): int => (int) $row->receipt_count);
 
         $monthReceiptTotal = (int) $rows->sum('receipt_count');
 
-        return $rows
-            ->map(function ($row) use ($priorCounts, $monthReceiptTotal): object {
-                $key = $this->sourceKey($row->source);
-                $receiptCount = (int) $row->receipt_count;
+        return collect(self::SOURCE_CHANNELS)
+            ->map(function (string $key) use ($rows, $priorCounts, $monthReceiptTotal): object {
+                $row = $rows->get($key);
+                $receiptCount = (int) ($row->receipt_count ?? 0);
                 $priorCount = (int) ($priorCounts[$key] ?? 0);
                 $delta = $receiptCount - $priorCount;
 
                 return (object) [
                     'key' => $key,
-                    'label' => $this->sourceLabel($row->source),
-                    'color' => $this->sourceColor($row->source),
+                    'label' => $this->sourceLabel($key),
+                    'color' => $this->sourceColor($key),
                     'receipt_count' => $receiptCount,
-                    'total_spent' => (float) $row->total_spent,
+                    'total_spent' => (float) ($row->total_spent ?? 0),
                     'receipt_share_percent' => $monthReceiptTotal > 0 ? ($receiptCount / $monthReceiptTotal) * 100 : 0.0,
                     'mom_change' => [
                         'delta' => (float) $delta,
@@ -425,7 +442,6 @@ final class DashboardMonthAnalytics
                     ],
                 ];
             })
-            ->take($limit)
             ->values();
     }
 
@@ -466,6 +482,15 @@ final class DashboardMonthAnalytics
         return DashboardChartColors::forPaymentMethod($paymentMethod);
     }
 
+    private function sourceChannelExpression(): string
+    {
+        return "CASE
+            WHEN source = 'whatsapp' AND (image_path IS NULL OR image_path = '') THEN 'whatsapp_manual'
+            WHEN source = 'whatsapp' THEN 'whatsapp_parse'
+            ELSE source
+        END";
+    }
+
     private function sourceKey(mixed $source): string
     {
         if (is_string($source) && $source !== '') {
@@ -478,7 +503,9 @@ final class DashboardMonthAnalytics
     private function sourceLabel(mixed $source): string
     {
         return match ($source) {
-            'manual' => 'Manual',
+            'manual' => 'Manual Upload',
+            'whatsapp_parse' => 'WhatsApp (Parse)',
+            'whatsapp_manual' => 'WhatsApp (Manual)',
             'whatsapp' => 'WhatsApp',
             'google_drive' => 'Google Drive',
             default => 'Unknown',

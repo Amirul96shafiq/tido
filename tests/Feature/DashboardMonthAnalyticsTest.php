@@ -1064,16 +1064,31 @@ test('receipts by source groups counts, spend, and mom by upload channel', funct
     ]);
 
     Invoice::create([
-        'merchant_name' => 'WhatsApp Store',
-        'invoice_number' => 'INV-WA-1',
-        'receipt_hash' => 'hash-wa-1',
+        'merchant_name' => 'WhatsApp Parse Store',
+        'invoice_number' => 'INV-WA-PARSE-1',
+        'receipt_hash' => 'hash-wa-parse-1',
         'date_time' => $bounds['start']->copy()->addDays(3),
         'subtotal' => 20.00,
         'total_tax' => 0.00,
         'total_amount' => 20.00,
         'currency' => 'MYR',
         'source' => 'whatsapp',
+        'image_path' => 'receipts/wa_parse.jpg',
         'status' => 'parsed',
+    ]);
+
+    Invoice::create([
+        'merchant_name' => 'WhatsApp Manual Store',
+        'invoice_number' => 'INV-WA-MAN-1',
+        'receipt_hash' => 'hash-wa-man-1',
+        'date_time' => $bounds['start']->copy()->addDays(3)->addHour(),
+        'subtotal' => 12.00,
+        'total_tax' => 0.00,
+        'total_amount' => 12.00,
+        'currency' => 'MYR',
+        'source' => 'whatsapp',
+        'image_path' => null,
+        'status' => 'reviewed',
     ]);
 
     Invoice::create([
@@ -1099,6 +1114,7 @@ test('receipts by source groups counts, spend, and mom by upload channel', funct
         'total_amount' => 99.00,
         'currency' => 'MYR',
         'source' => 'whatsapp',
+        'image_path' => 'receipts/wa_pending.jpg',
         'status' => 'pending',
     ]);
 
@@ -1119,25 +1135,72 @@ test('receipts by source groups counts, spend, and mom by upload channel', funct
 
     $sources = analyticsForMonth($targetMonth)->receiptsBySource();
 
-    expect($sources)->toHaveCount(3);
+    expect($sources)->toHaveCount(4)
+        ->and($sources->pluck('key')->all())->toBe([
+            'whatsapp_parse',
+            'whatsapp_manual',
+            'google_drive',
+            'manual',
+        ]);
 
-    $manual = $sources->firstWhere('key', 'manual');
-    $whatsapp = $sources->firstWhere('key', 'whatsapp');
+    $whatsappParse = $sources->firstWhere('key', 'whatsapp_parse');
+    $whatsappManual = $sources->firstWhere('key', 'whatsapp_manual');
     $drive = $sources->firstWhere('key', 'google_drive');
+    $manual = $sources->firstWhere('key', 'manual');
 
-    expect($manual->label)->toBe('Manual')
-        ->and($manual->receipt_count)->toBe(2)
-        ->and($manual->total_spent)->toBe(80.0)
-        ->and($manual->receipt_share_percent)->toBe(50.0)
-        ->and($manual->mom_change['delta'])->toBe(1.0);
+    expect($whatsappParse->label)->toBe('WhatsApp (Parse)')
+        ->and($whatsappParse->receipt_count)->toBe(1)
+        ->and($whatsappParse->total_spent)->toBe(20.0)
+        ->and($whatsappParse->receipt_share_percent)->toBe(20.0);
 
-    expect($whatsapp->label)->toBe('WhatsApp')
-        ->and($whatsapp->receipt_count)->toBe(1)
-        ->and($whatsapp->total_spent)->toBe(20.0)
-        ->and($whatsapp->receipt_share_percent)->toBe(25.0);
+    expect($whatsappManual->label)->toBe('WhatsApp (Manual)')
+        ->and($whatsappManual->receipt_count)->toBe(1)
+        ->and($whatsappManual->total_spent)->toBe(12.0)
+        ->and($whatsappManual->receipt_share_percent)->toBe(20.0);
 
     expect($drive->label)->toBe('Google Drive')
         ->and($drive->receipt_count)->toBe(1)
         ->and($drive->total_spent)->toBe(10.0)
-        ->and($drive->receipt_share_percent)->toBe(25.0);
+        ->and($drive->receipt_share_percent)->toBe(20.0);
+
+    expect($manual->label)->toBe('Manual Upload')
+        ->and($manual->receipt_count)->toBe(2)
+        ->and($manual->total_spent)->toBe(80.0)
+        ->and($manual->receipt_share_percent)->toBe(40.0)
+        ->and($manual->mom_change['delta'])->toBe(1.0);
+});
+
+test('receipts by source includes empty upload channels when month has data', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->format('Y-m');
+    $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
+
+    Invoice::create([
+        'merchant_name' => 'WhatsApp Only',
+        'invoice_number' => 'INV-WA-ONLY',
+        'receipt_hash' => 'hash-wa-only',
+        'date_time' => $bounds['start']->copy()->addDay(),
+        'subtotal' => 25.00,
+        'total_tax' => 0.00,
+        'total_amount' => 25.00,
+        'currency' => 'MYR',
+        'source' => 'whatsapp',
+        'image_path' => 'receipts/wa_only.jpg',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $sources = analyticsForMonth($targetMonth)->receiptsBySource();
+
+    expect($sources)->toHaveCount(4);
+
+    expect($sources->firstWhere('key', 'whatsapp_parse')->receipt_count)->toBe(1);
+    expect($sources->firstWhere('key', 'whatsapp_manual')->receipt_count)->toBe(0)
+        ->and($sources->firstWhere('key', 'whatsapp_manual')->label)->toBe('WhatsApp (Manual)');
+    expect($sources->firstWhere('key', 'google_drive')->receipt_count)->toBe(0)
+        ->and($sources->firstWhere('key', 'google_drive')->label)->toBe('Google Drive');
+    expect($sources->firstWhere('key', 'manual')->receipt_count)->toBe(0)
+        ->and($sources->firstWhere('key', 'manual')->label)->toBe('Manual Upload');
 });
