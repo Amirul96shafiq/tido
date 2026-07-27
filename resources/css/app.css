@@ -2677,6 +2677,68 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     overflow-wrap: anywhere;
 }
 
+/*
+ * Flash toast auto-dismiss timer — fills L→R over notification duration.
+ * Markup injected by App\Filament\Notifications\Notification.
+ */
+.fi-no-notification:not(.fi-inline) {
+    position: relative;
+}
+
+.tido-no-timer {
+    pointer-events: none;
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 0.1875rem;
+    overflow: hidden;
+}
+
+.tido-no-timer-bar {
+    height: 100%;
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: left center;
+    animation: tido-no-timer-ltr var(--tido-no-duration, 6s) linear forwards;
+    @apply bg-primary-500;
+}
+
+.fi-status-success .tido-no-timer-bar {
+    @apply bg-success-500;
+}
+
+.fi-status-warning .tido-no-timer-bar {
+    @apply bg-warning-500;
+}
+
+.fi-status-danger .tido-no-timer-bar {
+    @apply bg-danger-500;
+}
+
+.fi-status-info .tido-no-timer-bar {
+    @apply bg-info-500;
+}
+
+.fi-status-gray .tido-no-timer-bar {
+    @apply bg-gray-400 dark:bg-gray-500;
+}
+
+@keyframes tido-no-timer-ltr {
+    from {
+        transform: scaleX(0);
+    }
+
+    to {
+        transform: scaleX(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tido-no-timer {
+        display: none;
+    }
+}
+
 .fi-no-database .fi-no-database-toolbar {
     @apply mt-3 flex w-full items-center gap-3;
 }
