@@ -131,6 +131,19 @@ class SpendingByLabel extends ChartWidget
                                     parts.push(`#${rank} of ${labelCount} labels`);
                                 }
 
+                                const data = Array.isArray(dataset.data) ? dataset.data : [];
+                                const chartTotal = data.reduce(
+                                    (sum, value) => sum + (Number(value) || 0),
+                                    0,
+                                );
+                                const sliceValue = Number(data[index] ?? 0);
+
+                                if (chartTotal > 0) {
+                                    const share = (sliceValue / chartTotal) * 100;
+
+                                    parts.push(`${share.toFixed(1)}% of spending`);
+                                }
+
                                 const receipts = dataset.receiptCounts?.[index];
 
                                 if (receipts !== undefined) {
