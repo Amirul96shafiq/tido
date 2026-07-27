@@ -18,6 +18,8 @@ use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\VerticalAlignment;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\HtmlString;
 use Livewire\Attributes\Url;
 
 class Dashboard extends BaseDashboard
@@ -130,6 +132,22 @@ class Dashboard extends BaseDashboard
     public function getDashboardView(): string
     {
         return $this->dashboardView;
+    }
+
+    public function getTitle(): string|Htmlable
+    {
+        $label = 'Finances';
+
+        foreach (self::viewTabs() as $tab) {
+            if ($tab['view'] === $this->dashboardView) {
+                $label = $tab['label'];
+                break;
+            }
+        }
+
+        return new HtmlString(
+            'Dashboard - <span class="text-primary-600 dark:text-primary-400">'.e($label).'</span>'
+        );
     }
 
     public function setDashboardView(string $view): void

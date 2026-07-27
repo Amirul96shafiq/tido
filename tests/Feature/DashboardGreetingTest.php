@@ -123,6 +123,7 @@ test('dashboard header exposes finances training health and task view tabs', fun
 
     $this->get(Dashboard::getUrl())
         ->assertSuccessful()
+        ->assertSee('Dashboard - <span class="text-primary-600 dark:text-primary-400">Finances</span>', false)
         ->assertSee('tido-dashboard-view-tabs', false)
         ->assertSee('Focus:', false)
         ->assertSee('aria-label="Finances"', false)
@@ -139,6 +140,45 @@ test('dashboard header exposes finances training health and task view tabs', fun
         ->assertDontSee('wire:click="mountAction(\'profile\')"', false)
         ->assertDontSee('wire:click="mountAction(\'changelogs\')"', false);
 });
+
+test('dashboard title follows the active focus view', function (string $view, string $title) {
+    Carbon::setTestNow(Carbon::parse('2026-07-16 09:00:00', 'Asia/Kuala_Lumpur'));
+
+    $user = User::factory()
+        ->withWhatsAppPhone('60123456789')
+        ->create([
+            'name' => 'Ada',
+            'display_name' => 'Ada',
+            'timezone' => 'Asia/Kuala_Lumpur',
+        ]);
+
+    $this->actingAs($user);
+
+    $page = Livewire::test(Dashboard::class)
+        ->assertSet('dashboardView', Dashboard::VIEW_FINANCES);
+
+    expect((string) $page->instance()->getTitle())
+        ->toBe('Dashboard - <span class="text-primary-600 dark:text-primary-400">Finances</span>');
+
+    $page->call('setDashboardView', $view)
+        ->assertSet('dashboardView', $view)
+        ->assertSee($title, false);
+
+    expect((string) $page->instance()->getTitle())->toBe($title);
+})->with([
+    'training' => [
+        Dashboard::VIEW_TRAINING,
+        'Dashboard - <span class="text-primary-600 dark:text-primary-400">Training</span>',
+    ],
+    'health' => [
+        Dashboard::VIEW_HEALTH,
+        'Dashboard - <span class="text-primary-600 dark:text-primary-400">Health</span>',
+    ],
+    'task' => [
+        Dashboard::VIEW_TASK,
+        'Dashboard - <span class="text-primary-600 dark:text-primary-400">Task</span>',
+    ],
+]);
 
 afterEach(function () {
     Carbon::setTestNow();

@@ -31,10 +31,8 @@ trait PrependsHomeBreadcrumb
                 : $this->getTitle();
 
             if ($label instanceof Htmlable) {
-                $label = $label->toHtml();
-            }
-
-            if (filled($label)) {
+                $breadcrumbs[] = $label;
+            } elseif (filled($label)) {
                 $breadcrumbs[] = (string) $label;
             }
         }
