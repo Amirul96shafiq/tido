@@ -7,8 +7,10 @@ use App\Filament\Pages\Dashboard;
 use App\Helpers\GitHelper;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Filament\Livewire\Topbar;
 use Filament\Notifications\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -26,14 +28,50 @@ test('user menu orders profile changelogs notifications and logout', function ()
 
     expect($items['profile']->getIcon())->toBe('heroicon-o-user');
     expect($items['profile']->getSort())->toBeGreaterThanOrEqual(0);
-    expect($items['changelogs']->getLabel())->toBe('Changelogs');
+    expect($items['changelogs']->getLabel())->toBe('Changelogs 🡥');
     expect($items['changelogs']->getSort())->toBeGreaterThan($items['profile']->getSort());
-    expect($items['notifications']->getLabel())->toBe('Notifications');
+    expect($items['notifications']->getLabel())->toBe('Notifications 🡥');
     expect($items['notifications']->getIcon())->toBe('heroicon-o-bell');
     expect($items['notifications']->getSort())->toBeGreaterThan($items['changelogs']->getSort());
     expect($items['logout']->getSort())->toBeGreaterThan($items['notifications']->getSort());
     expect($items['logout']->getIcon())->toBe('heroicon-o-arrow-right-start-on-rectangle');
     expect($items['logout']->getColor())->toBe('danger');
+    expect($items['logout']->isConfirmationRequired())->toBeTrue();
+    expect($items['logout']->getModalHeading())->toBe('Sign out');
+    expect($items['logout']->getModalDescription())->toBe('Are you sure you want to sign out of your account?');
+    expect($items['logout']->getModalSubmitActionLabel())->toBe('Sign out');
+    expect($items['logout']->hasAction())->toBeTrue();
+    expect($items['logout']->getUrl())->toBeNull();
+});
+
+test('user menu logout confirmation signs out after confirm', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $this->actingAs($user);
+
+    Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+    Livewire::test(Topbar::class)
+        ->callAction('logout')
+        ->assertRedirect(route('filament.admin.auth.login'));
+
+    $this->assertGuest();
+
+    Notification::assertNotified('Signed out successfully');
+});
+
+test('user menu logout mounts confirmation without signing out', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $this->actingAs($user);
+
+    Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+    Livewire::test(Topbar::class)
+        ->mountAction('logout')
+        ->assertMountedActionModalSee('Are you sure you want to sign out of your account?');
+
+    $this->assertAuthenticatedAs($user);
 });
 
 test('user menu displays the app version and sidebar footer owns collapse controls', function () {

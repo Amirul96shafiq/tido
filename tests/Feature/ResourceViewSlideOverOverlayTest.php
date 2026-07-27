@@ -43,3 +43,17 @@ test('open filament modals lift above sticky form actions and panel chrome', fun
         ->toContain('z-index: 35;')
         ->toContain('z-index: 15;');
 });
+
+test('open topbar action modals lift above sidebar and user menu dropdown', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $block = Str::between(
+        $css,
+        '/* Topbar-hosted action modals',
+        '.fi-fo-file-upload-editor {',
+    );
+
+    expect($block)
+        ->toContain('.fi-topbar-ctn:has(.fi-modal.fi-modal-open:not([style*="display: none"]))')
+        ->toContain('z-index: 60 !important;');
+});
