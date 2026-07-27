@@ -121,7 +121,7 @@ No per-page JS registration is required once the hook classes are present.
 - **Bottom offset** uses `0.25rem` from the viewport bottom.
 - Veil is **fixed**, full width, only visible while `.tido-sticky-stuck`. Progressive dual-layer blur + slate/white tint avoids Chromium’s hard `backdrop-filter` mask cutoff.
 - Pin children stay sharp (`z-index: 1` above the veil).
-- SPA: JS re-binds on `livewire:navigated`.
+- SPA: JS re-binds on `livewire:navigated` and after Livewire `morphed` (in-page updates such as dashboard Focus tabs).
 
 ## Checklist for a new sticky bar
 

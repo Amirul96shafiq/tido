@@ -9,6 +9,7 @@ const STUCK_CLASS = 'tido-sticky-stuck';
 /** @type {Set<Element>} */
 const tracked = new Set();
 let rafId = null;
+let bindRafId = null;
 let listening = false;
 
 function findPins() {
@@ -56,6 +57,12 @@ function onScrollOrResize() {
 }
 
 function bind() {
+    for (const pin of [...tracked]) {
+        if (! document.contains(pin)) {
+            tracked.delete(pin);
+        }
+    }
+
     for (const pin of findPins()) {
         tracked.add(pin);
     }
@@ -77,6 +84,21 @@ function init() {
     bind();
 }
 
+/**
+ * Livewire morph (e.g. dashboard Focus tabs) replaces sticky pins without
+ * firing livewire:navigated — re-bind after the component finishes morphing.
+ */
+function scheduleBindAfterMorph() {
+    if (bindRafId !== null) {
+        return;
+    }
+
+    bindRafId = requestAnimationFrame(() => {
+        bindRafId = null;
+        init();
+    });
+}
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
@@ -84,3 +106,7 @@ if (document.readyState === 'loading') {
 }
 
 document.addEventListener('livewire:navigated', init);
+
+document.addEventListener('livewire:init', () => {
+    Livewire.hook('morphed', scheduleBindAfterMorph);
+});
