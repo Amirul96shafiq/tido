@@ -38,10 +38,20 @@ class OllamaProbe implements ServiceHealthProbe
                 );
             }
 
+            $names = collect($models)
+                ->map(fn (mixed $model): string => trim((string) data_get($model, 'name', '')))
+                ->filter()
+                ->values()
+                ->all();
+
+            $message = $names === []
+                ? '0 model(s) available.'
+                : count($names).' model(s) available: '.implode(', ', $names).'.';
+
             return new ServiceHealthResult(
                 status: ServiceHealthStatus::Operational,
                 latencyMs: $this->elapsedMs($startedAt),
-                meta: ['message' => count($models).' model(s) available.'],
+                meta: ['message' => $message],
             );
         } catch (Throwable $throwable) {
             return new ServiceHealthResult(

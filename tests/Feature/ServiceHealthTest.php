@@ -30,7 +30,23 @@ test('ollama probe returns operational when tags endpoint responds', function ()
     $result = app(OllamaProbe::class)->probe();
 
     expect($result->status)->toBe(ServiceHealthStatus::Operational)
-        ->and($result->message())->toContain('model');
+        ->and($result->message())->toBe('1 model(s) available: qwen2.5vl:7b.');
+});
+
+test('ollama probe lists multiple model names when present', function (): void {
+    Http::fake([
+        'http://ollama.test/api/tags' => Http::response([
+            'models' => [
+                ['name' => 'qwen2.5vl:7b'],
+                ['name' => 'llama3.2:latest'],
+            ],
+        ]),
+    ]);
+
+    $result = app(OllamaProbe::class)->probe();
+
+    expect($result->status)->toBe(ServiceHealthStatus::Operational)
+        ->and($result->message())->toBe('2 model(s) available: qwen2.5vl:7b, llama3.2:latest.');
 });
 
 test('ollama probe returns down when tags endpoint fails', function (): void {
