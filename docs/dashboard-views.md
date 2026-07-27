@@ -26,7 +26,7 @@ Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD 
 
 ## Behaviour
 
-1. Header tabs are **icon-only** with Filament Tippy tooltips + `aria-label` (see [`ui-tooltips.md`](ui-tooltips.md)).
+1. Header tabs are **icon-only** with a leading **Focus:** label, Filament Tippy tooltips + `aria-label` (see [`ui-tooltips.md`](ui-tooltips.md)).
 2. While `setDashboardView('…')` is in flight, that tab’s icon swaps to `<x-filament::loading-indicator>` (`wire:loading` / `wire:target`).
 3. **Finances** renders month filter + widget section nav + widgets (sticky toolbar — [`ui-sticky-blur.md`](ui-sticky-blur.md), [`ui-section-nav.md`](ui-section-nav.md)).
 4. Non-finances views that return meta from `comingSoonDashboardContent()` render the shared coming-soon partial (no finance widgets).

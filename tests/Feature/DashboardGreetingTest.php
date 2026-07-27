@@ -124,6 +124,7 @@ test('dashboard header exposes finances training health and task view tabs', fun
     $this->get(Dashboard::getUrl())
         ->assertSuccessful()
         ->assertSee('tido-dashboard-view-tabs', false)
+        ->assertSee('Focus:', false)
         ->assertSee('aria-label="Finances"', false)
         ->assertSee('aria-label="Training"', false)
         ->assertSee('aria-label="Health"', false)

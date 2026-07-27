@@ -4,6 +4,8 @@
 @endphp
 
 <div class="tido-dashboard-view-tabs">
+    <span class="tido-dashboard-view-tabs__label" aria-hidden="true">Focus:</span>
+
     <x-filament::tabs label="Dashboard views">
         @foreach ($tabs as $tab)
             <x-filament::tabs.item
