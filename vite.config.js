@@ -52,6 +52,7 @@ export default defineConfig({
                 'resources/js/sticky-blur-veil.js',
                 'resources/js/select-value-marquee.js',
                 'resources/js/receipt-image-preview.js',
+                'resources/js/notification-swipe-dismiss.js',
             ],
             refresh: true,
         }),

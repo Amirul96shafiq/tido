@@ -62,3 +62,25 @@ test('flash toast css slides in from right and out to right', function () {
         ->toContain('@apply translate-x-12 opacity-0;')
         ->toContain('@apply translate-x-12 opacity-0 scale-100;');
 });
+
+test('flash toast css enables swipe-right dismiss on all breakpoints', function () {
+    $css = file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('touch-action: pan-y;')
+        ->toContain('.tido-no-swiping')
+        ->toContain('.tido-no-settling')
+        ->toContain('cursor: grab;')
+        ->toContain('cursor: grabbing;');
+});
+
+test('notification swipe dismiss is registered as a panel vite asset', function () {
+    $vite = file_get_contents(base_path('vite.config.js'));
+    $provider = file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
+
+    expect($vite)
+        ->toContain('resources/js/notification-swipe-dismiss.js')
+        ->and($provider)
+        ->toContain("'notification-swipe-dismiss'")
+        ->toContain("Vite::asset('resources/js/notification-swipe-dismiss.js')");
+});
