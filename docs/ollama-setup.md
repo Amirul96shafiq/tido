@@ -42,7 +42,7 @@ Optional: start Ollama via `npm run dev:ollama` if the service is not already ru
 
 ## Step 2: Pull the vision model
 
-tido defaults to **`qwen2.5vl:7b`** for receipt OCR on an RTX 4060 (8 GB) or similar. `minicpm-v` remains a lighter fallback.
+tido defaults to **`qwen2.5vl:7b`** for receipt OCR on an RTX 4060 (8 GB) or similar.
 
 ```bash
 ollama pull qwen2.5vl:7b
