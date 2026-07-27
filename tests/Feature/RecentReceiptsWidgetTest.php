@@ -131,17 +131,17 @@ test('recent receipts widget defaults to five records per page', function () {
         ->and($table->getPaginationPageOptions())->toBe([5, 10, 25, 50]);
 });
 
-test('recent receipts widget excludes invoices uploaded outside selected month', function () {
+test('recent receipts widget excludes invoices with receipt date outside selected month', function () {
     $inMonth = Invoice::factory()->create([
-        'merchant_name' => 'This Month Upload',
-        'date_time' => now()->subYear(),
-        'created_at' => now(),
+        'merchant_name' => 'This Month Receipt',
+        'date_time' => now(),
+        'created_at' => now()->subYear(),
     ]);
 
     $outOfMonth = Invoice::factory()->create([
-        'merchant_name' => 'Last Year Upload',
-        'date_time' => now(),
-        'created_at' => now()->subYear(),
+        'merchant_name' => 'Last Year Receipt',
+        'date_time' => now()->subYear(),
+        'created_at' => now(),
     ]);
 
     Livewire::test(RecentReceipts::class)
@@ -150,11 +150,11 @@ test('recent receipts widget excludes invoices uploaded outside selected month',
         ->assertCanNotSeeTableRecords([$outOfMonth]);
 });
 
-test('recent receipts widget includes uploads whose receipt date is outside selected month', function () {
+test('recent receipts widget includes late uploads whose receipt date is in selected month', function () {
     $lateUpload = Invoice::factory()->create([
         'merchant_name' => 'Tenaga Nasional',
-        'date_time' => now()->subMonths(2),
-        'created_at' => now(),
+        'date_time' => now(),
+        'created_at' => now()->addMonths(2),
     ]);
 
     Livewire::test(RecentReceipts::class)

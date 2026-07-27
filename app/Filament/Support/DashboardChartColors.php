@@ -12,6 +12,8 @@ final class DashboardChartColors
 
     public const PRIMARY = '#FFD07D';
 
+    public const PRIMARY_MID = '#FFB347';
+
     public const PRIMARY_DARK = '#FFA524';
 
     public const UNKNOWN = '#9CA3AF';
@@ -30,7 +32,8 @@ final class DashboardChartColors
         return match ($source) {
             'manual' => self::PRIMARY_LIGHT,
             'google_drive' => self::PRIMARY,
-            'whatsapp' => self::PRIMARY_DARK,
+            'whatsapp_manual' => self::PRIMARY_MID,
+            'whatsapp', 'whatsapp_parse' => self::PRIMARY_DARK,
             default => self::UNKNOWN,
         };
     }

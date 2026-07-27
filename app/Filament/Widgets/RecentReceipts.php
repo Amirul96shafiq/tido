@@ -45,7 +45,7 @@ class RecentReceipts extends BaseWidget
             ->heading('Recent Receipts ('.$this->formatSelectedMonth('F Y').')')
             ->query(
                 Invoice::query()
-                    ->whereBetween('created_at', [$bounds['start'], $bounds['end']]),
+                    ->inPeriod($bounds['start'], $bounds['end']),
             )
             ->defaultSort('created_at', 'desc')
             ->poll('5s')
@@ -150,7 +150,7 @@ class RecentReceipts extends BaseWidget
                     ->preload(),
             ])
             ->emptyStateHeading('No receipts')
-            ->emptyStateDescription('No receipts uploaded this month.')
+            ->emptyStateDescription('No receipts recorded for this month.')
             ->emptyStateIcon('heroicon-o-receipt-percent')
             ->emptyStateActions([
                 Action::make('uploadReceipts')
