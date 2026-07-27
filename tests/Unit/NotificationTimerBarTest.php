@@ -52,3 +52,13 @@ test('inline toast omits timer bar', function () {
         ->not->toContain('tido-no-timer')
         ->not->toContain('tido-no-timer-bar');
 });
+
+test('flash toast css slides in from right and out to right', function () {
+    $css = file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.fi-no.fi-align-end .fi-no-notification:not(.fi-inline).fi-transition-enter-start')
+        ->toContain('.fi-no.fi-align-end .fi-no-notification:not(.fi-inline).fi-transition-leave-end')
+        ->toContain('@apply translate-x-12 opacity-0;')
+        ->toContain('@apply translate-x-12 opacity-0 scale-100;');
+});

@@ -2739,6 +2739,20 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     }
 }
 
+/*
+ * Flash toast slide: enter from right (R→L), leave to right (L→R).
+ * Overrides Filament’s leave scale-95 so dismiss matches the enter axis.
+ */
+.fi-no.fi-align-end .fi-no-notification:not(.fi-inline).fi-transition-enter-start,
+.fi-no.fi-align-right .fi-no-notification:not(.fi-inline).fi-transition-enter-start {
+    @apply translate-x-12 opacity-0;
+}
+
+.fi-no.fi-align-end .fi-no-notification:not(.fi-inline).fi-transition-leave-end,
+.fi-no.fi-align-right .fi-no-notification:not(.fi-inline).fi-transition-leave-end {
+    @apply translate-x-12 opacity-0 scale-100;
+}
+
 .fi-no-database .fi-no-database-toolbar {
     @apply mt-3 flex w-full items-center gap-3;
 }
