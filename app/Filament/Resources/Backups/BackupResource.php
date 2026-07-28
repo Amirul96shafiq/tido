@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Backups;
 
 use App\Enums\BackupType;
+use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Resources\Backups\Pages\ListBackups;
 use App\Filament\Resources\Backups\Tables\BackupsTable;
 use App\Models\Backup;
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class BackupResource extends Resource
 {
+    use RequiresPrimaryHouseholdAccess;
+
     protected static ?string $model = Backup::class;
 
     protected static ?string $recordTitleAttribute = 'filename';

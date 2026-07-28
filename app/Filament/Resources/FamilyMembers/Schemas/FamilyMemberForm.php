@@ -83,12 +83,6 @@ class FamilyMemberForm
                                     })
                                     ->dehydrateStateUsing(fn (?string $state): ?string => PhoneNumber::normalize($state)),
 
-                                TextInput::make('email')
-                                    ->label('Email')
-                                    ->email()
-                                    ->maxLength(255)
-                                    ->placeholder('name@example.com'),
-
                                 Select::make('relationship')
                                     ->label('Relationship')
                                     ->options(FamilyRelationship::options())
@@ -138,7 +132,9 @@ class FamilyMemberForm
                                         }
 
                                         try {
-                                            return Carbon::parse($state)->format('d/m/Y');
+                                            return Carbon::parse($state)
+                                                ->timezone((string) config('app.timezone'))
+                                                ->format('d/m/Y');
                                         } catch (\Throwable) {
                                             return $state;
                                         }
@@ -242,6 +238,12 @@ class FamilyMemberForm
                                     ->label('Include in contact allowlist')
                                     ->helperText('When enabled, this number can talk to the WhatsApp bot and send receipts.')
                                     ->default(true)
+                                    ->columnSpanFull(),
+
+                                Toggle::make('login_enabled')
+                                    ->label('Allow panel login via WhatsApp OTP')
+                                    ->helperText('When enabled, this person can sign in to /admin with their WhatsApp number.')
+                                    ->default(false)
                                     ->columnSpanFull(),
                             ]),
                     ]),

@@ -56,6 +56,8 @@ return [
         'public_app_url' => env('WHATSAPP_PUBLIC_APP_URL'),
         // Intended WhatsApp Linked Devices label (must match Evolution CONFIG_SESSION_PHONE_CLIENT).
         'device_label' => env('CONFIG_SESSION_PHONE_CLIENT', 'tido App (Evolution API)'),
+        'login_dev_otp' => env('WHATSAPP_LOGIN_DEV_OTP'),
+        'login_dev_phones' => env('WHATSAPP_LOGIN_DEV_PHONES'),
     ],
 
 ];

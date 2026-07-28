@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\Auth\EditProfile;
+use App\Models\FamilyMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -70,6 +71,29 @@ test('profile section nav items match sectionNavItems helper', function () {
         ['label' => 'Notifications', 'id' => 'notifications'],
         ['label' => 'Danger Zone', 'id' => 'danger-zone'],
     ]);
+});
+
+test('family member profile hides account and security section and nav', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'phone' => '60115554444',
+    ]);
+    $user = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    $this->actingAs($user);
+
+    expect(EditProfile::sectionNavItems())->toBe([
+        ['label' => 'Personalize', 'id' => 'personalize'],
+        ['label' => 'Active Sessions', 'id' => 'active-sessions'],
+        ['label' => 'Regional Preferences', 'id' => 'regional-preferences'],
+        ['label' => 'Notifications', 'id' => 'notifications'],
+    ]);
+
+    Livewire::test(EditProfile::class)
+        ->assertSuccessful()
+        ->assertDontSee('Account &amp; Security', false)
+        ->assertDontSee('#account-security', false)
+        ->assertDontSee('Change Password')
+        ->assertDontSee('Danger Zone');
 });
 
 test('profile section nav smooth scrolls on tab click', function () {

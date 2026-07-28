@@ -3,9 +3,14 @@
 ])
 
 @php
+    use App\Models\User;
+
     $name = filament()->getUserName($user);
     $phone = filled($user->phone ?? null) ? (string) $user->phone : null;
-    $email = filled($user->email ?? null) ? (string) $user->email : null;
+    $isFamilyMember = $user instanceof User && $user->isFamilyMember();
+    $email = (! $isFamilyMember && filled($user->email ?? null))
+        ? (string) $user->email
+        : null;
 @endphp
 
 <div {{ $attributes->class(['fi-user-menu-profile-preview']) }}>

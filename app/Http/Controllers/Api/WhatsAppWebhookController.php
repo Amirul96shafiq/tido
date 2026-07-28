@@ -74,7 +74,8 @@ class WhatsAppWebhookController extends Controller
 
     /**
      * Profile WhatsApp numbers plus allowlisted Family Members may trigger
-     * bot replies / receipt import. Panel/OTP stay on the Profile phone only.
+     * bot replies / receipt import. Panel OTP login uses users.phone for primary
+     * and login-enabled Family Members.
      */
     protected function isAllowedSender(string $senderNumber): bool
     {

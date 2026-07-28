@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Support\PhoneNumber;
+use App\Support\WhatsAppLoginDevOtp;
 use App\Support\WhatsAppMessage;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -48,7 +49,9 @@ class WhatsAppLoginOtpService
             throw new RuntimeException('Too many code requests. Try again later.');
         }
 
-        $code = (string) random_int(100000, 999999);
+        $code = WhatsAppLoginDevOtp::isDevPhone($phone)
+            ? (string) WhatsAppLoginDevOtp::code()
+            : (string) random_int(100000, 999999);
 
         Cache::put($this->otpKey($user), [
             'hash' => hash('sha256', $code),
@@ -58,6 +61,10 @@ class WhatsAppLoginOtpService
         $endsAt = time() + self::RESEND_COOLDOWN_SECONDS;
         Cache::put($this->cooldownKey($user), $endsAt, self::RESEND_COOLDOWN_SECONDS);
         Cache::put($hourlyKey, $hourlyCount + 1, now()->addHour());
+
+        if (WhatsAppLoginDevOtp::isDevPhone($phone)) {
+            return true;
+        }
 
         $sent = $this->whatsApp->sendMessage(
             $phone,

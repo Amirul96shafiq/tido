@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Labels;
 
 use App\Enums\LabelType;
+use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Filament\Resources\Labels\Pages\EditLabel;
 use App\Filament\Resources\Labels\Pages\ListLabels;
@@ -20,6 +21,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class LabelResource extends Resource
 {
+    use RequiresPrimaryHouseholdAccess;
+
     protected static ?string $model = Label::class;
 
     protected static ?string $recordTitleAttribute = 'name';

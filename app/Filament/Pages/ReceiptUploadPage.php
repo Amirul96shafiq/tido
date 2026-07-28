@@ -107,9 +107,12 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
     public function save(): void
     {
         $state = $this->form->getState();
+        $user = auth()->user();
 
         foreach ($state['receipts'] as $filePath) {
-            Invoice::create([
+            $familyMemberId = $user?->family_member_id;
+
+            $invoice = Invoice::create([
                 'merchant_name' => 'Pending AI Extraction...',
                 'date_time' => now(),
                 'subtotal' => 0.00,
@@ -117,6 +120,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                 'total_amount' => 0.00,
                 'currency' => 'MYR',
                 'source' => 'manual',
+                'family_member_id' => $familyMemberId,
                 'status' => 'pending',
                 'image_path' => $filePath,
                 'original_filename' => basename($filePath),
@@ -207,6 +211,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
             ])
             ->recordActions([
                 EditAction::make()
+                    ->visible(fn (Invoice $record): bool => InvoiceResource::canEdit($record))
                     ->url(
                         fn (Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record]),
                     ),

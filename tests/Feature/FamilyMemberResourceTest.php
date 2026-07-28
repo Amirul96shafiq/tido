@@ -49,7 +49,6 @@ test('user can create a family member on the allowlist', function () {
             'name' => 'Sibling',
             'display_name' => 'Sib',
             'phone' => '+60116330785',
-            'email' => 'sibling@example.com',
             'relationship' => 'sibling',
             'date_of_birth' => '15/05/1990',
             'allowlist_enabled' => true,
@@ -62,7 +61,6 @@ test('user can create a family member on the allowlist', function () {
     expect($member)->not->toBeNull()
         ->and($member->phone)->toBe('60116330785')
         ->and($member->display_name)->toBe('Sib')
-        ->and($member->email)->toBe('sibling@example.com')
         ->and($member->relationship?->value)->toBe('sibling')
         ->and($member->date_of_birth?->format('Y-m-d'))->toBe('1990-05-15')
         ->and($member->allowlist_enabled)->toBeTrue()
@@ -87,20 +85,6 @@ test('user can create a family member with a custom other relationship', functio
         ->and($member->relationship?->value)->toBe('other')
         ->and($member->relationship_other)->toBe('Godfather')
         ->and($member->relationshipLabel())->toBe('Godfather');
-});
-
-test('email is optional when creating a family member', function () {
-    Livewire::test(CreateFamilyMember::class)
-        ->fillForm([
-            'name' => 'Cousin',
-            'phone' => '+60116330791',
-            'email' => null,
-            'allowlist_enabled' => true,
-        ])
-        ->call('create')
-        ->assertHasNoFormErrors();
-
-    expect(FamilyMember::query()->where('name', 'Cousin')->first()?->email)->toBeNull();
 });
 
 test('custom relationship is required when other is selected', function () {
@@ -138,6 +122,26 @@ test('user can upload a family member profile photo', function () {
         ->and($member->getFilamentAvatarUrl())->not->toBeNull();
 
     Storage::disk('public')->assertExists($member->avatar_url);
+});
+
+test('edit form preserves date of birth across asia kuala lumpur timezone serialization', function () {
+    config(['app.timezone' => 'Asia/Kuala_Lumpur']);
+
+    $member = FamilyMember::factory()->create([
+        'name' => 'Spouse',
+        'phone' => '60116330799',
+        'date_of_birth' => '1988-11-11',
+    ]);
+
+    Livewire::test(EditFamilyMember::class, ['record' => $member->getRouteKey()])
+        ->assertFormSet([
+            'date_of_birth' => '11/11/1988',
+        ]);
+
+    $member->refresh();
+
+    expect($member->date_of_birth?->format('Y-m-d'))->toBe('1988-11-11')
+        ->and($member->attributesToArray()['date_of_birth'])->toBe('1988-11-11');
 });
 
 test('user can replace a family member profile photo on edit', function () {
@@ -179,20 +183,6 @@ test('disabled family member is excluded from allowlist', function () {
         ->assertHasNoFormErrors();
 
     expect(PhoneNumber::isAllowedWhatsAppSender('60111111111'))->toBeFalse();
-});
-
-test('list page can toggle allowlist column', function () {
-    $member = FamilyMember::factory()->create([
-        'phone' => '60111111111',
-        'allowlist_enabled' => true,
-    ]);
-
-    Livewire::test(ListFamilyMembers::class)
-        ->assertSuccessful()
-        ->call('updateTableColumnState', 'allowlist_enabled', (string) $member->getKey(), false);
-
-    expect($member->fresh()->allowlist_enabled)->toBeFalse()
-        ->and(PhoneNumber::isAllowedWhatsAppSender('60111111111'))->toBeFalse();
 });
 
 test('family members table has view slide-over action', function () {

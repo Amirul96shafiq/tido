@@ -6,6 +6,7 @@ namespace App\Filament\Widgets\Concerns;
 
 use App\Filament\Support\DashboardMonthAnalytics;
 use App\Filament\Support\DashboardMonthPeriod;
+use App\Support\DashboardSpenderScope;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
@@ -44,7 +45,10 @@ trait InteractsWithDashboardMonth
 
     protected function analytics(): DashboardMonthAnalytics
     {
-        return new DashboardMonthAnalytics($this->getSelectedMonthBounds());
+        return new DashboardMonthAnalytics(
+            $this->getSelectedMonthBounds(),
+            DashboardSpenderScope::fromFilters($this->pageFilters),
+        );
     }
 
     protected function previousMonthLabel(): string

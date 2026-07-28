@@ -8,12 +8,13 @@ use App\Filament\Concerns\HasDashboardGreeting;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Filament\Widgets\MonthlySpendingOverview;
+use App\Support\DashboardSpenderScope;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Schemas\Components\Actions;
-use Filament\Schemas\Components\Flex;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
@@ -125,7 +126,18 @@ class Dashboard extends BaseDashboard
         if (! isset($this->filters['month'])) {
             $this->filters = [
                 'month' => DashboardMonthPeriod::fromFilters($this->filters)->format('Y-m'),
+                'spender' => DashboardSpenderScope::defaultFor()->value(),
             ];
+        }
+
+        if (! isset($this->filters['spender'])) {
+            $this->filters['spender'] = DashboardSpenderScope::defaultFor()->value();
+        }
+
+        $allowedSpenders = array_keys(DashboardSpenderScope::filterOptionsFor());
+
+        if (! in_array($this->filters['spender'], $allowedSpenders, true)) {
+            $this->filters['spender'] = DashboardSpenderScope::defaultFor()->value();
         }
     }
 
@@ -165,12 +177,47 @@ class Dashboard extends BaseDashboard
         $this->updatedFilters();
     }
 
+    public function dashboardFiltersAreDefault(): bool
+    {
+        $defaultSpender = DashboardSpenderScope::defaultFor()->value();
+        $currentSpender = $this->filters['spender'] ?? $defaultSpender;
+
+        return DashboardMonthPeriod::isCurrentMonth(
+            DashboardMonthPeriod::fromFilters($this->filters ?? []),
+        ) && $currentSpender === $defaultSpender;
+    }
+
+    public function dashboardFiltersActiveCount(): int
+    {
+        $count = 0;
+
+        if (! DashboardMonthPeriod::isCurrentMonth(
+            DashboardMonthPeriod::fromFilters($this->filters ?? []),
+        )) {
+            $count++;
+        }
+
+        $defaultSpender = DashboardSpenderScope::defaultFor()->value();
+        $currentSpender = $this->filters['spender'] ?? $defaultSpender;
+
+        if ($currentSpender !== $defaultSpender) {
+            $count++;
+        }
+
+        return $count;
+    }
+
     /**
      * @return array<Action>
      */
     protected function getHeaderActions(): array
     {
         return [];
+    }
+
+    public function getFiltersFormContentComponent(): Component
+    {
+        return View::make('filament.pages.partials.dashboard-filters-dropdown');
     }
 
     public function getFiltersForm(): Schema
@@ -193,63 +240,66 @@ class Dashboard extends BaseDashboard
         return $schema
             ->columns(1)
             ->components([
-                Flex::make([
-                    Select::make('month')
-                        ->label('Month')
-                        ->options(DashboardMonthPeriod::options())
-                        ->searchable()
-                        ->native(false)
-                        ->required()
-                        ->selectablePlaceholder(false)
-                        ->grow(false)
-                        ->prefixAction(
-                            Action::make('previousMonth')
-                                ->label('Previous month')
-                                ->tooltip('Previous month')
-                                ->icon('heroicon-m-chevron-left')
-                                ->iconButton()
-                                ->action(function (): void {
-                                    $this->shiftDashboardMonth(-1);
-                                }),
-                            isInline: true,
-                        )
-                        ->suffixAction(
-                            Action::make('nextMonth')
-                                ->label('Next month')
-                                ->tooltip('Next month')
-                                ->icon('heroicon-m-chevron-right')
-                                ->iconButton()
-                                ->disabled(fn (): bool => DashboardMonthPeriod::isCurrentMonth(
-                                    DashboardMonthPeriod::fromFilters($this->filters),
-                                ))
-                                ->action(function (): void {
-                                    $this->shiftDashboardMonth(1);
-                                }),
-                            isInline: true,
-                        )
-                        ->extraFieldWrapperAttributes([
-                            'class' => 'fi-dashboard-month-filter',
-                        ]),
-                    Actions::make([
-                        Action::make('resetMonth')
-                            ->label('Reset')
-                            ->tooltip('Reset')
-                            ->icon('heroicon-o-arrow-path')
-                            ->button()
-                            ->hiddenLabel()
-                            ->color('primary')
+                Select::make('month')
+                    ->label('Month')
+                    ->options(DashboardMonthPeriod::options())
+                    ->searchable()
+                    ->native(false)
+                    ->required()
+                    ->selectablePlaceholder(false)
+                    ->prefixAction(
+                        Action::make('previousMonth')
+                            ->label('Previous month')
+                            ->tooltip('Previous month')
+                            ->icon('heroicon-m-chevron-left')
+                            ->iconButton()
+                            ->action(function (): void {
+                                $this->shiftDashboardMonth(-1);
+                            }),
+                        isInline: true,
+                    )
+                    ->suffixAction(
+                        Action::make('nextMonth')
+                            ->label('Next month')
+                            ->tooltip('Next month')
+                            ->icon('heroicon-m-chevron-right')
+                            ->iconButton()
                             ->disabled(fn (): bool => DashboardMonthPeriod::isCurrentMonth(
                                 DashboardMonthPeriod::fromFilters($this->filters),
                             ))
                             ->action(function (): void {
-                                $this->resetDashboardMonth();
+                                $this->shiftDashboardMonth(1);
                             }),
-                    ])
-                        ->key('resetMonthActions')
-                        ->grow(false)
-                        ->fullWidth(false)
-                        ->verticalAlignment(VerticalAlignment::End),
-                ])->extraAttributes(['class' => 'items-end gap-5']),
+                        isInline: true,
+                    )
+                    ->extraFieldWrapperAttributes([
+                        'class' => 'fi-dashboard-month-filter',
+                    ]),
+                Select::make('spender')
+                    ->label('From')
+                    ->options(fn (): array => DashboardSpenderScope::filterOptionsFor())
+                    ->native(false)
+                    ->required()
+                    ->selectablePlaceholder(false)
+                    ->extraFieldWrapperAttributes([
+                        'class' => 'fi-dashboard-spender-filter',
+                    ]),
+                Actions::make([
+                    Action::make('resetMonth')
+                        ->label('Reset')
+                        ->tooltip('Reset')
+                        ->icon('heroicon-o-arrow-path')
+                        ->button()
+                        ->hiddenLabel()
+                        ->color('primary')
+                        ->disabled(fn (): bool => $this->dashboardFiltersAreDefault())
+                        ->action(function (): void {
+                            $this->resetDashboardFilters();
+                        }),
+                ])
+                    ->key('resetMonthActions')
+                    ->fullWidth(false)
+                    ->verticalAlignment(VerticalAlignment::Start),
             ]);
     }
 
@@ -269,24 +319,11 @@ class Dashboard extends BaseDashboard
             ->components([
                 Group::make([
                     Group::make([
-                        Flex::make([
-                            Group::make([
-                                $this->getFiltersFormContentComponent(),
-                            ])->extraAttributes([
-                                'class' => 'tido-dashboard-sticky-toolbar-filters',
+                        View::make('filament.pages.partials.dashboard-sticky-toolbar')
+                            ->viewData(fn (): array => [
+                                'sections' => $this->widgetNavItems(),
+                                'ariaLabel' => 'Dashboard widgets',
                             ]),
-                            Group::make([
-                                View::make('filament.schemas.components.section-nav')
-                                    ->viewData(fn (): array => [
-                                        'sections' => $this->widgetNavItems(),
-                                        'ariaLabel' => 'Dashboard widgets',
-                                    ]),
-                            ])->extraAttributes([
-                                'class' => 'tido-dashboard-sticky-toolbar-nav',
-                            ]),
-                        ])->extraAttributes([
-                            'class' => 'tido-dashboard-sticky-toolbar',
-                        ]),
                     ])->extraAttributes([
                         'class' => 'tido-sticky-marker tido-sticky-marker--top',
                     ]),
@@ -328,6 +365,7 @@ class Dashboard extends BaseDashboard
     protected function shiftDashboardMonth(int $months): void
     {
         $this->filters = [
+            ...($this->filters ?? []),
             'month' => DashboardMonthPeriod::fromFilters($this->filters)
                 ->copy()
                 ->addMonths($months)
@@ -337,10 +375,11 @@ class Dashboard extends BaseDashboard
         $this->updatedFilters();
     }
 
-    protected function resetDashboardMonth(): void
+    protected function resetDashboardFilters(): void
     {
         $this->filters = [
             'month' => now()->format('Y-m'),
+            'spender' => DashboardSpenderScope::defaultFor()->value(),
         ];
 
         $this->updatedFilters();

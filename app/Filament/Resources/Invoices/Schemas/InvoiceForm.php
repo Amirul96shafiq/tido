@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Invoices\Schemas;
 
+use App\Enums\HouseholdRole;
 use App\Enums\LabelType;
 use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Support\SelectValueMarquee;
 use App\Helpers\MoneyDisplay;
+use App\Models\FamilyMember;
+use App\Models\User;
+use App\Support\HouseholdAccess;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
@@ -63,7 +67,7 @@ class InvoiceForm
                                             ->default(now()),
                                     ]),
 
-                                Grid::make(4)
+                                Grid::make(3)
                                     ->schema([
                                         TextInput::make('subtotal')
                                             ->myr()
@@ -78,15 +82,15 @@ class InvoiceForm
                                         TextInput::make('discount_total')
                                             ->myr()
                                             ->default(0.00),
+                                    ]),
 
+                                Grid::make(3)
+                                    ->schema([
                                         TextInput::make('rounding_amount')
                                             ->myr()
                                             ->default(0.00)
                                             ->helperText('May be negative'),
-                                    ]),
 
-                                Grid::make(4)
-                                    ->schema([
                                         TextInput::make('total_amount')
                                             ->myr()
                                             ->required()
@@ -102,6 +106,10 @@ class InvoiceForm
                                             ->wrapOptionLabels(false)
                                             ->extraAttributes(SelectValueMarquee::extraAttributes()),
 
+                                    ]),
+
+                                Grid::make(3)
+                                    ->schema([
                                         Select::make('payment_method_id')
                                             ->label('Payment Method')
                                             ->relationship('paymentMethod', 'name')
@@ -117,6 +125,23 @@ class InvoiceForm
                                             ->default('manual')
                                             ->searchable()
                                             ->required(),
+
+                                        Select::make('family_member_id')
+                                            ->label('Uploaded By')
+                                            ->options(fn (): array => FamilyMember::query()
+                                                ->orderBy('name')
+                                                ->get(['id', 'name', 'display_name'])
+                                                ->mapWithKeys(fn (FamilyMember $familyMember): array => [
+                                                    $familyMember->getKey() => filled($familyMember->display_name)
+                                                        ? (string) $familyMember->display_name
+                                                        : (string) $familyMember->name,
+                                                ])
+                                                ->all())
+                                            ->placeholder(fn (): string => self::primaryUsername())
+                                            ->searchable()
+                                            ->nullable()
+                                            ->disabled(fn (): bool => HouseholdAccess::isFamilyMember())
+                                            ->dehydrated(fn (): bool => ! HouseholdAccess::isFamilyMember()),
                                     ]),
                             ]),
 
@@ -254,5 +279,25 @@ class InvoiceForm
                             ]),
                     ]),
             ]);
+    }
+
+    protected static function primaryUsername(): string
+    {
+        $primaryUser = User::query()
+            ->where(function ($query): void {
+                $query
+                    ->where('household_role', HouseholdRole::Primary->value)
+                    ->orWhereNull('household_role');
+            })
+            ->orderBy('id')
+            ->first(['name', 'display_name']);
+
+        if (! $primaryUser instanceof User) {
+            return 'Primary username';
+        }
+
+        return filled($primaryUser->display_name)
+            ? (string) $primaryUser->display_name
+            : (string) $primaryUser->name;
     }
 }

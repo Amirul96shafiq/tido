@@ -9,8 +9,10 @@ use App\Helpers\MoneyDisplay;
 use App\Helpers\UserDateDisplay;
 use App\Http\Responses\LogoutResponse;
 use App\Listeners\RegisterScheduledBackupCatalog;
+use App\Models\FamilyMember;
 use App\Models\Invoice;
 use App\Models\User;
+use App\Observers\FamilyMemberObserver;
 use App\Observers\InvoiceObserver;
 use App\View\Components\ButtonComponent;
 use BladeUI\Icons\Factory;
@@ -63,6 +65,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Invoice::observe(InvoiceObserver::class);
+        FamilyMember::observe(FamilyMemberObserver::class);
 
         Event::listen(BackupWasSuccessful::class, RegisterScheduledBackupCatalog::class);
 

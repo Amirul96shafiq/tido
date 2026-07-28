@@ -8,6 +8,7 @@ use App\Enums\EvolutionApiConnectionEvent;
 use App\Enums\EvolutionApiConnectMethod;
 use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
+use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
@@ -39,6 +40,7 @@ class EvolutionApiPage extends Page implements HasTable
     use HasSectionNav;
     use InteractsWithTable;
     use PrependsHomeBreadcrumb;
+    use RequiresPrimaryHouseholdAccess;
 
     protected static ?string $slug = 'evolution-api';
 

@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Invoices\Tables;
 
+use App\Enums\HouseholdRole;
 use App\Filament\Pages\ReceiptUploadPage;
+use App\Filament\Resources\Invoices\InvoiceResource;
+use App\Models\FamilyMember;
 use App\Models\Invoice;
+use App\Models\User;
 use App\Services\ReceiptReparseService;
+use App\Support\HouseholdAccess;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -79,6 +84,21 @@ class InvoicesTable
                         default => 'gray',
                     }),
 
+                TextColumn::make('uploaded_by')
+                    ->label('Uploaded By')
+                    ->state(function (Invoice $record): string {
+                        $familyMember = $record->familyMember;
+
+                        if ($familyMember === null) {
+                            return self::primaryUsername();
+                        }
+
+                        return filled($familyMember->display_name)
+                            ? (string) $familyMember->display_name
+                            : (string) $familyMember->name;
+                    })
+                    ->toggleable(),
+
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -117,6 +137,20 @@ class InvoicesTable
                     ])
                     ->searchable(),
 
+                SelectFilter::make('family_member_id')
+                    ->label('Uploaded By')
+                    ->options(fn (): array => FamilyMember::query()
+                        ->orderBy('name')
+                        ->get(['id', 'name', 'display_name'])
+                        ->mapWithKeys(fn (FamilyMember $familyMember): array => [
+                            $familyMember->getKey() => filled($familyMember->display_name)
+                                ? (string) $familyMember->display_name
+                                : (string) $familyMember->name,
+                        ])
+                        ->all())
+                    ->searchable()
+                    ->preload(),
+
                 SelectFilter::make('payment_method_id')
                     ->label('Payment Method')
                     ->relationship('paymentMethod', 'name')
@@ -143,6 +177,9 @@ class InvoicesTable
                 TrashedFilter::make()
                     ->searchable(),
             ])
+            ->checkIfRecordIsSelectableUsing(
+                fn (Invoice $record): bool => HouseholdAccess::canMutateInvoice($record),
+            )
             ->recordActions([
                 ViewAction::make()
                     ->slideOver()
@@ -155,7 +192,9 @@ class InvoicesTable
                     ->requiresConfirmation()
                     ->modalHeading('Reparse receipt')
                     ->modalDescription('Clear line items, reset status to pending, and queue OCR again.')
-                    ->visible(fn (Invoice $record): bool => filled($record->image_path) && Storage::exists((string) $record->image_path))
+                    ->visible(fn (Invoice $record): bool => InvoiceResource::canEdit($record)
+                        && filled($record->image_path)
+                        && Storage::exists((string) $record->image_path))
                     ->action(function (Invoice $record, ReceiptReparseService $reparseService): void {
                         $reparseService->reparse($record);
 
@@ -168,9 +207,12 @@ class InvoicesTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete'),
+                    ForceDeleteBulkAction::make()
+                        ->authorizeIndividualRecords('forceDelete'),
+                    RestoreBulkAction::make()
+                        ->authorizeIndividualRecords('restore'),
                 ]),
             ])
             ->emptyStateHeading('No invoices yet')
@@ -183,5 +225,25 @@ class InvoicesTable
                     ->url(ReceiptUploadPage::getUrl())
                     ->button(),
             ]);
+    }
+
+    protected static function primaryUsername(): string
+    {
+        $primaryUser = User::query()
+            ->where(function (Builder $query): void {
+                $query
+                    ->where('household_role', HouseholdRole::Primary->value)
+                    ->orWhereNull('household_role');
+            })
+            ->orderBy('id')
+            ->first(['name', 'display_name']);
+
+        if (! $primaryUser instanceof User) {
+            return 'Primary username';
+        }
+
+        return filled($primaryUser->display_name)
+            ? (string) $primaryUser->display_name
+            : (string) $primaryUser->name;
     }
 }

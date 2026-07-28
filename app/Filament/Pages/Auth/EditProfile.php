@@ -13,6 +13,7 @@ use App\Notifications\VerifyEmailChange;
 use App\Services\AccountDangerZoneService;
 use App\Services\ActiveSessionService;
 use App\Support\FilamentAuthLogout;
+use App\Support\HouseholdAccess;
 use App\Support\PhoneNumber;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -90,7 +91,7 @@ class EditProfile extends BaseEditProfile implements HasTable
      */
     public static function sectionNavItems(): array
     {
-        return [
+        $items = [
             ['label' => 'Personalize', 'id' => 'personalize'],
             ['label' => 'Account & Security', 'id' => 'account-security'],
             ['label' => 'Active Sessions', 'id' => 'active-sessions'],
@@ -98,6 +99,15 @@ class EditProfile extends BaseEditProfile implements HasTable
             ['label' => 'Notifications', 'id' => 'notifications'],
             ['label' => 'Danger Zone', 'id' => 'danger-zone'],
         ];
+
+        if (! HouseholdAccess::isPrimary()) {
+            return array_values(array_filter(
+                $items,
+                fn (array $item): bool => ! in_array($item['id'], ['account-security', 'danger-zone'], true),
+            ));
+        }
+
+        return $items;
     }
 
     public function getFormContentComponent(): Component
@@ -199,6 +209,7 @@ class EditProfile extends BaseEditProfile implements HasTable
 
                         Section::make('Account & Security')
                             ->id('account-security')
+                            ->visible(fn (): bool => HouseholdAccess::isPrimary())
                             ->schema([
                                 $this->getEmailFormComponent(),
                                 Toggle::make('change_password')
@@ -246,13 +257,15 @@ class EditProfile extends BaseEditProfile implements HasTable
                             ->schema([
                                 Toggle::make('notify_budget_alerts')
                                     ->label('Budget Alerts')
-                                    ->helperText('Receive in-app notifications when spending exceeds your budget threshold.'),
+                                    ->helperText('Receive in-app notifications when spending exceeds your budget threshold.')
+                                    ->visible(fn (): bool => HouseholdAccess::isPrimary()),
                                 Toggle::make('notify_profile_updates')
                                     ->label('Profile Update Alerts')
                                     ->helperText('Receive in-app notifications when your profile settings change.'),
                                 Toggle::make('notify_evolution_api')
                                     ->label('Evolution API')
-                                    ->helperText('Receive in-app notifications when Evolution API connects or disconnects.'),
+                                    ->helperText('Receive in-app notifications when Evolution API connects or disconnects.')
+                                    ->visible(fn (): bool => HouseholdAccess::isPrimary()),
                                 Toggle::make('notify_email_digest')
                                     ->label('Email Digest')
                                     ->helperText('Coming soon — preference saved for future digest emails.'),
@@ -324,7 +337,9 @@ class EditProfile extends BaseEditProfile implements HasTable
                                         }
 
                                         try {
-                                            return Carbon::parse($state)->format('d/m/Y');
+                                            return Carbon::parse($state)
+                                                ->timezone((string) config('app.timezone'))
+                                                ->format('d/m/Y');
                                         } catch (\Throwable) {
                                             return $state;
                                         }
@@ -491,6 +506,7 @@ class EditProfile extends BaseEditProfile implements HasTable
             ->id('danger-zone')
             ->key('dangerZone')
             ->collapsed(true)
+            ->visible(fn (): bool => HouseholdAccess::isPrimary())
             ->extraAttributes(['class' => 'fi-danger-zone-section'])
             ->schema([
                 Toggle::make('enable_reset_data')

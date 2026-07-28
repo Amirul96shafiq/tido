@@ -13,6 +13,7 @@ use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Models\Backup;
 use App\Models\Budget;
+use App\Models\FamilyMember;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Label;
@@ -75,6 +76,20 @@ test('destination search finds profile account and security section', function (
     expect($match)->not->toBeNull()
         ->and($match->url)->toEndWith('#account-security')
         ->and($match->details)->toBe(['Page' => 'Profile']);
+});
+
+test('destination search hides account and security for family members', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'phone' => '60118887777',
+    ]);
+    $user = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    $this->actingAs($user);
+
+    $results = AdminDestinationSearch::search('Account Security', GlobalSearchResults::make());
+    $sections = collect($results->getCategories()->get('Sections', []));
+
+    expect($sections->first(fn ($result): bool => $result->title === 'Account & Security'))->toBeNull();
 });
 
 test('destination search finds profile active sessions section', function () {

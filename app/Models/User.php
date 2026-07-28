@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\HouseholdRole;
 use App\Enums\UserDateFormat;
 use App\Support\PhoneNumber;
 use Carbon\CarbonInterface;
@@ -13,6 +14,7 @@ use Filament\Panel;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
@@ -28,6 +30,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
         'password',
         'avatar_url',
         'phone',
+        'household_role',
+        'family_member_id',
         'date_of_birth',
         'timezone',
         'locale',
@@ -40,6 +44,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
     ];
 
     protected $attributes = [
+        'household_role' => 'primary',
         'stylized_background_enabled' => true,
     ];
 
@@ -52,8 +57,9 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
     {
         return [
             'email_verified_at' => 'datetime',
-            'date_of_birth' => 'date',
+            'date_of_birth' => 'date:Y-m-d',
             'password' => 'hashed',
+            'household_role' => HouseholdRole::class,
             'notify_budget_alerts' => 'boolean',
             'notify_profile_updates' => 'boolean',
             'notify_email_digest' => 'boolean',
@@ -64,7 +70,36 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return true;
+        if ($this->isPrimary()) {
+            return true;
+        }
+
+        if (! $this->isFamilyMember() || $this->family_member_id === null) {
+            return false;
+        }
+
+        $member = $this->familyMember;
+
+        return $member instanceof FamilyMember && $member->login_enabled;
+    }
+
+    public function isPrimary(): bool
+    {
+        return $this->household_role === HouseholdRole::Primary
+            || $this->household_role === null;
+    }
+
+    public function isFamilyMember(): bool
+    {
+        return $this->household_role === HouseholdRole::FamilyMember;
+    }
+
+    /**
+     * @return BelongsTo<FamilyMember, $this>
+     */
+    public function familyMember(): BelongsTo
+    {
+        return $this->belongsTo(FamilyMember::class);
     }
 
     /**

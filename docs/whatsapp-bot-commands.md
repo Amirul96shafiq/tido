@@ -1,6 +1,6 @@
 # WhatsApp bot commands
 
-Allowlisted WhatsApp senders (Profile phone + allowlisted Family Members) can interact with the **tido** bot via text and media. This doc is the full command / keyword reference.
+Allowlisted WhatsApp senders (Profile phone + allowlisted Family Members) can interact with the **tido** bot via text and media. WhatsApp receipts are attributed to the sender (Primary vs Family Member). Family members with **login enabled** can sign in to `/admin` with their WhatsApp OTP (limited panel access).
 
 **In chat:** type `help` for a short overview, `manual` for manual invoice format, or `finance others` for the finance keyword list.
 

@@ -52,7 +52,8 @@ Default login (seeded): `admin@tido.local` / `password`.
 21. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
 22. Service Status (health probes, uptime UI): `docs/service-status.md`
 23. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
-24. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+24. Household access (attribution, family login, invoice ACL): `docs/household-access.md`
+25. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 
@@ -60,14 +61,15 @@ Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage)
 
 ```
 app/
-  Models/           Invoice, InvoiceItem, Label, PaymentMethod, Budget, User, ContentDraft, Backup, ServiceHealthSample
+  Models/           Invoice, InvoiceItem, Label, PaymentMethod, Budget, FamilyMember, User, ContentDraft, Backup, ServiceHealthSample
   Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support, Livewire
-  Services/         Ollama, GoogleDrive, WhatsApp, BudgetAlert, SpendingForecast, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
+  Services/         Ollama, GoogleDrive, WhatsApp, BudgetAlert, SpendingForecast, FamilyMemberLoginService, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
   Jobs/             ExtractReceiptDataJob, ProcessManualWhatsAppInvoiceJob, ParseManualWhatsAppInvoiceJob, SyncGoogleDriveJob, …
-  Observers/        InvoiceObserver
+  Observers/        InvoiceObserver, FamilyMemberObserver
+  Policies/         InvoicePolicy (household mutate ACL)
   Prompts/          ReceiptExtractionPrompt, ManualInvoiceLabelPrompt
-  Support/          ManualWhatsAppInvoiceParser, WhatsAppMessage, …
-  Enums/            LabelType, UserLocale, UserDateFormat, MonitoredService, ServiceHealthStatus
+  Support/          HouseholdAccess, DashboardSpenderScope, InvoiceSenderAttribution, ManualWhatsAppInvoiceParser, WhatsAppMessage, …
+  Enums/            HouseholdRole, LabelType, UserLocale, UserDateFormat, MonitoredService, ServiceHealthStatus
   Http/Controllers/ Api webhooks, BackupDownload, GuestRestoreBackup
 routes/
   web.php           / → /admin, changelog JSON, backup download / guest restore
@@ -86,14 +88,15 @@ docs/               architecture + integration setup + this file
 |---------|----------------|
 | Category | **`Label`** model / `labels` table (UI: **Label** / **Labels**) |
 | Payment method | **`PaymentMethod`** model / `payment_methods` table (Settings CRUD; AI/WhatsApp via aliases) |
-| Family member | **`FamilyMember`** model / `family_members` table (Settings CRUD; bot allowlist when enabled) |
+| Family member | **`FamilyMember`** model / `family_members` table (Settings CRUD; bot allowlist + optional panel login) |
+| Uploaded By | Invoice `family_member_id` — null = Primary; set from WhatsApp sender or acting user — `docs/household-access.md` |
 | Money | `decimal(12,2)`, cast `decimal:2`, currency `MYR`, UI `RM` |
 | Duplicate | `receipt_hash` SHA-256 of number + datetime + total |
 | Statuses | `pending`, `parsed`, `reviewed`, `requires_manual_review`, `failed` |
-| Auth | Filament session; no Spatie Permission; no tenancy |
-| Panel | `AdminPanelProvider` only — path `admin` |
+| Auth | Filament session; household roles (`HouseholdRole`); no Spatie Permission; no tenancy |
+| Panel | `AdminPanelProvider` only — path `admin`; family members get limited Finances access |
 
-Relationships: Invoice `hasMany` InvoiceItems; InvoiceItem `belongsTo` Label; Budget `belongsTo` Label.
+Relationships: Invoice `hasMany` InvoiceItems; Invoice `belongsTo` FamilyMember (optional); InvoiceItem `belongsTo` Label; Budget `belongsTo` Label; FamilyMember `hasOne` login User.
 
 ## 5. How to implement features
 
@@ -130,9 +133,10 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 16. Backups / Danger Zone / guest restore: see `docs/backups-and-danger-zone.md` — do not invent a second restore path
 17. Service Status / health probes: see `docs/service-status.md`
 18. Profile Active Sessions (embedded table, revoke): see `docs/active-sessions.md`
-19. Sticky section tabs + smooth scroll: see `docs/ui-section-nav.md`
-20. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas
-21. Custom Blade toggles: use `get_component_color_classes(ToggleComponent::class, …)` and Profile `inlineLabel` markup — see `docs/ui-custom-toggles.md`
+19. Household access / family login / invoice ACL: see `docs/household-access.md`
+20. Sticky section tabs + smooth scroll: see `docs/ui-section-nav.md`
+21. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas
+22. Custom Blade toggles: use `get_component_color_classes(ToggleComponent::class, …)` and Profile `inlineLabel` markup — see `docs/ui-custom-toggles.md`
 
 ### Integrations
 
@@ -162,7 +166,8 @@ php artisan test --compact --filter=YourTest
 - Calling categories “Category” in new code — use **Label** / **Labels**
 - Hitting live Ollama in Pest — use `Http::fake()`
 - Forgetting `InvoiceObserver` side effects when creating invoices in tests — use `Queue::fake()` or `unsetEventDispatcher()` when appropriate
-- Assuming multi-user isolation — app is single-tenant
+- Assuming multi-tenancy or Spatie roles — single household; use `HouseholdAccess` / `HouseholdRole` — see `docs/household-access.md`
+- Letting family members mutate invoices they did not upload — gate with `HouseholdAccess::canMutateInvoice()` / `InvoicePolicy`
 - Editing architecture (new ingestion channel, schema) without checking `docs/system-architecture.md`
 - Horizon `viewHorizon` gate empty allowlist — configure before relying on `/horizon` in prod
 - Using browser `title=` on icon CTAs instead of Filament Tippy — see `docs/ui-tooltips.md`

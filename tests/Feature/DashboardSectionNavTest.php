@@ -133,6 +133,26 @@ test('dashboard widgets expose section anchor ids', function () {
         ->not->toContain('id="overview"');
 });
 
+test('dashboard sticky toolbar uses quarter three-quarter grid layout', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.tido-dashboard-sticky-toolbar {')
+        ->toContain('grid-template-columns: minmax(0, 1fr) minmax(0, 3fr)')
+        ->toContain('tido-dashboard-sticky-toolbar-filters')
+        ->toContain('tido-dashboard-sticky-toolbar-nav');
+});
+
+test('dashboard renders sticky toolbar partial with filter and section nav', function () {
+    Livewire::test(Dashboard::class)
+        ->assertSuccessful()
+        ->assertSee('tido-dashboard-sticky-toolbar', false)
+        ->assertSee('tido-dashboard-sticky-toolbar-filters', false)
+        ->assertSee('tido-dashboard-sticky-toolbar-nav', false)
+        ->assertSee('tido-dashboard-filters-dropdown', false)
+        ->assertSee('tido-section-nav', false);
+});
+
 test('dashboard stat card anchors include scroll margin offset', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 

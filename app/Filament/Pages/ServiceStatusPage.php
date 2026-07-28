@@ -7,6 +7,7 @@ namespace App\Filament\Pages;
 use App\Enums\ServiceHealthStatus;
 use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
+use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Services\Health\ServiceHealthAggregator;
 use App\Services\Health\ServiceHealthRecorder;
 use Filament\Actions\Action;
@@ -20,6 +21,7 @@ class ServiceStatusPage extends Page
 {
     use HasSectionNav;
     use PrependsHomeBreadcrumb;
+    use RequiresPrimaryHouseholdAccess;
 
     protected static ?string $slug = 'service-status';
 

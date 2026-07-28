@@ -9,6 +9,8 @@ use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Invoices\Schemas\InvoiceForm;
+use App\Models\User;
+use App\Support\HouseholdAccess;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateInvoice extends CreateRecord
@@ -33,6 +35,25 @@ class CreateInvoice extends CreateRecord
     protected function contentDraftKey(): string
     {
         return 'invoice-create';
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        if (! HouseholdAccess::isFamilyMember()) {
+            return $data;
+        }
+
+        $user = HouseholdAccess::user();
+
+        if ($user instanceof User && $user->family_member_id !== null) {
+            $data['family_member_id'] = $user->family_member_id;
+        }
+
+        return $data;
     }
 
     /**

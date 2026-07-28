@@ -23,7 +23,6 @@ class FamilyMemberFactory extends Factory
             'name' => $this->faker->name(),
             'display_name' => $this->faker->optional()->firstName(),
             'phone' => '60'.$local,
-            'email' => $this->faker->optional()->safeEmail(),
             'relationship' => $this->faker->optional()->randomElement(
                 array_filter(
                     FamilyRelationship::cases(),
@@ -47,6 +46,13 @@ class FamilyMemberFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'allowlist_enabled' => false,
+        ]);
+    }
+
+    public function loginEnabled(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'login_enabled' => true,
         ]);
     }
 
