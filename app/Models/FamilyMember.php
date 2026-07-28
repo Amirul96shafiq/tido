@@ -42,7 +42,7 @@ class FamilyMember extends Model
         'allowlist_enabled' => 'boolean',
         'login_enabled' => 'boolean',
         'relationship' => FamilyRelationship::class,
-        'date_of_birth' => 'date',
+        'date_of_birth' => 'date:Y-m-d',
     ];
 
     /**

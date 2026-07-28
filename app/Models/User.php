@@ -57,7 +57,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
     {
         return [
             'email_verified_at' => 'datetime',
-            'date_of_birth' => 'date',
+            'date_of_birth' => 'date:Y-m-d',
             'password' => 'hashed',
             'household_role' => HouseholdRole::class,
             'notify_budget_alerts' => 'boolean',

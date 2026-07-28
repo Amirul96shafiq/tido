@@ -140,6 +140,26 @@ test('user can upload a family member profile photo', function () {
     Storage::disk('public')->assertExists($member->avatar_url);
 });
 
+test('edit form preserves date of birth across asia kuala lumpur timezone serialization', function () {
+    config(['app.timezone' => 'Asia/Kuala_Lumpur']);
+
+    $member = FamilyMember::factory()->create([
+        'name' => 'Spouse',
+        'phone' => '60116330799',
+        'date_of_birth' => '1988-11-11',
+    ]);
+
+    Livewire::test(EditFamilyMember::class, ['record' => $member->getRouteKey()])
+        ->assertFormSet([
+            'date_of_birth' => '11/11/1988',
+        ]);
+
+    $member->refresh();
+
+    expect($member->date_of_birth?->format('Y-m-d'))->toBe('1988-11-11')
+        ->and($member->attributesToArray()['date_of_birth'])->toBe('1988-11-11');
+});
+
 test('user can replace a family member profile photo on edit', function () {
     Storage::fake('public');
 

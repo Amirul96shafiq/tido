@@ -336,7 +336,9 @@ class EditProfile extends BaseEditProfile implements HasTable
                                         }
 
                                         try {
-                                            return Carbon::parse($state)->format('d/m/Y');
+                                            return Carbon::parse($state)
+                                                ->timezone((string) config('app.timezone'))
+                                                ->format('d/m/Y');
                                         } catch (\Throwable) {
                                             return $state;
                                         }
