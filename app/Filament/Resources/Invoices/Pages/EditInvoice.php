@@ -60,7 +60,9 @@ class EditInvoice extends EditRecord
                     /** @var Invoice $record */
                     $record = $this->getRecord();
 
-                    return filled($record->image_path) && Storage::exists((string) $record->image_path);
+                    return InvoiceResource::canEdit($record)
+                        && filled($record->image_path)
+                        && Storage::exists((string) $record->image_path);
                 })
                 ->action(function (ReceiptReparseService $reparseService): void {
                     /** @var Invoice $record */

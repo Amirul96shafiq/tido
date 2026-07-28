@@ -6,10 +6,12 @@ namespace App\Filament\Resources\Invoices\Tables;
 
 use App\Enums\HouseholdRole;
 use App\Filament\Pages\ReceiptUploadPage;
+use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Models\FamilyMember;
 use App\Models\Invoice;
 use App\Models\User;
 use App\Services\ReceiptReparseService;
+use App\Support\HouseholdAccess;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -175,6 +177,9 @@ class InvoicesTable
                 TrashedFilter::make()
                     ->searchable(),
             ])
+            ->checkIfRecordIsSelectableUsing(
+                fn (Invoice $record): bool => HouseholdAccess::canMutateInvoice($record),
+            )
             ->recordActions([
                 ViewAction::make()
                     ->slideOver()
@@ -187,7 +192,9 @@ class InvoicesTable
                     ->requiresConfirmation()
                     ->modalHeading('Reparse receipt')
                     ->modalDescription('Clear line items, reset status to pending, and queue OCR again.')
-                    ->visible(fn (Invoice $record): bool => filled($record->image_path) && Storage::exists((string) $record->image_path))
+                    ->visible(fn (Invoice $record): bool => InvoiceResource::canEdit($record)
+                        && filled($record->image_path)
+                        && Storage::exists((string) $record->image_path))
                     ->action(function (Invoice $record, ReceiptReparseService $reparseService): void {
                         $reparseService->reparse($record);
 
@@ -200,9 +207,12 @@ class InvoicesTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete'),
+                    ForceDeleteBulkAction::make()
+                        ->authorizeIndividualRecords('forceDelete'),
+                    RestoreBulkAction::make()
+                        ->authorizeIndividualRecords('restore'),
                 ]),
             ])
             ->emptyStateHeading('No invoices yet')

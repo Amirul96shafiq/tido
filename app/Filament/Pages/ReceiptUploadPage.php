@@ -211,6 +211,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
             ])
             ->recordActions([
                 EditAction::make()
+                    ->visible(fn (Invoice $record): bool => InvoiceResource::canEdit($record))
                     ->url(
                         fn (Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record]),
                     ),

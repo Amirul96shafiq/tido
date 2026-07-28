@@ -11,6 +11,7 @@ use App\Filament\Support\SelectValueMarquee;
 use App\Helpers\MoneyDisplay;
 use App\Models\FamilyMember;
 use App\Models\User;
+use App\Support\HouseholdAccess;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
@@ -138,7 +139,9 @@ class InvoiceForm
                                                 ->all())
                                             ->placeholder(fn (): string => self::primaryUsername())
                                             ->searchable()
-                                            ->nullable(),
+                                            ->nullable()
+                                            ->disabled(fn (): bool => HouseholdAccess::isFamilyMember())
+                                            ->dehydrated(fn (): bool => ! HouseholdAccess::isFamilyMember()),
                                     ]),
                             ]),
 
