@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Invoices\Tables;
 
 use App\Filament\Pages\ReceiptUploadPage;
+use App\Models\FamilyMember;
 use App\Models\Invoice;
 use App\Services\ReceiptReparseService;
 use Filament\Actions\Action;
@@ -79,9 +80,19 @@ class InvoicesTable
                         default => 'gray',
                     }),
 
-                TextColumn::make('familyMember.name')
-                    ->label('Sender')
-                    ->placeholder('Primary')
+                TextColumn::make('uploaded_by')
+                    ->label('Uploaded By')
+                    ->state(function (Invoice $record): string {
+                        $familyMember = $record->familyMember;
+
+                        if ($familyMember === null) {
+                            return 'Primary username';
+                        }
+
+                        return filled($familyMember->display_name)
+                            ? (string) $familyMember->display_name
+                            : (string) $familyMember->name;
+                    })
                     ->toggleable(),
 
                 TextColumn::make('status')
@@ -123,8 +134,16 @@ class InvoicesTable
                     ->searchable(),
 
                 SelectFilter::make('family_member_id')
-                    ->label('Sender')
-                    ->relationship('familyMember', 'name')
+                    ->label('Uploaded By')
+                    ->options(fn (): array => FamilyMember::query()
+                        ->orderBy('name')
+                        ->get(['id', 'name', 'display_name'])
+                        ->mapWithKeys(fn (FamilyMember $familyMember): array => [
+                            $familyMember->getKey() => filled($familyMember->display_name)
+                                ? (string) $familyMember->display_name
+                                : (string) $familyMember->name,
+                        ])
+                        ->all())
                     ->searchable()
                     ->preload(),
 

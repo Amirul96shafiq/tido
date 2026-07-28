@@ -120,12 +120,17 @@ class InvoiceForm
                                             ->required(),
 
                                         Select::make('family_member_id')
-                                            ->label('Sender')
+                                            ->label('Uploaded By')
                                             ->options(fn (): array => FamilyMember::query()
                                                 ->orderBy('name')
-                                                ->pluck('name', 'id')
+                                                ->get(['id', 'name', 'display_name'])
+                                                ->mapWithKeys(fn (FamilyMember $familyMember): array => [
+                                                    $familyMember->getKey() => filled($familyMember->display_name)
+                                                        ? (string) $familyMember->display_name
+                                                        : (string) $familyMember->name,
+                                                ])
                                                 ->all())
-                                            ->placeholder('Primary')
+                                            ->placeholder('Primary username')
                                             ->searchable()
                                             ->nullable(),
                                     ]),
