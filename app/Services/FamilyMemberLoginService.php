@@ -29,12 +29,19 @@ class FamilyMemberLoginService
             ->first();
 
         if ($existingUser instanceof User) {
+            $email = $this->resolvedLoginEmail($member, $existingUser);
+
             $existingUser->update([
                 'name' => $member->name,
                 'display_name' => $member->display_name,
                 'phone' => $member->phone,
+                'email' => $email,
                 'avatar_url' => $member->avatar_url,
+                'date_of_birth' => $member->date_of_birth,
                 'household_role' => HouseholdRole::FamilyMember,
+                'email_verified_at' => $existingUser->email === $email
+                    ? $existingUser->email_verified_at
+                    : now(),
             ]);
 
             return $existingUser->fresh();
@@ -52,10 +59,11 @@ class FamilyMemberLoginService
         return User::query()->create([
             'name' => $member->name,
             'display_name' => $member->display_name,
-            'email' => $this->syntheticEmail($member),
+            'email' => $this->resolvedLoginEmail($member),
             'password' => Hash::make(Str::random(64)),
             'phone' => $member->phone,
             'avatar_url' => $member->avatar_url,
+            'date_of_birth' => $member->date_of_birth,
             'household_role' => HouseholdRole::FamilyMember,
             'family_member_id' => $member->id,
             'email_verified_at' => now(),
@@ -75,6 +83,23 @@ class FamilyMemberLoginService
             ->where('family_member_id', $member->id)
             ->where('household_role', HouseholdRole::FamilyMember)
             ->delete();
+    }
+
+    private function resolvedLoginEmail(FamilyMember $member, ?User $existingUser = null): string
+    {
+        if (filled($member->email)) {
+            $conflictQuery = User::query()->where('email', $member->email);
+
+            if ($existingUser instanceof User) {
+                $conflictQuery->where('id', '!=', $existingUser->id);
+            }
+
+            if (! $conflictQuery->exists()) {
+                return (string) $member->email;
+            }
+        }
+
+        return $this->syntheticEmail($member);
     }
 
     private function syntheticEmail(FamilyMember $member): string
