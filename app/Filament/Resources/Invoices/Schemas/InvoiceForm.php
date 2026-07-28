@@ -64,7 +64,7 @@ class InvoiceForm
                                             ->default(now()),
                                     ]),
 
-                                Grid::make(4)
+                                Grid::make(3)
                                     ->schema([
                                         TextInput::make('subtotal')
                                             ->myr()
@@ -79,15 +79,15 @@ class InvoiceForm
                                         TextInput::make('discount_total')
                                             ->myr()
                                             ->default(0.00),
+                                    ]),
 
+                                Grid::make(3)
+                                    ->schema([
                                         TextInput::make('rounding_amount')
                                             ->myr()
                                             ->default(0.00)
                                             ->helperText('May be negative'),
-                                    ]),
 
-                                Grid::make(4)
-                                    ->schema([
                                         TextInput::make('total_amount')
                                             ->myr()
                                             ->required()
@@ -103,6 +103,10 @@ class InvoiceForm
                                             ->wrapOptionLabels(false)
                                             ->extraAttributes(SelectValueMarquee::extraAttributes()),
 
+                                    ]),
+                                    
+                                Grid::make(3)
+                                    ->schema([
                                         Select::make('payment_method_id')
                                             ->label('Payment Method')
                                             ->relationship('paymentMethod', 'name')
