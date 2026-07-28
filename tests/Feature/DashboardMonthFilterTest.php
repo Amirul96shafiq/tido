@@ -43,6 +43,7 @@ test('dashboard renders filter dropdown trigger in sticky toolbar', function () 
         ->assertSee('tido-dashboard-filters-dropdown', false)
         ->assertSee('fi-dashboard-filters-trigger', false)
         ->assertSee('aria-label="Filters"', false)
+        ->assertSee('wire:ignore.self', false)
         ->assertSee('tido-sticky-marker--top', false)
         ->assertSee('tido-sticky-scope', false);
 });

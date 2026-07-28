@@ -9,6 +9,7 @@
     shift
     :flip="false"
     :width="Width::ExtraSmall"
+    :wire:key="$this->getId() . '.dashboard.filters'"
     class="tido-dashboard-filters-dropdown"
 >
     <x-slot name="trigger">
