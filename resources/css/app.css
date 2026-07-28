@@ -75,7 +75,9 @@ body::-webkit-scrollbar-track,
 .custom-scrollbar::-webkit-scrollbar-track,
 .fi-dropdown-panel::-webkit-scrollbar-track,
 .fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-track,
-.fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-track {
+.fi-no-database
+    .fi-modal-window-ctn
+    > .fi-modal-window::-webkit-scrollbar-track {
     background: transparent;
 }
 
@@ -86,7 +88,7 @@ body::-webkit-scrollbar-track,
  */
 @supports selector(::-webkit-scrollbar) {
     .fi-body::after {
-        content: '';
+        content: "";
         position: fixed;
         inset-block: 0;
         /* fixed is positioned against the layout viewport (excludes scrollbar),
@@ -115,7 +117,9 @@ body::-webkit-scrollbar-thumb,
 .custom-scrollbar::-webkit-scrollbar-thumb,
 .fi-dropdown-panel::-webkit-scrollbar-thumb,
 .fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,
-.fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb {
+.fi-no-database
+    .fi-modal-window-ctn
+    > .fi-modal-window::-webkit-scrollbar-thumb {
     background-color: rgba(156, 163, 175, 0.3);
     border-radius: 0;
 }
@@ -127,8 +131,12 @@ body::-webkit-scrollbar-thumb:hover,
 .fi-sidebar-nav::-webkit-scrollbar-thumb:hover,
 .custom-scrollbar::-webkit-scrollbar-thumb:hover,
 .fi-dropdown-panel::-webkit-scrollbar-thumb:hover,
-.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb:hover,
-.fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb:hover {
+.fi-changelog
+    .fi-modal-window-ctn
+    > .fi-modal-window::-webkit-scrollbar-thumb:hover,
+.fi-no-database
+    .fi-modal-window-ctn
+    > .fi-modal-window::-webkit-scrollbar-thumb:hover {
     background-color: rgba(156, 163, 175, 0.5);
 }
 
@@ -147,8 +155,14 @@ html.dark::-webkit-scrollbar-thumb,
 .dark .fi-sidebar-nav::-webkit-scrollbar-thumb,
 .dark .custom-scrollbar::-webkit-scrollbar-thumb,
 .dark .fi-dropdown-panel::-webkit-scrollbar-thumb,
-.dark .fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,
-.dark .fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb {
+.dark
+    .fi-changelog
+    .fi-modal-window-ctn
+    > .fi-modal-window::-webkit-scrollbar-thumb,
+.dark
+    .fi-no-database
+    .fi-modal-window-ctn
+    > .fi-modal-window::-webkit-scrollbar-thumb {
     background-color: rgba(51, 65, 85, 0.5);
 }
 
@@ -159,8 +173,14 @@ html.dark::-webkit-scrollbar-thumb:hover,
 .dark .fi-sidebar-nav::-webkit-scrollbar-thumb:hover,
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover,
 .dark .fi-dropdown-panel::-webkit-scrollbar-thumb:hover,
-.dark .fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb:hover,
-.dark .fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb:hover {
+.dark
+    .fi-changelog
+    .fi-modal-window-ctn
+    > .fi-modal-window::-webkit-scrollbar-thumb:hover,
+.dark
+    .fi-no-database
+    .fi-modal-window-ctn
+    > .fi-modal-window::-webkit-scrollbar-thumb:hover {
     background-color: rgba(71, 85, 105, 0.7);
 }
 
@@ -241,7 +261,10 @@ html.dark::-webkit-scrollbar-thumb:hover,
 }
 
 .dark .fi-body {
-    background-color: var(--tido-bg-color-dark, var(--color-slate-800)) !important;
+    background-color: var(
+        --tido-bg-color-dark,
+        var(--color-slate-800)
+    ) !important;
     background-image: none;
 }
 
@@ -408,7 +431,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
  * opaque and share the section border.
  */
 .dark .fi-input-wrp:not(.fi-disabled),
-.dark .fi-fo-file-upload .filepond--root:not([data-disabled='disabled']),
+.dark .fi-fo-file-upload .filepond--root:not([data-disabled="disabled"]),
 .dark .fi-fo-repeater-item,
 .dark .fi-fo-builder-item {
     @apply bg-gray-900 ring-white/10;
@@ -427,7 +450,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
 
 /* Mobile / tablet: form top 80%, illustration bottom 20% (non-v2 art) */
 .fi-simple-layout::before {
-    content: '';
+    content: "";
     position: fixed;
     inset-inline: 0;
     inset-block-end: 0;
@@ -594,20 +617,22 @@ html.dark::-webkit-scrollbar-thumb:hover,
     @apply text-primary-700 dark:text-primary-400;
 }
 
-/* Dashboard month Select — width lives here; arbitrary Tailwind in PHP is not scanned */
+/* Dashboard month Select — full width inside filter dropdown panel */
 .fi-dashboard-month-filter {
-    flex: 0 0 auto;
-    width: 14rem;
+    flex: 1 1 auto;
+    width: 100%;
     max-width: 100%;
 }
 
-@media (min-width: 640px) {
-    .fi-dashboard-month-filter {
-        width: 18rem;
-    }
+.tido-dashboard-filters-dropdown-panel {
+    @apply grid gap-y-4 p-6;
 }
 
-/* Dashboard sticky toolbar — month filter + widget section tabs. */
+.tido-dashboard-filters-dropdown-panel .fi-dashboard-spender-filter {
+    @apply w-full;
+}
+
+/* Dashboard sticky toolbar — filter dropdown + widget section tabs. */
 .tido-dashboard-sticky-toolbar {
     @apply flex w-full flex-col items-start gap-4;
 }
@@ -626,7 +651,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
 
 @media (min-width: 1024px) {
     .tido-dashboard-sticky-toolbar {
-        @apply flex-row items-end justify-between gap-5;
+        @apply flex-row items-center justify-between gap-5;
         --tido-dashboard-section-nav-offset: 0;
     }
 
@@ -655,7 +680,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
 @media (min-width: 1024px) {
     .tido-dashboard-page .fi-wi-widget[id],
     .tido-dashboard-page .fi-wi-stats-overview-stat[id] {
-        --tido-dashboard-section-nav-offset: 3.25rem;
+        --tido-dashboard-section-nav-offset: 2.75rem;
     }
 }
 
@@ -689,13 +714,13 @@ html.dark::-webkit-scrollbar-thumb:hover,
  */
 .tido-sticky-scope
     > .fi-sc
-    > .fi-grid-col:has(.fi-dropdown-panel:not([style*='display: none'])):not(
+    > .fi-grid-col:has(.fi-dropdown-panel:not([style*="display: none"])):not(
         :has(.tido-sticky-marker)
     ),
 .tido-sticky-scope
     > .fi-sc
     > .fi-grid-col:has(
-        .fi-modal.fi-modal-open:not([style*='display: none'])
+        .fi-modal.fi-modal-open:not([style*="display: none"])
     ):not(:has(.tido-sticky-marker)) {
     position: relative;
     z-index: 15;
@@ -837,9 +862,19 @@ html.dark::-webkit-scrollbar-thumb:hover,
     );
 }
 
-.dark .tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker)::before,
-.dark .tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker)::after {
-    background-color: color-mix(in srgb, var(--color-slate-800) 90%, transparent);
+.dark
+    .tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker)::before,
+.dark
+    .tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker)::after {
+    background-color: color-mix(
+        in srgb,
+        var(--color-slate-800) 90%,
+        transparent
+    );
 }
 
 .tido-sticky-scope
@@ -1049,7 +1084,11 @@ html:not(.dark) .tido-auth-login-toast-close:hover {
     padding: 1rem 1rem 1.125rem;
     border-radius: 0.75rem;
     border: 1px solid color-mix(in srgb, var(--warning-400) 45%, transparent);
-    background-color: color-mix(in srgb, var(--warning-300) 18%, var(--color-slate-800));
+    background-color: color-mix(
+        in srgb,
+        var(--warning-300) 18%,
+        var(--color-slate-800)
+    );
     color: rgb(226 232 240);
     box-shadow:
         0 10px 15px -3px rgb(0 0 0 / 0.2),
@@ -1248,7 +1287,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     display: block !important;
 }
 
-.dark .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-logo-compact .fi-logo-light {
+.dark
+    .fi-sidebar:not(.fi-sidebar-open)
+    .fi-sidebar-logo-compact
+    .fi-logo-light {
     display: none !important;
 }
 
@@ -1283,7 +1325,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 .fi-sidebar.fi-sidebar-animating.fi-sidebar-open .fi-sidebar-item-label,
 .fi-sidebar.fi-sidebar-animating.fi-sidebar-open .fi-sidebar-item-badge-ctn,
 .fi-sidebar.fi-sidebar-animating.fi-sidebar-open .fi-sidebar-group-label,
-.fi-sidebar.fi-sidebar-animating.fi-sidebar-open .fi-sidebar-group-collapse-btn {
+.fi-sidebar.fi-sidebar-animating.fi-sidebar-open
+    .fi-sidebar-group-collapse-btn {
     animation: fi-sidebar-expand-chrome-enter var(--tido-sidebar-duration)
         var(--tido-sidebar-ease) var(--tido-sidebar-content-delay) both;
 }
@@ -1520,11 +1563,17 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     height: 2.5rem;
     color: var(--color-gray-500);
     border-radius: 0.5rem;
-    transition: background-color 200ms ease, color 200ms ease;
+    transition:
+        background-color 200ms ease,
+        color 200ms ease;
 }
 
 .tido-go-to-top-btn:hover {
-    background-color: color-mix(in srgb, var(--color-gray-100) 50%, transparent);
+    background-color: color-mix(
+        in srgb,
+        var(--color-gray-100) 50%,
+        transparent
+    );
     color: var(--color-gray-700);
 }
 
@@ -1533,7 +1582,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .dark .tido-go-to-top-btn:hover {
-    background-color: color-mix(in srgb, var(--color-slate-700) 60%, transparent);
+    background-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
     color: var(--color-slate-200);
 }
 
@@ -1595,11 +1648,17 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     height: 2.5rem;
     color: var(--color-gray-500);
     border-radius: 0.5rem;
-    transition: background-color 200ms ease, color 200ms ease;
+    transition:
+        background-color 200ms ease,
+        color 200ms ease;
 }
 
 .tido-go-to-bottom-btn:hover {
-    background-color: color-mix(in srgb, var(--color-gray-100) 50%, transparent);
+    background-color: color-mix(
+        in srgb,
+        var(--color-gray-100) 50%,
+        transparent
+    );
     color: var(--color-gray-700);
 }
 
@@ -1608,7 +1667,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .dark .tido-go-to-bottom-btn:hover {
-    background-color: color-mix(in srgb, var(--color-slate-700) 60%, transparent);
+    background-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
     color: var(--color-slate-200);
 }
 
@@ -2323,7 +2386,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     padding-block: 0.5rem;
     padding-inline: 1rem;
     color: var(--color-gray-500);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
         "Liberation Mono", "Courier New", monospace;
     font-size: 0.625rem;
     line-height: 1rem;
@@ -2396,7 +2460,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
         order: 2;
     }
 
-    .fi-budget-form-page .fi-sc-form .fi-grid-col:has(.fi-budget-sidebar-sticky) {
+    .fi-budget-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-budget-sidebar-sticky) {
         order: 1;
     }
 
@@ -2404,11 +2470,15 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
         order: 2;
     }
 
-    .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-sidebar-sticky) {
+    .fi-invoice-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-invoice-sidebar-sticky) {
         order: 1;
     }
 
-    .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-main-column) {
+    .fi-invoice-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-invoice-main-column) {
         order: 2;
     }
 
@@ -2420,19 +2490,27 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
         order: 2;
     }
 
-    .fi-payment-method-form-page .fi-sc-form .fi-grid-col:has(.fi-payment-method-sidebar-sticky) {
+    .fi-payment-method-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-payment-method-sidebar-sticky) {
         order: 1;
     }
 
-    .fi-payment-method-form-page .fi-sc-form .fi-grid-col:has(.fi-payment-method-main-column) {
+    .fi-payment-method-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-payment-method-main-column) {
         order: 2;
     }
 
-    .fi-family-member-form-page .fi-sc-form .fi-grid-col:has(.fi-family-member-sidebar-sticky) {
+    .fi-family-member-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-family-member-sidebar-sticky) {
         order: 1;
     }
 
-    .fi-family-member-form-page .fi-sc-form .fi-grid-col:has(.fi-family-member-main-column) {
+    .fi-family-member-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-family-member-main-column) {
         order: 2;
     }
 }
@@ -2464,7 +2542,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     overflow: hidden !important;
 }
 
-.fi-fo-file-upload .filepond--root:has(.filepond--item) .filepond--list-scroller {
+.fi-fo-file-upload
+    .filepond--root:has(.filepond--item)
+    .filepond--list-scroller {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
 }
@@ -2477,8 +2557,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /* Dark top veil so remove/open/download + filename stay readable on light receipts */
-.fi-receipt-image-upload.tido-receipt-has-native-preview .filepond--item::before {
-    content: '';
+.fi-receipt-image-upload.tido-receipt-has-native-preview
+    .filepond--item::before {
+    content: "";
     position: absolute;
     inset-inline: 0;
     top: 0;
@@ -2495,11 +2576,13 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     );
 }
 
-.fi-receipt-image-upload.tido-receipt-has-native-preview .filepond--image-preview {
+.fi-receipt-image-upload.tido-receipt-has-native-preview
+    .filepond--image-preview {
     background-color: transparent !important;
 }
 
-.fi-receipt-image-upload.tido-receipt-has-native-preview .tido-receipt-native-preview {
+.fi-receipt-image-upload.tido-receipt-has-native-preview
+    .tido-receipt-native-preview {
     position: absolute !important;
     inset: 0 !important;
     z-index: 2 !important;
@@ -2516,16 +2599,20 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /* Long receipts: cap height and crop the overflow from the bottom */
-.fi-receipt-image-upload.tido-receipt-preview-capped .tido-receipt-native-preview {
+.fi-receipt-image-upload.tido-receipt-preview-capped
+    .tido-receipt-native-preview {
     object-fit: cover !important;
 }
 
-.fi-receipt-image-upload.tido-receipt-has-native-preview .filepond--image-preview canvas {
+.fi-receipt-image-upload.tido-receipt-has-native-preview
+    .filepond--image-preview
+    canvas {
     opacity: 0 !important;
     visibility: hidden !important;
 }
 
-.fi-receipt-image-upload.tido-receipt-has-native-preview .filepond--file-wrapper {
+.fi-receipt-image-upload.tido-receipt-has-native-preview
+    .filepond--file-wrapper {
     z-index: 4 !important;
 }
 
@@ -2549,11 +2636,19 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     }
 
     .fi-profile-page .fi-sc-form .fi-grid-col:has(.fi-profile-sidebar-sticky),
-    .fi-budget-form-page .fi-sc-form .fi-grid-col:has(.fi-budget-sidebar-sticky),
-    .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-sidebar-sticky),
+    .fi-budget-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-budget-sidebar-sticky),
+    .fi-invoice-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-invoice-sidebar-sticky),
     .fi-label-form-page .fi-sc-form .fi-grid-col:has(.fi-label-sidebar-sticky),
-    .fi-payment-method-form-page .fi-sc-form .fi-grid-col:has(.fi-payment-method-sidebar-sticky),
-    .fi-family-member-form-page .fi-sc-form .fi-grid-col:has(.fi-family-member-sidebar-sticky) {
+    .fi-payment-method-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-payment-method-sidebar-sticky),
+    .fi-family-member-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-family-member-sidebar-sticky) {
         position: sticky;
         align-self: start;
     }
@@ -2565,11 +2660,19 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
         );
     }
 
-    .fi-budget-form-page .fi-sc-form .fi-grid-col:has(.fi-budget-sidebar-sticky),
-    .fi-invoice-form-page .fi-sc-form .fi-grid-col:has(.fi-invoice-sidebar-sticky),
+    .fi-budget-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-budget-sidebar-sticky),
+    .fi-invoice-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-invoice-sidebar-sticky),
     .fi-label-form-page .fi-sc-form .fi-grid-col:has(.fi-label-sidebar-sticky),
-    .fi-payment-method-form-page .fi-sc-form .fi-grid-col:has(.fi-payment-method-sidebar-sticky),
-    .fi-family-member-form-page .fi-sc-form .fi-grid-col:has(.fi-family-member-sidebar-sticky) {
+    .fi-payment-method-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-payment-method-sidebar-sticky),
+    .fi-family-member-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-family-member-sidebar-sticky) {
         top: calc(
             var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
                 var(--tido-section-nav-height, 2.75rem) + 0.75rem
@@ -2582,7 +2685,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply bg-danger-50/80 dark:bg-danger-500/10 ring-danger-500 dark:ring-danger-500;
 }
 
-.fi-danger-zone-section > .fi-section.fi-section-has-header:not(.fi-collapsed) > .fi-section-content-ctn {
+.fi-danger-zone-section
+    > .fi-section.fi-section-has-header:not(.fi-collapsed)
+    > .fi-section-content-ctn {
     @apply border-danger-300/50 dark:border-danger-500/40;
 }
 
@@ -2750,13 +2855,16 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
  * Flash toast slide: enter from right (R→L), leave to right (L→R).
  * Overrides Filament’s leave scale-95 so dismiss matches the enter axis.
  */
-.fi-no.fi-align-end .fi-no-notification:not(.fi-inline).fi-transition-enter-start,
-.fi-no.fi-align-right .fi-no-notification:not(.fi-inline).fi-transition-enter-start {
+.fi-no.fi-align-end
+    .fi-no-notification:not(.fi-inline).fi-transition-enter-start,
+.fi-no.fi-align-right
+    .fi-no-notification:not(.fi-inline).fi-transition-enter-start {
     @apply translate-x-12 opacity-0;
 }
 
 .fi-no.fi-align-end .fi-no-notification:not(.fi-inline).fi-transition-leave-end,
-.fi-no.fi-align-right .fi-no-notification:not(.fi-inline).fi-transition-leave-end {
+.fi-no.fi-align-right
+    .fi-no-notification:not(.fi-inline).fi-transition-leave-end {
     @apply translate-x-12 opacity-0 scale-100;
 }
 
@@ -2936,7 +3044,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     word-break: normal;
 }
 
-.tido-select-value-marquee .fi-select-input-ctn-option-labels-not-wrapped .fi-select-input-value-ctn > span {
+.tido-select-value-marquee
+    .fi-select-input-ctn-option-labels-not-wrapped
+    .fi-select-input-value-ctn
+    > span {
     display: inline-block;
     flex: none;
     overflow: visible;
@@ -2944,12 +3055,17 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     white-space: nowrap;
 }
 
-.tido-select-value-marquee .fi-select-input-ctn-option-labels-not-wrapped .fi-select-input-option {
+.tido-select-value-marquee
+    .fi-select-input-ctn-option-labels-not-wrapped
+    .fi-select-input-option {
     text-wrap: wrap;
     word-break: break-word;
 }
 
-.tido-select-value-marquee .fi-select-input-ctn-option-labels-not-wrapped .fi-select-input-option > span {
+.tido-select-value-marquee
+    .fi-select-input-ctn-option-labels-not-wrapped
+    .fi-select-input-option
+    > span {
     overflow: visible;
     text-overflow: unset;
     white-space: normal;
@@ -3214,7 +3330,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     min-height: 0;
 }
 
-.fi-sc.fi-grid > .fi-wi-widget > .fi-section > .fi-section-content-ctn > .fi-section-content {
+.fi-sc.fi-grid
+    > .fi-wi-widget
+    > .fi-section
+    > .fi-section-content-ctn
+    > .fi-section-content {
     display: flex !important;
     flex: 1 1 auto;
     flex-direction: column;
@@ -3226,7 +3346,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     max-height: 300px;
 }
 
-.fi-wi-chart-frame-no-aspect-ratio:has(canvas[style*='max-height: 200px']) {
+.fi-wi-chart-frame-no-aspect-ratio:has(canvas[style*="max-height: 200px"]) {
     height: 200px;
     max-height: 200px;
 }
@@ -3235,4 +3355,3 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     height: 100% !important;
     max-height: none !important;
 }
-
