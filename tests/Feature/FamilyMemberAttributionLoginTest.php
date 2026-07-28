@@ -230,6 +230,20 @@ test('family member login test seeder creates sample member and invoices', funct
         ->and(Invoice::query()->where('family_member_id', $member->id)->count())->toBe(2);
 });
 
+test('dashboard spender filter options use updated labels', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'name' => 'Amirul96Shafiq',
+        'household_role' => HouseholdRole::Primary,
+    ]);
+
+    FamilyMember::factory()->create(['name' => 'Ahlong']);
+
+    $options = DashboardSpenderScope::filterOptionsFor($user);
+
+    expect($options[DashboardSpenderScope::ALL])->toBe('All')
+        ->and($options[DashboardSpenderScope::PRIMARY])->toBe('Amirul96Shafiq');
+});
+
 test('family member spender options exclude primary and other members', function () {
     $memberA = FamilyMember::factory()->create(['name' => 'Alpha']);
     FamilyMember::factory()->create(['name' => 'Beta']);

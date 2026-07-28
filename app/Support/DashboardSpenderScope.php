@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Enums\HouseholdRole;
 use App\Models\FamilyMember;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -87,8 +88,8 @@ final class DashboardSpenderScope
     {
         $user ??= Auth::user();
         $options = [
-            self::ALL => 'Combined (household)',
-            self::PRIMARY => 'Primary',
+            self::ALL => 'All',
+            self::PRIMARY => self::primaryUserLabel(),
         ];
 
         $members = FamilyMember::query()
@@ -123,6 +124,24 @@ final class DashboardSpenderScope
         }
 
         return $options;
+    }
+
+    private static function primaryUserLabel(): string
+    {
+        $primaryUser = User::query()
+            ->where(function ($query): void {
+                $query
+                    ->where('household_role', HouseholdRole::Primary->value)
+                    ->orWhereNull('household_role');
+            })
+            ->orderBy('id')
+            ->first(['name']);
+
+        if (! $primaryUser instanceof User || ! filled($primaryUser->name)) {
+            return 'Primary';
+        }
+
+        return (string) $primaryUser->name;
     }
 
     /**

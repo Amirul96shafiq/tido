@@ -243,7 +243,7 @@ class Dashboard extends BaseDashboard
                             'class' => 'fi-dashboard-month-filter',
                         ]),
                     Select::make('spender')
-                        ->label('Spender')
+                        ->label('From')
                         ->options(fn (): array => DashboardSpenderScope::filterOptionsFor())
                         ->native(false)
                         ->required()
