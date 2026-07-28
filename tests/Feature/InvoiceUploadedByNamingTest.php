@@ -15,7 +15,10 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     /** @var TestCase $this */
-    $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
+    $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create([
+        'name' => 'Primary Account Owner',
+        'display_name' => 'admin',
+    ]));
 });
 
 test('invoice create form uses uploaded by wording', function () {
@@ -27,7 +30,7 @@ test('invoice create form uses uploaded by wording', function () {
     Livewire::test(CreateInvoice::class)
         ->assertSuccessful()
         ->assertSee('Uploaded By')
-        ->assertSee('Primary username')
+        ->assertSee('admin')
         ->assertSee('nor')
         ->assertDontSee('Nor Ezrieana Harun');
 });
@@ -53,7 +56,7 @@ test('invoice list shows uploaded by usernames', function () {
     $this->get(InvoiceResource::getUrl('index'))
         ->assertSuccessful()
         ->assertSee('Uploaded By')
-        ->assertSee('Primary username')
+        ->assertSee('admin')
         ->assertSee('nor')
         ->assertDontSee('Nor Ezrieana Harun');
 });

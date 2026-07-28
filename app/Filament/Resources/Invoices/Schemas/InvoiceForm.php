@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Invoices\Schemas;
 
+use App\Enums\HouseholdRole;
 use App\Enums\LabelType;
 use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Support\SelectValueMarquee;
 use App\Helpers\MoneyDisplay;
 use App\Models\FamilyMember;
+use App\Models\User;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
@@ -104,7 +106,7 @@ class InvoiceForm
                                             ->extraAttributes(SelectValueMarquee::extraAttributes()),
 
                                     ]),
-                                    
+
                                 Grid::make(3)
                                     ->schema([
                                         Select::make('payment_method_id')
@@ -134,7 +136,7 @@ class InvoiceForm
                                                         : (string) $familyMember->name,
                                                 ])
                                                 ->all())
-                                            ->placeholder('Primary username')
+                                            ->placeholder(fn (): string => self::primaryUsername())
                                             ->searchable()
                                             ->nullable(),
                                     ]),
@@ -274,5 +276,25 @@ class InvoiceForm
                             ]),
                     ]),
             ]);
+    }
+
+    protected static function primaryUsername(): string
+    {
+        $primaryUser = User::query()
+            ->where(function ($query): void {
+                $query
+                    ->where('household_role', HouseholdRole::Primary->value)
+                    ->orWhereNull('household_role');
+            })
+            ->orderBy('id')
+            ->first(['name', 'display_name']);
+
+        if (! $primaryUser instanceof User) {
+            return 'Primary username';
+        }
+
+        return filled($primaryUser->display_name)
+            ? (string) $primaryUser->display_name
+            : (string) $primaryUser->name;
     }
 }

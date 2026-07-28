@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Invoices\Tables;
 
+use App\Enums\HouseholdRole;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Models\FamilyMember;
 use App\Models\Invoice;
+use App\Models\User;
 use App\Services\ReceiptReparseService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -86,7 +88,7 @@ class InvoicesTable
                         $familyMember = $record->familyMember;
 
                         if ($familyMember === null) {
-                            return 'Primary username';
+                            return self::primaryUsername();
                         }
 
                         return filled($familyMember->display_name)
@@ -213,5 +215,25 @@ class InvoicesTable
                     ->url(ReceiptUploadPage::getUrl())
                     ->button(),
             ]);
+    }
+
+    protected static function primaryUsername(): string
+    {
+        $primaryUser = User::query()
+            ->where(function (Builder $query): void {
+                $query
+                    ->where('household_role', HouseholdRole::Primary->value)
+                    ->orWhereNull('household_role');
+            })
+            ->orderBy('id')
+            ->first(['name', 'display_name']);
+
+        if (! $primaryUser instanceof User) {
+            return 'Primary username';
+        }
+
+        return filled($primaryUser->display_name)
+            ? (string) $primaryUser->display_name
+            : (string) $primaryUser->name;
     }
 }
