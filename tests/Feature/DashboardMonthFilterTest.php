@@ -91,7 +91,7 @@ test('spender filter updates live on the dashboard component', function () {
         ->assertSet('filters.spender', DashboardSpenderScope::PRIMARY);
 });
 
-test('reset month action restores current calendar month', function () {
+test('reset filters action restores current month', function () {
     Carbon::setTestNow(Carbon::parse('2026-07-16 09:00:00', 'Asia/Kuala_Lumpur'));
 
     $user = User::factory()
@@ -109,7 +109,7 @@ test('reset month action restores current calendar month', function () {
         ->assertSet('filters.month', '2026-07');
 });
 
-test('reset month action preserves spender filter', function () {
+test('reset filters action resets spender to default', function () {
     Carbon::setTestNow(Carbon::parse('2026-07-16 09:00:00', 'Asia/Kuala_Lumpur'));
 
     $user = User::factory()
@@ -125,7 +125,26 @@ test('reset month action preserves spender filter', function () {
         ->set('filters.month', '2026-05')
         ->callAction(resetMonthAction())
         ->assertSet('filters.month', '2026-07')
-        ->assertSet('filters.spender', DashboardSpenderScope::PRIMARY);
+        ->assertSet('filters.spender', DashboardSpenderScope::ALL);
+});
+
+test('reset filters action is enabled when spender is not default even on current month', function () {
+    Carbon::setTestNow(Carbon::parse('2026-07-16 09:00:00', 'Asia/Kuala_Lumpur'));
+
+    $user = User::factory()
+        ->withWhatsAppPhone('60123456789')
+        ->create([
+            'timezone' => 'Asia/Kuala_Lumpur',
+        ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(Dashboard::class)
+        ->set('filters.spender', DashboardSpenderScope::PRIMARY)
+        ->assertSet('filters.month', '2026-07')
+        ->assertActionEnabled(resetMonthAction())
+        ->callAction(resetMonthAction())
+        ->assertSet('filters.spender', DashboardSpenderScope::ALL);
 });
 
 test('shifting dashboard month preserves spender filter', function () {
@@ -147,7 +166,7 @@ test('shifting dashboard month preserves spender filter', function () {
         ->assertSet('filters.spender', DashboardSpenderScope::PRIMARY);
 });
 
-test('reset month action is disabled when current month is selected', function () {
+test('reset filters action is disabled when month and spender are defaults', function () {
     Carbon::setTestNow(Carbon::parse('2026-07-16 09:00:00', 'Asia/Kuala_Lumpur'));
 
     $user = User::factory()

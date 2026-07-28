@@ -178,6 +178,16 @@ class Dashboard extends BaseDashboard
         $this->updatedFilters();
     }
 
+    public function dashboardFiltersAreDefault(): bool
+    {
+        $defaultSpender = DashboardSpenderScope::defaultFor()->value();
+        $currentSpender = $this->filters['spender'] ?? $defaultSpender;
+
+        return DashboardMonthPeriod::isCurrentMonth(
+            DashboardMonthPeriod::fromFilters($this->filters ?? []),
+        ) && $currentSpender === $defaultSpender;
+    }
+
     public function dashboardFiltersActiveCount(): int
     {
         $count = 0;
@@ -283,11 +293,9 @@ class Dashboard extends BaseDashboard
                         ->button()
                         ->hiddenLabel()
                         ->color('primary')
-                        ->disabled(fn (): bool => DashboardMonthPeriod::isCurrentMonth(
-                            DashboardMonthPeriod::fromFilters($this->filters),
-                        ))
+                        ->disabled(fn (): bool => $this->dashboardFiltersAreDefault())
                         ->action(function (): void {
-                            $this->resetDashboardMonth();
+                            $this->resetDashboardFilters();
                         }),
                 ])
                     ->key('resetMonthActions')
@@ -381,11 +389,11 @@ class Dashboard extends BaseDashboard
         $this->updatedFilters();
     }
 
-    protected function resetDashboardMonth(): void
+    protected function resetDashboardFilters(): void
     {
         $this->filters = [
-            ...($this->filters ?? []),
             'month' => now()->format('Y-m'),
+            'spender' => DashboardSpenderScope::defaultFor()->value(),
         ];
 
         $this->updatedFilters();
