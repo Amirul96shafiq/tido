@@ -73,10 +73,6 @@ class FamilyMembersTable
                     ->toggleable()
                     ->placeholder('—'),
 
-                ToggleColumn::make('allowlist_enabled')
-                    ->label('Allowlist')
-                    ->sortable(),
-
                 TextColumn::make('created_at')
                     ->label('Created At')
                     ->since()
