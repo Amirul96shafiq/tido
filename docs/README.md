@@ -27,6 +27,7 @@
 | [backups-and-danger-zone.md](backups-and-danger-zone.md) | Agents + humans | Backup catalog, restore tokens, guest restore, profile Danger Zone |
 | [service-status.md](service-status.md) | Agents + humans | Tools Service Status page, health probes, uptime history |
 | [active-sessions.md](active-sessions.md) | Agents + humans | Profile Active Sessions list, revoke, user-agent parsing |
+| [household-access.md](household-access.md) | Agents + humans | Household roles, receipt attribution, family WhatsApp login, invoice ACL |
 | [git-workflow.md](git-workflow.md) | Agents + humans | Feature/fix branches → PR → main; staging/production promotion |
 
 ## Cursor agent assets (outside `docs/`)

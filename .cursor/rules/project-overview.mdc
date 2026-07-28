@@ -20,9 +20,9 @@ Laravel 12 · Filament v5 · Livewire 4 · Tailwind v4 · SQLite (local) / Postg
 
 Prefer this over older version numbers in `docs/system-architecture.md`.
 
-## Single-tenant
+## Single-tenant household
 
-No multi-tenancy, no roles/policies package. Any authenticated user can access `/admin`.
+No multi-tenancy package. One Filament panel with **household roles** (`primary` vs `family_member`): Primary owns settings; login-enabled Family Members get limited Finances access. Receipts are attributed via `invoices.family_member_id` (**Uploaded By**). See `docs/household-access.md`.
 
 ## Agent entry points
 
@@ -43,8 +43,9 @@ No multi-tenancy, no roles/policies package. Any authenticated user can access `
 15. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`
 16. Service Status / health probes — `docs/service-status.md`
 17. Profile Active Sessions — `docs/active-sessions.md`
-18. WhatsApp text manual invoices — `docs/whatsapp-manual-invoice.md`
-19. WhatsApp bot commands / keywords — `docs/whatsapp-bot-commands.md`
+18. Household access / family login / attribution — `docs/household-access.md`
+19. WhatsApp text manual invoices — `docs/whatsapp-manual-invoice.md`
+20. WhatsApp bot commands / keywords — `docs/whatsapp-bot-commands.md`
 
 ## Do not
 
