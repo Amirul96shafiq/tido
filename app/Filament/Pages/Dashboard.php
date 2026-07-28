@@ -15,7 +15,6 @@ use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
@@ -320,24 +319,11 @@ class Dashboard extends BaseDashboard
             ->components([
                 Group::make([
                     Group::make([
-                        Flex::make([
-                            Group::make([
-                                $this->getFiltersFormContentComponent(),
-                            ])->extraAttributes([
-                                'class' => 'tido-dashboard-sticky-toolbar-filters',
+                        View::make('filament.pages.partials.dashboard-sticky-toolbar')
+                            ->viewData(fn (): array => [
+                                'sections' => $this->widgetNavItems(),
+                                'ariaLabel' => 'Dashboard widgets',
                             ]),
-                            Group::make([
-                                View::make('filament.schemas.components.section-nav')
-                                    ->viewData(fn (): array => [
-                                        'sections' => $this->widgetNavItems(),
-                                        'ariaLabel' => 'Dashboard widgets',
-                                    ]),
-                            ])->extraAttributes([
-                                'class' => 'tido-dashboard-sticky-toolbar-nav',
-                            ]),
-                        ])->extraAttributes([
-                            'class' => 'tido-dashboard-sticky-toolbar',
-                        ]),
                     ])->extraAttributes([
                         'class' => 'tido-sticky-marker tido-sticky-marker--top',
                     ]),
