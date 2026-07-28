@@ -33,10 +33,11 @@ class FamilyMemberLoginService
                 'name' => $member->name,
                 'display_name' => $member->display_name,
                 'phone' => $member->phone,
+                'avatar_url' => $member->avatar_url,
                 'household_role' => HouseholdRole::FamilyMember,
             ]);
 
-            return $existingUser;
+            return $existingUser->fresh();
         }
 
         $phoneConflict = User::query()
@@ -54,6 +55,7 @@ class FamilyMemberLoginService
             'email' => $this->syntheticEmail($member),
             'password' => Hash::make(Str::random(64)),
             'phone' => $member->phone,
+            'avatar_url' => $member->avatar_url,
             'household_role' => HouseholdRole::FamilyMember,
             'family_member_id' => $member->id,
             'email_verified_at' => now(),

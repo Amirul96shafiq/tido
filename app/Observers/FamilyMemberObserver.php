@@ -17,7 +17,7 @@ class FamilyMemberObserver
     {
         if (! $familyMember->wasChanged('login_enabled')
             && ! $familyMember->wasRecentlyCreated
-            && ! $familyMember->wasChanged(['name', 'display_name', 'phone'])) {
+            && ! $familyMember->wasChanged(['name', 'display_name', 'phone', 'avatar_url'])) {
             return;
         }
 

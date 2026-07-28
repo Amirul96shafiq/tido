@@ -167,6 +167,23 @@ test('login enabled family member gets linked user and can otp login with dev co
     expect(auth()->user()?->id)->toBe($user->id);
 });
 
+test('family member avatar syncs to linked login user profile photo', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'phone' => FamilyMemberLoginTestSeeder::SAMPLE_PHONE,
+        'avatar_url' => null,
+    ]);
+
+    $user = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    expect($user->avatar_url)->toBeNull();
+
+    $member->update([
+        'avatar_url' => 'avatars/family-member-synced.png',
+    ]);
+
+    expect($user->fresh()->avatar_url)->toBe('avatars/family-member-synced.png');
+});
+
 test('family member without login enabled cannot access panel', function () {
     $member = FamilyMember::factory()->notAllowlisted()->create([
         'phone' => '60119998888',
