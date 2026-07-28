@@ -143,7 +143,9 @@ curl -X POST http://127.0.0.1:8080/webhook/set/tido \
   -d "{\"enabled\":true,\"url\":\"http://127.0.0.1:2000/api/webhooks/whatsapp\",\"headers\":{\"Authorization\":\"Bearer tido-secret-key\"},\"events\":[\"messages.upsert\"]}"
 ```
 
-Only Profile WhatsApp numbers plus Family Members with allowlist enabled are allowlisted for bot replies. Self-chat (“Message yourself”) is supported when the JID matches an allowlisted number. Family members cannot OTP-login.
+Only Profile WhatsApp numbers plus Family Members with allowlist enabled are allowlisted for bot replies. Self-chat (“Message yourself”) is supported when the JID matches an allowlisted number. Family members with **login enabled** can sign in to `/admin` via WhatsApp OTP on their own number (limited Finances access).
+
+**Local testing without a second WhatsApp:** set `WHATSAPP_LOGIN_DEV_OTP=123456` and `WHATSAPP_LOGIN_DEV_PHONES=60111222333` in `.env` (local/testing only). `DatabaseSeeder` seeds **Sample Spouse** on that number — send OTP on login, then enter the dev code (no Evolution send).
 
 Inbound handling — full command list: [whatsapp-bot-commands.md](whatsapp-bot-commands.md)
 
@@ -167,7 +169,9 @@ php artisan whatsapp:ping
 
 You should receive a WhatsApp on your Profile number. Then open `/admin/login`, enter that number, **Send WhatsApp code**, enter the OTP.
 
-If Evolution is down, use **Sign in with email & password**.
+For the seeded family test member (`60111222333` / `0111222333`) with dev OTP configured, no WhatsApp is sent — use `123456`.
+
+If Evolution is down, use **Sign in with email & password** (primary user only).
 
 ---
 

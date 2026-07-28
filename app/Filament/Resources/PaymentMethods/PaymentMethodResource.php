@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\PaymentMethods;
 
+use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Resources\PaymentMethods\Pages\CreatePaymentMethod;
 use App\Filament\Resources\PaymentMethods\Pages\EditPaymentMethod;
 use App\Filament\Resources\PaymentMethods\Pages\ListPaymentMethods;
@@ -19,6 +20,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PaymentMethodResource extends Resource
 {
+    use RequiresPrimaryHouseholdAccess;
+
     protected static ?string $model = PaymentMethod::class;
 
     protected static ?string $recordTitleAttribute = 'name';

@@ -79,6 +79,11 @@ class InvoicesTable
                         default => 'gray',
                     }),
 
+                TextColumn::make('familyMember.name')
+                    ->label('Sender')
+                    ->placeholder('Primary')
+                    ->toggleable(),
+
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -116,6 +121,12 @@ class InvoicesTable
                         'google_drive' => 'Google Drive',
                     ])
                     ->searchable(),
+
+                SelectFilter::make('family_member_id')
+                    ->label('Sender')
+                    ->relationship('familyMember', 'name')
+                    ->searchable()
+                    ->preload(),
 
                 SelectFilter::make('payment_method_id')
                     ->label('Payment Method')

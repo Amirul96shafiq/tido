@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\FamilyMembers;
 
+use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Resources\FamilyMembers\Pages\CreateFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\EditFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\ListFamilyMembers;
@@ -17,6 +18,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class FamilyMemberResource extends Resource
 {
+    use RequiresPrimaryHouseholdAccess;
+
     protected static ?string $model = FamilyMember::class;
 
     protected static ?string $recordTitleAttribute = 'name';

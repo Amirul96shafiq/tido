@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\HouseholdRole;
 use App\Models\User;
 use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -68,5 +69,13 @@ class UserFactory extends Factory
                 'phone' => PhoneNumber::normalize($resolved),
             ];
         });
+    }
+
+    public function familyMember(?int $familyMemberId = null): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'household_role' => HouseholdRole::FamilyMember,
+            'family_member_id' => $familyMemberId,
+        ]);
     }
 }

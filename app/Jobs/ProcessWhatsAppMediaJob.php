@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Models\Invoice;
 use App\Services\WhatsAppNotificationService;
+use App\Support\InvoiceSenderAttribution;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppMessage;
 use Illuminate\Bus\Queueable;
@@ -76,6 +77,7 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
             'currency' => 'MYR',
             'source' => 'whatsapp',
             'whatsapp_sender' => $this->senderNumber,
+            'family_member_id' => InvoiceSenderAttribution::familyMemberIdForSender($this->senderNumber),
             'status' => 'pending',
             'image_path' => $localPath,
             'original_filename' => $filename,

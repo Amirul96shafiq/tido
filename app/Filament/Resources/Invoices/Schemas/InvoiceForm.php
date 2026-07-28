@@ -8,6 +8,7 @@ use App\Enums\LabelType;
 use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Support\SelectValueMarquee;
 use App\Helpers\MoneyDisplay;
+use App\Models\FamilyMember;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
@@ -117,6 +118,16 @@ class InvoiceForm
                                             ->default('manual')
                                             ->searchable()
                                             ->required(),
+
+                                        Select::make('family_member_id')
+                                            ->label('Sender')
+                                            ->options(fn (): array => FamilyMember::query()
+                                                ->orderBy('name')
+                                                ->pluck('name', 'id')
+                                                ->all())
+                                            ->placeholder('Primary')
+                                            ->searchable()
+                                            ->nullable(),
                                     ]),
                             ]),
 

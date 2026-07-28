@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Support\InvoiceSenderAttribution;
 use App\Support\ManualWhatsAppInvoiceParser;
 use App\Support\WhatsAppManualInvoiceReceivedDebouncer;
 use Illuminate\Bus\Queueable;
@@ -64,6 +65,7 @@ class ProcessManualWhatsAppInvoiceJob implements ShouldQueue
                 'payment_method_id' => $block['payment_method']->id,
                 'source' => 'whatsapp',
                 'whatsapp_sender' => $this->senderNumber,
+                'family_member_id' => InvoiceSenderAttribution::familyMemberIdForSender($this->senderNumber),
                 'status' => 'pending',
                 'image_path' => null,
                 'raw_ai_response' => [

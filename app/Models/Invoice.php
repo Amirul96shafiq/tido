@@ -33,6 +33,7 @@ class Invoice extends Model
         'payment_method_id',
         'source',
         'whatsapp_sender',
+        'family_member_id',
         'status',
         'google_drive_file_id',
         'original_filename',
@@ -54,6 +55,14 @@ class Invoice extends Model
     public function paymentMethod(): BelongsTo
     {
         return $this->belongsTo(PaymentMethod::class);
+    }
+
+    /**
+     * @return BelongsTo<FamilyMember, $this>
+     */
+    public function familyMember(): BelongsTo
+    {
+        return $this->belongsTo(FamilyMember::class);
     }
 
     public function invoiceItems(): HasMany

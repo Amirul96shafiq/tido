@@ -243,6 +243,12 @@ class FamilyMemberForm
                                     ->helperText('When enabled, this number can talk to the WhatsApp bot and send receipts.')
                                     ->default(true)
                                     ->columnSpanFull(),
+
+                                Toggle::make('login_enabled')
+                                    ->label('Allow panel login via WhatsApp OTP')
+                                    ->helperText('When enabled, this person can sign in to /admin with their WhatsApp number.')
+                                    ->default(false)
+                                    ->columnSpanFull(),
                             ]),
                     ]),
 

@@ -8,6 +8,7 @@ use App\Filament\Concerns\HasDashboardGreeting;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Filament\Widgets\MonthlySpendingOverview;
+use App\Support\DashboardSpenderScope;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard as BaseDashboard;
@@ -125,7 +126,18 @@ class Dashboard extends BaseDashboard
         if (! isset($this->filters['month'])) {
             $this->filters = [
                 'month' => DashboardMonthPeriod::fromFilters($this->filters)->format('Y-m'),
+                'spender' => DashboardSpenderScope::defaultFor()->value(),
             ];
+        }
+
+        if (! isset($this->filters['spender'])) {
+            $this->filters['spender'] = DashboardSpenderScope::defaultFor()->value();
+        }
+
+        $allowedSpenders = array_keys(DashboardSpenderScope::filterOptionsFor());
+
+        if (! in_array($this->filters['spender'], $allowedSpenders, true)) {
+            $this->filters['spender'] = DashboardSpenderScope::defaultFor()->value();
         }
     }
 
@@ -229,6 +241,16 @@ class Dashboard extends BaseDashboard
                         )
                         ->extraFieldWrapperAttributes([
                             'class' => 'fi-dashboard-month-filter',
+                        ]),
+                    Select::make('spender')
+                        ->label('Spender')
+                        ->options(fn (): array => DashboardSpenderScope::filterOptionsFor())
+                        ->native(false)
+                        ->required()
+                        ->selectablePlaceholder(false)
+                        ->grow(false)
+                        ->extraFieldWrapperAttributes([
+                            'class' => 'fi-dashboard-spender-filter',
                         ]),
                     Actions::make([
                         Action::make('resetMonth')

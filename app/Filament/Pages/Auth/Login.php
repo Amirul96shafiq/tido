@@ -9,6 +9,7 @@ use App\Services\ActiveSessionService;
 use App\Services\WhatsAppLoginOtpService;
 use App\Support\PhoneNumber;
 use App\Support\TidoBrandCopy;
+use App\Support\WhatsAppLoginDevOtp;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -74,15 +75,25 @@ class Login extends BaseLogin
 
         return match ($this->loginMode) {
             'otp' => filled($this->pendingPhone)
-                ? new HtmlString(
-                    'A One-Time Password (OTP) code has been sent via WhatsApp to '
-                    .'<span class="text-primary-600 underline dark:text-primary-400">'
-                    .e((string) $this->pendingPhone)
-                    .'</span>. You can use the OTP code here.'
-                )
+                ? $this->otpStepSubheading()
                 : 'Enter the 6-digit code from WhatsApp.',
             default => TidoBrandCopy::loginSubheadingHtml(),
         };
+    }
+
+    protected function otpStepSubheading(): HtmlString
+    {
+        $phone = PhoneNumber::normalize((string) $this->pendingPhone);
+        $message = 'A One-Time Password (OTP) code has been sent via WhatsApp to '
+            .'<span class="text-primary-600 underline dark:text-primary-400">'
+            .e((string) $this->pendingPhone)
+            .'</span>. You can use the OTP code here.';
+
+        if ($phone !== null && WhatsAppLoginDevOtp::isDevPhone($phone)) {
+            $message .= ' Local test mode: use the configured WHATSAPP_LOGIN_DEV_OTP code.';
+        }
+
+        return new HtmlString($message);
     }
 
     public function form(Schema $schema): Schema
@@ -632,6 +643,11 @@ class Login extends BaseLogin
         $remember = $data['remember'];
 
         $user = $authProvider->retrieveByCredentials($credentials);
+
+        if ($user instanceof User && $user->isFamilyMember()) {
+            $this->fireFailedEvent($authGuard, $user, $credentials);
+            $this->throwPasswordFailureValidationException();
+        }
 
         if ((! $user) || (! $authProvider->validateCredentials($user, $credentials))) {
             $this->fireFailedEvent($authGuard, $user, $credentials);

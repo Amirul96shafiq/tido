@@ -50,6 +50,13 @@ class FamilyMemberFactory extends Factory
         ]);
     }
 
+    public function loginEnabled(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'login_enabled' => true,
+        ]);
+    }
+
     public function otherRelationship(string $custom): static
     {
         return $this->state(fn (array $attributes): array => [

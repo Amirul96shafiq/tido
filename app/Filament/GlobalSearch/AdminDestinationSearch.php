@@ -16,6 +16,7 @@ use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Filament\Widgets\MonthlySpendingOverview;
+use App\Support\HouseholdAccess;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResult;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResults;
 use Illuminate\Support\Str;
@@ -33,7 +34,7 @@ final class AdminDestinationSearch
         $serviceStatusUrl = ServiceStatusPage::getUrl();
         $uploadUrl = ReceiptUploadPage::getUrl();
 
-        return [
+        $destinations = [
             [
                 'title' => 'Dashboard',
                 'keywords' => ['dashboard', 'home', 'analytics', 'finances'],
@@ -290,6 +291,27 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Upload Receipts'],
             ],
         ];
+
+        if (! HouseholdAccess::isPrimary()) {
+            $blockedTitles = [
+                'Family Members',
+                'Labels',
+                'Payment Methods',
+                'Budgets',
+                'Backups',
+                'Evolution API',
+                'Service Status',
+                'Danger Zone',
+                'Budget Performance',
+            ];
+
+            return array_values(array_filter(
+                $destinations,
+                fn (array $destination): bool => ! in_array($destination['title'], $blockedTitles, true),
+            ));
+        }
+
+        return $destinations;
     }
 
     public static function search(string $query, GlobalSearchResults $builder): GlobalSearchResults
