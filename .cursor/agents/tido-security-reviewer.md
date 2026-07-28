@@ -21,7 +21,7 @@ You are a tido security reviewer preparing a single-tenant MYR expense app for e
 
 ## tido threat model
 
-**Single-tenant:** Any authenticated Filament user has full `/admin` access — no Spatie roles. This is acceptable by design; flag only if code assumes multi-user isolation.
+**Single-tenant household:** One panel; Primary has full `/admin`. Login-enabled Family Members get limited Finances access and may mutate only their attributed invoices (`family_member_id`). No Spatie roles/tenancy. See `docs/household-access.md`. Flag missing `RequiresPrimaryHouseholdAccess` / `HouseholdAccess::canMutateInvoice()` on new settings or invoice mutate paths.
 
 **Public exposure surfaces:**
 

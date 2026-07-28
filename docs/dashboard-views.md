@@ -23,12 +23,13 @@ Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD 
 | Hook placement | `PanelsRenderHook::PAGE_HEADER_ACTIONS_BEFORE` scoped to `Dashboard` in [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php) |
 | Coming-soon shell | [`resources/views/filament/pages/partials/coming-soon-dashboard-content.blade.php`](../resources/views/filament/pages/partials/coming-soon-dashboard-content.blade.php) |
 | Tab CSS | `.tido-dashboard-view-tabs` in [`resources/css/app.css`](../resources/css/app.css) |
+| Spender filter | [`app/Support/DashboardSpenderScope.php`](../app/Support/DashboardSpenderScope.php) — applied via `DashboardMonthAnalytics` |
 
 ## Behaviour
 
 1. Header tabs are **icon-only** with a leading **Focus:** label, Filament Tippy tooltips + `aria-label` (see [`ui-tooltips.md`](ui-tooltips.md)).
 2. While `setDashboardView('…')` is in flight, that tab’s icon swaps to `<x-filament::loading-indicator>` (`wire:loading` / `wire:target`).
-3. **Finance** renders month filter + widget section nav + widgets (sticky toolbar — [`ui-sticky-blur.md`](ui-sticky-blur.md), [`ui-section-nav.md`](ui-section-nav.md)).
+3. **Finance** renders month + spender filters + widget section nav + widgets (sticky toolbar — [`ui-sticky-blur.md`](ui-sticky-blur.md), [`ui-section-nav.md`](ui-section-nav.md)). Spender scope (`DashboardSpenderScope`: All / Primary / Family Member) filters analytics — see [`household-access.md`](household-access.md).
 4. Non-finances views that return meta from `comingSoonDashboardContent()` render the shared coming-soon partial (no finance widgets).
 5. Invalid `?view=` values fall back to Finance in `booted()`.
 
@@ -49,3 +50,4 @@ Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD 
 | [`tests/Feature/TrainingDashboardTest.php`](../tests/Feature/TrainingDashboardTest.php) | Switch to Training / Health / Task, query-string deep links, invalid view ignored |
 | [`tests/Feature/DashboardGreetingTest.php`](../tests/Feature/DashboardGreetingTest.php) | Header tabs present (labels, loading targets) |
 | [`tests/Feature/DashboardSectionNavTest.php`](../tests/Feature/DashboardSectionNavTest.php) | Finances **widget** section nav only (not view tabs) |
+| [`tests/Feature/FamilyMemberAttributionLoginTest.php`](../tests/Feature/FamilyMemberAttributionLoginTest.php) | Spender scope + family login (see [`household-access.md`](household-access.md)) |

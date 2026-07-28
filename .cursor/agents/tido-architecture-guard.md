@@ -23,9 +23,9 @@ You are a tido architecture guard. Prevent changes that contradict the product b
 ## Product identity
 
 - **tido** only — never rename the product
-- Single-tenant personal MYR expense tracker
-- No multi-tenancy, no Spatie Permission, no role packages
-- Any authenticated user accesses `/admin`
+- Single-tenant personal MYR expense hub (Finances shipped; Training / Health / Task planned)
+- No multi-tenancy, no Spatie Permission packages
+- Household roles: Primary (full panel) vs login-enabled Family Member (limited Finances) — `docs/household-access.md`
 - Expense categories: **Label** model (UI: Label/Labels) — not Category
 
 ## Ingestion channels (existing)

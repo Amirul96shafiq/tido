@@ -63,6 +63,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 * `date_time` (Timestamp)
 * `total_tax` (Decimal)
 * `total_amount` (Decimal)
+* `family_member_id` (Foreign Key → family_members.id, Nullable) — **Uploaded By**; null = Primary
 * `google_drive_file_id` (String)
 
 ### `invoice_items` Table
@@ -84,6 +85,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 * **Evolution API Integration:** POST webhook (`/api/webhooks/whatsapp`) to Laravel, bypassing UI.
 * **WhatsApp image receipts:** Media download → pending `Invoice` → batched document ack → `ExtractReceiptDataJob` (Ollama vision).
 * **WhatsApp manual text invoices:** Fixed `merchant[, payment];` + `item, qty, line_total;` format → pending `Invoice` (no image) → label classification → `requires_manual_review`. See `docs/whatsapp-manual-invoice.md`.
+* **Attribution:** Allowlisted Family Member senders set `invoices.family_member_id`; Profile/primary senders leave it null (**Uploaded By**). Optional family panel login via WhatsApp OTP — see `docs/household-access.md`.
 * **Google Drive:** Scheduled folder poll (`SyncGoogleDriveJob` every 15m) copies images locally and creates pending invoices (Pub/Sub push is not the primary local path).
 
 ### 5.2. 100% Offline AI Extraction
@@ -101,6 +103,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 
 * **Hallucination Mitigation:** HTTP client logic must include regex to strip markdown blocks before `json_decode()`. Pass `"format": "json"` in the Ollama API request payload.
 * **Webhook Authentication:** Bearer token authorization or IP whitelisting required for Evolution API/Google PubSub endpoints.
+* **Household access:** Single panel with Primary vs Family Member roles (`HouseholdRole`); family members mutate only their attributed invoices. See `docs/household-access.md`.
 * **Storage Limits:** Enforce strict MIME type validation and maximum file size constraints (e.g., 10MB) to prevent memory exhaustion during Base64 encoding.
 
 ---

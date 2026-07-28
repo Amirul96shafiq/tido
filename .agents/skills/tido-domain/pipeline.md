@@ -5,7 +5,10 @@
 ```
 WhatsApp image | Drive file | Filament upload | Manual create
         ↓
-Invoice (status=pending, image_path set, source=…)
+Invoice (status=pending, image_path set, source=…, family_member_id?)
+  WhatsApp → InvoiceSenderAttribution (allowlisted Family Member phone)
+  Filament family user → acting user’s family_member_id
+  Primary / unknown → null (Primary spender)
         ↓
 InvoiceObserver::created → ExtractReceiptDataJob::dispatch(invoiceId)
   (WhatsApp waits for document-received ack first)
@@ -24,7 +27,7 @@ InvoiceObserver / BudgetAlertService (threshold WhatsApp + DB notifications)
 WhatsApp text (ManualWhatsAppInvoiceParser)
         ↓
 ProcessManualWhatsAppInvoiceJob
-  → Invoice (pending, no image, MYR, payment from token or cash)
+  → Invoice (pending, no image, MYR, payment from token or cash, family_member_id from sender)
   → InvoiceItems (label_id null)
         ↓
 WhatsAppManualInvoiceReceivedDebouncer → Manual invoice received ack
@@ -63,11 +66,12 @@ Unique on `receipt_hash`. Factories should set a unique hash.
 - Route: `POST /api/webhooks/whatsapp` (`routes/api.php`)
 - Auth: `Authorization: Bearer {services.evolution.api_key}`
 - Event: `messages.upsert`
-- Sender allowlist: Profile `users.phone` + Family Members with `allowlist_enabled` (normalized); others → `ignored_sender` (no reply). Family members do not grant panel/OTP.
+- Sender allowlist: Profile `users.phone` + Family Members with `allowlist_enabled` (normalized); others → `ignored_sender` (no reply)
+- Panel login: Family Members with `login_enabled` get a linked `User` and may OTP-login — see `docs/household-access.md`
 - Self-chat allowed when `remoteJid` matches allowlist (including `fromMe: true`)
-- Image: fetch media → `receipts/` storage → pending Invoice → ack text
+- Image: fetch media → `receipts/` storage → pending Invoice (`family_member_id` via `InvoiceSenderAttribution`) → ack text
 - Text: spend/total keywords → monthly sum via Evolution `sendText`
-- Text manual invoice format (`merchant[, payment];` + `item, qty, line_total;` blocks, multi-block OK) → pending Invoice (no image; payment token optional: `qr` / `tngo` / `card` / `cash`…, default cash) → Manual invoice received ack → `ParseManualWhatsAppInvoiceJob` (Ollama labels only) → `requires_manual_review` + Manual invoice parsed reply
+- Text manual invoice format (`merchant[, payment];` + `item, qty, line_total;` blocks, multi-block OK) → pending Invoice (no image; attributed; payment token optional: `qr` / `tngo` / `card` / `cash`…, default cash) → Manual invoice received ack → `ParseManualWhatsAppInvoiceJob` (Ollama labels only) → `requires_manual_review` + Manual invoice parsed reply
 
 ## Google Drive sync
 

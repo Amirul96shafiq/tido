@@ -147,7 +147,7 @@ Only Profile WhatsApp numbers plus Family Members with allowlist enabled are all
 
 **Local testing without a second WhatsApp:** set `WHATSAPP_LOGIN_DEV_OTP=123456` and `WHATSAPP_LOGIN_DEV_PHONES=60111222333` in `.env` (local/testing only). `DatabaseSeeder` seeds **Sample Spouse** on that number — send OTP on login, then enter the dev code (no Evolution send).
 
-Inbound handling — full command list: [whatsapp-bot-commands.md](whatsapp-bot-commands.md)
+Inbound handling — full command list: [whatsapp-bot-commands.md](whatsapp-bot-commands.md). Household roles / family login: [household-access.md](household-access.md).
 
 - **Image / document** — receipt upload + OCR
 - **Manual invoice text** — structured `merchant[, payment];` + line items (no image); see [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md)

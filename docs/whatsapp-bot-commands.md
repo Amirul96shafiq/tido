@@ -22,10 +22,10 @@ Images are handled separately (receipt upload → OCR pipeline).
 
 | Action | What happens |
 |--------|----------------|
-| Send **image(s)** | Saved and queued for AI parsing → document received ack → document parsed reply with edit URL |
-| Send **manual invoice text** | Fixed `merchant[, payment];` + `item, qty, total;` lines → manual invoice received ack → parsed reply |
+| Send **image(s)** | Saved and queued for AI parsing → attributed to sender (Primary vs Family Member) → document received ack → document parsed reply with edit URL |
+| Send **manual invoice text** | Fixed `merchant[, payment];` + `item, qty, total;` lines → attributed → manual invoice received ack → parsed reply |
 
-Manual format rules and payment tokens: [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md).
+Manual format rules and payment tokens: [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md). Household attribution + panel login: [household-access.md](household-access.md).
 
 ## Help and guides
 
@@ -98,10 +98,12 @@ These are sent by the bot after ingestion jobs complete (no keyword needed):
 | Spend command parser | `App\Support\WhatsAppSpendingCommandParser` |
 | Spend reply builder | `App\Support\WhatsAppSpendingReplyBuilder` |
 | Manual text parser | `App\Support\ManualWhatsAppInvoiceParser` |
+| Sender attribution | `App\Support\InvoiceSenderAttribution` |
 | Analytics data | `App\Filament\Support\DashboardMonthAnalytics` |
 
 ## Related
 
+- [household-access.md](household-access.md) — attribution, family OTP login, panel ACL
 - [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md) — manual invoice text format and pipeline
 - [evolution-local-windows.md](evolution-local-windows.md) — Evolution API + webhook setup
 - [`.agents/skills/tido-domain/pipeline.md`](../.agents/skills/tido-domain/pipeline.md) — ingestion pipeline detail

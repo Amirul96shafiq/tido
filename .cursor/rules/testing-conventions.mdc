@@ -28,6 +28,8 @@ Storage::fake('local');  // or 'google'
 
 Never call real Ollama/Evolution in CI/tests.
 
+Family / household: use `FamilyMember::factory()->loginEnabled()` when testing panel login or ownership; see `docs/household-access.md`.
+
 ## Patterns in this repo
 
 - Filament: often HTTP `get(Resource::getUrl('index'))`; Livewire for interactive pages (`Livewire::test(EditProfile::class)`)

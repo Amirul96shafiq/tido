@@ -45,6 +45,7 @@ Sources: `manual` | `whatsapp` | `google_drive`
 - Validate auth/payload first; heavy work via queue/jobs
 - Images → store → pending Invoice; text keywords (`spend`/`total`) → monthly total reply
 - Text manual invoice format → pending Invoice (no image) → label job → `requires_manual_review`
+- Attribute WhatsApp invoices with `InvoiceSenderAttribution` (`family_member_id`; null = Primary) — `docs/household-access.md`
 - Optional merchant payment token: aliases from Settings → Payment Methods (defaults: `qr` / `tngo` / `card` / `cash` / …)
 
 ## Google Drive
