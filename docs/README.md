@@ -13,6 +13,7 @@
 | [google-drive-setup.md](google-drive-setup.md) | Ops | Drive folder sync credentials |
 | [ui-empty-states.md](ui-empty-states.md) | Agents + humans | Illustrated empty panels (email-change expiry pattern) |
 | [ui-modal-overlay.md](ui-modal-overlay.md) | Agents + humans | Modal backdrop blur + Filament action modal width |
+| [vite-assets.md](vite-assets.md) | Agents + humans | Vite panel assets: `Vite::asset()` vs `@vite`, when `npm run build` is required |
 | [ui-sticky-blur.md](ui-sticky-blur.md) | Agents + humans | Sticky top/bottom bars with progressive blur veil |
 | [ui-section-nav.md](ui-section-nav.md) | Agents + humans | Shared sticky section tabs + smooth scroll / hash deep links |
 | [ui-tooltips.md](ui-tooltips.md) | Agents + humans | Filament Tippy tooltips on icon CTAs (not browser `title`) |

@@ -52,7 +52,7 @@ Filament Tippy is **disabled** below Tailwind `sm` (`max-width: 639px`):
 |-------|------|
 | Cancel show + `touch: false` | [`resources/js/disable-mobile-tippy.js`](../resources/js/disable-mobile-tippy.js) |
 | Hide any mounted Tippy root | [`resources/css/app.css`](../resources/css/app.css) (`[data-tippy-root]`) |
-| Asset registration | [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php) |
+| Asset registration | [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php) (`Vite::asset` — see [`vite-assets.md`](vite-assets.md)) |
 
 **Keep** `aria-label` (or Action labels) so icon CTAs stay accessible when Tippy is off.
 

@@ -38,20 +38,21 @@ Default login (seeded): `admin@tido.local` / `password`.
 7. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-bot-commands.md`, `docs/whatsapp-manual-invoice.md`, `docs/google-drive-setup.md`
 8. UI empty panels: `docs/ui-empty-states.md`
 9. Modal blur / width: `docs/ui-modal-overlay.md`
-10. Sticky top/bottom bars + blur veil: `docs/ui-sticky-blur.md`
-11. Sticky section tabs + smooth scroll: `docs/ui-section-nav.md` (Finances widget jump tabs — not dashboard view tabs)
-12. Icon CTA tooltips (Filament Tippy, not browser `title`): `docs/ui-tooltips.md`
-13. Single-line text marquee (overflow RTL scroll): `docs/ui-text-marquee.md`
-14. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
-15. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
-16. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
-17. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
-18. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md`
-19. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
-20. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
-21. Service Status (health probes, uptime UI): `docs/service-status.md`
-22. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
-23. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+10. Vite panel assets (`Vite::asset` vs `@vite`, when to `npm run build`): `docs/vite-assets.md`
+11. Sticky top/bottom bars + blur veil: `docs/ui-sticky-blur.md`
+12. Sticky section tabs + smooth scroll: `docs/ui-section-nav.md` (Finances widget jump tabs — not dashboard view tabs)
+13. Icon CTA tooltips (Filament Tippy, not browser `title`): `docs/ui-tooltips.md`
+14. Single-line text marquee (overflow RTL scroll): `docs/ui-text-marquee.md`
+15. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
+16. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
+17. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
+18. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
+19. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md`
+20. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
+21. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
+22. Service Status (health probes, uptime UI): `docs/service-status.md`
+23. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
+24. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 
@@ -166,6 +167,7 @@ php artisan test --compact --filter=YourTest
 - Horizon `viewHorizon` gate empty allowlist — configure before relying on `/horizon` in prod
 - Using browser `title=` on icon CTAs instead of Filament Tippy — see `docs/ui-tooltips.md`
 - Inventing a second backup/restore path outside `BackupService` — see `docs/backups-and-danger-zone.md`
+- Adding a new `Vite::asset()` panel script without `npm run build` — stale manifest can crash `dev:full` / `dev:all`; see `docs/vite-assets.md`
 
 ## 8. Useful commands
 
@@ -174,7 +176,8 @@ php artisan route:list --path=admin
 php artisan route:list --path=api
 php artisan test --compact
 vendor/bin/pint --dirty --format agent
-npm run dev          # or npm run dev:full (vite + serve:2000 + queue)
+npm run dev          # or npm run dev:full / dev:all (vite + serve:2000 + queue; does not run build)
+npm run build        # once after new Vite::asset() entry paths — see docs/vite-assets.md
 ```
 
 Local stack: native Ollama (`docs/ollama-setup.md`, `OLLAMA_HOST=http://127.0.0.1:11434`) and Evolution (`docs/evolution-local-windows.md`) on the Windows host with `npm run dev:full`.

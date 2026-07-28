@@ -111,7 +111,7 @@ Dashboard remains the reference for **top** sticky bars (manual `Group` + marker
 
 - CSS: [`resources/css/app.css`](../resources/css/app.css) — sticky offsets, progressive blur/tint veil (dual `::before` / `::after` layers)
 - JS: [`resources/js/sticky-blur-veil.js`](../resources/js/sticky-blur-veil.js) — rAF scroll listener; toggles `tido-sticky-stuck`
-- Registered in [`vite.config.js`](../vite.config.js) and [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php) `->assets()`
+- Registered in [`vite.config.js`](../vite.config.js) and [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php) `->assets()` via `Vite::asset()` — see [`vite-assets.md`](vite-assets.md)
 
 No per-page JS registration is required once the hook classes are present.
 
@@ -129,7 +129,7 @@ No per-page JS registration is required once the hook classes are present.
 2. Wrap the pin alone in an inner `Group` with `tido-sticky-marker` + `--top` or `--bottom`.
 3. Confirm `.fi-layout` overflow fix applies (automatic when scope is present).
 4. Hard-refresh and scroll: pin sticks; veil fades in only while stuck.
-5. Rebuild assets if CSS/JS changed: `npm run build` (or `npm run dev`).
+5. After CSS changes with Vite running, hard-refresh (HMR). After adding/renaming a `Vite::asset()` panel script entry, run `npm run build` once — see [`vite-assets.md`](vite-assets.md).
 
 ## Do not
 

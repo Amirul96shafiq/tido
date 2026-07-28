@@ -11,6 +11,7 @@ Before coding, read **[docs/agent-onboarding.md](docs/agent-onboarding.md)** for
 - Dashboard modules: **[docs/dashboard-views.md](docs/dashboard-views.md)** — Finances / Training / Health / Task view tabs
 - Icon CTA tooltips: **[docs/ui-tooltips.md](docs/ui-tooltips.md)** — Filament Tippy, not browser `title`
 - Sticky bars + blur veil: **[docs/ui-sticky-blur.md](docs/ui-sticky-blur.md)** — top/bottom pin with frosted veil
+- Vite panel assets: **[docs/vite-assets.md](docs/vite-assets.md)** — `Vite::asset()` vs `@vite`, when `npm run build` is required
 - Section nav (sticky tabs): **[docs/ui-section-nav.md](docs/ui-section-nav.md)** — shared sticky tabs, smooth scroll, hash deep links (Profile + Dashboard)
 - Text marquee (overflow RTL): **[docs/ui-text-marquee.md](docs/ui-text-marquee.md)** — reuse `.tido-text-marquee` anywhere
 - Notes rich editor: **[docs/ui-notes-rich-editor.md](docs/ui-notes-rich-editor.md)** — `NotesRichEditor` for `notes` fields
@@ -170,7 +171,8 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 ## Vite Error
 
-- If you receive an "Illuminate\Foundation\ViteException: Unable to locate file in Vite manifest" error, you can run `npm run build` or ask the user to run `npm run dev` or `composer run dev`.
+- If you receive an `Illuminate\Foundation\ViteException: Unable to locate file in Vite manifest` for a path registered with `Vite::asset()` (panel scripts in `AdminPanelProvider`), run `npm run build` so `public/build/manifest.json` includes the new entry. `npm run dev` alone does not write those production-manifest entries; see **[docs/vite-assets.md](docs/vite-assets.md)**.
+- For missing UI after CSS/`@vite` changes while the Vite server is not running, ask the user to run `npm run build`, `npm run dev`, or `composer run dev`.
 
 === laravel/v12 rules ===
 

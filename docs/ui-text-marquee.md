@@ -103,7 +103,7 @@ Budget Performance on mobile keeps icon + title/period on the left and spent/tot
 4. Mark siblings that must stay visible (`badge`, amounts, icon buttons) with `shrink-0` and `whitespace-nowrap` where needed.
 5. Ensure every flex parent up to the clip has `min-w-0`.
 6. Do **not** copy a second keyframes block — use `.tido-text-marquee`.
-7. After CSS changes, rebuild Vite (`npm run build` / `npm run dev`).
+7. After CSS changes with Vite running, hard-refresh (HMR). New `Vite::asset()` panel JS entries need `npm run build` once — see [`vite-assets.md`](vite-assets.md).
 8. Add/extend a Pest feature test asserting `tido-text-marquee-clip`, `x-ref="marqueeText"`, and `tido-text-marquee` appear in the rendered HTML.
 
 ## Filament JS Select (selected value)
@@ -119,7 +119,7 @@ Use this when a searchable / JS Filament `Select` shows a long option label that
 | PHP constant | `App\Filament\Support\SelectValueMarquee::EXTRA_CLASS` → `tido-select-value-marquee` |
 | Helper | `SelectValueMarquee::extraAttributes()` |
 | CSS | `.tido-select-value-marquee …` in `resources/css/app.css` |
-| JS | `resources/js/select-value-marquee.js` (registered in `AdminPanelProvider`) |
+| JS | `resources/js/select-value-marquee.js` (registered in `AdminPanelProvider` via `Vite::asset` — see [`vite-assets.md`](vite-assets.md)) |
 
 ### Drop-in
 
@@ -141,7 +141,7 @@ Requirements:
 1. Field must be a **JS** select (`searchable()`, `multiple()`, `native(false)`, or `allowHtml()` — not a plain native `<select>`).
 2. Call `wrapOptionLabels(false)` so the **closed** selected value stays on one line (marquee handles overflow). Dropdown options still show the **full** label (no ellipsis) via shared CSS under `.tido-select-value-marquee`.
 3. Use `SelectValueMarquee::extraAttributes()` (or `['class' => SelectValueMarquee::EXTRA_CLASS]` with `merge: true` if merging other attributes).
-4. Rebuild Vite after CSS/JS changes.
+4. Rebuild after CSS changes with Vite running (HMR). After adding/renaming the panel JS entry, run `npm run build` once — see [`vite-assets.md`](vite-assets.md).
 
 ### Agent checklist (Select)
 
