@@ -23,7 +23,6 @@ class FamilyMemberFactory extends Factory
             'name' => $this->faker->name(),
             'display_name' => $this->faker->optional()->firstName(),
             'phone' => '60'.$local,
-            'email' => $this->faker->optional()->safeEmail(),
             'relationship' => $this->faker->optional()->randomElement(
                 array_filter(
                     FamilyRelationship::cases(),

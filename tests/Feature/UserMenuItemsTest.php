@@ -5,11 +5,13 @@ declare(strict_types=1);
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Dashboard;
 use App\Helpers\GitHelper;
+use App\Models\FamilyMember;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Livewire\Topbar;
 use Filament\Notifications\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -134,6 +136,35 @@ test('topbar hides notification bell and exposes notifications in user menu', fu
     $response->assertSee("getAttribute('aria-expanded') === 'true'", false);
     $response->assertDontSee("dropdownTrigger.getAttribute('aria-expanded') === 'true'", false);
     $response->assertSee('offset: -39', false);
+});
+
+test('user menu profile preview shows email for primary user', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'email' => 'primary@tido.local',
+    ]);
+
+    $this->actingAs($user);
+
+    $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee('primary@tido.local', false);
+});
+
+test('user menu profile preview hides email for family member', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'phone' => '60111222333',
+        'name' => 'Nor Ezrieana Harun',
+    ]);
+    $user = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    $this->actingAs($user);
+
+    $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee('Nor Ezrieana Harun', false)
+        ->assertSee('60111222333', false)
+        ->assertDontSee($user->email, false)
+        ->assertDontSee('family+'.$member->id.'@tido.local', false);
 });
 
 test('user menu profile item uses wire current for spa-safe active state', function () {

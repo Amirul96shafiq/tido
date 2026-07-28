@@ -83,12 +83,6 @@ class FamilyMemberForm
                                     })
                                     ->dehydrateStateUsing(fn (?string $state): ?string => PhoneNumber::normalize($state)),
 
-                                TextInput::make('email')
-                                    ->label('Email')
-                                    ->email()
-                                    ->maxLength(255)
-                                    ->placeholder('name@example.com'),
-
                                 Select::make('relationship')
                                     ->label('Relationship')
                                     ->options(FamilyRelationship::options())

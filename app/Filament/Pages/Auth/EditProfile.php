@@ -103,7 +103,7 @@ class EditProfile extends BaseEditProfile implements HasTable
         if (! HouseholdAccess::isPrimary()) {
             return array_values(array_filter(
                 $items,
-                fn (array $item): bool => $item['id'] !== 'danger-zone',
+                fn (array $item): bool => ! in_array($item['id'], ['account-security', 'danger-zone'], true),
             ));
         }
 
@@ -209,6 +209,7 @@ class EditProfile extends BaseEditProfile implements HasTable
 
                         Section::make('Account & Security')
                             ->id('account-security')
+                            ->visible(fn (): bool => HouseholdAccess::isPrimary())
                             ->schema([
                                 $this->getEmailFormComponent(),
                                 Toggle::make('change_password')

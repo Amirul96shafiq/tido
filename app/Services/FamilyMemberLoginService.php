@@ -29,7 +29,7 @@ class FamilyMemberLoginService
             ->first();
 
         if ($existingUser instanceof User) {
-            $email = $this->resolvedLoginEmail($member, $existingUser);
+            $email = $this->syntheticEmail($member);
 
             $existingUser->update([
                 'name' => $member->name,
@@ -59,7 +59,7 @@ class FamilyMemberLoginService
         return User::query()->create([
             'name' => $member->name,
             'display_name' => $member->display_name,
-            'email' => $this->resolvedLoginEmail($member),
+            'email' => $this->syntheticEmail($member),
             'password' => Hash::make(Str::random(64)),
             'phone' => $member->phone,
             'avatar_url' => $member->avatar_url,
@@ -83,23 +83,6 @@ class FamilyMemberLoginService
             ->where('family_member_id', $member->id)
             ->where('household_role', HouseholdRole::FamilyMember)
             ->delete();
-    }
-
-    private function resolvedLoginEmail(FamilyMember $member, ?User $existingUser = null): string
-    {
-        if (filled($member->email)) {
-            $conflictQuery = User::query()->where('email', $member->email);
-
-            if ($existingUser instanceof User) {
-                $conflictQuery->where('id', '!=', $existingUser->id);
-            }
-
-            if (! $conflictQuery->exists()) {
-                return (string) $member->email;
-            }
-        }
-
-        return $this->syntheticEmail($member);
     }
 
     private function syntheticEmail(FamilyMember $member): string

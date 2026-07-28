@@ -75,7 +75,6 @@ class FamilyMemberResource extends Resource
             'name',
             'display_name',
             'phone',
-            'email',
         ];
     }
 

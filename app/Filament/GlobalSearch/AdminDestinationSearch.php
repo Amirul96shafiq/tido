@@ -302,6 +302,7 @@ final class AdminDestinationSearch
                 'Evolution API',
                 'Service Status',
                 'Danger Zone',
+                'Account & Security',
                 'Budget Performance',
             ];
 

@@ -184,10 +184,9 @@ test('family member avatar syncs to linked login user profile photo', function (
     expect($user->fresh()->avatar_url)->toBe('avatars/family-member-synced.png');
 });
 
-test('family member email and date of birth sync to linked login user', function () {
+test('family member date of birth syncs to linked login user with synthetic email', function () {
     $member = FamilyMember::factory()->loginEnabled()->create([
         'phone' => FamilyMemberLoginTestSeeder::SAMPLE_PHONE,
-        'email' => null,
         'date_of_birth' => null,
     ]);
 
@@ -197,33 +196,13 @@ test('family member email and date of birth sync to linked login user', function
         ->and($user->date_of_birth)->toBeNull();
 
     $member->update([
-        'email' => 'spouse@example.com',
         'date_of_birth' => '1990-05-15',
     ]);
 
     $user->refresh();
 
-    expect($user->email)->toBe('spouse@example.com')
+    expect($user->email)->toBe('family+'.$member->id.'@tido.local')
         ->and($user->date_of_birth?->format('Y-m-d'))->toBe('1990-05-15');
-});
-
-test('family member email sync falls back when email already taken', function () {
-    User::factory()->create([
-        'email' => 'taken@example.com',
-    ]);
-
-    $member = FamilyMember::factory()->loginEnabled()->create([
-        'phone' => FamilyMemberLoginTestSeeder::SAMPLE_PHONE,
-        'email' => null,
-    ]);
-
-    $user = User::query()->where('family_member_id', $member->id)->firstOrFail();
-
-    $member->update([
-        'email' => 'taken@example.com',
-    ]);
-
-    expect($user->fresh()->email)->toBe('family+'.$member->id.'@tido.local');
 });
 
 test('family member without login enabled cannot access panel', function () {
