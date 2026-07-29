@@ -1593,6 +1593,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 /*
  * Filament default .fi-dropdown-panel is z-20; raise for body-level / teleported panels.
  * Topbar user-menu panel stays in .fi-topbar-ctn (z-20) — see .tido-go-to-bottom.
+ * Open modal overlay/window must stay above this (z-60) — see .fi-modal.fi-modal-open rules.
  */
 .fi-dropdown-panel {
     z-index: 50;
@@ -1956,6 +1957,22 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
  */
 .fi-topbar-ctn:has(.fi-modal.fi-modal-open:not([style*="display: none"])) {
     z-index: 60 !important;
+}
+
+/*
+ * App raises .fi-dropdown-panel to z-50 (above Filament default z-20). Filament
+ * modal overlay/window stay at z-40, so open action menus and the user menu
+ * paint above confirmation backdrops. Lift open modal layers above dropdowns.
+ * Nested open modals need a higher tier than the parent (Filament uses z-50).
+ */
+.fi-modal.fi-modal-open > .fi-modal-close-overlay,
+.fi-modal.fi-modal-open > .fi-modal-window-ctn {
+    z-index: 60;
+}
+
+.fi-modal.fi-modal-open ~ .fi-modal.fi-modal-open > .fi-modal-close-overlay,
+.fi-modal.fi-modal-open ~ .fi-modal.fi-modal-open > .fi-modal-window-ctn {
+    z-index: 70;
 }
 
 .fi-layout:has(.fi-fo-file-upload-editor:not([style*="display: none"]))

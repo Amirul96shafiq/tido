@@ -39,7 +39,7 @@ test('open filament modals lift above sticky form actions and panel chrome', fun
 
     expect($css)
         ->toContain('.fi-layout:has(.fi-modal.fi-modal-open:not([style*="display: none"]))')
-        ->toContain('.fi-modal.fi-modal-open:not([style*=\'display: none\'])')
+        ->toContain('.fi-modal.fi-modal-open:not([style*="display: none"])')
         ->toContain('z-index: 35;')
         ->toContain('z-index: 15;');
 });
@@ -56,4 +56,17 @@ test('open topbar action modals lift above sidebar and user menu dropdown', func
     expect($block)
         ->toContain('.fi-topbar-ctn:has(.fi-modal.fi-modal-open:not([style*="display: none"]))')
         ->toContain('z-index: 60 !important;');
+});
+
+test('open filament modal layers beat raised dropdown panels', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.fi-dropdown-panel')
+        ->toContain('z-index: 50;')
+        ->toContain('.fi-modal.fi-modal-open > .fi-modal-close-overlay')
+        ->toContain('.fi-modal.fi-modal-open > .fi-modal-window-ctn')
+        ->toContain('z-index: 60;')
+        ->toContain('.fi-modal.fi-modal-open ~ .fi-modal.fi-modal-open > .fi-modal-close-overlay')
+        ->toContain('z-index: 70;');
 });
