@@ -82,6 +82,16 @@ test('invoices table has view slide-over action', function () {
         ->assertActionExists(TestAction::make('view')->table($invoice));
 });
 
+test('invoices table shows id column', function () {
+    $this->actingAs($this->admin);
+
+    Invoice::factory()->create();
+
+    Livewire::test(ListInvoices::class)
+        ->assertSuccessful()
+        ->assertCanRenderTableColumn('id');
+});
+
 test('budgets table has view slide-over action', function () {
     $this->actingAs($this->admin);
 

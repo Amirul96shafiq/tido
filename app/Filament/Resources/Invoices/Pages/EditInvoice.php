@@ -19,6 +19,7 @@ use Filament\Actions\RestoreAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Storage;
 
 class EditInvoice extends EditRecord
@@ -29,6 +30,14 @@ class EditInvoice extends EditRecord
     use RecoversContentDraft;
 
     protected static string $resource = InvoiceResource::class;
+
+    public function getRecordTitle(): string|Htmlable
+    {
+        /** @var Invoice $record */
+        $record = $this->getRecord();
+
+        return trim((string) $record->merchant_name).' #'.$record->getKey();
+    }
 
     /**
      * @return array<string>

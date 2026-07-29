@@ -56,14 +56,15 @@ test('edit label title appends Label model label and highlights record title', f
 
 test('edit invoice title appends Invoice model label and highlights record title', function () {
     $invoice = Invoice::factory()->create(['merchant_name' => 'Starbucks']);
+    $recordTitle = 'Starbucks #'.$invoice->getKey();
 
     $page = Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()]);
     $titleHtml = (string) $page->instance()->getTitle();
 
     expect(html_entity_decode(strip_tags($titleHtml)))
-        ->toBe('Edit Starbucks Invoice')
+        ->toBe('Edit '.$recordTitle.' Invoice')
         ->and($titleHtml)
         ->toContain('text-primary-600 dark:text-primary-400')
-        ->toContain('<span class="text-primary-600 dark:text-primary-400">Starbucks</span>')
+        ->toContain('<span class="text-primary-600 dark:text-primary-400">'.$recordTitle.'</span>')
         ->toEndWith(InvoiceResource::getTitleCaseModelLabel());
 });

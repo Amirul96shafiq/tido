@@ -37,6 +37,11 @@ class InvoicesTable
     {
         return $table
             ->columns([
+                TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->searchable(),
+
                 TextColumn::make('merchant_name')
                     ->searchable()
                     ->sortable()
