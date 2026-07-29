@@ -9,6 +9,7 @@ use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Helpers\FilenameDisplay;
 use App\Models\Invoice;
+use App\Support\DashboardSpenderScope;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -23,6 +24,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ReceiptUploadPage extends Page implements HasForms, HasTable
 {
@@ -240,6 +242,30 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                     ->relationship('paymentMethod', 'name')
                     ->searchable()
                     ->preload(),
+
+                SelectFilter::make('spender')
+                    ->label('From')
+                    ->options(fn (): array => DashboardSpenderScope::filterOptionsFor())
+                    ->query(function (Builder $query, array $data): Builder {
+                        $spender = $data['value'] ?? null;
+
+                        if (! is_string($spender) || $spender === '' || $spender === DashboardSpenderScope::ALL) {
+                            return $query;
+                        }
+
+                        if (! DashboardSpenderScope::isValid($spender)) {
+                            return $query;
+                        }
+
+                        $allowed = array_keys(DashboardSpenderScope::filterOptionsFor());
+
+                        if (! in_array($spender, $allowed, true)) {
+                            return $query;
+                        }
+
+                        return (new DashboardSpenderScope($spender))->applyToInvoiceQuery($query);
+                    })
+                    ->searchable(),
             ])
             ->emptyStateHeading('No receipts yet')
             ->emptyStateDescription('Upload a receipt with the form above to start tracking spending.')

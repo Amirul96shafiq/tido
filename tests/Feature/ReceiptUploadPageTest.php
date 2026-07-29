@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Invoices\InvoiceResource;
+use App\Models\FamilyMember;
 use App\Models\Invoice;
 use App\Models\User;
+use App\Support\DashboardSpenderScope;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -94,6 +96,33 @@ test('upload button shows loading spinner while saving', function () {
         ->assertSeeHtml('wire:loading.delay')
         ->assertSeeHtml('M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z')
         ->assertSee('Upload and Start AI Extraction');
+});
+
+test('receipt upload page filters recent uploads by from spender', function () {
+    $member = FamilyMember::factory()->create([
+        'name' => 'Nor Ezrieana Harun',
+        'display_name' => 'Ahlong',
+    ]);
+
+    $familyInvoice = Invoice::factory()->create([
+        'original_filename' => 'family_receipt.jpg',
+        'family_member_id' => $member->id,
+    ]);
+
+    $primaryInvoice = Invoice::factory()->create([
+        'original_filename' => 'primary_receipt.jpg',
+        'family_member_id' => null,
+    ]);
+
+    Livewire::test(ReceiptUploadPage::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$familyInvoice, $primaryInvoice])
+        ->filterTable('spender', DashboardSpenderScope::familyValue((int) $member->id))
+        ->assertCanSeeTableRecords([$familyInvoice])
+        ->assertCanNotSeeTableRecords([$primaryInvoice])
+        ->filterTable('spender', DashboardSpenderScope::PRIMARY)
+        ->assertCanSeeTableRecords([$primaryInvoice])
+        ->assertCanNotSeeTableRecords([$familyInvoice]);
 });
 
 test('receipt upload page edit action spa navigates to invoice edit', function () {
