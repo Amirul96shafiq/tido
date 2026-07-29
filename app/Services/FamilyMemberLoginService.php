@@ -85,6 +85,37 @@ class FamilyMemberLoginService
             ->delete();
     }
 
+    /**
+     * Push shared profile fields from a family-member login User back to FamilyMember.
+     * Uses saveQuietly so FamilyMemberObserver does not re-sync onto the User.
+     */
+    public function syncFamilyMemberFromLoginUser(User $user): ?FamilyMember
+    {
+        if (! $user->isFamilyMember() || $user->family_member_id === null) {
+            return null;
+        }
+
+        $member = FamilyMember::query()->find($user->family_member_id);
+
+        if (! $member instanceof FamilyMember) {
+            return null;
+        }
+
+        $member->fill([
+            'name' => $user->name,
+            'display_name' => $user->display_name,
+            'phone' => $user->phone,
+            'avatar_url' => $user->avatar_url,
+            'date_of_birth' => $user->date_of_birth,
+        ]);
+
+        if ($member->isDirty()) {
+            $member->saveQuietly();
+        }
+
+        return $member->fresh();
+    }
+
     private function syntheticEmail(FamilyMember $member): string
     {
         return 'family+'.$member->id.'@tido.local';

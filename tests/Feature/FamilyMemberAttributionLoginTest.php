@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\HouseholdRole;
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\EvolutionApiPage;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
@@ -182,6 +183,34 @@ test('family member avatar syncs to linked login user profile photo', function (
     ]);
 
     expect($user->fresh()->avatar_url)->toBe('avatars/family-member-synced.png');
+});
+
+test('family member profile edit syncs shared fields back to family member resource', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'phone' => FamilyMemberLoginTestSeeder::SAMPLE_PHONE,
+        'name' => 'Nor Ezrieana Harun',
+        'display_name' => 'Ahlong',
+        'date_of_birth' => '1988-11-11',
+    ]);
+
+    $user = User::query()->where('family_member_id', $member->id)->firstOrFail();
+    $user->update(['notify_profile_updates' => false]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->set('data.display_name', 'Alongg')
+        ->set('data.name', 'Nor Ezrieana Updated')
+        ->set('data.date_of_birth', '12/12/1990')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $member->refresh();
+
+    expect($member->display_name)->toBe('Alongg')
+        ->and($member->name)->toBe('Nor Ezrieana Updated')
+        ->and($member->date_of_birth?->format('Y-m-d'))->toBe('1990-12-12')
+        ->and($member->phone)->toBe(FamilyMemberLoginTestSeeder::SAMPLE_PHONE);
 });
 
 test('family member date of birth syncs to linked login user with synthetic email', function () {

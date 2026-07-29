@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Notifications\VerifyEmailChange;
 use App\Services\AccountDangerZoneService;
 use App\Services\ActiveSessionService;
+use App\Services\FamilyMemberLoginService;
 use App\Support\FilamentAuthLogout;
 use App\Support\HouseholdAccess;
 use App\Support\PhoneNumber;
@@ -801,6 +802,10 @@ class EditProfile extends BaseEditProfile implements HasTable
         $passwordChanged = filled($data['password'] ?? null);
 
         $updatedRecord = parent::handleRecordUpdate($record, $data);
+
+        if ($updatedRecord instanceof User) {
+            app(FamilyMemberLoginService::class)->syncFamilyMemberFromLoginUser($updatedRecord);
+        }
 
         $changes = [];
         if ($oldName !== $updatedRecord->name) {

@@ -44,7 +44,7 @@ Family members **can** use: Home (Finance dashboard), Upload Receipts, Invoices,
 | `phone` | Normalized MY WhatsApp number (unique) |
 | `allowlist_enabled` | Bot contact allowlist (default on) |
 | `login_enabled` | Panel login via WhatsApp OTP (default off) |
-| `avatar_url`, `date_of_birth`, name/display | Synced to linked login `User` when login is enabled |
+| `avatar_url`, `date_of_birth`, name/display | Bidirectional with linked login `User` when login is enabled (Family Member CRUD → User; family Edit Profile → Family Member) |
 
 Linked user email is synthetic: `family+{id}@tido.local`. Password is random (OTP-only). Disabling login deletes the linked family-member `User`.
 
