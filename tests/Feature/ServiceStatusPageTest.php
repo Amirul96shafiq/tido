@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\MonitoredService;
 use App\Enums\ServiceHealthStatus;
 use App\Filament\Pages\ServiceStatusPage;
+use App\Models\FamilyMember;
 use App\Models\ServiceHealthSample;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -56,6 +57,7 @@ test('service status page run check now records samples', function (): void {
     expect(ServiceHealthSample::query()->count())->toBe(0);
 
     Livewire::test(ServiceStatusPage::class)
+        ->assertActionVisible('runCheck')
         ->callAction('runCheck')
         ->assertNotified();
 
@@ -65,4 +67,25 @@ test('service status page run check now records samples', function (): void {
 test('service status page is available in tools navigation', function (): void {
     $this->get(ServiceStatusPage::getUrl())
         ->assertSuccessful();
+});
+
+test('family member can navigate to and view service status', function (): void {
+    $familyMember = FamilyMember::factory()->loginEnabled()->create();
+    $familyMemberUser = User::query()
+        ->where('family_member_id', $familyMember->getKey())
+        ->firstOrFail();
+
+    $this->actingAs($familyMemberUser);
+
+    expect(ServiceStatusPage::canAccess())->toBeTrue()
+        ->and(ServiceStatusPage::shouldRegisterNavigation())->toBeTrue();
+
+    $this->get(ServiceStatusPage::getUrl())
+        ->assertSuccessful()
+        ->assertSee('Service Status');
+
+    Livewire::test(ServiceStatusPage::class)
+        ->assertSee('Summary report')
+        ->assertSee('System status')
+        ->assertActionHidden('runCheck');
 });

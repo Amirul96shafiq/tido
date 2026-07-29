@@ -7,9 +7,9 @@ namespace App\Filament\Pages;
 use App\Enums\ServiceHealthStatus;
 use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
-use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Services\Health\ServiceHealthAggregator;
 use App\Services\Health\ServiceHealthRecorder;
+use App\Support\HouseholdAccess;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -21,7 +21,6 @@ class ServiceStatusPage extends Page
 {
     use HasSectionNav;
     use PrependsHomeBreadcrumb;
-    use RequiresPrimaryHouseholdAccess;
 
     protected static ?string $slug = 'service-status';
 
@@ -87,6 +86,7 @@ class ServiceStatusPage extends Page
             Action::make('runCheck')
                 ->label('Run check now')
                 ->icon(Heroicon::OutlinedArrowPath)
+                ->authorize(fn (): bool => HouseholdAccess::canManageHouseholdSettings())
                 ->action(function (ServiceHealthRecorder $recorder, ServiceHealthAggregator $aggregator): void {
                     $recorder->recordAll();
                     $this->loadReport($aggregator);

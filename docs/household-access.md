@@ -29,11 +29,11 @@ Primary-only surfaces use `RequiresPrimaryHouseholdAccess` (`canAccess` + hide n
 - Settings: Labels, Payment Methods, Family Members
 - Finances: Budgets
 - Integrations: Evolution API
-- Tools: Backups, Service Status
+- Tools: Backups
 - Profile: household / WhatsApp allowlist sections that are primary-only
 - Global search destinations filtered for non-primary users
 
-Family members **can** use: Home (Finance dashboard), Upload Receipts, Invoices, Profile (own account), WhatsApp OTP login.
+Family members **can** use: Home (Finance dashboard), Upload Receipts, Invoices, Service Status (read-only), Profile (own account), WhatsApp OTP login.
 
 ## Family Member model
 

@@ -84,7 +84,7 @@ Attribution: `family_member_id` null = Primary; set from WhatsApp sender (`Invoi
 ## Filament map
 
 - Resources: Upload Receipts, Invoices, Budgets (Finances); Labels, Payment Methods, Family Members (Settings); Evolution API (Integrations); Backups, Service Status (Tools) — models `Label`, `PaymentMethod`, `FamilyMember`, `Backup`
-- Primary-only: Budgets, Labels, Payment Methods, Family Members, Evolution, Backups, Service Status (`RequiresPrimaryHouseholdAccess`)
+- Primary-only: Budgets, Labels, Payment Methods, Family Members, Evolution, Backups (`RequiresPrimaryHouseholdAccess`); Service Status is household-readable with primary-only manual probes
 - View records: always `ViewAction::make()->slideOver()` — never dedicated View pages; use the disabled form schema (no custom `infolist()` / `*Infolist.php`)
 - Upload UI: `ReceiptUploadPage` → creates pending invoices (stamps `family_member_id` for family users)
 - Dashboard: Finances widgets use `DashboardMonthAnalytics` / month + spender filters; Training / Health / Task are coming-soon shells — `docs/dashboard-views.md`

@@ -46,6 +46,8 @@ Section titles use dashboard widget date format: `Summary report (24 Jun 2026 â€
 
 **Header action:** Run check now â€” calls `ServiceHealthRecorder::recordAll()` and refreshes the report.
 
+Primary and family-member users can view Service Status. **Run check now** remains primary-only because it performs external probes and records health samples.
+
 **Section navigation:** Sticky in-page tabs jump between `#service-summary-report` and `#service-system-status` (see [ui-section-nav.md](ui-section-nav.md)).
 
 ## Aggregation rules
