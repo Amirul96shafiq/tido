@@ -24,6 +24,11 @@ class BudgetsTable
     {
         return $table
             ->columns([
+                TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->searchable(),
+
                 IconColumn::make('display_icon')
                     ->label('')
                     ->icon(fn (?string $state): ?string => $state)

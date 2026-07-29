@@ -27,6 +27,11 @@ class PaymentMethodsTable
     {
         return $table
             ->columns([
+                TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->searchable(),
+
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable()

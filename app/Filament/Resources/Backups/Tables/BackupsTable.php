@@ -27,6 +27,11 @@ class BackupsTable
     {
         return $table
             ->columns([
+                TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->searchable(),
+
                 TextColumn::make('type')
                     ->badge()
                     ->formatStateUsing(fn (BackupType $state): string => $state->label())

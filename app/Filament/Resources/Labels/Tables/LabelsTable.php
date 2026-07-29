@@ -29,6 +29,11 @@ class LabelsTable
     {
         return $table
             ->columns([
+                TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->searchable(),
+
                 TextColumn::make('type')
                     ->badge()
                     ->formatStateUsing(fn (LabelType $state): string => $state->label())

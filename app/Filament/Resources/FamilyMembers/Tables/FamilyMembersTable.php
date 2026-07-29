@@ -17,7 +17,6 @@ use Filament\Support\Enums\FontFamily;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 
 class FamilyMembersTable
@@ -26,6 +25,11 @@ class FamilyMembersTable
     {
         return $table
             ->columns([
+                TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->searchable(),
+
                 ImageColumn::make('avatar_url')
                     ->label('')
                     ->disk('public')

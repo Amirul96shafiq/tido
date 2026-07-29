@@ -5,17 +5,23 @@ declare(strict_types=1);
 use App\Enums\LabelType;
 use App\Filament\Forms\Components\IconPicker;
 use App\Filament\Pages\ReceiptUploadPage;
+use App\Filament\Resources\Backups\Pages\ListBackups;
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Resources\Budgets\Pages\ListBudgets;
+use App\Filament\Resources\FamilyMembers\Pages\ListFamilyMembers;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Invoices\Pages\ListInvoices;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Filament\Resources\Labels\Pages\EditLabel;
 use App\Filament\Resources\Labels\Pages\ListLabels;
+use App\Filament\Resources\PaymentMethods\Pages\ListPaymentMethods;
+use App\Models\Backup;
 use App\Models\Budget;
+use App\Models\FamilyMember;
 use App\Models\Invoice;
 use App\Models\Label;
+use App\Models\PaymentMethod;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
 use Filament\Support\Icons\Heroicon;
@@ -82,15 +88,29 @@ test('invoices table has view slide-over action', function () {
         ->assertActionExists(TestAction::make('view')->table($invoice));
 });
 
-test('invoices table shows id column', function () {
+test('resource tables show id column', function (string $pageClass) {
     $this->actingAs($this->admin);
 
-    Invoice::factory()->create();
+    match ($pageClass) {
+        ListInvoices::class => Invoice::factory()->create(),
+        ListLabels::class => Label::factory()->create(),
+        ListBudgets::class => Budget::factory()->create(),
+        ListPaymentMethods::class => PaymentMethod::factory()->create(),
+        ListFamilyMembers::class => FamilyMember::factory()->create(),
+        ListBackups::class => Backup::factory()->create(),
+    };
 
-    Livewire::test(ListInvoices::class)
+    Livewire::test($pageClass)
         ->assertSuccessful()
         ->assertCanRenderTableColumn('id');
-});
+})->with([
+    'invoices' => [ListInvoices::class],
+    'labels' => [ListLabels::class],
+    'budgets' => [ListBudgets::class],
+    'payment methods' => [ListPaymentMethods::class],
+    'family members' => [ListFamilyMembers::class],
+    'backups' => [ListBackups::class],
+]);
 
 test('budgets table has view slide-over action', function () {
     $this->actingAs($this->admin);
