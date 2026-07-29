@@ -308,7 +308,7 @@ test('dashboard spender filter options use updated labels', function () {
     $options = DashboardSpenderScope::filterOptionsFor($user);
 
     expect($options[DashboardSpenderScope::ALL])->toBe('All')
-        ->and($options[DashboardSpenderScope::PRIMARY])->toBe('Amirul96Shafiq');
+        ->and($options[DashboardSpenderScope::PRIMARY])->toBe('Amirul96Shafiq (me)');
 });
 
 test('family member spender options exclude primary and other members', function () {
@@ -323,8 +323,10 @@ test('family member spender options exclude primary and other members', function
         ]);
 
     $options = DashboardSpenderScope::filterOptionsFor($user);
+    $selfKey = DashboardSpenderScope::familyValue((int) $memberA->id);
 
-    expect($options)->toHaveKeys([DashboardSpenderScope::ALL, DashboardSpenderScope::familyValue((int) $memberA->id)])
+    expect($options)->toHaveKeys([DashboardSpenderScope::ALL, $selfKey])
+        ->and($options[$selfKey])->toBe('Alpha (me)')
         ->and($options)->not->toHaveKey(DashboardSpenderScope::PRIMARY)
         ->and($options)->not->toHaveKey(DashboardSpenderScope::familyValue((int) FamilyMember::query()->where('name', 'Beta')->value('id')));
 });

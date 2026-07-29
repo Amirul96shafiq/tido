@@ -87,9 +87,16 @@ final class DashboardSpenderScope
     public function optionsFor(?User $user = null): array
     {
         $user ??= Auth::user();
+
+        $primaryLabel = self::primaryUserLabel();
+
+        if ($user instanceof User && $user->isPrimary()) {
+            $primaryLabel .= ' (me)';
+        }
+
         $options = [
             self::ALL => 'All',
-            self::PRIMARY => self::primaryUserLabel(),
+            self::PRIMARY => $primaryLabel,
         ];
 
         $members = FamilyMember::query()

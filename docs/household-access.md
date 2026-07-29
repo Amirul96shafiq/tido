@@ -73,10 +73,10 @@ Finance Home filter `spender` (`DashboardSpenderScope`):
 | Value | Meaning |
 |-------|---------|
 | `all` | No invoice scope |
-| `primary` | `family_member_id` is null (label = primary user’s name) |
+| `primary` | `family_member_id` is null (label = primary user’s name + ` (me)` when viewing as primary) |
 | `family:{id}` | That Family Member |
 
-- Primary: options = All + Primary + every member
+- Primary: options = All + Primary (`… (me)`) + every member
 - Family member: options = All + self (`… (me)`); default = self
 - Analytics (`DashboardMonthAnalytics`) apply the scope to invoice queries/joins
 
