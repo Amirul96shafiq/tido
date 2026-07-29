@@ -10,6 +10,7 @@ use App\Prompts\ReceiptExtractionPrompt;
 use App\Services\LabelMatcher;
 use App\Services\OllamaService;
 use App\Services\PaymentMethodMatcher;
+use App\Services\ReceiptImagePreparer;
 use App\Services\ReceiptParseNormalizer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -40,6 +41,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         ReceiptParseNormalizer $normalizer,
         LabelMatcher $labelMatcher,
         PaymentMethodMatcher $paymentMethodMatcher,
+        ReceiptImagePreparer $imagePreparer,
     ): void {
         $invoice = Invoice::find($this->invoiceId);
 
@@ -63,7 +65,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         }
 
         $imageContents = Storage::get($invoice->image_path);
-        $base64Image = base64_encode($imageContents);
+        $base64Image = $imagePreparer->toBase64((string) $imageContents);
 
         $parsed = $ollama->parseReceipt($base64Image, ReceiptExtractionPrompt::build());
 

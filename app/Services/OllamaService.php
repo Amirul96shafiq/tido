@@ -15,11 +15,14 @@ class OllamaService
 
     protected int $timeout;
 
+    protected int $contextWindow;
+
     public function __construct()
     {
         $this->host = rtrim(config('services.ollama.host'), '/');
         $this->model = config('services.ollama.model');
         $this->timeout = (int) config('services.ollama.timeout');
+        $this->contextWindow = (int) config('services.ollama.num_ctx');
     }
 
     public function parseReceipt(string $base64Image, string $prompt): ?array
@@ -38,6 +41,9 @@ class OllamaService
                 'prompt' => $prompt,
                 'stream' => false,
                 'format' => 'json',
+                'options' => [
+                    'num_ctx' => $this->contextWindow,
+                ],
             ];
 
             if ($images !== null && $images !== []) {
@@ -62,6 +68,19 @@ class OllamaService
 
             if (empty($rawText)) {
                 Log::error('Ollama response text is empty', ['response' => $responseBody]);
+
+                return null;
+            }
+
+            if (($responseBody['done_reason'] ?? null) === 'length') {
+                Log::error('Ollama hit its token limit before finishing the JSON; context window exhausted', [
+                    'model' => $this->model,
+                    'num_ctx' => $this->contextWindow,
+                    'prompt_eval_count' => $responseBody['prompt_eval_count'] ?? null,
+                    'eval_count' => $responseBody['eval_count'] ?? null,
+                    'response_chars' => strlen((string) $rawText),
+                    'hint' => 'Lower services.ollama.max_image_dimension or raise services.ollama.num_ctx.',
+                ]);
 
                 return null;
             }
