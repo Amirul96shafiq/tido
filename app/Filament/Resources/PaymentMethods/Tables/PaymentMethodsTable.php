@@ -18,6 +18,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ColorColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
@@ -103,6 +104,13 @@ class PaymentMethodsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
+                SelectFilter::make('is_system')
+                    ->label('System Lock')
+                    ->options([
+                        '1' => 'Yes',
+                        '0' => 'No',
+                    ])
+                    ->searchable(),
                 TrashedFilter::make()
                     ->searchable(),
             ])
