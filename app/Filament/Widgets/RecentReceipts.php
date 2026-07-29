@@ -10,6 +10,7 @@ use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Helpers\FilenameDisplay;
 use App\Models\Invoice;
+use App\Support\DashboardSpenderScope;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\FontWeight;
@@ -40,13 +41,15 @@ class RecentReceipts extends BaseWidget
     public function table(Table $table): Table
     {
         $bounds = $this->getSelectedMonthBounds();
+        $spenderScope = DashboardSpenderScope::fromFilters($this->pageFilters ?? []);
+
+        $query = Invoice::query()
+            ->inPeriod($bounds['start'], $bounds['end']);
+        $spenderScope->applyToInvoiceQuery($query);
 
         return $table
             ->heading('Recent Receipts ('.$this->formatSelectedMonth('F Y').')')
-            ->query(
-                Invoice::query()
-                    ->inPeriod($bounds['start'], $bounds['end']),
-            )
+            ->query($query)
             ->defaultSort('created_at', 'desc')
             ->poll('5s')
             ->defaultPaginationPageOption(5)

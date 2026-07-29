@@ -5,9 +5,11 @@ declare(strict_types=1);
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Widgets\RecentReceipts;
 use App\Helpers\FilenameDisplay;
+use App\Models\FamilyMember;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\User;
+use App\Support\DashboardSpenderScope;
 use Database\Seeders\PaymentMethodSeeder;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
@@ -161,6 +163,35 @@ test('recent receipts widget includes late uploads whose receipt date is in sele
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$lateUpload])
         ->assertSee('Tenaga Nasional');
+});
+
+test('recent receipts widget filters by family member spender scope', function () {
+    $member = FamilyMember::factory()->create([
+        'name' => 'Nor Ezrieana Harun',
+        'display_name' => 'Ahlong',
+    ]);
+
+    $familyInvoice = Invoice::factory()->create([
+        'merchant_name' => 'Ahlong Merchant',
+        'date_time' => now(),
+        'family_member_id' => $member->id,
+    ]);
+
+    $primaryInvoice = Invoice::factory()->create([
+        'merchant_name' => 'Primary Merchant',
+        'date_time' => now(),
+        'family_member_id' => null,
+    ]);
+
+    Livewire::test(RecentReceipts::class, [
+        'pageFilters' => [
+            'month' => now()->format('Y-m'),
+            'spender' => DashboardSpenderScope::familyValue((int) $member->id),
+        ],
+    ])
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$familyInvoice])
+        ->assertCanNotSeeTableRecords([$primaryInvoice]);
 });
 
 test('recent receipts widget edit action spa navigates to invoice edit', function () {
