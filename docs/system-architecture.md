@@ -35,7 +35,7 @@ The interface utilizes FilamentPHP's native Tailwind CSS theming engine to achie
 
 ### 2.2. Filament Panel Adjustments
 * **Navigation:** Configure `->sidebarCollapsibleOnDesktop()` in the Panel Provider to maximize horizontal workspace.
-* **Data Tables:** Implement borderless table designs. Use minimalist pagination and hide complex filter menus behind single icon buttons. Row record actions (View/Edit/Delete) are icon-only via global `Table::configureUsing` → `modifyUngroupedRecordActionsUsing` → `iconButton()` **plus Filament Tippy `->tooltip()` from the action label** (also applied to Filter and Column Manager triggers). List-page “New …” CTAs use a plus Heroicon via global `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`. Do not use browser `title` attributes for icon CTAs — see `docs/ui-tooltips.md`.
+* **Data Tables:** Implement borderless table designs. Use minimalist pagination and hide complex filter menus behind single icon buttons. Resource row actions: ungrouped **View** icon + vertical-ellipsis `RecordActionsGroup` for Edit/Delete/custom actions (Tippy tooltip `Actions`). Ungrouped icons use global `Table::configureUsing` → `modifyUngroupedRecordActionsUsing` → `iconButton()` **plus Filament Tippy `->tooltip()` from the action label** (also applied to Filter and Column Manager triggers). List-page “New …” CTAs use a plus Heroicon via global `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`. Do not use browser `title` attributes for icon CTAs — see `docs/ui-tooltips.md`.
 
 ---
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\FamilyMembers\Tables;
 
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
+use App\Filament\Support\RecordActionsGroup;
 use App\Models\FamilyMember;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -88,8 +89,10 @@ class FamilyMembersTable
                 ViewAction::make()
                     ->slideOver()
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
-                EditAction::make(),
-                DeleteAction::make(),
+                RecordActionsGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

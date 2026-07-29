@@ -12,11 +12,12 @@ Configured in [`app/Providers/AppServiceProvider.php`](../app/Providers/AppServi
 
 | Trigger | Method | Tooltip source |
 |---------|--------|----------------|
-| Ungrouped record actions (View / Edit / Delete / …) | `modifyUngroupedRecordActionsUsing` | `->iconButton()->tooltip(fn (Action $action) => $action->getLabel())` |
+| Ungrouped record actions (typically View) | `modifyUngroupedRecordActionsUsing` | `->iconButton()->tooltip(fn (Action $action) => $action->getLabel())` |
+| Resource table Actions kebab (`RecordActionsGroup`) | `App\Filament\Support\RecordActionsGroup::make()` | `->tooltip('Actions')` on the vertical-ellipsis `ActionGroup` trigger |
 | Filters toggle | `filtersTriggerAction` | `->tooltip(fn (Action $action) => $action->getLabel())` |
 | Column manager | `columnManagerTriggerAction` | `->tooltip(fn (Action $action) => $action->getLabel())` |
 
-Do **not** re-declare `->tooltip()` on every resource table unless the label must differ from the action label.
+Do **not** re-declare `->tooltip()` on every resource table unless the label must differ from the action label. Do **not** configure `ActionGroup` globally — Evolution API header menus use their own group styling.
 
 **Test:** `tests/Feature/FilamentResourceTest.php` → `resource table icon actions use filament tooltips`.
 

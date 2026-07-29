@@ -23,6 +23,7 @@ use App\Models\Invoice;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use App\Models\User;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\Testing\TestAction;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -142,12 +143,16 @@ test('resource table record actions are icon-only', function () {
         ->instance()
         ->getTable();
 
-    foreach (['view', 'edit', 'delete'] as $actionName) {
-        $action = $table->getAction($actionName);
+    $viewAction = $table->getAction('view');
 
-        expect($action)->not->toBeNull()
-            ->and($action->isIconButton())->toBeTrue();
-    }
+    expect($viewAction)->not->toBeNull()
+        ->and($viewAction->isIconButton())->toBeTrue();
+
+    $actionsGroup = collect($table->getRecordActions())
+        ->first(fn (mixed $action): bool => $action instanceof ActionGroup);
+
+    expect($actionsGroup)->toBeInstanceOf(ActionGroup::class)
+        ->and($actionsGroup->isIconButton())->toBeTrue();
 });
 
 test('resource table icon actions use filament tooltips', function () {
@@ -160,12 +165,21 @@ test('resource table icon actions use filament tooltips', function () {
         ->instance()
         ->getTable();
 
-    foreach (['view', 'edit', 'delete'] as $actionName) {
-        $action = $table->getAction($actionName);
+    $viewAction = $table->getAction('view');
 
-        expect($action)->not->toBeNull()
-            ->and($action->getTooltip())->toBe($action->getLabel());
+    expect($viewAction)->not->toBeNull()
+        ->and($viewAction->getTooltip())->toBe($viewAction->getLabel());
+
+    foreach (['edit', 'delete'] as $actionName) {
+        expect($table->getAction($actionName))->not->toBeNull();
     }
+
+    $actionsGroup = collect($table->getRecordActions())
+        ->first(fn (mixed $action): bool => $action instanceof ActionGroup);
+
+    expect($actionsGroup)->toBeInstanceOf(ActionGroup::class)
+        ->and($actionsGroup->getTooltip())->toBe('Actions')
+        ->and($actionsGroup->getLabel())->toBe('Actions');
 
     $filtersTrigger = $table->getFiltersTriggerAction();
 
@@ -174,6 +188,25 @@ test('resource table icon actions use filament tooltips', function () {
     $columnManagerTrigger = $table->getColumnManagerTriggerAction();
 
     expect($columnManagerTrigger->getTooltip())->toBe($columnManagerTrigger->getLabel());
+});
+
+test('invoices table keeps reparse action under record actions group', function () {
+    $this->actingAs($this->admin);
+
+    Invoice::factory()->create();
+
+    $table = Livewire::test(ListInvoices::class)
+        ->assertSuccessful()
+        ->instance()
+        ->getTable();
+
+    expect($table->getAction('reparse'))->not->toBeNull();
+
+    $actionsGroup = collect($table->getRecordActions())
+        ->first(fn (mixed $action): bool => $action instanceof ActionGroup);
+
+    expect($actionsGroup)->toBeInstanceOf(ActionGroup::class)
+        ->and(array_key_exists('reparse', $actionsGroup->getFlatActions()))->toBeTrue();
 });
 
 test('resource list create actions have plus icon', function () {

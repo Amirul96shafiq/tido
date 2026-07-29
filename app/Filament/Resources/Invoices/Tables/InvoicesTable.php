@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Invoices\Tables;
 use App\Enums\HouseholdRole;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Invoices\InvoiceResource;
+use App\Filament\Support\RecordActionsGroup;
 use App\Models\FamilyMember;
 use App\Models\Invoice;
 use App\Models\User;
@@ -189,26 +190,28 @@ class InvoicesTable
                 ViewAction::make()
                     ->slideOver()
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
-                EditAction::make(),
-                Action::make('reparse')
-                    ->label('Reparse')
-                    ->icon(Heroicon::ArrowPath)
-                    ->color('warning')
-                    ->requiresConfirmation()
-                    ->modalHeading('Reparse receipt')
-                    ->modalDescription('Clear line items, reset status to pending, and queue OCR again.')
-                    ->visible(fn (Invoice $record): bool => InvoiceResource::canEdit($record)
-                        && filled($record->image_path)
-                        && Storage::exists((string) $record->image_path))
-                    ->action(function (Invoice $record, ReceiptReparseService $reparseService): void {
-                        $reparseService->reparse($record);
+                RecordActionsGroup::make([
+                    EditAction::make(),
+                    Action::make('reparse')
+                        ->label('Reparse')
+                        ->icon(Heroicon::ArrowPath)
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalHeading('Reparse receipt')
+                        ->modalDescription('Clear line items, reset status to pending, and queue OCR again.')
+                        ->visible(fn (Invoice $record): bool => InvoiceResource::canEdit($record)
+                            && filled($record->image_path)
+                            && Storage::exists((string) $record->image_path))
+                        ->action(function (Invoice $record, ReceiptReparseService $reparseService): void {
+                            $reparseService->reparse($record);
 
-                        Notification::make()
-                            ->title('Reparse queued')
-                            ->success()
-                            ->send();
-                    }),
-                DeleteAction::make(),
+                            Notification::make()
+                                ->title('Reparse queued')
+                                ->success()
+                                ->send();
+                        }),
+                    DeleteAction::make(),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

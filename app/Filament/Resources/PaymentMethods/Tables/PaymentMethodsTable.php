@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\PaymentMethods\Tables;
 
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
+use App\Filament\Support\RecordActionsGroup;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -109,9 +110,11 @@ class PaymentMethodsTable
                 ViewAction::make()
                     ->slideOver()
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
-                EditAction::make(),
-                DeleteAction::make()
-                    ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false)),
+                RecordActionsGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make()
+                        ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false)),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

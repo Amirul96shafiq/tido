@@ -84,7 +84,8 @@ When adding a new `*Resource.php` (record search):
 - `relationship()` for related selects
 - Notifications on user-facing actions
 - Soft-delete aware queries (`withoutGlobalScopes` on record binding when needed)
-- Icon-only row actions (View/Edit/Delete): set globally in `AppServiceProvider` via `Table::configureUsing` → `modifyUngroupedRecordActionsUsing(fn (Action $action) => $action->iconButton()->tooltip(fn (Action $action) => $action->getLabel()))` — do not re-add visible labels per table
+- Icon-only ungrouped row actions (typically View): set globally in `AppServiceProvider` via `Table::configureUsing` → `modifyUngroupedRecordActionsUsing(fn (Action $action) => $action->iconButton()->tooltip(fn (Action $action) => $action->getLabel()))` — do not re-add visible labels per table
+- Resource table kebab: keep `ViewAction` ungrouped (left of the ⋮); wrap Edit / Delete / custom row actions in `App\Filament\Support\RecordActionsGroup` (vertical-ellipsis `ActionGroup` with Tippy tooltip `Actions`). Exceptions: Upload Receipts page + Recent Receipts widget (Edit-only, no kebab). Backups has no View — all actions go in the group
 - Filter + Column Manager triggers: Tippy tooltips globally via `filtersTriggerAction` / `columnManagerTriggerAction` in the same `Table::configureUsing` block
 - List-page “New …” CTAs: plus icon set globally via `CreateAction::configureUsing` → `->icon(Heroicon::Plus)` — new List pages only need `CreateAction::make()`; do not omit/override unless intentional
 - `created_at` (and similar upload timestamps) use `->since()->dateTimeTooltip()` — relative time in the cell, full date/time on hover (same as Receipt Upload “Uploaded At”)
@@ -94,7 +95,7 @@ When adding a new `*Resource.php` (record search):
 
 Always use slide-over view — never add a dedicated `ViewRecord` / `View{Model}` page.
 
-- Resource tables: `ViewAction::make()->slideOver()` in `recordActions` (before Edit/Delete)
+- Resource tables: `ViewAction::make()->slideOver()` in `recordActions` (ungrouped, left of `RecordActionsGroup`)
 - **Schema:** rely on Filament’s default ViewAction behavior — the slide-over renders the resource **form** schema disabled (`disabledSchema()` + `fillForm()`). Do **not** define `public static function infolist(...)` on the resource and do **not** add a separate `*Infolist.php`. View layout must match Create/Edit because it is the same form.
 - Notification / deep-link “View” CTAs: open the resource list with Filament table-action query params so the same slide-over mounts:
 
@@ -111,7 +112,8 @@ Resource::getUrl('index', [
 - Putting business logic (Ollama, Drive sync, alerts) inside Resource classes — call Services/Jobs
 - Dedicated View pages (`ViewRecord`, `make:filament-page --type=ViewRecord`, `getPages()` `view` routes)
 - Custom resource `infolist()` / `Schemas/*Infolist.php` for table View slide-overs (use the disabled form instead)
-- Omitting View from resource table `recordActions`
+- Omitting View from resource table `recordActions` (except Backups, which has no View)
+- Flat Edit/Delete/custom row actions outside `RecordActionsGroup` on resource tables (Upload Receipts / Recent Receipts excepted)
 - Visible text labels on ungrouped table record actions (icons only; Filament Tippy tooltips + a11y labels remain — see `docs/ui-tooltips.md`)
 - Raw `->dateTime()` alone on `created_at` resource columns — use `since()` + `dateTimeTooltip()` instead
 - Browser-native `title=` tooltips on icon CTAs — use `->tooltip()` / `x-tooltip` instead

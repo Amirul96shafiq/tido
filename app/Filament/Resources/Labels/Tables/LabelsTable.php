@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Labels\Tables;
 
 use App\Enums\LabelType;
 use App\Filament\Resources\Labels\LabelResource;
+use App\Filament\Support\RecordActionsGroup;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -84,9 +85,11 @@ class LabelsTable
                 ViewAction::make()
                     ->slideOver()
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
-                EditAction::make(),
-                DeleteAction::make()
-                    ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false)),
+                RecordActionsGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make()
+                        ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false)),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

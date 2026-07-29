@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Backups\Tables;
 
 use App\Enums\BackupType;
+use App\Filament\Support\RecordActionsGroup;
 use App\Models\Backup;
 use App\Models\User;
 use App\Services\BackupNotificationService;
@@ -80,52 +81,54 @@ class BackupsTable
                     }),
             ])
             ->recordActions([
-                Action::make('download')
-                    ->label('Download')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('gray')
-                    ->action(fn (Backup $record, BackupService $backupService) => $backupService->downloadResponse($record)),
-                Action::make('restore')
-                    ->label('Restore')
-                    ->icon('heroicon-o-arrow-path')
-                    ->color('warning')
-                    ->requiresConfirmation()
-                    ->modalHeading('Restore backup')
-                    ->modalDescription('This will replace all current database data with this backup. You will be signed out after restore completes.')
-                    ->modalSubmitActionLabel('Restore backup')
-                    ->action(function (Backup $record, BackupService $backupService, BackupNotificationService $backupNotificationService) {
-                        $user = auth()->user();
+                RecordActionsGroup::make([
+                    Action::make('download')
+                        ->label('Download')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('gray')
+                        ->action(fn (Backup $record, BackupService $backupService) => $backupService->downloadResponse($record)),
+                    Action::make('restore')
+                        ->label('Restore')
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalHeading('Restore backup')
+                        ->modalDescription('This will replace all current database data with this backup. You will be signed out after restore completes.')
+                        ->modalSubmitActionLabel('Restore backup')
+                        ->action(function (Backup $record, BackupService $backupService, BackupNotificationService $backupNotificationService) {
+                            $user = auth()->user();
 
-                        if ($user instanceof User) {
-                            $backupNotificationService->notifyRestored($user, $record);
-                        }
+                            if ($user instanceof User) {
+                                $backupNotificationService->notifyRestored($user, $record);
+                            }
 
-                        $backupService->restore($record);
+                            $backupService->restore($record);
 
-                        Notification::make()
-                            ->title('Backup restored')
-                            ->body('Database restored successfully. Please sign in again.')
-                            ->success()
-                            ->send();
+                            Notification::make()
+                                ->title('Backup restored')
+                                ->body('Database restored successfully. Please sign in again.')
+                                ->success()
+                                ->send();
 
-                        FilamentAuthLogout::logoutToLogin();
+                            FilamentAuthLogout::logoutToLogin();
 
-                        return redirect()->to(Filament::getLoginUrl());
-                    }),
-                DeleteAction::make()
-                    ->modalHeading('Delete backup')
-                    ->modalDescription('This removes the backup file and catalog entry. It cannot be undone.')
-                    ->successNotificationTitle('Backup deleted')
-                    ->action(function (Backup $record, BackupService $backupService, BackupNotificationService $backupNotificationService): void {
-                        $user = auth()->user();
-                        $filename = $record->filename;
+                            return redirect()->to(Filament::getLoginUrl());
+                        }),
+                    DeleteAction::make()
+                        ->modalHeading('Delete backup')
+                        ->modalDescription('This removes the backup file and catalog entry. It cannot be undone.')
+                        ->successNotificationTitle('Backup deleted')
+                        ->action(function (Backup $record, BackupService $backupService, BackupNotificationService $backupNotificationService): void {
+                            $user = auth()->user();
+                            $filename = $record->filename;
 
-                        if ($user instanceof User) {
-                            $backupNotificationService->notifyDeleted($user, $filename);
-                        }
+                            if ($user instanceof User) {
+                                $backupNotificationService->notifyDeleted($user, $filename);
+                            }
 
-                        $backupService->delete($record);
-                    }),
+                            $backupService->delete($record);
+                        }),
+                ]),
             ])
             ->emptyStateHeading('No backups yet')
             ->emptyStateDescription('Create a backup to save a restore point.')

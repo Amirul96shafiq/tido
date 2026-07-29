@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Budgets\Tables;
 
 use App\Filament\Resources\Budgets\BudgetResource;
+use App\Filament\Support\RecordActionsGroup;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -133,8 +134,10 @@ class BudgetsTable
                 ViewAction::make()
                     ->slideOver()
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
-                EditAction::make(),
-                DeleteAction::make(),
+                RecordActionsGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
