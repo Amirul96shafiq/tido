@@ -30,11 +30,6 @@ class BudgetsTable
                     ->sortable()
                     ->searchable(),
 
-                IconColumn::make('display_icon')
-                    ->label('')
-                    ->icon(fn (?string $state): ?string => $state)
-                    ->color('gray'),
-
                 TextColumn::make('display_title')
                     ->label('Title')
                     ->searchable(query: function ($query, string $search): void {
@@ -67,6 +62,11 @@ class BudgetsTable
                         return (string) $state;
                     }),
 
+                IconColumn::make('display_icon')
+                    ->label('Icon')
+                    ->icon(fn (?string $state): ?string => $state)
+                    ->toggleable(),
+
                 TextColumn::make('amount')
                     ->myr()
                     ->sortable(),
@@ -86,7 +86,8 @@ class BudgetsTable
                 TextColumn::make('quarter')
                     ->label('Quarter')
                     ->formatStateUsing(fn ($state) => $state ? 'Q'.$state : '-')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
 
                 TextColumn::make('year')
                     ->sortable(),

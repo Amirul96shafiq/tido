@@ -357,6 +357,22 @@ test('labels table renders icon as graphic not name', function () {
         ->assertSeeHtml('class="fi-sr-only">heroicon-o-cake</span>');
 });
 
+test('budgets table renders display icon as graphic not name', function () {
+    $this->actingAs($this->admin);
+
+    $budget = Budget::factory()->create([
+        'icon' => 'heroicon-o-heart',
+        'title' => 'Heart Budget',
+    ]);
+
+    Livewire::test(ListBudgets::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$budget])
+        ->assertCanRenderTableColumn('display_icon')
+        ->assertSeeHtml('<svg')
+        ->assertSeeHtml('class="fi-sr-only">heroicon-o-heart</span>');
+});
+
 test('label form exposes searchable heroicon options', function () {
     $options = IconPicker::iconOptions();
 
