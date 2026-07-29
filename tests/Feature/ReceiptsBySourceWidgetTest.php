@@ -51,7 +51,7 @@ test('receipts by source widget renders source labels', function () {
         ->assertSee('WhatsApp (Parse)')
         ->assertSee('WhatsApp (Manual)')
         ->assertSee('Google Drive')
-        ->assertSeeHtml('wire:poll.5s');
+        ->assertSeeHtml('wire:poll.30s');
 });
 
 test('receipts by source widget shows empty channels when only whatsapp has receipts', function () {
@@ -79,5 +79,5 @@ test('receipts by source widget polls while empty', function () {
     Livewire::test(ReceiptsBySource::class)
         ->assertSuccessful()
         ->assertSee('No receipts')
-        ->assertSeeHtml('wire:poll.5s="updateChartData"');
+        ->assertSeeHtml('wire:poll.30s="updateChartData"');
 });

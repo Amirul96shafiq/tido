@@ -179,5 +179,5 @@ test('budget status widget ignores reorder for inactive budgets', function () {
 test('budget status widget polls for live updates', function () {
     Livewire::test(BudgetStatus::class)
         ->assertSuccessful()
-        ->assertSeeHtml('wire:poll.5s');
+        ->assertSeeHtml('wire:poll.30s');
 });

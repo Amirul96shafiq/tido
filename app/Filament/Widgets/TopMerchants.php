@@ -6,6 +6,7 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\HasChartEmptyState;
+use App\Filament\Widgets\Concerns\HasDashboardChartPolling;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
@@ -16,6 +17,7 @@ use Illuminate\Support\Str;
 class TopMerchants extends ChartWidget
 {
     use HasChartEmptyState;
+    use HasDashboardChartPolling;
     use HasDashboardSectionId;
     use InteractsWithDashboardMonth;
 
@@ -27,8 +29,6 @@ class TopMerchants extends ChartWidget
     private const LABEL_LIMIT = 10;
 
     protected static ?int $sort = 5;
-
-    protected static bool $isLazy = false;
 
     protected int|string|array $columnSpan = [
         'default' => 'full',

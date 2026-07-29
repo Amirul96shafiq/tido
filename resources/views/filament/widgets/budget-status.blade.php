@@ -1,5 +1,7 @@
 @php
     use App\Helpers\MoneyDisplay;
+
+    $pollingInterval = $this->getPollingInterval();
 @endphp
 
 <x-filament-widgets::widget
@@ -7,7 +9,7 @@
         (new \Illuminate\View\ComponentAttributeBag)
             ->merge([
                 'id' => $this->getDashboardSectionId(),
-                'wire:poll.5s' => true,
+                'wire:poll.' . $pollingInterval => $pollingInterval ? true : null,
             ], escape: false)
             ->class(['h-full', 'fi-wi-budget-status'])
     "
