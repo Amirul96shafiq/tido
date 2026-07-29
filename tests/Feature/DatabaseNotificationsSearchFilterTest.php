@@ -231,6 +231,22 @@ test('reset filters clears applied filters', function () {
         ->assertSee('Receipt requires manual review');
 });
 
+test('database notifications filter panel uses reset icon without filters heading', function () {
+    seedDatabaseNotifications($this->user);
+
+    $html = Livewire::test(DatabaseNotifications::class)
+        ->call('toggleFilters')
+        ->assertSet('filtersOpen', true)
+        ->html();
+
+    expect($html)
+        ->toContain('wire:click="resetFilters"')
+        ->toContain('aria-label="Reset"')
+        ->toContain('fi-no-database-filters-panel')
+        ->not->toContain('fi-ta-filters-heading')
+        ->not->toContain(__('filament-tables::table.filters.actions.apply.label'));
+});
+
 test('paginates database notifications with previous page numbers and next', function () {
     $perPage = DatabaseNotifications::NOTIFICATIONS_PER_PAGE;
 

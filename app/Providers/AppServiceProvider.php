@@ -113,6 +113,7 @@ class AppServiceProvider extends ServiceProvider
             $table
                 ->defaultDateDisplayFormat(fn (): string => UserDateDisplay::dateFormat())
                 ->defaultDateTimeDisplayFormat(fn (): string => UserDateDisplay::dateTimeFormat())
+                ->deferFilters(false)
                 ->modifyUngroupedRecordActionsUsing(fn (Action $action) => $action
                     ->iconButton()
                     ->tooltip(fn (Action $action): ?string => $action->getLabel()))

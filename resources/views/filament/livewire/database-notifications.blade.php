@@ -240,23 +240,24 @@
                                     wire:key="database-notifications-filters-panel"
                                     class="fi-no-database-filters-panel"
                                 >
-                                    <div class="mb-3 flex items-center justify-between gap-2">
-                                        <h3 class="text-sm font-medium text-gray-950 dark:text-white">
-                                            {{ __('filament-tables::table.filters.heading') }}
-                                        </h3>
+                                    {{ $this->getSchema('filtersForm') }}
 
-                                        <x-filament::link
+                                    <div class="fi-ta-filters-actions-ctn">
+                                        <x-filament::button
+                                            color="primary"
+                                            icon="heroicon-o-arrow-path"
+                                            label-sr-only
+                                            :tooltip="__('filament-tables::table.filters.actions.reset.label')"
                                             tag="button"
                                             color="danger"
                                             size="sm"
                                             wire:click="resetFilters"
-                                            type="button"
+                                            wire:loading.attr="disabled"
+                                            wire:target="resetFilters"
                                         >
                                             {{ __('filament-tables::table.filters.actions.reset.label') }}
-                                        </x-filament::link>
+                                        </x-filament::button>
                                     </div>
-
-                                    {{ $this->getSchema('filtersForm') }}
                                 </div>
                             @endif
                         </div>
