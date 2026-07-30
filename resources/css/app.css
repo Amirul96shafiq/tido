@@ -3434,3 +3434,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
         var(--color-gray-900, #111827)
     );
 }
+
+/*
+ * Constrain max height of all dropdown menus and make them scrollable
+ */
+.fi-dropdown-panel {
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+}
