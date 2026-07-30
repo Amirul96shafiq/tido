@@ -4,8 +4,8 @@ Before coding, read **[docs/agent-onboarding.md](docs/agent-onboarding.md)** for
 
 **tido** is a single-tenant personal hub: **Finances** shipped (MYR expenses); **Training** / **Health** / **Task** planned dashboard modules — **[docs/dashboard-views.md](docs/dashboard-views.md)**.
 
-- IDE rules: `.cursor/rules/*.mdc` (Cursor, auto-applied) · `.agents/AGENTS.md` (Antigravity, auto-loaded)
-- Domain skill: `.agents/skills/tido-domain/` (activate for invoices, OCR, WhatsApp, Drive, budgets)
+- Cursor rules: `.cursor/rules/*.mdc` (auto-applied)
+- Domain skill: `.cursor/skills/tido-domain/` (activate for invoices, OCR, WhatsApp, Drive, budgets)
 - Architecture gate: do not contradict `docs/system-architecture.md` without warning the user
 - Git workflow: **[docs/git-workflow.md](docs/git-workflow.md)** — feature/fix branches → PR → `main`; do not develop on `main`
 - Dashboard modules: **[docs/dashboard-views.md](docs/dashboard-views.md)** — Finances / Training / Health / Task view tabs

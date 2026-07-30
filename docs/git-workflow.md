@@ -75,6 +75,21 @@ Examples: `feature/content-draft-recovery`, `fix/draft-recovery-poll-interval`.
 
 One coherent change set per branch. Follow-ups after merge get a new branch from `main`, not a long-lived feature branch.
 
+## Commit Message Format
+
+When auto-generating or writing commit messages, they must follow this exact format:
+
+```text
+<type>:<title>
+- <info 1>
+- <info 2>
+- <info 3>
+```
+
+- **Type**: `feat`, `fix`, `refactor`, or `docs`.
+- **Title**: A short description of the committed changes.
+- **Info**: A bulleted list of 2-5 description pointers detailing what changed in the commit.
+
 ## Multi-developer rules
 
 - All PRs target `main` (the only integration branch)
