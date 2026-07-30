@@ -57,6 +57,10 @@ No multi-tenancy package. One Filament panel with **household roles** (`primary`
 - Call the product anything other than **tido**
 - Develop features directly on `main` (use `feature/*` or `fix/*` → PR → `main`)
 
+### Windows Composer File Locks
+- **CRITICAL**: On Windows, when `npm run dev:all` is stopped, orphaned `php.exe` processes (like `artisan serve` or `queue:listen`) may stay alive in the background and hold file locks on `vendor/` and `bootstrap/cache/`. This will cause `composer` commands (like `composer update` or `dump-autoload`) to hang indefinitely.
+- **Always** run `taskkill /F /IM php.exe` to terminate orphaned processes before running Composer commands if dev servers were recently running or interrupted.
+
 ---
 
 ## PHP & Laravel Conventions
