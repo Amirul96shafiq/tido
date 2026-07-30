@@ -33,9 +33,10 @@
 .custom-scrollbar,
 .fi-dropdown-panel,
 .fi-changelog .fi-modal-window-ctn > .fi-modal-window,
-.fi-no-database .fi-modal-window-ctn > .fi-modal-window {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window,
+.results-container {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(156, 163, 175, 0.3) transparent !important;
 }
 
 @supports not selector(::-webkit-scrollbar) {
@@ -63,9 +64,10 @@ body::-webkit-scrollbar,
 .custom-scrollbar::-webkit-scrollbar,
 .fi-dropdown-panel::-webkit-scrollbar,
 .fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,
-.fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,
+.results-container::-webkit-scrollbar {
+    width: 6px !important;
+    height: 6px !important;
 }
 
 html::-webkit-scrollbar-track,
@@ -78,8 +80,9 @@ body::-webkit-scrollbar-track,
 .fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-track,
 .fi-no-database
     .fi-modal-window-ctn
-    > .fi-modal-window::-webkit-scrollbar-track {
-    background: transparent;
+    > .fi-modal-window::-webkit-scrollbar-track,
+.results-container::-webkit-scrollbar-track {
+    background: transparent !important;
 }
 
 /*
@@ -120,9 +123,10 @@ body::-webkit-scrollbar-thumb,
 .fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,
 .fi-no-database
     .fi-modal-window-ctn
-    > .fi-modal-window::-webkit-scrollbar-thumb {
-    background-color: rgba(156, 163, 175, 0.3);
-    border-radius: 0;
+    > .fi-modal-window::-webkit-scrollbar-thumb,
+.results-container::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.3) !important;
+    border-radius: 0 !important;
 }
 
 html::-webkit-scrollbar-thumb:hover,
@@ -137,16 +141,18 @@ body::-webkit-scrollbar-thumb:hover,
     > .fi-modal-window::-webkit-scrollbar-thumb:hover,
 .fi-no-database
     .fi-modal-window-ctn
-    > .fi-modal-window::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(156, 163, 175, 0.5);
+    > .fi-modal-window::-webkit-scrollbar-thumb:hover,
+.results-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(156, 163, 175, 0.5) !important;
 }
 
 .dark .fi-sidebar-nav,
 .dark .custom-scrollbar,
 .dark .fi-dropdown-panel,
 .dark .fi-changelog .fi-modal-window-ctn > .fi-modal-window,
-.dark .fi-no-database .fi-modal-window-ctn > .fi-modal-window {
-    scrollbar-color: rgba(51, 65, 85, 0.5) transparent;
+.dark .fi-no-database .fi-modal-window-ctn > .fi-modal-window,
+.dark .results-container {
+    scrollbar-color: rgba(51, 65, 85, 0.5) transparent !important;
 }
 
 html.dark::-webkit-scrollbar-thumb,
@@ -163,8 +169,9 @@ html.dark::-webkit-scrollbar-thumb,
 .dark
     .fi-no-database
     .fi-modal-window-ctn
-    > .fi-modal-window::-webkit-scrollbar-thumb {
-    background-color: rgba(51, 65, 85, 0.5);
+    > .fi-modal-window::-webkit-scrollbar-thumb,
+.dark .results-container::-webkit-scrollbar-thumb {
+    background-color: rgba(51, 65, 85, 0.5) !important;
 }
 
 html.dark::-webkit-scrollbar-thumb:hover,
@@ -181,8 +188,9 @@ html.dark::-webkit-scrollbar-thumb:hover,
 .dark
     .fi-no-database
     .fi-modal-window-ctn
-    > .fi-modal-window::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(71, 85, 105, 0.7);
+    > .fi-modal-window::-webkit-scrollbar-thumb:hover,
+.dark .results-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(71, 85, 105, 0.7) !important;
 }
 
 /* Tippy default (dark) theme — lighter than slate-800 chrome */
