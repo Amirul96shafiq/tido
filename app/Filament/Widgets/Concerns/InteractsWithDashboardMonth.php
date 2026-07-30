@@ -45,9 +45,9 @@ trait InteractsWithDashboardMonth
 
     protected function analytics(): DashboardMonthAnalytics
     {
-        return new DashboardMonthAnalytics(
+        return DashboardMonthAnalytics::for(
             $this->getSelectedMonthBounds(),
-            DashboardSpenderScope::fromFilters($this->pageFilters),
+            DashboardSpenderScope::fromFilters($this->pageFilters ?? []),
         );
     }
 

@@ -6,24 +6,20 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Support\DashboardWidgetHeights;
+use App\Filament\Widgets\Concerns\HasDashboardChartPolling;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Models\Budget;
-use Filament\Widgets\Concerns\CanPoll;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\DB;
 
 class BudgetStatus extends Widget
 {
-    use CanPoll;
+    use HasDashboardChartPolling;
     use HasDashboardSectionId;
     use InteractsWithDashboardMonth;
 
     protected static ?int $sort = 4;
-
-    protected static bool $isLazy = false;
-
-    protected ?string $pollingInterval = '5s';
 
     protected int|string|array $columnSpan = [
         'default' => 'full',

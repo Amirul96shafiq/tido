@@ -88,7 +88,10 @@ test('admin panel registers receipt image preview script', function () {
 
     expect($provider)
         ->toContain('receipt-image-preview')
-        ->toContain('resources/js/receipt-image-preview.js');
+        ->toContain('resources/js/receipt-image-preview.js')
+        ->toContain('ReceiptUploadPage::class')
+        ->toContain('CreateInvoice::class')
+        ->toContain('EditInvoice::class');
 });
 
 test('receipt image preview script raises filepond max height for receipt uploads', function () {

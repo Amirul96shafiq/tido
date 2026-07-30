@@ -11,12 +11,15 @@ use App\Models\Label;
 use App\Models\PaymentMethod;
 use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
 function analyticsForMonth(string $month): DashboardMonthAnalytics
 {
-    return new DashboardMonthAnalytics(
+    DashboardMonthAnalytics::flushInstances();
+
+    return DashboardMonthAnalytics::for(
         DashboardMonthPeriod::boundsFromFilters(['month' => $month]),
     );
 }
@@ -1203,4 +1206,46 @@ test('receipts by source includes empty upload channels when month has data', fu
         ->and($sources->firstWhere('key', 'google_drive')->label)->toBe('Google Drive');
     expect($sources->firstWhere('key', 'manual')->receipt_count)->toBe(0)
         ->and($sources->firstWhere('key', 'manual')->label)->toBe('Manual Upload');
+});
+
+test('dashboard month analytics reuses request-scoped instance and memoizes summary', function () {
+    Invoice::unsetEventDispatcher();
+
+    $targetMonth = now()->format('Y-m');
+    $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
+
+    Invoice::create([
+        'merchant_name' => 'Memo Store',
+        'invoice_number' => 'INV-MEMO',
+        'receipt_hash' => 'hash-memo-001',
+        'date_time' => $bounds['start']->copy()->addDay(),
+        'subtotal' => 10.00,
+        'total_tax' => 0.00,
+        'total_amount' => 10.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+    ]);
+
+    Invoice::setEventDispatcher(app('events'));
+
+    DashboardMonthAnalytics::flushInstances();
+
+    $first = DashboardMonthAnalytics::for($bounds);
+    $second = DashboardMonthAnalytics::for($bounds);
+
+    expect($first)->toBe($second);
+
+    $queryCount = 0;
+    DB::listen(function () use (&$queryCount): void {
+        $queryCount++;
+    });
+
+    $first->summary();
+    $afterFirst = $queryCount;
+    $first->summary();
+    $second->summary();
+
+    expect($afterFirst)->toBeGreaterThan(0)
+        ->and($queryCount)->toBe($afterFirst);
 });

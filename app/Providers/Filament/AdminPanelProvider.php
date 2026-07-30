@@ -11,6 +11,7 @@ use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Auth\ResetPassword;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Budgets\Pages\CreateBudget;
 use App\Filament\Resources\Budgets\Pages\EditBudget;
 use App\Filament\Resources\FamilyMembers\Pages\CreateFamilyMember;
@@ -81,7 +82,7 @@ class AdminPanelProvider extends PanelProvider
                 'danger' => Color::Red,
                 'warning' => Color::Amber,
             ])
-            ->font('Outfit', url: 'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap')
+            ->font('Outfit')
             ->brandLogo(asset('images/tido_dark_logo.png'))
             ->darkModeBrandLogo(asset('images/tido_light_logo.png'))
             ->brandLogoHeight('3rem')
@@ -90,20 +91,8 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->assets([
                 Js::make(
-                    'chart-js-plugins',
-                    Vite::asset('resources/js/filament-chart-js-plugins.js'),
-                )->module(),
-                Js::make(
                     'disable-mobile-tippy',
                     Vite::asset('resources/js/disable-mobile-tippy.js'),
-                )->module(),
-                Js::make(
-                    'drag-drop-upload',
-                    Vite::asset('resources/js/drag-drop-upload.js'),
-                )->module(),
-                Js::make(
-                    'receipt-upload-handler',
-                    Vite::asset('resources/js/receipt-upload-handler.js'),
                 )->module(),
                 Js::make(
                     'sticky-blur-veil',
@@ -112,10 +101,6 @@ class AdminPanelProvider extends PanelProvider
                 Js::make(
                     'select-value-marquee',
                     Vite::asset('resources/js/select-value-marquee.js'),
-                )->module(),
-                Js::make(
-                    'receipt-image-preview',
-                    Vite::asset('resources/js/receipt-image-preview.js'),
                 )->module(),
                 Js::make(
                     'notification-swipe-dismiss',
@@ -159,17 +144,41 @@ class AdminPanelProvider extends PanelProvider
                 fn (): string => Blade::render('@vite(\'resources/css/app.css\')'),
             )
             ->renderHook(
+                PanelsRenderHook::SCRIPTS_AFTER,
+                fn (): string => Blade::render('@vite([\'resources/js/filament-chart-js-plugins.js\'])'),
+                scopes: [
+                    Dashboard::class,
+                ],
+            )
+            ->renderHook(
+                PanelsRenderHook::SCRIPTS_AFTER,
+                fn (): string => Blade::render('@vite([\'resources/js/drag-drop-upload.js\', \'resources/js/receipt-upload-handler.js\'])'),
+                scopes: [
+                    Dashboard::class,
+                    ReceiptUploadPage::class,
+                ],
+            )
+            ->renderHook(
+                PanelsRenderHook::SCRIPTS_AFTER,
+                fn (): string => Blade::render('@vite([\'resources/js/receipt-image-preview.js\'])'),
+                scopes: [
+                    ReceiptUploadPage::class,
+                    CreateInvoice::class,
+                    EditInvoice::class,
+                ],
+            )
+            ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 function (): string {
                     $currentUser = auth()->user();
                     $backgroundEnabled = $currentUser === null
                         || (bool) $currentUser->getAttribute('stylized_background_enabled');
-                    $light = asset('images/bg-l-v7.png');
-                    $dark = asset('images/bg-d-v7.png');
-                    $authLightMobile = asset('images/auth-bg-l.png');
-                    $authDarkMobile = asset('images/auth-bg-d.png');
-                    $authLight = asset('images/auth-bg-l-v2.png');
-                    $authDark = asset('images/auth-bg-d-v2.png');
+                    $light = asset('images/bg-l-v7.webp');
+                    $dark = asset('images/bg-d-v7.webp');
+                    $authLightMobile = asset('images/auth-bg-l.webp');
+                    $authDarkMobile = asset('images/auth-bg-d.webp');
+                    $authLight = asset('images/auth-bg-l-v2.webp');
+                    $authDark = asset('images/auth-bg-d-v2.webp');
                     // Chrome-matched tint; art lives on .tido-stylized-bg with soft masks.
                     $lightTint = 'var(--color-white)';
                     $darkTint = 'var(--color-slate-800)';
@@ -257,6 +266,7 @@ class AdminPanelProvider extends PanelProvider
                     HTML,
             )
             ->databaseNotifications(livewireComponent: DatabaseNotifications::class)
+            ->databaseNotificationsPolling('60s')
             ->spa()
             ->globalSearchResourceOptIn()
             ->globalSearchKeyBindings(['alt+k'])

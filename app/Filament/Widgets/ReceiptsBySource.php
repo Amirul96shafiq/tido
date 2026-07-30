@@ -6,6 +6,7 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\HasChartEmptyState;
+use App\Filament\Widgets\Concerns\HasDashboardChartPolling;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
@@ -15,6 +16,7 @@ use Illuminate\Contracts\Support\Htmlable;
 class ReceiptsBySource extends ChartWidget
 {
     use HasChartEmptyState;
+    use HasDashboardChartPolling;
     use HasDashboardSectionId;
     use InteractsWithDashboardMonth;
 
@@ -24,8 +26,6 @@ class ReceiptsBySource extends ChartWidget
     protected string $view = 'filament.widgets.chart-with-empty-state';
 
     protected static ?int $sort = 7;
-
-    protected static bool $isLazy = false;
 
     protected int|string|array $columnSpan = [
         'default' => 'full',

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "../../vendor/filament/support/resources/css/index.css";
+@import "./outfit-font.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

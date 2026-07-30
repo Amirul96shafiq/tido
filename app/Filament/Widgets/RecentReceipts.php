@@ -27,8 +27,6 @@ class RecentReceipts extends BaseWidget
 
     protected static ?int $sort = 8;
 
-    protected static bool $isLazy = false;
-
     protected int|string|array $columnSpan = 'full';
 
     protected string $view = 'filament.widgets.recent-receipts';
@@ -51,7 +49,7 @@ class RecentReceipts extends BaseWidget
             ->heading('Recent Receipts ('.$this->formatSelectedMonth('F Y').')')
             ->query($query)
             ->defaultSort('created_at', 'desc')
-            ->poll('5s')
+            ->poll(fn (): ?string => $this->isCurrentMonthSelected() ? '15s' : null)
             ->defaultPaginationPageOption(5)
             ->paginated([5, 10, 25, 50])
             ->columns([
