@@ -17,6 +17,6 @@
             <span class="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
         </span>
 
-        <span x-text="savedAt ? ('Draft saved at ' + savedAt) : ''"></span>
+        <span x-text="savedAt ? 'Draft saved at ' + savedAt : ''"></span>
     </div>
 </div>

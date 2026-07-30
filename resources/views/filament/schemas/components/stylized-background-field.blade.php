@@ -34,9 +34,7 @@
             this.isDesktop = window.innerWidth >= 1024;
         },
         get collapsed() {
-            return this.isDesktop
-                ? ! this.$store.sidebar.isOpenDesktop
-                : ! this.$store.sidebar.isOpen;
+            return this.isDesktop ? ! this.$store.sidebar.isOpenDesktop : ! this.$store.sidebar.isOpen;
         },
         toggle() {
             this.enabled = ! this.enabled;
@@ -68,22 +66,20 @@
                     </div>
                 </button>
 
-                <span class="rounded-full bg-primary-500/90 px-2 py-1 text-xs font-medium text-primary-900">
+                <span class="bg-primary-500/90 text-primary-900 rounded-full px-2 py-1 text-xs font-medium">
                     <span x-text="enabled ? 'Enabled: Stylized Mode' : 'Disabled: Focus Mode'">
                         {{ $initialEnabled ? 'Enabled: Stylized Mode' : 'Disabled: Focus Mode' }}
                     </span>
                 </span>
             </div>
 
-            <p class="fi-sc-text">
-                Save changes needed to take effect.
-            </p>
+            <p class="fi-sc-text">Save changes needed to take effect.</p>
         </div>
     </div>
 
     <div
         class="tido-stylized-preview relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
-        style="aspect-ratio: 1919 / 1079;"
+        style="aspect-ratio: 1919 / 1079"
     >
         <x-tido.panel-preview-chrome class="h-full">
             <div class="h-3 w-1/3 rounded-full bg-gray-200/90 dark:bg-gray-700/90"></div>
@@ -94,7 +90,7 @@
             </div>
         </x-tido.panel-preview-chrome>
 
-        <div class="absolute inset-block-start-2 inset-inline-start-2 z-20 rounded-full bg-primary-500/90 px-2 py-1 text-xs font-medium text-primary-900">
+        <div class="inset-block-start-2 inset-inline-start-2 bg-primary-500/90 text-primary-900 absolute z-20 rounded-full px-2 py-1 text-xs font-medium">
             <span x-text="enabled ? 'Enabled: Stylized Mode' : 'Disabled: Focus Mode'">
                 {{ $initialEnabled ? 'Enabled: Stylized Mode' : 'Disabled: Focus Mode' }}
             </span>

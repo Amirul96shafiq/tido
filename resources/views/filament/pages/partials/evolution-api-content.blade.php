@@ -1,8 +1,6 @@
 <div class="grid gap-6 lg:grid-cols-2">
     <x-filament::section class="order-2 lg:order-1" id="evolution-connection">
-        <x-slot name="heading">
-            Connection
-        </x-slot>
+        <x-slot name="heading">Connection</x-slot>
 
         <dl class="grid gap-4 text-sm">
             <div>
@@ -13,7 +11,7 @@
             </div>
             <div>
                 <dt class="font-medium text-gray-500 dark:text-gray-400">API URL</dt>
-                <dd class="mt-1 break-all font-mono text-gray-950 dark:text-white">
+                <dd class="mt-1 font-mono break-all text-gray-950 dark:text-white">
                     {{ config('services.evolution.api_url') }}
                 </dd>
             </div>
@@ -34,37 +32,38 @@
             </div>
             <div>
                 <dt class="font-medium text-gray-500 dark:text-gray-400">Webhook URL</dt>
-                <dd class="mt-1 break-all font-mono text-gray-950 dark:text-white">
-                    {{ $this->webhookUrl }}
-                </dd>
+                <dd class="mt-1 font-mono break-all text-gray-950 dark:text-white">{{ $this->webhookUrl }}</dd>
             </div>
             @if (filled($this->statusMessage))
                 <div>
                     <dt class="font-medium text-gray-500 dark:text-gray-400">Message</dt>
-                    <dd class="mt-1 text-gray-950 dark:text-white">
-                        {{ $this->statusMessage }}
-                    </dd>
+                    <dd class="mt-1 text-gray-950 dark:text-white">{{ $this->statusMessage }}</dd>
                 </div>
             @endif
         </dl>
 
         <div class="mt-6 space-y-2 text-sm text-gray-500 dark:text-gray-400">
             <p>
-                1. Click <strong>Connect</strong> and choose <strong>Scan QR code</strong> or <strong>Pair with code</strong> before the timer hits 0.<br>
-                2. <strong>QR:</strong> scan from another screen — WhatsApp → <strong>Linked Devices</strong> → <strong>Link a Device</strong>.<br>
-                3. <strong>Pair with code:</strong> enter the <em>same</em> WhatsApp number as the phone that will type the code, copy the code, then WhatsApp → <strong>Linked Devices</strong> → <strong>Link with phone number instead</strong>. Use a fresh code before the timer hits 0.<br>
-                4. When status is <strong>open</strong>, the webhook registers automatically. Optionally send a <strong>Send Test Ping</strong>.
+                1. Click <strong>Connect</strong> and choose <strong>Scan QR code</strong> or
+                <strong>Pair with code</strong> before the timer hits 0.<br />
+                2. <strong>QR:</strong> scan from another screen — WhatsApp → <strong>Linked Devices</strong> →
+                <strong>Link a Device</strong>.<br />
+                3. <strong>Pair with code:</strong> enter the <em>same</em> WhatsApp number as the phone that will type
+                the code, copy the code, then WhatsApp → <strong>Linked Devices</strong> →
+                <strong>Link with phone number instead</strong>. Use a fresh code before the timer hits 0.<br />
+                4. When status is <strong>open</strong>, the webhook registers automatically. Optionally send a
+                <strong>Send Test Ping</strong>.
             </p>
             <p>
-                If linking fails: use <strong>Cancel connecting</strong> to stop a QR/pairing attempt, or <strong>Sign out Current Session</strong> when already linked, then connect again. Do not scan the QR printed in the Evolution terminal — only the image on this page.
+                If linking fails: use <strong>Cancel connecting</strong> to stop a QR/pairing attempt, or
+                <strong>Sign out Current Session</strong> when already linked, then connect again. Do not scan the QR
+                printed in the Evolution terminal — only the image on this page.
             </p>
         </div>
     </x-filament::section>
 
     <x-filament::section class="order-1 lg:order-2" id="evolution-link-device">
-        <x-slot name="heading">
-            Link device
-        </x-slot>
+        <x-slot name="heading">Link device</x-slot>
 
         <div
             @if ($this->getPollingInterval())
@@ -74,23 +73,14 @@
         >
             @if (! $this->hasContactAllowlist() && ! $this->isConnectionOpen())
                 <div class="flex w-full flex-col items-center py-6 text-center lg:max-w-md">
-                    <x-filament::icon
-                        icon="heroicon-o-exclamation-triangle"
-                        class="mb-4 h-10 w-10 text-warning-500"
-                    />
-                    <h3 class="text-lg font-semibold text-gray-950 dark:text-white">
-                        Contact allowlist required
-                    </h3>
+                    <x-filament::icon icon="heroicon-o-exclamation-triangle" class="text-warning-500 mb-4 h-10 w-10" />
+                    <h3 class="text-lg font-semibold text-gray-950 dark:text-white">Contact allowlist required</h3>
                     <p class="mt-3 text-sm leading-6 text-gray-500 dark:text-gray-400">
-                        Set your WhatsApp number in Profile before connecting. Family Members with allowlist enabled are added automatically.
+                        Set your WhatsApp number in Profile before connecting. Family Members with allowlist enabled are
+                        added automatically.
                     </p>
                     <div class="mt-5">
-                        <x-filament::button
-                            tag="a"
-                            :href="$this->profileEditUrl()"
-                            color="warning"
-                            size="sm"
-                        >
+                        <x-filament::button tag="a" :href="$this->profileEditUrl()" color="warning" size="sm">
                             Open Profile
                         </x-filament::button>
                     </div>
@@ -112,21 +102,31 @@
                             return this.remaining <= 0;
                         },
                     }"
-                    x-init="setInterval(() => { now = Math.floor(Date.now() / 1000) }, 250)"
+                    x-init="
+                        setInterval(() => {
+                            now = Math.floor(Date.now() / 1000);
+                        }, 250)
+                    "
                     class="flex w-full max-w-sm flex-col items-center gap-4"
                 >
                     <div class="text-center">
-                        <p class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        <p class="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                             Expires in
                         </p>
                         <p
                             class="font-mono text-4xl font-semibold tabular-nums"
-                            :class="expired ? 'text-danger-600 dark:text-danger-400' : (remaining <= 10 ? 'text-warning-600 dark:text-warning-400' : 'text-gray-950 dark:text-white')"
+                            :class="expired
+                                ? 'text-danger-600 dark:text-danger-400'
+                                : remaining <= 10
+                                  ? 'text-warning-600 dark:text-warning-400'
+                                  : 'text-gray-950 dark:text-white'"
                             x-text="expired ? '0s' : remaining + 's'"
                         ></p>
                         <p
                             class="mt-1 text-xs"
-                            :class="expired ? 'text-danger-600 dark:text-danger-400' : 'text-gray-500 dark:text-gray-400'"
+                            :class="expired
+                                ? 'text-danger-600 dark:text-danger-400'
+                                : 'text-gray-500 dark:text-gray-400'"
                             x-text="expired ? 'Expired — refreshing…' : 'Enter in WhatsApp Linked Devices'"
                         ></p>
                     </div>
@@ -134,7 +134,7 @@
                     <div class="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
                         <div
                             class="h-full rounded-full transition-[width] duration-200 ease-linear"
-                            :class="expired ? 'bg-danger-500' : (remaining <= 10 ? 'bg-warning-500' : 'bg-primary-500')"
+                            :class="expired ? 'bg-danger-500' : remaining <= 10 ? 'bg-warning-500' : 'bg-primary-500'"
                             :style="`width: ${percent}%`"
                         ></div>
                     </div>
@@ -185,21 +185,31 @@
                             return this.remaining <= 0;
                         },
                     }"
-                    x-init="setInterval(() => { now = Math.floor(Date.now() / 1000) }, 250)"
+                    x-init="
+                        setInterval(() => {
+                            now = Math.floor(Date.now() / 1000);
+                        }, 250)
+                    "
                     class="flex w-full max-w-xs flex-col items-center gap-3"
                 >
                     <div class="text-center">
-                        <p class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        <p class="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                             Expires in
                         </p>
                         <p
                             class="font-mono text-4xl font-semibold tabular-nums"
-                            :class="expired ? 'text-danger-600 dark:text-danger-400' : (remaining <= 10 ? 'text-warning-600 dark:text-warning-400' : 'text-gray-950 dark:text-white')"
+                            :class="expired
+                                ? 'text-danger-600 dark:text-danger-400'
+                                : remaining <= 10
+                                  ? 'text-warning-600 dark:text-warning-400'
+                                  : 'text-gray-950 dark:text-white'"
                             x-text="expired ? '0s' : remaining + 's'"
                         ></p>
                         <p
                             class="mt-1 text-xs"
-                            :class="expired ? 'text-danger-600 dark:text-danger-400' : 'text-gray-500 dark:text-gray-400'"
+                            :class="expired
+                                ? 'text-danger-600 dark:text-danger-400'
+                                : 'text-gray-500 dark:text-gray-400'"
                             x-text="expired ? 'Expired — refreshing…' : 'Scan now with Linked Devices'"
                         ></p>
                     </div>
@@ -207,7 +217,7 @@
                     <div class="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
                         <div
                             class="h-full rounded-full transition-[width] duration-200 ease-linear"
-                            :class="expired ? 'bg-danger-500' : (remaining <= 10 ? 'bg-warning-500' : 'bg-primary-500')"
+                            :class="expired ? 'bg-danger-500' : remaining <= 10 ? 'bg-warning-500' : 'bg-primary-500'"
                             :style="`width: ${percent}%`"
                         ></div>
                     </div>
@@ -222,23 +232,19 @@
                 </div>
             @elseif ($this->isConnectionOpen())
                 <div class="flex w-full flex-col items-center py-6 text-center lg:max-w-md">
-                    <div class="relative mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-success-500/10">
+                    <div class="bg-success-500/10 relative mb-8 flex h-20 w-20 items-center justify-center rounded-full">
                         <span
-                            class="pointer-events-none absolute inset-0 rounded-full border-2 border-success-500/30"
-                            style="animation: wa-connected-pulse 2s infinite;"
+                            class="border-success-500/30 pointer-events-none absolute inset-0 rounded-full border-2"
+                            style="animation: wa-connected-pulse 2s infinite"
                         ></span>
-                        <x-filament::icon
-                            icon="heroicon-o-check-badge"
-                            class="relative h-10 w-10 text-success-500"
-                        />
+                        <x-filament::icon icon="heroicon-o-check-badge" class="text-success-500 relative h-10 w-10" />
                     </div>
 
-                    <h3 class="text-2xl font-bold tracking-tight text-gray-950 dark:text-white">
-                        Connected
-                    </h3>
+                    <h3 class="text-2xl font-bold tracking-tight text-gray-950 dark:text-white">Connected</h3>
 
                     <p class="mt-4 text-sm leading-6 text-gray-500 dark:text-gray-400">
-                        Your WhatsApp instance is linked and ready. The webhook is registered automatically — send a test ping anytime to confirm outbound messages.
+                        Your WhatsApp instance is linked and ready. The webhook is registered automatically — send a
+                        test ping anytime to confirm outbound messages.
                     </p>
 
                     <div class="mt-6 flex w-full flex-col gap-3 text-left text-sm">
@@ -251,7 +257,7 @@
                                             href="{{ \App\Support\PhoneNumber::whatsAppMeUrl($this->connectedNumber) }}"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            class="text-primary-600 underline underline-offset-2 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+                                            class="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 underline underline-offset-2"
                                         >
                                             {{ $this->connectedNumber }}
                                         </a>
@@ -265,7 +271,7 @@
                         <dl class="rounded-xl border border-gray-200 px-4 py-3 dark:border-slate-700">
                             <div class="flex flex-col gap-3">
                                 <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Contact allowlist</dt>
-                                <dd class="min-w-0 w-full">
+                                <dd class="w-full min-w-0">
                                     @include('filament.pages.partials.evolution-api-allowlist', [
                                         'allowedSenderEntries' => $this->allowedSenderEntries(),
                                         'profileEditUrl' => $this->profileEditUrl(),
@@ -295,9 +301,7 @@
 
                                 <x-slot name="header">
                                     <div>
-                                        <h2 class="fi-modal-heading">
-                                            Connection details
-                                        </h2>
+                                        <h2 class="fi-modal-heading">Connection details</h2>
                                     </div>
                                 </x-slot>
 
@@ -343,12 +347,11 @@
                         />
                     </div>
 
-                    <h3 class="text-2xl font-bold tracking-tight text-gray-950 dark:text-white">
-                        Not connected
-                    </h3>
+                    <h3 class="text-2xl font-bold tracking-tight text-gray-950 dark:text-white">Not connected</h3>
 
                     <p class="mt-4 text-sm leading-6 text-gray-500 dark:text-gray-400">
-                        Click <strong>Connect</strong> to scan a QR code or pair with a phone number before the timer expires.
+                        Click <strong>Connect</strong> to scan a QR code or pair with a phone number before the timer
+                        expires.
                     </p>
                 </div>
             @endif
@@ -357,9 +360,7 @@
 </div>
 
 <x-filament::section class="mt-6" id="evolution-connection-history">
-    <x-slot name="heading">
-        Connection history
-    </x-slot>
+    <x-slot name="heading">Connection history</x-slot>
 
     {{ $this->table }}
 </x-filament::section>

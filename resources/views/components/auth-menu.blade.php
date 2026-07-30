@@ -18,7 +18,7 @@
                 <img
                     src="{{ asset('images/tido-auth-menu-icon-l.png') }}"
                     alt="tido"
-                    class="size-8 rounded-full hidden dark:block"
+                    class="hidden size-8 rounded-full dark:block"
                 />
             </button>
         </x-slot>
@@ -33,7 +33,10 @@
             <x-filament::dropdown.list.item
                 icon="heroicon-o-code-bracket"
                 tag="button"
-                x-on:click="$dispatch('open-modal', { id: 'changelog' }); close()"
+                x-on:click="
+                    $dispatch('open-modal', { id: 'changelog' });
+                    close();
+                "
             >
                 Changelogs
             </x-filament::dropdown.list.item>
@@ -42,7 +45,10 @@
                 <x-filament::dropdown.list.item
                     icon="heroicon-o-arrow-path"
                     tag="button"
-                    x-on:click="window.showRestoreBackupModal(); close()"
+                    x-on:click="
+                        window.showRestoreBackupModal();
+                        close();
+                    "
                 >
                     Restore Backup
                 </x-filament::dropdown.list.item>

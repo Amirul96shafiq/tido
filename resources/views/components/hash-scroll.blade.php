@@ -10,20 +10,22 @@
         const scrollToHash = () => {
             const hash = window.location.hash;
 
-            if (! hash || hash.length < 2) {
+            if (!hash || hash.length < 2) {
                 return;
             }
 
             const id = decodeURIComponent(hash.slice(1));
             const target = document.getElementById(id);
 
-            if (! target) {
+            if (!target) {
                 return;
             }
 
-            window.dispatchEvent(new CustomEvent('open-section', {
-                detail: { id },
-            }));
+            window.dispatchEvent(
+                new CustomEvent('open-section', {
+                    detail: { id },
+                }),
+            );
 
             requestAnimationFrame(() => {
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });

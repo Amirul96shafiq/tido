@@ -18,19 +18,13 @@
         <x-filament-panels::avatar.user :user="$user" loading="lazy" />
     </div>
 
-    <p class="fi-user-menu-profile-preview-name">
-        {{ $name }}
-    </p>
+    <p class="fi-user-menu-profile-preview-name">{{ $name }}</p>
 
     @if ($phone)
-        <p class="fi-user-menu-profile-preview-meta">
-            {{ $phone }}
-        </p>
+        <p class="fi-user-menu-profile-preview-meta">{{ $phone }}</p>
     @endif
 
     @if ($email)
-        <p class="fi-user-menu-profile-preview-meta">
-            {{ $email }}
-        </p>
+        <p class="fi-user-menu-profile-preview-meta">{{ $email }}</p>
     @endif
 </div>

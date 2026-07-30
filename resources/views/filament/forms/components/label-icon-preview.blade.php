@@ -9,13 +9,8 @@
         class="flex size-20 items-center justify-center rounded-2xl ring-1 ring-gray-950/5 dark:ring-white/10"
         style="background-color: color-mix(in srgb, {{ $color }} 18%, transparent); color: {{ $color }};"
     >
-        <x-filament::icon
-            :icon="$icon"
-            class="size-10"
-        />
+        <x-filament::icon :icon="$icon" class="size-10" />
     </div>
 
-    <p class="text-sm font-medium text-gray-950 dark:text-white">
-        {{ $name }}
-    </p>
+    <p class="text-sm font-medium text-gray-950 dark:text-white">{{ $name }}</p>
 </div>

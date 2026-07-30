@@ -9,7 +9,7 @@
     shift
     :flip="false"
     :width="Width::ExtraSmall"
-    :wire:key="$this->getId() . '.dashboard.filters'"
+    :wire:key="$this->getId().'.dashboard.filters'"
     class="tido-dashboard-filters-dropdown"
 >
     <x-slot name="trigger">
@@ -23,7 +23,5 @@
         />
     </x-slot>
 
-    <div class="tido-dashboard-filters-dropdown-panel">
-        {!! $this->getSchema('filtersForm')->toHtml() !!}
-    </div>
+    <div class="tido-dashboard-filters-dropdown-panel">{!! $this->getSchema('filtersForm')->toHtml() !!}</div>
 </x-filament::dropdown>

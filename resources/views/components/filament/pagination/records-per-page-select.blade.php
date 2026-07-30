@@ -29,12 +29,10 @@
         : __('filament::components/pagination.fields.records_per_page.label');
 @endphp
 
-<label
-    @class([
-        'fi-pagination-records-per-page-select',
-        'fi-compact' => $compact,
-    ])
->
+<label @class([
+    'fi-pagination-records-per-page-select',
+    'fi-compact' => $compact,
+])>
     <x-filament::input.wrapper :prefix="$prefix">
         <div
             x-load
@@ -85,8 +83,6 @@
     </x-filament::input.wrapper>
 
     @if ($compact)
-        <span class="fi-sr-only">
-            {{ __('filament::components/pagination.fields.records_per_page.label') }}
-        </span>
+        <span class="fi-sr-only"> {{ __('filament::components/pagination.fields.records_per_page.label') }} </span>
     @endif
 </label>

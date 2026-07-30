@@ -34,109 +34,85 @@
                     wire:navigate
                     class="{{ $linkCardClasses }}"
                 >
-            @else
-                <div
-                    wire:key="allowlist-primary-{{ $entry['phone'] }}"
-                    class="{{ $cardClasses }}"
-                >
-            @endif
-                <x-filament::avatar
-                    :src="$entry['avatar_url']"
-                    :alt="$heading"
-                    size="sm"
-                />
-                <div class="min-w-0 flex-1 text-left">
-                    <div class="truncate font-medium text-gray-950 dark:text-white">
-                        {{ $baseHeading }}
-                        <span class="text-xs font-normal text-gray-500 dark:text-gray-400">(You)</span>
-                    </div>
-                    <div class="truncate text-xs text-gray-500 dark:text-gray-400">
-                        {{ $entry['name'] }}
-                    </div>
-                    <div class="font-mono text-xs text-gray-500 dark:text-gray-400">
-                        {{ $entry['phone'] }}
-                    </div>
-                </div>
-                <x-filament::badge color="gray" size="sm">
-                    Primary
-                </x-filament::badge>
-            @if (isset($profileEditUrl))
-                </a>
-            @else
-                </div>
-            @endif
-        @endforeach
 
-        @foreach ($visibleFamily as $entry)
-            @php
-                $baseHeading = filled($entry['display_name'] ?? null) ? $entry['display_name'] : $entry['name'];
-                $relationshipLabel = $entry['relationship_label'] ?? null;
-                $heading = filled($relationshipLabel)
-                    ? $baseHeading.' ('.$relationshipLabel.')'
-                    : $baseHeading;
-                $familyEditUrl = isset($entry['id'])
-                    ? FamilyMemberResource::getUrl('edit', ['record' => $entry['id']])
-                    : null;
-            @endphp
-            @if (filled($familyEditUrl))
-                <a
-                    href="{{ $familyEditUrl }}"
-                    wire:key="allowlist-family-{{ $entry['phone'] }}"
-                    wire:navigate
-                    class="{{ $linkCardClasses }}"
-                >
             @else
-                <div
-                    wire:key="allowlist-family-{{ $entry['phone'] }}"
-                    class="{{ $cardClasses }}"
-                >
+                <div wire:key="allowlist-primary-{{ $entry['phone'] }}" class="{{ $cardClasses }}">
             @endif
-                <x-filament::avatar
-                    :src="$entry['avatar_url']"
-                    :alt="$heading"
-                    size="sm"
-                />
-                <div class="min-w-0 flex-1 text-left">
-                    <div class="truncate font-medium text-gray-950 dark:text-white">
-                        {{ $baseHeading }}
-                        @if (filled($relationshipLabel))
-                            <span class="text-xs font-normal text-gray-500 dark:text-gray-400">({{ $relationshipLabel }})</span>
-                        @endif
-                    </div>
-                    <div class="truncate text-xs text-gray-500 dark:text-gray-400">
-                        {{ $entry['name'] }}
-                    </div>
-                    <div class="font-mono text-xs text-gray-500 dark:text-gray-400">
-                        {{ $entry['phone'] }}
-                    </div>
+            <x-filament::avatar :src="$entry['avatar_url']" :alt="$heading" size="sm" />
+            <div class="min-w-0 flex-1 text-left">
+                <div class="truncate font-medium text-gray-950 dark:text-white">
+                    {{ $baseHeading }}
+                    <span class="text-xs font-normal text-gray-500 dark:text-gray-400">(You)</span>
                 </div>
-                <x-filament::badge color="gray" size="sm">
-                    Family
-                </x-filament::badge>
-            @if (filled($familyEditUrl))
-                </a>
-            @else
-                </div>
-            @endif
-        @endforeach
-
-        @if ($hiddenFamilyCount > 0)
-            @php
-                $moreLabel = '+'.$hiddenFamilyCount.' more Family Member'.($hiddenFamilyCount === 1 ? '' : 's');
-            @endphp
-            <div class="px-1 pt-0.5 text-left text-xs text-gray-500 dark:text-gray-400">
-                @isset($familyMembersUrl)
-                    <a
-                        href="{{ $familyMembersUrl }}"
-                        wire:navigate
-                        class="text-primary-600 underline underline-offset-2 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
-                    >
-                        {{ $moreLabel }}
-                    </a>
-                @else
-                    {{ $moreLabel }}
-                @endisset
+                <div class="truncate text-xs text-gray-500 dark:text-gray-400">{{ $entry['name'] }}</div>
+                <div class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ $entry['phone'] }}</div>
             </div>
-        @endif
+            <x-filament::badge color="gray" size="sm"> Primary </x-filament::badge>
+            @if (isset($profileEditUrl))
+            </a>
+@else
     </div>
+@endif
+@endforeach
+
+@foreach ($visibleFamily as $entry)
+    @php
+        $baseHeading = filled($entry['display_name'] ?? null) ? $entry['display_name'] : $entry['name'];
+        $relationshipLabel = $entry['relationship_label'] ?? null;
+        $heading = filled($relationshipLabel)
+            ? $baseHeading.' ('.$relationshipLabel.')'
+            : $baseHeading;
+        $familyEditUrl = isset($entry['id'])
+            ? FamilyMemberResource::getUrl('edit', ['record' => $entry['id']])
+            : null;
+    @endphp
+    @if (filled($familyEditUrl))
+        <a
+            href="{{ $familyEditUrl }}"
+            wire:key="allowlist-family-{{ $entry['phone'] }}"
+            wire:navigate
+            class="{{ $linkCardClasses }}"
+        >
+
+    @else
+        <div wire:key="allowlist-family-{{ $entry['phone'] }}" class="{{ $cardClasses }}">
+    @endif
+    <x-filament::avatar :src="$entry['avatar_url']" :alt="$heading" size="sm" />
+    <div class="min-w-0 flex-1 text-left">
+        <div class="truncate font-medium text-gray-950 dark:text-white">
+            {{ $baseHeading }}
+            @if (filled($relationshipLabel))
+                <span class="text-xs font-normal text-gray-500 dark:text-gray-400">({{ $relationshipLabel }})</span>
+            @endif
+        </div>
+        <div class="truncate text-xs text-gray-500 dark:text-gray-400">{{ $entry['name'] }}</div>
+        <div class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ $entry['phone'] }}</div>
+    </div>
+    <x-filament::badge color="gray" size="sm"> Family </x-filament::badge>
+    @if (filled($familyEditUrl))
+        </a>
+    @else
+        </div>
+    @endif
+@endforeach
+
+@if ($hiddenFamilyCount > 0)
+    @php
+        $moreLabel = '+'.$hiddenFamilyCount.' more Family Member'.($hiddenFamilyCount === 1 ? '' : 's');
+    @endphp
+    <div class="px-1 pt-0.5 text-left text-xs text-gray-500 dark:text-gray-400">
+        @isset($familyMembersUrl)
+            <a
+                href="{{ $familyMembersUrl }}"
+                wire:navigate
+                class="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 underline underline-offset-2"
+            >
+                {{ $moreLabel }}
+            </a>
+        @else
+            {{ $moreLabel }}
+        @endisset
+    </div>
+@endif
+</div>
 @endif

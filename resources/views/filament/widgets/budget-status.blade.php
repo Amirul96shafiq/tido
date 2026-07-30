@@ -15,11 +15,9 @@
     "
 >
     <x-filament::section class="h-full">
-        <x-slot name="heading">
-            Budget Performance ({{ $monthLabel ?? now()->format('F Y') }})
-        </x-slot>
+        <x-slot name="heading">Budget Performance ({{ $monthLabel ?? now()->format('F Y') }})</x-slot>
 
-        @if(empty($budgets))
+        @if (empty($budgets))
             <div
                 class="fi-wi-budget-status-empty flex flex-1 items-center justify-center"
                 style="min-height: {{ $contentHeight }}"
@@ -46,31 +44,28 @@
         @else
             <div
                 wire:sort="reorderBudgets"
-                class="flex flex-1 flex-col gap-6 mt-3 overflow-y-auto custom-scrollbar pr-2"
+                class="custom-scrollbar mt-3 flex flex-1 flex-col gap-6 overflow-y-auto pr-2"
                 style="min-height: {{ $contentHeight }}; max-height: {{ $contentHeight }}"
             >
-                @foreach($budgets as $budget)
+                @foreach ($budgets as $budget)
                     <div
                         wire:key="budget-status-{{ $budget['id'] }}"
                         wire:sort:item="{{ $budget['id'] }}"
-                        class="flex items-center gap-2 p-4 -mx-1 rounded-xl transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60"
+                        class="-mx-1 flex items-center gap-2 rounded-xl p-4 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60"
                     >
                         <button
                             type="button"
                             wire:sort:handle
                             class="flex size-6 shrink-0 cursor-grab items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 active:cursor-grabbing dark:hover:bg-slate-600 dark:hover:text-gray-200"
                         >
-                            <x-filament::icon
-                                icon="heroicon-m-bars-3"
-                                class="size-4"
-                            />
+                            <x-filament::icon icon="heroicon-m-bars-3" class="size-4" />
                         </button>
 
                         <a
                             wire:navigate
                             wire:sort:ignore
                             href="{{ $budget['edit_url'] }}"
-                            class="flex min-w-0 flex-1 flex-col gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg"
+                            class="focus-visible:ring-primary-500 flex min-w-0 flex-1 flex-col gap-2 rounded-lg focus-visible:ring-2 focus-visible:outline-none"
                         >
                             <div class="flex min-w-0 items-start justify-between gap-2 text-sm sm:items-center">
                                 <div class="flex min-w-0 flex-1 items-center gap-2">
@@ -78,17 +73,17 @@
                                         class="flex size-6 shrink-0 items-center justify-center rounded-md"
                                         style="background-color: color-mix(in srgb, {{ $budget['color'] }} 18%, transparent); color: {{ $budget['color'] }};"
                                     >
-                                        <x-filament::icon
-                                            :icon="$budget['icon']"
-                                            class="size-3.5"
-                                        />
+                                        <x-filament::icon :icon="$budget['icon']" class="size-3.5" />
                                     </span>
                                     <div class="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
                                         <div
                                             x-data="{ overflowing: false }"
                                             x-init="
                                                 const measure = () => {
-                                                    $el.style.setProperty('--tido-marquee-clip', $el.clientWidth + 'px');
+                                                    $el.style.setProperty(
+                                                        '--tido-marquee-clip',
+                                                        $el.clientWidth + 'px',
+                                                    );
                                                     overflowing = $refs.marqueeText.scrollWidth > $el.clientWidth;
                                                 };
                                                 measure();
@@ -98,46 +93,47 @@
                                         >
                                             <span
                                                 x-ref="marqueeText"
-                                                class="inline-block whitespace-nowrap font-semibold text-gray-800 dark:text-gray-200"
+                                                class="inline-block font-semibold whitespace-nowrap text-gray-800 dark:text-gray-200"
                                                 :class="{ 'tido-text-marquee': overflowing }"
                                             >{{ $budget['name'] }}</span>
                                         </div>
-                                        <span class="w-fit shrink-0 text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md">{{ ucfirst($budget['period']) }}</span>
+                                        <span class="w-fit shrink-0 rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-400 dark:bg-gray-800 dark:text-gray-500">{{ ucfirst($budget['period']) }}</span>
                                     </div>
                                 </div>
-                                <div class="flex shrink-0 flex-col items-end gap-0.5 whitespace-nowrap text-right sm:flex-row sm:items-baseline sm:gap-1">
+                                <div class="flex shrink-0 flex-col items-end gap-0.5 text-right whitespace-nowrap sm:flex-row sm:items-baseline sm:gap-1">
                                     <span class="font-bold text-gray-700 dark:text-gray-300">{{ MoneyDisplay::withPrefix($budget['spent']) }}</span>
                                     <span class="text-xs font-normal text-gray-400 dark:text-gray-500">/ {{ MoneyDisplay::withPrefix($budget['amount']) }}</span>
                                 </div>
                             </div>
 
-                            <div class="w-full bg-gray-200 dark:bg-white/15 h-2.5 rounded-full overflow-hidden relative">
+                            <div class="relative h-2.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-white/15">
                                 @php
-                                    $barColorClass = match($budget['status_color']) {
+                                    $barColorClass = match ($budget['status_color']) {
                                         'red' => 'bg-gradient-to-r from-red-500 to-rose-600',
                                         'amber' => 'bg-gradient-to-r from-amber-400 to-orange-500',
                                         default => 'bg-gradient-to-r from-[#FFD07D] to-[#FFA524]',
                                     };
-                                    $glowColor = match($budget['status_color']) {
+                                    $glowColor = match ($budget['status_color']) {
                                         'red' => 'rgba(239, 68, 68, 0.4)',
                                         'amber' => 'rgba(245, 158, 11, 0.4)',
                                         default => 'rgba(255, 208, 125, 0.4)',
                                     };
                                 @endphp
-                                <div class="h-full rounded-full transition-all duration-1000 ease-out {{ $barColorClass }}"
-                                     style="width: {{ $budget['percentage'] }}%; box-shadow: 0 0 10px {{ $glowColor }};">
-                                </div>
+                                <div
+                                    class="h-full rounded-full transition-all duration-1000 ease-out {{ $barColorClass }}"
+                                    style="width: {{ $budget['percentage'] }}%; box-shadow: 0 0 10px {{ $glowColor }};"
+                                ></div>
                             </div>
 
-                            <div class="mt-2 flex justify-between items-center text-xs text-gray-400 dark:text-gray-500">
+                            <div class="mt-2 flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
                                 <span>
-                                    @if($budget['raw_percentage'] >= 100)
-                                        <span class="text-red-500 font-semibold flex items-center gap-1">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
+                                    @if ($budget['raw_percentage'] >= 100)
+                                        <span class="flex items-center gap-1 font-semibold text-red-500">
+                                            <span class="h-1.5 w-1.5 animate-ping rounded-full bg-red-500"></span>
                                             Exceeded by {{ number_format($budget['raw_percentage'] - 100, 1) }}%
                                         </span>
-                                    @elseif($budget['status_color'] === 'amber')
-                                        <span class="text-amber-500 font-semibold">
+                                    @elseif ($budget['status_color'] === 'amber')
+                                        <span class="font-semibold text-amber-500">
                                             Approaching limit ({{ number_format($budget['raw_percentage'], 1) }}%)
                                         </span>
                                     @else

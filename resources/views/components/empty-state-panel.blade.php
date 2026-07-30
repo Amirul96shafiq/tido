@@ -17,23 +17,14 @@
 
 <div {{ $attributes->class(['fi-no-empty-panel']) }}>
     <div @class(['fi-no-empty-panel-icon-ctn', $iconColorClass])>
-        <x-filament::icon
-            :icon="$icon"
-            class="fi-no-empty-panel-icon"
-        />
+        <x-filament::icon :icon="$icon" class="fi-no-empty-panel-icon" />
     </div>
 
-    <h3 class="fi-no-empty-panel-heading">
-        {{ $heading }}
-    </h3>
+    <h3 class="fi-no-empty-panel-heading">{{ $heading }}</h3>
 
-    <p class="fi-no-empty-panel-description">
-        {{ $description }}
-    </p>
+    <p class="fi-no-empty-panel-description">{{ $description }}</p>
 
     @if (isset($actions) && ! $actions->isEmpty())
-        <div class="fi-no-empty-panel-actions">
-            {{ $actions }}
-        </div>
+        <div class="fi-no-empty-panel-actions">{{ $actions }}</div>
     @endif
 </div>

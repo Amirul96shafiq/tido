@@ -40,7 +40,11 @@
          * Must beat `.fi-modal-content > :first-child { padding-top: 1rem }`
          * so the empty panel is not cramped under the sticky header border.
          */
-        .fi-no-database .fi-modal-window-ctn > .fi-modal-window .fi-modal-content > :first-child.fi-no-database-empty-filter,
+        .fi-no-database
+            .fi-modal-window-ctn
+            > .fi-modal-window
+            .fi-modal-content
+            > :first-child.fi-no-database-empty-filter,
         .fi-no-database .fi-modal-window-ctn > .fi-modal-window .fi-modal-content > .fi-no-database-empty-filter {
             padding-top: 3rem;
             padding-bottom: 2.5rem;
@@ -94,13 +98,11 @@
                         {{ __('filament-notifications::database.modal.heading') }}
 
                         @if ($unreadNotificationsCount)
-                            <span
-                                {{
-                                    (new ComponentAttributeBag)->color(BadgeComponent::class, 'primary')->class([
-                                        'fi-badge fi-size-xs',
-                                    ])
-                                }}
-                            >
+                            <span {{
+                                (new ComponentAttributeBag)->color(BadgeComponent::class, 'primary')->class([
+                                    'fi-badge fi-size-xs',
+                                ])
+                            }}>
                                 {{ $unreadNotificationsCount }}
                             </span>
                         @endif
@@ -132,9 +134,7 @@
                             }"
                             x-on:database-notifications-search-cleared.window="query = ''"
                         >
-                            <label class="fi-sr-only" for="database-notifications-search">
-                                Search notifications
-                            </label>
+                            <label class="fi-sr-only" for="database-notifications-search"> Search notifications </label>
 
                             <x-filament::input.wrapper
                                 inline-prefix
@@ -187,10 +187,10 @@
                             @if ($this->filtersOpen)
                                 x-on:click.outside="
                                     if ($event.target.closest('.fi-dropdown-panel, .fi-fo-date-time-picker-panel')) {
-                                        return
+                                        return;
                                     }
 
-                                    $wire.closeFilters()
+                                    $wire.closeFilters();
                                 "
                             @endif
                         >
@@ -284,11 +284,7 @@
                     icon-color="primary"
                 >
                     <x-slot name="actions">
-                        <x-filament::button
-                            color="primary"
-                            wire:click="clearSearchAndFilters"
-                            type="button"
-                        >
+                        <x-filament::button color="primary" wire:click="clearSearchAndFilters" type="button">
                             Clear search &amp; filters
                         </x-filament::button>
                     </x-slot>
@@ -299,19 +295,13 @@
                 @script
                     <script>
                         window.addEventListener('EchoLoaded', () => {
-                            window.Echo.private(@js($broadcastChannel)).listen(
-                                '.database-notifications.sent',
-                                () => {
-                                    setTimeout(
-                                        () => $wire.call('$refresh'),
-                                        500,
-                                    )
-                                },
-                            )
-                        })
+                            window.Echo.private(@js($broadcastChannel)).listen('.database-notifications.sent', () => {
+                                setTimeout(() => $wire.call('$refresh'), 500);
+                            });
+                        });
 
                         if (window.Echo) {
-                            window.dispatchEvent(new CustomEvent('EchoLoaded'))
+                            window.dispatchEvent(new CustomEvent('EchoLoaded'));
                         }
                     </script>
                 @endscript

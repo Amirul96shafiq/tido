@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Verification Link Expired | {{ config('app.name', 'tido') }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    />
     <style>
         :root {
             --color-bg: #09090b;
@@ -14,7 +17,7 @@
             --color-border: #27272a;
             --color-text-primary: #f4f4f5;
             --color-text-secondary: #a1a1aa;
-            --color-primary: #FFD07D;
+            --color-primary: #ffd07d;
             --color-primary-hover: #fcd34d;
             --color-danger: #ef4444;
         }
@@ -39,7 +42,8 @@
         }
 
         /* Subtle glowing background decorations */
-        body::before, body::after {
+        body::before,
+        body::after {
             content: '';
             position: absolute;
             width: 300px;
@@ -69,7 +73,9 @@
             border-radius: 1.25rem;
             padding: 3rem 2rem;
             text-align: center;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+            box-shadow:
+                0 20px 25px -5px rgba(0, 0, 0, 0.5),
+                0 10px 10px -5px rgba(0, 0, 0, 0.4);
             animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -175,10 +181,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
             </svg>
         </div>
-        
+
         <h1>Link Expired</h1>
-        <p>The verification link to change your email address has expired. For your security, email change verification links are only valid for a limited time.</p>
-        
+        <p>
+            The verification link to change your email address has expired. For your security, email change verification
+            links are only valid for a limited time.
+        </p>
+
         <a href="/admin/profile" class="btn">Return to Profile Settings</a>
     </div>
 </body>

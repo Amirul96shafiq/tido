@@ -26,7 +26,7 @@
             <div class="tido-theme-mode-field flex w-full items-center justify-between gap-2">
                 <x-filament-panels::theme-switcher />
 
-                <span class="rounded-full bg-primary-500/90 px-2 py-1 text-xs font-medium text-primary-900">
+                <span class="bg-primary-500/90 text-primary-900 rounded-full px-2 py-1 text-xs font-medium">
                     <span x-text="label()">System</span>
                 </span>
             </div>

@@ -1,12 +1,10 @@
 <form wire:submit="save">
     <x-filament::section id="upload-receipts">
-        <x-slot name="heading">
-            Upload Receipts
-        </x-slot>
+        <x-slot name="heading">Upload Receipts</x-slot>
 
         {{ $this->form }}
 
-        <div style="margin-top: 1.5rem;" class="flex justify-start">
+        <div style="margin-top: 1.5rem" class="flex justify-start">
             <x-filament::button type="submit" size="lg" icon="heroicon-m-plus" wire:target="save">
                 Upload and Start AI Extraction
             </x-filament::button>

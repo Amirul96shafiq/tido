@@ -8,7 +8,7 @@
     $hasDescription = filled($description);
 
     $widgetAttributes = [
-        'wire:poll.' . $pollingInterval => $pollingInterval ? true : null,
+        'wire:poll.'.$pollingInterval => $pollingInterval ? true : null,
     ];
 
     if (method_exists($this, 'getDashboardSectionId')) {

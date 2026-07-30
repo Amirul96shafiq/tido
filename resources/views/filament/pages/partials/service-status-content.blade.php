@@ -20,9 +20,7 @@
 
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
     <x-filament::section class="h-full" id="service-summary-report">
-        <x-slot name="heading">
-            {{ $this->summaryReportHeading() }}
-        </x-slot>
+        <x-slot name="heading">{{ $this->summaryReportHeading() }}</x-slot>
 
         <div class="flex flex-col gap-5">
             <div class="flex w-full flex-col items-center justify-center rounded-xl bg-white px-4 py-6 dark:bg-slate-800">
@@ -36,7 +34,7 @@
                     @if ($summaryStatus === \App\Enums\ServiceHealthStatus::Operational)
                         <span
                             class="pointer-events-none absolute inset-0 rounded-full border-2 border-emerald-500/30"
-                            style="animation: service-status-pulse 2s infinite;"
+                            style="animation: service-status-pulse 2s infinite"
                         ></span>
                     @endif
 
@@ -69,19 +67,19 @@
             <div class="grid grid-cols-3 gap-3">
                 <div class="flex flex-col items-center gap-2 rounded-lg border border-gray-200 px-3 py-4 text-center dark:border-white/10">
                     <span class="size-2 rounded-full bg-emerald-500"></span>
-                    <span class="text-2xl font-semibold tabular-nums text-gray-950 dark:text-white">{{ $operationalCount }}</span>
+                    <span class="text-2xl font-semibold text-gray-950 tabular-nums dark:text-white">{{ $operationalCount }}</span>
                     <span class="text-xs text-gray-500 dark:text-gray-400">Operational</span>
                 </div>
 
                 <div class="flex flex-col items-center gap-2 rounded-lg border border-gray-200 px-3 py-4 text-center dark:border-white/10">
-                    <span class="size-2 rounded-full bg-warning-500"></span>
-                    <span class="text-2xl font-semibold tabular-nums text-gray-950 dark:text-white">{{ $degradedCount }}</span>
+                    <span class="bg-warning-500 size-2 rounded-full"></span>
+                    <span class="text-2xl font-semibold text-gray-950 tabular-nums dark:text-white">{{ $degradedCount }}</span>
                     <span class="text-xs text-gray-500 dark:text-gray-400">Degraded</span>
                 </div>
 
                 <div class="flex flex-col items-center gap-2 rounded-lg border border-gray-200 px-3 py-4 text-center dark:border-white/10">
-                    <span class="size-2 rounded-full bg-danger-500"></span>
-                    <span class="text-2xl font-semibold tabular-nums text-gray-950 dark:text-white">{{ $downCount }}</span>
+                    <span class="bg-danger-500 size-2 rounded-full"></span>
+                    <span class="text-2xl font-semibold text-gray-950 tabular-nums dark:text-white">{{ $downCount }}</span>
                     <span class="text-xs text-gray-500 dark:text-gray-400">Down</span>
                 </div>
             </div>
@@ -103,13 +101,14 @@
     </x-filament::section>
 
     <x-filament::section class="h-full" id="service-system-status">
-        <x-slot name="heading">
-            {{ $this->systemStatusHeading() }}
-        </x-slot>
+        <x-slot name="heading">{{ $this->systemStatusHeading() }}</x-slot>
 
         <div class="divide-y divide-gray-200 dark:divide-white/10">
             @forelse ($this->services() as $service)
-                <div class="flex flex-col gap-3 py-5 first:pt-0 last:pb-0" wire:key="service-status-{{ $service['service']->value }}">
+                <div
+                    class="flex flex-col gap-3 py-5 first:pt-0 last:pb-0"
+                    wire:key="service-status-{{ $service['service']->value }}"
+                >
                     <div class="flex items-start justify-between gap-4">
                         <div class="flex min-w-0 items-center gap-3">
                             <x-filament::icon
@@ -169,9 +168,7 @@
                     </div>
                 </div>
             @empty
-                <p class="py-4 text-sm text-gray-500 dark:text-gray-400">
-                    No monitored services are configured yet.
-                </p>
+                <p class="py-4 text-sm text-gray-500 dark:text-gray-400">No monitored services are configured yet.</p>
             @endforelse
         </div>
     </x-filament::section>

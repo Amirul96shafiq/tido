@@ -35,9 +35,7 @@
             return ! this.isDesktop;
         },
         get collapsed() {
-            return this.isDesktop
-                ? ! this.$store.sidebar.isOpenDesktop
-                : ! this.$store.sidebar.isOpen;
+            return this.isDesktop ? ! this.$store.sidebar.isOpenDesktop : ! this.$store.sidebar.isOpen;
         },
         toggle() {
             if (this.isRestricted) {
@@ -80,20 +78,18 @@
                     </div>
                 </button>
 
-                <span class="rounded-full bg-primary-500/90 px-2 py-1 text-xs font-medium text-primary-900">
+                <span class="bg-primary-500/90 text-primary-900 rounded-full px-2 py-1 text-xs font-medium">
                     <span x-text="collapsed ? 'Collapsed style' : 'Expanded style'">Expanded style</span>
                 </span>
             </div>
 
-            <p class="fi-sc-text">
-                Restricted to larger responsive users.
-            </p>
+            <p class="fi-sc-text">Restricted to larger responsive users.</p>
         </div>
     </div>
 
     <div
         class="tido-sidebar-preview relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
-        style="aspect-ratio: 32 / 9;"
+        style="aspect-ratio: 32 / 9"
     >
         <div class="h-full">
             <x-tido.panel-preview-chrome class="h-full">
@@ -106,7 +102,7 @@
             </x-tido.panel-preview-chrome>
         </div>
 
-        <div class="absolute inset-block-start-2 inset-inline-start-2 rounded-full bg-primary-500/90 px-2 py-1 text-xs font-medium text-primary-900">
+        <div class="inset-block-start-2 inset-inline-start-2 bg-primary-500/90 text-primary-900 absolute rounded-full px-2 py-1 text-xs font-medium">
             <span x-text="collapsed ? 'Collapsed style' : 'Expanded style'">Expanded style</span>
         </div>
     </div>

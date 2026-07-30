@@ -216,28 +216,26 @@
         'tido-section-nav--dragging': isDragging,
     }"
     x-on:click.capture="onNavClick($event)"
-    x-on:open-section.window="if ($event.detail?.id) { activeId = $event.detail.id }"
+    x-on:open-section.window="
+        if ($event.detail?.id) {
+            activeId = $event.detail.id;
+        }
+    "
 >
     <div class="tido-section-nav__frame">
-        <div
-            class="tido-section-nav__fade tido-section-nav__fade--left"
-            aria-hidden="true"
-        ></div>
-        <div
-            class="tido-section-nav__fade tido-section-nav__fade--right"
-            aria-hidden="true"
-        ></div>
+        <div class="tido-section-nav__fade tido-section-nav__fade--left" aria-hidden="true"></div>
+        <div class="tido-section-nav__fade tido-section-nav__fade--right" aria-hidden="true"></div>
         <x-filament::tabs :label="$ariaLabel" x-ref="tabs">
             @foreach ($sections as $section)
-                <x-filament::tabs.item
-                    :alpine-active="'activeId === \'' . e($section['id']) . '\''"
-                    tag="a"
-                    :href="'#' . $section['id']"
-                    :spa-mode="false"
-                    draggable="false"
-                >
-                    {{ $section['label'] }}
-                </x-filament::tabs.item>
+            <x-filament::tabs.item
+                :alpine-active="'activeId === \''.e($section['id']).'\''"
+                tag="a"
+                :href="'#'.$section['id']"
+                :spa-mode="false"
+                draggable="false"
+            >
+                {{ $section['label'] }}
+            </x-filament::tabs.item>
             @endforeach
         </x-filament::tabs>
     </div>

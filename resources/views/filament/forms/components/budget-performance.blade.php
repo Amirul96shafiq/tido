@@ -32,15 +32,11 @@
 @endphp
 
 @if (! $hasData)
-    <p class="text-sm text-gray-500 dark:text-gray-400">
-        No performance data yet.
-    </p>
+    <p class="text-sm text-gray-500 dark:text-gray-400">No performance data yet.</p>
 @else
     <div class="flex flex-col gap-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-                {{ $periodLabel }}
-            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $periodLabel }}</p>
             <span @class([
                 'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold',
                 $statusBadgeClass,

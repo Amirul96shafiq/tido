@@ -17,42 +17,15 @@
         class="tido-sidebar-preview-rail flex h-full shrink-0 flex-col gap-2 border-e border-gray-200 bg-gray-50 p-2 transition-[width] duration-200 dark:border-gray-700 dark:bg-slate-800"
         x-bind:class="collapsed ? 'w-12' : 'w-28'"
     >
-        <div
-            class="mb-1 flex h-8 items-center"
-            x-bind:class="collapsed ? 'justify-center px-0' : 'px-1'"
-        >
-            <span
-                class="flex w-full items-center"
-                x-show="! collapsed"
-                x-cloak
-            >
-                <img
-                    src="{{ $logoFullLight }}"
-                    alt=""
-                    class="h-7 w-auto max-w-full object-contain dark:hidden"
-                />
-                <img
-                    src="{{ $logoFullDark }}"
-                    alt=""
-                    class="hidden h-7 w-auto max-w-full object-contain dark:block"
-                />
+        <div class="mb-1 flex h-8 items-center" x-bind:class="collapsed ? 'justify-center px-0' : 'px-1'">
+            <span class="flex w-full items-center" x-show="! collapsed" x-cloak>
+                <img src="{{ $logoFullLight }}" alt="" class="h-7 w-auto max-w-full object-contain dark:hidden" />
+                <img src="{{ $logoFullDark }}" alt="" class="hidden h-7 w-auto max-w-full object-contain dark:block" />
             </span>
 
-            <span
-                class="flex items-center justify-center"
-                x-show="collapsed"
-                x-cloak
-            >
-                <img
-                    src="{{ $logoCompactLight }}"
-                    alt=""
-                    class="size-7 object-contain dark:hidden"
-                />
-                <img
-                    src="{{ $logoCompactDark }}"
-                    alt=""
-                    class="hidden size-7 object-contain dark:block"
-                />
+            <span class="flex items-center justify-center" x-show="collapsed" x-cloak>
+                <img src="{{ $logoCompactLight }}" alt="" class="size-7 object-contain dark:hidden" />
+                <img src="{{ $logoCompactDark }}" alt="" class="hidden size-7 object-contain dark:block" />
             </span>
         </div>
 
@@ -113,8 +86,6 @@
             ></span>
         </div>
 
-        <div class="relative z-[2] flex min-h-0 flex-1 flex-col gap-2 p-3">
-            {{ $slot }}
-        </div>
+        <div class="relative z-[2] flex min-h-0 flex-1 flex-col gap-2 p-3">{{ $slot }}</div>
     </div>
 </div>

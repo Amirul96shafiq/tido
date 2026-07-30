@@ -9,10 +9,7 @@
     $pageSize = $getPageSize();
 @endphp
 
-<x-dynamic-component
-    :component="$getFieldWrapperView()"
-    :field="$field"
->
+<x-dynamic-component :component="$getFieldWrapperView()" :field="$field">
     <div
         x-data="{
             state: $wire.{{ $applyStateBindingModifiers("\$entangle('{$statePath}')") }},
@@ -61,9 +58,7 @@
     >
         @if (count($curatedIcons))
             <div class="flex flex-col gap-2">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                    Quick picks
-                </p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Quick picks</p>
                 <div
                     class="grid w-full gap-2"
                     style="grid-template-columns: repeat({{ count($curatedIcons) }}, minmax(0, 1fr));"
@@ -107,9 +102,7 @@
                 <x-slot name="header">
                     <div class="flex flex-col gap-3">
                         <div>
-                            <h2 class="fi-modal-heading">
-                                Choose icon
-                            </h2>
+                            <h2 class="fi-modal-heading">Choose icon</h2>
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                 Search or browse Heroicons. Click an icon to select it.
                             </p>
