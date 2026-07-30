@@ -5,10 +5,6 @@ declare(strict_types=1);
 use App\Jobs\ExtractReceiptDataJob;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Services\LabelMatcher;
-use App\Services\OllamaService;
-use App\Services\PaymentMethodMatcher;
-use App\Services\ReceiptParseNormalizer;
 use App\Services\ReceiptReparseService;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
@@ -73,7 +69,7 @@ test('extract receipt data job flags mismatched amounts for manual review', func
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class), app(LabelMatcher::class), app(PaymentMethodMatcher::class));
+    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
 
     $invoice->refresh();
 
@@ -183,7 +179,7 @@ test('extract receipt data job replaces items on successful reparse', function (
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class), app(LabelMatcher::class), app(PaymentMethodMatcher::class));
+    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
 
     $invoice->refresh();
 
@@ -242,7 +238,7 @@ test('extract receipt data job flags implausible date for manual review', functi
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class), app(LabelMatcher::class), app(PaymentMethodMatcher::class));
+    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
 
     $invoice->refresh();
 
@@ -300,7 +296,7 @@ test('extract receipt data job keeps upload date when ai datetime cannot be pars
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class), app(LabelMatcher::class), app(PaymentMethodMatcher::class));
+    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
 
     $invoice->refresh();
 
@@ -356,7 +352,7 @@ test('extract receipt data job parses day first datetime with T suffix correctly
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    (new ExtractReceiptDataJob($invoice->id))->handle(app(OllamaService::class), app(ReceiptParseNormalizer::class), app(LabelMatcher::class), app(PaymentMethodMatcher::class));
+    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
 
     $invoice->refresh();
 

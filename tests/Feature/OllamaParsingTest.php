@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 use App\Jobs\ExtractReceiptDataJob;
 use App\Models\Invoice;
-use App\Services\LabelMatcher;
 use App\Services\OllamaService;
-use App\Services\PaymentMethodMatcher;
-use App\Services\ReceiptParseNormalizer;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -84,7 +81,7 @@ test('extract receipt data job processes mock response and updates status', func
     $this->seed(PaymentMethodSeeder::class);
 
     $job = new ExtractReceiptDataJob($invoice->id);
-    $job->handle(new OllamaService, new ReceiptParseNormalizer, new LabelMatcher, new PaymentMethodMatcher);
+    app()->call([$job, 'handle']);
 
     $invoice->refresh();
 

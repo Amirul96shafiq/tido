@@ -5,10 +5,6 @@ declare(strict_types=1);
 use App\Jobs\ExtractReceiptDataJob;
 use App\Jobs\SendWhatsAppDocumentParsedJob;
 use App\Models\Invoice;
-use App\Services\LabelMatcher;
-use App\Services\OllamaService;
-use App\Services\PaymentMethodMatcher;
-use App\Services\ReceiptParseNormalizer;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -89,12 +85,7 @@ test('extract receipt data job uniquifies hash when soft-deleted invoice owns th
         'original_filename' => 'wa_NEW.jpg',
     ]);
 
-    (new ExtractReceiptDataJob($invoice->id))->handle(
-        new OllamaService,
-        new ReceiptParseNormalizer,
-        new LabelMatcher,
-        new PaymentMethodMatcher,
-    );
+    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
 
     $invoice->refresh();
 
