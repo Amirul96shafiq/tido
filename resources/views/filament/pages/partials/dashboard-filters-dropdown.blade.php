@@ -5,7 +5,7 @@
 @endphp
 
 <x-filament::dropdown
-    placement="bottom-start"
+    placement="bottom-end"
     shift
     :flip="false"
     :width="Width::ExtraSmall"
