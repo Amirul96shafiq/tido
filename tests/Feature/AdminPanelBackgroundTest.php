@@ -15,8 +15,8 @@ test('admin panel provider does not load outfit from google fonts cdn', function
 });
 
 test('admin panel light and dark background images exist', function () {
-    expect(public_path('images/bg-l-v7.webp'))->toBeFile()
-        ->and(public_path('images/bg-d-v7.webp'))->toBeFile();
+    expect(public_path('images/bg-l-v8.webp'))->toBeFile()
+        ->and(public_path('images/bg-d-v8.webp'))->toBeFile();
 });
 
 test('admin panel css applies theme-aware background images', function () {
@@ -49,8 +49,8 @@ test('admin panel provider injects theme background asset css variables', functi
     $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
 
     expect($provider)
-        ->toContain("asset('images/bg-l-v7.webp')")
-        ->toContain("asset('images/bg-d-v7.webp')")
+        ->toContain("asset('images/bg-l-v8.webp')")
+        ->toContain("asset('images/bg-d-v8.webp')")
         ->toContain("getAttribute('stylized_background_enabled')")
         ->toContain(": 'none';")
         ->toContain('--tido-bg-art-light:')

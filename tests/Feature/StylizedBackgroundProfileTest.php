@@ -54,8 +54,8 @@ test('background preview shows real panel art at full height', function (): void
 
     Livewire::test(EditProfile::class)
         ->assertSee('tido-stylized-preview', false)
-        ->assertSee('images/bg-l-v7.webp', false)
-        ->assertSee('images/bg-d-v7.webp', false)
+        ->assertSee('images/bg-l-v8.webp', false)
+        ->assertSee('images/bg-d-v8.webp', false)
         ->assertSee('tido_dark_logo', false)
         ->assertSee('aspect-ratio: 1919 / 1079', false)
         ->assertSee('Enabled: Stylized Mode', false)
