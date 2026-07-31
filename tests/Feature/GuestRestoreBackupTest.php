@@ -86,7 +86,7 @@ test('login page hides restore backup menu when users exist', function () {
 
     $this->get('/admin/login')
         ->assertSuccessful()
-        ->assertSee('Changelogs')
+        ->assertSee('Changelogs 🡥')
         ->assertDontSee('showRestoreBackupModal')
         ->assertDontSee('open-restore-backup-modal');
 });
@@ -96,8 +96,8 @@ test('login page shows restore backup menu when no users exist', function () {
 
     $this->get('/admin/login')
         ->assertSuccessful()
-        ->assertSee('Changelogs')
-        ->assertSee('Restore Backup')
+        ->assertSee('Changelogs 🡥')
+        ->assertSee('Restore Backup 🡥')
         ->assertSee('showRestoreBackupModal', false);
 });
 

@@ -284,7 +284,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->userMenuItems([
                 // sort >= 0 places items after the theme switcher
-                // (theme → profile → changelogs → notifications → logout)
+                // (theme → profile → changelogs 🡥 → notifications 🡥 → logout)
                 'profile' => fn (Action $action): Action => $action
                     ->icon('heroicon-o-user')
                     ->sort(0)
