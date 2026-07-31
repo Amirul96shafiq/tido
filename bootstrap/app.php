@@ -25,8 +25,14 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (InvalidSignatureException $e, Request $request) {
-            if (str_contains($request->getPathInfo(), '/email-change-verification/verify/')) {
+            $path = $request->getPathInfo();
+
+            if (str_contains($path, '/email-change-verification/verify/')) {
                 return response()->view('errors.email-change-expired', [], 403);
+            }
+
+            if (str_contains($path, '/password-reset/reset')) {
+                return response()->view('errors.password-reset-expired', [], 403);
             }
         });
     })->create();

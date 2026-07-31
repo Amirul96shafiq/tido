@@ -2,6 +2,11 @@
 
 use App\Models\User;
 
+$authLinkExpireSeconds = (int) env(
+    'AUTH_VERIFICATION_EXPIRE',
+    env('APP_ENV') === 'production' ? 60 * 60 * 24 * 3 : 30,
+);
+
 return [
 
     /*
@@ -78,17 +83,12 @@ return [
     | Resetting Passwords
     |--------------------------------------------------------------------------
     |
-    | These configuration options specify the behavior of Laravel's password
-    | reset functionality, including the table utilized for token storage
-    | and the user provider that is invoked to actually retrieve users.
-    |
-    | The expiry time is the number of minutes that each reset token will be
-    | considered valid. This security feature keeps tokens short-lived so
-    | they have less time to be guessed. You may change this as needed.
+    | Token lifetime is derived from AUTH_VERIFICATION_EXPIRE (seconds) via
+    | auth.verification.expire. Laravel's broker expects minutes here and
+    | multiplies by 60 — so we store seconds/60 (may be fractional, e.g. 0.5).
     |
     | The throttle setting is the number of seconds a user must wait before
-    | generating more password reset tokens. This prevents the user from
-    | quickly generating a very large amount of password reset tokens.
+    | generating more password reset tokens.
     |
     */
 
@@ -96,7 +96,7 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
-            'expire' => 60,
+            'expire' => $authLinkExpireSeconds / 60,
             'throttle' => 60,
         ],
     ],
@@ -116,16 +116,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Email Verification Link Expiry
+    | Auth Link Expiry (email-change + password-reset)
     |--------------------------------------------------------------------------
     |
-    | The number of minutes the email change verification link remains valid.
-    | For production use 4320 (3 days). Current value is for testing.
+    | Single source of truth — seconds. Controls:
+    | - Email-change verification signed URL, cache TTL, and mail copy
+    | - Password-reset token TTL, temporary signed URL, and mail copy
+    |
+    | Override with AUTH_VERIFICATION_EXPIRE.
+    | Defaults: 30s outside production, 3 days (259200s) in production.
     |
     */
 
     'verification' => [
-        'expire' => (int) env('AUTH_VERIFICATION_EXPIRE', 4320), // 3 minutes for testing; set to 4320 (3 days) in production
+        'expire' => $authLinkExpireSeconds,
     ],
 
 ];
