@@ -30,15 +30,14 @@
 | [household-access.md](household-access.md) | Agents + humans | Household roles, receipt attribution, family WhatsApp login, invoice ACL |
 | [git-workflow.md](git-workflow.md) | Agents + humans | Feature/fix branches → PR → main; staging/production promotion |
 
-## Cursor agent assets (outside `docs/`)
+## Agent assets (outside `docs/`)
 
 | Path | Purpose |
 |------|---------|
-| `AGENTS.md` | Boost guidelines + tido entry pointer |
-| `.cursorrules` | Hard coding / security directives |
-| `.cursor/rules/*.mdc` | Scoped always-on / glob rules |
-| `.cursor/skills/tido-domain/` | Domain skill (mirrored in `.agents/skills/`) |
-| `.cursor/skills/laravel-best-practices/` | Laravel patterns |
-| `.cursor/skills/pest-testing/` | Pest conventions |
-| `.cursor/skills/configuring-horizon/` | Horizon |
-| `.cursor/skills/tailwindcss-development/` | Tailwind v4 |
+| `AGENTS.md` | Codex's always-loaded mode contract and project gates, followed by Laravel Boost guidelines |
+| `.codex/` | Codex workflow, verification matrix, Plan template/local plans, and project MCP configuration |
+| `.agents/AGENTS.md` | Antigravity's consolidated project rules |
+| `.agents/skills/` | Repository skills surfaced to Codex and used by Antigravity |
+| `.cursorrules` | Cursor hard coding / security directives |
+| `.cursor/rules/*.mdc` | Cursor scoped always-on / glob rules |
+| `.cursor/skills/` | Cursor domain and framework skill mirrors |

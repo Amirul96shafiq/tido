@@ -1,6 +1,6 @@
 # System Architecture: Personal Hub (Finances + Planned Modules)
 
-> **Agents:** Start with [agent-onboarding.md](agent-onboarding.md). Cursor rules live in `.cursor/rules/`. Domain skill: `.cursor/skills/tido-domain/`.  
+> **Agents:** Start with [agent-onboarding.md](agent-onboarding.md). Codex uses root `AGENTS.md` plus `.codex/`; Cursor uses `.cursorrules` and `.cursor/`; Antigravity uses `.agents/AGENTS.md`. Use the domain skill surfaced by the active agent.
 > **Stack note:** Runtime is **Laravel 12**, **PostgreSQL 17**, Filament v5, Livewire 4 (see `AGENTS.md`). Prefer those versions if this blueprint lists older ones.  
 > **Dashboard modules:** [dashboard-views.md](dashboard-views.md) — Finances shipped; Training / Health / Task coming soon.
 
@@ -22,16 +22,16 @@ This document defines the architectural blueprint for **tido**, a localized sing
 
 ---
 
-## 2. UI/UX Aesthetic Guidelines (Google Material Minimalist)
+## 2. UI/UX Aesthetic Guidelines (tido Filament Theme)
 
-The interface utilizes FilamentPHP's native Tailwind CSS theming engine to achieve a minimalist, high-contrast aesthetic similar to Google Workspace products, with native Dark Mode support.
+The interface uses FilamentPHP's native Tailwind CSS theming engine with Outfit typography, warm amber/gold brand accents, restrained light surfaces, and a Slate dark-surface system. Detailed, implementation-backed color rules live in [`ui-dark-theme.md`](ui-dark-theme.md).
 
 ### 2.1. Theme Configuration
-* **Typography:** Override default fonts with `Roboto` or `Inter` to match Google's legibility standards.
-* **Color Palette:** 
-    * **Primary Accent:** Google Blue (`#1a73e8`) for primary buttons and active states.
-    * **Light Mode:** High whitespace, `#ffffff` card backgrounds, and very subtle `#f1f3f4` surface backgrounds. Use soft box-shadows (`shadow-sm`) instead of hard borders.
-    * **Dark Mode:** Deep grays (`#202124` for background, `#303134` for cards) instead of absolute black to reduce eye strain. Text should be off-white (`#e8eaed`).
+* **Typography:** `Outfit`, configured by `AdminPanelProvider`, with the application font stack as fallback.
+* **Color Palette:**
+    * **Primary Accent:** Filament's configured amber/gold brand palette for primary actions and active states.
+    * **Light Mode:** High whitespace, restrained borders, and subtle surface separation.
+    * **Dark Mode:** `Color::Slate` with shades 900 and 950 remapped to Slate 800 so panel chrome, widgets, sections, and tables share the same lighter dark surface. Do not reintroduce Zinc surfaces or generic `#333` tooltip backgrounds.
 
 ### 2.2. Filament Panel Adjustments
 * **Navigation:** Configure `->sidebarCollapsibleOnDesktop()` in the Panel Provider to maximize horizontal workspace.
