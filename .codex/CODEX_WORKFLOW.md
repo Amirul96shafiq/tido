@@ -150,6 +150,7 @@ Stop for explicit approval before:
 - Keep one coherent concern per branch. Do not attach unrelated foundation work to an active feature branch.
 - Never use destructive Git recovery (`reset --hard`, forced checkout, cleaning untracked files) to work around a dirty tree.
 - Read-only Git commands are always acceptable in Ask, Plan, Agent, and Debug modes.
+- Follow the pull request body standard in [`../docs/git-workflow.md`](../docs/git-workflow.md): `## Summary` first, followed by reviewer-facing, step-by-step `## Test plan` instructions with expected results, unchecked `- [ ]` boxes, and a final `Run:` command. Do not substitute a generic What changed / Why / Impact / Root cause / Verification heading set or checked `[x]` boxes.
 - A commit, push, PR, merge, or deployment is a separate user-approved action, never an implied final step.
 
 ## 9. Completion contract
