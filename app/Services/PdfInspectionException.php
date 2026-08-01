@@ -9,6 +9,8 @@ use Throwable;
 
 final class PdfInspectionException extends RuntimeException
 {
+    public const DEPENDENCY_MISSING = 'pdf_dependency_missing';
+
     public const PASSWORD_PROTECTED = 'pdf_password_protected';
 
     public const UNREADABLE = 'pdf_unreadable';

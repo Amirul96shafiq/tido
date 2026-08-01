@@ -48,3 +48,19 @@ test('reports password protected PDFs distinctly', function () {
 
     $this->fail('Expected a PDF inspection exception.');
 });
+
+test('reports a missing PDF utility distinctly', function () {
+    Process::fake([
+        '*' => Process::result(errorOutput: 'The system cannot find the path specified.', exitCode: 1),
+    ]);
+
+    try {
+        app(PdfPageInspector::class)->pageCount('%PDF-1.7 test');
+    } catch (PdfInspectionException $exception) {
+        expect($exception->reason)->toBe(PdfInspectionException::DEPENDENCY_MISSING);
+
+        return;
+    }
+
+    $this->fail('Expected a PDF inspection exception.');
+});

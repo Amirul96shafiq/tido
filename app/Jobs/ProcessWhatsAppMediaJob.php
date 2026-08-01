@@ -116,13 +116,21 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
             try {
                 $pageCount = $pdfPageInspector->pageCount($binaryData);
             } catch (PdfInspectionException $exception) {
-                $this->registerRejectedDocument(
-                    filename: $originalFilename,
-                    mimeType: $detectedMimeType,
-                    reason: $exception->reason,
-                );
+                if ($exception->reason === PdfInspectionException::DEPENDENCY_MISSING) {
+                    Log::warning('WhatsApp PDF page inspection deferred until AI parsing', [
+                        'message_id' => $this->messageId,
+                        'filename' => $originalFilename,
+                        'error' => $exception->getMessage(),
+                    ]);
+                } else {
+                    $this->registerRejectedDocument(
+                        filename: $originalFilename,
+                        mimeType: $detectedMimeType,
+                        reason: $exception->reason,
+                    );
 
-                return;
+                    return;
+                }
             }
 
             $maximumPages = max(1, (int) config('services.documents.max_pdf_pages', 3));

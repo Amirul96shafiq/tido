@@ -42,16 +42,26 @@ final class PdfPageInspector
 
         if ($result->failed()) {
             $errorOutput = Str::lower($result->errorOutput());
+            $dependencyMissing = Str::contains($errorOutput, [
+                'cannot find the path',
+                'could not find',
+                'not found',
+                'not recognized',
+                'no such file',
+            ]);
             $passwordProtected = Str::contains($errorOutput, [
                 'incorrect password',
                 'password protected',
                 'encrypted',
             ]);
+            $reason = match (true) {
+                $dependencyMissing => PdfInspectionException::DEPENDENCY_MISSING,
+                $passwordProtected => PdfInspectionException::PASSWORD_PROTECTED,
+                default => PdfInspectionException::UNREADABLE,
+            };
 
             throw new PdfInspectionException(
-                $passwordProtected
-                    ? PdfInspectionException::PASSWORD_PROTECTED
-                    : PdfInspectionException::UNREADABLE,
+                $reason,
                 trim($result->errorOutput()) ?: 'Unable to inspect the PDF file.',
             );
         }

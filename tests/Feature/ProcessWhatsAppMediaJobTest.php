@@ -231,3 +231,38 @@ test('process whatsapp media job rejects a PDF over three pages before creating 
     Queue::assertNotPushed(ExtractReceiptDataJob::class);
     Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class);
 });
+
+test('process whatsapp media job queues a PDF when the inspection utility is unavailable', function () {
+    Storage::fake('local');
+    Queue::fake();
+    Process::preventStrayProcesses();
+    Process::fake([
+        '*' => Process::result(errorOutput: 'The system cannot find the path specified.', exitCode: 1),
+    ]);
+
+    Http::fake([
+        '*/chat/getBase64FromMediaMessage/*' => Http::response([
+            'base64' => base64_encode("%PDF-1.7\nreceipt"),
+        ]),
+    ]);
+
+    $job = new ProcessWhatsAppMediaJob(
+        '60123456789',
+        '60123456789@s.whatsapp.net',
+        'MSG-PDF-MISSING-UTILITY',
+        false,
+        'pdf',
+        'application/pdf',
+        'receipt.pdf',
+    );
+
+    app()->call([$job, 'handle']);
+
+    $invoice = Invoice::sole();
+
+    expect($invoice->file_page_count)->toBeNull()
+        ->and($invoice->file_mime_type)->toBe('application/pdf')
+        ->and(Storage::exists($invoice->image_path))->toBeTrue();
+
+    Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class);
+});
