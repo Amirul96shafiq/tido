@@ -124,6 +124,7 @@ class InvoicesTable
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
+            ->poll('10s.visible')
             ->filters([
                 SelectFilter::make('status')
                     ->options([

@@ -151,7 +151,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
         return $table
             ->query(Invoice::query())
             ->defaultSort('created_at', 'desc')
-            ->poll(fn (): ?string => Invoice::query()->where('status', 'pending')->exists() ? '5s' : null)
+            ->poll('10s.visible')
             ->columns([
                 FilenameDisplay::configureTextColumn(
                     TextColumn::make('original_filename')
