@@ -131,9 +131,8 @@ test('user menu places account switcher between profile details and theme select
         ->assertSee('fi-account-switcher-section', false)
         ->assertSee('Spouse', false)
         ->assertSee('fi-account-switcher-account-chevron', false)
-        ->assertSee('fi-account-switcher-account-name-clip', false)
-        ->assertSee('x-ref="accountName"', false)
-        ->assertSee('fi-account-switcher-account-name', false)
+        ->assertSee('tido-single-line-text-clip', false)
+        ->assertSee('x-ref="singleLineText"', false)
         ->assertDontSee('tido-text-marquee', false)
         ->assertSee('fi-theme-switcher-btn', false)
         ->assertDontSee('fi-account-switcher-trigger', false);
@@ -278,12 +277,6 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         '.fi-account-switcher-account-chevron {',
         '.fi-account-switcher-account-chevron .fi-icon {',
     );
-    $accountSwitcherNameBlock = Str::between(
-        $css,
-        '.fi-account-switcher-account-name {',
-        '.fi-account-switcher-account-chevron {',
-    );
-
     expect($block)
         ->toContain("width: {$expectedSize};")
         ->toContain("height: {$expectedSize};")
@@ -317,19 +310,16 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->and($accountSwitcherAccountBlock)
         ->toContain('rounded-md')
         ->toContain('transition-colors')
-        ->and($accountSwitcherNameBlock)
-        ->toContain('whitespace-nowrap')
-        ->not->toContain('truncate')
+        ->and($css)
+        ->toContain('.tido-single-line-text {')
         ->toContain('transform: translateX(0);')
         ->toContain('transition: transform 220ms ease-out;')
-        ->toContain('--tido-account-name-overflow')
+        ->toContain('--tido-single-line-text-overflow')
         ->toContain('transition-delay: 300ms;')
-        ->toContain('transition-duration: 1.25s;')
-        ->not->toContain('tido-text-marquee')
-        ->and($css)
-        ->toContain('.fi-account-switcher-account-name-clip {')
+        ->toContain('transition-duration: 0.75s;')
+        ->toContain('.tido-single-line-text-clip {')
         ->toContain('mask-image: linear-gradient(')
-        ->toContain('.fi-account-switcher-account:hover .fi-account-switcher-account-name {')
+        ->toContain('.tido-single-line-text-clip:hover .tido-single-line-text {')
         ->toContain('transform: translateX(')
         ->and($accountSwitcherChevronBlock)
         ->toContain('ml-auto')

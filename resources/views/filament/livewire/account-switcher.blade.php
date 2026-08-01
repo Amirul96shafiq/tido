@@ -45,35 +45,7 @@
                                 @endif
                             </span>
 
-                            <div
-                                x-data="{}"
-                                x-init="
-                                    const measure = () => {
-                                        const accountName = $refs.accountName;
-
-                                        if (! accountName) {
-                                            return;
-                                        }
-
-                                        const overflowDistance = Math.max(
-                                            0,
-                                            accountName.scrollWidth - $el.clientWidth,
-                                        );
-                                        $el.style.setProperty(
-                                            '--tido-account-name-overflow',
-                                            overflowDistance + 'px',
-                                        );
-                                    };
-                                    $nextTick(measure);
-                                    new ResizeObserver(() => measure()).observe($el);
-                                "
-                                class="fi-account-switcher-account-name-clip relative min-w-0 flex-1 overflow-hidden"
-                            >
-                                <span
-                                    x-ref="accountName"
-                                    class="fi-account-switcher-account-name inline-block whitespace-nowrap"
-                                >{{ $primaryDisplayName }}</span>
-                            </div>
+                            <x-tido.single-line-text class="flex-1">{{ $primaryDisplayName }}</x-tido.single-line-text>
 
                             <span class="fi-account-switcher-account-chevron">
                                 <x-filament::icon icon="heroicon-m-chevron-right" />
@@ -108,35 +80,7 @@
                                     @endif
                                 </span>
 
-                                <div
-                                    x-data="{}"
-                                    x-init="
-                                        const measure = () => {
-                                            const accountName = $refs.accountName;
-
-                                            if (! accountName) {
-                                                return;
-                                            }
-
-                                            const overflowDistance = Math.max(
-                                                0,
-                                                accountName.scrollWidth - $el.clientWidth,
-                                            );
-                                            $el.style.setProperty(
-                                                '--tido-account-name-overflow',
-                                                overflowDistance + 'px',
-                                            );
-                                        };
-                                        $nextTick(measure);
-                                        new ResizeObserver(() => measure()).observe($el);
-                                    "
-                                    class="fi-account-switcher-account-name-clip relative min-w-0 flex-1 overflow-hidden"
-                                >
-                                    <span
-                                        x-ref="accountName"
-                                        class="fi-account-switcher-account-name inline-block whitespace-nowrap"
-                                    >{{ $memberDisplayName }}</span>
-                                </div>
+                                <x-tido.single-line-text class="flex-1">{{ $memberDisplayName }}</x-tido.single-line-text>
 
                                 <span class="fi-account-switcher-account-chevron">
                                     <x-filament::icon icon="heroicon-m-chevron-right" />
