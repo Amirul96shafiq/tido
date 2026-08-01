@@ -66,7 +66,7 @@ final class PdfPageInspector
             );
         }
 
-        if (preg_match('/^Pages:\s+(\d+)$/mi', $result->output(), $matches) !== 1) {
+        if (preg_match('/^Pages:\s+(\d+)\s*$/mi', $result->output(), $matches) !== 1) {
             throw new PdfInspectionException(
                 PdfInspectionException::UNREADABLE,
                 'Unable to determine the PDF page count.',

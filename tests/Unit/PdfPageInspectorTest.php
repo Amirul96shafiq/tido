@@ -33,6 +33,14 @@ test('reads the PDF page count with pdfinfo', function () {
     });
 });
 
+test('reads the PDF page count from Windows CRLF output', function () {
+    Process::fake([
+        '*' => Process::result(output: "Title: Receipt\r\nPages:          2\r\n"),
+    ]);
+
+    expect(app(PdfPageInspector::class)->pageCount('%PDF-1.7 test'))->toBe(2);
+});
+
 test('reports password protected PDFs distinctly', function () {
     Process::fake([
         '*' => Process::result(errorOutput: 'Command Line Error: Incorrect password', exitCode: 1),
