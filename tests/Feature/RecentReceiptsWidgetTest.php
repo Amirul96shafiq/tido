@@ -40,6 +40,7 @@ test('recent receipts widget shows upload table columns', function () {
     Livewire::test(RecentReceipts::class)
         ->assertSuccessful()
         ->assertSeeHtml('fi-wi-recent-receipts')
+        ->assertSeeHtml('wire:poll.10s.visible')
         ->assertCanSeeTableRecords([$invoice])
         ->assertSee('dashboard_....jpg')
         ->assertSee('Widget Merchant')
@@ -48,6 +49,16 @@ test('recent receipts widget shows upload table columns', function () {
         ->assertCanRenderTableColumn('paymentMethod.name')
         ->assertCanRenderTableColumn('source')
         ->assertCanRenderTableColumn('created_at');
+});
+
+test('recent receipts widget polls every ten seconds for historical months', function () {
+    Livewire::test(RecentReceipts::class, [
+        'pageFilters' => [
+            'month' => now()->subMonth()->format('Y-m'),
+        ],
+    ])
+        ->assertSuccessful()
+        ->assertSeeHtml('wire:poll.10s.visible');
 });
 
 test('recent receipts widget filename links to file in a new tab', function () {

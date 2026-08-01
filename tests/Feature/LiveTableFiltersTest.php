@@ -21,6 +21,7 @@ test('table filters apply live without deferred apply action', function () {
 
     $component = Livewire::test(ListInvoices::class)
         ->assertSuccessful()
+        ->assertSeeHtml('wire:poll.10s.visible')
         ->assertCanSeeTableRecords([$pending, $parsed]);
 
     expect($component->instance()->getTable()->hasDeferredFilters())->toBeFalse();

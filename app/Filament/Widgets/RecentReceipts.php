@@ -49,7 +49,7 @@ class RecentReceipts extends BaseWidget
             ->heading('Recent Receipts ('.$this->formatSelectedMonth('F Y').')')
             ->query($query)
             ->defaultSort('created_at', 'desc')
-            ->poll(fn (): ?string => $this->isCurrentMonthSelected() ? '15s' : null)
+            ->poll('10s.visible')
             ->defaultPaginationPageOption(5)
             ->paginated([5, 10, 25, 50])
             ->columns([
