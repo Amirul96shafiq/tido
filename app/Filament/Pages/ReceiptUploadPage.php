@@ -25,6 +25,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 
 class ReceiptUploadPage extends Page implements HasForms, HasTable
 {
@@ -96,7 +97,12 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                 FileUpload::make('receipts')
                     ->hiddenLabel()
                     ->multiple()
-                    ->image()
+                    ->acceptedFileTypes([
+                        'image/jpeg',
+                        'image/png',
+                        'image/webp',
+                        'application/pdf',
+                    ])
                     ->maxSize(10240)
                     ->directory('receipts')
                     ->required()
@@ -124,8 +130,10 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                 'source' => 'manual',
                 'family_member_id' => $familyMemberId,
                 'status' => 'pending',
+                'receipt_hash' => hash('sha256', 'pending-upload|'.$filePath),
                 'image_path' => $filePath,
                 'original_filename' => basename($filePath),
+                'file_mime_type' => Storage::mimeType($filePath) ?: null,
             ]);
         }
 

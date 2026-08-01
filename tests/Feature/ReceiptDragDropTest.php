@@ -37,6 +37,15 @@ test('drag drop upload ignores non-file and sortable list drags', function () {
         ->toContain('shouldIgnoreEvent(event)');
 });
 
+test('drag drop upload bootstraps whether the panel script loads before or after dom ready', function () {
+    $source = (string) file_get_contents(resource_path('js/drag-drop-upload.js'));
+
+    expect($source)
+        ->toContain("if (document.readyState === 'loading')")
+        ->toContain('bootstrapDragDropUpload();')
+        ->toContain("document.addEventListener('livewire:navigated', bootstrapDragDropUpload)");
+});
+
 test('drag drop upload includes FilePond-style drip blob that follows the cursor', function () {
     $source = (string) file_get_contents(resource_path('js/drag-drop-upload.js'));
 
@@ -52,13 +61,29 @@ test('drag drop upload includes FilePond-style drip blob that follows the cursor
         ->toContain('scale3d');
 });
 
+test('drag drop upload forwards every dropped file through the handoff', function () {
+    $dragDropSource = (string) file_get_contents(resource_path('js/drag-drop-upload.js'));
+    $uploadHandlerSource = (string) file_get_contents(resource_path('js/receipt-upload-handler.js'));
+
+    expect($dragDropSource)
+        ->toContain('Array.from(event.dataTransfer?.files ?? [])')
+        ->toContain('this.processFiles(files)')
+        ->toContain("sessionStorage.setItem('draggedReceipts'")
+        ->not->toContain('const file = files[0]');
+
+    expect($uploadHandlerSource)
+        ->toContain('fileData = Array.isArray(fileData) ? fileData : [fileData]')
+        ->toContain('files.forEach((file) => dataTransfer.items.add(file))');
+});
+
 test('drag drop upload script includes expected copy', function () {
     $source = (string) file_get_contents(resource_path('js/drag-drop-upload.js'));
 
     expect($source)
         ->toContain("dropReceipt: 'Drop receipt to upload'")
         ->toContain('5MB')
-        ->toContain('JPEG');
+        ->toContain('JPEG')
+        ->toContain('application/pdf');
 });
 
 test('admin dashboard includes drag drop config bootstrap', function () {
@@ -123,9 +148,58 @@ test('receipt upload page save creates pending invoice and dispatches extraction
         ->and($invoice->source)->toBe('manual')
         ->and($invoice->merchant_name)->toBe('Pending AI Extraction...')
         ->and($invoice->image_path)->toStartWith('receipts/')
-        ->and($invoice->original_filename)->toEndWith('.jpg');
+        ->and($invoice->original_filename)->toEndWith('.jpg')
+        ->and($invoice->file_mime_type)->toBe('image/jpeg');
 
     Queue::assertPushed(ExtractReceiptDataJob::class);
+});
+
+test('receipt upload page stores PDF MIME metadata for PDF extraction', function () {
+    Storage::fake('local');
+    Queue::fake();
+
+    $file = UploadedFile::fake()->create('receipt.pdf', 100, 'application/pdf');
+
+    Livewire::test(ReceiptUploadPage::class)
+        ->set('data.receipts', [$file])
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertNotified();
+
+    $invoice = Invoice::query()->first();
+
+    expect($invoice)->not->toBeNull()
+        ->and($invoice->file_mime_type)->toBe('application/pdf')
+        ->and($invoice->original_filename)->toEndWith('.pdf');
+
+    Storage::disk('local')->assertExists($invoice->image_path);
+    Queue::assertPushed(ExtractReceiptDataJob::class);
+});
+
+test('receipt upload page saves every selected receipt', function () {
+    Storage::fake('public');
+    Queue::fake();
+
+    $files = [
+        UploadedFile::fake()->image('receipt-one.jpg'),
+        UploadedFile::fake()->image('receipt-two.png'),
+    ];
+
+    Livewire::test(ReceiptUploadPage::class)
+        ->set('data.receipts', $files)
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertNotified();
+
+    $filenames = Invoice::query()->pluck('original_filename')->all();
+
+    expect(Invoice::query()->count())->toBe(2)
+        ->and($filenames)->toHaveCount(2)
+        ->and(array_unique($filenames))->toHaveCount(2)
+        ->and($filenames[0])->toEndWith('.jpg')
+        ->and($filenames[1])->toEndWith('.png');
+
+    Queue::assertPushed(ExtractReceiptDataJob::class, 2);
 });
 
 test('receipt upload page clears required error after file is selected', function () {

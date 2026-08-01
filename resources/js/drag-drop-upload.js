@@ -33,9 +33,9 @@ const DRIP_INITIAL_SCALE = 2.5;
 const COPY = {
     dropReceipt: 'Drop receipt to upload',
     dropReceiptHelper:
-        'Automatically uploads images below 5MB. Larger files require manual upload on the next page.',
+        'Automatically uploads receipts below 5MB. Larger files require manual upload on the next page.',
     unsupportedFileType:
-        'Only receipt images (JPEG, PNG, WebP, GIF) are supported.',
+        'Only receipt images (JPEG, PNG, WebP) and PDF files are supported.',
     fileTooLarge: (sizeMB) =>
         `File size exceeds 10MB limit. Your file is ${sizeMB}MB.`,
     largeFileFallback:
@@ -58,7 +58,7 @@ const DragDropUpload = {
         'image/jpeg',
         'image/png',
         'image/webp',
-        'image/gif',
+        'application/pdf',
     ],
 
     maxSizeBytes: 10 * 1024 * 1024,
@@ -402,13 +402,23 @@ const DragDropUpload = {
     },
 
     isFileDrag(event) {
-        const types = event.dataTransfer?.types;
+        const dataTransfer = event.dataTransfer;
 
-        if (!types) {
+        if (!dataTransfer) {
             return false;
         }
 
-        return Array.from(types).includes('Files');
+        const types = Array.from(dataTransfer.types ?? []);
+        if (types.includes('Files')) {
+            return true;
+        }
+
+        const items = Array.from(dataTransfer.items ?? []);
+
+        return (
+            items.some((item) => item.kind === 'file') ||
+            Boolean(dataTransfer.files?.length)
+        );
     },
 
     shouldIgnoreTarget(target) {
@@ -469,17 +479,16 @@ const DragDropUpload = {
             return;
         }
 
-        const files = event.dataTransfer?.files;
+        const files = Array.from(event.dataTransfer?.files ?? []);
         if (!files || files.length === 0) {
             return;
         }
 
-        const file = files[0];
-        if (!this.validateFile(file)) {
+        if (files.some((file) => !this.validateFile(file))) {
             return;
         }
 
-        this.processFile(file);
+        this.processFiles(files);
     },
 
     validateFile(file) {
@@ -491,13 +500,25 @@ const DragDropUpload = {
         return true;
     },
 
-    processFile(file) {
-        if (file.size > this.maxSizeBytes) {
-            const fileSizeMB = (file.size / 1024 / 1024).toFixed(1);
+    processFiles(files) {
+        const oversizedFile = files.find(
+            (file) => file.size > this.maxSizeBytes,
+        );
+        if (oversizedFile) {
+            const fileSizeMB = (oversizedFile.size / 1024 / 1024).toFixed(1);
             alert(COPY.fileTooLarge(fileSizeMB));
             return;
         }
 
+        Promise.all(files.map((file) => this.createFileData(file)))
+            .then((fileData) => this.storeAndNavigate(fileData, files))
+            .catch((error) => {
+                console.error('Error reading receipts:', error);
+                alert(COPY.processingError);
+            });
+    },
+
+    createFileData(file) {
         const fileData = {
             name: file.name,
             size: file.size,
@@ -505,44 +526,41 @@ const DragDropUpload = {
             lastModified: file.lastModified,
         };
 
-        if (file.size <= this.sessionStorageLimitBytes) {
+        if (file.size > this.sessionStorageLimitBytes) {
+            return Promise.resolve({ ...fileData, isLargeFile: true });
+        }
+
+        return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = (loadEvent) => {
-                fileData.content = loadEvent.target.result;
-                this.storeAndNavigate(fileData);
-            };
+            reader.onload = (loadEvent) =>
+                resolve({
+                    ...fileData,
+                    content: loadEvent.target.result,
+                });
+            reader.onerror = () => reject(reader.error);
             reader.readAsDataURL(file);
-            return;
-        }
-
-        this.handleLargeFile(fileData);
+        });
     },
 
-    handleLargeFile(fileData) {
-        const metadata = {
-            name: fileData.name,
-            size: fileData.size,
-            type: fileData.type,
-            lastModified: fileData.lastModified,
-            isLargeFile: true,
-        };
-
+    storeAndNavigate(fileData, files = []) {
         try {
-            sessionStorage.setItem('draggedReceipt', JSON.stringify(metadata));
+            window.draggedReceiptFiles = fileData.map((receipt, index) => ({
+                ...receipt,
+                file: files[index],
+            }));
+            sessionStorage.setItem('draggedReceipts', JSON.stringify(fileData));
+            sessionStorage.removeItem('draggedReceipt');
             this.navigateToUpload();
         } catch (error) {
-            console.error('Error storing large receipt metadata:', error);
+            console.error('Error storing receipts:', error);
+
+            if (window.Livewire?.navigate) {
+                this.navigateToUpload();
+                return;
+            }
+
+            window.draggedReceiptFiles = null;
             alert(COPY.largeFileFallback);
-        }
-    },
-
-    storeAndNavigate(fileData) {
-        try {
-            sessionStorage.setItem('draggedReceipt', JSON.stringify(fileData));
-            this.navigateToUpload();
-        } catch (error) {
-            console.error('Error storing receipt:', error);
-            alert(COPY.processingError);
         }
     },
 
@@ -563,5 +581,12 @@ function bootstrapDragDropUpload() {
     DragDropUpload.init();
 }
 
-document.addEventListener('DOMContentLoaded', bootstrapDragDropUpload);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrapDragDropUpload, {
+        once: true,
+    });
+} else {
+    bootstrapDragDropUpload();
+}
+
 document.addEventListener('livewire:navigated', bootstrapDragDropUpload);
