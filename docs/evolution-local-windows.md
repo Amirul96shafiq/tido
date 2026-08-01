@@ -20,6 +20,7 @@ Clone Evolution **outside** this repo, e.g. `g:\projects\evolution-api` (sibling
 - **Node.js 20+** ([nodejs.org](https://nodejs.org/) or `nvm-windows`)
 - **PostgreSQL** or **MySQL** for Evolution (separate from tido’s SQLite)
 - **Redis** (recommended by Evolution; install via Memurai, Redis Windows port, or a small local Redis)
+- **Poppler for Windows** with `pdfinfo.exe` and `pdftocairo.exe` for WhatsApp PDF receipt parsing; see [Ollama setup](ollama-setup.md#pdf-receipt-parsing)
 - Git
 
 Official Evolution docs: [docs.evolutionfoundation.com.br](https://docs.evolutionfoundation.com.br)
@@ -97,6 +98,20 @@ EVOLUTION_INSTANCE_NAME=tido
 
 Set your WhatsApp number in **Profile** (required). Optional family contacts: **Settings → Family Members** with “Include in contact allowlist”.
 
+For PDF receipts, configure the Poppler executable paths in `.env`. Queue workers should use absolute Windows paths because their inherited `PATH` can differ from the web process:
+
+```env
+PDF_MAX_BYTES=10485760
+PDF_MAX_PAGES=3
+PDF_INSPECTION_TIMEOUT=15
+PDF_RENDER_TIMEOUT=60
+PDF_RENDER_DPI=144
+PDFINFO_BINARY=C:/path/to/poppler/Library/bin/pdfinfo.exe
+PDFTOCAIRO_BINARY=C:/path/to/poppler/Library/bin/pdftocairo.exe
+```
+
+Restart `npm run dev:full` after changing these values. The defaults accept PDFs up to 10 MB and 3 pages; adjust only when the queue worker has enough memory and Ollama context for the larger document.
+
 Use `http://127.0.0.1:8080` — the default in `config/services.php` and `.env.example`.
 
 Restart `npm run dev:full` after changing `.env` (or clear config cache if you use it).
@@ -149,12 +164,26 @@ Only Profile WhatsApp numbers plus Family Members with allowlist enabled are all
 
 Inbound handling — full command list: [whatsapp-bot-commands.md](whatsapp-bot-commands.md). Household roles / family login: [household-access.md](household-access.md).
 
-- **Image / document** — receipt upload + OCR
+- **Image / PDF document** — receipt upload + OCR. Images are parsed directly; accepted PDFs are rendered page-by-page with Poppler before Ollama extraction. Non-PDF document types are ignored.
 - **Manual invoice text** — structured `merchant[, payment];` + line items (no image); see [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md)
 - **`spend` / `total`** and sub-commands — spending analytics replies
 - **`manual`**, **`finance others`**, or other text — guides / help
 
 OTP login only needs outbound `sendText`; webhook is for inbound receipts/commands.
+
+### WhatsApp LID allowlist
+
+WhatsApp can deliver an inbound chat with a Linked ID (LID), such as `3693839708391@lid`, instead of the classic phone JID. A LID is an opaque WhatsApp identity and is not treated as a phone number automatically.
+
+When an unlinked LID sends an inbound message:
+
+1. The webhook ignores the sender and sends no reply.
+2. The LID and optional WhatsApp push name are remembered as a pending identity for up to 30 days.
+3. Open **Integrations → Evolution API → WhatsApp LID**.
+4. Use **Link LID** to map the pending identity to the Primary contact or an allowlisted Family Member.
+5. The contact card then shows the linked LID. Future messages from that LID resolve to the contact’s allowlisted phone and can use bot, receipt, and attribution behavior normally.
+
+Use **Dismiss** for an identity that should not be linked. Use **Unlink** on a linked contact to remove the mapping. Linking requires a configured Primary Profile WhatsApp number for the Primary target and an allowlisted Family Member for a family target.
 
 ---
 
@@ -194,5 +223,8 @@ If Evolution is down, use **Sign in with email & password** (primary user only).
 | OTP not received | Instance CONNECTED? Number matches `User.phone`? |
 | Webhook never fires | URL must be `http://127.0.0.1:2000/...` while using `artisan serve` |
 | Wrong Evolution URL in `.env` | Use `http://127.0.0.1:8080` |
+| PDF is rejected as unreadable or password-protected | Resend an unencrypted PDF; password-protected and unreadable PDFs are not supported |
+| PDF remains pending or ends in manual review | Confirm `PDFINFO_BINARY` and `PDFTOCAIRO_BINARY` point to working Poppler executables, then restart the queue worker |
+| LID sender is ignored | Open the WhatsApp LID section and link the pending LID to the correct allowlisted contact |
 
 Production later: run tido + Evolution as separate managed services on a Linux VPS, not `concurrently` on a desktop.

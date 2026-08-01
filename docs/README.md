@@ -7,9 +7,9 @@
 | [system-architecture.md](system-architecture.md) | Agents + humans | Product blueprint; do not contradict without warning |
 | [dashboard-views.md](dashboard-views.md) | Agents + humans | Modular Home dashboard (Finances / Training / Health / Task) |
 | [ollama-setup.md](ollama-setup.md) | Ops | Native host Ollama / qwen2.5vl:7b (no Docker) |
-| [evolution-local-windows.md](evolution-local-windows.md) | Ops | WhatsApp Evolution instance + webhook (Windows host) |
+| [evolution-local-windows.md](evolution-local-windows.md) | Ops | WhatsApp Evolution instance, webhook, PDF media, and LID allowlist (Windows host) |
 | [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md) | Humans + agents | Text-only WhatsApp manual invoice format and pipeline |
-| [whatsapp-bot-commands.md](whatsapp-bot-commands.md) | Humans + agents | Full WhatsApp bot command / keyword reference |
+| [whatsapp-bot-commands.md](whatsapp-bot-commands.md) | Humans + agents | WhatsApp media handling, command / keyword reference, and auto-replies |
 | [google-drive-setup.md](google-drive-setup.md) | Ops | Drive folder sync credentials |
 | [ui-empty-states.md](ui-empty-states.md) | Agents + humans | Illustrated empty panels (email-change expiry pattern) |
 | [ui-modal-overlay.md](ui-modal-overlay.md) | Agents + humans | Modal backdrop blur + Filament action modal width |
@@ -30,15 +30,14 @@
 | [household-access.md](household-access.md) | Agents + humans | Household roles, receipt attribution, family WhatsApp login, invoice ACL |
 | [git-workflow.md](git-workflow.md) | Agents + humans | Feature/fix branches → PR → main; staging/production promotion |
 
-## Cursor agent assets (outside `docs/`)
+## Agent assets (outside `docs/`)
 
 | Path | Purpose |
 |------|---------|
-| `AGENTS.md` | Boost guidelines + tido entry pointer |
-| `.cursorrules` | Hard coding / security directives |
-| `.cursor/rules/*.mdc` | Scoped always-on / glob rules |
-| `.cursor/skills/tido-domain/` | Domain skill (mirrored in `.agents/skills/`) |
-| `.cursor/skills/laravel-best-practices/` | Laravel patterns |
-| `.cursor/skills/pest-testing/` | Pest conventions |
-| `.cursor/skills/configuring-horizon/` | Horizon |
-| `.cursor/skills/tailwindcss-development/` | Tailwind v4 |
+| `AGENTS.md` | Codex's always-loaded mode contract and project gates, followed by Laravel Boost guidelines |
+| `.codex/` | Codex workflow, verification matrix, Plan template/local plans, and project MCP configuration |
+| `.agents/AGENTS.md` | Antigravity's consolidated project rules |
+| `.agents/skills/` | Repository skills surfaced to Codex and used by Antigravity |
+| `.cursorrules` | Cursor hard coding / security directives |
+| `.cursor/rules/*.mdc` | Cursor scoped always-on / glob rules |
+| `.cursor/skills/` | Cursor domain and framework skill mirrors |

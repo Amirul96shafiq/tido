@@ -1,0 +1,13 @@
+#:schema https://developers.openai.com/codex/config-schema.json
+
+# Project-scoped Laravel Boost MCP server. The absolute cwd keeps `artisan`
+# resolvable when Codex starts from a nested directory in this Windows checkout.
+[mcp_servers.laravel-boost]
+command = "php"
+args = ["artisan", "boost:mcp"]
+cwd = "G:\\projects\\tido"
+enabled = true
+required = false
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+default_tools_approval_mode = "auto"

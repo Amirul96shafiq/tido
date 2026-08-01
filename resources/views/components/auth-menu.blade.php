@@ -38,7 +38,7 @@
                     close();
                 "
             >
-                Changelogs
+                Changelogs 🡥
             </x-filament::dropdown.list.item>
 
             @if (\App\Models\User::query()->doesntExist())
@@ -50,7 +50,7 @@
                         close();
                     "
                 >
-                    Restore Backup
+                    Restore Backup 🡥
                 </x-filament::dropdown.list.item>
             @endif
         </x-filament::dropdown.list>

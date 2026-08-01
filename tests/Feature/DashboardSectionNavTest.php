@@ -133,14 +133,24 @@ test('dashboard widgets expose section anchor ids', function () {
         ->not->toContain('id="overview"');
 });
 
-test('dashboard sticky toolbar uses quarter three-quarter grid layout', function () {
+test('dashboard sticky toolbar uses three-quarter quarter grid layout', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
     expect($css)
         ->toContain('.tido-dashboard-sticky-toolbar {')
-        ->toContain('grid-template-columns: minmax(0, 1fr) minmax(0, 3fr)')
+        ->toContain('grid-template-columns: minmax(0, 3fr) minmax(0, 1fr)')
         ->toContain('tido-dashboard-sticky-toolbar-filters')
         ->toContain('tido-dashboard-sticky-toolbar-nav');
+});
+
+test('dashboard sticky toolbar places section nav before filters', function () {
+    $html = (string) Livewire::test(Dashboard::class)->html();
+    $navPos = strpos($html, 'tido-dashboard-sticky-toolbar-nav');
+    $filtersPos = strpos($html, 'tido-dashboard-sticky-toolbar-filters');
+
+    expect($navPos)->not->toBeFalse()
+        ->and($filtersPos)->not->toBeFalse()
+        ->and($navPos)->toBeLessThan($filtersPos);
 });
 
 test('dashboard renders sticky toolbar partial with filter and section nav', function () {

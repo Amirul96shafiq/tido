@@ -359,6 +359,96 @@
     </x-filament::section>
 </div>
 
+<x-filament::section class="mt-6" id="evolution-whatsapp-lid">
+    <x-slot name="heading">WhatsApp LID</x-slot>
+
+    <x-slot name="description">
+        WhatsApp may address allowlisted contacts with a LID instead of a phone number. Link each pending LID once so the bot allowlist keeps working.
+    </x-slot>
+
+    <div class="flex flex-col gap-4 text-sm">
+        @php
+            $pendingLids = $this->pendingWhatsAppLids();
+            $linkedEntries = collect($this->allowedSenderEntries()['primary'])
+                ->map(fn (array $entry): array => $entry + ['kind' => 'primary'])
+                ->concat(
+                    collect($this->allowedSenderEntries()['family'])
+                        ->map(fn (array $entry): array => $entry + ['kind' => 'family'])
+                )
+                ->filter(fn (array $entry): bool => filled($entry['whatsapp_lid'] ?? null))
+                ->values();
+        @endphp
+
+        <div>
+            <h4 class="font-medium text-gray-950 dark:text-white">Linked</h4>
+            @if ($linkedEntries->isEmpty())
+                <p class="mt-2 text-gray-500 dark:text-gray-400">No LIDs linked yet.</p>
+            @else
+                <ul class="mt-2 flex flex-col gap-2">
+                    @foreach ($linkedEntries as $entry)
+                        <li
+                            wire:key="linked-lid-{{ $entry['whatsapp_lid'] }}"
+                            class="flex items-center justify-between gap-3 rounded-xl border border-gray-200 px-3 py-2.5 dark:border-slate-700"
+                        >
+                            <div class="min-w-0">
+                                <div class="truncate font-medium text-gray-950 dark:text-white">
+                                    {{ filled($entry['display_name'] ?? null) ? $entry['display_name'] : $entry['name'] }}
+                                </div>
+                                <div class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ $entry['phone'] }}</div>
+                                <div class="font-mono text-xs text-gray-500 dark:text-gray-400">LID {{ $entry['whatsapp_lid'] }}</div>
+                            </div>
+                            <x-filament::button
+                                color="gray"
+                                size="sm"
+                                wire:click="unlinkWhatsAppLid({{ \Illuminate\Support\Js::from($entry['whatsapp_lid']) }})"
+                                wire:confirm="Unlink this WhatsApp LID from the allowlist contact?"
+                            >
+                                Unlink
+                            </x-filament::button>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
+
+        <div>
+            <div class="flex items-center justify-between gap-3">
+                <h4 class="font-medium text-gray-950 dark:text-white">Pending</h4>
+                {{ $this->linkWhatsAppLidAction }}
+            </div>
+
+            @if ($pendingLids === [])
+                <p class="mt-2 text-gray-500 dark:text-gray-400">
+                    No pending LIDs. Unlinked inbound LID senders appear here automatically.
+                </p>
+            @else
+                <ul class="mt-2 flex flex-col gap-2">
+                    @foreach ($pendingLids as $pending)
+                        <li
+                            wire:key="pending-lid-{{ $pending['lid'] }}"
+                            class="flex items-center justify-between gap-3 rounded-xl border border-warning-300/70 px-3 py-2.5 dark:border-warning-500/40"
+                        >
+                            <div class="min-w-0">
+                                <div class="font-mono text-sm text-gray-950 dark:text-white">{{ $pending['lid'] }}</div>
+                                @if (filled($pending['push_name']))
+                                    <div class="truncate text-xs text-gray-500 dark:text-gray-400">{{ $pending['push_name'] }}</div>
+                                @endif
+                            </div>
+                            <x-filament::button
+                                color="gray"
+                                size="sm"
+                                wire:click="dismissPendingWhatsAppLid({{ \Illuminate\Support\Js::from($pending['lid']) }})"
+                            >
+                                Dismiss
+                            </x-filament::button>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
+    </div>
+</x-filament::section>
+
 <x-filament::section class="mt-6" id="evolution-connection-history">
     <x-slot name="heading">Connection history</x-slot>
 

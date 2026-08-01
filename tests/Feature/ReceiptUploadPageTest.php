@@ -29,8 +29,15 @@ test('receipt upload page lists recent invoices', function () {
 
     Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
+        ->assertSeeHtml('wire:poll.10s.visible')
         ->assertCanSeeTableRecords([$invoice])
         ->assertSee('wa_receipt....jpg');
+});
+
+test('receipt upload page polls every ten seconds when no invoice is pending', function () {
+    Livewire::test(ReceiptUploadPage::class)
+        ->assertSuccessful()
+        ->assertSeeHtml('wire:poll.10s.visible');
 });
 
 test('filename links to file in a new tab', function () {

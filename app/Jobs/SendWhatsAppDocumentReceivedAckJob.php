@@ -13,6 +13,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
 {
@@ -37,13 +39,35 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
 
     public function handle(WhatsAppNotificationService $waService): void
     {
+        $this->sendPendingAcknowledgement($waService);
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        if (! $this->isDatabaseLocked($exception)) {
+            return;
+        }
+
+        try {
+            $this->sendPendingAcknowledgement(app(WhatsAppNotificationService::class));
+        } catch (Throwable $fallbackException) {
+            Log::error('Unable to deliver WhatsApp document acknowledgement after queue failure', [
+                'error' => $fallbackException->getMessage(),
+            ]);
+        }
+    }
+
+    protected function sendPendingAcknowledgement(WhatsAppNotificationService $waService): void
+    {
         $key = WhatsAppDocumentReceivedDebouncer::cacheKey($this->senderNumber);
         $count = 0;
         /** @var list<int> $invoiceIds */
         $invoiceIds = [];
+        /** @var list<array<string, mixed>> $documents */
+        $documents = [];
 
         Cache::lock(WhatsAppDocumentReceivedDebouncer::lockKey($this->senderNumber), 5)
-            ->block(5, function () use ($key, &$count, &$invoiceIds): void {
+            ->block(5, function () use ($key, &$count, &$invoiceIds, &$documents): void {
                 $payload = Cache::get($key);
 
                 if (! is_array($payload) || ($payload['token'] ?? null) !== $this->token) {
@@ -55,6 +79,11 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
                     $payload['invoice_ids'] ?? [],
                 ));
                 $count = max((int) ($payload['count'] ?? 0), count($invoiceIds));
+                $documents = array_values(array_filter(
+                    $payload['documents'] ?? [],
+                    static fn (mixed $document): bool => is_array($document),
+                ));
+                $count = max($count, count($documents));
                 Cache::forget($key);
             });
 
@@ -64,7 +93,7 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
 
         $waService->sendMessage(
             $this->senderNumber,
-            WhatsAppMessage::documentReceived($count),
+            WhatsAppMessage::documentReceived($count, $documents),
         );
 
         foreach ($invoiceIds as $invoiceId) {
@@ -72,5 +101,18 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
                 ExtractReceiptDataJob::dispatch($invoiceId);
             }
         }
+    }
+
+    protected function isDatabaseLocked(Throwable $exception): bool
+    {
+        do {
+            if (str_contains(strtolower($exception->getMessage()), 'database is locked')) {
+                return true;
+            }
+
+            $exception = $exception->getPrevious();
+        } while ($exception instanceof Throwable);
+
+        return false;
     }
 }

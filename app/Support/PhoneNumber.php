@@ -161,8 +161,8 @@ final class PhoneNumber
      * Allowlist entries grouped for Evolution API UI.
      *
      * @return array{
-     *     primary: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>,
-     *     family: list<array{id: int, name: string, display_name: string|null, relationship_label: string|null, phone: string, avatar_url: string}>
+     *     primary: list<array{name: string, display_name: string|null, phone: string, whatsapp_lid: string|null, avatar_url: string}>,
+     *     family: list<array{id: int, name: string, display_name: string|null, relationship_label: string|null, phone: string, whatsapp_lid: string|null, avatar_url: string}>
      * }
      */
     public static function allowedWhatsAppSenderEntries(): array
@@ -182,6 +182,9 @@ final class PhoneNumber
                     'name' => filled($user->name) ? (string) $user->name : 'Primary',
                     'display_name' => filled($user->display_name) ? (string) $user->display_name : null,
                     'phone' => $normalized,
+                    'whatsapp_lid' => is_string($user->whatsapp_lid) && $user->whatsapp_lid !== ''
+                        ? $user->whatsapp_lid
+                        : null,
                     'avatar_url' => self::avatarDisplayUrl($user),
                 ];
             }
@@ -191,7 +194,7 @@ final class PhoneNumber
             ->allowlisted()
             ->latest('created_at')
             ->orderByDesc('id')
-            ->get(['id', 'name', 'display_name', 'relationship', 'relationship_other', 'phone', 'avatar_url']);
+            ->get(['id', 'name', 'display_name', 'relationship', 'relationship_other', 'phone', 'whatsapp_lid', 'avatar_url']);
 
         foreach ($members as $member) {
             $normalized = self::normalize($member->phone);
@@ -207,6 +210,9 @@ final class PhoneNumber
                 'display_name' => filled($member->display_name) ? (string) $member->display_name : null,
                 'relationship_label' => $member->relationshipLabel(),
                 'phone' => $normalized,
+                'whatsapp_lid' => is_string($member->whatsapp_lid) && $member->whatsapp_lid !== ''
+                    ? $member->whatsapp_lid
+                    : null,
                 'avatar_url' => self::avatarDisplayUrl($member),
             ];
         }
@@ -217,15 +223,35 @@ final class PhoneNumber
         ];
     }
 
-    public static function isAllowedWhatsAppSender(string $senderNumber): bool
+    /**
+     * Resolve an inbound WhatsApp JID / number to an allowlisted phone.
+     * Supports classic @s.whatsapp.net JIDs and linked @lid identities.
+     */
+    public static function resolveAllowlistedSenderPhone(string $senderJidOrNumber): ?string
     {
-        $normalized = self::normalize($senderNumber);
+        $trimmed = trim($senderJidOrNumber);
 
-        if ($normalized === null) {
-            return false;
+        if ($trimmed === '') {
+            return null;
         }
 
-        return in_array($normalized, self::allowedWhatsAppSenders(), true);
+        if (WhatsAppLid::isLidIdentifier($trimmed)) {
+            return WhatsAppLid::allowlistedPhoneForLid($trimmed);
+        }
+
+        $local = explode('@', $trimmed, 2)[0];
+        $normalized = self::normalize($local);
+
+        if ($normalized === null) {
+            return null;
+        }
+
+        return in_array($normalized, self::allowedWhatsAppSenders(), true) ? $normalized : null;
+    }
+
+    public static function isAllowedWhatsAppSender(string $senderNumber): bool
+    {
+        return self::resolveAllowlistedSenderPhone($senderNumber) !== null;
     }
 
     /**

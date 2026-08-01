@@ -649,10 +649,10 @@ html.dark::-webkit-scrollbar-thumb:hover,
     @apply w-full;
 }
 
-/* Dashboard sticky toolbar — filter dropdown + widget section tabs. */
+/* Dashboard sticky toolbar — widget section tabs + filter dropdown. */
 .tido-dashboard-sticky-toolbar {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+    grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
     align-items: center;
     gap: 0.75rem;
     width: 100%;
@@ -660,7 +660,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
 }
 
 .tido-dashboard-sticky-toolbar-filters {
-    @apply flex min-w-0 items-center justify-start;
+    @apply flex min-w-0 items-center justify-end;
 }
 
 .tido-dashboard-sticky-toolbar-nav {

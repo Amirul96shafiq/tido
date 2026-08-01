@@ -64,6 +64,40 @@ git branch -d feature/short-kebab-name
 
 Never push unfinished work straight to `main`, `staging`, or `production`.
 
+## Pull request body standard
+
+Use the established format from recent merged pull requests, especially [PR #60](https://github.com/Amirul96shafiq/tido/pull/60):
+
+```markdown
+## Summary
+
+- Concise bullet describing the first cohesive change.
+- Concise bullet describing the user-visible or developer-facing result.
+- Concise bullet describing relevant tests or documentation when useful.
+
+## Test plan
+
+- [ ] Run `php artisan migrate` and confirm the expected schema or configuration exists.
+- [ ] Open the affected page, perform the user action, and confirm the expected success state or notification.
+- [ ] Exercise each relevant role, permission, empty state, error state, or integration path and confirm the expected result.
+- [ ] Confirm each relevant link, redirect, notification, relationship label, status, or persisted value.
+- [ ] Run: `php artisan test --compact tests/Feature/RelevantTest.php tests/Unit/RelevantTest.php`
+```
+
+Rules:
+
+- Keep `## Summary` first and use concise bullets in the imperative or present tense.
+- Use `## Test plan` as step-by-step instructions for a reviewer to execute before approving the pull request, not as a retrospective list of checks already run by Codex.
+- Write manual checks as concrete actions followed by the expected result. Include setup, migrations, page navigation, role/permission checks, notifications, integrations, and failure paths when they are relevant.
+- Put automated checks at the end using `Run:` followed by the exact command. Include pass/assertion counts in a separate validation note only when the command has already been run.
+- Prefix every test-plan step with an unchecked Markdown box (`- [ ]`), including manual checks and `Run:` commands. Leave every box unchecked so the reviewer can complete it during review.
+- Do not use checked (`[x]`) boxes or plain unmarked bullets in the generated test plan.
+- Add `## Full-suite note` when the full suite was run with unrelated failures or when a broader validation caveat must be preserved.
+- Add `## Reviewer note` only for a concrete reviewer action, security concern, known risk, or follow-up decision.
+- Use `## Target` only when the target branch needs explicit clarification; normal pull requests target `main` and do not need a redundant section.
+- Do not use generic `## What changed`, `## Why`, `## User impact`, `## Developer impact`, `## Root cause`, or `## Verification` headings as the default template. Put that information into the Summary bullets or an applicable note section while preserving the established Summary/Test plan structure.
+- For documentation-only changes, give step-by-step link, anchor, terminology, mirror, or instruction checks and finish with `Run: git diff --check`.
+
 ## Naming
 
 | Prefix | Use |

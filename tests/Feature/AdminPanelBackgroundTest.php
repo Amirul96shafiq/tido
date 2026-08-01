@@ -15,8 +15,8 @@ test('admin panel provider does not load outfit from google fonts cdn', function
 });
 
 test('admin panel light and dark background images exist', function () {
-    expect(public_path('images/bg-l-v7.webp'))->toBeFile()
-        ->and(public_path('images/bg-d-v7.webp'))->toBeFile();
+    expect(public_path('images/bg-l-v8.webp'))->toBeFile()
+        ->and(public_path('images/bg-d-v8.webp'))->toBeFile();
 });
 
 test('admin panel css applies theme-aware background images', function () {
@@ -49,8 +49,8 @@ test('admin panel provider injects theme background asset css variables', functi
     $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
 
     expect($provider)
-        ->toContain("asset('images/bg-l-v7.webp')")
-        ->toContain("asset('images/bg-d-v7.webp')")
+        ->toContain("asset('images/bg-l-v8.webp')")
+        ->toContain("asset('images/bg-d-v8.webp')")
         ->toContain("getAttribute('stylized_background_enabled')")
         ->toContain(": 'none';")
         ->toContain('--tido-bg-art-light:')
@@ -87,8 +87,8 @@ test('dark mode form fields and repeater items match section surface and border'
 test('auth light and dark background images exist', function () {
     expect(public_path('images/auth-bg-l.webp'))->toBeFile()
         ->and(public_path('images/auth-bg-d.webp'))->toBeFile()
-        ->and(public_path('images/auth-bg-l-v2.webp'))->toBeFile()
-        ->and(public_path('images/auth-bg-d-v2.webp'))->toBeFile();
+        ->and(public_path('images/auth-bg-l-v5.png'))->toBeFile()
+        ->and(public_path('images/auth-bg-d-v5.png'))->toBeFile();
 });
 
 test('admin panel provider injects auth background asset css variables', function () {
@@ -97,8 +97,8 @@ test('admin panel provider injects auth background asset css variables', functio
     expect($provider)
         ->toContain("asset('images/auth-bg-l.webp')")
         ->toContain("asset('images/auth-bg-d.webp')")
-        ->toContain("asset('images/auth-bg-l-v2.webp')")
-        ->toContain("asset('images/auth-bg-d-v2.webp')")
+        ->toContain("asset('images/auth-bg-l-v5.png')")
+        ->toContain("asset('images/auth-bg-d-v5.png')")
         ->toContain('--tido-auth-bg-light-mobile:')
         ->toContain('--tido-auth-bg-dark-mobile:')
         ->toContain('--tido-auth-bg-light:')

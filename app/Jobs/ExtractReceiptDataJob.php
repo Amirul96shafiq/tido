@@ -6,11 +6,13 @@ namespace App\Jobs;
 
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Prompts\PdfReceiptMergePrompt;
+use App\Prompts\PdfReceiptPagePrompt;
 use App\Prompts\ReceiptExtractionPrompt;
 use App\Services\LabelMatcher;
 use App\Services\OllamaService;
 use App\Services\PaymentMethodMatcher;
-use App\Services\ReceiptImagePreparer;
+use App\Services\ReceiptDocumentPreparer;
 use App\Services\ReceiptParseNormalizer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -19,6 +21,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 
 class ExtractReceiptDataJob implements ShouldQueue
 {
@@ -26,6 +29,9 @@ class ExtractReceiptDataJob implements ShouldQueue
 
     public int $tries = 3;
 
+    /**
+     * @return list<int>
+     */
     public function backoff(): array
     {
         return [30, 60, 120];
@@ -41,7 +47,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         ReceiptParseNormalizer $normalizer,
         LabelMatcher $labelMatcher,
         PaymentMethodMatcher $paymentMethodMatcher,
-        ReceiptImagePreparer $imagePreparer,
+        ReceiptDocumentPreparer $documentPreparer,
     ): void {
         $invoice = Invoice::find($this->invoiceId);
 
@@ -64,13 +70,13 @@ class ExtractReceiptDataJob implements ShouldQueue
             return;
         }
 
-        $imageContents = Storage::get($invoice->image_path);
-        $base64Image = $imagePreparer->toBase64((string) $imageContents);
-
-        $parsed = $ollama->parseReceipt($base64Image, ReceiptExtractionPrompt::build());
+        $base64Pages = $documentPreparer->prepare($invoice);
+        $parsed = $invoice->file_mime_type === 'application/pdf'
+            ? $this->parsePdfDocument($ollama, $base64Pages)
+            : $ollama->parseReceipt($base64Pages[0], ReceiptExtractionPrompt::build());
 
         if (! $parsed) {
-            throw new \Exception('Ollama receipt extraction returned empty or invalid response.');
+            throw new RuntimeException('Ollama receipt extraction returned empty or invalid response.');
         }
 
         $normalized = $normalizer->normalize($parsed);
@@ -124,6 +130,40 @@ class ExtractReceiptDataJob implements ShouldQueue
         ]);
     }
 
+    /**
+     * @param  list<string>  $base64Pages
+     * @return array<string, mixed>|null
+     */
+    protected function parsePdfDocument(OllamaService $ollama, array $base64Pages): ?array
+    {
+        $pageCount = count($base64Pages);
+
+        if ($pageCount < 1) {
+            return null;
+        }
+
+        $pageResults = [];
+
+        foreach ($base64Pages as $index => $base64Page) {
+            $pageResult = $ollama->generateJson(
+                PdfReceiptPagePrompt::build($index + 1, $pageCount),
+                [$base64Page],
+            );
+
+            if ($pageResult === null) {
+                return null;
+            }
+
+            $pageResults[] = $pageResult;
+        }
+
+        if ($pageCount === 1) {
+            return $pageResults[0];
+        }
+
+        return $ollama->generateJson(PdfReceiptMergePrompt::build($pageResults));
+    }
+
     public function failed(\Throwable $exception): void
     {
         $invoice = Invoice::find($this->invoiceId);
@@ -171,9 +211,7 @@ class ExtractReceiptDataJob implements ShouldQueue
 
     protected function uniqueReceiptHash(Invoice $invoice): string
     {
-        $dateTimeStr = $invoice->date_time
-            ? $invoice->date_time->format('Y-m-d H:i:s')
-            : now()->format('Y-m-d H:i:s');
+        $dateTimeStr = $invoice->date_time->format('Y-m-d H:i:s');
 
         $base = hash(
             'sha256',

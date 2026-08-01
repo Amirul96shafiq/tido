@@ -177,12 +177,12 @@ class AdminPanelProvider extends PanelProvider
                     $currentUser = auth()->user();
                     $backgroundEnabled = $currentUser === null
                         || (bool) $currentUser->getAttribute('stylized_background_enabled');
-                    $light = asset('images/bg-l-v7.webp');
-                    $dark = asset('images/bg-d-v7.webp');
+                    $light = asset('images/bg-l-v8.webp');
+                    $dark = asset('images/bg-d-v8.webp');
                     $authLightMobile = asset('images/auth-bg-l.webp');
                     $authDarkMobile = asset('images/auth-bg-d.webp');
-                    $authLight = asset('images/auth-bg-l-v2.webp');
-                    $authDark = asset('images/auth-bg-d-v2.webp');
+                    $authLight = asset('images/auth-bg-l-v5.png');
+                    $authDark = asset('images/auth-bg-d-v5.png');
                     // Chrome-matched tint; art lives on .tido-stylized-bg with soft masks.
                     $lightTint = 'var(--color-white)';
                     $darkTint = 'var(--color-slate-800)';
@@ -288,7 +288,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->userMenuItems([
                 // sort >= 0 places items after the theme switcher
-                // (theme → profile → changelogs → notifications → logout)
+                // (theme → profile → changelogs 🡥 → notifications 🡥 → logout)
                 'profile' => fn (Action $action): Action => $action
                     ->icon('heroicon-o-user')
                     ->sort(0)

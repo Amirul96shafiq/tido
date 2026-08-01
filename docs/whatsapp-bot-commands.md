@@ -1,6 +1,6 @@
 # WhatsApp bot commands
 
-Allowlisted WhatsApp senders (Profile phone + allowlisted Family Members) can interact with the **tido** bot via text and media. WhatsApp receipts are attributed to the sender (Primary vs Family Member). Family members with **login enabled** can sign in to `/admin` with their WhatsApp OTP (limited panel access).
+Allowlisted WhatsApp senders (Profile phone + allowlisted Family Members) can interact with the **tido** bot via text and media. WhatsApp image and PDF receipts are attributed to the sender (Primary vs Family Member). Family members with **login enabled** can sign in to `/admin` with their WhatsApp OTP (limited panel access).
 
 **In chat:** type `help` for a short overview, `manual` for manual invoice format, or `finance others` for the finance keyword list.
 
@@ -16,13 +16,13 @@ Inbound text is handled in this order:
 4. **`manual`** or **`manual way`** — manual invoice guide
 5. **Anything else** — help reply
 
-Images are handled separately (receipt upload → OCR pipeline).
+Images and PDF documents are handled separately (receipt upload → OCR pipeline). Text commands are routed only after the sender has passed the phone or linked-LID allowlist check.
 
 ## Receipt ingestion (no keyword)
 
 | Action | What happens |
 |--------|----------------|
-| Send **image(s)** | Saved and queued for AI parsing → attributed to sender (Primary vs Family Member) → document received ack → document parsed reply with edit URL |
+| Send **image(s) or PDF(s)** | Validated, saved, and queued for AI parsing → attributed to sender (Primary vs Family Member) → document received ack → document parsed/review reply with edit URL |
 | Send **manual invoice text** | Fixed `merchant[, payment];` + `item, qty, total;` lines → attributed → manual invoice received ack → parsed reply |
 
 Manual format rules and payment tokens: [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md). Household attribution + panel login: [household-access.md](household-access.md).
@@ -34,6 +34,19 @@ Manual format rules and payment tokens: [whatsapp-manual-invoice.md](whatsapp-ma
 | *(anything unrecognized)* | `help` — upload options, manual invoice hint, spend hint |
 | `manual` or `manual way` | Manual approach — format, sample, supported payment method names |
 | `finance others` | Finance keywords — full list of spending commands |
+
+## PDF receipt handling
+
+PDF receipts are accepted only as `application/pdf` documents. The default limits are:
+
+- Maximum file size: **10 MB** (`PDF_MAX_BYTES`)
+- Maximum page count: **3** (`PDF_MAX_PAGES`)
+- PDF inspection: Poppler `pdfinfo`
+- Page rendering: Poppler `pdftocairo` to JPEG at `PDF_RENDER_DPI` (default 144)
+
+The original PDF is stored on the invoice. During extraction, each rendered page is sent to Ollama as a page-specific JSON request; multi-page results are merged before the normal invoice normalization and Label matching step. Password-protected, unreadable, non-PDF, oversized, and over-page-limit documents are not parsed. Rejected PDF details are included in the batched **Document received** acknowledgement, while accepted files are queued after that acknowledgement.
+
+Configure Poppler with absolute paths in `.env` (`PDFINFO_BINARY` and `PDFTOCAIRO_BINARY`) and restart the queue worker after changing them. See [evolution-local-windows.md](evolution-local-windows.md) and [ollama-setup.md](ollama-setup.md#pdf-receipt-parsing).
 
 ## Spending commands
 
@@ -82,7 +95,7 @@ These are sent by the bot after ingestion jobs complete (no keyword needed):
 
 | Event | Message |
 |-------|---------|
-| Document/image received (batched) | Document received |
+| Document/image/PDF received (batched) | Document received; rejected PDFs include the filename and reason |
 | Document parsed | Document parsed + merchant, total, payment method, edit URL |
 | Manual invoice received (batched) | Manual invoice received |
 | Manual invoice parsed | Manual invoice parsed + edit URL |

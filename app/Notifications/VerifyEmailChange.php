@@ -1,24 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Notifications;
 
+use App\Support\AuthLinkExpiry;
 use Filament\Auth\Notifications\VerifyEmailChange as BaseVerifyEmailChange;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Support\Facades\Config;
 
 class VerifyEmailChange extends BaseVerifyEmailChange
 {
-    public function toMail($notifiable)
+    public function toMail($notifiable): MailMessage
     {
-        $expireMinutes = Config::get('auth.verification.expire', 60);
-
-        if ($expireMinutes >= 1440) {
-            $expireText = intdiv($expireMinutes, 1440) . ' day(s)';
-        } elseif ($expireMinutes >= 60) {
-            $expireText = intdiv($expireMinutes, 60) . ' hour(s)';
-        } else {
-            $expireText = $expireMinutes . ' minute(s)';
-        }
+        $expireText = AuthLinkExpiry::label();
 
         return (new MailMessage)
             ->subject('Verify Email Address Change')

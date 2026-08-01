@@ -53,7 +53,7 @@ test('guest auth pages show auth menu with theme switcher and changelogs', funct
         ->assertSee('fi-auth-menu', false)
         ->assertSee('images/favicon.png', false)
         ->assertSee('fi-theme-switcher', false)
-        ->assertSee('Changelogs');
+        ->assertSee('Changelogs 🡥');
 })->with([
     fn () => '/admin/login',
     fn () => '/admin/password-reset/request',

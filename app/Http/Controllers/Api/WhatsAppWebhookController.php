@@ -10,6 +10,7 @@ use App\Jobs\ProcessWhatsAppMediaJob;
 use App\Services\WhatsAppNotificationService;
 use App\Support\ManualWhatsAppInvoiceParser;
 use App\Support\PhoneNumber;
+use App\Support\WhatsAppLid;
 use App\Support\WhatsAppMessage;
 use App\Support\WhatsAppSpendingCommandParser;
 use App\Support\WhatsAppSpendingReplyBuilder;
@@ -39,16 +40,24 @@ class WhatsAppWebhookController extends Controller
         $message = $data['message'] ?? [];
         $key = $data['key'] ?? [];
 
-        $senderJid = $key['remoteJid'] ?? '';
-        $senderNumber = explode('@', (string) $senderJid)[0] ?? '';
+        $senderJid = (string) ($key['remoteJid'] ?? '');
 
-        if ($senderNumber === '') {
+        if ($senderJid === '') {
             return response()->json(['error' => 'No sender JID found'], 400);
         }
 
-        if (! $this->isAllowedSender($senderNumber)) {
+        $senderPhone = PhoneNumber::resolveAllowlistedSenderPhone($senderJid);
+
+        if ($senderPhone === null) {
+            if (WhatsAppLid::isLidIdentifier($senderJid)) {
+                WhatsAppLid::rememberUnlinked(
+                    $senderJid,
+                    isset($data['pushName']) && is_string($data['pushName']) ? $data['pushName'] : null,
+                );
+            }
+
             Log::info('WhatsApp webhook ignored non-allowlisted sender', [
-                'sender' => $senderNumber,
+                'sender' => explode('@', $senderJid)[0] ?: $senderJid,
             ]);
 
             return response()->json(['status' => 'ignored_sender']);
@@ -60,13 +69,43 @@ class WhatsAppWebhookController extends Controller
         $messageType = $data['messageType'] ?? '';
 
         if ($messageType === 'imageMessage') {
-            return $this->handleImageMessage($data, $senderNumber);
+            $image = $message['imageMessage'] ?? [];
+
+            return $this->handleMediaMessage(
+                $data,
+                $senderPhone,
+                'image',
+                (string) ($image['mimetype'] ?? 'image/jpeg'),
+            );
+        }
+
+        if ($messageType === 'documentMessage') {
+            $document = $message['documentMessage'] ?? [];
+            $mimeType = strtolower(trim((string) ($document['mimetype'] ?? '')));
+
+            if ($mimeType !== 'application/pdf') {
+                return response()->json(['status' => 'ignored_document_type']);
+            }
+
+            $filename = str_replace('\\', '/', (string) (
+                $document['fileName']
+                ?? $document['title']
+                ?? 'document.pdf'
+            ));
+
+            return $this->handleMediaMessage(
+                $data,
+                $senderPhone,
+                'pdf',
+                $mimeType,
+                basename($filename),
+            );
         }
 
         if ($messageType === 'conversation' || $messageType === 'extendedTextMessage') {
             $text = $message['conversation'] ?? ($message['extendedTextMessage']['text'] ?? '');
 
-            return $this->handleTextMessage($text, $senderNumber, $waService);
+            return $this->handleTextMessage($text, $senderPhone, $waService);
         }
 
         return response()->json(['status' => 'ignored_type']);
@@ -75,15 +114,23 @@ class WhatsAppWebhookController extends Controller
     /**
      * Profile WhatsApp numbers plus allowlisted Family Members may trigger
      * bot replies / receipt import. Panel OTP login uses users.phone for primary
-     * and login-enabled Family Members.
+     * and login-enabled Family Members. Linked WhatsApp LIDs resolve to those phones.
      */
     protected function isAllowedSender(string $senderNumber): bool
     {
         return PhoneNumber::isAllowedWhatsAppSender($senderNumber);
     }
 
-    protected function handleImageMessage(array $data, string $senderNumber): JsonResponse
-    {
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function handleMediaMessage(
+        array $data,
+        string $senderNumber,
+        string $mediaType,
+        string $mimeType,
+        ?string $originalFilename = null,
+    ): JsonResponse {
         $key = $data['key'] ?? [];
         $messageId = (string) ($key['id'] ?? uniqid());
         $remoteJid = (string) ($key['remoteJid'] ?? '');
@@ -94,6 +141,9 @@ class WhatsAppWebhookController extends Controller
             $remoteJid,
             $messageId,
             $fromMe,
+            $mediaType,
+            $mimeType,
+            $originalFilename,
         );
 
         return response()->json(['status' => 'accepted']);

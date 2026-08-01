@@ -2,6 +2,7 @@
 
 How this project works and how to change it safely.
 
+- **Codex**: loads root `AGENTS.md` automatically; follows `.codex/CODEX_WORKFLOW.md` and `.codex/VERIFICATION.md`; project MCP configuration lives in `.codex/config.toml`
 - **Cursor IDE**: loads `.cursor/rules/*.mdc` automatically; activate skills under `.cursor/skills/`
 - **Antigravity IDE**: loads `.agents/AGENTS.md` automatically; activate skills under `.agents/skills/`
 
@@ -18,13 +19,14 @@ Activate the relevant skill when the task matches your domain.
 | **Health** | Coming soon |
 | **Task** | Coming soon |
 
-**Finances** (shipped today) uses **Malaysian Ringgit (MYR)**. It ingests receipt **images** and WhatsApp **text manual invoices**, extracts or classifies data with a **local Ollama** model, categorizes line items as **Labels** (model: `Label`), tracks **Budgets**, and surfaces analytics. Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD surface for that module — distinct from the dashboard view tabs.
+**Finances** (shipped today) uses **Malaysian Ringgit (MYR)**. It ingests receipt **images**, WhatsApp **PDF documents**, and WhatsApp **text manual invoices**, extracts or classifies data with a **local Ollama** model, categorizes line items as **Labels** (model: `Label`), tracks **Budgets**, and surfaces analytics. Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD surface for that module — distinct from the dashboard view tabs.
 
 Primary Finances ingestion paths:
 
 | Channel | Entry | Creates |
 |---------|-------|---------|
 | WhatsApp image | `POST /api/webhooks/whatsapp` | Pending `Invoice` → vision OCR |
+| WhatsApp PDF | same webhook (`application/pdf`) | Validated/stored pending `Invoice` → Poppler page rendering → page extraction + merge |
 | WhatsApp manual text | same webhook (fixed text format) | Pending `Invoice` (no image) → label job → `requires_manual_review` |
 | Google Drive | `SyncGoogleDriveJob` (every 15m) | Pending `Invoice` |
 | UI upload | `ReceiptUploadPage` | Pending `Invoice` |
@@ -35,11 +37,11 @@ Default login (seeded): `admin@tido.local` / `password`.
 ## 2. Read order for new agents
 
 1. This file
-2. `.cursorrules` (Cursor) / `.agents/AGENTS.md` (Antigravity) — hard coding/security constraints
+2. Active agent workflow: root `AGENTS.md` + `.codex/CODEX_WORKFLOW.md` (Codex), `.cursorrules` (Cursor), or `.agents/AGENTS.md` (Antigravity)
 3. `docs/system-architecture.md` — product blueprint (note: some version numbers are outdated; trust Laravel 12 / PG 17 / stack in `AGENTS.md`)
 4. Dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md`
-5. Domain skill: `.agents/skills/tido-domain/SKILL.md` (+ `pipeline.md` when touching OCR/webhooks) — Finances domain
-6. Existing skills (in `.agents/skills/` or `.cursor/skills/`): `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
+5. Domain skill: activate the `tido-domain` skill surfaced by the active agent (+ its `pipeline.md` when touching OCR/webhooks) — Finances domain
+6. Framework skills surfaced by the active agent: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
 7. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-bot-commands.md`, `docs/whatsapp-manual-invoice.md`, `docs/google-drive-setup.md`
 8. UI empty panels: `docs/ui-empty-states.md`
 9. Modal blur / width: `docs/ui-modal-overlay.md`
@@ -68,12 +70,12 @@ Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage)
 app/
   Models/           Invoice, InvoiceItem, Label, PaymentMethod, Budget, FamilyMember, User, ContentDraft, Backup, ServiceHealthSample
   Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support, Livewire
-  Services/         Ollama, GoogleDrive, WhatsApp, BudgetAlert, SpendingForecast, FamilyMemberLoginService, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
-  Jobs/             ExtractReceiptDataJob, ProcessManualWhatsAppInvoiceJob, ParseManualWhatsAppInvoiceJob, SyncGoogleDriveJob, …
+  Services/         Ollama, GoogleDrive, WhatsApp, PdfPageInspector, PdfPageRenderer, ReceiptDocumentPreparer, BudgetAlert, SpendingForecast, FamilyMemberLoginService, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
+  Jobs/             ExtractReceiptDataJob, ProcessWhatsAppMediaJob, ProcessManualWhatsAppInvoiceJob, ParseManualWhatsAppInvoiceJob, SyncGoogleDriveJob, …
   Observers/        InvoiceObserver, FamilyMemberObserver
   Policies/         InvoicePolicy (household mutate ACL)
-  Prompts/          ReceiptExtractionPrompt, ManualInvoiceLabelPrompt
-  Support/          HouseholdAccess, DashboardSpenderScope, InvoiceSenderAttribution, ManualWhatsAppInvoiceParser, WhatsAppMessage, …
+  Prompts/          ReceiptExtractionPrompt, PdfReceiptPagePrompt, PdfReceiptMergePrompt, ManualInvoiceLabelPrompt
+  Support/          HouseholdAccess, DashboardSpenderScope, InvoiceSenderAttribution, ManualWhatsAppInvoiceParser, WhatsAppLid, WhatsAppMessage, …
   Enums/            HouseholdRole, LabelType, UserLocale, UserDateFormat, MonitoredService, ServiceHealthStatus
   Http/Controllers/ Api webhooks, BackupDownload, GuestRestoreBackup
 routes/
@@ -83,6 +85,7 @@ routes/
 database/
   migrations|factories|seeders
 docs/               architecture + integration setup + this file
+.codex/              Codex workflow, verification matrix, plan template, ignored task plans, and project MCP config
 .cursor/rules/      always-on + glob-scoped agent rules
 .cursor/skills/     domain and framework skills
 ```
@@ -95,6 +98,8 @@ docs/               architecture + integration setup + this file
 | Payment method | **`PaymentMethod`** model / `payment_methods` table (Settings CRUD; AI/WhatsApp via aliases) |
 | Family member | **`FamilyMember`** model / `family_members` table (Settings CRUD; bot allowlist + optional panel login) |
 | Uploaded By | Invoice `family_member_id` — null = Primary; set from WhatsApp sender or acting user — `docs/household-access.md` |
+| WhatsApp identity | Classic phone JIDs resolve by phone; `@lid` identities resolve through `whatsapp_lid` after primary linking in Evolution API |
+| Receipt document | `image_path` stores the original image/PDF; `file_mime_type`, `file_page_count`, `original_filename`, and unique `whatsapp_message_id` preserve media metadata |
 | Money | `decimal(12,2)`, cast `decimal:2`, currency `MYR`, UI `RM` |
 | Duplicate | `receipt_hash` SHA-256 of number + datetime + total |
 | Statuses | `pending`, `parsed`, `reviewed`, `requires_manual_review`, `failed` |
@@ -126,7 +131,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 4. Ungrouped record actions are icon-only panel-wide (`AppServiceProvider` → `Table::configureUsing` → `modifyUngroupedRecordActionsUsing` → `iconButton()` + Filament `->tooltip()` from the action label). Resource tables put Edit/Delete/custom actions in `App\Filament\Support\RecordActionsGroup` (vertical ellipsis); Upload Receipts / Recent Receipts stay Edit-only — see `docs/ui-tooltips.md`
 5. Filter and Column Manager triggers also get Tippy tooltips globally via `filtersTriggerAction` / `columnManagerTriggerAction` in `AppServiceProvider`
 6. List-page “New …” CTAs use a plus Heroicon panel-wide (`AppServiceProvider` → `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`); new List pages only need `CreateAction::make()`
-7. Edit pages: use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the title ends with the singular model label (see Filament conventions in `.agents/AGENTS.md` or `.cursor/rules/filament-conventions.mdc`)
+7. Edit pages: use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the title ends with the singular model label (see the Filament conventions surfaced by the active agent)
 8. Nav groups: Finances (Upload Receipts, Invoices, Budgets) / Settings (Labels, Payment Methods, Family Members) / Integrations (Evolution API) / Tools (Backups, Service Status) — Tools last. Home dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md` (not sidebar groups)
 9. Breadcrumbs use Filament native defaults plus `App\Filament\Concerns\PrependsHomeBreadcrumb` (Home → resource → page). Do not disable panel-wide or add a custom “Go back to table” header. New pages must use the trait; Create/Edit pages also register in the `PAGE_END` draft-poller scopes.
 10. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
@@ -146,8 +151,9 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 ### Integrations
 
 1. Ollama: always `format: json` + strip markdown fences (see `OllamaService`)
-2. Webhooks: Bearer auth → validate → queue
-3. Never call real Ollama/Evolution in tests
+2. PDF receipts: validate the detected MIME type, enforce `PDF_MAX_BYTES` / `PDF_MAX_PAGES`, and render pages with configured Poppler `pdfinfo` / `pdftocairo` binaries before AI extraction
+3. Webhooks: Bearer auth → resolve phone or linked WhatsApp LID → validate → queue
+4. Never call real Ollama/Evolution in tests
 
 ### After code changes
 
@@ -157,6 +163,16 @@ php artisan test --compact --filter=YourTest
 ```
 
 ## 6. Agent rules index
+
+### Codex (`AGENTS.md` + `.codex/`)
+
+| File | Content |
+|------|---------|
+| `AGENTS.md` | Always-loaded mode contract, authority boundaries, sources of truth, and non-negotiable gates |
+| `.codex/CODEX_WORKFLOW.md` | Ask / Plan / Agent / Debug lifecycle, branch discipline, debugging stages, and handoff contract |
+| `.codex/VERIFICATION.md` | Change-type verification matrix and asynchronous integration completion standard |
+| `.codex/PLAN_TEMPLATE.md` | Template for ignored, task-local Plan-mode documents under `.codex/plans/` |
+| `.codex/config.toml` | Project-scoped Codex configuration, including Laravel Boost MCP |
 
 ### Cursor IDE (`.cursor/rules/*.mdc`)
 

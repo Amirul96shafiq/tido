@@ -13,6 +13,7 @@ use App\Notifications\VerifyEmailChange;
 use App\Services\AccountDangerZoneService;
 use App\Services\ActiveSessionService;
 use App\Services\FamilyMemberLoginService;
+use App\Support\EmailChangeVerification;
 use App\Support\FilamentAuthLogout;
 use App\Support\HouseholdAccess;
 use App\Support\PhoneNumber;
@@ -21,7 +22,6 @@ use Carbon\CarbonInterface;
 use Filament\Actions\Action;
 use Filament\Auth\Notifications\NoticeOfEmailChangeRequest;
 use Filament\Auth\Pages\EditProfile as BaseEditProfile;
-use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
@@ -884,7 +884,7 @@ class EditProfile extends BaseEditProfile implements HasTable
      * Override to:
      * 1. Use custom VerifyEmailChange notification with email-change-specific content and expiry info
      * 2. Add a delay on the verification email to avoid Mailtrap rate limit
-     * 3. Align cache TTL with auth.verification.expire config
+     * 3. Align signed URL + cache TTL with auth.verification.expire (seconds)
      */
     protected function sendEmailChangeVerification(Model $record, string $newEmail): void
     {
@@ -892,17 +892,15 @@ class EditProfile extends BaseEditProfile implements HasTable
             return;
         }
 
-        $expireMinutes = config('auth.verification.expire', 60);
-
         $notification = app(VerifyEmailChange::class);
-        $notification->url = Filament::getVerifyEmailChangeUrl($record, $newEmail);
+        $notification->url = EmailChangeVerification::verifyUrl($record, $newEmail);
 
         $verificationSignature = Query::new($notification->url)->get('signature');
 
-        cache()->put($verificationSignature, true, ttl: now()->addMinutes($expireMinutes));
+        cache()->put($verificationSignature, true, ttl: EmailChangeVerification::expiresAt());
 
         $record->notify(app(NoticeOfEmailChangeRequest::class, [
-            'blockVerificationUrl' => Filament::getBlockEmailChangeVerificationUrl($record, $newEmail, $verificationSignature),
+            'blockVerificationUrl' => EmailChangeVerification::blockUrl($record, $newEmail, $verificationSignature),
             'newEmail' => $newEmail,
         ]));
 

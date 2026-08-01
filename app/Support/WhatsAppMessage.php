@@ -106,15 +106,76 @@ final class WhatsAppMessage
         return self::compose('❌', $title, $body);
     }
 
-    public static function documentReceived(int $count): string
+    /**
+     * @param  list<array<string, mixed>>  $documents
+     */
+    public static function documentReceived(int $count, array $documents = []): string
     {
         $count = max(1, $count);
+
+        $rejectedDocuments = collect($documents)
+            ->whereIn('status', ['rejected', 'failed'])
+            ->values();
+
+        if ($rejectedDocuments->isEmpty()) {
+            return self::compose(
+                '📥',
+                'Document received',
+                sprintf('A total of *%d* file(s) saved and queued for AI parsing.', $count),
+            );
+        }
+
+        $acceptedCount = collect($documents)->where('status', 'accepted')->count();
+        $unsupportedDocuments = $rejectedDocuments->where('status', 'rejected')->values();
+        $failedDocuments = $rejectedDocuments->where('status', 'failed')->values();
+        $lines = [
+            sprintf('A total of *%d* file(s) received.', $count),
+            sprintf('*%d* file(s) saved and queued for AI parsing.', $acceptedCount),
+        ];
+
+        if ($unsupportedDocuments->isNotEmpty()) {
+            $lines[] = sprintf('*%d* file(s) not supported:', $unsupportedDocuments->count());
+        }
+
+        foreach ($unsupportedDocuments as $document) {
+            $lines[] = '- '.self::rejectedDocumentSummary($document);
+        }
+
+        if ($failedDocuments->isNotEmpty()) {
+            $lines[] = sprintf('*%d* file(s) could not be processed:', $failedDocuments->count());
+        }
+
+        foreach ($failedDocuments as $document) {
+            $lines[] = '- '.self::rejectedDocumentSummary($document);
+        }
 
         return self::compose(
             '📥',
             'Document received',
-            sprintf('A total of *%d* file(s) saved and queued for AI parsing.', $count),
+            implode("\n", $lines),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $document
+     */
+    private static function rejectedDocumentSummary(array $document): string
+    {
+        $filename = trim((string) ($document['filename'] ?? 'document.pdf'));
+        $reason = (string) ($document['reason'] ?? 'pdf_unreadable');
+
+        return match ($reason) {
+            'pdf_page_limit' => sprintf(
+                '%s - %d pages (maximum %d)',
+                $filename,
+                (int) ($document['page_count'] ?? 0),
+                max(1, (int) config('services.documents.max_pdf_pages', 3)),
+            ),
+            'pdf_size_limit' => $filename.' - exceeds the PDF file-size limit',
+            'pdf_password_protected' => $filename.' - password-protected PDFs are not supported',
+            'pdf_processing_failed' => $filename.' - could not be processed; please resend the PDF',
+            default => $filename.' - the PDF could not be read',
+        };
     }
 
     /**

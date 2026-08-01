@@ -7,10 +7,6 @@ use App\Jobs\ExtractReceiptDataJob;
 use App\Jobs\SendWhatsAppDocumentParsedJob;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
-use App\Services\LabelMatcher;
-use App\Services\OllamaService;
-use App\Services\PaymentMethodMatcher;
-use App\Services\ReceiptParseNormalizer;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppPublicUrl;
@@ -85,12 +81,7 @@ test('extract receipt data job dispatches gated document parsed whatsapp job', f
     ]);
 
     $job = new ExtractReceiptDataJob($invoice->id);
-    $job->handle(
-        new OllamaService,
-        new ReceiptParseNormalizer,
-        new LabelMatcher,
-        new PaymentMethodMatcher,
-    );
+    app()->call([$job, 'handle']);
 
     expect($invoice->fresh()->status)->toBe('parsed');
 
@@ -209,12 +200,7 @@ test('extract receipt data job does not dispatch document parsed for non-whatsap
     ]);
 
     $job = new ExtractReceiptDataJob($invoice->id);
-    $job->handle(
-        new OllamaService,
-        new ReceiptParseNormalizer,
-        new LabelMatcher,
-        new PaymentMethodMatcher,
-    );
+    app()->call([$job, 'handle']);
 
     expect($invoice->fresh()->status)->toBe('parsed');
     Queue::assertNotPushed(SendWhatsAppDocumentParsedJob::class);
@@ -250,12 +236,7 @@ test('extract receipt data job does not dispatch document parsed without whatsap
     ]);
 
     $job = new ExtractReceiptDataJob($invoice->id);
-    $job->handle(
-        new OllamaService,
-        new ReceiptParseNormalizer,
-        new LabelMatcher,
-        new PaymentMethodMatcher,
-    );
+    app()->call([$job, 'handle']);
 
     expect($invoice->fresh()->status)->toBe('parsed');
     Queue::assertNotPushed(SendWhatsAppDocumentParsedJob::class);
