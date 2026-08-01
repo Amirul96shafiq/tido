@@ -74,7 +74,7 @@ Add a hook class on the modal root and target the overlay in `app.css`:
 }
 ```
 
-**Example in app:** Evolution API connection details slide-over in [`evolution-api.blade.php`](../resources/views/filament/pages/evolution-api.blade.php).
+**Example in app:** Evolution API connection details slide-over in [`evolution-api-details.blade.php`](../resources/views/filament/pages/partials/evolution-api-details.blade.php).
 
 ## Database notifications slide-over
 

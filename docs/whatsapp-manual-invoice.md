@@ -76,7 +76,7 @@ WhatsApp text (manual format)
   → Manual invoice parsed WhatsApp reply (edit URL)
 ```
 
-Does **not** use vision OCR (`ExtractReceiptDataJob`). Image receipts remain the separate WhatsApp document path.
+Does **not** use vision OCR (`ExtractReceiptDataJob`). Image and PDF receipts remain the separate WhatsApp media path; PDF handling and Poppler requirements are documented in [whatsapp-bot-commands.md](whatsapp-bot-commands.md#pdf-receipt-handling).
 
 ## Auto-replies
 

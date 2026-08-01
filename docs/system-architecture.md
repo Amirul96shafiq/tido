@@ -59,17 +59,30 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 ### `invoices` Table
 * `id` (Primary Key)
 * `merchant_name` (String)
+* `invoice_number` (String, Nullable)
 * `receipt_hash` (String, Unique) - SHA-256 hash.
 * `date_time` (Timestamp)
+* `subtotal` (Decimal)
 * `total_tax` (Decimal)
+* `discount_total` (Decimal)
+* `rounding_amount` (Decimal)
 * `total_amount` (Decimal)
+* `currency` (String)
+* `payment_method_id` (Foreign Key → payment_methods.id, Nullable)
+* `source` (String) - `manual`, `whatsapp`, or `google_drive`.
+* `whatsapp_sender` (String, Nullable)
+* `whatsapp_message_id` (String, Unique, Nullable) - Evolution message id for media deduplication.
 * `family_member_id` (Foreign Key → family_members.id, Nullable) — **Uploaded By**; null = Primary
 * `google_drive_file_id` (String)
+* `original_filename` (String, Nullable)
+* `image_path` (String, Nullable) - Original image or PDF path; null for text-only manual invoices.
+* `file_mime_type` (String, Nullable)
+* `file_page_count` (Unsigned Small Integer, Nullable) - Populated for inspected PDFs.
 
 ### `invoice_items` Table
 * `id` (Primary Key)
 * `invoice_id` (Foreign Key -> invoices.id)
-* `category_id` (Foreign Key -> categories.id)
+* `label_id` (Foreign Key -> labels.id, Nullable)
 * `description` (String)
 * `quantity` (Integer)
 * `unit_price` (Decimal)
@@ -83,16 +96,17 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 
 ### 5.1. Headless Ingestion & Webhooks
 * **Evolution API Integration:** POST webhook (`/api/webhooks/whatsapp`) to Laravel, bypassing UI.
-* **WhatsApp image receipts:** Media download → pending `Invoice` → batched document ack → `ExtractReceiptDataJob` (Ollama vision).
+* **WhatsApp media receipts:** Image or PDF media download → detected MIME validation → pending `Invoice` → batched document ack → `ExtractReceiptDataJob` (Ollama vision). PDF files are limited by `PDF_MAX_BYTES` and `PDF_MAX_PAGES`; rejected files are listed in the acknowledgement and never create an invoice.
+* **WhatsApp PDF extraction:** Accepted PDFs remain stored as PDFs. Poppler `pdfinfo` inspects page count and `pdftocairo` renders pages to JPEG; Ollama extracts each page as JSON, then merges multi-page results before normal invoice normalization and Label matching.
 * **WhatsApp manual text invoices:** Fixed `merchant[, payment];` + `item, qty, line_total;` format → pending `Invoice` (no image) → label classification → `requires_manual_review`. See `docs/whatsapp-manual-invoice.md`.
-* **Attribution:** Allowlisted Family Member senders set `invoices.family_member_id`; Profile/primary senders leave it null (**Uploaded By**). Optional family panel login via WhatsApp OTP — see `docs/household-access.md`.
+* **Attribution:** Allowlisted Family Member senders set `invoices.family_member_id`; Profile/primary senders leave it null (**Uploaded By**). Classic phone JIDs and linked WhatsApp LIDs use the same allowlist. Optional family panel login via WhatsApp OTP — see `docs/household-access.md`.
 * **Google Drive:** Scheduled folder poll (`SyncGoogleDriveJob` every 15m) copies images locally and creates pending invoices (Pub/Sub push is not the primary local path).
 
 ### 5.2. 100% Offline AI Extraction
 * Dispatches a queued job (`ExtractReceiptDataJob`) to the local Ollama HTTP API (`OLLAMA_HOST`, default `http://127.0.0.1:11434`) at `/api/generate`. Ollama runs as a native host process (see `docs/ollama-setup.md`).
 
 ### 5.3. Dynamic Auto-Categorization & Line-Item Splitting
-* AI maps individual line items to predefined database categories. Filament uses a `Repeater` form component for manual review.
+* AI maps individual line items to predefined Finance **Labels**. Filament uses a `Repeater` form component for manual review.
 
 ### 5.4. Duplicate Fraud Detection
 * Observer generates composite hash: `hash('sha256', $invoice_number . $date_time . $exact_total)`. Database `UNIQUE` constraint prevents insertion.
@@ -104,7 +118,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 * **Hallucination Mitigation:** HTTP client logic must include regex to strip markdown blocks before `json_decode()`. Pass `"format": "json"` in the Ollama API request payload.
 * **Webhook Authentication:** Bearer token authorization or IP whitelisting required for Evolution API/Google PubSub endpoints.
 * **Household access:** Single panel with Primary vs Family Member roles (`HouseholdRole`); family members mutate only their attributed invoices. See `docs/household-access.md`.
-* **Storage Limits:** Enforce strict MIME type validation and maximum file size constraints (e.g., 10MB) to prevent memory exhaustion during Base64 encoding.
+* **Storage Limits:** Enforce detected MIME type validation, a maximum file size (`PDF_MAX_BYTES`, default 10 MB), and a PDF page limit (`PDF_MAX_PAGES`, default 3) to prevent memory exhaustion during Base64 encoding and multi-page rendering. Configure absolute Poppler binary paths for Windows queue workers.
 
 ---
 
@@ -114,6 +128,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 * **Application / DB / queues:** Windows host development runs PHP via `npm run dev:full` with SQLite (default) and a `database` queue connection. `queue:listen` handles `default`, `whatsapp`, and `receipts`.
 * **Ollama (OCR):** Native host process on `http://127.0.0.1:11434` with vision model `qwen2.5vl:7b` (see `docs/ollama-setup.md`).
 * **Evolution (WhatsApp):** Native host process on `http://127.0.0.1:8080` via `npm run evolution` (see `docs/evolution-local-windows.md`).
+* **Poppler (PDF OCR):** Native Windows command-line tools `pdfinfo.exe` and `pdftocairo.exe`, configured through `PDFINFO_BINARY` and `PDFTOCAIRO_BINARY`; required by the queue worker for PDF inspection and page rendering.
 
 ### 7.2. Queue Monitoring & Error Handling
 * **Laravel Horizon:** Install and configure Horizon to monitor Redis queues. AI parsing is heavily resource-dependent and prone to timeouts.
@@ -122,7 +137,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 ### 7.3. Automated Testing Suite
 * **Pest PHP:** Implement Pest for PSR-compliant, expressive test coverage.
 * **API Mocking:** Do not trigger the actual Ollama instance during test execution. Use Laravel's `Http::fake()` to mock expected JSON payloads from the AI to ensure tests run in milliseconds rather than minutes.
-* **Webhook Feature Tests:** Assert that authorized payloads from the Evolution API correctly dispatch the parsing job, and unauthorized requests return `401 Unauthorized`.
+* **Webhook Feature Tests:** Assert that authorized image/PDF payloads from the Evolution API correctly dispatch media jobs, non-PDF documents are ignored, linked/unlinked LIDs follow the allowlist rules, and unauthorized requests return `401 Unauthorized`.
 
 ### 7.4. Data Backup & Retention Strategy
 * **Database Snapshots:** Utilize `spatie/laravel-backup` to run daily scheduled backups of the PostgreSQL database (and configured files), archiving them to a separate, secure local directory or secondary cloud disk.

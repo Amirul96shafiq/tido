@@ -10,6 +10,7 @@ Single-tenant hub with **household roles**: one **Primary** user owns settings; 
 | Access helpers | `app/Support/HouseholdAccess.php` |
 | Spender filter | `app/Support/DashboardSpenderScope.php` |
 | WhatsApp attribution | `app/Support/InvoiceSenderAttribution.php` |
+| WhatsApp LID mapping | `app/Support/WhatsAppLid.php` — links opaque `@lid` identities to allowlisted contacts |
 | Login sync | `app/Services/FamilyMemberLoginService.php` + `app/Observers/FamilyMemberObserver.php` |
 | Primary-only gate | `app/Filament/Concerns/RequiresPrimaryHouseholdAccess.php` |
 | Invoice mutate ACL | `app/Policies/InvoicePolicy.php` → `HouseholdAccess::canMutateInvoice()` |
@@ -42,6 +43,7 @@ Family members **can** use: Home (Finance dashboard), Upload Receipts, Invoices,
 | Field | Role |
 |-------|------|
 | `phone` | Normalized MY WhatsApp number (unique) |
+| `whatsapp_lid` | Optional normalized WhatsApp Linked ID (unique); populated from the Evolution API LID linking flow |
 | `allowlist_enabled` | Bot contact allowlist (default on) |
 | `login_enabled` | Panel login via WhatsApp OTP (default off) |
 | `avatar_url`, `date_of_birth`, name/display | Bidirectional with linked login `User` when login is enabled (Family Member CRUD → User; family Edit Profile → Family Member) |
@@ -54,7 +56,7 @@ UI label: **Uploaded By**.
 
 | Source | Attribution |
 |--------|-------------|
-| WhatsApp image / manual text | `InvoiceSenderAttribution::familyMemberIdForSender()` — allowlisted Family Member phone → id; Profile/primary sender → `null` |
+| WhatsApp image / PDF / manual text | `InvoiceSenderAttribution::familyMemberIdForSender()` — allowlisted Family Member phone or linked LID → id; Profile/primary sender → `null` |
 | Receipt upload / create while logged in as family member | Forced to that user’s `family_member_id` |
 | Manual create as primary | Optional select (Primary option = `null`) |
 
@@ -65,6 +67,12 @@ UI label: **Uploaded By**.
 Family members may **view** all invoices (list/slide-over). They may **mutate** (edit, delete, restore, force-delete, reparse, bulk select) only invoices where `family_member_id` matches their linked member. Primary may mutate any.
 
 Create always stamps the family member’s own id (ignores form tampering). **Uploaded By** is disabled/dehydrated for family-member sessions.
+
+## WhatsApp LID identities
+
+WhatsApp may identify a chat with a Linked ID (`@lid`) instead of a phone-number JID. LIDs are opaque identifiers and cannot be normalized as Malaysian phone numbers. A linked LID is stored on either `users.whatsapp_lid` (Primary) or `family_members.whatsapp_lid` (Family Member), and inbound messages resolve to the existing allowlisted phone before bot routing and invoice attribution.
+
+An unlinked LID is ignored by the webhook and remembered as a pending identity, including its optional push name, for up to 30 days. A Primary user can open **Integrations → Evolution API → WhatsApp LID**, link it to the Primary contact or an allowlisted Family Member, or dismiss it. Unlinking removes the mapping and causes later messages from that LID to become pending again.
 
 ## Dashboard spender filter
 
@@ -98,10 +106,11 @@ WHATSAPP_LOGIN_DEV_PHONES=60111222333
 ## Agent rules
 
 1. Gate new Settings / Tools / Integrations pages with `RequiresPrimaryHouseholdAccess` (or explicit `HouseholdAccess::isPrimary()`).
-2. Attribute new WhatsApp / upload invoice creates via `InvoiceSenderAttribution` or the acting user’s `family_member_id`.
+2. Attribute new WhatsApp image/PDF/text and upload invoice creates via `InvoiceSenderAttribution` or the acting user’s `family_member_id`.
 3. Invoice mutate UI must respect `HouseholdAccess::canMutateInvoice()` / `InvoicePolicy` — do not hide View for family members.
 4. Do not invent Spatie roles/tenancy — household role is a column + helpers only.
 5. Tests: `FamilyMember::factory()->loginEnabled()`, `Http::fake` / `Queue::fake` for OTP/WhatsApp.
+6. Treat a WhatsApp LID as unresolved until `WhatsAppLid` maps it to an allowlisted contact; never use the raw LID as a phone number.
 
 ## Related
 

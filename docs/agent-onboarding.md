@@ -18,13 +18,14 @@ Activate the relevant skill when the task matches your domain.
 | **Health** | Coming soon |
 | **Task** | Coming soon |
 
-**Finances** (shipped today) uses **Malaysian Ringgit (MYR)**. It ingests receipt **images** and WhatsApp **text manual invoices**, extracts or classifies data with a **local Ollama** model, categorizes line items as **Labels** (model: `Label`), tracks **Budgets**, and surfaces analytics. Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD surface for that module — distinct from the dashboard view tabs.
+**Finances** (shipped today) uses **Malaysian Ringgit (MYR)**. It ingests receipt **images**, WhatsApp **PDF documents**, and WhatsApp **text manual invoices**, extracts or classifies data with a **local Ollama** model, categorizes line items as **Labels** (model: `Label`), tracks **Budgets**, and surfaces analytics. Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD surface for that module — distinct from the dashboard view tabs.
 
 Primary Finances ingestion paths:
 
 | Channel | Entry | Creates |
 |---------|-------|---------|
 | WhatsApp image | `POST /api/webhooks/whatsapp` | Pending `Invoice` → vision OCR |
+| WhatsApp PDF | same webhook (`application/pdf`) | Validated/stored pending `Invoice` → Poppler page rendering → page extraction + merge |
 | WhatsApp manual text | same webhook (fixed text format) | Pending `Invoice` (no image) → label job → `requires_manual_review` |
 | Google Drive | `SyncGoogleDriveJob` (every 15m) | Pending `Invoice` |
 | UI upload | `ReceiptUploadPage` | Pending `Invoice` |
@@ -68,12 +69,12 @@ Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage)
 app/
   Models/           Invoice, InvoiceItem, Label, PaymentMethod, Budget, FamilyMember, User, ContentDraft, Backup, ServiceHealthSample
   Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support, Livewire
-  Services/         Ollama, GoogleDrive, WhatsApp, BudgetAlert, SpendingForecast, FamilyMemberLoginService, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
-  Jobs/             ExtractReceiptDataJob, ProcessManualWhatsAppInvoiceJob, ParseManualWhatsAppInvoiceJob, SyncGoogleDriveJob, …
+  Services/         Ollama, GoogleDrive, WhatsApp, PdfPageInspector, PdfPageRenderer, ReceiptDocumentPreparer, BudgetAlert, SpendingForecast, FamilyMemberLoginService, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
+  Jobs/             ExtractReceiptDataJob, ProcessWhatsAppMediaJob, ProcessManualWhatsAppInvoiceJob, ParseManualWhatsAppInvoiceJob, SyncGoogleDriveJob, …
   Observers/        InvoiceObserver, FamilyMemberObserver
   Policies/         InvoicePolicy (household mutate ACL)
-  Prompts/          ReceiptExtractionPrompt, ManualInvoiceLabelPrompt
-  Support/          HouseholdAccess, DashboardSpenderScope, InvoiceSenderAttribution, ManualWhatsAppInvoiceParser, WhatsAppMessage, …
+  Prompts/          ReceiptExtractionPrompt, PdfReceiptPagePrompt, PdfReceiptMergePrompt, ManualInvoiceLabelPrompt
+  Support/          HouseholdAccess, DashboardSpenderScope, InvoiceSenderAttribution, ManualWhatsAppInvoiceParser, WhatsAppLid, WhatsAppMessage, …
   Enums/            HouseholdRole, LabelType, UserLocale, UserDateFormat, MonitoredService, ServiceHealthStatus
   Http/Controllers/ Api webhooks, BackupDownload, GuestRestoreBackup
 routes/
@@ -95,6 +96,8 @@ docs/               architecture + integration setup + this file
 | Payment method | **`PaymentMethod`** model / `payment_methods` table (Settings CRUD; AI/WhatsApp via aliases) |
 | Family member | **`FamilyMember`** model / `family_members` table (Settings CRUD; bot allowlist + optional panel login) |
 | Uploaded By | Invoice `family_member_id` — null = Primary; set from WhatsApp sender or acting user — `docs/household-access.md` |
+| WhatsApp identity | Classic phone JIDs resolve by phone; `@lid` identities resolve through `whatsapp_lid` after primary linking in Evolution API |
+| Receipt document | `image_path` stores the original image/PDF; `file_mime_type`, `file_page_count`, `original_filename`, and unique `whatsapp_message_id` preserve media metadata |
 | Money | `decimal(12,2)`, cast `decimal:2`, currency `MYR`, UI `RM` |
 | Duplicate | `receipt_hash` SHA-256 of number + datetime + total |
 | Statuses | `pending`, `parsed`, `reviewed`, `requires_manual_review`, `failed` |
@@ -146,8 +149,9 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 ### Integrations
 
 1. Ollama: always `format: json` + strip markdown fences (see `OllamaService`)
-2. Webhooks: Bearer auth → validate → queue
-3. Never call real Ollama/Evolution in tests
+2. PDF receipts: validate the detected MIME type, enforce `PDF_MAX_BYTES` / `PDF_MAX_PAGES`, and render pages with configured Poppler `pdfinfo` / `pdftocairo` binaries before AI extraction
+3. Webhooks: Bearer auth → resolve phone or linked WhatsApp LID → validate → queue
+4. Never call real Ollama/Evolution in tests
 
 ### After code changes
 
