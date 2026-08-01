@@ -1,6 +1,32 @@
-# UI text marquee (overflow scroll)
+# Single-line text overflow patterns
 
-Reusable pattern for **single-line** labels that continuously scroll right-to-left **only when** the text is wider than its clip. Use anywhere a flex/grid row would otherwise wrap long names into multi-line text and crowd siblings (badges, amounts, actions).
+Use [`x-tido.single-line-text`](../resources/views/components/tido/single-line-text.blade.php) for new single-line labels. It keeps text on one line, fades the right edge while idle, and pans once toward the hidden end of the text on hover.
+
+```blade
+<x-tido.single-line-text
+    class="flex-1"
+    text-class="font-semibold text-gray-800 dark:text-gray-200"
+>
+    {{ $label }}
+</x-tido.single-line-text>
+```
+
+Pass layout classes to the component and text styling through `text-class`. The component measures its own overflow with `ResizeObserver`, including after responsive layout changes and Livewire morphs.
+
+## Hover-pan component
+
+Use the reusable component for account names, chat titles, navigation labels, and other short labels that must remain on one line:
+
+1. Text stays still with a right-edge fade when not hovered.
+2. Hovering waits briefly, then pans to the hidden end of the text.
+3. Leaving the text resets it to the beginning.
+4. Reduced-motion preferences disable the pan.
+
+Do **not** use for body copy, multi-line descriptions, or primary page headings.
+
+## Continuous marquee
+
+The older `.tido-text-marquee` pattern remains available for surfaces that intentionally need continuous scrolling, such as Budget Performance and Filament JS Select values. Prefer `x-tido.single-line-text` for new single-line text unless continuous motion is specifically required.
 
 **Canonical first uses:**
 
@@ -12,7 +38,7 @@ Reusable pattern for **single-line** labels that continuously scroll right-to-le
 **Shared CSS:** [`.tido-text-marquee`](../resources/css/app.css) in `resources/css/app.css`  
 **Select helper JS:** [`resources/js/select-value-marquee.js`](../resources/js/select-value-marquee.js) (panel asset)
 
-## When to use
+## When to use the continuous marquee
 
 Apply this pattern when **all** of these are true:
 
@@ -23,7 +49,7 @@ Apply this pattern when **all** of these are true:
 
 Do **not** use for body copy, multi-line descriptions, or primary page headings.
 
-## Contract (do not invent a second pattern)
+## Continuous marquee contract
 
 | Token | Role |
 |-------|------|
@@ -54,7 +80,7 @@ Shared keyframes (already in `app.css`):
 
 Do not duplicate this CSS under a new class name. Reuse `.tido-text-marquee` / `--tido-marquee-clip`.
 
-## Drop-in Blade + Alpine
+## Continuous marquee Blade + Alpine
 
 Budget Performance on mobile keeps icon + title/period on the left and spent/total stacked on the right of the same row. Period sits under the title; from `sm` up, title + period and spent + total return to inline rows. The title clip uses `flex-1 min-w-0` (no fixed `max-w-*`).
 
@@ -95,7 +121,7 @@ Budget Performance on mobile keeps icon + title/period on the left and spent/tot
 </div>
 ```
 
-### Agent checklist when applying to a new Blade surface
+### Continuous marquee checklist when applying a new Blade surface
 
 1. Identify the text that wraps on narrow widths.
 2. Wrap it in the clip + Alpine block above (keep `x-ref="marqueeText"`).
@@ -170,7 +196,7 @@ Requirements:
 </div>
 ```
 
-## Behaviour details
+## Continuous marquee behaviour details
 
 1. Text that fits the clip stays static (no animation class).
 2. Overflowing text loops forever: hold at start → scroll RTL → hold at end → restart.

@@ -1187,6 +1187,379 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
     }
 }
 
+/*
+ * ── Account Switcher ────────────────────────────────────────────────
+ * Topbar dropdown for primary → family member fast-swap (impersonation).
+ */
+.fi-account-switcher {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-inline-start: 0.25rem;
+}
+
+/* Impersonation banner — thin amber bar */
+.fi-account-switcher-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 500;
+    white-space: nowrap;
+    background-color: color-mix(in oklab, var(--primary-500) 18%, transparent);
+    color: var(--primary-600);
+}
+
+:is(.dark) .fi-account-switcher-banner {
+    background-color: color-mix(in oklab, var(--primary-500) 15%, transparent);
+    color: var(--primary-400);
+}
+
+.fi-account-switcher-banner-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+    background-color: color-mix(in oklab, var(--primary-500) 25%, transparent);
+    color: var(--primary-700);
+    border: none;
+}
+
+:is(.dark) .fi-account-switcher-banner-btn {
+    color: var(--primary-300);
+    background-color: color-mix(in oklab, var(--primary-500) 20%, transparent);
+}
+
+.fi-account-switcher-banner-btn:hover {
+    background-color: color-mix(in oklab, var(--primary-500) 40%, transparent);
+}
+
+.fi-account-switcher-banner-btn-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+}
+
+/* Trigger button */
+.fi-account-switcher-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-lg, 0.5rem);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease;
+    background: transparent;
+    color: var(--gray-700);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    max-width: 12rem;
+}
+
+:is(.dark) .fi-account-switcher-trigger {
+    color: var(--gray-200);
+}
+
+.fi-account-switcher-trigger:hover {
+    background-color: color-mix(in oklab, var(--gray-500) 10%, transparent);
+    border-color: color-mix(in oklab, var(--gray-500) 15%, transparent);
+}
+
+:is(.dark) .fi-account-switcher-trigger:hover {
+    background-color: color-mix(in oklab, var(--gray-400) 10%, transparent);
+    border-color: color-mix(in oklab, var(--gray-400) 10%, transparent);
+}
+
+/* Avatar in trigger */
+.fi-account-switcher-trigger-avatar {
+    width: 1.625rem;
+    height: 1.625rem;
+    border-radius: 9999px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.fi-account-switcher-trigger-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--primary-700);
+    background-color: color-mix(in oklab, var(--primary-500) 20%, transparent);
+}
+
+:is(.dark) .fi-account-switcher-trigger-avatar-placeholder {
+    color: var(--primary-300);
+    background-color: color-mix(in oklab, var(--primary-500) 15%, transparent);
+}
+
+.fi-account-switcher-trigger-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 7rem;
+}
+
+.fi-account-switcher-trigger-chevron {
+    width: 0.875rem;
+    height: 0.875rem;
+    flex-shrink: 0;
+    opacity: 0.5;
+    transition: opacity 150ms ease;
+}
+
+.fi-account-switcher-trigger:hover .fi-account-switcher-trigger-chevron {
+    opacity: 0.8;
+}
+
+/* Member list items */
+.fi-account-switcher-member-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.fi-account-switcher-member-avatar {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.fi-account-switcher-member-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    background-color: color-mix(in oklab, var(--gray-500) 15%, transparent);
+}
+
+:is(.dark) .fi-account-switcher-member-avatar-placeholder {
+    color: var(--gray-300);
+    background-color: color-mix(in oklab, var(--gray-400) 12%, transparent);
+}
+
+.fi-account-switcher-member-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.fi-account-switcher-member-name {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fi-account-switcher-member-current {
+    font-size: 0.6875rem;
+    font-weight: 400;
+    opacity: 0.6;
+    margin-inline-start: 0.25rem;
+}
+
+.fi-account-switcher-member-role {
+    font-size: 0.6875rem;
+    color: var(--gray-500);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+:is(.dark) .fi-account-switcher-member-role {
+    color: var(--gray-400);
+}
+
+/* Responsive: hide name on mobile, show avatar only */
+@media (max-width: 639px) {
+    .fi-account-switcher-trigger-name {
+        display: none;
+    }
+
+    .fi-account-switcher-trigger-chevron {
+        display: none;
+    }
+
+    .fi-account-switcher-trigger {
+        padding: 0.25rem;
+    }
+
+    .fi-account-switcher-banner-text {
+        display: none;
+    }
+
+    .fi-account-switcher-banner {
+        padding: 0.125rem 0.375rem;
+    }
+}
+
+/* Account switcher inside the user menu, between profile details and theme. */
+.fi-account-switcher-menu {
+    margin-block: 0.5rem;
+    margin-inline: 0.75rem;
+}
+
+.fi-account-switcher-heading {
+    @apply px-1 pb-1 text-left text-xs font-semibold;
+
+    color: var(--color-gray-500);
+}
+
+.dark .fi-account-switcher-heading {
+    color: var(--color-gray-400);
+}
+
+.fi-account-switcher-section {
+    overflow: hidden;
+    border: 1px solid var(--color-gray-100);
+    border-radius: var(--radius-lg, 0.5rem);
+}
+
+.dark .fi-account-switcher-section {
+    border-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
+}
+
+.fi-account-switcher-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding: 0.25rem;
+}
+
+.fi-account-switcher-account {
+    @apply flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors;
+
+    color: var(--color-gray-700);
+}
+
+.fi-account-switcher-account:hover {
+    background-color: var(--gray-50);
+    color: var(--primary-500);
+}
+
+.dark .fi-account-switcher-account {
+    color: var(--color-gray-200);
+}
+
+.dark .fi-account-switcher-account:hover {
+    background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
+    color: var(--primary-400);
+}
+
+.fi-account-switcher-account:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.fi-account-switcher-account-avatar {
+    @apply flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full;
+
+    background-color: color-mix(in oklab, var(--gray-500) 15%, transparent);
+}
+
+.fi-account-switcher-account-avatar img {
+    @apply size-full object-cover;
+}
+
+.fi-account-switcher-account-avatar-placeholder {
+    @apply flex size-full items-center justify-center text-xs font-bold;
+
+    color: var(--color-gray-600);
+}
+
+.dark .fi-account-switcher-account-avatar {
+    background-color: color-mix(in oklab, var(--gray-400) 12%, transparent);
+}
+
+.dark .fi-account-switcher-account-avatar-placeholder {
+    color: var(--color-gray-300);
+}
+
+.tido-single-line-text {
+    transform: translateX(0);
+    transition: transform 220ms ease-out;
+}
+
+.tido-single-line-text-clip {
+    -webkit-mask-image: linear-gradient(
+        to right,
+        black 0%,
+        black calc(100% - 1.25rem),
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to right,
+        black 0%,
+        black calc(100% - 1.25rem),
+        transparent 100%
+    );
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+}
+
+@media (hover: hover) {
+    .tido-single-line-text-clip:hover {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+
+    .tido-single-line-text-clip:hover .tido-single-line-text {
+        transform: translateX(
+            calc(var(--tido-single-line-text-overflow, 0px) * -1)
+        );
+        transition-delay: 300ms;
+        transition-duration: 0.75s;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tido-single-line-text {
+        transition: none;
+    }
+
+    .tido-single-line-text-clip:hover .tido-single-line-text {
+        transform: translateX(0);
+    }
+}
+
+.fi-account-switcher-account-chevron {
+    @apply ml-auto flex size-6 shrink-0 items-center justify-center rounded-md;
+
+    background-color: var(--gray-100);
+    color: var(--color-gray-500);
+}
+
+.fi-account-switcher-account-chevron .fi-icon {
+    @apply size-3.5;
+}
+
+.dark .fi-account-switcher-account-chevron {
+    background-color: color-mix(in oklab, var(--color-slate-700) 60%, transparent);
+    color: var(--color-slate-300);
+}
+
 /* Skip layout/chrome motion on the first paint after a hard refresh */
 html.fi-sidebar-preload .fi-topbar,
 html.fi-sidebar-preload .fi-sidebar,
@@ -2918,7 +3291,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 .fi-no-database .fi-no-database-filters-panel {
-    @apply absolute end-0 top-full z-30 mt-2 grid w-72 gap-y-4 rounded-lg border border-gray-200 bg-white p-4 shadow-lg ring-1 ring-gray-950/5 dark:border-white/10 dark:bg-gray-900 dark:ring-white/10;
+    @apply absolute inset-e-0 top-full z-30 mt-2 grid w-72 gap-y-4 rounded-lg border border-gray-200 bg-white p-4 shadow-lg ring-1 ring-gray-950/5 dark:border-white/10 dark:bg-gray-900 dark:ring-white/10;
 }
 
 .fi-no-database .fi-no-database-filters-panel .fi-ta-filters-actions-ctn {
