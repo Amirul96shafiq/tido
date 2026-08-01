@@ -1,29 +1,43 @@
-# tido — Agent Context
+# tido — Codex Project Instructions
 
-Before coding, read **[docs/agent-onboarding.md](docs/agent-onboarding.md)** for product map, directory layout, and how to implement features.
+These repository instructions govern **Codex only**. Cursor and Antigravity keep their own operating rules. Do not edit `.cursor/**` or `.agents/AGENTS.md` to propagate Codex workflow changes unless the user explicitly requests cross-agent work. Project skills under `.agents/skills/` remain available when Codex surfaces them, but the other agents' consolidated instruction files are not Codex policy.
 
-**tido** is a single-tenant personal hub: **Finances** shipped (MYR expenses); **Training** / **Health** / **Task** planned dashboard modules — **[docs/dashboard-views.md](docs/dashboard-views.md)**.
+## Mandatory Codex workflow
 
-- IDE rules: `.cursor/rules/*.mdc` (Cursor, auto-applied) · `.agents/AGENTS.md` (Antigravity, auto-loaded)
-- Domain skill: `.agents/skills/tido-domain/` (activate for invoices, OCR, WhatsApp, Drive, budgets)
-- Architecture gate: do not contradict `docs/system-architecture.md` without warning the user
-- Git workflow: **[docs/git-workflow.md](docs/git-workflow.md)** — feature/fix branches → PR → `main`; do not develop on `main`
-- Dashboard modules: **[docs/dashboard-views.md](docs/dashboard-views.md)** — Finances / Training / Health / Task view tabs
-- Icon CTA tooltips: **[docs/ui-tooltips.md](docs/ui-tooltips.md)** — Filament Tippy, not browser `title`
-- Sticky bars + blur veil: **[docs/ui-sticky-blur.md](docs/ui-sticky-blur.md)** — top/bottom pin with frosted veil
-- Vite panel assets: **[docs/vite-assets.md](docs/vite-assets.md)** — `Vite::asset()` vs `@vite`, when `npm run build` is required
-- Section nav (sticky tabs): **[docs/ui-section-nav.md](docs/ui-section-nav.md)** — shared sticky tabs, smooth scroll, hash deep links (Profile + Dashboard)
-- Text marquee (overflow RTL): **[docs/ui-text-marquee.md](docs/ui-text-marquee.md)** — reuse `.tido-text-marquee` anywhere
-- Notes rich editor: **[docs/ui-notes-rich-editor.md](docs/ui-notes-rich-editor.md)** — `NotesRichEditor` for `notes` fields
-- Form empty defaults: **[docs/ui-form-empty-defaults.md](docs/ui-form-empty-defaults.md)** — placeholders vs defaults on resource forms
-- Custom Blade toggles: **[docs/ui-custom-toggles.md](docs/ui-custom-toggles.md)** — `get_component_color_classes(ToggleComponent)` + Profile inlineLabel layout
-- Backups / Danger Zone: **[docs/backups-and-danger-zone.md](docs/backups-and-danger-zone.md)**
-- Service Status / health probes: **[docs/service-status.md](docs/service-status.md)**
-- Profile Active Sessions: **[docs/active-sessions.md](docs/active-sessions.md)**
-- Household access (attribution, family login, invoice ACL): **[docs/household-access.md](docs/household-access.md)**
-- WhatsApp manual text invoices: **[docs/whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md)**
-- WhatsApp bot commands: **[docs/whatsapp-bot-commands.md](docs/whatsapp-bot-commands.md)**
-- Product name: **tido** only · expense tags: **Label** / **Labels** (model: `Label`, not Category)
+Resolve the workflow mode before acting. An explicit user mode wins; otherwise infer the least-mutating mode that satisfies the request:
+
+- **Ask** — answer, explain, review, or report. Read-only inspection is allowed; do not edit files, run tests/builds/services, create branches, or perform external writes.
+- **Plan** — investigate, ask focused questions, and create or update one task plan under `.codex/plans/` from `.codex/PLAN_TEMPLATE.md`. Selecting Plan explicitly authorizes this ignored task-local document. Do not change application, test, configuration, or shared documentation files; do not execute the plan.
+- **Agent** — inspect, state a concise implementation and verification plan, then work immediately. Ask only when a missing decision materially changes scope, behavior, risk, or authority.
+- **Debug** — reproduce and isolate the failure, add minimal temporary diagnostics when evidence is insufficient, then pause with exact user test steps when user interaction is required. Analyze returned evidence before proposing or applying the permanent fix. A Debug request alone does not authorize a permanent fix.
+
+The selected mode applies to the current request and its follow-ups until the user switches modes or uses an unmistakable action instruction such as “implement,” “proceed,” or “fix it.” Never silently promote Ask, Plan, or Debug into Agent. “Debug and fix” authorizes the permanent fix after the fault is evidenced, but still pause when the user must perform a reproduction step.
+
+Before any repository mutation, test/build/service execution, or Git write, read **[`.codex/CODEX_WORKFLOW.md`](.codex/CODEX_WORKFLOW.md)** completely. Select checks from **[`.codex/VERIFICATION.md`](.codex/VERIFICATION.md)**. In Plan mode, follow **[`.codex/PLAN_TEMPLATE.md`](.codex/PLAN_TEMPLATE.md)**.
+
+## Non-negotiable gates
+
+- Inspect the active branch, worktree, existing user changes, relevant implementation, sibling conventions, and tests before editing.
+- Do not develop on `main`. In Agent mode, or before Debug-mode instrumentation, Codex may create or switch to an appropriately named `feature/*` or `fix/*` branch after confirming that doing so preserves user work. Updating `main` from the network still requires an explicit decision when it can change local state.
+- If the current dirty branch belongs to an unrelated concern, stop and ask for branch/worktree direction. Do not carry dirty changes into a new concern or move them without permission.
+- Read [docs/agent-onboarding.md](docs/agent-onboarding.md) and only the task-relevant architecture, domain, UI, or operations documents before implementation.
+- Use Laravel Boost through `.codex/config.toml` for version-specific documentation, schema inspection, read-only database queries, URLs, and browser logs when its tools are available. If unavailable, report the limitation and use official documentation or installed source as the fallback.
+- Activate every relevant Codex-surfaced skill. Architecture, security, receipt pipeline, Filament, Tailwind, Pest, and Laravel conventions are additive gates when their trigger applies.
+- Treat “every change must be programmatically tested” as applying to executable behavior. Documentation- and instruction-only work uses the documentation checks in `.codex/VERIFICATION.md`; do not invent synthetic application tests for prose changes.
+- An ingestion or asynchronous integration is not verified at upload, webhook acceptance, file storage, or job dispatch. When live verification is in scope and locally available, follow the queue to completion and inspect the persisted invoice status and populated data.
+- Never run broad process termination such as `taskkill /F /IM php.exe`. Identify workspace-owned processes first and stop only exact targets; ask when ownership is uncertain.
+- A Debug reproduction pause is an interim handoff, not completion. Temporary diagnostics may remain only when they are explicitly listed with their locations, privacy review, reproduction steps, and removal plan.
+- Never commit, amend, push, force-push, create or merge a PR, deploy, or mutate production without explicit user approval for that action.
+- For completed Agent work and terminal Debug work, finish by reviewing tracked and intended untracked changes plus status, then report files changed, exact checks and results, skipped checks with reasons, remaining risks, and any approval-dependent next action. Ask, Plan, and interim Debug handoffs follow their mode-specific endings.
+
+## Project sources of truth
+
+- Product and directory map: **[docs/agent-onboarding.md](docs/agent-onboarding.md)**
+- Architecture gate: **[docs/system-architecture.md](docs/system-architecture.md)** — surface contradictions before proceeding
+- Git workflow: **[docs/git-workflow.md](docs/git-workflow.md)** — short-lived `feature/*` / `fix/*` branches into `main`
+- Documentation index: **[docs/README.md](docs/README.md)**
+- Dashboard modules: **[docs/dashboard-views.md](docs/dashboard-views.md)** — Finances shipped; Training / Health / Task planned
+- Product name: **tido** only; expense tags are **Label** / **Labels** (`Label`, never Category)
 
 <laravel-boost-guidelines>
 === foundation rules ===

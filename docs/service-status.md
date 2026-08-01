@@ -66,7 +66,7 @@ php artisan health:probe    # record samples now
 php artisan health:prune    # drop samples older than 30 days (override: --days=)
 ```
 
-Requires `schedule:run` (or `npm run dev:full`) for automatic polling.
+Automatic polling requires an active Laravel scheduler process, such as `php artisan schedule:work`, or an external scheduler that invokes `php artisan schedule:run` every minute. `npm run dev:full` starts Vite, Laravel, and the queue listener; it does **not** start the scheduler.
 
 ## Agent rules
 

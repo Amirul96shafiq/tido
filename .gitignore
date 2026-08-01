@@ -22,3 +22,7 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Codex task-local plan artifacts (keep the directory, not individual plans)
+/.codex/plans/*
+!/.codex/plans/.gitkeep
