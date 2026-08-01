@@ -176,3 +176,48 @@ test('mixed PDF batch acknowledges rejected files and only dispatches accepted i
     Queue::assertPushed(ExtractReceiptDataJob::class, fn (ExtractReceiptDataJob $job): bool => $job->invoiceId === 101);
     Queue::assertPushed(ExtractReceiptDataJob::class, 1);
 });
+
+test('document received fallback acknowledges a PDF processing failure after a database lock', function () {
+    Queue::fake();
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    $sender = '60123456789';
+
+    WhatsAppDocumentReceivedDebouncer::register($sender, [
+        'message_id' => 'MSG-VALID',
+        'invoice_id' => 101,
+        'filename' => 'receipt.pdf',
+        'mime_type' => 'application/pdf',
+        'page_count' => 2,
+        'status' => 'accepted',
+        'reason' => null,
+    ]);
+    WhatsAppDocumentReceivedDebouncer::register($sender, [
+        'message_id' => 'MSG-LOCKED',
+        'invoice_id' => null,
+        'filename' => 'statement.pdf',
+        'mime_type' => 'application/pdf',
+        'page_count' => null,
+        'status' => 'failed',
+        'reason' => 'pdf_processing_failed',
+    ]);
+
+    $payload = Cache::get(WhatsAppDocumentReceivedDebouncer::cacheKey($sender));
+
+    (new SendWhatsAppDocumentReceivedAckJob($sender, $payload['token']))
+        ->failed(new RuntimeException('SQLSTATE[HY000]: General error: 5 database is locked'));
+
+    Http::assertSent(function (Request $request): bool {
+        $text = (string) $request['text'];
+
+        return str_contains($request->url(), '/message/sendText/')
+            && str_contains($text, 'A total of *2* file(s) received.')
+            && str_contains($text, '*1* file(s) saved and queued for AI parsing.')
+            && str_contains($text, '*1* file(s) could not be processed:')
+            && str_contains($text, 'statement.pdf - could not be processed; please resend the PDF');
+    });
+
+    Queue::assertPushed(ExtractReceiptDataJob::class, fn (ExtractReceiptDataJob $job): bool => $job->invoiceId === 101);
+});

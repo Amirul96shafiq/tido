@@ -114,7 +114,7 @@ final class WhatsAppMessage
         $count = max(1, $count);
 
         $rejectedDocuments = collect($documents)
-            ->where('status', 'rejected')
+            ->whereIn('status', ['rejected', 'failed'])
             ->values();
 
         if ($rejectedDocuments->isEmpty()) {
@@ -126,13 +126,26 @@ final class WhatsAppMessage
         }
 
         $acceptedCount = collect($documents)->where('status', 'accepted')->count();
+        $unsupportedDocuments = $rejectedDocuments->where('status', 'rejected')->values();
+        $failedDocuments = $rejectedDocuments->where('status', 'failed')->values();
         $lines = [
             sprintf('A total of *%d* file(s) received.', $count),
             sprintf('*%d* file(s) saved and queued for AI parsing.', $acceptedCount),
-            sprintf('*%d* file(s) not supported:', $rejectedDocuments->count()),
         ];
 
-        foreach ($rejectedDocuments as $document) {
+        if ($unsupportedDocuments->isNotEmpty()) {
+            $lines[] = sprintf('*%d* file(s) not supported:', $unsupportedDocuments->count());
+        }
+
+        foreach ($unsupportedDocuments as $document) {
+            $lines[] = '- '.self::rejectedDocumentSummary($document);
+        }
+
+        if ($failedDocuments->isNotEmpty()) {
+            $lines[] = sprintf('*%d* file(s) could not be processed:', $failedDocuments->count());
+        }
+
+        foreach ($failedDocuments as $document) {
             $lines[] = '- '.self::rejectedDocumentSummary($document);
         }
 
@@ -160,6 +173,7 @@ final class WhatsAppMessage
             ),
             'pdf_size_limit' => $filename.' - exceeds the PDF file-size limit',
             'pdf_password_protected' => $filename.' - password-protected PDFs are not supported',
+            'pdf_processing_failed' => $filename.' - could not be processed; please resend the PDF',
             default => $filename.' - the PDF could not be read',
         };
     }

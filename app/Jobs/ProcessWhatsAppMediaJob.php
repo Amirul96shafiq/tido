@@ -203,11 +203,55 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
+        if ($this->mediaType === 'pdf' && $this->isDatabaseQueueReservationFailure($exception)) {
+            try {
+                $this->registerProcessingFailure();
+            } catch (Throwable $fallbackException) {
+                Log::error('Unable to register WhatsApp PDF processing failure for acknowledgement', [
+                    'message_id' => $this->messageId,
+                    'error' => $fallbackException->getMessage(),
+                ]);
+
+                $this->deliverFallbackAcknowledgement($exception);
+            }
+        }
+
         Log::error('ProcessWhatsAppMediaJob failed after maximum retries', [
             'message_id' => $this->messageId,
             'sender' => $this->senderNumber,
             'error' => $exception->getMessage(),
         ]);
+    }
+
+    protected function isDatabaseQueueReservationFailure(Throwable $exception): bool
+    {
+        do {
+            $message = strtolower($exception->getMessage());
+
+            if (
+                str_contains($message, 'database is locked')
+                && str_contains($message, 'reserved_at')
+            ) {
+                return true;
+            }
+
+            $exception = $exception->getPrevious();
+        } while ($exception instanceof Throwable);
+
+        return false;
+    }
+
+    protected function deliverFallbackAcknowledgement(Throwable $exception): void
+    {
+        $payload = Cache::get(WhatsAppDocumentReceivedDebouncer::cacheKey($this->senderNumber));
+        $token = is_array($payload) ? ($payload['token'] ?? null) : null;
+
+        if (! is_string($token) || trim($token) === '') {
+            return;
+        }
+
+        (new SendWhatsAppDocumentReceivedAckJob($this->senderNumber, $token))
+            ->failed($exception);
     }
 
     protected function attemptNumber(): int
@@ -268,25 +312,53 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
         string $reason,
         ?int $pageCount = null,
     ): void {
+        $this->registerDocumentOutcome(
+            filename: $filename,
+            mimeType: $mimeType,
+            status: 'rejected',
+            reason: $reason,
+            pageCount: $pageCount,
+        );
+    }
+
+    protected function registerProcessingFailure(): void
+    {
+        $this->registerDocumentOutcome(
+            filename: $this->safeOriginalFilename('pdf'),
+            mimeType: 'application/pdf',
+            status: 'failed',
+            reason: 'pdf_processing_failed',
+        );
+    }
+
+    protected function registerDocumentOutcome(
+        string $filename,
+        string $mimeType,
+        string $status,
+        string $reason,
+        ?int $pageCount = null,
+    ): void {
         WhatsAppDocumentReceivedDebouncer::register($this->senderNumber, [
             'message_id' => $this->messageId,
             'invoice_id' => null,
             'filename' => $filename,
             'mime_type' => $mimeType,
             'page_count' => $pageCount,
-            'status' => 'rejected',
+            'status' => $status,
             'reason' => $reason,
         ]);
 
         Cache::put($this->rejectedMessageCacheKey(), true, now()->addDays(7));
 
-        Log::info('WhatsApp PDF rejected before AI parsing', [
-            'message_id' => $this->messageId,
-            'sender' => $this->senderNumber,
-            'filename' => $filename,
-            'page_count' => $pageCount,
-            'reason' => $reason,
-        ]);
+        Log::info($status === 'failed'
+            ? 'WhatsApp PDF processing failure registered for acknowledgement'
+            : 'WhatsApp PDF rejected before AI parsing', [
+                'message_id' => $this->messageId,
+                'sender' => $this->senderNumber,
+                'filename' => $filename,
+                'page_count' => $pageCount,
+                'reason' => $reason,
+            ]);
     }
 
     protected function rejectedMessageCacheKey(): string

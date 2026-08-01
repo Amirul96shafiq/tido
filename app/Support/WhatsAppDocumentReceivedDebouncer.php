@@ -27,7 +27,7 @@ final class WhatsAppDocumentReceivedDebouncer
      *     filename: string,
      *     mime_type: string,
      *     page_count: int|null,
-     *     status: 'accepted'|'rejected',
+     *     status: 'accepted'|'rejected'|'failed',
      *     reason: string|null
      * }  $document
      */
