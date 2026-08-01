@@ -15,7 +15,6 @@ use App\Models\Invoice;
 use App\Models\User;
 use App\Services\FamilyMemberLoginService;
 use App\Services\WhatsAppLoginOtpService;
-use App\Services\WhatsAppNotificationService;
 use App\Support\DashboardSpenderScope;
 use Database\Seeders\FamilyMemberLoginTestSeeder;
 use Filament\Facades\Filament;
@@ -51,16 +50,17 @@ test('whatsapp media job attributes invoice to allowlisted family member', funct
 
     Http::fake([
         '*/chat/getBase64FromMediaMessage/*' => Http::response([
-            'base64' => base64_encode('fake-receipt-binary-image'),
+            'base64' => 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
         ]),
     ]);
 
-    (new ProcessWhatsAppMediaJob(
+    $job = new ProcessWhatsAppMediaJob(
         '60111111111',
         '60111111111@s.whatsapp.net',
         'MSG-FAMILY',
         false,
-    ))->handle(app(WhatsAppNotificationService::class));
+    );
+    app()->call([$job, 'handle']);
 
     $invoice = Invoice::query()->first();
 
@@ -77,16 +77,17 @@ test('whatsapp media job leaves family member null for primary sender', function
 
     Http::fake([
         '*/chat/getBase64FromMediaMessage/*' => Http::response([
-            'base64' => base64_encode('fake-receipt-binary-image'),
+            'base64' => 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
         ]),
     ]);
 
-    (new ProcessWhatsAppMediaJob(
+    $job = new ProcessWhatsAppMediaJob(
         '60123456789',
         '60123456789@s.whatsapp.net',
         'MSG-PRIMARY',
         false,
-    ))->handle(app(WhatsAppNotificationService::class));
+    );
+    app()->call([$job, 'handle']);
 
     expect(Invoice::query()->value('family_member_id'))->toBeNull();
 });

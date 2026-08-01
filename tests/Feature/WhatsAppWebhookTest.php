@@ -251,10 +251,77 @@ test('whatsapp webhook accepts image message and dispatches media job', function
         return $job->senderNumber === '60123456789'
             && $job->remoteJid === '60123456789@s.whatsapp.net'
             && $job->messageId === 'MSG456'
-            && $job->fromMe === false;
+            && $job->fromMe === false
+            && $job->mediaType === 'image'
+            && $job->declaredMimeType === 'image/jpeg';
     });
 
     expect(Invoice::count())->toBe(0);
+});
+
+test('whatsapp webhook accepts a PDF document and dispatches its metadata', function () {
+    Queue::fake();
+
+    $payload = [
+        'event' => 'messages.upsert',
+        'data' => [
+            'key' => [
+                'remoteJid' => '60123456789@s.whatsapp.net',
+                'fromMe' => false,
+                'id' => 'MSG-PDF',
+            ],
+            'messageType' => 'documentMessage',
+            'message' => [
+                'documentMessage' => [
+                    'mimetype' => 'application/pdf',
+                    'fileName' => '../receipt.pdf',
+                ],
+            ],
+        ],
+    ];
+
+    $this->postJson('/api/webhooks/whatsapp', $payload, [
+        'Authorization' => 'Bearer tido-secret-key',
+    ])
+        ->assertSuccessful()
+        ->assertJson(['status' => 'accepted']);
+
+    Queue::assertPushed(ProcessWhatsAppMediaJob::class, function (ProcessWhatsAppMediaJob $job): bool {
+        return $job->messageId === 'MSG-PDF'
+            && $job->mediaType === 'pdf'
+            && $job->declaredMimeType === 'application/pdf'
+            && $job->originalFilename === 'receipt.pdf';
+    });
+});
+
+test('whatsapp webhook ignores non-PDF document messages', function () {
+    Queue::fake();
+
+    $payload = [
+        'event' => 'messages.upsert',
+        'data' => [
+            'key' => [
+                'remoteJid' => '60123456789@s.whatsapp.net',
+                'fromMe' => false,
+                'id' => 'MSG-DOCX',
+            ],
+            'messageType' => 'documentMessage',
+            'message' => [
+                'documentMessage' => [
+                    'mimetype' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'fileName' => 'invoice.docx',
+                ],
+            ],
+        ],
+    ];
+
+    $this->postJson('/api/webhooks/whatsapp', $payload, [
+        'Authorization' => 'Bearer tido-secret-key',
+    ])
+        ->assertSuccessful()
+        ->assertJson(['status' => 'ignored_document_type']);
+
+    Queue::assertNothingPushed();
 });
 
 test('whatsapp webhook denies all senders when no profile or family allowlist exists', function () {

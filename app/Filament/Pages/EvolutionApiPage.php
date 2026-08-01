@@ -18,9 +18,11 @@ use App\Services\EvolutionApiConnectionLogService;
 use App\Services\EvolutionInstanceService;
 use App\Services\WhatsAppNotificationService;
 use App\Support\PhoneNumber;
+use App\Support\WhatsAppLid;
 use App\Support\WhatsAppMessage;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -117,6 +119,7 @@ class EvolutionApiPage extends Page implements HasTable
         return [
             ['label' => 'Link device', 'id' => 'evolution-link-device'],
             ['label' => 'Connection', 'id' => 'evolution-connection'],
+            ['label' => 'WhatsApp LID', 'id' => 'evolution-whatsapp-lid'],
             ['label' => 'Connection history', 'id' => 'evolution-connection-history'],
         ];
     }
@@ -1064,13 +1067,116 @@ class EvolutionApiPage extends Page implements HasTable
 
     /**
      * @return array{
-     *     primary: list<array{name: string, display_name: string|null, phone: string, avatar_url: string}>,
-     *     family: list<array{id: int, name: string, display_name: string|null, relationship_label: string|null, phone: string, avatar_url: string}>
+     *     primary: list<array{name: string, display_name: string|null, phone: string, whatsapp_lid: string|null, avatar_url: string}>,
+     *     family: list<array{id: int, name: string, display_name: string|null, relationship_label: string|null, phone: string, whatsapp_lid: string|null, avatar_url: string}>
      * }
      */
     public function allowedSenderEntries(): array
     {
         return PhoneNumber::allowedWhatsAppSenderEntries();
+    }
+
+    /**
+     * @return list<array{lid: string, push_name: string|null, seen_at: string|null}>
+     */
+    public function pendingWhatsAppLids(): array
+    {
+        return WhatsAppLid::pendingUnlinked();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function whatsAppLidLinkTargets(): array
+    {
+        $targets = [];
+        $entries = $this->allowedSenderEntries();
+
+        foreach ($entries['primary'] as $entry) {
+            $label = filled($entry['display_name']) ? $entry['display_name'] : $entry['name'];
+            $targets['primary'] = $label.' (You) · '.$entry['phone'];
+        }
+
+        foreach ($entries['family'] as $entry) {
+            $label = filled($entry['display_name']) ? $entry['display_name'] : $entry['name'];
+            $targets['family:'.$entry['id']] = $label.' · '.$entry['phone'];
+        }
+
+        return $targets;
+    }
+
+    public function linkWhatsAppLidAction(): Action
+    {
+        $targets = $this->whatsAppLidLinkTargets();
+
+        return Action::make('linkWhatsAppLid')
+            ->label('Link LID')
+            ->icon('heroicon-o-link')
+            ->modalHeading('Link WhatsApp LID')
+            ->modalDescription('Map an inbound LID identity to an allowlisted contact. Required after WhatsApp switches a chat to LID addressing.')
+            ->form([
+                Select::make('lid')
+                    ->label('Pending LID')
+                    ->options(fn (): array => collect($this->pendingWhatsAppLids())
+                        ->mapWithKeys(function (array $item): array {
+                            $label = $item['lid'];
+
+                            if (filled($item['push_name'])) {
+                                $label .= ' · '.$item['push_name'];
+                            }
+
+                            return [$item['lid'] => $label];
+                        })
+                        ->all())
+                    ->required()
+                    ->searchable(),
+                Select::make('target')
+                    ->label('Allowlist contact')
+                    ->options($targets)
+                    ->required()
+                    ->native(false),
+            ])
+            ->action(function (array $data): void {
+                try {
+                    WhatsAppLid::link((string) $data['lid'], (string) $data['target']);
+                } catch (\InvalidArgumentException $exception) {
+                    Notification::make()
+                        ->title('Unable to link LID')
+                        ->body($exception->getMessage())
+                        ->danger()
+                        ->send();
+
+                    return;
+                }
+
+                Notification::make()
+                    ->title('WhatsApp LID linked')
+                    ->body('Inbound messages from this LID will match the selected allowlist contact.')
+                    ->success()
+                    ->send();
+            })
+            ->disabled(fn (): bool => $this->pendingWhatsAppLids() === [] || $targets === [])
+            ->visible(fn (): bool => $this->pendingWhatsAppLids() !== []);
+    }
+
+    public function unlinkWhatsAppLid(string $lid): void
+    {
+        WhatsAppLid::unlink($lid);
+
+        Notification::make()
+            ->title('WhatsApp LID unlinked')
+            ->success()
+            ->send();
+    }
+
+    public function dismissPendingWhatsAppLid(string $lid): void
+    {
+        WhatsAppLid::forgetPending($lid);
+
+        Notification::make()
+            ->title('Pending LID dismissed')
+            ->success()
+            ->send();
     }
 
     public function hasContactAllowlist(): bool

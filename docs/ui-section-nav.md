@@ -132,7 +132,7 @@ Home module tabs (Finances / Training / Health / Task) are **not** section nav â
 | Section list | `EvolutionApiPage::sectionNavItems()` |
 | Sticky pin + content scope | `EvolutionApiPage::content()` â€” `wrapInSectionNavScope()` + content partial |
 | Page class | `.fi-evolution-api-page` |
-| Anchors | `#evolution-link-device`, `#evolution-connection`, `#evolution-connection-history` in [`evolution-api-content.blade.php`](../resources/views/filament/pages/partials/evolution-api-content.blade.php) |
+| Anchors | `#evolution-link-device`, `#evolution-connection`, `#evolution-whatsapp-lid`, `#evolution-connection-history` in [`evolution-api-content.blade.php`](../resources/views/filament/pages/partials/evolution-api-content.blade.php) |
 | Tests | [`tests/Feature/EvolutionApiSectionNavTest.php`](../tests/Feature/EvolutionApiSectionNavTest.php) |
 
 ## Service Status

@@ -21,6 +21,31 @@ status = parsed | requires_manual_review
 InvoiceObserver / BudgetAlertService (threshold WhatsApp + DB notifications)
 ```
 
+## End-to-end (WhatsApp PDF receipts)
+
+```
+WhatsApp documentMessage (application/pdf)
+        ↓
+ProcessWhatsAppMediaJob
+  → download media → detect MIME → enforce PDF_MAX_BYTES / PDF_MAX_PAGES
+  → inspect page count with PdfPageInspector (Poppler pdfinfo)
+  → store original PDF as receipts/wa_<message-id>.pdf
+  → register accepted document for the batched received acknowledgement
+        ↓
+SendWhatsAppDocumentReceivedAckJob
+  → send acknowledgement → dispatch ExtractReceiptDataJob
+        ↓
+ReceiptDocumentPreparer → PdfPageRenderer (Poppler pdftocairo → JPEG pages)
+        ↓
+ExtractReceiptDataJob
+  → Ollama page JSON (`PdfReceiptPagePrompt`)
+  → merge multi-page JSON (`PdfReceiptMergePrompt`)
+  → normalize invoice + match Labels / payment method
+  → status = parsed | requires_manual_review
+```
+
+Defaults are 10 MB (`PDF_MAX_BYTES`) and 3 pages (`PDF_MAX_PAGES`). Password-protected and unreadable PDFs are rejected before invoice creation. If `pdfinfo` is unavailable during intake, the PDF may be stored with a null page count, but `pdftocairo` must still be available when the extraction job runs.
+
 ## End-to-end (WhatsApp manual text)
 
 ```
@@ -43,6 +68,8 @@ Manual invoice parsed WhatsApp reply (edit URL)
 User-facing format and tokens: [docs/whatsapp-manual-invoice.md](../../../docs/whatsapp-manual-invoice.md).
 
 ## ExtractReceiptDataJob
+
+- PDF invoices use Poppler `pdfinfo` / `pdftocairo`; each page is extracted separately and multi-page results are merged before normalization
 
 - `$tries = 3`, backoff `[30, 60, 120]`
 - Skip if invoice missing or status ≠ `pending`
@@ -72,6 +99,11 @@ Unique on `receipt_hash`. Factories should set a unique hash.
 - Image: fetch media → `receipts/` storage → pending Invoice (`family_member_id` via `InvoiceSenderAttribution`) → ack text
 - Text: spend/total keywords → monthly sum via Evolution `sendText`
 - Text manual invoice format (`merchant[, payment];` + `item, qty, line_total;` blocks, multi-block OK) → pending Invoice (no image; attributed; payment token optional: `qr` / `tngo` / `card` / `cash`…, default cash) → Manual invoice received ack → `ParseManualWhatsAppInvoiceJob` (Ollama labels only) → `requires_manual_review` + Manual invoice parsed reply
+
+## WhatsApp identity resolution
+
+- Classic phone JIDs resolve by phone; `@lid` JIDs resolve only after `WhatsAppLid` links them to an allowlisted Primary or Family Member.
+- Unlinked LIDs are remembered as pending for the Evolution API page and ignored by the webhook until linked or dismissed.
 
 ## Google Drive sync
 

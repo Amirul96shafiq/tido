@@ -106,15 +106,62 @@ final class WhatsAppMessage
         return self::compose('❌', $title, $body);
     }
 
-    public static function documentReceived(int $count): string
+    /**
+     * @param  list<array<string, mixed>>  $documents
+     */
+    public static function documentReceived(int $count, array $documents = []): string
     {
         $count = max(1, $count);
+
+        $rejectedDocuments = collect($documents)
+            ->where('status', 'rejected')
+            ->values();
+
+        if ($rejectedDocuments->isEmpty()) {
+            return self::compose(
+                '📥',
+                'Document received',
+                sprintf('A total of *%d* file(s) saved and queued for AI parsing.', $count),
+            );
+        }
+
+        $acceptedCount = collect($documents)->where('status', 'accepted')->count();
+        $lines = [
+            sprintf('A total of *%d* file(s) received.', $count),
+            sprintf('*%d* file(s) saved and queued for AI parsing.', $acceptedCount),
+            sprintf('*%d* file(s) not supported:', $rejectedDocuments->count()),
+        ];
+
+        foreach ($rejectedDocuments as $document) {
+            $lines[] = '- '.self::rejectedDocumentSummary($document);
+        }
 
         return self::compose(
             '📥',
             'Document received',
-            sprintf('A total of *%d* file(s) saved and queued for AI parsing.', $count),
+            implode("\n", $lines),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $document
+     */
+    private static function rejectedDocumentSummary(array $document): string
+    {
+        $filename = trim((string) ($document['filename'] ?? 'document.pdf'));
+        $reason = (string) ($document['reason'] ?? 'pdf_unreadable');
+
+        return match ($reason) {
+            'pdf_page_limit' => sprintf(
+                '%s - %d pages (maximum %d)',
+                $filename,
+                (int) ($document['page_count'] ?? 0),
+                max(1, (int) config('services.documents.max_pdf_pages', 3)),
+            ),
+            'pdf_size_limit' => $filename.' - exceeds the PDF file-size limit',
+            'pdf_password_protected' => $filename.' - password-protected PDFs are not supported',
+            default => $filename.' - the PDF could not be read',
+        };
     }
 
     /**

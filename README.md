@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-<code>tido</code> is a single-tenant Life OS designed to bring personal finance, health, training, and everyday productivity into one private hub. <strong>Finances</strong> is currently in active development as a localized MYR expense tracker. It supports receipt ingestion through WhatsApp, scheduled Google Drive sync (coming soon), and manual admin uploads, with on-device parsing powered by local Ollama. Users can manage line items with labels, track budgets, and review spending analytics from the Finances dashboard.
+<code>tido</code> is a single-tenant Life OS designed to bring personal finance, health, training, and everyday productivity into one private hub. <strong>Finances</strong> is currently in active development as a localized MYR expense tracker. It supports receipt ingestion through WhatsApp images and PDFs, scheduled Google Drive sync (coming soon), and manual admin uploads, with on-device parsing powered by local Ollama. Users can manage line items with labels, track budgets, and review spending analytics from the Finances dashboard.
 <strong>Training</strong> (workouts, running activities, and Strava
   sync. (TBD)), <strong>Health</strong> (calorie tracking and
   AI-assisted meal analysis from food photos), and <strong>Tasks</strong> (reminders and practical real-life task management) modules are coming soon!
@@ -43,7 +43,7 @@
 ## Features
 
 - Modular Home dashboard: **Finances** (Ongoing), **Training** / **Health** / **Task** (coming soon) — see [docs/dashboard-views.md](docs/dashboard-views.md)
-- Receipt ingestion from WhatsApp (**images** + **text manual invoices**), Google Drive scheduled sync (Coming Soon), and admin upload
+- Receipt ingestion from WhatsApp (**images**, **PDFs**, and **text manual invoices**), Google Drive scheduled sync (Coming Soon), and admin upload
 - Local OCR via Ollama with JSON-formatted extraction; manual WhatsApp text uses Ollama for **Labels** only
 - Line-item **Labels**, duplicate detection, and manual review
 - Per-label budgets with WhatsApp threshold alerts
@@ -70,12 +70,13 @@
 
 ```mermaid
 flowchart LR
-  waImg[WhatsApp_image] --> pending[Pending_Invoice]
+  waMedia[WhatsApp_image_or_PDF] --> pending[Pending_Invoice]
   waText[WhatsApp_manual_text] --> pendingManual[Pending_manual_Invoice]
   drive[Drive_sync_15m] --> pending
   upload[Web_upload] --> pending
   pending --> job[ExtractReceiptDataJob]
-  job --> ollama[Ollama_vision]
+  job --> prep[Image_prep_or_Poppler_PDF_pages]
+  prep --> ollama[Ollama_vision]
   ollama --> items[Labels_and_line_items]
   items --> review[Parsed_or_manual_review]
   pendingManual --> labelJob[ParseManualWhatsAppInvoiceJob]
@@ -154,9 +155,11 @@ Admin nav:
 
 **WhatsApp OTP login:** Pair Evolution → set WhatsApp number in Profile → `php artisan whatsapp:ping` → sign in with OTP at `/admin/login`.
 
-**WhatsApp receipt image:** Send a photo/document from an allowlisted number (Profile or Family Members with allowlist enabled) → batched “Document received” → Ollama vision parse → “Document parsed” with edit link.
+**WhatsApp receipt image/PDF:** Send an image or PDF from an allowlisted number (Profile or Family Members with allowlist enabled) → batched “Document received” → Ollama vision parse → “Document parsed” with edit link. PDFs are limited to 10 MB and 3 pages by default and require Poppler (`pdfinfo` + `pdftocairo`) on the queue worker.
 
-**WhatsApp manual invoice (no receipt image):** Text format, payment tokens, and replies: [docs/whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md).
+**WhatsApp manual invoice (no receipt media):** Text format, payment tokens, and replies: [docs/whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md).
+
+**WhatsApp LID allowlist:** If WhatsApp delivers an inbound chat with a LID instead of a phone JID, link the pending identity to the correct allowlisted contact under **Integrations → Evolution API → WhatsApp LID**. See [docs/evolution-local-windows.md](docs/evolution-local-windows.md).
 
 **WhatsApp text commands:** `spend` / `total` — this month’s spending; other text — help.
 
@@ -164,7 +167,7 @@ Admin nav:
 
 ## Configuration
 
-Copy [`.env.example`](.env.example) and set values for your environment. Notable groups (`DB_*`, `QUEUE_CONNECTION`, `EVOLUTION_*`, `OLLAMA_*`, `GOOGLE_DRIVE_*`) are documented there and in the [setup guides](#installation).
+Copy [`.env.example`](.env.example) and set values for your environment. Notable groups (`DB_*`, `QUEUE_CONNECTION`, `EVOLUTION_*`, `OLLAMA_*`, `PDF_*` / Poppler binaries, `GOOGLE_DRIVE_*`) are documented there and in the [setup guides](#installation).
 
 ## Testing
 

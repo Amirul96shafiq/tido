@@ -256,6 +256,13 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Evolution API'],
             ],
             [
+                'title' => 'WhatsApp LID',
+                'keywords' => ['lid', 'whatsapp', 'allowlist', 'link', 'identity', 'evolution'],
+                'group' => 'Sections',
+                'url' => $evolutionUrl.'#evolution-whatsapp-lid',
+                'details' => ['Page' => 'Evolution API'],
+            ],
+            [
                 'title' => 'Connection history',
                 'keywords' => ['connection', 'history', 'log', 'events', 'evolution'],
                 'group' => 'Sections',

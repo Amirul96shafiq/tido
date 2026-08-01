@@ -10,6 +10,20 @@ const COPY = {
 
 const DEFAULT_UPLOAD_URL = '/admin/upload-receipts';
 
+function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (character) => {
+        const entities = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;',
+        };
+
+        return entities[character];
+    });
+}
+
 let isProcessing = false;
 let lastHandledReceiptKey = null;
 let autoFillStartedForKey = null;
@@ -31,7 +45,12 @@ function isUploadPage() {
 }
 
 function getReceiptKey(fileData) {
-    return `${fileData.name}:${fileData.lastModified}:${fileData.size}`;
+    return fileData
+        .map(
+            (receipt) =>
+                `${receipt.name}:${receipt.lastModified}:${receipt.size}`,
+        )
+        .join('|');
 }
 
 function processDraggedReceipt() {
@@ -39,20 +58,28 @@ function processDraggedReceipt() {
         return;
     }
 
-    const draggedReceipt = sessionStorage.getItem('draggedReceipt');
-    if (!draggedReceipt) {
+    const draggedReceipts =
+        window.draggedReceiptFiles ??
+        sessionStorage.getItem('draggedReceipts') ??
+        sessionStorage.getItem('draggedReceipt');
+    if (!draggedReceipts) {
         return;
     }
 
     let fileData;
     try {
-        fileData = JSON.parse(draggedReceipt);
+        fileData = Array.isArray(draggedReceipts)
+            ? draggedReceipts
+            : JSON.parse(draggedReceipts);
     } catch (error) {
         console.error('Invalid dragged receipt payload:', error);
+        window.draggedReceiptFiles = null;
+        sessionStorage.removeItem('draggedReceipts');
         sessionStorage.removeItem('draggedReceipt');
         return;
     }
 
+    fileData = Array.isArray(fileData) ? fileData : [fileData];
     const receiptKey = getReceiptKey(fileData);
     if (receiptKey === lastHandledReceiptKey) {
         return;
@@ -60,28 +87,35 @@ function processDraggedReceipt() {
 
     isProcessing = true;
     lastHandledReceiptKey = receiptKey;
+    window.draggedReceiptFiles = null;
+    sessionStorage.removeItem('draggedReceipts');
     sessionStorage.removeItem('draggedReceipt');
 
-    if (fileData.isLargeFile) {
-        initializeLargeFileAutoFill(fileData);
+    const largeFiles = fileData.filter((receipt) => receipt.isLargeFile);
+    if (largeFiles.length > 0) {
+        initializeLargeFileAutoFill(largeFiles);
         document.addEventListener(
             'livewire:init',
             () => {
-                setTimeout(() => initializeLargeFileAutoFill(fileData), 100);
+                setTimeout(() => initializeLargeFileAutoFill(largeFiles), 100);
             },
             { once: true },
         );
+    }
+
+    const uploadableFiles = fileData.filter((receipt) => !receipt.isLargeFile);
+    if (uploadableFiles.length === 0) {
         isProcessing = false;
         return;
     }
 
     if (window.Livewire) {
-        initializeFormAutoFill(fileData);
+        initializeFormAutoFill(uploadableFiles);
     } else {
         document.addEventListener(
             'livewire:init',
             () => {
-                initializeFormAutoFill(fileData);
+                initializeFormAutoFill(uploadableFiles);
             },
             { once: true },
         );
@@ -114,9 +148,10 @@ function attemptFileInjection(fileData, receiptKey, attempt) {
         return;
     }
 
-    setFileUpload(fileData, receiptKey);
-    injectedReceiptKey = receiptKey;
-    scheduleFormSubmit(fileData, receiptKey);
+    if (setFileUpload(fileData, receiptKey)) {
+        injectedReceiptKey = receiptKey;
+        scheduleFormSubmit(fileData, receiptKey);
+    }
 }
 
 function hasReceiptPreview() {
@@ -163,10 +198,15 @@ function showLargeFileMessage(fileData) {
         return;
     }
 
-    const fileSizeMB = (fileData.size / 1024 / 1024).toFixed(1);
-    const message = COPY.largeFileMessage
-        .replace(':sizeMB', `${fileSizeMB}MB`)
-        .replace(':filename', fileData.name);
+    const message = fileData
+        .map((receipt) => {
+            const fileSizeMB = (receipt.size / 1024 / 1024).toFixed(1);
+
+            return COPY.largeFileMessage
+                .replace(':sizeMB', `${fileSizeMB}MB`)
+                .replace(':filename', escapeHtml(receipt.name));
+        })
+        .join(' ');
 
     const notificationArea =
         document.querySelector('.fi-form') ||
@@ -222,17 +262,19 @@ function showLargeFileMessage(fileData) {
 
 function setFileUpload(fileData, receiptKey) {
     if (injectedReceiptKey === receiptKey) {
-        return;
+        return true;
     }
 
-    const file = createFileFromBase64(fileData);
     const fileInput = findFileInput();
 
     if (!fileInput) {
-        return;
+        return false;
     }
 
-    setFileInputValue(fileInput, file);
+    const files = fileData.map((receipt) => createFileFromBase64(receipt));
+    setFileInputValue(fileInput, files);
+
+    return true;
 }
 
 function submitUploadForm(fileData, receiptKey) {
@@ -287,6 +329,10 @@ function findFileInput() {
 }
 
 function createFileFromBase64(fileData) {
+    if (fileData.file instanceof File) {
+        return fileData.file;
+    }
+
     const byteCharacters = atob(fileData.content.split(',')[1]);
     const byteNumbers = new Array(byteCharacters.length);
 
@@ -298,9 +344,10 @@ function createFileFromBase64(fileData) {
     return new File([byteArray], fileData.name, { type: fileData.type });
 }
 
-function setFileInputValue(fileInput, file) {
+function setFileInputValue(fileInput, files) {
     const dataTransfer = new DataTransfer();
-    dataTransfer.items.add(file);
+
+    files.forEach((file) => dataTransfer.items.add(file));
     fileInput.files = dataTransfer.files;
 
     ['change', 'input'].forEach((eventType) => {

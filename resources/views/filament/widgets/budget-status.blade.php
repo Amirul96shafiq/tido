@@ -80,14 +80,21 @@
                                             x-data="{ overflowing: false }"
                                             x-init="
                                                 const measure = () => {
+                                                    const marqueeText = $refs.marqueeText;
+
+                                                    if (!marqueeText) {
+                                                        overflowing = false;
+                                                        return;
+                                                    }
+
                                                     $el.style.setProperty(
                                                         '--tido-marquee-clip',
                                                         $el.clientWidth + 'px',
                                                     );
-                                                    overflowing = $refs.marqueeText.scrollWidth > $el.clientWidth;
+                                                    overflowing = marqueeText.scrollWidth > $el.clientWidth;
                                                 };
-                                                measure();
-                                                new ResizeObserver(measure).observe($el);
+                                                $nextTick(measure);
+                                                new ResizeObserver(() => measure()).observe($el);
                                             "
                                             class="tido-text-marquee-clip relative min-w-0 flex-1 overflow-hidden"
                                         >

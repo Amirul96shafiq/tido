@@ -5,10 +5,6 @@ declare(strict_types=1);
 use App\Jobs\ExtractReceiptDataJob;
 use App\Models\Invoice;
 use App\Models\Label;
-use App\Services\LabelMatcher;
-use App\Services\OllamaService;
-use App\Services\PaymentMethodMatcher;
-use App\Services\ReceiptParseNormalizer;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -72,7 +68,7 @@ test('extract receipt data job maps custom user label from ai response', functio
     ]);
 
     $job = new ExtractReceiptDataJob($invoice->id);
-    $job->handle(new OllamaService, new ReceiptParseNormalizer, new LabelMatcher, new PaymentMethodMatcher);
+    app()->call([$job, 'handle']);
 
     $invoice->refresh();
 

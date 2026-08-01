@@ -7,9 +7,9 @@
 | [system-architecture.md](system-architecture.md) | Agents + humans | Product blueprint; do not contradict without warning |
 | [dashboard-views.md](dashboard-views.md) | Agents + humans | Modular Home dashboard (Finances / Training / Health / Task) |
 | [ollama-setup.md](ollama-setup.md) | Ops | Native host Ollama / qwen2.5vl:7b (no Docker) |
-| [evolution-local-windows.md](evolution-local-windows.md) | Ops | WhatsApp Evolution instance + webhook (Windows host) |
+| [evolution-local-windows.md](evolution-local-windows.md) | Ops | WhatsApp Evolution instance, webhook, PDF media, and LID allowlist (Windows host) |
 | [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md) | Humans + agents | Text-only WhatsApp manual invoice format and pipeline |
-| [whatsapp-bot-commands.md](whatsapp-bot-commands.md) | Humans + agents | Full WhatsApp bot command / keyword reference |
+| [whatsapp-bot-commands.md](whatsapp-bot-commands.md) | Humans + agents | WhatsApp media handling, command / keyword reference, and auto-replies |
 | [google-drive-setup.md](google-drive-setup.md) | Ops | Drive folder sync credentials |
 | [ui-empty-states.md](ui-empty-states.md) | Agents + humans | Illustrated empty panels (email-change expiry pattern) |
 | [ui-modal-overlay.md](ui-modal-overlay.md) | Agents + humans | Modal backdrop blur + Filament action modal width |

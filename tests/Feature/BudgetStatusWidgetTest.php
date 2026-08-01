@@ -71,11 +71,14 @@ test('budget status widget uses single-line title marquee markup', function () {
         ->assertSee('x-ref="marqueeText"', false)
         ->assertSee('tido-text-marquee', false)
         ->assertSee('tido-text-marquee-clip', false)
+        ->assertSee('const marqueeText = $refs.marqueeText;', false)
+        ->assertSee('if (!marqueeText)', false)
+        ->assertSee('$nextTick(measure);', false)
         ->assertSee('tido-text-marquee-clip relative min-w-0 flex-1 overflow-hidden', false)
         ->assertDontSee('max-w-[9rem]', false)
         ->assertSee('flex min-w-0 items-start justify-between gap-2 text-sm sm:items-center', false)
         ->assertSee('flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2', false)
-        ->assertSee('flex shrink-0 flex-col items-end gap-0.5 whitespace-nowrap text-right sm:flex-row', false)
+        ->assertSee('flex shrink-0 flex-col items-end gap-0.5 text-right whitespace-nowrap sm:flex-row', false)
         ->assertSee('whitespace-nowrap', false);
 });
 
