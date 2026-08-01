@@ -27,6 +27,10 @@ test('primary user sees account switcher with login-enabled family members', fun
         ->assertSee('Swap Account')
         ->assertSee('fi-account-switcher')
         ->assertSee('fi-account-switcher-account-chevron')
+        ->assertSee('fi-account-switcher-account-name-clip')
+        ->assertSee('x-ref="accountName"', false)
+        ->assertSee('fi-account-switcher-account-name', false)
+        ->assertDontSee('tido-text-marquee', false)
         ->assertDontSee('Primary Account')
         ->assertDontSee('fi-account-switcher-account-active');
 });

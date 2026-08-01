@@ -1496,7 +1496,54 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 }
 
 .fi-account-switcher-account-name {
-    @apply min-w-0 truncate;
+    @apply inline-block whitespace-nowrap;
+
+    transform: translateX(0);
+    transition: transform 220ms ease-out;
+}
+
+.fi-account-switcher-account-name-clip {
+    -webkit-mask-image: linear-gradient(
+        to right,
+        black 0%,
+        black calc(100% - 1.25rem),
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to right,
+        black 0%,
+        black calc(100% - 1.25rem),
+        transparent 100%
+    );
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+}
+
+@media (hover: hover) {
+    .fi-account-switcher-account:hover .fi-account-switcher-account-name-clip {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+
+    .fi-account-switcher-account:hover .fi-account-switcher-account-name {
+        transform: translateX(
+            calc(var(--tido-account-name-overflow, 0px) * -1)
+        );
+        transition-delay: 300ms;
+        transition-duration: 0.75s;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fi-account-switcher-account-name {
+        transition: none;
+    }
+
+    .fi-account-switcher-account:hover .fi-account-switcher-account-name {
+        transform: translateX(0);
+    }
 }
 
 .fi-account-switcher-account-chevron {
