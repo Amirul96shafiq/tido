@@ -42,6 +42,23 @@ class AccountSwitcher extends Component
         return session()->get(self::SESSION_KEY);
     }
 
+    public function getPrimaryUser(): ?User
+    {
+        if (self::isImpersonating()) {
+            $originalUserId = self::originalUserId();
+
+            return $originalUserId === null
+                ? null
+                : User::query()->find($originalUserId);
+        }
+
+        $currentUser = Auth::user();
+
+        return $currentUser instanceof User && $currentUser->isPrimary()
+            ? $currentUser
+            : null;
+    }
+
     /**
      * @return Collection<int, FamilyMember>
      */
@@ -105,6 +122,7 @@ class AccountSwitcher extends Component
 
         Filament::auth()->login($linkedUser, remember: true);
         session()->regenerate();
+        $this->resetSessionAuthenticationMarker();
         session()->put(self::SESSION_KEY, $originalId);
 
         $displayName = $member->display_name ?? $member->name;
@@ -139,6 +157,7 @@ class AccountSwitcher extends Component
 
         Filament::auth()->login($primaryUser, remember: true);
         session()->regenerate();
+        $this->resetSessionAuthenticationMarker();
         session()->forget(self::SESSION_KEY);
 
         $displayName = $primaryUser->display_name ?? $primaryUser->name;
@@ -151,11 +170,19 @@ class AccountSwitcher extends Component
         $this->redirect(Filament::getUrl(), navigate: false);
     }
 
+    private function resetSessionAuthenticationMarker(): void
+    {
+        $guard = (string) config('auth.defaults.guard');
+
+        session()->forget("password_hash_{$guard}");
+    }
+
     public function render(): View
     {
         return view('filament.livewire.account-switcher', [
             'currentUser' => Auth::user(),
             'isImpersonating' => self::isImpersonating(),
+            'primaryUser' => $this->getPrimaryUser(),
             'switchableMembers' => $this->isVisible() ? $this->getSwitchableMembers() : collect(),
         ]);
     }

@@ -1409,6 +1409,112 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
     }
 }
 
+/* Account switcher inside the user menu, between profile details and theme. */
+.fi-account-switcher-menu {
+    margin-block: 0.5rem;
+    margin-inline: 0.75rem;
+}
+
+.fi-account-switcher-heading {
+    @apply px-1 pb-1 text-left text-xs font-semibold;
+
+    color: var(--color-gray-500);
+}
+
+.dark .fi-account-switcher-heading {
+    color: var(--color-gray-400);
+}
+
+.fi-account-switcher-section {
+    overflow: hidden;
+    border: 1px solid var(--color-gray-100);
+    border-radius: var(--radius-lg, 0.5rem);
+}
+
+.dark .fi-account-switcher-section {
+    border-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
+}
+
+.fi-account-switcher-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding: 0.25rem;
+}
+
+.fi-account-switcher-account {
+    @apply flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors;
+
+    color: var(--color-gray-700);
+}
+
+.fi-account-switcher-account:hover {
+    background-color: var(--gray-50);
+    color: var(--primary-500);
+}
+
+.dark .fi-account-switcher-account {
+    color: var(--color-gray-200);
+}
+
+.dark .fi-account-switcher-account:hover {
+    background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
+    color: var(--primary-400);
+}
+
+.fi-account-switcher-account:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.fi-account-switcher-account-avatar {
+    @apply flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full;
+
+    background-color: color-mix(in oklab, var(--gray-500) 15%, transparent);
+}
+
+.fi-account-switcher-account-avatar img {
+    @apply size-full object-cover;
+}
+
+.fi-account-switcher-account-avatar-placeholder {
+    @apply flex size-full items-center justify-center text-xs font-bold;
+
+    color: var(--color-gray-600);
+}
+
+.dark .fi-account-switcher-account-avatar {
+    background-color: color-mix(in oklab, var(--gray-400) 12%, transparent);
+}
+
+.dark .fi-account-switcher-account-avatar-placeholder {
+    color: var(--color-gray-300);
+}
+
+.fi-account-switcher-account-name {
+    @apply min-w-0 truncate;
+}
+
+.fi-account-switcher-account-chevron {
+    @apply ml-auto flex size-6 shrink-0 items-center justify-center rounded-md;
+
+    background-color: var(--gray-100);
+    color: var(--color-gray-500);
+}
+
+.fi-account-switcher-account-chevron .fi-icon {
+    @apply size-3.5;
+}
+
+.dark .fi-account-switcher-account-chevron {
+    background-color: color-mix(in oklab, var(--color-slate-700) 60%, transparent);
+    color: var(--color-slate-300);
+}
+
 /* Skip layout/chrome motion on the first paint after a hard refresh */
 html.fi-sidebar-preload .fi-topbar,
 html.fi-sidebar-preload .fi-sidebar,

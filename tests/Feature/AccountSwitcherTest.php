@@ -11,7 +11,10 @@ use Livewire\Livewire;
 uses(RefreshDatabase::class);
 
 test('primary user sees account switcher with login-enabled family members', function () {
-    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'name' => 'Primary Account',
+        'display_name' => null,
+    ]);
     $member = FamilyMember::factory()->loginEnabled()->create([
         'name' => 'Sample Spouse',
         'display_name' => null,
@@ -21,7 +24,11 @@ test('primary user sees account switcher with login-enabled family members', fun
 
     Livewire::test(AccountSwitcher::class)
         ->assertSee('Sample Spouse')
-        ->assertSee('fi-account-switcher');
+        ->assertSee('Swap Account')
+        ->assertSee('fi-account-switcher')
+        ->assertSee('fi-account-switcher-account-chevron')
+        ->assertDontSee('Primary Account')
+        ->assertDontSee('fi-account-switcher-account-active');
 });
 
 test('primary user does not see switcher when no login-enabled family members exist', function () {
@@ -33,7 +40,7 @@ test('primary user does not see switcher when no login-enabled family members ex
     $this->actingAs($primary);
 
     Livewire::test(AccountSwitcher::class)
-        ->assertDontSee('fi-account-switcher-trigger');
+        ->assertDontSee('fi-account-switcher-section');
 });
 
 test('family member does not see the account switcher', function () {
@@ -45,7 +52,7 @@ test('family member does not see the account switcher', function () {
     $this->actingAs($familyUser);
 
     Livewire::test(AccountSwitcher::class)
-        ->assertDontSee('fi-account-switcher-trigger');
+        ->assertDontSee('fi-account-switcher-section');
 });
 
 test('primary can switch to a login-enabled family member', function () {
@@ -67,6 +74,25 @@ test('primary can switch to a login-enabled family member', function () {
     expect(session()->get(AccountSwitcher::SESSION_KEY))->toBe($primary->id);
 });
 
+test('switched family member remains authenticated after redirect', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Sample Spouse',
+    ]);
+    $familyUser = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    $this->actingAs($primary);
+    session()->put('password_hash_web', $primary->getAuthPassword());
+
+    Livewire::test(AccountSwitcher::class)
+        ->call('switchTo', $member->id)
+        ->assertRedirect();
+
+    $this->get('/admin')->assertSuccessful();
+
+    expect(auth()->id())->toBe($familyUser->id);
+});
+
 test('impersonating user can switch back to primary', function () {
     $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
     $member = FamilyMember::factory()->loginEnabled()->create([
@@ -77,6 +103,7 @@ test('impersonating user can switch back to primary', function () {
     // Simulate impersonation state
     $this->actingAs($familyUser);
     session()->put(AccountSwitcher::SESSION_KEY, $primary->id);
+    session()->put('password_hash_web', $familyUser->getAuthPassword());
 
     Livewire::test(AccountSwitcher::class)
         ->call('switchBack')
@@ -84,6 +111,8 @@ test('impersonating user can switch back to primary', function () {
 
     expect(auth()->id())->toBe($primary->id);
     expect(session()->has(AccountSwitcher::SESSION_KEY))->toBeFalse();
+
+    $this->get('/admin')->assertSuccessful();
 });
 
 test('cannot switch to a family member without login enabled', function () {
@@ -176,8 +205,11 @@ test('session key prevents nested impersonation overwrite', function () {
     expect(session()->get(AccountSwitcher::SESSION_KEY))->toBe($primary->id);
 });
 
-test('impersonation banner shows when viewing as family member', function () {
-    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+test('impersonating user sees the account list', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'name' => 'Primary Account',
+        'display_name' => null,
+    ]);
     $member = FamilyMember::factory()->loginEnabled()->create([
         'name' => 'Sample Spouse',
         'display_name' => 'Spouse',
@@ -188,7 +220,10 @@ test('impersonation banner shows when viewing as family member', function () {
     session()->put(AccountSwitcher::SESSION_KEY, $primary->id);
 
     Livewire::test(AccountSwitcher::class)
-        ->assertSee('Viewing as')
-        ->assertSee('Back to Primary')
-        ->assertSee('fi-account-switcher-banner');
+        ->assertSee($primary->fresh()->name)
+        ->assertSee('Swap Account')
+        ->assertDontSee('Spouse')
+        ->assertSee('fi-account-switcher-section')
+        ->assertSee('fi-account-switcher-account-chevron')
+        ->assertDontSee('fi-account-switcher-account-active');
 });

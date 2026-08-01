@@ -183,6 +183,8 @@
 
     <x-user-menu-profile-preview :user="$user" />
 
+    @livewire(\App\Filament\Livewire\AccountSwitcher::class)
+
     @if (filament()->hasDarkMode() && (! filament()->hasDarkModeForced()))
         <x-filament::dropdown.list>
             <x-filament-panels::theme-switcher />

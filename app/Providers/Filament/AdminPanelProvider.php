@@ -108,10 +108,6 @@ class AdminPanelProvider extends PanelProvider
                 )->module(),
             ])
             ->renderHook(
-                PanelsRenderHook::TOPBAR_START,
-                fn (): string => Blade::render('@livewire(\App\Filament\Livewire\AccountSwitcher::class)'),
-            )
-            ->renderHook(
                 PanelsRenderHook::PAGE_HEADER_ACTIONS_BEFORE,
                 function (): View {
                     $livewire = Livewire::current();

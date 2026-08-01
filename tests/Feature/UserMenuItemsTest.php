@@ -111,6 +111,44 @@ test('theme switcher keeps user menu open by not calling close', function () {
     $response->assertDontSee('&& close()', false);
 });
 
+test('user menu places account switcher between profile details and theme selection', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'name' => 'Primary Account',
+    ]);
+    FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Sample Spouse',
+        'display_name' => 'Spouse',
+    ]);
+
+    $this->actingAs($primary);
+
+    $response = $this->get(Dashboard::getUrl());
+
+    $response
+        ->assertSuccessful()
+        ->assertSee('fi-user-menu-profile-preview-meta', false)
+        ->assertSee('Swap Account', false)
+        ->assertSee('fi-account-switcher-section', false)
+        ->assertSee('Spouse', false)
+        ->assertSee('fi-account-switcher-account-chevron', false)
+        ->assertSee('fi-theme-switcher-btn', false)
+        ->assertDontSee('fi-account-switcher-trigger', false);
+
+    $html = (string) $response->getContent();
+    $profileDetailsPosition = strpos($html, 'fi-user-menu-profile-preview-meta');
+    $accountSwitcherPosition = strpos($html, 'fi-account-switcher-section');
+    $themeSwitcherPosition = strpos($html, 'fi-theme-switcher-btn');
+
+    expect($profileDetailsPosition)->toBeInt()
+        ->and($accountSwitcherPosition)->toBeInt()
+        ->and($themeSwitcherPosition)->toBeInt()
+        ->and($accountSwitcherPosition)->toBeGreaterThan($profileDetailsPosition)
+        ->and($accountSwitcherPosition)->toBeLessThan($themeSwitcherPosition);
+
+    expect(file_get_contents(resource_path('views/filament/livewire/account-switcher.blade.php')))
+        ->toContain('heroicon-m-chevron-right');
+});
+
 test('topbar hides notification bell and exposes notifications in user menu', function () {
     $user = User::factory()->withWhatsAppPhone('60123456789')->create();
 
@@ -216,6 +254,26 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         '.fi-user-menu-profile-preview-avatar .fi-avatar {',
         '.fi-user-menu-profile-preview-name {',
     );
+    $accountSwitcherSectionBlock = Str::between(
+        $css,
+        '.fi-account-switcher-section {',
+        '.dark .fi-account-switcher-section {',
+    );
+    $accountSwitcherHeadingBlock = Str::between(
+        $css,
+        '.fi-account-switcher-heading {',
+        '.dark .fi-account-switcher-heading {',
+    );
+    $accountSwitcherAccountBlock = Str::between(
+        $css,
+        '.fi-account-switcher-account {',
+        '.fi-account-switcher-account:hover {',
+    );
+    $accountSwitcherChevronBlock = Str::between(
+        $css,
+        '.fi-account-switcher-account-chevron {',
+        '.fi-account-switcher-account-chevron .fi-icon {',
+    );
 
     expect($block)
         ->toContain("width: {$expectedSize};")
@@ -239,5 +297,25 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->and($profileAvatarBlock)
         ->toContain('justify-center')
         ->and($profileAvatarSizeBlock)
-        ->toContain('size-16');
+        ->toContain('size-16')
+        ->and($accountSwitcherHeadingBlock)
+        ->toContain('px-1')
+        ->toContain('text-left')
+        ->toContain('text-xs')
+        ->and($accountSwitcherSectionBlock)
+        ->toContain('border: 1px solid var(--color-gray-100);')
+        ->toContain('border-radius: var(--radius-lg, 0.5rem);')
+        ->and($accountSwitcherAccountBlock)
+        ->toContain('rounded-md')
+        ->toContain('transition-colors')
+        ->and($accountSwitcherChevronBlock)
+        ->toContain('ml-auto')
+        ->toContain('size-6')
+        ->toContain('rounded-md');
+
+    expect($css)
+        ->toContain('.fi-account-switcher-account:hover {')
+        ->toContain('background-color: var(--gray-50);')
+        ->toContain('.dark .fi-account-switcher-section {')
+        ->toContain('var(--color-slate-700) 60%');
 });
