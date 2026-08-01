@@ -41,9 +41,11 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
         $count = 0;
         /** @var list<int> $invoiceIds */
         $invoiceIds = [];
+        /** @var list<array<string, mixed>> $documents */
+        $documents = [];
 
         Cache::lock(WhatsAppDocumentReceivedDebouncer::lockKey($this->senderNumber), 5)
-            ->block(5, function () use ($key, &$count, &$invoiceIds): void {
+            ->block(5, function () use ($key, &$count, &$invoiceIds, &$documents): void {
                 $payload = Cache::get($key);
 
                 if (! is_array($payload) || ($payload['token'] ?? null) !== $this->token) {
@@ -55,6 +57,11 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
                     $payload['invoice_ids'] ?? [],
                 ));
                 $count = max((int) ($payload['count'] ?? 0), count($invoiceIds));
+                $documents = array_values(array_filter(
+                    $payload['documents'] ?? [],
+                    static fn (mixed $document): bool => is_array($document),
+                ));
+                $count = max($count, count($documents));
                 Cache::forget($key);
             });
 
@@ -64,7 +71,7 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
 
         $waService->sendMessage(
             $this->senderNumber,
-            WhatsAppMessage::documentReceived($count),
+            WhatsAppMessage::documentReceived($count, $documents),
         );
 
         foreach ($invoiceIds as $invoiceId) {

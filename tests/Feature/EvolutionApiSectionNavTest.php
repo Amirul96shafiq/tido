@@ -26,9 +26,11 @@ test('evolution api section nav lists anchor tabs', function () {
         ->assertSuccessful()
         ->assertSee('Link device')
         ->assertSee('Connection')
+        ->assertSee('WhatsApp LID')
         ->assertSee('Connection history')
         ->assertSee('#evolution-link-device', false)
         ->assertSee('#evolution-connection', false)
+        ->assertSee('#evolution-whatsapp-lid', false)
         ->assertSee('#evolution-connection-history', false);
 });
 
@@ -36,6 +38,7 @@ test('evolution api section nav items match sectionNavItems helper', function ()
     expect(EvolutionApiPage::sectionNavItems())->toBe([
         ['label' => 'Link device', 'id' => 'evolution-link-device'],
         ['label' => 'Connection', 'id' => 'evolution-connection'],
+        ['label' => 'WhatsApp LID', 'id' => 'evolution-whatsapp-lid'],
         ['label' => 'Connection history', 'id' => 'evolution-connection-history'],
     ]);
 });

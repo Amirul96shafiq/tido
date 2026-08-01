@@ -30,6 +30,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
         'password',
         'avatar_url',
         'phone',
+        'whatsapp_lid',
         'household_role',
         'family_member_id',
         'date_of_birth',

@@ -30,6 +30,7 @@ class FamilyMember extends Model
         'display_name',
         'avatar_url',
         'phone',
+        'whatsapp_lid',
         'relationship',
         'relationship_other',
         'date_of_birth',

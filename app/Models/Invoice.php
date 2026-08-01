@@ -33,11 +33,14 @@ class Invoice extends Model
         'payment_method_id',
         'source',
         'whatsapp_sender',
+        'whatsapp_message_id',
         'family_member_id',
         'status',
         'google_drive_file_id',
         'original_filename',
         'image_path',
+        'file_mime_type',
+        'file_page_count',
         'raw_ai_response',
         'notes',
     ];
@@ -49,6 +52,7 @@ class Invoice extends Model
         'discount_total' => 'decimal:2',
         'rounding_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
+        'file_page_count' => 'integer',
         'raw_ai_response' => 'array',
     ];
 

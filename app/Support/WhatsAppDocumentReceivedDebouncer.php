@@ -21,14 +21,21 @@ final class WhatsAppDocumentReceivedDebouncer
     }
 
     /**
-     * Record a saved WhatsApp receipt and schedule a batched "Document received" ack.
-     * OCR is dispatched only after that ack is sent.
+     * @param  array{
+     *     message_id: string,
+     *     invoice_id: int|null,
+     *     filename: string,
+     *     mime_type: string,
+     *     page_count: int|null,
+     *     status: 'accepted'|'rejected',
+     *     reason: string|null
+     * }  $document
      */
-    public static function register(string $senderNumber, int $invoiceId): void
+    public static function register(string $senderNumber, array $document): void
     {
         $senderNumber = trim($senderNumber);
 
-        if ($senderNumber === '' || $invoiceId < 1) {
+        if ($senderNumber === '' || trim($document['message_id']) === '') {
             return;
         }
 
@@ -37,17 +44,35 @@ final class WhatsAppDocumentReceivedDebouncer
         $ttl = now()->addMinutes(5);
         $seconds = max(1, (int) config('services.evolution.document_received_debounce_seconds', 3));
 
-        Cache::lock(self::lockKey($senderNumber), 5)->block(5, function () use ($key, $token, $ttl, $invoiceId): void {
-            $current = Cache::get($key, ['count' => 0, 'token' => null, 'invoice_ids' => []]);
-            $invoiceIds = array_values(array_unique(array_map(
-                static fn (mixed $id): int => (int) $id,
-                array_merge($current['invoice_ids'] ?? [], [$invoiceId]),
-            )));
+        Cache::lock(self::lockKey($senderNumber), 5)->block(5, function () use ($key, $token, $ttl, $document): void {
+            $current = Cache::get($key, ['count' => 0, 'token' => null, 'documents' => []]);
+            $currentDocuments = is_array($current) && is_array($current['documents'] ?? null)
+                ? $current['documents']
+                : [];
+            $documents = [];
+
+            foreach ($currentDocuments as $item) {
+                if (is_array($item) && ($item['message_id'] ?? null) !== $document['message_id']) {
+                    $documents[] = $item;
+                }
+            }
+
+            $documents[] = $document;
+            $invoiceIds = [];
+
+            foreach ($documents as $item) {
+                $invoiceId = $item['invoice_id'] ?? null;
+
+                if (($item['status'] ?? null) === 'accepted' && is_numeric($invoiceId) && (int) $invoiceId > 0) {
+                    $invoiceIds[] = (int) $invoiceId;
+                }
+            }
 
             Cache::put($key, [
-                'count' => count($invoiceIds),
+                'count' => count($documents),
                 'token' => $token,
                 'invoice_ids' => $invoiceIds,
+                'documents' => $documents,
             ], $ttl);
         });
 

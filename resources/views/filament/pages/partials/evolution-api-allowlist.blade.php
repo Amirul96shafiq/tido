@@ -46,6 +46,9 @@
                 </div>
                 <div class="truncate text-xs text-gray-500 dark:text-gray-400">{{ $entry['name'] }}</div>
                 <div class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ $entry['phone'] }}</div>
+                @if (filled($entry['whatsapp_lid'] ?? null))
+                    <div class="font-mono text-xs text-gray-500 dark:text-gray-400">LID {{ $entry['whatsapp_lid'] }}</div>
+                @endif
             </div>
             <x-filament::badge color="gray" size="sm"> Primary </x-filament::badge>
             @if (isset($profileEditUrl))
@@ -87,6 +90,9 @@
         </div>
         <div class="truncate text-xs text-gray-500 dark:text-gray-400">{{ $entry['name'] }}</div>
         <div class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ $entry['phone'] }}</div>
+        @if (filled($entry['whatsapp_lid'] ?? null))
+            <div class="font-mono text-xs text-gray-500 dark:text-gray-400">LID {{ $entry['whatsapp_lid'] }}</div>
+        @endif
     </div>
     <x-filament::badge color="gray" size="sm"> Family </x-filament::badge>
     @if (filled($familyEditUrl))
