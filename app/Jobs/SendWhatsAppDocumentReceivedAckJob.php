@@ -13,6 +13,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
 {
@@ -36,6 +38,26 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
     }
 
     public function handle(WhatsAppNotificationService $waService): void
+    {
+        $this->sendPendingAcknowledgement($waService);
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        if (! $this->isDatabaseLocked($exception)) {
+            return;
+        }
+
+        try {
+            $this->sendPendingAcknowledgement(app(WhatsAppNotificationService::class));
+        } catch (Throwable $fallbackException) {
+            Log::error('Unable to deliver WhatsApp document acknowledgement after queue failure', [
+                'error' => $fallbackException->getMessage(),
+            ]);
+        }
+    }
+
+    protected function sendPendingAcknowledgement(WhatsAppNotificationService $waService): void
     {
         $key = WhatsAppDocumentReceivedDebouncer::cacheKey($this->senderNumber);
         $count = 0;
@@ -79,5 +101,18 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
                 ExtractReceiptDataJob::dispatch($invoiceId);
             }
         }
+    }
+
+    protected function isDatabaseLocked(Throwable $exception): bool
+    {
+        do {
+            if (str_contains(strtolower($exception->getMessage()), 'database is locked')) {
+                return true;
+            }
+
+            $exception = $exception->getPrevious();
+        } while ($exception instanceof Throwable);
+
+        return false;
     }
 }

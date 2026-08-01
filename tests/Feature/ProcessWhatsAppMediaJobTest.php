@@ -266,3 +266,29 @@ test('process whatsapp media job queues a PDF when the inspection utility is una
 
     Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class);
 });
+
+test('process whatsapp PDF job records a fallback acknowledgement after a database lock failure', function () {
+    Storage::fake('local');
+    Queue::fake();
+
+    $job = new ProcessWhatsAppMediaJob(
+        '60123456789',
+        '60123456789@s.whatsapp.net',
+        'MSG-PDF-LOCKED',
+        false,
+        'pdf',
+        'application/pdf',
+        'statement.pdf',
+    );
+
+    $job->failed(new RuntimeException('SQLSTATE[HY000]: General error: 5 database is locked (SQL: update "jobs" set "reserved_at" = 1 where "id" = 1)'));
+
+    $batch = Cache::get(WhatsAppDocumentReceivedDebouncer::cacheKey('60123456789'));
+
+    expect($batch['count'])->toBe(1)
+        ->and($batch['documents'][0]['status'])->toBe('failed')
+        ->and($batch['documents'][0]['reason'])->toBe('pdf_processing_failed')
+        ->and($batch['documents'][0]['filename'])->toBe('statement.pdf');
+
+    Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class);
+});
