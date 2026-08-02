@@ -25,5 +25,8 @@ test('draft saved poller is rendered inside the sticky bottom action row', funct
         ->toContain('x-on:content-draft-cleared.window="savedAt = null"')
         ->not->toContain('inset-e-')
         ->not->toContain('fixed inset')
-        ->toContain('x-transition:enter-start="opacity-0 translate-y-4"');
+        ->toContain('x-transition:enter-start="opacity-0 translate-y-4"')
+        ->toContain('x-transition:leave="transition ease-in duration-300"')
+        ->toContain('x-transition:leave-start="opacity-100 translate-y-0"')
+        ->toContain('x-transition:leave-end="opacity-0 translate-y-4"');
 });
