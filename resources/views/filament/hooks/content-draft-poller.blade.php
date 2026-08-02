@@ -2,6 +2,7 @@
     wire:poll.10s="saveDraft"
     x-data="{ savedAt: null }"
     x-on:content-draft-saved.window="savedAt = new Date().toLocaleTimeString()"
+    x-on:content-draft-cleared.window="savedAt = null"
     class="fi-content-draft-poller"
 >
     <div

@@ -52,6 +52,8 @@ trait RecoversContentDraft
         $data = $this->getContentDraftPayload();
 
         if (! $this->contentDraftHasMeaningfulContent($data)) {
+            $this->clearContentDraft();
+
             return;
         }
 
@@ -120,6 +122,8 @@ trait RecoversContentDraft
             ->where('user_id', Auth::id())
             ->where('key', $this->contentDraftKey())
             ->delete();
+
+        $this->dispatch('content-draft-cleared');
     }
 
     protected function captureContentDraftReferenceState(): void

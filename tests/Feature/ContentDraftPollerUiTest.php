@@ -22,6 +22,7 @@ test('draft saved poller is rendered inside the sticky bottom action row', funct
 
     expect($blade)
         ->toContain('class="fi-content-draft-poller"')
+        ->toContain('x-on:content-draft-cleared.window="savedAt = null"')
         ->not->toContain('inset-e-')
         ->not->toContain('fixed inset')
         ->toContain('x-transition:enter-start="opacity-0 translate-y-4"');
