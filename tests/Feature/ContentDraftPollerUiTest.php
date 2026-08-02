@@ -2,26 +2,27 @@
 
 declare(strict_types=1);
 
-test('draft saved poller is fixed at top-start clear of sidebar and topbar', function () {
+test('draft saved poller is rendered inside the sticky bottom action row', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
     $blade = (string) file_get_contents(resource_path('views/filament/hooks/content-draft-poller.blade.php'));
 
     $block = Str::between($css, '.fi-content-draft-poller {', '.fi-sidebar-item-btn > .fi-icon,');
 
     expect($block)
-        ->toContain('position: fixed;')
-        ->toContain('z-index: 35;')
+        ->toContain('display: flex;')
+        ->toContain('width: max-content;')
+        ->toContain('max-width: 100%;')
+        ->toContain('margin-inline-start: auto;')
+        ->toContain('justify-content: flex-end;')
         ->toContain('pointer-events: none;')
-        ->toContain('top: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px + 1rem);')
-        ->toContain('inset-inline-start: 1rem;')
-        ->toContain('inset-inline-start: calc(var(--collapsed-sidebar-width, 4.5rem) + 1rem);')
-        ->toContain('inset-inline-start: calc(var(--sidebar-width, 18rem) + 1rem);')
-        ->toContain(':has(.fi-main-ctn-sidebar-open)')
-        ->not->toContain('inset-inline-end')
-        ->not->toContain('right: 1px');
+        ->toContain('flex-shrink: 0;')
+        ->not->toContain('position: fixed;')
+        ->not->toContain('top: calc(')
+        ->not->toContain('inset-inline-start');
 
     expect($blade)
         ->toContain('class="fi-content-draft-poller"')
         ->not->toContain('inset-e-')
-        ->not->toContain('fixed inset');
+        ->not->toContain('fixed inset')
+        ->toContain('x-transition:enter-start="opacity-0 translate-y-4"');
 });

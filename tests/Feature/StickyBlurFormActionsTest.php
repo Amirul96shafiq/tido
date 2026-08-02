@@ -74,6 +74,17 @@ test('create edit and profile pages use sticky blur form action markers', functi
         ->assertSee('tido-sticky-marker--bottom', false);
 })->with(stickyBlurFormActionPages());
 
+test('draft saved indicator shares the invoice sticky action row', function () {
+    $this->actingAs($this->admin);
+
+    Livewire::test(EditInvoice::class, [
+        'record' => Invoice::factory()->create()->getRouteKey(),
+    ])
+        ->assertSuccessful()
+        ->assertSee('tido-sticky-form-actions-row', false)
+        ->assertSee('fi-content-draft-poller', false);
+});
+
 test('create label still submits with sticky blur form actions', function () {
     $this->actingAs($this->admin);
 

@@ -9,8 +9,11 @@ use Filament\Actions\ActionGroup;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedSchema;
+use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\View;
+use Filament\Support\Enums\VerticalAlignment;
 
 /**
  * Sticky bottom form CTAs with tido blur veil.
@@ -23,12 +26,25 @@ trait HasStickyBlurFormActions
 
     public function getFormContentComponent(): Component
     {
+        $formActionComponents = [
+            $this->getFormActionsContentComponent(),
+        ];
+
+        if (method_exists($this, 'saveDraft')) {
+            $formActionComponents[] = View::make('filament.hooks.content-draft-poller');
+        }
+
         return $this->wrapInSectionNavScope([
             Form::make([EmbeddedSchema::make('form')])
                 ->id('form')
                 ->livewireSubmitHandler($this->getStickyBlurFormLivewireSubmitHandler()),
             Group::make([
-                $this->getFormActionsContentComponent(),
+                Flex::make($formActionComponents)
+                    ->alignBetween()
+                    ->verticalAlignment(VerticalAlignment::Center)
+                    ->extraAttributes([
+                        'class' => 'tido-sticky-form-actions-row',
+                    ]),
             ])->extraAttributes([
                 'class' => 'tido-sticky-marker tido-sticky-marker--bottom',
             ]),
