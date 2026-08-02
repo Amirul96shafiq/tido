@@ -118,6 +118,19 @@ test('profile section nav exposes horizontal scroll hint affordances', function 
         ->assertSee('scrollActiveTabIntoView', false);
 });
 
+test('profile section nav tracks the section at the visible scroll boundary', function () {
+    Livewire::test(EditProfile::class)
+        ->assertSuccessful()
+        ->assertSee('syncActiveSection', false)
+        ->assertSee('scheduleActiveSectionSync', false)
+        ->assertSee('getBoundingClientRect()', false)
+        ->assertSee('window.requestAnimationFrame', false)
+        ->assertSee('x-on:scroll.window.passive="scheduleActiveSectionSync()"', false)
+        ->assertSee('x-on:resize.window.passive="scheduleActiveSectionSync()"', false)
+        ->assertDontSee('IntersectionObserver', false)
+        ->assertDontSee("rootMargin: '-30% 0px -55% 0px'", false);
+});
+
 test('profile section nav supports click drag horizontal scroll', function () {
     Livewire::test(EditProfile::class)
         ->assertSuccessful()
@@ -130,4 +143,17 @@ test('profile section nav supports click drag horizontal scroll', function () {
         ->assertSee('tido-section-nav--dragging', false)
         ->assertSee("dragstart', (event) => event.preventDefault()", false)
         ->assertSee('draggable="false"', false);
+});
+
+test('profile section nav leaves touch scrolling to the browser', function () {
+    $html = Livewire::test(EditProfile::class)
+        ->assertSuccessful()
+        ->html();
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($html)
+        ->toContain("const isTouchPointer = event.pointerType === 'touch';")
+        ->toContain('if (! isTouchPointer && tabs.hasPointerCapture?.(event.pointerId) !== true)')
+        ->toContain('if (isTouchPointer)')
+        ->and($css)->toContain('touch-action: pan-x pan-y;');
 });

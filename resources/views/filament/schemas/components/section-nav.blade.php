@@ -16,6 +16,38 @@
         dragStartX: 0,
         dragScrollLeft: 0,
         dragThreshold: 6,
+        scrollSyncFrame: null,
+        syncActiveSection() {
+            if (this.sectionIds.length === 0) {
+                return;
+            }
+
+            const navRect = this.$el.getBoundingClientRect();
+            const anchorY = Math.max(navRect.bottom, 0);
+            let currentId = this.sectionIds[0];
+
+            this.sectionIds.forEach((id) => {
+                const element = document.getElementById(id);
+
+                if (element && element.getBoundingClientRect().top <= anchorY) {
+                    currentId = id;
+                }
+            });
+
+            if (currentId !== this.activeId) {
+                this.activeId = currentId;
+            }
+        },
+        scheduleActiveSectionSync() {
+            if (this.scrollSyncFrame !== null) {
+                return;
+            }
+
+            this.scrollSyncFrame = window.requestAnimationFrame(() => {
+                this.scrollSyncFrame = null;
+                this.syncActiveSection();
+            });
+        },
         scrollToSection(id) {
             const element = document.getElementById(id);
 
@@ -116,6 +148,7 @@
             }
 
             const delta = event.clientX - this.dragStartX;
+            const isTouchPointer = event.pointerType === 'touch';
 
             if (! this.dragMoved && Math.abs(delta) < this.dragThreshold) {
                 return;
@@ -124,9 +157,18 @@
             if (! this.dragMoved) {
                 this.dragMoved = true;
 
-                if (tabs.hasPointerCapture?.(event.pointerId) !== true) {
+                if (! isTouchPointer && tabs.hasPointerCapture?.(event.pointerId) !== true) {
                     tabs.setPointerCapture(event.pointerId);
                 }
+            }
+
+            // Let phones perform native horizontal scrolling instead of competing with
+            // the browser's touch gesture handling. The drag guard still prevents a
+            // swipe from activating the tab link when the gesture ends.
+            if (isTouchPointer) {
+                this.updateScrollHints();
+
+                return;
             }
 
             tabs.scrollLeft = this.dragScrollLeft - delta;
@@ -155,29 +197,13 @@
             };
 
             syncHash();
-            window.addEventListener('hashchange', syncHash);
-
-            const observer = new IntersectionObserver(
-                (entries) => {
-                    const visible = entries
-                        .filter((entry) => entry.isIntersecting)
-                        .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-
-                    if (visible.length > 0) {
-                        this.activeId = visible[0].target.id;
-                    }
-                },
-                { rootMargin: '-30% 0px -55% 0px', threshold: [0, 0.25, 0.5, 1] },
-            );
+            window.addEventListener('hashchange', () => {
+                syncHash();
+                this.scheduleActiveSectionSync();
+            });
 
             this.$nextTick(() => {
-                this.sectionIds.forEach((id) => {
-                    const element = document.getElementById(id);
-
-                    if (element) {
-                        observer.observe(element);
-                    }
-                });
+                this.syncActiveSection();
 
                 const tabs = this.$refs.tabs;
 
@@ -216,6 +242,8 @@
         'tido-section-nav--dragging': isDragging,
     }"
     x-on:click.capture="onNavClick($event)"
+    x-on:scroll.window.passive="scheduleActiveSectionSync()"
+    x-on:resize.window.passive="scheduleActiveSectionSync()"
     x-on:open-section.window="
         if ($event.detail?.id) {
             activeId = $event.detail.id;
