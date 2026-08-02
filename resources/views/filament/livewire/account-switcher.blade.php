@@ -27,7 +27,7 @@
 
                         <button
                             type="button"
-                            wire:click="switchBack"
+                            wire:click="mountAction('confirmSwitchBack')"
                             wire:loading.attr="disabled"
                             class="fi-account-switcher-account"
                         >
@@ -61,7 +61,7 @@
 
                             <button
                                 type="button"
-                                wire:click="switchTo({{ $member->id }})"
+                                wire:click="mountAction('confirmSwitchTo', { familyMemberId: {{ $member->id }} })"
                                 wire:loading.attr="disabled"
                                 class="fi-account-switcher-account"
                                 wire:key="account-switcher-member-{{ $member->id }}"
@@ -92,4 +92,6 @@
             </div>
         </div>
     @endif
+
+    <x-filament-actions::modals />
 </div>

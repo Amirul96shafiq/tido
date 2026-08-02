@@ -27,6 +27,7 @@ test('primary user sees account switcher with login-enabled family members', fun
         ->assertSee('Swap Account')
         ->assertSee('fi-account-switcher')
         ->assertSee('fi-account-switcher-account-chevron')
+        ->assertSee("mountAction('confirmSwitchTo'", false)
         ->assertSee('tido-single-line-text-clip')
         ->assertSee('x-ref="singleLineText"', false)
         ->assertDontSee('tido-text-marquee', false)
@@ -77,6 +78,30 @@ test('primary can switch to a login-enabled family member', function () {
     expect(session()->get(AccountSwitcher::SESSION_KEY))->toBe($primary->id);
 });
 
+test('switching to a family member requires the native confirmation modal', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Sample Spouse',
+    ]);
+    $familyUser = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    $this->actingAs($primary);
+
+    $component = Livewire::test(AccountSwitcher::class)
+        ->mountAction('confirmSwitchTo', ['familyMemberId' => $member->id])
+        ->assertActionMounted('confirmSwitchTo')
+        ->assertMountedActionModalSee('Switch account?')
+        ->assertMountedActionModalSee('You will be signed in as the selected family member.');
+
+    expect(auth()->id())->toBe($primary->id);
+
+    $component
+        ->callMountedAction()
+        ->assertRedirect();
+
+    expect(auth()->id())->toBe($familyUser->id);
+});
+
 test('switched family member remains authenticated after redirect', function () {
     $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
     $member = FamilyMember::factory()->loginEnabled()->create([
@@ -116,6 +141,31 @@ test('impersonating user can switch back to primary', function () {
     expect(session()->has(AccountSwitcher::SESSION_KEY))->toBeFalse();
 
     $this->get('/admin')->assertSuccessful();
+});
+
+test('switching back to the primary account requires the native confirmation modal', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Sample Spouse',
+    ]);
+    $familyUser = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    $this->actingAs($familyUser);
+    session()->put(AccountSwitcher::SESSION_KEY, $primary->id);
+
+    $component = Livewire::test(AccountSwitcher::class)
+        ->mountAction('confirmSwitchBack')
+        ->assertActionMounted('confirmSwitchBack')
+        ->assertMountedActionModalSee('Switch back to the primary account?')
+        ->assertMountedActionModalSee('You will leave the current family member account and return to the primary account.');
+
+    expect(auth()->id())->toBe($familyUser->id);
+
+    $component
+        ->callMountedAction()
+        ->assertRedirect();
+
+    expect(auth()->id())->toBe($primary->id);
 });
 
 test('cannot switch to a family member without login enabled', function () {
@@ -228,5 +278,6 @@ test('impersonating user sees the account list', function () {
         ->assertDontSee('Spouse')
         ->assertSee('fi-account-switcher-section')
         ->assertSee('fi-account-switcher-account-chevron')
+        ->assertSee("mountAction('confirmSwitchBack')", false)
         ->assertDontSee('fi-account-switcher-account-active');
 });

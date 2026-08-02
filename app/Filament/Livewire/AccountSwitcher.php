@@ -6,15 +6,23 @@ namespace App\Filament\Livewire;
 
 use App\Models\FamilyMember;
 use App\Models\User;
+use Filament\Actions\Action;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Concerns\InteractsWithSchemas;
+use Filament\Schemas\Contracts\HasSchemas;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
-class AccountSwitcher extends Component
+class AccountSwitcher extends Component implements HasActions, HasSchemas
 {
+    use InteractsWithActions;
+    use InteractsWithSchemas;
+
     public const SESSION_KEY = 'account_switcher_original_user_id';
 
     public function isVisible(): bool
@@ -69,6 +77,30 @@ class AccountSwitcher extends Component
             ->whereHas('loginUser')
             ->orderBy('name')
             ->get();
+    }
+
+    public function confirmSwitchTo(): Action
+    {
+        return Action::make('confirmSwitchTo')
+            ->requiresConfirmation()
+            ->modalHeading('Switch account?')
+            ->modalDescription('You will be signed in as the selected family member.')
+            ->modalSubmitActionLabel('Switch account')
+            ->action(function (array $arguments): void {
+                $this->switchTo((int) ($arguments['familyMemberId'] ?? 0));
+            });
+    }
+
+    public function confirmSwitchBack(): Action
+    {
+        return Action::make('confirmSwitchBack')
+            ->requiresConfirmation()
+            ->modalHeading('Switch back to the primary account?')
+            ->modalDescription('You will leave the current family member account and return to the primary account.')
+            ->modalSubmitActionLabel('Switch back')
+            ->action(function (): void {
+                $this->switchBack();
+            });
     }
 
     public function switchTo(int $familyMemberId): void
