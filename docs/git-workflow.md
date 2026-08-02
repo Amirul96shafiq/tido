@@ -111,18 +111,19 @@ One coherent change set per branch. Follow-ups after merge get a new branch from
 
 ## Commit Message Format
 
-When auto-generating or writing commit messages, they must follow this exact format:
+When auto-generating or writing commit messages, use this recommended baseline format:
 
 ```text
-<type>:<title>
-- <info 1>
-- <info 2>
-- <info 3>
+<type>: <concise lowercase summary>
+
+<sentence 1 describing the primary change>
+<sentence 2 describing the important implementation or behavior change>
+<sentence 3 describing tests, verification, or other meaningful affected work>
 ```
 
-- **Type**: `feat`, `fix`, `refactor`, or `docs`.
-- **Title**: A short description of the committed changes.
-- **Info**: A bulleted list of 2-5 description pointers detailing what changed in the commit.
+- **Type**: `refactor`, `fix`, `feat`, `docs`, or `chore`.
+- **Summary**: A concise lowercase description after the type and colon, with one space after the colon and no trailing period.
+- **Body**: Use three concise plain-text sentences by default, and add a fourth, fifth, or further sentence when the total changes in the commit require additional context. Separate the body from the subject by one blank line and write each sentence on its own line without bullets, numbering, headings, or a code fence.
 
 ## Multi-developer rules
 
