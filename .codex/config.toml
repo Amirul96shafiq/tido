@@ -11,3 +11,6 @@ required = false
 startup_timeout_sec = 20
 tool_timeout_sec = 120
 default_tools_approval_mode = "auto"
+
+[mcp_servers.laravel-boost.tools.search-docs]
+approval_mode = "approve"

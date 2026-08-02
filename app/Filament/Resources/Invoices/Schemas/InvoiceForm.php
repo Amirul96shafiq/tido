@@ -186,7 +186,7 @@ class InvoiceForm
 
                                                 TextInput::make('quantity')
                                                     ->numeric()
-                                                    ->step(0.1)
+                                                    ->step(0.01)
                                                     ->default(1)
                                                     ->required()
                                                     ->helperText('Supports kg / litres')

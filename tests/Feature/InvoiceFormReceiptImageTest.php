@@ -170,6 +170,27 @@ test('invoice line item repeater uses description and line total as item label',
         );
 });
 
+test('invoice line item quantity supports hundredths', function () {
+    $invoice = Invoice::factory()->create();
+
+    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+        ->assertSuccessful()
+        ->assertFormFieldExists(
+            'invoiceItems',
+            function (Repeater $field): bool {
+                $quantity = collect($field->getChildSchema()->getFlatComponents(withHidden: true))->first(
+                    fn (mixed $component): bool => $component instanceof TextInput && $component->getName() === 'quantity',
+                );
+
+                expect($quantity)
+                    ->not->toBeNull()
+                    ->and($quantity->getStep())->toBe(0.01);
+
+                return true;
+            },
+        );
+});
+
 test('invoice line item description and line total restore defaults when emptied', function () {
     $invoice = Invoice::factory()->create();
     $item = InvoiceItem::factory()->for($invoice)->create([
