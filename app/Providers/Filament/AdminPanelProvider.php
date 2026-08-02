@@ -12,16 +12,8 @@ use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Auth\ResetPassword;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\ReceiptUploadPage;
-use App\Filament\Resources\Budgets\Pages\CreateBudget;
-use App\Filament\Resources\Budgets\Pages\EditBudget;
-use App\Filament\Resources\FamilyMembers\Pages\CreateFamilyMember;
-use App\Filament\Resources\FamilyMembers\Pages\EditFamilyMember;
 use App\Filament\Resources\Invoices\Pages\CreateInvoice;
 use App\Filament\Resources\Invoices\Pages\EditInvoice;
-use App\Filament\Resources\Labels\Pages\CreateLabel;
-use App\Filament\Resources\Labels\Pages\EditLabel;
-use App\Filament\Resources\PaymentMethods\Pages\CreatePaymentMethod;
-use App\Filament\Resources\PaymentMethods\Pages\EditPaymentMethod;
 use App\Http\Middleware\SetUserPreferences;
 use App\Support\FilamentAuthLogout;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
@@ -403,22 +395,6 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::BODY_END,
                 fn (): string => Blade::render('<x-changelog-modal /><x-restore-backup-modal /><x-drag-drop-config /><x-go-to-top /><x-go-to-bottom /><x-global-search-shortcut /><x-hash-scroll />'),
-            )
-            ->renderHook(
-                PanelsRenderHook::PAGE_END,
-                fn (): View => view('filament.hooks.content-draft-poller'),
-                scopes: [
-                    CreateInvoice::class,
-                    EditInvoice::class,
-                    CreateLabel::class,
-                    EditLabel::class,
-                    CreatePaymentMethod::class,
-                    EditPaymentMethod::class,
-                    CreateFamilyMember::class,
-                    EditFamilyMember::class,
-                    CreateBudget::class,
-                    EditBudget::class,
-                ],
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->navigationGroups([

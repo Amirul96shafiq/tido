@@ -188,6 +188,31 @@ test('edit page saves a draft when the form is dirty', function () {
         ->and($draft->payload['merchant_name'])->toBe('Updated Merchant Draft');
 });
 
+test('reverting an edit to its original state clears the saved draft indicator', function () {
+    $invoice = Invoice::factory()->create([
+        'merchant_name' => 'Original Merchant',
+    ]);
+
+    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+        ->fillForm([
+            'merchant_name' => 'Updated Merchant Draft',
+        ])
+        ->call('saveDraft')
+        ->assertDispatched('content-draft-saved')
+        ->fillForm([
+            'merchant_name' => 'Original Merchant',
+        ])
+        ->call('saveDraft')
+        ->assertDispatched('content-draft-cleared');
+
+    expect(
+        ContentDraft::query()
+            ->where('user_id', $this->user->id)
+            ->where('key', 'invoice-edit-'.$invoice->getKey())
+            ->exists()
+    )->toBeFalse();
+});
+
 test('successful edit save clears the draft', function () {
     $invoice = Invoice::factory()->create([
         'merchant_name' => 'Original Merchant',
