@@ -3503,6 +3503,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply w-auto;
 }
 
+/* Keep chart grid lines visible against the Slate-800 dark widget surface. */
+.dark .fi-wi-chart .fi-wi-chart-grid-color {
+    color: color-mix(in srgb, var(--color-slate-700) 35%, transparent);
+}
+
 /*
  * Filament table empty states — match illustrated panel language
  * (static icon well, bold heading, short description, content-sized CTA).

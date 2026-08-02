@@ -170,3 +170,11 @@ test('dashboard stat card anchors include scroll margin offset', function () {
         ->toContain('.tido-dashboard-page .fi-wi-stats-overview-stat[id]')
         ->toContain('scroll-margin-top');
 });
+
+test('analytics chart grid lines use a visible dark mode color', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.dark .fi-wi-chart .fi-wi-chart-grid-color {')
+        ->toContain('color: color-mix(in srgb, var(--color-slate-700) 35%, transparent);');
+});
