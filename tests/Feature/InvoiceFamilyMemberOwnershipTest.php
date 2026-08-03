@@ -129,7 +129,7 @@ test('family member cannot select non-owned invoices for bulk actions', function
         ->and($table->isRecordSelectable($fixtures['otherOwned']))->toBeFalse();
 });
 
-test('family member sees edit delete and reparse only on owned invoices', function () {
+test('family member sees mutation actions disabled on non-owned invoices', function () {
     Storage::fake('local');
     Storage::put('receipts/own.jpg', 'fake');
     Storage::put('receipts/primary.jpg', 'fake');
@@ -142,14 +142,43 @@ test('family member sees edit delete and reparse only on owned invoices', functi
     Livewire::test(ListInvoices::class)
         ->assertSuccessful()
         ->assertActionVisible(TestAction::make('edit')->table($fixtures['own']))
+        ->assertActionEnabled(TestAction::make('edit')->table($fixtures['own']))
         ->assertActionVisible(TestAction::make('delete')->table($fixtures['own']))
+        ->assertActionEnabled(TestAction::make('delete')->table($fixtures['own']))
         ->assertActionVisible(TestAction::make('reparse')->table($fixtures['own']))
-        ->assertActionHidden(TestAction::make('edit')->table($fixtures['primary']))
-        ->assertActionHidden(TestAction::make('delete')->table($fixtures['primary']))
-        ->assertActionHidden(TestAction::make('reparse')->table($fixtures['primary']))
-        ->assertActionHidden(TestAction::make('edit')->table($fixtures['otherOwned']))
-        ->assertActionHidden(TestAction::make('delete')->table($fixtures['otherOwned']))
-        ->assertActionHidden(TestAction::make('reparse')->table($fixtures['otherOwned']));
+        ->assertActionEnabled(TestAction::make('reparse')->table($fixtures['own']))
+        ->assertActionVisible(TestAction::make('edit')->table($fixtures['primary']))
+        ->assertActionDisabled(TestAction::make('edit')->table($fixtures['primary']))
+        ->assertActionVisible(TestAction::make('delete')->table($fixtures['primary']))
+        ->assertActionDisabled(TestAction::make('delete')->table($fixtures['primary']))
+        ->assertActionVisible(TestAction::make('reparse')->table($fixtures['primary']))
+        ->assertActionDisabled(TestAction::make('reparse')->table($fixtures['primary']))
+        ->assertActionVisible(TestAction::make('edit')->table($fixtures['otherOwned']))
+        ->assertActionDisabled(TestAction::make('edit')->table($fixtures['otherOwned']))
+        ->assertActionVisible(TestAction::make('delete')->table($fixtures['otherOwned']))
+        ->assertActionDisabled(TestAction::make('delete')->table($fixtures['otherOwned']))
+        ->assertActionVisible(TestAction::make('reparse')->table($fixtures['otherOwned']))
+        ->assertActionDisabled(TestAction::make('reparse')->table($fixtures['otherOwned']));
+});
+
+test('primary user keeps mutation actions enabled for every invoice', function () {
+    Storage::fake('local');
+    Storage::put('receipts/own.jpg', 'fake');
+    Storage::put('receipts/primary.jpg', 'fake');
+    Storage::put('receipts/other.jpg', 'fake');
+
+    $fixtures = ownershipFixtures();
+
+    $this->actingAs(User::factory()->create());
+
+    $component = Livewire::test(ListInvoices::class)
+        ->assertSuccessful();
+
+    foreach (['own', 'primary', 'otherOwned'] as $fixtureKey) {
+        foreach (['edit', 'delete', 'reparse'] as $actionName) {
+            $component->assertActionEnabled(TestAction::make($actionName)->table($fixtures[$fixtureKey]));
+        }
+    }
 });
 
 test('family member create forces their family_member_id', function () {

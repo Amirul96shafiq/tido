@@ -34,6 +34,8 @@ use Illuminate\Support\Facades\Storage;
 
 class InvoicesTable
 {
+    private const FAMILY_MEMBER_ACTION_AUTHORIZATION_MESSAGE = 'Available only for invoices attributed to the logged-in family member.';
+
     public static function configure(Table $table): Table
     {
         return $table
@@ -204,7 +206,9 @@ class InvoicesTable
                     ->slideOver()
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
                 RecordActionsGroup::make([
-                    EditAction::make(),
+                    EditAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(self::FAMILY_MEMBER_ACTION_AUTHORIZATION_MESSAGE),
                     Action::make('reparse')
                         ->label('Reparse')
                         ->icon(Heroicon::ArrowPath)
@@ -212,8 +216,10 @@ class InvoicesTable
                         ->requiresConfirmation()
                         ->modalHeading('Reparse receipt')
                         ->modalDescription('Clear line items, reset status to pending, and queue OCR again.')
-                        ->visible(fn (Invoice $record): bool => InvoiceResource::canEdit($record)
-                            && filled($record->image_path)
+                        ->authorize(fn (Invoice $record): bool => InvoiceResource::canEdit($record))
+                        ->authorizationTooltip()
+                        ->authorizationMessage(self::FAMILY_MEMBER_ACTION_AUTHORIZATION_MESSAGE)
+                        ->visible(fn (Invoice $record): bool => filled($record->image_path)
                             && Storage::exists((string) $record->image_path))
                         ->action(function (Invoice $record, ReceiptReparseService $reparseService): void {
                             $reparseService->reparse($record);
@@ -223,7 +229,9 @@ class InvoicesTable
                                 ->success()
                                 ->send();
                         }),
-                    DeleteAction::make(),
+                    DeleteAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(self::FAMILY_MEMBER_ACTION_AUTHORIZATION_MESSAGE),
                 ]),
             ])
             ->toolbarActions([
