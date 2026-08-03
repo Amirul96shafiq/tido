@@ -6,6 +6,7 @@ namespace App\Filament\Resources\PaymentMethods\Tables;
 
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Filament\Support\RecordActionsGroup;
+use App\Models\PaymentMethod;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -98,6 +99,9 @@ class PaymentMethodsTable
 
                 TextColumn::make('editedBy.name')
                     ->label('Edited By')
+                    ->formatStateUsing(fn (?string $state, PaymentMethod $record): ?string => filled($record->editedBy?->display_name)
+                        ? (string) $record->editedBy->display_name
+                        : $state)
                     ->placeholder('System')
                     ->sortable(),
 

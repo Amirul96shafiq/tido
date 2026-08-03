@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Labels\Tables;
 use App\Enums\LabelType;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Support\RecordActionsGroup;
+use App\Models\Label;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -68,6 +69,9 @@ class LabelsTable
 
                 TextColumn::make('editedBy.name')
                     ->label('Edited By')
+                    ->formatStateUsing(fn (?string $state, Label $record): ?string => filled($record->editedBy?->display_name)
+                        ? (string) $record->editedBy->display_name
+                        : $state)
                     ->placeholder('System')
                     ->sortable(),
 

@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Budgets\Tables;
 
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Support\RecordActionsGroup;
+use App\Models\Budget;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -108,6 +109,9 @@ class BudgetsTable
 
                 TextColumn::make('editedBy.name')
                     ->label('Edited By')
+                    ->formatStateUsing(fn (?string $state, Budget $record): ?string => filled($record->editedBy?->display_name)
+                        ? (string) $record->editedBy->display_name
+                        : $state)
                     ->placeholder('System')
                     ->sortable(),
 

@@ -80,6 +80,9 @@ class FamilyMembersTable
 
                 TextColumn::make('editedBy.name')
                     ->label('Edited By')
+                    ->formatStateUsing(fn (?string $state, FamilyMember $record): ?string => filled($record->editedBy?->display_name)
+                        ? (string) $record->editedBy->display_name
+                        : $state)
                     ->placeholder('System')
                     ->sortable(),
 

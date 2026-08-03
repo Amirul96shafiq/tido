@@ -54,6 +54,9 @@ class BackupsTable
 
                 TextColumn::make('editedBy.name')
                     ->label('Edited By')
+                    ->formatStateUsing(fn (?string $state, Backup $record): ?string => filled($record->editedBy?->display_name)
+                        ? (string) $record->editedBy->display_name
+                        : $state)
                     ->placeholder('System')
                     ->sortable(),
 

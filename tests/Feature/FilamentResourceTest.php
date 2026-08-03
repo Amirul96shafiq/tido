@@ -265,6 +265,27 @@ test('resource tables show updated_at as relative time with datetime tooltip', f
     }
 });
 
+test('resource tables show the editor username with name fallback', function () {
+    $this->actingAs($this->admin);
+
+    $this->admin->update(['display_name' => 'audit-username']);
+    $label = Label::factory()->create();
+
+    Livewire::test(ListLabels::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$label])
+        ->assertSee('audit-username')
+        ->assertDontSee($this->admin->name);
+
+    $this->admin->update(['display_name' => null]);
+    $fallbackLabel = Label::factory()->create();
+
+    Livewire::test(ListLabels::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$fallbackLabel])
+        ->assertSee($this->admin->name);
+});
+
 test('invoices table truncates long merchant names with full name in tooltip', function () {
     $this->actingAs($this->admin);
 
