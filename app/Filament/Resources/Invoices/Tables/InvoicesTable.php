@@ -199,6 +199,9 @@ class InvoicesTable
             ->checkIfRecordIsSelectableUsing(
                 fn (Invoice $record): bool => HouseholdAccess::canMutateInvoice($record),
             )
+            ->recordClasses(fn (Invoice $record): array => HouseholdAccess::canMutateInvoice($record)
+                ? []
+                : ['fi-ta-record-with-content-prefix', 'tido-ta-record-unsupported'])
             ->recordActions([
                 ViewAction::make()
                     ->slideOver()

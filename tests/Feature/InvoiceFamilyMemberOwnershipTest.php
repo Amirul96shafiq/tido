@@ -126,7 +126,10 @@ test('family member cannot select non-owned invoices for bulk actions', function
 
     expect($table->isRecordSelectable($fixtures['own']))->toBeTrue()
         ->and($table->isRecordSelectable($fixtures['primary']))->toBeFalse()
-        ->and($table->isRecordSelectable($fixtures['otherOwned']))->toBeFalse();
+        ->and($table->isRecordSelectable($fixtures['otherOwned']))->toBeFalse()
+        ->and($table->getRecordClasses($fixtures['own']))->not->toContain('tido-ta-record-unsupported')
+        ->and($table->getRecordClasses($fixtures['primary']))->toContain('tido-ta-record-unsupported')
+        ->and($table->getRecordClasses($fixtures['otherOwned']))->toContain('tido-ta-record-unsupported');
 });
 
 test('family member sees mutation actions disabled on non-owned invoices', function () {
