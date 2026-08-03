@@ -35,7 +35,7 @@ The interface uses FilamentPHP's native Tailwind CSS theming engine with Outfit 
 
 ### 2.2. Filament Panel Adjustments
 * **Navigation:** Configure `->sidebarCollapsibleOnDesktop()` in the Panel Provider to maximize horizontal workspace.
-* **Data Tables:** Implement borderless table designs. Use minimalist pagination and hide complex filter menus behind single icon buttons. Resource row actions: ungrouped **View** icon + vertical-ellipsis `RecordActionsGroup` for Edit/Delete/custom actions (Tippy tooltip `Actions`). Ungrouped icons use global `Table::configureUsing` → `modifyUngroupedRecordActionsUsing` → `iconButton()` **plus Filament Tippy `->tooltip()` from the action label** (also applied to Filter and Column Manager triggers). List-page “New …” CTAs use a plus Heroicon via global `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`. Do not use browser `title` attributes for icon CTAs — see `docs/ui-tooltips.md`.
+* **Data Tables:** Implement borderless table designs. Use minimalist pagination and hide complex filter menus behind single icon buttons. Resource row actions: ungrouped **View** icon + vertical-ellipsis `RecordActionsGroup` for Edit/Delete/custom actions (Tippy tooltip `Actions`). Ungrouped icons use global `Table::configureUsing` → `modifyUngroupedRecordActionsUsing` → `iconButton()` **plus Filament Tippy `->tooltip()` from the action label** (also applied to Filter and Column Manager triggers). List-page “New …” CTAs use a plus Heroicon via global `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`. Supported resource tables expose **Edited By** and **Edited At**, sort newest `updated_at` first, and use the username `display_name` → `name` fallback. Do not use browser `title` attributes for icon CTAs — see `docs/ui-tooltips.md`.
 
 ---
 
@@ -117,7 +117,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 
 * **Hallucination Mitigation:** HTTP client logic must include regex to strip markdown blocks before `json_decode()`. Pass `"format": "json"` in the Ollama API request payload.
 * **Webhook Authentication:** Bearer token authorization or IP whitelisting required for Evolution API/Google PubSub endpoints.
-* **Household access:** Single panel with Primary vs Family Member roles (`HouseholdRole`); family members mutate only their attributed invoices. See `docs/household-access.md`.
+* **Household access:** Single panel with Primary vs Family Member roles (`HouseholdRole`); family members mutate only their attributed invoices. Resource edit audit records the authenticated Primary or Family Member separately from invoice spender attribution. See `docs/household-access.md` and `docs/resource-edit-audit.md`.
 * **Storage Limits:** Enforce detected MIME type validation, a maximum file size (`PDF_MAX_BYTES`, default 10 MB), and a PDF page limit (`PDF_MAX_PAGES`, default 3) to prevent memory exhaustion during Base64 encoding and multi-page rendering. Configure absolute Poppler binary paths for Windows queue workers.
 
 ---
@@ -142,6 +142,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 ### 7.4. Data Backup & Retention Strategy
 * **Database Snapshots:** Utilize `spatie/laravel-backup` to run daily scheduled backups of the PostgreSQL database (and configured files), archiving them to a separate, secure local directory or secondary cloud disk.
 * **Backup catalog:** Successful backups are registered in the `backups` table (`Backup` model / `BackupService`), including scheduled runs via `RegisterScheduledBackupCatalog` on `BackupWasSuccessful`. Manage download / restore / delete from Filament **Tools → Backups**.
+* **Resource edit audit:** Supported resource tables store the latest authenticated editor in `edited_by`, display **Edited By** from the user’s username, and use `updated_at` for **Edited At** and newest-first recency. See `docs/resource-edit-audit.md`.
 * **Restore tokens:** Plain restore tokens are shown once; only `restore_token_hash` is stored. Guest restore (no users) uses the auth-menu Restore Backup modal — see `docs/backups-and-danger-zone.md`.
 * **Danger Zone:** Profile Danger Zone creates a final backup then wipes account data (`AccountDangerZoneService`).
 * **Orphaned File Cleanup:** Implement a scheduled task to purge base64-encoded image strings from temporary cache stores once the OCR pipeline completes to prevent disk bloat.

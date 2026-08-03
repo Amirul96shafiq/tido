@@ -56,11 +56,12 @@ Default login (seeded): `admin@tido.local` / `password`.
 18. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
 19. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md`
 20. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
-21. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
-22. Service Status (health probes, uptime UI): `docs/service-status.md`
-23. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
-24. Household access (attribution, family login, invoice ACL): `docs/household-access.md`
-25. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+21. Resource edit audit (latest editor, username display, table recency): `docs/resource-edit-audit.md`
+22. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
+23. Service Status (health probes, uptime UI): `docs/service-status.md`
+24. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
+25. Household access (attribution, family login, invoice ACL): `docs/household-access.md`
+26. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 
@@ -68,7 +69,7 @@ Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage)
 
 ```
 app/
-  Models/           Invoice, InvoiceItem, Label, PaymentMethod, Budget, FamilyMember, User, ContentDraft, Backup, ServiceHealthSample
+  Models/           Invoice, InvoiceItem, Label, PaymentMethod, Budget, FamilyMember, User, ContentDraft, Backup, ServiceHealthSample; Concerns/TracksResourceEdits.php
   Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support, Livewire
   Services/         Ollama, GoogleDrive, WhatsApp, PdfPageInspector, PdfPageRenderer, ReceiptDocumentPreparer, BudgetAlert, SpendingForecast, FamilyMemberLoginService, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
   Jobs/             ExtractReceiptDataJob, ProcessWhatsAppMediaJob, ProcessManualWhatsAppInvoiceJob, ParseManualWhatsAppInvoiceJob, SyncGoogleDriveJob, …
@@ -135,18 +136,19 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 8. Nav groups: Finances (Upload Receipts, Invoices, Budgets) / Settings (Labels, Payment Methods, Family Members) / Integrations (Evolution API) / Tools (Backups, Service Status) — Tools last. Home dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md` (not sidebar groups)
 9. Breadcrumbs use Filament native defaults plus `App\Filament\Concerns\PrependsHomeBreadcrumb` (Home → resource → page). Do not disable panel-wide or add a custom “Go back to table” header. New pages must use the trait; Create/Edit pages also register in the `PAGE_END` draft-poller scopes.
 10. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
-11. Resource table `created_at` columns use `->since()->dateTimeTooltip()` (relative time + full datetime on hover), matching Receipt Upload “Uploaded At”
+11. Resource tables use `updated_at` for **Edited At** (`->since()->dateTimeTooltip()` with relative time + full datetime on hover), default newest-first ordering, and **Edited By** for the latest authenticated editor (`display_name` → `name` fallback). See `docs/resource-edit-audit.md`.
 12. Illustrated empty panels: Filament **tables** use `emptyStateHeading` / `Description` / `Icon` / optional `Actions` (see `docs/ui-empty-states.md` — Filament tables section); custom Blade / filtered drawers use `<x-empty-state-panel>` (pattern from `errors/email-change-expired.blade.php`)
 13. Custom Alpine / Blade icon CTAs: use `x-tooltip` + `theme: $store.theme` (never bare `title=`). High-z custom modals (restore backup at `z-index: 99999`) must set Tippy `zIndex: 100000` — see `docs/ui-tooltips.md`
 14. Dark theme surfaces: Slate with slate-800 chrome — see `docs/ui-dark-theme.md` (do not reintroduce Zinc / `#333` tooltips, or white text on solid gold CTAs)
 15. UI copy: impersonal voice — no *we* / *you* / *your* in headings, descriptions, notifications; see `docs/ui-copy-style.md`
-16. Backups / Danger Zone / guest restore: see `docs/backups-and-danger-zone.md` — do not invent a second restore path
-17. Service Status / health probes: see `docs/service-status.md`
-18. Profile Active Sessions (embedded table, revoke): see `docs/active-sessions.md`
-19. Household access / family login / invoice ACL: see `docs/household-access.md`
-20. Sticky section tabs + smooth scroll: see `docs/ui-section-nav.md`
-21. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas
-22. Custom Blade toggles: use `get_component_color_classes(ToggleComponent::class, …)` and Profile `inlineLabel` markup — see `docs/ui-custom-toggles.md`
+16. Resource edit audit (`edited_by`, **Edited By**, **Edited At**): see `docs/resource-edit-audit.md`
+17. Backups / Danger Zone / guest restore: see `docs/backups-and-danger-zone.md` — do not invent a second restore path
+18. Service Status / health probes: see `docs/service-status.md`
+19. Profile Active Sessions (embedded table, revoke): see `docs/active-sessions.md`
+20. Household access / family login / invoice ACL: see `docs/household-access.md`
+21. Sticky section tabs + smooth scroll: see `docs/ui-section-nav.md`
+22. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas
+23. Custom Blade toggles: use `get_component_color_classes(ToggleComponent::class, …)` and Profile `inlineLabel` markup — see `docs/ui-custom-toggles.md`
 
 ### Integrations
 

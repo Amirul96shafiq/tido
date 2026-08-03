@@ -14,6 +14,7 @@ Single-tenant hub with **household roles**: one **Primary** user owns settings; 
 | Login sync | `app/Services/FamilyMemberLoginService.php` + `app/Observers/FamilyMemberObserver.php` |
 | Primary-only gate | `app/Filament/Concerns/RequiresPrimaryHouseholdAccess.php` |
 | Invoice mutate ACL | `app/Policies/InvoicePolicy.php` → `HouseholdAccess::canMutateInvoice()` |
+| Resource edit audit | `app/Models/Concerns/TracksResourceEdits.php` → `edited_by` on supported resource tables |
 | Family Member CRUD | `app/Filament/Resources/FamilyMembers/` (Settings; primary only) |
 | Local test seed | `database/seeders/FamilyMemberLoginTestSeeder.php` (local/testing only) |
 | Tests | `tests/Feature/FamilyMemberAttributionLoginTest.php`, `tests/Feature/InvoiceFamilyMemberOwnershipTest.php` |
@@ -68,6 +69,12 @@ Family members may **view** all invoices (list/slide-over). They may **mutate** 
 
 Create always stamps the family member’s own id (ignores form tampering). **Uploaded By** is disabled/dehydrated for family-member sessions.
 
+## Resource edit attribution
+
+The resource edit audit records the authenticated account that last created or updated a `Backup`, `Budget`, `FamilyMember`, `Invoice`, `Label`, or `PaymentMethod`. Primary and Family Member accounts are both valid editors when the relevant policy permits the mutation; an unauthenticated system update clears `edited_by` rather than attributing the change to a stale user.
+
+The resource tables show the editor’s username as `User.display_name`, falling back to `User.name`. This is separate from invoice **Uploaded By**, which describes the household spender/source through `Invoice.family_member_id`, and it does not change invoice authorization.
+
 ## WhatsApp LID identities
 
 WhatsApp may identify a chat with a Linked ID (`@lid`) instead of a phone-number JID. LIDs are opaque identifiers and cannot be normalized as Malaysian phone numbers. A linked LID is stored on either `users.whatsapp_lid` (Primary) or `family_members.whatsapp_lid` (Family Member), and inbound messages resolve to the existing allowlisted phone before bot routing and invoice attribution.
@@ -111,6 +118,7 @@ WHATSAPP_LOGIN_DEV_PHONES=60111222333
 4. Do not invent Spatie roles/tenancy — household role is a column + helpers only.
 5. Tests: `FamilyMember::factory()->loginEnabled()`, `Http::fake` / `Queue::fake` for OTP/WhatsApp.
 6. Treat a WhatsApp LID as unresolved until `WhatsAppLid` maps it to an allowlisted contact; never use the raw LID as a phone number.
+7. Keep resource edit attribution separate from household spender attribution; use `TracksResourceEdits` for supported model changes and `HouseholdAccess` / `InvoicePolicy` for authorization.
 
 ## Related
 

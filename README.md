@@ -62,7 +62,7 @@
 | OCR             | Ollama (`qwen2.5vl:7b`, native host)                      |
 | WhatsApp        | Evolution API (native host)                               |
 | Drive           | `masbug/flysystem-google-drive-ext`                       |
-| Backups / audit | Spatie Laravel Backup, Spatie Activity Log                |
+| Backups / audit | Spatie Laravel Backup, Spatie Activity Log, resource edit audit |
 | Tests           | Pest v3                                                   |
 | Dev env         | Windows host PHP (`npm run dev:full`)                     |
 
@@ -87,7 +87,7 @@ flowchart LR
   ollamaText --> review
 ```
 
-Statuses, duplicates, Labels, and schedules: [docs/system-architecture.md](docs/system-architecture.md). Domain cheat sheet: [docs/agent-onboarding.md](docs/agent-onboarding.md).
+Statuses, duplicates, Labels, schedules, and resource edit audit: [docs/system-architecture.md](docs/system-architecture.md). Domain cheat sheet: [docs/agent-onboarding.md](docs/agent-onboarding.md). Resource edit details: [docs/resource-edit-audit.md](docs/resource-edit-audit.md).
 
 ## Installation
 
@@ -166,7 +166,7 @@ Admin nav:
 
 **WhatsApp text commands:** `spend` / `total` — this month’s spending; other text — help.
 
-**Backups:** Cataloged ZIPs under Tools → Backups. Restore tokens are shown once (email/UI); only a hash is stored. After Danger Zone account wipe, guest restore is available when no users exist. Details: [docs/backups-and-danger-zone.md](docs/backups-and-danger-zone.md).
+**Backups:** Cataloged ZIPs under Tools → Backups. Restore tokens are shown once (email/UI); only a hash is stored. Backup rows expose the latest **Edited By** username and **Edited At** recency. After Danger Zone account wipe, guest restore is available when no users exist. Details: [docs/backups-and-danger-zone.md](docs/backups-and-danger-zone.md) and [docs/resource-edit-audit.md](docs/resource-edit-audit.md).
 
 ## Configuration
 

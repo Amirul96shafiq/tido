@@ -24,6 +24,7 @@
 | [ui-dark-theme.md](ui-dark-theme.md) | Agents + humans | Dark mode Slate surfaces, tooltips, scrollbars, solid CTA text |
 | [ui-copy-style.md](ui-copy-style.md) | Agents + humans | Impersonal UI voice (no we/you); auth and panel copy |
 | [content-draft-recovery.md](content-draft-recovery.md) | Agents + humans | Auto-save drafts + crash recovery on Filament Create/Edit |
+| [resource-edit-audit.md](resource-edit-audit.md) | Agents + humans | Resource Edited By / Edited At attribution and table recency |
 | [backups-and-danger-zone.md](backups-and-danger-zone.md) | Agents + humans | Backup catalog, restore tokens, guest restore, profile Danger Zone |
 | [service-status.md](service-status.md) | Agents + humans | Tools Service Status page, health probes, uptime history |
 | [active-sessions.md](active-sessions.md) | Agents + humans | Profile Active Sessions list, revoke, user-agent parsing |
