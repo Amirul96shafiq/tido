@@ -202,6 +202,9 @@ class InvoicesTable
             ->recordClasses(fn (Invoice $record): array => HouseholdAccess::canMutateInvoice($record)
                 ? []
                 : ['fi-ta-record-with-content-prefix', 'tido-ta-record-unsupported'])
+            ->recordUrl(fn (Invoice $record): ?string => InvoiceResource::canEdit($record)
+                ? InvoiceResource::getUrl('edit', ['record' => $record])
+                : null)
             ->recordActions([
                 ViewAction::make()
                     ->slideOver()

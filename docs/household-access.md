@@ -67,6 +67,8 @@ UI label: **Uploaded By**.
 
 Family members may **view** all invoices (list/slide-over). They may **mutate** (edit, delete, restore, force-delete, reparse, bulk select) only invoices where `family_member_id` matches their linked member. Primary may mutate any.
 
+In the Invoices table, only invoices the current user may mutate receive a row edit link. Non-owned invoice cells are rendered without an edit URL, while the read-only View slide-over remains available for all invoices.
+
 Create always stamps the family member’s own id (ignores form tampering). **Uploaded By** is disabled/dehydrated for family-member sessions.
 
 ## Resource edit attribution

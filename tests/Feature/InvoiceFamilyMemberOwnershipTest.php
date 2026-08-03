@@ -164,6 +164,24 @@ test('family member sees mutation actions disabled on non-owned invoices', funct
         ->assertActionDisabled(TestAction::make('reparse')->table($fixtures['otherOwned']));
 });
 
+test('family member cannot follow a row edit link for non-owned invoices', function () {
+    $fixtures = ownershipFixtures();
+
+    $this->actingAs($fixtures['user']);
+
+    $table = Livewire::test(ListInvoices::class)
+        ->assertSuccessful()
+        ->instance()
+        ->getTable();
+
+    expect($table->getRecordUrl($fixtures['own']))
+        ->toBe(InvoiceResource::getUrl('edit', ['record' => $fixtures['own']]));
+
+    expect($table->getRecordUrl($fixtures['primary']))
+        ->toBeNull()
+        ->and($table->getRecordUrl($fixtures['otherOwned']))->toBeNull();
+});
+
 test('primary user keeps mutation actions enabled for every invoice', function () {
     Storage::fake('local');
     Storage::put('receipts/own.jpg', 'fake');
