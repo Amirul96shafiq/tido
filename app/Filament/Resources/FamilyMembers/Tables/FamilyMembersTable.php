@@ -78,13 +78,18 @@ class FamilyMembersTable
                     ->toggleable()
                     ->placeholder('—'),
 
-                TextColumn::make('created_at')
-                    ->label('Created At')
+                TextColumn::make('editedBy.name')
+                    ->label('Edited By')
+                    ->placeholder('System')
+                    ->sortable(),
+
+                TextColumn::make('updated_at')
+                    ->label('Edited At')
                     ->since()
                     ->dateTimeTooltip()
                     ->sortable(),
             ])
-            ->defaultSort('name')
+            ->defaultSort('updated_at', 'desc')
             ->recordActions([
                 ViewAction::make()
                     ->slideOver()

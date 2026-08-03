@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\BackupType;
+use App\Models\Concerns\TracksResourceEdits;
 use Database\Factories\BackupFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
 class Backup extends Model
 {
     /** @use HasFactory<BackupFactory> */
-    use HasFactory;
+    use HasFactory, TracksResourceEdits;
 
     /**
      * @var list<string>

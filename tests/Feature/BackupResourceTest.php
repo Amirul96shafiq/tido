@@ -130,17 +130,17 @@ test('backups table has download action', function () {
         ->assertActionExists(TestAction::make('download')->table($backup));
 });
 
-test('backups table can filter by created date', function () {
+test('backups table can filter by edited date', function () {
     $todayBackup = Backup::factory()->create([
-        'created_at' => Carbon::parse('2026-07-14 10:00:00'),
+        'updated_at' => Carbon::parse('2026-07-14 10:00:00'),
     ]);
 
     $olderBackup = Backup::factory()->create([
-        'created_at' => Carbon::parse('2026-07-01 10:00:00'),
+        'updated_at' => Carbon::parse('2026-07-01 10:00:00'),
     ]);
 
     Livewire::test(ListBackups::class)
-        ->filterTable('created_at', [
+        ->filterTable('updated_at', [
             'from' => '2026-07-14',
             'until' => '2026-07-14',
         ])
