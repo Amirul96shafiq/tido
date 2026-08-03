@@ -356,3 +356,16 @@ test('collapsed sidebar nav icons share expanded icon inset via flex-start rail'
         ->toContain('margin-inline: -0.5rem;')
         ->toContain('padding-inline: var(--tido-sidebar-nav-pad);');
 });
+
+test('nested dropdown panels are not clipped by the parent dropdown overflow rule', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.fi-dropdown > .fi-dropdown-panel.fi-scrollable {')
+        ->toContain('max-height: 60vh !important;')
+        ->toContain('overflow-y: auto !important;')
+        ->toContain('.fi-select-input-ctn > .fi-dropdown-panel.fi-scrollable {')
+        ->toContain('max-height: min(60vh, 15rem) !important;')
+        ->not->toContain(".fi-dropdown-panel {\n    max-height: 60vh !important;")
+        ->not->toContain(".fi-dropdown-panel {\n    overflow-y: auto !important;");
+});

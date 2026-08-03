@@ -3801,9 +3801,17 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /*
- * Constrain max height of all dropdown menus and make them scrollable
+ * Constrain top-level scrollable dropdown menus without clipping nested
+ * panels. Non-scrollable parent dropdowns must keep overflow visible so child
+ * Select panels can open above the parent instead of being cut off inside it.
  */
-.fi-dropdown-panel {
+.fi-dropdown > .fi-dropdown-panel.fi-scrollable {
     max-height: 60vh !important;
+    overflow-y: auto !important;
+}
+
+/* Keep nested Select option lists compact and independently scrollable. */
+.fi-select-input-ctn > .fi-dropdown-panel.fi-scrollable {
+    max-height: min(60vh, 15rem) !important;
     overflow-y: auto !important;
 }
