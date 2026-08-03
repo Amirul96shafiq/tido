@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Filament\Notifications\Notification as AppNotification;
 use App\Helpers\MoneyDisplay;
 use App\Helpers\UserDateDisplay;
+use App\Http\Middleware\LogLivewireUpdates;
 use App\Http\Responses\LogoutResponse;
 use App\Listeners\RegisterScheduledBackupCatalog;
 use App\Models\FamilyMember;
@@ -33,10 +34,12 @@ use Google\Service\Drive;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
+use Livewire\Livewire;
 use Masbug\Flysystem\GoogleDriveAdapter;
 use Spatie\Backup\Events\BackupWasSuccessful;
 
@@ -68,6 +71,11 @@ class AppServiceProvider extends ServiceProvider
         FamilyMember::observe(FamilyMemberObserver::class);
 
         Event::listen(BackupWasSuccessful::class, RegisterScheduledBackupCatalog::class);
+
+        Livewire::setUpdateRoute(function ($handle, $path) {
+            return Route::post('/livewire/update', $handle)
+                ->middleware(['web', LogLivewireUpdates::class]);
+        });
 
         $this->configureFilamentDateFormats();
         $this->configureFilamentMoneyFormatting();
