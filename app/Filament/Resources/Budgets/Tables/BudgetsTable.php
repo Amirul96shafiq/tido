@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Budgets\Tables;
 
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Support\RecordActionsGroup;
+use App\Models\Budget;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -87,10 +88,11 @@ class BudgetsTable
                     ->label('Quarter')
                     ->formatStateUsing(fn ($state) => $state ? 'Q'.$state : '-')
                     ->sortable()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('year')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('alert_threshold')
                     ->label('Warn')
@@ -105,13 +107,21 @@ class BudgetsTable
                 ToggleColumn::make('is_active')
                     ->label('Active'),
 
-                TextColumn::make('created_at')
-                    ->label('Created At')
+                TextColumn::make('editedBy.name')
+                    ->label('Edited By')
+                    ->formatStateUsing(fn (?string $state, Budget $record): ?string => filled($record->editedBy?->display_name)
+                        ? (string) $record->editedBy->display_name
+                        : $state)
+                    ->placeholder('System')
+                    ->sortable(),
+
+                TextColumn::make('updated_at')
+                    ->label('Edited At')
                     ->since()
                     ->dateTimeTooltip()
                     ->sortable(),
             ])
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('updated_at', 'desc')
             ->filters([
                 SelectFilter::make('period')
                     ->options([

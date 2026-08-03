@@ -40,6 +40,7 @@ test('invoice table shows payment method labels for qr and touch n go', function
 
     Livewire::test(ListInvoices::class)
         ->assertSuccessful()
+        ->toggleAllTableColumns()
         ->assertCanSeeTableRecords([$qrInvoice, $tngInvoice])
         ->assertSee('Pay with QR')
         ->assertSee("Touch 'n Go");

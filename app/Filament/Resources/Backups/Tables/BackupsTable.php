@@ -52,15 +52,23 @@ class BackupsTable
                     ->placeholder('System')
                     ->sortable(),
 
-                TextColumn::make('created_at')
-                    ->label('Created At')
+                TextColumn::make('editedBy.name')
+                    ->label('Edited By')
+                    ->formatStateUsing(fn (?string $state, Backup $record): ?string => filled($record->editedBy?->display_name)
+                        ? (string) $record->editedBy->display_name
+                        : $state)
+                    ->placeholder('System')
+                    ->sortable(),
+
+                TextColumn::make('updated_at')
+                    ->label('Edited At')
                     ->since()
                     ->dateTimeTooltip()
                     ->sortable(),
             ])
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('updated_at', 'desc')
             ->filters([
-                Filter::make('created_at')
+                Filter::make('updated_at')
                     ->label('Date')
                     ->schema([
                         DatePicker::make('from')
@@ -72,11 +80,11 @@ class BackupsTable
                         return $query
                             ->when(
                                 $data['from'] ?? null,
-                                fn (Builder $query, mixed $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn (Builder $query, mixed $date): Builder => $query->whereDate('updated_at', '>=', $date),
                             )
                             ->when(
                                 $data['until'] ?? null,
-                                fn (Builder $query, mixed $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn (Builder $query, mixed $date): Builder => $query->whereDate('updated_at', '<=', $date),
                             );
                     }),
             ])

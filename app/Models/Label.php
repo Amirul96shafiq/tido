@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\LabelType;
+use App\Models\Concerns\TracksResourceEdits;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,7 +17,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Label extends Model
 {
-    use HasFactory, LogsActivity, SoftDeletes;
+    use HasFactory, LogsActivity, SoftDeletes, TracksResourceEdits;
 
     protected $attributes = [
         'is_system' => false,

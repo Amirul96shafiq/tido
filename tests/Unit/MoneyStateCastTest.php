@@ -46,5 +46,6 @@ test('money display round trip preserves large amounts', function (): void {
 
     expect($display)->toBe('1,234.50')
         ->and($cast->get($display))->toBe(1234.5)
+        ->and($cast->set($display))->toBe('1,234.50')
         ->and(MoneyDisplay::format($cast->get($display)))->toBe('1,234.50');
 });

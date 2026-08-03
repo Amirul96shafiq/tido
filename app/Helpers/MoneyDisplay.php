@@ -21,7 +21,7 @@ final class MoneyDisplay
 
     public static function format(float|int|string|null $amount): string
     {
-        return number_format((float) ($amount ?? 0), self::DECIMAL_PLACES, '.', ',');
+        return number_format((float) str_replace(',', '', (string) ($amount ?? 0)), self::DECIMAL_PLACES, '.', ',');
     }
 
     public static function parse(float|int|string|null $amount): ?float

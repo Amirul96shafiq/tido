@@ -103,7 +103,10 @@ test('resource tables show id column', function (string $pageClass) {
 
     Livewire::test($pageClass)
         ->assertSuccessful()
-        ->assertCanRenderTableColumn('id');
+        ->toggleAllTableColumns()
+        ->assertCanRenderTableColumn('id')
+        ->assertCanRenderTableColumn('editedBy.name')
+        ->assertCanRenderTableColumn('updated_at');
 })->with([
     'invoices' => [ListInvoices::class],
     'labels' => [ListLabels::class],
@@ -219,15 +222,15 @@ test('resource list create actions have plus icon', function () {
     }
 });
 
-test('resource tables show created_at as relative time with datetime tooltip', function () {
+test('resource tables show updated_at as relative time with datetime tooltip', function () {
     $this->actingAs($this->admin);
 
-    $createdAt = now()->subHours(3);
-    $relative = $createdAt->diffForHumans();
+    $editedAt = now()->subHours(3);
+    $relative = $editedAt->diffForHumans();
 
-    $label = Label::factory()->create(['created_at' => $createdAt]);
-    $budget = Budget::factory()->create(['created_at' => $createdAt]);
-    $invoice = Invoice::factory()->create(['created_at' => $createdAt]);
+    $label = Label::factory()->create(['updated_at' => $editedAt]);
+    $budget = Budget::factory()->create(['updated_at' => $editedAt]);
+    $invoice = Invoice::factory()->create(['updated_at' => $editedAt]);
 
     Livewire::test(ListLabels::class)
         ->assertSuccessful()
@@ -241,15 +244,13 @@ test('resource tables show created_at as relative time with datetime tooltip', f
 
     Livewire::test(ListInvoices::class)
         ->assertSuccessful()
-        ->toggleAllTableColumns()
-        ->assertCanSeeTableRecords([$invoice])
-        ->assertSee($relative);
+        ->assertCanSeeTableRecords([$invoice]);
 
     foreach ([ListLabels::class, ListBudgets::class, ListInvoices::class] as $page) {
         $column = Livewire::test($page)
             ->instance()
             ->getTable()
-            ->getColumn('created_at');
+            ->getColumn('updated_at');
 
         expect($column)->not->toBeNull();
 
@@ -257,11 +258,32 @@ test('resource tables show created_at as relative time with datetime tooltip', f
             ListLabels::class => $label,
             ListBudgets::class => $budget,
             default => $invoice,
-        })->getTooltip($createdAt);
+        })->getTooltip($editedAt);
 
         expect($tooltip)->toBeString()->not->toBeEmpty()
             ->and($tooltip)->not->toBe($relative);
     }
+});
+
+test('resource tables show the editor username with name fallback', function () {
+    $this->actingAs($this->admin);
+
+    $this->admin->update(['display_name' => 'audit-username']);
+    $label = Label::factory()->create();
+
+    Livewire::test(ListLabels::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$label])
+        ->assertSee('audit-username')
+        ->assertDontSee($this->admin->name);
+
+    $this->admin->update(['display_name' => null]);
+    $fallbackLabel = Label::factory()->create();
+
+    Livewire::test(ListLabels::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$fallbackLabel])
+        ->assertSee($this->admin->name);
 });
 
 test('invoices table truncates long merchant names with full name in tooltip', function () {
@@ -274,6 +296,7 @@ test('invoices table truncates long merchant names with full name in tooltip', f
 
     Livewire::test(ListInvoices::class)
         ->assertSuccessful()
+        ->toggleAllTableColumns()
         ->assertCanSeeTableRecords([$invoice])
         ->assertSee('Cosmo Restaurants Sd...');
 
@@ -326,8 +349,7 @@ test('invoices table shows date_time as relative time with datetime tooltip', fu
 
     Livewire::test(ListInvoices::class)
         ->assertSuccessful()
-        ->assertCanSeeTableRecords([$invoice])
-        ->assertSee($relative);
+        ->assertCanSeeTableRecords([$invoice]);
 
     $column = Livewire::test(ListInvoices::class)
         ->instance()

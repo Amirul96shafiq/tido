@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Labels\Tables;
 use App\Enums\LabelType;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Support\RecordActionsGroup;
+use App\Models\Label;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -66,13 +67,21 @@ class LabelsTable
                     ->label('System Lock')
                     ->sortable(),
 
-                TextColumn::make('created_at')
-                    ->label('Created At')
+                TextColumn::make('editedBy.name')
+                    ->label('Edited By')
+                    ->formatStateUsing(fn (?string $state, Label $record): ?string => filled($record->editedBy?->display_name)
+                        ? (string) $record->editedBy->display_name
+                        : $state)
+                    ->placeholder('System')
+                    ->sortable(),
+
+                TextColumn::make('updated_at')
+                    ->label('Edited At')
                     ->since()
                     ->dateTimeTooltip()
                     ->sortable(),
             ])
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('updated_at', 'desc')
             ->filters([
                 SelectFilter::make('type')
                     ->options(LabelType::options())

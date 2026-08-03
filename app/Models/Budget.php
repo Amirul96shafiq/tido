@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Concerns\TracksResourceEdits;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Budget extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory, LogsActivity, TracksResourceEdits;
 
     protected $attributes = [
         'period' => 'monthly',

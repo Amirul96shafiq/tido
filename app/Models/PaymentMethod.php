@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Concerns\TracksResourceEdits;
 use Database\Factories\PaymentMethodFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -17,7 +18,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class PaymentMethod extends Model
 {
     /** @use HasFactory<PaymentMethodFactory> */
-    use HasFactory, LogsActivity, SoftDeletes;
+    use HasFactory, LogsActivity, SoftDeletes, TracksResourceEdits;
 
     protected $attributes = [
         'is_system' => false,

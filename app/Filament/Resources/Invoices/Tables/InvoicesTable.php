@@ -64,7 +64,8 @@ class InvoicesTable
                     ->label('Buy date')
                     ->since()
                     ->dateTimeTooltip()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('total_amount')
                     ->myr()
@@ -79,7 +80,8 @@ class InvoicesTable
                     ->label('Payment Method')
                     ->badge()
                     ->icon(fn ($record): ?string => $record->paymentMethod?->icon)
-                    ->placeholder('-'),
+                    ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('source')
                     ->badge()
@@ -88,7 +90,8 @@ class InvoicesTable
                         'whatsapp' => 'success',
                         'google_drive' => 'warning',
                         default => 'gray',
-                    }),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('uploaded_by')
                     ->label('Uploaded By')
@@ -117,13 +120,22 @@ class InvoicesTable
                     })
                     ->sortable(),
 
-                TextColumn::make('created_at')
-                    ->label('Created At')
+                TextColumn::make('editedBy.name')
+                    ->label('Edited By')
+                    ->formatStateUsing(fn (?string $state, Invoice $record): ?string => filled($record->editedBy?->display_name)
+                        ? (string) $record->editedBy->display_name
+                        : $state)
+                    ->placeholder('System')
+                    ->sortable(),
+
+                TextColumn::make('updated_at')
+                    ->label('Edited At')
                     ->since()
                     ->dateTimeTooltip()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('updated_at', 'desc')
             ->poll('10s.visible')
             ->filters([
                 SelectFilter::make('status')
