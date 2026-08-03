@@ -87,10 +87,11 @@ class BudgetsTable
                     ->label('Quarter')
                     ->formatStateUsing(fn ($state) => $state ? 'Q'.$state : '-')
                     ->sortable()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('year')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('alert_threshold')
                     ->label('Warn')
