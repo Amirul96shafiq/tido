@@ -234,3 +234,31 @@ test('recent receipts widget edit action spa navigates to invoice edit', functio
         ->and($action->isIconButton())->toBeTrue()
         ->and($action->getTooltip())->toBe($action->getLabel());
 });
+
+test('family member sees the recent receipts edit action disabled for unsupported invoices', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Nor Ezrieana Harun',
+        'display_name' => 'Along',
+    ]);
+    $familyUser = User::query()
+        ->where('family_member_id', $member->id)
+        ->firstOrFail();
+
+    $ownInvoice = Invoice::factory()->create([
+        'family_member_id' => $member->id,
+        'date_time' => now(),
+    ]);
+    $primaryInvoice = Invoice::factory()->create([
+        'family_member_id' => null,
+        'date_time' => now(),
+    ]);
+
+    $this->actingAs($familyUser);
+
+    Livewire::test(RecentReceipts::class)
+        ->assertSuccessful()
+        ->assertActionVisible(TestAction::make('edit')->table($ownInvoice))
+        ->assertActionEnabled(TestAction::make('edit')->table($ownInvoice))
+        ->assertActionVisible(TestAction::make('edit')->table($primaryInvoice))
+        ->assertActionDisabled(TestAction::make('edit')->table($primaryInvoice));
+});

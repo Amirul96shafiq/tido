@@ -53,6 +53,7 @@ export default defineConfig({
                 'resources/js/select-value-marquee.js',
                 'resources/js/receipt-image-preview.js',
                 'resources/js/notification-swipe-dismiss.js',
+                'resources/js/unsupported-record-checkbox.js',
             ],
             refresh: true,
         }),

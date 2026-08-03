@@ -199,12 +199,17 @@ class InvoicesTable
             ->checkIfRecordIsSelectableUsing(
                 fn (Invoice $record): bool => HouseholdAccess::canMutateInvoice($record),
             )
+            ->recordClasses(fn (Invoice $record): array => HouseholdAccess::canMutateInvoice($record)
+                ? []
+                : ['fi-ta-record-with-content-prefix', 'tido-ta-record-unsupported'])
             ->recordActions([
                 ViewAction::make()
                     ->slideOver()
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
                 RecordActionsGroup::make([
-                    EditAction::make(),
+                    EditAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (Invoice $record): string => self::familyMemberActionAuthorizationMessage($record)),
                     Action::make('reparse')
                         ->label('Reparse')
                         ->icon(Heroicon::ArrowPath)
@@ -212,8 +217,10 @@ class InvoicesTable
                         ->requiresConfirmation()
                         ->modalHeading('Reparse receipt')
                         ->modalDescription('Clear line items, reset status to pending, and queue OCR again.')
-                        ->visible(fn (Invoice $record): bool => InvoiceResource::canEdit($record)
-                            && filled($record->image_path)
+                        ->authorize(fn (Invoice $record): bool => InvoiceResource::canEdit($record))
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (Invoice $record): string => self::familyMemberActionAuthorizationMessage($record))
+                        ->visible(fn (Invoice $record): bool => filled($record->image_path)
                             && Storage::exists((string) $record->image_path))
                         ->action(function (Invoice $record, ReceiptReparseService $reparseService): void {
                             $reparseService->reparse($record);
@@ -223,7 +230,9 @@ class InvoicesTable
                                 ->success()
                                 ->send();
                         }),
-                    DeleteAction::make(),
+                    DeleteAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (Invoice $record): string => self::familyMemberActionAuthorizationMessage($record)),
                 ]),
             ])
             ->toolbarActions([
@@ -266,5 +275,18 @@ class InvoicesTable
         return filled($primaryUser->display_name)
             ? (string) $primaryUser->display_name
             : (string) $primaryUser->name;
+    }
+
+    public static function familyMemberActionAuthorizationMessage(Invoice $record): string
+    {
+        $familyMember = $record->familyMember;
+
+        $username = $familyMember === null
+            ? self::primaryUsername()
+            : (filled($familyMember->display_name)
+                ? (string) $familyMember->display_name
+                : (string) $familyMember->name);
+
+        return "Only {$username} able to use this CTA button.";
     }
 }

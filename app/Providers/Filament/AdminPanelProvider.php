@@ -98,6 +98,10 @@ class AdminPanelProvider extends PanelProvider
                     'notification-swipe-dismiss',
                     Vite::asset('resources/js/notification-swipe-dismiss.js'),
                 )->module(),
+                Js::make(
+                    'unsupported-record-checkbox',
+                    Vite::asset('resources/js/unsupported-record-checkbox.js'),
+                )->module(),
             ])
             ->renderHook(
                 PanelsRenderHook::PAGE_HEADER_ACTIONS_BEFORE,
