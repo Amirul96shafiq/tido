@@ -34,8 +34,6 @@ use Illuminate\Support\Facades\Storage;
 
 class InvoicesTable
 {
-    private const FAMILY_MEMBER_ACTION_AUTHORIZATION_MESSAGE = 'Available only for invoices attributed to the logged-in family member.';
-
     public static function configure(Table $table): Table
     {
         return $table
@@ -208,7 +206,7 @@ class InvoicesTable
                 RecordActionsGroup::make([
                     EditAction::make()
                         ->authorizationTooltip()
-                        ->authorizationMessage(self::FAMILY_MEMBER_ACTION_AUTHORIZATION_MESSAGE),
+                        ->authorizationMessage(fn (Invoice $record): string => self::familyMemberActionAuthorizationMessage($record)),
                     Action::make('reparse')
                         ->label('Reparse')
                         ->icon(Heroicon::ArrowPath)
@@ -218,7 +216,7 @@ class InvoicesTable
                         ->modalDescription('Clear line items, reset status to pending, and queue OCR again.')
                         ->authorize(fn (Invoice $record): bool => InvoiceResource::canEdit($record))
                         ->authorizationTooltip()
-                        ->authorizationMessage(self::FAMILY_MEMBER_ACTION_AUTHORIZATION_MESSAGE)
+                        ->authorizationMessage(fn (Invoice $record): string => self::familyMemberActionAuthorizationMessage($record))
                         ->visible(fn (Invoice $record): bool => filled($record->image_path)
                             && Storage::exists((string) $record->image_path))
                         ->action(function (Invoice $record, ReceiptReparseService $reparseService): void {
@@ -231,7 +229,7 @@ class InvoicesTable
                         }),
                     DeleteAction::make()
                         ->authorizationTooltip()
-                        ->authorizationMessage(self::FAMILY_MEMBER_ACTION_AUTHORIZATION_MESSAGE),
+                        ->authorizationMessage(fn (Invoice $record): string => self::familyMemberActionAuthorizationMessage($record)),
                 ]),
             ])
             ->toolbarActions([
@@ -274,5 +272,18 @@ class InvoicesTable
         return filled($primaryUser->display_name)
             ? (string) $primaryUser->display_name
             : (string) $primaryUser->name;
+    }
+
+    protected static function familyMemberActionAuthorizationMessage(Invoice $record): string
+    {
+        $familyMember = $record->familyMember;
+
+        $username = $familyMember === null
+            ? self::primaryUsername()
+            : (filled($familyMember->display_name)
+                ? (string) $familyMember->display_name
+                : (string) $familyMember->name);
+
+        return "Only {$username} able to use this CTA button.";
     }
 }
