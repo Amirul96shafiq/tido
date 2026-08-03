@@ -160,3 +160,29 @@ test('receipt upload page edit action spa navigates to invoice edit', function (
         ->and($action->isIconButton())->toBeTrue()
         ->and($action->getTooltip())->toBe($action->getLabel());
 });
+
+test('family member sees the recent upload edit action disabled for unsupported invoices', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Nor Ezrieana Harun',
+        'display_name' => 'Along',
+    ]);
+    $familyUser = User::query()
+        ->where('family_member_id', $member->id)
+        ->firstOrFail();
+
+    $ownInvoice = Invoice::factory()->create([
+        'family_member_id' => $member->id,
+    ]);
+    $primaryInvoice = Invoice::factory()->create([
+        'family_member_id' => null,
+    ]);
+
+    $this->actingAs($familyUser);
+
+    Livewire::test(ReceiptUploadPage::class)
+        ->assertSuccessful()
+        ->assertActionVisible(TestAction::make('edit')->table($ownInvoice))
+        ->assertActionEnabled(TestAction::make('edit')->table($ownInvoice))
+        ->assertActionVisible(TestAction::make('edit')->table($primaryInvoice))
+        ->assertActionDisabled(TestAction::make('edit')->table($primaryInvoice));
+});

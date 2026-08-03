@@ -7,6 +7,7 @@ namespace App\Filament\Pages;
 use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Resources\Invoices\InvoiceResource;
+use App\Filament\Resources\Invoices\Tables\InvoicesTable;
 use App\Helpers\FilenameDisplay;
 use App\Models\Invoice;
 use App\Support\DashboardSpenderScope;
@@ -221,7 +222,9 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
             ])
             ->recordActions([
                 EditAction::make()
-                    ->visible(fn (Invoice $record): bool => InvoiceResource::canEdit($record))
+                    ->authorize(fn (Invoice $record): bool => InvoiceResource::canEdit($record))
+                    ->authorizationTooltip()
+                    ->authorizationMessage(fn (Invoice $record): string => InvoicesTable::familyMemberActionAuthorizationMessage($record))
                     ->url(
                         fn (Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record]),
                     ),

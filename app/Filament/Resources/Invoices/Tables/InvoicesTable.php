@@ -277,7 +277,7 @@ class InvoicesTable
             : (string) $primaryUser->name;
     }
 
-    protected static function familyMemberActionAuthorizationMessage(Invoice $record): string
+    public static function familyMemberActionAuthorizationMessage(Invoice $record): string
     {
         $familyMember = $record->familyMember;
 
