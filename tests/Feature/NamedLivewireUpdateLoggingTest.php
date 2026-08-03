@@ -6,6 +6,7 @@ use App\Http\Middleware\LogLivewireUpdates;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 test('registers the logging middleware on the livewire update route', function () {
@@ -18,7 +19,31 @@ test('registers the logging middleware on the livewire update route', function (
 });
 
 test('logs each livewire component update with its name and actions', function () {
-    Log::spy();
+    $logger = Mockery::mock(LoggerInterface::class);
+
+    Log::shouldReceive('stack')
+        ->once()
+        ->with(['single', 'stderr'])
+        ->andReturn($logger);
+
+    $logger->shouldReceive('info')
+        ->twice()
+        ->withArgs(function (string $message, array $context): bool {
+            return str_starts_with($message, 'Livewire update component=')
+                && str_contains($message, 'component='.$context['component'])
+                && str_contains($message, 'actions='.(
+                    $context['actions'] === [] ? 'none' : implode(',', $context['actions'])
+                ))
+                && in_array($context['component'], [
+                    'filament.pages.dashboard',
+                    'filament.widgets.recent-receipts',
+                ], true)
+                && ($context['actions'] === ['updateChartData']
+                    || $context['actions'] === [])
+                && is_int($context['updated_properties'])
+                && is_int($context['duration_ms'])
+                && ! array_key_exists('snapshot', $context);
+        });
 
     $request = Request::create('/livewire/update', 'POST', [
         'components' => [
@@ -54,19 +79,4 @@ test('logs each livewire component update with its name and actions', function (
     );
 
     expect($response->getStatusCode())->toBe(200);
-
-    Log::shouldHaveReceived('info')
-        ->twice()
-        ->withArgs(function (string $message, array $context): bool {
-            return $message === 'Livewire component updated'
-                && in_array($context['component'], [
-                    'filament.pages.dashboard',
-                    'filament.widgets.recent-receipts',
-                ], true)
-                && ($context['actions'] === ['updateChartData']
-                    || $context['actions'] === [])
-                && is_int($context['updated_properties'])
-                && is_int($context['duration_ms'])
-                && ! array_key_exists('snapshot', $context);
-        });
 });

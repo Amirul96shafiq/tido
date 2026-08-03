@@ -22,14 +22,38 @@ class LogLivewireUpdates
             return $next($request);
         } finally {
             $durationMilliseconds = (int) round((microtime(true) - $startedAt) * 1000);
+            $logger = Log::stack(['single', 'stderr']);
 
             foreach ($this->componentUpdates($request) as $componentUpdate) {
-                Log::info('Livewire component updated', [
+                $context = [
                     ...$componentUpdate,
                     'duration_ms' => $durationMilliseconds,
-                ]);
+                ];
+
+                $logger->info(
+                    $this->formatTerminalMessage($componentUpdate, $durationMilliseconds),
+                    $context,
+                );
             }
         }
+    }
+
+    /**
+     * @param  array{component: string, actions: list<string>, updated_properties: int}  $componentUpdate
+     */
+    protected function formatTerminalMessage(array $componentUpdate, int $durationMilliseconds): string
+    {
+        $actions = $componentUpdate['actions'] === []
+            ? 'none'
+            : implode(',', $componentUpdate['actions']);
+
+        return sprintf(
+            'Livewire update component=%s actions=%s updated_properties=%d duration_ms=%d',
+            $componentUpdate['component'],
+            $actions,
+            $componentUpdate['updated_properties'],
+            $durationMilliseconds,
+        );
     }
 
     /**
