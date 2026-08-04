@@ -44,6 +44,7 @@ trait RecoversContentDraft
 
     protected function afterSave(): void
     {
+        $this->captureContentDraftReferenceState();
         $this->clearContentDraft();
     }
 

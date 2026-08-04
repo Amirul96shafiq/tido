@@ -213,7 +213,7 @@ test('reverting an edit to its original state clears the saved draft indicator',
     )->toBeFalse();
 });
 
-test('successful edit save clears the draft', function () {
+test('successful edit save prevents the draft from reappearing on the next autosave poll', function () {
     $invoice = Invoice::factory()->create([
         'merchant_name' => 'Original Merchant',
         'subtotal' => 10.00,
@@ -239,7 +239,9 @@ test('successful edit save clears the draft', function () {
             'merchant_name' => 'Saved Merchant',
         ])
         ->call('save')
-        ->assertHasNoFormErrors();
+        ->assertHasNoFormErrors()
+        ->call('saveDraft')
+        ->assertNotDispatched('content-draft-saved');
 
     expect($invoice->fresh()->merchant_name)->toBe('Saved Merchant')
         ->and(
