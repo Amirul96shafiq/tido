@@ -7,7 +7,7 @@
     $visible = $this->isVisible();
     $previewMembers = $switchableMembers
         ->filter(fn ($member): bool => $currentUser?->family_member_id !== $member->id)
-        ->take(2);
+        ->take($isImpersonating ? 1 : 2);
 @endphp
 
 <div

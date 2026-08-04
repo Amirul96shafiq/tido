@@ -343,7 +343,7 @@ test('impersonating user sees the account list', function () {
         ->assertDontSee('fi-account-switcher-account-active');
 });
 
-test('impersonating user previews two actionable family members', function () {
+test('impersonating user previews the primary and one actionable family member', function () {
     $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
     $currentMember = FamilyMember::factory()->loginEnabled()->create([
         'name' => 'Current Member',
@@ -368,5 +368,7 @@ test('impersonating user previews two actionable family members', function () {
         ->toContain($firstOtherMember->name)
         ->toContain($secondOtherMember->name)
         ->not->toContain($currentMember->name)
-        ->and(substr_count($html, 'wire:key="account-switcher-preview-member-'))->toBe(2);
+        ->and(substr_count($html, 'wire:key="account-switcher-preview-member-'))->toBe(1)
+        ->and(substr_count($html, 'wire:key="account-switcher-expanded-member-'))->toBe(2)
+        ->and(strpos($html, $primary->name))->toBeLessThan(strpos($html, $firstOtherMember->name));
 });
