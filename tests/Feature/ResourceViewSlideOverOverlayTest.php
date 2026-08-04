@@ -70,3 +70,20 @@ test('open filament modal layers beat raised dropdown panels', function () {
         ->toContain('.fi-modal.fi-modal-open ~ .fi-modal.fi-modal-open > .fi-modal-close-overlay')
         ->toContain('z-index: 70;');
 });
+
+test('file upload editor paints above sticky edit page controls', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $block = Str::between(
+        $css,
+        '/* File upload image editor',
+        '/* Version-icon style',
+    );
+
+    expect($block)
+        ->toContain('.fi-fo-file-upload-editor')
+        ->toContain('z-index: 50 !important;')
+        ->toContain('.tido-sticky-scope')
+        ->toContain(':has(.tido-sticky-marker)')
+        ->toContain('z-index: -1;');
+});

@@ -2484,6 +2484,18 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     z-index: 50 !important;
 }
 
+/*
+ * The shared edit-page top tabs and bottom form actions are isolated sticky
+ * stacking contexts. Move those marker columns behind the form columns while
+ * the editor is open so their buttons cannot paint over the fixed editor.
+ */
+.fi-layout:has(.fi-fo-file-upload-editor:not([style*="display: none"]))
+    .tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker) {
+    z-index: -1;
+}
+
 .fi-fo-file-upload-editor .fi-fo-file-upload-editor-overlay {
     @apply backdrop-blur-md;
 }
