@@ -51,6 +51,27 @@ test('family members without profile photos use the default avatar provider in t
         ->assertDontSee('fi-account-switcher-account-avatar-placeholder', false);
 });
 
+test('account switcher refreshes a family member avatar after an update event', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Sample Spouse',
+        'avatar_url' => 'avatars/old-avatar.jpg',
+    ]);
+    $oldAvatarUrl = e($member->getFilamentAvatarUrl());
+
+    $this->actingAs($primary);
+
+    $component = Livewire::test(AccountSwitcher::class)
+        ->assertSeeHtml('src="'.$oldAvatarUrl.'"');
+
+    $member->update(['avatar_url' => 'avatars/new-avatar.jpg']);
+
+    $component
+        ->dispatch('family-member-updated', familyMemberId: $member->id)
+        ->assertSeeHtml('src="'.e($member->fresh()->getFilamentAvatarUrl()).'"')
+        ->assertDontSeeHtml('src="'.$oldAvatarUrl.'"');
+});
+
 test('primary user sees switchable family members newest first', function () {
     $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
     $olderMember = FamilyMember::factory()->loginEnabled()->create([

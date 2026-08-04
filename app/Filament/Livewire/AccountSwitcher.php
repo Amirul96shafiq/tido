@@ -16,6 +16,7 @@ use Filament\Schemas\Contracts\HasSchemas;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class AccountSwitcher extends Component implements HasActions, HasSchemas
@@ -78,6 +79,9 @@ class AccountSwitcher extends Component implements HasActions, HasSchemas
             ->orderBy('created_at')
             ->get();
     }
+
+    #[On('family-member-updated')]
+    public function refreshFamilyMembers(): void {}
 
     public function confirmSwitchTo(): Action
     {

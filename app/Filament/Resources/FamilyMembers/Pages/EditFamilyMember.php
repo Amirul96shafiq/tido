@@ -18,7 +18,9 @@ class EditFamilyMember extends EditRecord
     use AppendsResourceLabelToEditTitle;
     use HasStickyBlurFormActions;
     use PrependsHomeBreadcrumb;
-    use RecoversContentDraft;
+    use RecoversContentDraft {
+        afterSave as protected clearContentDraftAfterSave;
+    }
 
     protected static string $resource = FamilyMemberResource::class;
 
@@ -43,6 +45,12 @@ class EditFamilyMember extends EditRecord
         return [
             DeleteAction::make(),
         ];
+    }
+
+    protected function afterSave(): void
+    {
+        $this->clearContentDraftAfterSave();
+        $this->dispatch('family-member-updated', familyMemberId: $this->getRecord()->getKey());
     }
 
     /**

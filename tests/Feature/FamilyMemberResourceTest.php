@@ -169,6 +169,22 @@ test('user can replace a family member profile photo on edit', function () {
     Storage::disk('public')->assertExists($member->avatar_url);
 });
 
+test('editing a family member dispatches an account switcher refresh event', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Spouse',
+        'phone' => '60116330788',
+    ]);
+
+    Livewire::test(EditFamilyMember::class, ['record' => $member->getRouteKey()])
+        ->fillForm(['display_name' => 'Updated Spouse'])
+        ->call('save')
+        ->assertHasNoFormErrors()
+        ->assertDispatched('family-member-updated', function (string $event, array $params) use ($member): bool {
+            return $event === 'family-member-updated'
+                && $params['familyMemberId'] === $member->id;
+        });
+});
+
 test('disabled family member is excluded from allowlist', function () {
     $member = FamilyMember::factory()->create([
         'phone' => '60111111111',
