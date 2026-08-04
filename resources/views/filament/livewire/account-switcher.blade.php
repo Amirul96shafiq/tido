@@ -5,91 +5,106 @@
     /** @var \Illuminate\Support\Collection<int, \App\Models\FamilyMember> $switchableMembers */
 
     $visible = $this->isVisible();
+    $previewMembers = $switchableMembers
+        ->filter(fn ($member): bool => $currentUser?->family_member_id !== $member->id)
+        ->take(2);
 @endphp
 
-<div wire:key="account-switcher">
+<div
+    wire:key="account-switcher"
+    x-data="{ allMembersOpen: false }"
+    x-on:keydown.escape.window="allMembersOpen = false"
+>
     @if ($visible)
         <div class="fi-account-switcher-menu">
             <p class="fi-account-switcher-heading">Swap Account</p>
 
             <div
-                class="fi-account-switcher-section"
+                class="fi-account-switcher-preview"
+                x-bind:class="{ 'fi-account-switcher-preview-hidden': allMembersOpen }"
                 x-tooltip="{
                     content: @js($isImpersonating ? 'Switch account (impersonating)' : 'Switch account'),
                     theme: $store.theme,
                 }"
             >
-                <div class="fi-account-switcher-list" aria-label="Switch account">
-                    @if ($primaryUser && $currentUser?->id !== $primaryUser->id)
-                        @php
-                            $primaryDisplayName = $primaryUser->display_name ?? $primaryUser->name;
-                        @endphp
+                <div class="fi-account-switcher-section">
+                    <div class="fi-account-switcher-list" aria-label="Recent family members">
+                        @if ($primaryUser && $currentUser?->id !== $primaryUser->id)
+                            @include('filament.livewire.partials.account-switcher-account', [
+                                'account' => $primaryUser,
+                                'isPrimaryAccount' => true,
+                                'fadeBottom' => false,
+                                'rowKeyPrefix' => 'preview',
+                            ])
+                        @endif
 
-                        <button
+                        @foreach ($previewMembers as $member)
+                            @include('filament.livewire.partials.account-switcher-account', [
+                                'account' => $member,
+                                'isPrimaryAccount' => false,
+                                'fadeBottom' => $loop->last,
+                                'rowKeyPrefix' => 'preview',
+                            ])
+                        @endforeach
+                    </div>
+
+                    <div class="fi-account-switcher-cta">
+                        <x-filament::button
                             type="button"
-                            wire:click="mountAction('confirmSwitchBack')"
-                            wire:loading.attr="disabled"
-                            class="fi-account-switcher-account"
+                            color="primary"
+                            size="sm"
+                            class="w-full"
+                            aria-controls="account-switcher-all-members"
+                            aria-expanded="false"
+                            x-on:click="allMembersOpen = true"
                         >
-                            <span class="fi-account-switcher-account-avatar">
-                                @if ($primaryUser->getFilamentAvatarUrl())
-                                    <img
-                                        src="{{ $primaryUser->getFilamentAvatarUrl() }}"
-                                        alt="{{ $primaryDisplayName }}"
-                                        loading="lazy"
-                                    />
-                                @else
-                                    <span class="fi-account-switcher-account-avatar-placeholder">
-                                        {{ str($primaryDisplayName)->substr(0, 1)->upper() }}
-                                    </span>
-                                @endif
-                            </span>
+                            View All Family Members
+                        </x-filament::button>
+                    </div>
+                </div>
+            </div>
 
-                            <x-tido.single-line-text class="flex-1">{{ $primaryDisplayName }}</x-tido.single-line-text>
-
-                            <span class="fi-account-switcher-account-chevron">
-                                <x-filament::icon icon="heroicon-m-chevron-right" />
-                            </span>
-                        </button>
+            <div
+                id="account-switcher-all-members"
+                x-cloak
+                x-show="allMembersOpen"
+                x-on:click.stop
+                class="fi-account-switcher-expanded"
+            >
+                <div class="fi-account-switcher-expanded-list custom-scrollbar" aria-label="All family members">
+                    @if ($primaryUser && $currentUser?->id !== $primaryUser->id)
+                        @include('filament.livewire.partials.account-switcher-account', [
+                            'account' => $primaryUser,
+                            'isPrimaryAccount' => true,
+                            'fadeBottom' => false,
+                            'rowKeyPrefix' => 'expanded',
+                        ])
                     @endif
 
                     @foreach ($switchableMembers as $member)
                         @if ($currentUser?->family_member_id !== $member->id)
-                            @php
-                                $memberDisplayName = $member->display_name ?? $member->name;
-                            @endphp
-
-                            <button
-                                type="button"
-                                wire:click="mountAction('confirmSwitchTo', { familyMemberId: {{ $member->id }} })"
-                                wire:loading.attr="disabled"
-                                class="fi-account-switcher-account"
-                                wire:key="account-switcher-member-{{ $member->id }}"
-                            >
-                                <span class="fi-account-switcher-account-avatar">
-                                    @if ($member->getFilamentAvatarUrl())
-                                        <img
-                                            src="{{ $member->getFilamentAvatarUrl() }}"
-                                            alt="{{ $memberDisplayName }}"
-                                            loading="lazy"
-                                        />
-                                    @else
-                                        <img
-                                            src="{{ app(\Filament\AvatarProviders\UiAvatarsProvider::class)->get($member) }}"
-                                            alt="{{ $memberDisplayName }}"
-                                            loading="lazy"
-                                        />
-                                    @endif
-                                </span>
-
-                                <x-tido.single-line-text class="flex-1">{{ $memberDisplayName }}</x-tido.single-line-text>
-
-                                <span class="fi-account-switcher-account-chevron">
-                                    <x-filament::icon icon="heroicon-m-chevron-right" />
-                                </span>
-                            </button>
+                            @include('filament.livewire.partials.account-switcher-account', [
+                                'account' => $member,
+                                'isPrimaryAccount' => false,
+                                'fadeBottom' => false,
+                                'rowKeyPrefix' => 'expanded',
+                            ])
                         @endif
                     @endforeach
+                </div>
+
+                <div class="fi-account-switcher-cta">
+                    <x-filament::button
+                        type="button"
+                        color="primary"
+                        size="sm"
+                        class="w-full"
+                        aria-controls="account-switcher-all-members"
+                        aria-expanded="true"
+                        x-on:click="allMembersOpen = false"
+                    >
+                        Close
+                    </x-filament::button>
                 </div>
             </div>
         </div>

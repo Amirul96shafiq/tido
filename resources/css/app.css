@@ -1411,6 +1411,7 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 
 /* Account switcher inside the user menu, between profile details and theme. */
 .fi-account-switcher-menu {
+    position: relative;
     margin-block: 0.5rem;
     margin-inline: 0.75rem;
 }
@@ -1423,6 +1424,15 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 
 .dark .fi-account-switcher-heading {
     color: var(--color-gray-400);
+}
+
+.fi-account-switcher-preview {
+    transition: visibility 150ms ease;
+}
+
+.fi-account-switcher-preview-hidden {
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .fi-account-switcher-section {
@@ -1444,6 +1454,53 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
     flex-direction: column;
     gap: 0.125rem;
     padding: 0.25rem;
+}
+
+.fi-account-switcher-expanded {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    max-height: min(28rem, calc(100dvh - 2rem));
+    overflow: hidden;
+    border: 1px solid var(--color-gray-100);
+    border-radius: var(--radius-lg, 0.5rem);
+    background-color: var(--color-white);
+    box-shadow:
+        0 14px 24px -12px rgb(15 23 42 / 0.28),
+        0 8px 12px -10px rgb(15 23 42 / 0.2);
+}
+
+.dark .fi-account-switcher-expanded {
+    border-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
+    background-color: var(--color-gray-900);
+    box-shadow:
+        0 14px 24px -12px rgb(0 0 0 / 0.55),
+        0 8px 12px -10px rgb(0 0 0 / 0.4);
+}
+
+.fi-account-switcher-expanded-list {
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.fi-account-switcher-cta {
+    padding: 0.25rem;
+    border-top: 1px solid var(--color-gray-100);
+}
+
+.dark .fi-account-switcher-cta {
+    border-top-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
 }
 
 .fi-account-switcher-account {
@@ -1469,6 +1526,21 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 .fi-account-switcher-account:disabled {
     cursor: wait;
     opacity: 0.65;
+}
+
+.fi-account-switcher-account-preview-faded {
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        black 0%,
+        black 75%,
+        rgb(0 0 0 / 0.5) 100%
+    );
+    mask-image: linear-gradient(
+        to bottom,
+        black 0%,
+        black 75%,
+        rgb(0 0 0 / 0.5) 100%
+    );
 }
 
 .fi-account-switcher-account-avatar {
@@ -1558,6 +1630,12 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 .dark .fi-account-switcher-account-chevron {
     background-color: color-mix(in oklab, var(--color-slate-700) 60%, transparent);
     color: var(--color-slate-300);
+}
+
+@media (max-width: 639px) {
+    .fi-account-switcher-expanded {
+        max-height: min(28rem, calc(100dvh - 1rem));
+    }
 }
 
 /* Skip layout/chrome motion on the first paint after a hard refresh */

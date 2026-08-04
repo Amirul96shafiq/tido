@@ -148,7 +148,7 @@ test('user menu places account switcher between profile details and theme select
         ->and($accountSwitcherPosition)->toBeGreaterThan($profileDetailsPosition)
         ->and($accountSwitcherPosition)->toBeLessThan($themeSwitcherPosition);
 
-    expect(file_get_contents(resource_path('views/filament/livewire/account-switcher.blade.php')))
+    expect(file_get_contents(resource_path('views/filament/livewire/partials/account-switcher-account.blade.php')))
         ->toContain('heroicon-m-chevron-right');
 });
 
@@ -267,6 +267,21 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         '.fi-account-switcher-heading {',
         '.dark .fi-account-switcher-heading {',
     );
+    $accountSwitcherExpandedBlock = Str::between(
+        $css,
+        '.fi-account-switcher-expanded {',
+        '.dark .fi-account-switcher-expanded {',
+    );
+    $accountSwitcherCtaBlock = Str::between(
+        $css,
+        '.fi-account-switcher-cta {',
+        '.dark .fi-account-switcher-cta {',
+    );
+    $accountSwitcherFadeBlock = Str::between(
+        $css,
+        '.fi-account-switcher-account-preview-faded {',
+        '.fi-account-switcher-account-avatar {',
+    );
     $accountSwitcherAccountBlock = Str::between(
         $css,
         '.fi-account-switcher-account {',
@@ -304,6 +319,17 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->toContain('px-1')
         ->toContain('text-left')
         ->toContain('text-xs')
+        ->and($accountSwitcherExpandedBlock)
+        ->toContain('position: absolute;')
+        ->toContain('bottom: 0;')
+        ->toContain('max-height: min(28rem, calc(100dvh - 2rem));')
+        ->toContain('overflow: hidden;')
+        ->and($accountSwitcherCtaBlock)
+        ->toContain('padding: 0.25rem;')
+        ->toContain('border-top: 1px solid var(--color-gray-100);')
+        ->and($accountSwitcherFadeBlock)
+        ->toContain('black 75%')
+        ->toContain('rgb(0 0 0 / 0.5) 100%')
         ->and($accountSwitcherSectionBlock)
         ->toContain('border: 1px solid var(--color-gray-100);')
         ->toContain('border-radius: var(--radius-lg, 0.5rem);')

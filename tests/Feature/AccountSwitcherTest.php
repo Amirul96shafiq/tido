@@ -73,6 +73,29 @@ test('primary user sees switchable family members newest first', function () {
         ]);
 });
 
+test('primary user previews two family members and can reveal the full list', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $members = collect([
+        FamilyMember::factory()->loginEnabled()->create(['name' => 'First Member']),
+        FamilyMember::factory()->loginEnabled()->create(['name' => 'Second Member']),
+        FamilyMember::factory()->loginEnabled()->create(['name' => 'Third Member']),
+    ]);
+
+    $this->actingAs($primary);
+
+    $html = Livewire::test(AccountSwitcher::class)->html();
+
+    expect($html)
+        ->toContain('View All Family Members')
+        ->toContain('aria-controls="account-switcher-all-members"')
+        ->toContain('x-show="allMembersOpen"')
+        ->toContain('fi-account-switcher-account-preview-faded')
+        ->and(substr_count($html, 'wire:key="account-switcher-preview-member-'))->toBe(2)
+        ->and(substr_count($html, 'wire:key="account-switcher-expanded-member-'))->toBe(3);
+
+    expect($members->pluck('name')->all())->each->toBeString();
+});
+
 test('primary user does not see switcher when no login-enabled family members exist', function () {
     $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
 
@@ -318,4 +341,32 @@ test('impersonating user sees the account list', function () {
         ->assertSee('fi-account-switcher-account-chevron')
         ->assertSee("mountAction('confirmSwitchBack')", false)
         ->assertDontSee('fi-account-switcher-account-active');
+});
+
+test('impersonating user previews two actionable family members', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $currentMember = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Current Member',
+        'display_name' => null,
+    ]);
+    $firstOtherMember = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'First Other Member',
+        'display_name' => null,
+    ]);
+    $secondOtherMember = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Second Other Member',
+        'display_name' => null,
+    ]);
+    $currentUser = User::query()->where('family_member_id', $currentMember->id)->firstOrFail();
+
+    $this->actingAs($currentUser);
+    session()->put(AccountSwitcher::SESSION_KEY, $primary->id);
+
+    $html = Livewire::test(AccountSwitcher::class)->html();
+
+    expect($html)
+        ->toContain($firstOtherMember->name)
+        ->toContain($secondOtherMember->name)
+        ->not->toContain($currentMember->name)
+        ->and(substr_count($html, 'wire:key="account-switcher-preview-member-'))->toBe(2);
 });
