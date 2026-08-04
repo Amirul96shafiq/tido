@@ -74,9 +74,11 @@
                                             loading="lazy"
                                         />
                                     @else
-                                        <span class="fi-account-switcher-account-avatar-placeholder">
-                                            {{ str($memberDisplayName)->substr(0, 1)->upper() }}
-                                        </span>
+                                        <img
+                                            src="{{ app(\Filament\AvatarProviders\UiAvatarsProvider::class)->get($member) }}"
+                                            alt="{{ $memberDisplayName }}"
+                                            loading="lazy"
+                                        />
                                     @endif
                                 </span>
 

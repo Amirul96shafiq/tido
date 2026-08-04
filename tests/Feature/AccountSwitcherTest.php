@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Filament\Livewire\AccountSwitcher;
 use App\Models\FamilyMember;
 use App\Models\User;
+use Filament\AvatarProviders\UiAvatarsProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -33,6 +34,21 @@ test('primary user sees account switcher with login-enabled family members', fun
         ->assertDontSee('tido-text-marquee', false)
         ->assertDontSee('Primary Account')
         ->assertDontSee('fi-account-switcher-account-active');
+});
+
+test('family members without profile photos use the default avatar provider in the account switcher', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Sample Spouse',
+        'avatar_url' => null,
+    ]);
+    $defaultAvatarUrl = app(UiAvatarsProvider::class)->get($member);
+
+    $this->actingAs($primary);
+
+    Livewire::test(AccountSwitcher::class)
+        ->assertSeeHtml('src="'.e($defaultAvatarUrl).'"')
+        ->assertDontSee('fi-account-switcher-account-avatar-placeholder', false);
 });
 
 test('primary user sees switchable family members newest first', function () {
