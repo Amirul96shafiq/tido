@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Filament\Livewire\AccountSwitcher;
+use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Models\FamilyMember;
 use App\Models\User;
 use Filament\AvatarProviders\UiAvatarsProvider;
@@ -121,16 +122,33 @@ test('primary user previews two family members and can reveal the full list', fu
     expect($members->pluck('name')->all())->each->toBeString();
 });
 
-test('primary user does not see switcher when no login-enabled family members exist', function () {
+test('primary user sees the add family member empty state when no family members exist', function () {
     $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
 
-    // Create a family member without login enabled
+    $this->actingAs($primary);
+
+    Livewire::test(AccountSwitcher::class)
+        ->assertSee('No family members yet')
+        ->assertSee('Add a family member to enable account switching.')
+        ->assertSee('Add New Family Member')
+        ->assertSee('fi-account-switcher-empty-panel')
+        ->assertSeeHtml('href="'.e(FamilyMemberResource::getUrl('create')).'"')
+        ->assertDontSee('View All Family Members');
+});
+
+test('primary user sees the enable switch empty state when all family members have login disabled', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
     FamilyMember::factory()->create(['login_enabled' => false]);
 
     $this->actingAs($primary);
 
     Livewire::test(AccountSwitcher::class)
-        ->assertDontSee('fi-account-switcher-section');
+        ->assertSee('No switchable members')
+        ->assertSee('Enable panel login via WhatsApp OTP to allow account switching.')
+        ->assertSee('Enable Family Member Switch')
+        ->assertSee('fi-account-switcher-empty-panel')
+        ->assertSeeHtml('href="'.e(FamilyMemberResource::getUrl('index')).'"')
+        ->assertDontSee('View All Family Members');
 });
 
 test('family member does not see the account switcher', function () {

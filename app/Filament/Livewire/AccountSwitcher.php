@@ -38,7 +38,7 @@ class AccountSwitcher extends Component implements HasActions, HasSchemas
             return true;
         }
 
-        return $user->isPrimary() && $this->getSwitchableMembers()->isNotEmpty();
+        return $user->isPrimary();
     }
 
     public static function isImpersonating(): bool
@@ -78,6 +78,11 @@ class AccountSwitcher extends Component implements HasActions, HasSchemas
             ->whereHas('loginUser')
             ->orderBy('created_at')
             ->get();
+    }
+
+    public function hasFamilyMembers(): bool
+    {
+        return FamilyMember::query()->exists();
     }
 
     #[On('family-member-updated')]
@@ -220,6 +225,7 @@ class AccountSwitcher extends Component implements HasActions, HasSchemas
             'isImpersonating' => self::isImpersonating(),
             'primaryUser' => $this->getPrimaryUser(),
             'switchableMembers' => $this->isVisible() ? $this->getSwitchableMembers() : collect(),
+            'hasFamilyMembers' => $this->hasFamilyMembers(),
         ]);
     }
 }

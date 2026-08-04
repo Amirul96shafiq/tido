@@ -2,6 +2,7 @@
     /** @var \App\Models\User|null $currentUser */
     /** @var \App\Models\User|null $primaryUser */
     /** @var bool $isImpersonating */
+    /** @var bool $hasFamilyMembers */
     /** @var \Illuminate\Support\Collection<int, \App\Models\FamilyMember> $switchableMembers */
 
     $visible = $this->isVisible();
@@ -29,41 +30,68 @@
                     theme: $store.theme,
                 }"
             >
-                <div class="fi-account-switcher-section">
-                    <div class="fi-account-switcher-list" aria-label="Recent family members">
-                        @if ($primaryUser && $currentUser?->id !== $primaryUser->id)
-                            @include('filament.livewire.partials.account-switcher-account', [
-                                'account' => $primaryUser,
-                                'isPrimaryAccount' => true,
-                                'fadeBottom' => false,
-                                'rowKeyPrefix' => 'preview',
-                            ])
-                        @endif
-
-                        @foreach ($previewMembers as $member)
-                            @include('filament.livewire.partials.account-switcher-account', [
-                                'account' => $member,
-                                'isPrimaryAccount' => false,
-                                'fadeBottom' => $loop->last,
-                                'rowKeyPrefix' => 'preview',
-                            ])
-                        @endforeach
-                    </div>
-
-                    <div class="fi-account-switcher-cta">
-                        <x-filament::button
-                            type="button"
-                            color="primary"
-                            size="sm"
-                            class="w-full"
-                            aria-controls="account-switcher-all-members"
-                            aria-expanded="false"
-                            x-on:click="allMembersOpen = true"
+                @if ($switchableMembers->isEmpty() && ! $isImpersonating)
+                    <div class="fi-account-switcher-section">
+                        <x-empty-state-panel
+                            :heading="$hasFamilyMembers ? 'No switchable members' : 'No family members yet'"
+                            :description="$hasFamilyMembers
+                                ? 'Enable panel login via WhatsApp OTP to allow account switching.'
+                                : 'Add a family member to enable account switching.'"
+                            icon="heroicon-o-user-group"
+                            icon-color="gray"
+                            class="fi-account-switcher-empty-panel"
                         >
-                            View All Family Members
-                        </x-filament::button>
+                            <x-slot name="actions">
+                                <x-filament::button
+                                    :href="$hasFamilyMembers
+                                        ? \App\Filament\Resources\FamilyMembers\FamilyMemberResource::getUrl('index')
+                                        : \App\Filament\Resources\FamilyMembers\FamilyMemberResource::getUrl('create')"
+                                    tag="a"
+                                    wire:navigate
+                                    color="primary"
+                                >
+                                    {{ $hasFamilyMembers ? 'Enable Family Member Switch' : 'Add New Family Member' }}
+                                </x-filament::button>
+                            </x-slot>
+                        </x-empty-state-panel>
                     </div>
-                </div>
+                @else
+                    <div class="fi-account-switcher-section">
+                        <div class="fi-account-switcher-list" aria-label="Recent family members">
+                            @if ($primaryUser && $currentUser?->id !== $primaryUser->id)
+                                @include('filament.livewire.partials.account-switcher-account', [
+                                    'account' => $primaryUser,
+                                    'isPrimaryAccount' => true,
+                                    'fadeBottom' => false,
+                                    'rowKeyPrefix' => 'preview',
+                                ])
+                            @endif
+
+                            @foreach ($previewMembers as $member)
+                                @include('filament.livewire.partials.account-switcher-account', [
+                                    'account' => $member,
+                                    'isPrimaryAccount' => false,
+                                    'fadeBottom' => $loop->last,
+                                    'rowKeyPrefix' => 'preview',
+                                ])
+                            @endforeach
+                        </div>
+
+                        <div class="fi-account-switcher-cta">
+                            <x-filament::button
+                                type="button"
+                                color="primary"
+                                size="sm"
+                                class="w-full"
+                                aria-controls="account-switcher-all-members"
+                                aria-expanded="false"
+                                x-on:click="allMembersOpen = true"
+                            >
+                                View All Family Members
+                            </x-filament::button>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <div

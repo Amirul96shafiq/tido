@@ -1449,6 +1449,40 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
     );
 }
 
+/* Compact empty state for the narrow user-menu account switcher. */
+.fi-account-switcher-empty-panel {
+    @apply px-2 py-3;
+}
+
+.fi-account-switcher-empty-panel .fi-no-empty-panel-icon-ctn {
+    @apply mb-2 size-10;
+}
+
+.fi-account-switcher-empty-panel .fi-no-empty-panel-icon-ctn::after {
+    display: none;
+    animation: none;
+}
+
+.fi-account-switcher-empty-panel .fi-no-empty-panel-icon {
+    @apply size-5;
+}
+
+.fi-account-switcher-empty-panel .fi-no-empty-panel-heading {
+    @apply mb-1 text-sm leading-5;
+}
+
+.fi-account-switcher-empty-panel .fi-no-empty-panel-description {
+    @apply mb-2 max-w-none text-xs leading-4;
+}
+
+.fi-account-switcher-empty-panel .fi-no-empty-panel-actions {
+    @apply w-full max-w-none;
+}
+
+.fi-account-switcher-empty-panel .fi-no-empty-panel-actions .fi-btn {
+    @apply w-full justify-center px-2 py-1.5 text-xs leading-4;
+}
+
 .fi-account-switcher-list {
     display: flex;
     flex-direction: column;
