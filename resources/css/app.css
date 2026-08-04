@@ -1457,6 +1457,8 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 }
 
 .fi-account-switcher-expanded {
+    @apply transition;
+
     position: absolute;
     inset-inline: 0;
     bottom: 0;
@@ -1471,6 +1473,10 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
     box-shadow:
         0 14px 24px -12px rgb(15 23 42 / 0.28),
         0 8px 12px -10px rgb(15 23 42 / 0.2);
+}
+
+.fi-account-switcher-expanded.fi-opacity-0 {
+    @apply opacity-0;
 }
 
 .dark .fi-account-switcher-expanded {

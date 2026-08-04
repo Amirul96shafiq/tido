@@ -89,6 +89,8 @@ test('primary user previews two family members and can reveal the full list', fu
         ->toContain('View All Family Members')
         ->toContain('aria-controls="account-switcher-all-members"')
         ->toContain('x-show="allMembersOpen"')
+        ->toContain('x-transition:enter-start="fi-opacity-0"')
+        ->toContain('x-transition:leave-end="fi-opacity-0"')
         ->toContain('fi-account-switcher-account-preview-faded')
         ->and(substr_count($html, 'wire:key="account-switcher-preview-member-'))->toBe(2)
         ->and(substr_count($html, 'wire:key="account-switcher-expanded-member-'))->toBe(3);

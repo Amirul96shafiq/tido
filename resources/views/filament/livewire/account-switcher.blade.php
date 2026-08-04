@@ -68,6 +68,8 @@
                 id="account-switcher-all-members"
                 x-cloak
                 x-show="allMembersOpen"
+                x-transition:enter-start="fi-opacity-0"
+                x-transition:leave-end="fi-opacity-0"
                 x-on:click.stop
                 class="fi-account-switcher-expanded"
             >
