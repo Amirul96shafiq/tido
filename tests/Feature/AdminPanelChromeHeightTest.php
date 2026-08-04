@@ -369,3 +369,24 @@ test('nested dropdown panels are not clipped by the parent dropdown overflow rul
         ->not->toContain(".fi-dropdown-panel {\n    max-height: 60vh !important;")
         ->not->toContain(".fi-dropdown-panel {\n    overflow-y: auto !important;");
 });
+
+test('open form dropdowns stay below sticky controls while modals stay above them', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $dropdownBlock = Str::betweenFirst(
+        $css,
+        'Sticky markers must paint above a form column',
+        'Filament action modals',
+    );
+    $modalBlock = Str::betweenFirst(
+        $css,
+        'Filament action modals',
+        '.tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker--top)',
+    );
+
+    expect($dropdownBlock)
+        ->toContain('z-index: 5;')
+        ->not->toContain('z-index: 15;')
+        ->and($modalBlock)
+        ->toContain('z-index: 15;');
+});

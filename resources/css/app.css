@@ -716,16 +716,23 @@ html.dark::-webkit-scrollbar-thumb:hover,
 }
 
 /*
- * Sticky bottom CTAs (z-index: 10 + isolation) paint above the form column.
- * Select/date panels stay position:absolute inside that column (z-20 is trapped),
- * so open menus sit under Save/Cancel. Lift the form column while a panel is open.
- * Same for Filament action modals (e.g. Date of Birth) rendered inside the form column.
+ * Sticky markers must paint above a form column while a Select/date dropdown is
+ * open. The dropdown panel's z-index is trapped inside this lower stacking
+ * context, so the menu stays below the top tabs and bottom Save/Cancel bar.
  */
 .tido-sticky-scope
     > .fi-sc
     > .fi-grid-col:has(.fi-dropdown-panel:not([style*="display: none"])):not(
         :has(.tido-sticky-marker)
-    ),
+    ) {
+    position: relative;
+    z-index: 5;
+}
+
+/*
+ * Filament action modals (e.g. Date of Birth) need to remain above the sticky
+ * controls, because their overlay is a page-level interaction surface.
+ */
 .tido-sticky-scope
     > .fi-sc
     > .fi-grid-col:has(
