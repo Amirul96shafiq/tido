@@ -75,7 +75,7 @@ class AccountSwitcher extends Component implements HasActions, HasSchemas
         return FamilyMember::query()
             ->where('login_enabled', true)
             ->whereHas('loginUser')
-            ->orderBy('name')
+            ->orderBy('created_at')
             ->get();
     }
 

@@ -35,6 +35,28 @@ test('primary user sees account switcher with login-enabled family members', fun
         ->assertDontSee('fi-account-switcher-account-active');
 });
 
+test('primary user sees switchable family members newest first', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $olderMember = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Older Member',
+        'display_name' => null,
+        'created_at' => now()->subDay(),
+    ]);
+    $newerMember = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Newer Member',
+        'display_name' => null,
+        'created_at' => now(),
+    ]);
+
+    $this->actingAs($primary);
+
+    Livewire::test(AccountSwitcher::class)
+        ->assertSeeInOrder([
+            $newerMember->name,
+            $olderMember->name,
+        ]);
+});
+
 test('primary user does not see switcher when no login-enabled family members exist', function () {
     $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
 
