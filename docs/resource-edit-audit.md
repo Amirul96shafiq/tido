@@ -40,6 +40,8 @@ The invoice table retains its existing **Uploaded By** column. **Uploaded By** d
 
 The editor is the authenticated account, whether that account is the Primary user or a linked Family Member. Invoice `family_member_id` remains the source-of-record for household spender attribution and invoice mutation authorization. The edit audit does not grant additional access: policies and `HouseholdAccess` continue to control which records a user may mutate.
 
+Primary users can use the user-menu **Swap Account** control to sign in as an eligible linked Family Member. Edits made during that switched session are attributed to the linked Family Member and remain subject to Family Member authorization; see [household-access.md](household-access.md) for the switching workflow.
+
 The application’s username presentation is `display_name` with a `name` fallback. Do not introduce a separate username column or display an email address in **Edited By** unless the product requirement changes.
 
 ## Verification

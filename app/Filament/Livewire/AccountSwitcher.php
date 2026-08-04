@@ -16,6 +16,7 @@ use Filament\Schemas\Contracts\HasSchemas;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class AccountSwitcher extends Component implements HasActions, HasSchemas
@@ -37,7 +38,7 @@ class AccountSwitcher extends Component implements HasActions, HasSchemas
             return true;
         }
 
-        return $user->isPrimary() && $this->getSwitchableMembers()->isNotEmpty();
+        return $user->isPrimary();
     }
 
     public static function isImpersonating(): bool
@@ -75,9 +76,17 @@ class AccountSwitcher extends Component implements HasActions, HasSchemas
         return FamilyMember::query()
             ->where('login_enabled', true)
             ->whereHas('loginUser')
-            ->orderBy('name')
+            ->orderBy('created_at')
             ->get();
     }
+
+    public function hasFamilyMembers(): bool
+    {
+        return FamilyMember::query()->exists();
+    }
+
+    #[On('family-member-updated')]
+    public function refreshFamilyMembers(): void {}
 
     public function confirmSwitchTo(): Action
     {
@@ -216,6 +225,7 @@ class AccountSwitcher extends Component implements HasActions, HasSchemas
             'isImpersonating' => self::isImpersonating(),
             'primaryUser' => $this->getPrimaryUser(),
             'switchableMembers' => $this->isVisible() ? $this->getSwitchableMembers() : collect(),
+            'hasFamilyMembers' => $this->hasFamilyMembers(),
         ]);
     }
 }

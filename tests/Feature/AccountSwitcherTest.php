@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Filament\Livewire\AccountSwitcher;
+use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Models\FamilyMember;
 use App\Models\User;
+use Filament\AvatarProviders\UiAvatarsProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -35,16 +37,118 @@ test('primary user sees account switcher with login-enabled family members', fun
         ->assertDontSee('fi-account-switcher-account-active');
 });
 
-test('primary user does not see switcher when no login-enabled family members exist', function () {
+test('family members without profile photos use the default avatar provider in the account switcher', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Sample Spouse',
+        'avatar_url' => null,
+    ]);
+    $defaultAvatarUrl = app(UiAvatarsProvider::class)->get($member);
+
+    $this->actingAs($primary);
+
+    Livewire::test(AccountSwitcher::class)
+        ->assertSeeHtml('src="'.e($defaultAvatarUrl).'"')
+        ->assertDontSee('fi-account-switcher-account-avatar-placeholder', false);
+});
+
+test('account switcher refreshes a family member avatar after an update event', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Sample Spouse',
+        'avatar_url' => 'avatars/old-avatar.jpg',
+    ]);
+    $oldAvatarUrl = e($member->getFilamentAvatarUrl());
+
+    $this->actingAs($primary);
+
+    $component = Livewire::test(AccountSwitcher::class)
+        ->assertSeeHtml('src="'.$oldAvatarUrl.'"');
+
+    $member->update(['avatar_url' => 'avatars/new-avatar.jpg']);
+
+    $component
+        ->dispatch('family-member-updated', familyMemberId: $member->id)
+        ->assertSeeHtml('src="'.e($member->fresh()->getFilamentAvatarUrl()).'"')
+        ->assertDontSeeHtml('src="'.$oldAvatarUrl.'"');
+});
+
+test('primary user sees switchable family members newest first', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $olderMember = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Older Member',
+        'display_name' => null,
+        'created_at' => now()->subDay(),
+    ]);
+    $newerMember = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Newer Member',
+        'display_name' => null,
+        'created_at' => now(),
+    ]);
+
+    $this->actingAs($primary);
+
+    Livewire::test(AccountSwitcher::class)
+        ->assertSeeInOrder([
+            $newerMember->name,
+            $olderMember->name,
+        ]);
+});
+
+test('primary user previews two family members and can reveal the full list', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $members = collect([
+        FamilyMember::factory()->loginEnabled()->create(['name' => 'First Member']),
+        FamilyMember::factory()->loginEnabled()->create(['name' => 'Second Member']),
+        FamilyMember::factory()->loginEnabled()->create(['name' => 'Third Member']),
+    ]);
+
+    $this->actingAs($primary);
+
+    $html = Livewire::test(AccountSwitcher::class)->html();
+
+    expect($html)
+        ->toContain('View All Family Members')
+        ->toContain('aria-controls="account-switcher-all-members"')
+        ->toContain('x-on:click.outside="allMembersOpen = false"')
+        ->toContain('x-on:livewire:navigate.window="allMembersOpen = false"')
+        ->toContain('x-show="allMembersOpen"')
+        ->toContain('x-transition:enter-start="fi-opacity-0"')
+        ->toContain('x-transition:leave-end="fi-opacity-0"')
+        ->toContain('fi-account-switcher-account-preview-faded')
+        ->and(substr_count($html, 'wire:key="account-switcher-preview-member-'))->toBe(2)
+        ->and(substr_count($html, 'wire:key="account-switcher-expanded-member-'))->toBe(3);
+
+    expect($members->pluck('name')->all())->each->toBeString();
+});
+
+test('primary user sees the add family member empty state when no family members exist', function () {
     $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
 
-    // Create a family member without login enabled
+    $this->actingAs($primary);
+
+    Livewire::test(AccountSwitcher::class)
+        ->assertSee('No family members yet')
+        ->assertSee('Add a family member to enable account switching.')
+        ->assertSee('Add New Family Member')
+        ->assertSee('fi-account-switcher-empty-panel')
+        ->assertSeeHtml('href="'.e(FamilyMemberResource::getUrl('create')).'"')
+        ->assertDontSee('View All Family Members');
+});
+
+test('primary user sees the enable switch empty state when all family members have login disabled', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
     FamilyMember::factory()->create(['login_enabled' => false]);
 
     $this->actingAs($primary);
 
     Livewire::test(AccountSwitcher::class)
-        ->assertDontSee('fi-account-switcher-section');
+        ->assertSee('No switchable members')
+        ->assertSee('Enable panel login via WhatsApp OTP to allow account switching.')
+        ->assertSee('Enable Family Member Switch')
+        ->assertSee('fi-account-switcher-empty-panel')
+        ->assertSeeHtml('href="'.e(FamilyMemberResource::getUrl('index')).'"')
+        ->assertDontSee('View All Family Members');
 });
 
 test('family member does not see the account switcher', function () {
@@ -280,4 +384,34 @@ test('impersonating user sees the account list', function () {
         ->assertSee('fi-account-switcher-account-chevron')
         ->assertSee("mountAction('confirmSwitchBack')", false)
         ->assertDontSee('fi-account-switcher-account-active');
+});
+
+test('impersonating user previews the primary and one actionable family member', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $currentMember = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Current Member',
+        'display_name' => null,
+    ]);
+    $firstOtherMember = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'First Other Member',
+        'display_name' => null,
+    ]);
+    $secondOtherMember = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Second Other Member',
+        'display_name' => null,
+    ]);
+    $currentUser = User::query()->where('family_member_id', $currentMember->id)->firstOrFail();
+
+    $this->actingAs($currentUser);
+    session()->put(AccountSwitcher::SESSION_KEY, $primary->id);
+
+    $html = Livewire::test(AccountSwitcher::class)->html();
+
+    expect($html)
+        ->toContain($firstOtherMember->name)
+        ->toContain($secondOtherMember->name)
+        ->not->toContain($currentMember->name)
+        ->and(substr_count($html, 'wire:key="account-switcher-preview-member-'))->toBe(1)
+        ->and(substr_count($html, 'wire:key="account-switcher-expanded-member-'))->toBe(2)
+        ->and(strpos($html, $primary->name))->toBeLessThan(strpos($html, $firstOtherMember->name));
 });

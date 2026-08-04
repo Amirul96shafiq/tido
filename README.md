@@ -158,6 +158,8 @@ Admin nav:
 
 **WhatsApp OTP login:** Pair Evolution → set WhatsApp number in Profile → `php artisan whatsapp:ping` → sign in with OTP at `/admin/login`.
 
+**Account switching:** Primary accounts with login-enabled Family Members can open **Swap Account** from the user menu to switch into a linked Family Member account. Use **Switch back** from the same menu to return to the Primary account.
+
 **WhatsApp receipt image/PDF:** Send an image or PDF from an allowlisted number (Profile or Family Members with allowlist enabled) → batched “Document received” → Ollama vision parse → “Document parsed” with edit link. PDFs are limited to 10 MB and 3 pages by default and require Poppler (`pdfinfo` + `pdftocairo`) on the queue worker.
 
 **WhatsApp manual invoice (no receipt media):** Text format, payment tokens, and replies: [docs/whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md).

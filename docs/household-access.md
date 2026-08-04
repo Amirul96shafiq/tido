@@ -15,6 +15,7 @@ Single-tenant hub with **household roles**: one **Primary** user owns settings; 
 | Primary-only gate | `app/Filament/Concerns/RequiresPrimaryHouseholdAccess.php` |
 | Invoice mutate ACL | `app/Policies/InvoicePolicy.php` → `HouseholdAccess::canMutateInvoice()` |
 | Resource edit audit | `app/Models/Concerns/TracksResourceEdits.php` → `edited_by` on supported resource tables |
+| Account switching | `app/Filament/Livewire/AccountSwitcher.php` + `resources/views/filament/livewire/account-switcher.blade.php` |
 | Family Member CRUD | `app/Filament/Resources/FamilyMembers/` (Settings; primary only) |
 | Local test seed | `database/seeders/FamilyMemberLoginTestSeeder.php` (local/testing only) |
 | Tests | `tests/Feature/FamilyMemberAttributionLoginTest.php`, `tests/Feature/InvoiceFamilyMemberOwnershipTest.php` |
@@ -111,6 +112,16 @@ WHATSAPP_LOGIN_DEV_PHONES=60111222333
 ```
 
 `DatabaseSeeder` / `FamilyMemberLoginTestSeeder` seeds **Sample Spouse** on that number with login + allowlist. OTP form accepts the fixed code (no Evolution send). See [evolution-local-windows.md](evolution-local-windows.md).
+
+## Account switching
+
+Primary accounts with at least one login-enabled Family Member can open **Swap Account** from the Filament user menu. A Family Member is switchable only when `login_enabled` is true and a linked login `User` exists.
+
+The compact switcher previews up to two eligible Family Members for a Primary account. While switched into a Family Member account, it previews one other eligible Family Member alongside the switch-back row. **View All Family Members** opens the complete eligible list. Each switch requires confirmation. During a switch, the application signs in as the linked Family Member account and retains the original Primary account in the session, so normal Family Member panel access and invoice mutation rules continue to apply.
+
+While switched into a Family Member account, the switcher keeps the original Primary account available as **Switch back** and permits switching to another eligible Family Member. **Switch back** restores the original Primary account and clears the temporary switching marker. A Family Member who signs in normally does not see the switcher.
+
+Account rows use `display_name`, falling back to `name`, and display the current profile avatar when available. Saving Family Member profile changes refreshes the account-switcher name and avatar without requiring a separate page reload.
 
 ## Agent rules
 

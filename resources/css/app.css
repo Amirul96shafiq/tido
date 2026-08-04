@@ -1411,6 +1411,7 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 
 /* Account switcher inside the user menu, between profile details and theme. */
 .fi-account-switcher-menu {
+    position: relative;
     margin-block: 0.5rem;
     margin-inline: 0.75rem;
 }
@@ -1423,6 +1424,15 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 
 .dark .fi-account-switcher-heading {
     color: var(--color-gray-400);
+}
+
+.fi-account-switcher-preview {
+    transition: visibility 150ms ease;
+}
+
+.fi-account-switcher-preview-hidden {
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .fi-account-switcher-section {
@@ -1439,11 +1449,98 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
     );
 }
 
+/* Compact empty state for the narrow user-menu account switcher. */
+.fi-account-switcher-empty-panel {
+    @apply px-2 py-3;
+}
+
+.fi-account-switcher-empty-panel .fi-no-empty-panel-icon-ctn {
+    @apply mb-2 size-10;
+}
+
+.fi-account-switcher-empty-panel .fi-no-empty-panel-icon-ctn::after {
+    display: none;
+    animation: none;
+}
+
+.fi-account-switcher-empty-panel .fi-no-empty-panel-icon {
+    @apply size-5;
+}
+
+.fi-account-switcher-empty-panel .fi-no-empty-panel-heading {
+    @apply mb-1 text-sm leading-5;
+}
+
+.fi-account-switcher-empty-panel .fi-no-empty-panel-description {
+    @apply mb-2 max-w-none text-xs leading-4;
+}
+
+.fi-account-switcher-empty-panel .fi-no-empty-panel-actions {
+    @apply w-full max-w-none;
+}
+
+.fi-account-switcher-empty-panel .fi-no-empty-panel-actions .fi-btn {
+    @apply w-full justify-center px-2 py-1.5 text-xs leading-4;
+}
+
 .fi-account-switcher-list {
     display: flex;
     flex-direction: column;
     gap: 0.125rem;
     padding: 0.25rem;
+}
+
+.fi-account-switcher-expanded {
+    @apply transition;
+
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    max-height: min(21rem, calc(100dvh - 6rem));
+    overflow: hidden;
+    border: 1px solid var(--color-gray-100);
+    border-radius: var(--radius-lg, 0.5rem);
+    background-color: var(--color-white);
+    box-shadow:
+        0 14px 24px -12px rgb(15 23 42 / 0.28),
+        0 8px 12px -10px rgb(15 23 42 / 0.2);
+}
+
+.fi-account-switcher-expanded.fi-opacity-0 {
+    @apply opacity-0;
+}
+
+.dark .fi-account-switcher-expanded {
+    border-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
+    background-color: var(--color-gray-900);
+    box-shadow:
+        0 14px 24px -12px rgb(0 0 0 / 0.55),
+        0 8px 12px -10px rgb(0 0 0 / 0.4);
+}
+
+.fi-account-switcher-expanded-list {
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.fi-account-switcher-cta {
+    padding: 0.25rem;
+    border-top: 1px solid var(--color-gray-100);
+}
+
+.dark .fi-account-switcher-cta {
+    border-top-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
 }
 
 .fi-account-switcher-account {
@@ -1469,6 +1566,23 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 .fi-account-switcher-account:disabled {
     cursor: wait;
     opacity: 0.65;
+}
+
+.fi-account-switcher-account-preview-faded {
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        rgb(0 0 0 / 1) 0% 35%,
+        rgb(0 0 0 / 0.35) 60%,
+        transparent 75% 100%
+    );
+    -webkit-mask-mode: alpha;
+    mask-image: linear-gradient(
+        to bottom,
+        rgb(0 0 0 / 1) 0% 35%,
+        rgb(0 0 0 / 0.35) 60%,
+        transparent 75% 100%
+    );
+    mask-mode: alpha;
 }
 
 .fi-account-switcher-account-avatar {
@@ -1558,6 +1672,12 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 .dark .fi-account-switcher-account-chevron {
     background-color: color-mix(in oklab, var(--color-slate-700) 60%, transparent);
     color: var(--color-slate-300);
+}
+
+@media (max-width: 639px) {
+    .fi-account-switcher-expanded {
+        max-height: min(21rem, calc(100dvh - 6rem));
+    }
 }
 
 /* Skip layout/chrome motion on the first paint after a hard refresh */
