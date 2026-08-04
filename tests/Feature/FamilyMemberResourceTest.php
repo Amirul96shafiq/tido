@@ -15,6 +15,8 @@ use App\Support\PhoneNumber;
 use Filament\Actions\Testing\TestAction;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -191,6 +193,61 @@ test('family members table has view slide-over action', function () {
     Livewire::test(ListFamilyMembers::class)
         ->assertSuccessful()
         ->assertActionExists(TestAction::make('view')->table($member));
+});
+
+test('family members table filters by contact allowlist and panel login status', function () {
+    $allowlisted = FamilyMember::factory()->allowlisted()->create(['name' => 'Allowlisted']);
+    $notAllowlisted = FamilyMember::factory()->notAllowlisted()->create(['name' => 'Not allowlisted']);
+    $loginEnabled = FamilyMember::factory()->loginEnabled()->create(['name' => 'Login enabled']);
+    $loginDisabled = FamilyMember::factory()->create(['name' => 'Login disabled']);
+    $trashed = FamilyMember::factory()->create(['name' => 'Trashed']);
+    $trashed->delete();
+
+    $component = Livewire::test(ListFamilyMembers::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$allowlisted, $notAllowlisted, $loginEnabled, $loginDisabled])
+        ->assertCanNotSeeTableRecords([$trashed])
+        ->assertTableFilterExists('trashed', fn ($filter): bool => $filter instanceof TrashedFilter)
+        ->assertTableFilterExists('allowlist_enabled', fn ($filter): bool => $filter instanceof TernaryFilter)
+        ->assertTableFilterExists('login_enabled', fn ($filter): bool => $filter instanceof TernaryFilter)
+        ->filterTable('allowlist_enabled', true)
+        ->assertCanSeeTableRecords([$allowlisted, $loginEnabled, $loginDisabled])
+        ->assertCanNotSeeTableRecords([$notAllowlisted]);
+
+    $component
+        ->filterTable('login_enabled', true)
+        ->assertCanSeeTableRecords([$loginEnabled])
+        ->assertCanNotSeeTableRecords([$allowlisted, $notAllowlisted, $loginDisabled]);
+
+    Livewire::test(ListFamilyMembers::class)
+        ->filterTable('trashed', true)
+        ->assertCanSeeTableRecords([$allowlisted, $notAllowlisted, $loginEnabled, $loginDisabled, $trashed])
+        ->filterTable('trashed', false)
+        ->assertCanSeeTableRecords([$trashed])
+        ->assertCanNotSeeTableRecords([$allowlisted, $notAllowlisted, $loginEnabled, $loginDisabled]);
+});
+
+test('restoring a soft deleted login-enabled family member restores panel login access', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create();
+    $member->delete();
+
+    expect(FamilyMember::query()->find($member->getKey()))->toBeNull()
+        ->and($member->loginUser()->exists())->toBeFalse();
+
+    $member = FamilyMember::withTrashed()->findOrFail($member->getKey());
+    $member->restore();
+
+    expect($member->fresh())->not->toBeNull()
+        ->and($member->loginUser()->exists())->toBeTrue();
+});
+
+test('trashed family member edit page exposes the restore action', function () {
+    $member = FamilyMember::factory()->create();
+    $member->delete();
+
+    Livewire::test(EditFamilyMember::class, ['record' => $member->getRouteKey()])
+        ->assertSuccessful()
+        ->assertActionExists('restore');
 });
 
 test('family member form uses details plus profile photo sidebar layout', function () {

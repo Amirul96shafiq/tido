@@ -11,6 +11,7 @@ use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Filament\Resources\FamilyMembers\Schemas\FamilyMemberForm;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditFamilyMember extends EditRecord
@@ -42,6 +43,7 @@ class EditFamilyMember extends EditRecord
     {
         return [
             DeleteAction::make(),
+            RestoreAction::make(),
         ];
     }
 

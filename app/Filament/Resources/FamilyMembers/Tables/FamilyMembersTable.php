@@ -12,12 +12,16 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\AvatarProviders\UiAvatarsProvider;
 use Filament\Support\Enums\FontFamily;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class FamilyMembersTable
@@ -93,6 +97,22 @@ class FamilyMembersTable
                     ->sortable(),
             ])
             ->defaultSort('updated_at', 'desc')
+            ->filters([
+                TrashedFilter::make()
+                    ->searchable(),
+
+                TernaryFilter::make('allowlist_enabled')
+                    ->label('Contact Allowlist')
+                    ->trueLabel('Enabled')
+                    ->falseLabel('Disabled')
+                    ->searchable(),
+
+                TernaryFilter::make('login_enabled')
+                    ->label('Panel Login')
+                    ->trueLabel('Enabled')
+                    ->falseLabel('Disabled')
+                    ->searchable(),
+            ])
             ->recordActions([
                 ViewAction::make()
                     ->slideOver()
@@ -105,6 +125,8 @@ class FamilyMembersTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                 ]),
             ])
             ->emptyStateHeading('No family members yet')

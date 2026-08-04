@@ -36,4 +36,11 @@ class FamilyMemberObserver
     {
         $this->loginService->revokeLoginAccess($familyMember);
     }
+
+    public function restored(FamilyMember $familyMember): void
+    {
+        if ($familyMember->login_enabled) {
+            $this->loginService->syncLoginUser($familyMember);
+        }
+    }
 }
