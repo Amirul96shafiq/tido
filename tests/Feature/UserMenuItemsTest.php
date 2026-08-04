@@ -148,6 +148,9 @@ test('user menu places account switcher between profile details and theme select
         ->and($accountSwitcherPosition)->toBeGreaterThan($profileDetailsPosition)
         ->and($accountSwitcherPosition)->toBeLessThan($themeSwitcherPosition);
 
+    expect(file_get_contents(resource_path('views/vendor/filament-panels/components/user-menu.blade.php')))
+        ->toContain("@livewire(\\App\\Filament\\Livewire\\AccountSwitcher::class, key('account-switcher'))");
+
     expect(file_get_contents(resource_path('views/filament/livewire/partials/account-switcher-account.blade.php')))
         ->toContain('heroicon-m-chevron-right');
 });

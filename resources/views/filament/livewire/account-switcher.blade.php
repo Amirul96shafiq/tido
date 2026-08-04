@@ -13,7 +13,9 @@
 <div
     wire:key="account-switcher"
     x-data="{ allMembersOpen: false }"
+    x-on:click.outside="allMembersOpen = false"
     x-on:keydown.escape.window="allMembersOpen = false"
+    x-on:livewire:navigate.window="allMembersOpen = false"
 >
     @if ($visible)
         <div class="fi-account-switcher-menu">

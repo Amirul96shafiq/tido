@@ -88,6 +88,8 @@ test('primary user previews two family members and can reveal the full list', fu
     expect($html)
         ->toContain('View All Family Members')
         ->toContain('aria-controls="account-switcher-all-members"')
+        ->toContain('x-on:click.outside="allMembersOpen = false"')
+        ->toContain('x-on:livewire:navigate.window="allMembersOpen = false"')
         ->toContain('x-show="allMembersOpen"')
         ->toContain('x-transition:enter-start="fi-opacity-0"')
         ->toContain('x-transition:leave-end="fi-opacity-0"')
