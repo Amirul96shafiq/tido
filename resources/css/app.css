@@ -1531,16 +1531,18 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 .fi-account-switcher-account-preview-faded {
     -webkit-mask-image: linear-gradient(
         to bottom,
-        black 0%,
-        black 75%,
-        rgb(0 0 0 / 0.5) 100%
+        rgb(0 0 0 / 1) 0% 35%,
+        rgb(0 0 0 / 0.35) 60%,
+        transparent 75% 100%
     );
+    -webkit-mask-mode: alpha;
     mask-image: linear-gradient(
         to bottom,
-        black 0%,
-        black 75%,
-        rgb(0 0 0 / 0.5) 100%
+        rgb(0 0 0 / 1) 0% 35%,
+        rgb(0 0 0 / 0.35) 60%,
+        transparent 75% 100%
     );
+    mask-mode: alpha;
 }
 
 .fi-account-switcher-account-avatar {
