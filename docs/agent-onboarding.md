@@ -36,6 +36,8 @@ Default login (seeded): `admin@tido.local` / `password`.
 
 ## 2. Read order for new agents
 
+For authentication, sessions, webhooks, uploads, backups, signed downloads, Horizon, public endpoints, dependency advisories, or production-release work, also read [security-audit.md](security-audit.md) and [security-hardening-playbook.md](security-hardening-playbook.md). Select one `SEC-*` item before implementation and keep the change, tests, and ledger update limited to that item unless an unavoidable prerequisite is recorded.
+
 1. This file
 2. Active agent workflow: root `AGENTS.md` + `.codex/CODEX_WORKFLOW.md` (Codex), `.cursorrules` (Cursor), or `.agents/AGENTS.md` (Antigravity)
 3. `docs/system-architecture.md` — product blueprint (note: some version numbers are outdated; trust Laravel 12 / PG 17 / stack in `AGENTS.md`)
