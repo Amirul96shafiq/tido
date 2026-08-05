@@ -244,6 +244,26 @@ test('invoice global search finds line item description', function () {
         ->and($results->first()->details['Items'])->toContain('Organic Almond Milk Special');
 });
 
+test('global search highlights matching detail values with the primary color', function () {
+    $invoice = Invoice::factory()->create([
+        'merchant_name' => 'Generic Store',
+    ]);
+
+    InvoiceItem::factory()
+        ->for($invoice)
+        ->create([
+            'description' => 'Organic Almond Milk Special',
+        ]);
+
+    $html = Livewire::test(GlobalSearchModal::class)
+        ->set('search', 'Almond Milk')
+        ->html();
+
+    expect($html)
+        ->toContain('<span class="text-primary-500 font-semibold hover:underline">Almond Milk</span>')
+        ->toContain('Organic <span class="text-primary-500 font-semibold hover:underline">Almond Milk</span> Special');
+});
+
 test('invoice global search omits items detail when only merchant matches', function () {
     Invoice::factory()->create([
         'merchant_name' => 'Cake Bakery Only',
