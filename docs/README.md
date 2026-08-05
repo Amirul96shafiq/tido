@@ -5,6 +5,8 @@
 | [../README.md](../README.md) | Humans (GitHub) | Product overview, install, usage, license |
 | [agent-onboarding.md](agent-onboarding.md) | Cursor / AI agents | How the app works and how to code for it |
 | [system-architecture.md](system-architecture.md) | Agents + humans | Product blueprint; do not contradict without warning |
+| [security-audit.md](security-audit.md) | Agents + humans | Source-level security finding register, evidence, status, and public-release blockers |
+| [security-hardening-playbook.md](security-hardening-playbook.md) | Agents + humans | One-finding-at-a-time AI implementation, verification, and handoff procedure |
 | [dashboard-views.md](dashboard-views.md) | Agents + humans | Modular Home dashboard (Finances / Training / Health / Task) |
 | [ollama-setup.md](ollama-setup.md) | Ops | Native host Ollama / qwen2.5vl:7b (no Docker) |
 | [evolution-local-windows.md](evolution-local-windows.md) | Ops | WhatsApp Evolution instance, webhook, PDF media, and LID allowlist (Windows host) |
