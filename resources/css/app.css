@@ -1533,8 +1533,12 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 }
 
 .fi-account-switcher-expanded-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
     min-height: 0;
     overflow-y: auto;
+    padding: 0.25rem;
 }
 
 .fi-account-switcher-cta {
