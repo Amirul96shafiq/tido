@@ -74,6 +74,7 @@ class InvoiceResource extends Resource
         return [
             'merchant_name',
             'invoice_number',
+            'status',
             'notes',
             'original_filename',
             'invoiceItems.description',
