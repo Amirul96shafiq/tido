@@ -71,7 +71,7 @@
                                 @include('filament.livewire.partials.account-switcher-account', [
                                     'account' => $member,
                                     'isPrimaryAccount' => false,
-                                    'fadeBottom' => $previewMembers->count() > 2 && $loop->last,
+                                    'fadeBottom' => $switchableMembers->count() > 2 && $loop->last,
                                     'rowKeyPrefix' => 'preview',
                                 ])
                             @endforeach
