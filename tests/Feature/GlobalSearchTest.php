@@ -225,6 +225,21 @@ test('invoice global search finds merchant name', function () {
         ->and($results->first()->title)->toBe('UniqueMerchantXYZ');
 });
 
+test('invoice global search finds status', function () {
+    $invoice = Invoice::factory()->create([
+        'merchant_name' => 'Status Store',
+        'invoice_number' => 'INV-STATUS-XYZ',
+        'notes' => 'Ordinary invoice note.',
+        'original_filename' => 'receipt.jpg',
+        'status' => 'reviewed',
+    ]);
+
+    $results = InvoiceResource::getGlobalSearchResults('reviewed');
+
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->title)->toBe('Status Store');
+});
+
 test('invoice global search finds line item description', function () {
     $invoice = Invoice::factory()->create([
         'merchant_name' => 'Generic Store',
