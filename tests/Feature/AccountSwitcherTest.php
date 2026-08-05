@@ -95,6 +95,24 @@ test('primary user sees switchable family members newest first', function () {
         ]);
 });
 
+test('primary user hides the full-list cta when only one family member is switchable', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Only Member',
+    ]);
+
+    $this->actingAs($primary);
+
+    $html = Livewire::test(AccountSwitcher::class)->html();
+
+    expect($html)
+        ->not->toContain('View All Family Members')
+        ->and($html)->not->toContain('fi-account-switcher-account-preview-faded')
+        ->and($html)->not->toMatch(
+            '/<div class="fi-account-switcher-cta">.*?View All Family Members/s',
+        );
+});
+
 test('primary user previews two family members and can reveal the full list', function () {
     $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
     $members = collect([

@@ -71,25 +71,27 @@
                                 @include('filament.livewire.partials.account-switcher-account', [
                                     'account' => $member,
                                     'isPrimaryAccount' => false,
-                                    'fadeBottom' => $loop->last,
+                                    'fadeBottom' => $switchableMembers->count() > 2 && $loop->last,
                                     'rowKeyPrefix' => 'preview',
                                 ])
                             @endforeach
                         </div>
 
-                        <div class="fi-account-switcher-cta">
-                            <x-filament::button
-                                type="button"
-                                color="primary"
-                                size="sm"
-                                class="w-full"
-                                aria-controls="account-switcher-all-members"
-                                aria-expanded="false"
-                                x-on:click="allMembersOpen = true"
-                            >
-                                View All Family Members
-                            </x-filament::button>
-                        </div>
+                        @if ($switchableMembers->count() > 2)
+                            <div class="fi-account-switcher-cta">
+                                <x-filament::button
+                                    type="button"
+                                    color="primary"
+                                    size="sm"
+                                    class="w-full"
+                                    aria-controls="account-switcher-all-members"
+                                    aria-expanded="false"
+                                    x-on:click="allMembersOpen = true"
+                                >
+                                    View All Family Members
+                                </x-filament::button>
+                            </div>
+                        @endif
                     </div>
                 @endif
             </div>

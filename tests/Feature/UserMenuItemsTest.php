@@ -275,6 +275,11 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         '.fi-account-switcher-expanded {',
         '.dark .fi-account-switcher-expanded {',
     );
+    $accountSwitcherExpandedListBlock = Str::between(
+        $css,
+        '.fi-account-switcher-expanded-list {',
+        '.fi-account-switcher-cta {',
+    );
     $accountSwitcherMobileBlock = Str::between(
         $css,
         '@media (max-width: 639px) {',
@@ -332,6 +337,11 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->toContain('bottom: 0;')
         ->toContain('max-height: min(21rem, calc(100dvh - 6rem));')
         ->toContain('overflow: hidden;')
+        ->and($accountSwitcherExpandedListBlock)
+        ->toContain('display: flex;')
+        ->toContain('flex-direction: column;')
+        ->toContain('gap: 0.125rem;')
+        ->toContain('padding: 0.25rem;')
         ->and($accountSwitcherMobileBlock)
         ->toContain('max-height: min(21rem, calc(100dvh - 6rem));')
         ->and($accountSwitcherCtaBlock)
