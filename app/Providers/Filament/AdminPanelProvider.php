@@ -99,6 +99,10 @@ class AdminPanelProvider extends PanelProvider
                     Vite::asset('resources/js/notification-swipe-dismiss.js'),
                 )->module(),
                 Js::make(
+                    'file-upload-editor-overlay',
+                    Vite::asset('resources/js/file-upload-editor-overlay.js'),
+                )->module(),
+                Js::make(
                     'unsupported-record-checkbox',
                     Vite::asset('resources/js/unsupported-record-checkbox.js'),
                 )->module(),

@@ -87,3 +87,20 @@ test('file upload editor paints above sticky edit page controls', function () {
         ->toContain(':has(.tido-sticky-marker)')
         ->toContain('z-index: -1;');
 });
+
+test('file upload editor overlay calls its Alpine close handler', function () {
+    $js = (string) file_get_contents(resource_path('js/file-upload-editor-overlay.js'));
+    $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
+    $viteConfig = (string) file_get_contents(base_path('vite.config.js'));
+
+    expect($js)
+        ->toContain("'.fi-fo-file-upload-editor-overlay'")
+        ->toContain('.fi-fo-file-upload-editor-control-panel-footer button.fi-btn')
+        ->toContain('cancelButton.click()')
+        ->toContain("document.addEventListener('click', closeFileUploadEditorFromOverlay, true)")
+        ->and($provider)
+        ->toContain("'file-upload-editor-overlay'")
+        ->toContain("Vite::asset('resources/js/file-upload-editor-overlay.js')")
+        ->and($viteConfig)
+        ->toContain("'resources/js/file-upload-editor-overlay.js'");
+});
