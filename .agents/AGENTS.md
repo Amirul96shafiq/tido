@@ -257,7 +257,7 @@ Sources: `manual` | `whatsapp` | `google_drive`
 
 ### WhatsApp (Evolution API)
 
-- `POST /api/webhooks/whatsapp` — Bearer token from `config('services.evolution.api_key')`
+- `POST /api/webhooks/whatsapp` — `Authorization: Bearer <EVOLUTION_WEBHOOK_SECRET>` from `config('services.evolution.webhook_secret')`; outbound Evolution calls use `config('services.evolution.api_key')`
 - Validate auth/payload first; heavy work via queue/jobs
 - Images → store → pending Invoice; text keywords (`spend`/`total`) → monthly total reply
 - Text manual invoice format → pending Invoice (no image) → label job → `requires_manual_review`

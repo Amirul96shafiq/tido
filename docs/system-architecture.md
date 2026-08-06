@@ -116,7 +116,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 ## 6. Security & Prompt Architecture Critique
 
 * **Hallucination Mitigation:** HTTP client logic must include regex to strip markdown blocks before `json_decode()`. Pass `"format": "json"` in the Ollama API request payload.
-* **Webhook Authentication:** Bearer token authorization or IP whitelisting required for Evolution API/Google PubSub endpoints.
+* **Webhook Authentication:** Evolution callbacks accept only `Authorization: Bearer <EVOLUTION_WEBHOOK_SECRET>`. The inbound secret must be a distinct 32+ character value from `EVOLUTION_API_KEY`, which matches Evolution's `AUTHENTICATION_API_KEY`; query-string and raw-token forms are rejected. Other external webhooks require their provider-specific signature, bearer, or private-network boundary.
 * **Household access:** Single panel with Primary vs Family Member roles (`HouseholdRole`); family members mutate only their attributed invoices. Resource edit audit records the authenticated Primary or Family Member separately from invoice spender attribution. See `docs/household-access.md` and `docs/resource-edit-audit.md`.
 * **Storage Limits:** Enforce detected MIME type validation, a maximum file size (`PDF_MAX_BYTES`, default 10 MB), and a PDF page limit (`PDF_MAX_PAGES`, default 3) to prevent memory exhaustion during Base64 encoding and multi-page rendering. Configure absolute Poppler binary paths for Windows queue workers.
 

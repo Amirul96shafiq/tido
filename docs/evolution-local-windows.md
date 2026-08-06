@@ -40,6 +40,7 @@ cp .env.example .env
 Edit Evolution’s `.env` at minimum:
 
 - `AUTHENTICATION_API_KEY` — long random secret; **must match** tido’s `EVOLUTION_API_KEY` exactly
+- This is the outbound Evolution API credential only; the inbound webhook callback uses the separate `EVOLUTION_WEBHOOK_SECRET` configured in tido.
 - Database provider + connection string (Postgres/MySQL)
 - Redis URL if required
 - Server port `8080` (default)
@@ -98,6 +99,8 @@ EVOLUTION_INSTANCE_NAME=tido
 ```
 
 `EVOLUTION_API_KEY` authenticates tido's outbound requests to Evolution. `EVOLUTION_WEBHOOK_SECRET` authenticates inbound requests from Evolution to tido and must be generated, stored, and rotated separately.
+
+Both credentials must be distinct, non-empty random values with at least 32 characters. Replace the angle-bracket placeholders before starting tido; empty, placeholder, or equal values are treated as an invalid configuration.
 
 Set your WhatsApp number in **Profile** (required). Optional family contacts: **Settings → Family Members** with “Include in contact allowlist”.
 
@@ -163,6 +166,8 @@ curl -X POST http://127.0.0.1:8080/webhook/set/tido \
   -d "{\"enabled\":true,\"url\":\"http://127.0.0.1:2000/api/webhooks/whatsapp\",\"headers\":{\"Authorization\":\"Bearer ${EVOLUTION_WEBHOOK_SECRET}\"},\"events\":[\"messages.upsert\"]}"
 ```
 
+Evolution sends the registered `Authorization: Bearer ${EVOLUTION_WEBHOOK_SECRET}` header to tido. The webhook does not accept the raw secret, the outbound `EVOLUTION_API_KEY`, or a `?token=` query parameter.
+
 Only Profile WhatsApp numbers plus Family Members with allowlist enabled are allowlisted for bot replies. Self-chat (“Message yourself”) is supported when the JID matches an allowlisted number. Family members with **login enabled** can sign in to `/admin` via WhatsApp OTP on their own number (limited Finances access).
 
 **Local testing without a second WhatsApp:** set `WHATSAPP_LOGIN_DEV_OTP=123456` and `WHATSAPP_LOGIN_DEV_PHONES=60111222333` in `.env` (local/testing only). `DatabaseSeeder` seeds **Sample Spouse** on that number — send OTP on login, then enter the dev code (no Evolution send).
@@ -224,6 +229,7 @@ If Evolution is down, use **Sign in with email & password** (primary user only).
 | Issue | Check |
 |-------|--------|
 | `whatsapp:ping` fails | Evolution up? `EVOLUTION_API_URL=http://127.0.0.1:8080`? Does `EVOLUTION_API_KEY` match `AUTHENTICATION_API_KEY`? |
+| Evolution page reports unconfigured | Confirm both credentials are present, at least 32 characters, distinct, and free of angle-bracket or known placeholder values. |
 | Connection refused | Wrong port; Evolution not started |
 | OTP not received | Instance CONNECTED? Number matches `User.phone`? |
 | Webhook never fires | URL must be `http://127.0.0.1:2000/...` while using `artisan serve`; confirm the registered `Authorization` header uses `EVOLUTION_WEBHOOK_SECRET` |

@@ -60,8 +60,8 @@ You are a tido security reviewer preparing a single-tenant MYR expense app for e
 
 ### Webhooks & APIs
 
-- `WhatsAppWebhookController`: Bearer `config('services.evolution.api_key')` — reject missing/wrong token with 401
-- Token via query string (`?token=`) is weaker than header — flag if exposed in logs/referrers
+- `WhatsAppWebhookController`: accept only `Authorization: Bearer` with `config('services.evolution.webhook_secret')`; reject missing, wrong, raw-token, query-string, or outbound-key credentials with 401
+- Query-string authentication (`?token=`) must be rejected; rotate the credential if that path was previously reachable
 - CSRF exempt for `api/*` in `bootstrap/app.php` — webhook must not rely on CSRF; must rely on Bearer
 - No synchronous Ollama/Evolution calls in webhook response path
 - Webhook tests must assert 401 for unauthorized payloads (`WhatsAppWebhookTest`)
@@ -78,7 +78,7 @@ You are a tido security reviewer preparing a single-tenant MYR expense app for e
 
 - Secrets via `config()` only in application code — never `env()` outside config files
 - `.env` / credentials never committed; `.env.example` has placeholders only
-- Evolution API key, Ollama host, Google service account JSON — encrypted or env-backed
+- Evolution API key and distinct webhook secret, Ollama host, Google service account JSON — encrypted or env-backed
 - Backup restore tokens: plain token shown once; only `restore_token_hash` stored — never log plain tokens
 - Error responses in production: no stack traces (`APP_DEBUG=false`)
 
@@ -115,7 +115,7 @@ You are a tido security reviewer preparing a single-tenant MYR expense app for e
 
 - [ ] `APP_DEBUG=false`, `APP_ENV=production`
 - [ ] `viewHorizon` allowlist configured
-- [ ] Webhook Bearer token strong and rotated
+- [ ] Distinct webhook Bearer secret is strong and rotated separately from the Evolution API key
 - [ ] HTTPS enforced; session cookies secure
 - [ ] Rate limits on auth + guest restore verified
 - [ ] `composer audit` clean or documented exceptions
