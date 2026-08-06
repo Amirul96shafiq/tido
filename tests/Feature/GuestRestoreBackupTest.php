@@ -153,7 +153,7 @@ test('guest restore rejects wrong token', function () {
     File::delete($zipPath);
 });
 
-test('guest restore succeeds with valid token and zip payload', function () {
+test('guest restore stages valid uploads under a server-controlled path', function () {
     expect(User::query()->exists())->toBeFalse();
 
     $backup = Backup::factory()->withRestoreToken('valid-restore-token')->create([
@@ -180,7 +180,24 @@ test('guest restore succeeds with valid token and zip payload', function () {
 
         $mock->shouldReceive('restoreFromZipPath')
             ->once()
-            ->withArgs(fn (string $path): bool => str_ends_with($path, 'valid-restore.zip'));
+            ->withArgs(function (string $path): bool {
+                $restoreRoot = realpath(storage_path('app/backup-restore'));
+                $stagingDirectory = realpath(dirname($path));
+
+                if ($restoreRoot === false || $stagingDirectory === false) {
+                    return false;
+                }
+
+                $restoreRoot = rtrim($restoreRoot, '/\\').DIRECTORY_SEPARATOR;
+
+                if (DIRECTORY_SEPARATOR === '\\') {
+                    $restoreRoot = strtolower($restoreRoot);
+                    $stagingDirectory = strtolower($stagingDirectory);
+                }
+
+                return basename($path) === 'backup.zip'
+                    && str_starts_with($stagingDirectory, $restoreRoot);
+            });
 
         $mock->shouldReceive('consumeRestoreToken')
             ->once()
@@ -189,7 +206,7 @@ test('guest restore succeeds with valid token and zip payload', function () {
 
     $response = $this->postJson(route('restore-backup'), [
         'token' => 'valid-restore-token',
-        'backup' => new UploadedFile($zipPath, 'valid-restore.zip', 'application/zip', null, true),
+        'backup' => new UploadedFile($zipPath, '..\\..\\CON.zip', 'application/zip', null, true),
     ]);
 
     $response->assertSuccessful()
