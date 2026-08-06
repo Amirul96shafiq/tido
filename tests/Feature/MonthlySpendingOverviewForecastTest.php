@@ -91,3 +91,40 @@ test('spending forecast shows large exceed percent without capping at one hundre
         ->assertSee('Projected to EXCEED budget (295%)')
         ->assertDontSee('Projected to EXCEED budget (100%)');
 });
+
+test('monthly spending overview renders a native sparkline for every stat', function () {
+    Carbon::setTestNow(Carbon::parse('2026-07-21 12:00:00', 'Asia/Kuala_Lumpur'));
+
+    Invoice::unsetEventDispatcher();
+
+    Invoice::factory()->create([
+        'date_time' => Carbon::parse('2026-06-10 10:00:00', 'Asia/Kuala_Lumpur'),
+        'subtotal' => 80.00,
+        'total_tax' => 4.00,
+        'total_amount' => 84.00,
+        'status' => 'reviewed',
+        'source' => 'manual',
+        'receipt_hash' => hash('sha256', 'overview-sparkline-prior'),
+        'invoice_number' => 'INV-SPARKLINE-001',
+    ]);
+
+    Invoice::factory()->create([
+        'date_time' => Carbon::parse('2026-07-10 10:00:00', 'Asia/Kuala_Lumpur'),
+        'subtotal' => 120.00,
+        'total_tax' => 6.00,
+        'total_amount' => 126.00,
+        'status' => 'reviewed',
+        'source' => 'manual',
+        'receipt_hash' => hash('sha256', 'overview-sparkline-current'),
+        'invoice_number' => 'INV-SPARKLINE-002',
+    ]);
+
+    Invoice::setEventDispatcher(app('events'));
+
+    $html = Livewire::test(MonthlySpendingOverview::class)
+        ->assertSuccessful()
+        ->html();
+
+    expect(substr_count($html, 'x-data="statsOverviewStatChart('))->toBe(4)
+        ->and(substr_count($html, '<canvas x-ref="canvas" aria-hidden="true"></canvas>'))->toBe(4);
+});
