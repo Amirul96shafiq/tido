@@ -92,7 +92,7 @@ test('trend returns six buckets ending at selected month', function () {
         'receipt_hash' => 'hash-trend-001',
         'date_time' => $targetMonth->copy()->addDays(3),
         'subtotal' => 80.00,
-        'total_tax' => 0.00,
+        'total_tax' => 4.00,
         'total_amount' => 80.00,
         'currency' => 'MYR',
         'source' => 'manual',
@@ -105,6 +105,7 @@ test('trend returns six buckets ending at selected month', function () {
 
     expect($trend['labels'])->toHaveCount(6);
     expect($trend['data'])->toHaveCount(6);
+    expect($trend['tax_data'])->toHaveCount(6);
     expect($trend['receipt_counts'])->toHaveCount(6);
     expect($trend['top_labels'])->toHaveCount(6);
     expect($trend['mom_changes'])->toHaveCount(6);
@@ -112,6 +113,7 @@ test('trend returns six buckets ending at selected month', function () {
     expect($trend['selected_index'])->toBe(5);
     expect($trend['labels'][5])->toBe($targetMonth->format('m/y'));
     expect($trend['data'][5])->toBe(80.0);
+    expect($trend['tax_data'][5])->toBe(4.0);
     expect($trend['receipt_counts'][5])->toBe(1);
     expect($trend['mom_changes'][0])->toBeNull();
 });

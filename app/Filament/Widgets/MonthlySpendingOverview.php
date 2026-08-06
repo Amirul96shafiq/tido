@@ -45,6 +45,13 @@ class MonthlySpendingOverview extends BaseWidget
         $bounds = $this->getSelectedMonthBounds();
         $monthLabel = $this->formatSelectedMonth('F Y');
         $summary = $this->analytics()->summary();
+        $trend = $this->analytics()->trend(6);
+        $spendingChart = $trend['data'];
+        $taxChart = $trend['tax_data'];
+        $receiptsChart = array_map(
+            static fn (int $count): float => (float) $count,
+            $trend['receipt_counts'],
+        );
 
         $thisMonthTotal = $summary['current_total'];
         $lastMonthTotal = $summary['previous_total'];
@@ -66,18 +73,21 @@ class MonthlySpendingOverview extends BaseWidget
                 ->description($description)
                 ->descriptionIcon($descriptionIcon)
                 ->color($descriptionColor)
+                ->chart($spendingChart)
                 ->extraAttributes(['id' => self::SECTION_TOTAL_SPENT]),
 
             Stat::make('SST Tax Paid', MoneyDisplay::withPrefix($summary['current_tax']))
                 ->description('Estimated 6% local taxation')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('gray')
+                ->chart($taxChart)
                 ->extraAttributes(['id' => self::SECTION_SST_TAX_PAID]),
 
             Stat::make('Receipts Processed', (string) $summary['processed_count'])
                 ->description($summary['pending_count'].' pending parsing')
                 ->descriptionIcon('heroicon-m-document-text')
                 ->color($summary['pending_count'] > 0 ? 'warning' : 'success')
+                ->chart($receiptsChart)
                 ->extraAttributes(['id' => self::SECTION_RECEIPTS_PROCESSED]),
         ];
 
@@ -88,6 +98,8 @@ class MonthlySpendingOverview extends BaseWidget
             $averageDailySpend = $currentDay > 0 ? $thisMonthTotal / $currentDay : 0;
             $remainingDays = $totalDays - $currentDay;
             $projectedSpend = $thisMonthTotal + ($averageDailySpend * $remainingDays);
+            $forecastChart = $spendingChart;
+            $forecastChart[count($forecastChart) - 1] = (float) $projectedSpend;
 
             $overallMonthlyBudget = Budget::whereNull('label_id')
                 ->where('period', 'monthly')
@@ -120,17 +132,27 @@ class MonthlySpendingOverview extends BaseWidget
                     ->description($forecastDesc)
                     ->descriptionIcon('heroicon-m-chart-bar')
                     ->color($forecastColor)
+                    ->chart($forecastChart)
                     ->extraAttributes(['id' => self::SECTION_SPENDING_FORECAST]),
             ]);
         } else {
             $daysInMonth = $bounds['start']->daysInMonth;
             $dailyAverage = $daysInMonth > 0 ? $thisMonthTotal / $daysInMonth : 0;
+            $dailyAverageChart = array_map(
+                fn (float $total, int $index): float => $total / $this->getSelectedMonth()
+                    ->copy()
+                    ->subMonths(count($spendingChart) - 1 - $index)
+                    ->daysInMonth,
+                $spendingChart,
+                array_keys($spendingChart),
+            );
 
             array_splice($stats, 1, 0, [
                 Stat::make('Daily Average ('.$monthLabel.')', MoneyDisplay::withPrefix($dailyAverage))
                     ->description(sprintf('Across %d days in month', $daysInMonth))
                     ->descriptionIcon('heroicon-m-calculator')
                     ->color('info')
+                    ->chart($dailyAverageChart)
                     ->extraAttributes(['id' => self::SECTION_SPENDING_FORECAST]),
             ]);
         }

@@ -128,6 +128,7 @@ final class DashboardMonthAnalytics
      * @return array{
      *     labels: list<string>,
      *     data: list<float>,
+     *     tax_data: list<float>,
      *     selected_index: int,
      *     receipt_counts: list<int>,
      *     top_labels: list<list<array{name: string, total: float}>>,
@@ -158,7 +159,7 @@ final class DashboardMonthAnalytics
             $monthlyStats = $this->invoiceQuery()
                 ->processed()
                 ->whereBetween('date_time', [$rangeStart, $rangeEnd])
-                ->selectRaw("{$monthExpression} as month_key, SUM(total_amount) as total, COUNT(*) as receipt_count")
+                ->selectRaw("{$monthExpression} as month_key, SUM(total_amount) as total, SUM(total_tax) as tax_total, COUNT(*) as receipt_count")
                 ->groupBy('month_key')
                 ->get()
                 ->keyBy('month_key');
@@ -184,6 +185,7 @@ final class DashboardMonthAnalytics
 
             $labels = [];
             $data = [];
+            $taxData = [];
             $receiptCounts = [];
             $topLabels = [];
 
@@ -195,6 +197,7 @@ final class DashboardMonthAnalytics
                 $labels[] = $month->format('m/y');
                 $stats = $monthlyStats->get($key);
                 $data[] = (float) ($stats->total ?? 0);
+                $taxData[] = (float) ($stats->tax_total ?? 0);
                 $receiptCounts[] = (int) ($stats->receipt_count ?? 0);
                 $topLabels[] = $topLabelsByMonthKey[$key] ?? [];
             }
@@ -226,6 +229,7 @@ final class DashboardMonthAnalytics
             return [
                 'labels' => $labels,
                 'data' => $data,
+                'tax_data' => $taxData,
                 'selected_index' => ($calendarYear || $yearToDate) ? $endMonth->month - 1 : $months - 1,
                 'receipt_counts' => $receiptCounts,
                 'top_labels' => $topLabels,
