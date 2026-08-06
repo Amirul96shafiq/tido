@@ -44,6 +44,40 @@ test('whatsapp webhook accepts only the dedicated bearer secret', function (): v
         ->assertUnauthorized();
 });
 
+test('whatsapp webhook rejects equal outbound and inbound credentials', function (): void {
+    $secret = 'test-evolution-shared-secret-0123456789abcdef0123456789abcdef';
+
+    config([
+        'services.evolution.api_key' => $secret,
+        'services.evolution.webhook_secret' => $secret,
+    ]);
+
+    Queue::fake();
+    Http::fake();
+
+    $payload = [
+        'event' => 'messages.upsert',
+        'data' => [
+            'key' => [
+                'remoteJid' => '60123456789@s.whatsapp.net',
+                'fromMe' => false,
+                'id' => 'MSG-EQUAL-SECRETS',
+            ],
+            'messageType' => 'conversation',
+            'message' => [
+                'conversation' => 'help',
+            ],
+        ],
+    ];
+
+    $this->postJson('/api/webhooks/whatsapp', $payload, [
+        'Authorization' => 'Bearer '.$secret,
+    ])->assertUnauthorized();
+
+    Queue::assertNothingPushed();
+    Http::assertNothingSent();
+});
+
 test('whatsapp webhook rejects an invalid configured secret', function (): void {
     config(['services.evolution.webhook_secret' => 'change-me']);
 

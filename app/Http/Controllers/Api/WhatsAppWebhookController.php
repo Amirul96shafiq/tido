@@ -24,9 +24,10 @@ class WhatsAppWebhookController extends Controller
     public function handle(Request $request, WhatsAppNotificationService $waService): JsonResponse
     {
         $authorization = $request->header('Authorization');
+        $apiKey = trim((string) config('services.evolution.api_key'));
         $webhookSecret = trim((string) config('services.evolution.webhook_secret'));
 
-        if (! EvolutionCredential::isValid($webhookSecret)
+        if (! EvolutionCredential::areDistinct($apiKey, $webhookSecret)
             || ! hash_equals('Bearer '.$webhookSecret, (string) $authorization)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
