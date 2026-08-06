@@ -97,7 +97,7 @@ Attribution: `family_member_id` null = Primary; set from WhatsApp sender (`Invoi
 
 ## Config / env
 
-- `config/services.php` → `ollama.*`, `documents.*`, `evolution.*` (API URL/key/instance). PDF parsing uses Poppler `pdfinfo` / `pdftocairo`; configure `PDF_MAX_BYTES`, `PDF_MAX_PAGES`, `PDFINFO_BINARY`, and `PDFTOCAIRO_BINARY`. Contact allowlist: Profile `users.phone` + Family Members with allowlist enabled; linked WhatsApp LIDs are stored on `users.whatsapp_lid` / `family_members.whatsapp_lid`.
+- `config/services.php` → `ollama.*`, `documents.*`, `evolution.*` (API URL, outbound API key, distinct inbound webhook secret, instance). PDF parsing uses Poppler `pdfinfo` / `pdftocairo`; configure `PDF_MAX_BYTES`, `PDF_MAX_PAGES`, `PDFINFO_BINARY`, and `PDFTOCAIRO_BINARY`. Contact allowlist: Profile `users.phone` + Family Members with allowlist enabled; linked WhatsApp LIDs are stored on `users.whatsapp_lid` / `family_members.whatsapp_lid`.
 - Family OTP local test: `WHATSAPP_LOGIN_DEV_OTP` / `WHATSAPP_LOGIN_DEV_PHONES` — `docs/household-access.md`, `docs/evolution-local-windows.md`
 - `config/filesystems.php` → `google` disk
 - Setup guides: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-manual-invoice.md`, `docs/google-drive-setup.md`, `docs/service-status.md`, `docs/household-access.md`

@@ -70,7 +70,7 @@ Sources: `manual` | `whatsapp` | `google_drive`
 
 ## WhatsApp webhook
 
-- `POST /api/webhooks/whatsapp` — Bearer `config('services.evolution.api_key')`
+- `POST /api/webhooks/whatsapp` — `Authorization: Bearer` from `config('services.evolution.webhook_secret')`; outbound Evolution calls use `config('services.evolution.api_key')`
 - Validate auth/payload first; heavy work via queued jobs
 - Allowlist: Profile `users.phone` + Family Members with `allowlist_enabled`
 - Bot keywords: `docs/whatsapp-bot-commands.md`

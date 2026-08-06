@@ -14,7 +14,8 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
+        'services.evolution.webhook_secret' => 'test-evolution-webhook-secret-0123456789abcdef0123456789abcdef',
     ]);
 
     User::factory()->create([
@@ -59,7 +60,7 @@ test('linking a lid to primary allows webhook replies for that lid sender', func
             ],
         ],
     ], [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])->assertSuccessful();
 
     Http::assertSent(function (Request $request) {
@@ -88,7 +89,7 @@ test('unlinked lid senders are ignored and remembered as pending', function () {
             ],
         ],
     ], [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])
         ->assertSuccessful()
         ->assertJson(['status' => 'ignored_sender']);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Support\EvolutionCredential;
 use App\Support\PhoneNumber;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
@@ -17,12 +18,15 @@ class EvolutionInstanceService
 
     private string $apiKey;
 
+    private string $webhookSecret;
+
     private string $instanceName;
 
     public function __construct()
     {
         $this->apiUrl = rtrim((string) config('services.evolution.api_url'), '/');
-        $this->apiKey = (string) config('services.evolution.api_key');
+        $this->apiKey = trim((string) config('services.evolution.api_key'));
+        $this->webhookSecret = trim((string) config('services.evolution.webhook_secret'));
         $this->instanceName = (string) config('services.evolution.instance_name', 'tido');
     }
 
@@ -33,7 +37,8 @@ class EvolutionInstanceService
 
     public function isConfigured(): bool
     {
-        return $this->apiUrl !== '' && $this->apiKey !== '';
+        return $this->apiUrl !== ''
+            && EvolutionCredential::areDistinct($this->apiKey, $this->webhookSecret);
     }
 
     /**
@@ -439,6 +444,13 @@ class EvolutionInstanceService
     {
         $url = $webhookUrl ?? $this->defaultWebhookUrl();
 
+        if (! $this->isConfigured()) {
+            return [
+                'ok' => false,
+                'message' => 'Evolution API is not configured. Set EVOLUTION_API_URL, EVOLUTION_API_KEY, and EVOLUTION_WEBHOOK_SECRET with distinct 32+ character values.',
+            ];
+        }
+
         try {
             $this->client()
                 ->post("{$this->apiUrl}/webhook/set/{$this->instanceName}", [
@@ -446,7 +458,7 @@ class EvolutionInstanceService
                         'enabled' => true,
                         'url' => $url,
                         'headers' => [
-                            'Authorization' => 'Bearer '.$this->apiKey,
+                            'Authorization' => 'Bearer '.$this->webhookSecret,
                         ],
                         'byEvents' => false,
                         'base64' => false,
@@ -547,7 +559,7 @@ class EvolutionInstanceService
     private function client(): PendingRequest
     {
         if (! $this->isConfigured()) {
-            throw new RuntimeException('Evolution API is not configured. Set EVOLUTION_API_URL and EVOLUTION_API_KEY.');
+            throw new RuntimeException('Evolution API is not configured. Set EVOLUTION_API_URL, EVOLUTION_API_KEY, and EVOLUTION_WEBHOOK_SECRET with distinct 32+ character values.');
         }
 
         return Http::timeout(60)

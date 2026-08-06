@@ -43,12 +43,12 @@ npm run dev:full   # vite + serve:2000 + queue
 ## Config keys (`config/services.php`)
 
 - `ollama.*` — host, model, timeout
-- `evolution.*` — API URL, key, instance name
+- `evolution.*` — API URL, outbound API key, distinct inbound webhook secret, instance name
 
 ## WhatsApp
 
 - Webhook: `POST /api/webhooks/whatsapp`
-- Auth: `Authorization: Bearer {evolution.api_key}`
+- Auth: `Authorization: Bearer {evolution.webhook_secret}` for inbound callbacks; outbound calls use `{evolution.api_key}`
 - Outbound: `WhatsAppNotificationService` via Evolution `sendText`
 - Allowlist: Profile phone + Family Members (`allowlist_enabled`)
 - Manual invoice format and payment tokens: `docs/whatsapp-manual-invoice.md`
@@ -82,7 +82,7 @@ npm run dev:full   # vite + serve:2000 + queue
 
 | Symptom | Likely cause |
 |---------|--------------|
-| Webhook 401 | Wrong Evolution API key in env vs Evolution instance |
+| Webhook 401 | The callback must use the distinct `EVOLUTION_WEBHOOK_SECRET` bearer value; `EVOLUTION_API_KEY` only authenticates outbound calls. Verify both values are present, 32+ characters, and distinct. |
 | Invoice stuck pending | Queue worker not running; job failed silently |
 | Ollama timeout | Model not loaded; host unreachable; increase timeout |
 | WhatsApp no reply | Sender not on allowlist; Evolution disconnected |

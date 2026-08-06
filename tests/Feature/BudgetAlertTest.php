@@ -58,7 +58,7 @@ test('budget alert service triggers alerts on threshold breach', function () {
 
     // Force environment setting for WhatsApp number so WhatsApp notification dispatches
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
     ]);
 
     $invoice->update(['status' => 'parsed']);
@@ -119,7 +119,7 @@ test('budget alert service skips users who opted out of budget alerts', function
     ]);
 
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
     ]);
 
     $invoice->update(['status' => 'parsed']);
@@ -171,7 +171,7 @@ test('budget alert service sends critical notification at critical threshold', f
     ]);
 
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
     ]);
 
     $invoice->update(['status' => 'parsed']);
@@ -231,7 +231,7 @@ test('budget alert service skips whatsapp when notify_whatsapp is false', functi
     ]);
 
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
     ]);
 
     $invoice->update(['status' => 'parsed']);
@@ -286,7 +286,7 @@ test('budget alert service skips filament when notify_filament is false', functi
     ]);
 
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
     ]);
 
     $invoice->update(['status' => 'parsed']);
@@ -339,7 +339,7 @@ test('budget alert service notifies only the primary admin even when other users
     ]);
 
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
     ]);
 
     $invoice->update(['status' => 'parsed']);
@@ -392,7 +392,7 @@ test('budget alert service does not re-alert the same budget level in the same p
     ]);
 
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
     ]);
 
     $first->update(['status' => 'parsed']);

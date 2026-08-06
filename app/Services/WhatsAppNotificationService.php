@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Support\EvolutionCredential;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppSendResult;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class WhatsAppNotificationService
 {
@@ -110,6 +112,10 @@ class WhatsAppNotificationService
 
     protected function client(): PendingRequest
     {
+        if ($this->apiUrl === '' || ! EvolutionCredential::isValid($this->apiKey)) {
+            throw new RuntimeException('Evolution API is not configured. Set EVOLUTION_API_URL and EVOLUTION_API_KEY with a 32+ character value.');
+        }
+
         return Http::timeout(15)
             ->connectTimeout(5)
             ->acceptJson()

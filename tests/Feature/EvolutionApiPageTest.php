@@ -60,7 +60,8 @@ beforeEach(function () {
     config([
         'app.url' => 'http://127.0.0.1:2000',
         'services.evolution.api_url' => 'http://evolution.test',
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
+        'services.evolution.webhook_secret' => 'test-evolution-webhook-secret-0123456789abcdef0123456789abcdef',
         'services.evolution.instance_name' => 'tido',
         'services.evolution.device_label' => 'tido App (Evolution API)',
     ]);
@@ -633,6 +634,7 @@ test('register webhook posts nested webhook payload', function () {
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/webhook/set/tido')
             && data_get($request->data(), 'webhook.url') === 'http://127.0.0.1:2000/api/webhooks/whatsapp'
+            && data_get($request->data(), 'webhook.headers.Authorization') === 'Bearer '.config('services.evolution.webhook_secret')
             && data_get($request->data(), 'webhook.events.0') === 'MESSAGES_UPSERT';
     });
 });

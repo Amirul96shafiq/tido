@@ -48,7 +48,12 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * @return array{Authorization: string}
+ */
+function evolutionWebhookHeaders(): array
 {
-    // ..
+    return [
+        'Authorization' => 'Bearer '.(string) config('services.evolution.webhook_secret'),
+    ];
 }

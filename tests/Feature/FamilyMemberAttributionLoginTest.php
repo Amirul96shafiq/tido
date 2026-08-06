@@ -31,7 +31,7 @@ beforeEach(function () {
     Cache::flush();
 
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.api_url' => 'http://evolution.test',
         'services.evolution.instance_name' => 'tido',
         'services.evolution.login_dev_otp' => '123456',

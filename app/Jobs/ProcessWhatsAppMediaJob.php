@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Services\PdfInspectionException;
 use App\Services\PdfPageInspector;
 use App\Services\WhatsAppNotificationService;
+use App\Support\EvolutionCredential;
 use App\Support\InvoiceSenderAttribution;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppMessage;
@@ -371,6 +372,14 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
         $instanceName = (string) config('services.evolution.instance_name');
         $apiUrl = rtrim((string) config('services.evolution.api_url'), '/');
         $apiKey = (string) config('services.evolution.api_key');
+
+        if ($apiUrl === '' || ! EvolutionCredential::isValid($apiKey)) {
+            Log::error('Failed to retrieve media from Evolution API because the API credential is not configured', [
+                'message_id' => $this->messageId,
+            ]);
+
+            return null;
+        }
 
         $response = Http::withHeaders(['apikey' => $apiKey])
             ->post("{$apiUrl}/chat/getBase64FromMediaMessage/{$instanceName}", [

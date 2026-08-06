@@ -19,7 +19,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.api_url' => 'http://evolution-api.test',
         'services.evolution.instance_name' => 'tido',
         'services.documents.max_bytes' => 10 * 1024 * 1024,

@@ -156,7 +156,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 
 1. Ollama: always `format: json` + strip markdown fences (see `OllamaService`)
 2. PDF receipts: validate the detected MIME type, enforce `PDF_MAX_BYTES` / `PDF_MAX_PAGES`, and render pages with configured Poppler `pdfinfo` / `pdftocairo` binaries before AI extraction
-3. Webhooks: Bearer auth → resolve phone or linked WhatsApp LID → validate → queue
+3. Webhooks: authenticate `Authorization: Bearer <EVOLUTION_WEBHOOK_SECRET>` before payload handling, then resolve phone or linked WhatsApp LID → validate → queue; keep the inbound secret distinct from outbound `EVOLUTION_API_KEY`
 4. Never call real Ollama/Evolution in tests
 
 ### After code changes

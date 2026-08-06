@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\User;
+use App\Support\EvolutionCredential;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppLoginDevOtp;
 use App\Support\WhatsAppMessage;
@@ -34,7 +35,8 @@ class WhatsAppLoginOtpService
             throw new RuntimeException('User does not have a valid WhatsApp phone number.');
         }
 
-        if (blank(config('services.evolution.api_key')) || blank(config('services.evolution.api_url'))) {
+        if (blank(config('services.evolution.api_url'))
+            || ! EvolutionCredential::isValid((string) config('services.evolution.api_key'))) {
             throw new RuntimeException('Evolution API is not configured.');
         }
 

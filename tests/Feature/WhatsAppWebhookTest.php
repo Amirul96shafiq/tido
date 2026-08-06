@@ -18,16 +18,71 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
+        'services.evolution.webhook_secret' => 'test-evolution-webhook-secret-0123456789abcdef0123456789abcdef',
     ]);
 
     User::factory()->create(['phone' => '60123456789']);
 });
 
-test('whatsapp webhook rejects unauthorized requests', function () {
+test('whatsapp webhook rejects unauthorized requests', function (): void {
     $this->postJson('/api/webhooks/whatsapp', [], [
         'Authorization' => 'Bearer invalid-token',
-    ])->assertStatus(401);
+    ])->assertUnauthorized();
+});
+
+test('whatsapp webhook accepts only the dedicated bearer secret', function (): void {
+    $this->postJson('/api/webhooks/whatsapp', [], [
+        'Authorization' => 'Bearer '.(string) config('services.evolution.api_key'),
+    ])->assertUnauthorized();
+
+    $this->postJson('/api/webhooks/whatsapp', [], [
+        'Authorization' => (string) config('services.evolution.webhook_secret'),
+    ])->assertUnauthorized();
+
+    $this->postJson('/api/webhooks/whatsapp?token='.rawurlencode((string) config('services.evolution.webhook_secret')), [])
+        ->assertUnauthorized();
+});
+
+test('whatsapp webhook rejects equal outbound and inbound credentials', function (): void {
+    $secret = 'test-evolution-shared-secret-0123456789abcdef0123456789abcdef';
+
+    config([
+        'services.evolution.api_key' => $secret,
+        'services.evolution.webhook_secret' => $secret,
+    ]);
+
+    Queue::fake();
+    Http::fake();
+
+    $payload = [
+        'event' => 'messages.upsert',
+        'data' => [
+            'key' => [
+                'remoteJid' => '60123456789@s.whatsapp.net',
+                'fromMe' => false,
+                'id' => 'MSG-EQUAL-SECRETS',
+            ],
+            'messageType' => 'conversation',
+            'message' => [
+                'conversation' => 'help',
+            ],
+        ],
+    ];
+
+    $this->postJson('/api/webhooks/whatsapp', $payload, [
+        'Authorization' => 'Bearer '.$secret,
+    ])->assertUnauthorized();
+
+    Queue::assertNothingPushed();
+    Http::assertNothingSent();
+});
+
+test('whatsapp webhook rejects an invalid configured secret', function (): void {
+    config(['services.evolution.webhook_secret' => 'change-me']);
+
+    $this->postJson('/api/webhooks/whatsapp', [], evolutionWebhookHeaders())
+        ->assertUnauthorized();
 });
 
 test('whatsapp webhook ignores non-allowlisted senders without replying', function () {
@@ -49,7 +104,7 @@ test('whatsapp webhook ignores non-allowlisted senders without replying', functi
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])
         ->assertSuccessful()
         ->assertJson(['status' => 'ignored_sender']);
@@ -79,7 +134,7 @@ test('whatsapp webhook ignores strangers image uploads', function () {
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])
         ->assertSuccessful()
         ->assertJson(['status' => 'ignored_sender']);
@@ -116,7 +171,7 @@ test('whatsapp webhook handles text queries for monthly spent', function () {
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])->assertSuccessful();
 
     Http::assertSent(function (Request $request) {
@@ -179,7 +234,7 @@ test('whatsapp webhook handles spend labels sub-command', function () {
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])->assertSuccessful();
 
     Http::assertSent(function (Request $request) {
@@ -212,7 +267,7 @@ test('whatsapp webhook allows self-chat fromMe when sender is allowlisted', func
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])->assertSuccessful();
 
     Http::assertSent(function (Request $request) {
@@ -242,7 +297,7 @@ test('whatsapp webhook accepts image message and dispatches media job', function
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])
         ->assertSuccessful()
         ->assertJson(['status' => 'accepted']);
@@ -281,7 +336,7 @@ test('whatsapp webhook accepts a PDF document and dispatches its metadata', func
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])
         ->assertSuccessful()
         ->assertJson(['status' => 'accepted']);
@@ -316,7 +371,7 @@ test('whatsapp webhook ignores non-PDF document messages', function () {
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])
         ->assertSuccessful()
         ->assertJson(['status' => 'ignored_document_type']);
@@ -344,7 +399,7 @@ test('whatsapp webhook denies all senders when no profile or family allowlist ex
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])
         ->assertSuccessful()
         ->assertJson(['status' => 'ignored_sender']);
@@ -378,7 +433,7 @@ test('whatsapp webhook allows allowlisted family members to interact with the bo
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])->assertSuccessful();
 
     Http::assertSent(function (Request $request) {
@@ -409,7 +464,7 @@ test('whatsapp webhook ignores family members with allowlist disabled', function
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])
         ->assertSuccessful()
         ->assertJson(['status' => 'ignored_sender']);
