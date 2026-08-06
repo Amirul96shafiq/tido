@@ -12,7 +12,7 @@ uses(TestCase::class);
 beforeEach(function () {
     config([
         'services.evolution.api_url' => 'http://evolution.test',
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.instance_name' => 'tido',
     ]);
 });
@@ -31,7 +31,8 @@ test('isWhatsAppNumber returns true when evolution reports exists', function () 
     expect(app(WhatsAppNotificationService::class)->isWhatsAppNumber('60123456789'))->toBeTrue();
 
     Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/chat/whatsappNumbers/tido')
-        && data_get($request->data(), 'numbers.0') === '60123456789');
+        && data_get($request->data(), 'numbers.0') === '60123456789'
+        && ($request->header('apikey')[0] ?? null) === config('services.evolution.api_key'));
 });
 
 test('isWhatsAppNumber returns false when evolution reports missing', function () {

@@ -93,8 +93,11 @@ In tido's `.env`:
 ```env
 EVOLUTION_API_URL=http://127.0.0.1:8080
 EVOLUTION_API_KEY=<same long secret as Evolution AUTHENTICATION_API_KEY>
+EVOLUTION_WEBHOOK_SECRET=<different long random secret used only for Evolution webhook callbacks>
 EVOLUTION_INSTANCE_NAME=tido
 ```
+
+`EVOLUTION_API_KEY` authenticates tido's outbound requests to Evolution. `EVOLUTION_WEBHOOK_SECRET` authenticates inbound requests from Evolution to tido and must be generated, stored, and rotated separately.
 
 Set your WhatsApp number in **Profile** (required). Optional family contacts: **Settings → Family Members** with “Include in contact allowlist”.
 
@@ -129,11 +132,13 @@ Your **Profile** WhatsApp number is for alerts, OTP login, and the bot allowlist
 
 Or via curl (include `integration`):
 
+In the shell used for these commands, set `EVOLUTION_API_KEY` to the outbound value configured in both applications and set `EVOLUTION_WEBHOOK_SECRET` to the separate inbound value configured in tido. Do not paste either value into documentation or source files.
+
 ```bash
 curl -X POST http://127.0.0.1:8080/instance/create \
   -H "Content-Type: application/json" \
-  -H "apikey: tido-secret-key" \
-  -d "{\"instanceName\":\"tido\",\"token\":\"tido-secret-key\",\"qrcode\":true,\"integration\":\"WHATSAPP-BAILEYS\"}"
+  -H "apikey: ${EVOLUTION_API_KEY}" \
+  -d "{\"instanceName\":\"tido\",\"token\":\"${EVOLUTION_API_KEY}\",\"qrcode\":true,\"integration\":\"WHATSAPP-BAILEYS\"}"
 ```
 
 The JSON includes `qrcode.base64` — the admin page renders that as an image. Wait until status is **CONNECTED** / `open`.
@@ -142,7 +147,7 @@ Reconnect later if needed:
 
 ```bash
 curl -X GET "http://127.0.0.1:8080/instance/connect/tido" \
-  -H "apikey: tido-secret-key"
+  -H "apikey: ${EVOLUTION_API_KEY}"
 ```
 
 ---
@@ -154,8 +159,8 @@ tido serves on port **2000** with `dev:full`:
 ```bash
 curl -X POST http://127.0.0.1:8080/webhook/set/tido \
   -H "Content-Type: application/json" \
-  -H "apikey: tido-secret-key" \
-  -d "{\"enabled\":true,\"url\":\"http://127.0.0.1:2000/api/webhooks/whatsapp\",\"headers\":{\"Authorization\":\"Bearer tido-secret-key\"},\"events\":[\"messages.upsert\"]}"
+  -H "apikey: ${EVOLUTION_API_KEY}" \
+  -d "{\"enabled\":true,\"url\":\"http://127.0.0.1:2000/api/webhooks/whatsapp\",\"headers\":{\"Authorization\":\"Bearer ${EVOLUTION_WEBHOOK_SECRET}\"},\"events\":[\"messages.upsert\"]}"
 ```
 
 Only Profile WhatsApp numbers plus Family Members with allowlist enabled are allowlisted for bot replies. Self-chat (“Message yourself”) is supported when the JID matches an allowlisted number. Family members with **login enabled** can sign in to `/admin` via WhatsApp OTP on their own number (limited Finances access).
@@ -218,10 +223,10 @@ If Evolution is down, use **Sign in with email & password** (primary user only).
 
 | Issue | Check |
 |-------|--------|
-| `whatsapp:ping` fails | Evolution up? `EVOLUTION_API_URL=http://127.0.0.1:8080`? API key match? |
+| `whatsapp:ping` fails | Evolution up? `EVOLUTION_API_URL=http://127.0.0.1:8080`? Does `EVOLUTION_API_KEY` match `AUTHENTICATION_API_KEY`? |
 | Connection refused | Wrong port; Evolution not started |
 | OTP not received | Instance CONNECTED? Number matches `User.phone`? |
-| Webhook never fires | URL must be `http://127.0.0.1:2000/...` while using `artisan serve` |
+| Webhook never fires | URL must be `http://127.0.0.1:2000/...` while using `artisan serve`; confirm the registered `Authorization` header uses `EVOLUTION_WEBHOOK_SECRET` |
 | Wrong Evolution URL in `.env` | Use `http://127.0.0.1:8080` |
 | PDF is rejected as unreadable or password-protected | Resend an unencrypted PDF; password-protected and unreadable PDFs are not supported |
 | PDF remains pending or ends in manual review | Confirm `PDFINFO_BINARY` and `PDFTOCAIRO_BINARY` point to working Poppler executables, then restart the queue worker |

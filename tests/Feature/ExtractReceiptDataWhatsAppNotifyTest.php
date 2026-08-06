@@ -57,7 +57,7 @@ test('extract receipt data job dispatches gated document parsed whatsapp job', f
     Storage::put('receipts/wa_MSG123.jpg', 'fake-image-content');
 
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.api_url' => 'http://evolution-api.test',
         'services.evolution.instance_name' => 'tido',
     ]);
@@ -98,7 +98,7 @@ test('document parsed job waits while document received ack is pending then send
 
     config([
         'app.url' => 'http://localhost:2000',
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.api_url' => 'http://evolution-api.test',
         'services.evolution.instance_name' => 'tido',
         'services.evolution.public_app_url' => 'http://192.168.1.50:2000',
@@ -177,7 +177,7 @@ test('extract receipt data job does not dispatch document parsed for non-whatsap
     Storage::put('receipts/manual.jpg', 'fake-image-content');
 
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.api_url' => 'http://evolution-api.test',
         'services.evolution.instance_name' => 'tido',
     ]);
@@ -212,7 +212,7 @@ test('extract receipt data job does not dispatch document parsed without whatsap
     Storage::put('receipts/wa_NOSENDER.jpg', 'fake-image-content');
 
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.api_url' => 'http://evolution-api.test',
         'services.evolution.instance_name' => 'tido',
     ]);

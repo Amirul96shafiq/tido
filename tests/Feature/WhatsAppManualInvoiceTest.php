@@ -28,7 +28,8 @@ beforeEach(function () {
     $this->seed(PaymentMethodSeeder::class);
 
     config([
-        'services.evolution.api_key' => 'tido-secret-key',
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
+        'services.evolution.webhook_secret' => 'test-evolution-webhook-secret-0123456789abcdef0123456789abcdef',
         'services.evolution.api_url' => 'http://evolution-api.test',
         'services.evolution.instance_name' => 'tido',
         'services.evolution.document_received_debounce_seconds' => 3,
@@ -64,7 +65,7 @@ test('whatsapp webhook dispatches process job for manual invoice text', function
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])
         ->assertSuccessful()
         ->assertJson(['status' => 'accepted']);
@@ -98,7 +99,7 @@ test('whatsapp help mentions manual invoice format', function () {
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])->assertSuccessful();
 
     Http::assertSent(function (Request $request): bool {
@@ -132,7 +133,7 @@ test('whatsapp manual reply lists payment methods and format', function () {
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])->assertSuccessful();
 
     Http::assertSent(function (Request $request): bool {
@@ -167,7 +168,7 @@ test('whatsapp finance others reply lists spending keywords', function () {
     ];
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
-        'Authorization' => 'Bearer tido-secret-key',
+        ...evolutionWebhookHeaders(),
     ])->assertSuccessful();
 
     Http::assertSent(function (Request $request): bool {

@@ -153,7 +153,7 @@ class EvolutionApiPage extends Page implements HasTable
 
         if (! $evolution->isConfigured()) {
             $this->connectionStatus = 'unconfigured';
-            $this->statusMessage = 'Set EVOLUTION_API_URL and EVOLUTION_API_KEY in .env, then start Evolution.';
+            $this->statusMessage = 'Set EVOLUTION_API_URL, EVOLUTION_API_KEY, and EVOLUTION_WEBHOOK_SECRET in .env with distinct 32+ character values, then start Evolution.';
 
             return;
         }

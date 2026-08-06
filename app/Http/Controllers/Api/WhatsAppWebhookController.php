@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\ProcessManualWhatsAppInvoiceJob;
 use App\Jobs\ProcessWhatsAppMediaJob;
 use App\Services\WhatsAppNotificationService;
+use App\Support\EvolutionCredential;
 use App\Support\ManualWhatsAppInvoiceParser;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppLid;
@@ -22,10 +23,11 @@ class WhatsAppWebhookController extends Controller
 {
     public function handle(Request $request, WhatsAppNotificationService $waService): JsonResponse
     {
-        $token = $request->header('Authorization') ?? $request->query('token');
-        $expectedToken = (string) config('services.evolution.api_key');
+        $authorization = $request->header('Authorization');
+        $webhookSecret = trim((string) config('services.evolution.webhook_secret'));
 
-        if ($token !== 'Bearer '.$expectedToken && $token !== $expectedToken) {
+        if (! EvolutionCredential::isValid($webhookSecret)
+            || ! hash_equals('Bearer '.$webhookSecret, (string) $authorization)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 

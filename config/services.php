@@ -59,7 +59,8 @@ return [
 
     'evolution' => [
         'api_url' => env('EVOLUTION_API_URL', 'http://127.0.0.1:8080'),
-        'api_key' => env('EVOLUTION_API_KEY', 'tido-secret-key'),
+        'api_key' => env('EVOLUTION_API_KEY'),
+        'webhook_secret' => env('EVOLUTION_WEBHOOK_SECRET'),
         'instance_name' => env('EVOLUTION_INSTANCE_NAME', 'tido'),
         // Legacy install-only: copied into Profile / Family Members by DatabaseSeeder when empty.
         // Bot allowlist and outbound alerts now use users.phone + family_members.
