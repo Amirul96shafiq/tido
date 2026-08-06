@@ -45,12 +45,27 @@ class GuestRestoreBackupController extends Controller
         $tempDirectory = storage_path('app/backup-restore/'.uniqid('guest_', true));
         File::ensureDirectoryExists($tempDirectory);
 
-        $zipPath = $tempDirectory.'/'.$uploadedFile->getClientOriginalName();
+        $temporaryFilename = 'backup.zip';
 
         try {
-            $uploadedFile->move($tempDirectory, $uploadedFile->getClientOriginalName());
+            $resolvedTempDirectory = realpath($tempDirectory);
 
-            $backupService->restoreFromZipPath($zipPath);
+            if ($resolvedTempDirectory === false) {
+                throw new RuntimeException('Invalid restore path.');
+            }
+
+            $zipPath = $resolvedTempDirectory.DIRECTORY_SEPARATOR.$temporaryFilename;
+            $uploadedFile->move($resolvedTempDirectory, $temporaryFilename);
+
+            $resolvedZipPath = realpath($zipPath);
+
+            if ($resolvedZipPath === false
+                || ! is_file($resolvedZipPath)
+                || ! $this->isPathWithinDirectory($resolvedZipPath, $resolvedTempDirectory)) {
+                throw new RuntimeException('Invalid restore path.');
+            }
+
+            $backupService->restoreFromZipPath($resolvedZipPath);
             $backupService->consumeRestoreToken($backup);
 
             return response()->json([
@@ -74,5 +89,16 @@ class GuestRestoreBackupController extends Controller
                 File::deleteDirectory($tempDirectory);
             }
         }
+    }
+
+    private function isPathWithinDirectory(string $path, string $directory): bool
+    {
+        $directoryPrefix = rtrim($directory, '/\\').DIRECTORY_SEPARATOR;
+
+        if (DIRECTORY_SEPARATOR === '\\') {
+            return str_starts_with(strtolower($path), strtolower($directoryPrefix));
+        }
+
+        return str_starts_with($path, $directoryPrefix);
     }
 }
