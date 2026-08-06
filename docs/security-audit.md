@@ -126,8 +126,9 @@ The finding is marked **Implemented** because the vulnerable package is patched 
 - `php artisan test --compact tests/Feature/GuestRestoreBackupTest.php` passed with 8 tests and 25 assertions. `vendor/bin/pint --dirty --format agent`, `vendor/bin/phpstan analyse app/Http/Controllers/GuestRestoreBackupController.php --error-format=table`, and `git diff --check` passed.
 - `php artisan test --compact` completed with 901 passing tests and 5 unrelated baseline failures in `NotificationTimerBarTest`, `ChangelogModalSeparatorsTest`, `DashboardSectionNavTest`, `FamilyMemberAttributionLoginTest`, and `LabelFormTest`; none exercise the SEC-003 controller or focused test.
 - The full `vendor/bin/phpstan analyse` baseline remains blocked by 236 existing diagnostics across unrelated application areas, including an unmatched existing ignored-error pattern; targeted analysis of the changed controller is clean. No live restore or deployment storage verification was performed.
+- An isolated local sandbox was initialized on 7 August 2026 with a separate SQLite database, separate storage directories, built assets, a synthetic receipt, and the guest restore route on port 2001. The sandbox is the manual-test boundary for the destructive zero-user flow; the reusable procedure is documented in [Backups & Danger Zone](backups-and-danger-zone.md#safe-manual-verification). It does not touch the live-like local dataset or establish production/public-deployment safety.
 
-The finding is marked **Implemented**, not **Verified**, because the SEC-003 source boundary and focused tests pass while the broader repository verification baseline remains unresolved outside this item.
+The finding remains **Implemented**, not **Verified**, because the SEC-003 source boundary and focused tests pass, local sandbox evidence is isolated from the live-like dataset, and production/deployment storage verification remains outstanding.
 
 ## Suggested implementation order
 
@@ -135,7 +136,7 @@ The order reduces the chance of implementing a later control on top of an unsafe
 
 1. `SEC-002` — patch the affected runtime dependency.
 2. `SEC-001` — implementation landed in this branch; complete deployment rotation, re-registration, and live-boundary verification.
-3. `SEC-003` — remove client filenames from guest restore storage.
+3. `SEC-003` — server-controlled guest restore staging is implemented; retain the isolated manual evidence and complete any deployment-boundary verification before marking the finding Verified.
 4. `SEC-004` — constrain database archive paths.
 5. `SEC-005` — add ZIP resource limits.
 6. `SEC-006` — bind archives to tokens and make restore consumption atomic.
