@@ -162,6 +162,14 @@ final class ReceiptCurrencyDetector
                 }
             }
 
+            if ($visionSourceCurrency !== null
+                && $visionSourceCurrency !== Invoice::CURRENCY_MYR
+                && $visionRate === null) {
+                $printedRate = $this->detectPrintedRateFromVision($base64Page, $visionSourceCurrency);
+                $visionRate = $printedRate['rate'];
+                $visionSourceCurrency = $printedRate['currency'] ?? $visionSourceCurrency;
+            }
+
             $visionResults[] = [
                 'currency' => $visionCurrency,
                 'source_currency' => $visionSourceCurrency,
@@ -218,6 +226,46 @@ final class ReceiptCurrencyDetector
         }
 
         return $this->buildDetection(null, 'undetermined');
+    }
+
+    /**
+     * @return array{currency: ?string, rate: ?float}
+     */
+    private function detectPrintedRateFromVision(string $base64Page, string $sourceCurrency): array
+    {
+        $rateResult = $this->ollama->generateJson(
+            ReceiptCurrencyPrompt::buildPrintedRate(),
+            [$base64Page],
+        );
+
+        if (! is_array($rateResult)) {
+            return ['currency' => $sourceCurrency, 'rate' => null];
+        }
+
+        $reportedCurrency = $this->normalizeCurrency($rateResult['currency'] ?? null);
+        $rate = $this->normalizeRate($rateResult['rate'] ?? null);
+        $evidence = $rateResult['rate_evidence'] ?? $rateResult['evidence'] ?? null;
+        $evidenceCurrency = null;
+
+        if (is_string($evidence) && trim($evidence) !== '') {
+            $evidenceText = preg_replace('/\s+/u', ' ', strtoupper($evidence)) ?? strtoupper($evidence);
+            $evidenceDetails = $this->detectConversionEvidence($evidenceText);
+
+            if ($evidenceDetails !== null) {
+                $evidenceCurrency = $evidenceDetails['currency'];
+                $rate ??= $evidenceDetails['rate'];
+            }
+        }
+
+        if (($reportedCurrency !== null && $reportedCurrency !== $sourceCurrency)
+            || ($evidenceCurrency !== null && $evidenceCurrency !== $sourceCurrency)) {
+            return ['currency' => $sourceCurrency, 'rate' => null];
+        }
+
+        return [
+            'currency' => $reportedCurrency ?? $evidenceCurrency ?? $sourceCurrency,
+            'rate' => $rate,
+        ];
     }
 
     public function detectFromText(?string $documentText): ?string

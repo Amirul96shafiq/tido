@@ -127,6 +127,10 @@ test('focused document currency detection corrects a MYR misclassification befor
             ->push(['response' => json_encode([
                 'currency' => 'USD',
                 'evidence' => 'USD',
+            ])])
+            ->push(['response' => json_encode([
+                'currency' => 'USD',
+                'evidence' => 'Charged RM25.44 using 1 USD = 4.2397 MYR',
                 'rate' => 4.2397,
             ])]),
     ]);

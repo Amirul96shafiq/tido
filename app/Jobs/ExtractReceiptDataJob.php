@@ -98,6 +98,7 @@ class ExtractReceiptDataJob implements ShouldQueue
             'invoice_id' => $invoice->id,
             'currency' => $currencyDetection['currency'] ?? Invoice::CURRENCY_UNKNOWN,
             'source' => $currencyDetection['source'],
+            'rate_source' => $currencyDetection['rate_source'] ?? null,
         ]);
 
         $dateTime = $normalized['date_time'];

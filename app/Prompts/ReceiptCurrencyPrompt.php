@@ -37,4 +37,29 @@ The output JSON structure MUST match this exact schema:
 }
 PROMPT;
     }
+
+    public static function buildPrintedRate(): string
+    {
+        return <<<'PROMPT'
+Read this receipt image specifically for a printed currency-conversion statement, usually near
+Payment history or a Charged line. You must respond with one raw JSON object only. Do not wrap it
+in markdown formatting.
+
+Rules:
+- Look for an explicit statement such as "using 1 USD = 4.2397 MYR" or an equivalent printed
+  source-currency-to-MYR conversion statement.
+- Return the source currency used for the receipt's line-item prices and primary total.
+- Return the numeric MYR-per-source-unit rate only when that rate is visibly printed in the image.
+- Never calculate or infer the rate from the receipt total, a settlement amount, current exchange
+  rates, or the merchant's country.
+- If no explicit conversion statement is visible, return null for the rate.
+
+The output JSON structure MUST match this exact schema:
+{
+  "currency": "String - three-letter ISO source currency code, or null",
+  "rate": "Number - explicitly printed MYR per one unit of the source currency, or null",
+  "evidence": "String - short exact printed conversion statement, or null"
+}
+PROMPT;
+    }
 }
