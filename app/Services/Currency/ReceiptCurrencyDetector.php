@@ -120,6 +120,7 @@ final class ReceiptCurrencyDetector
         array $base64Pages,
         ?string $fallbackCurrency = null,
     ): array {
+        $fallback = $this->normalizeCurrency($fallbackCurrency);
         $documentCurrency = $this->detectFromText($documentText);
 
         if ($documentCurrency !== null) {
@@ -143,20 +144,44 @@ final class ReceiptCurrencyDetector
         }
 
         if (count($visionCurrencies) === 1) {
+            $visionCurrency = array_key_first($visionCurrencies);
+
+            if ($visionCurrency === Invoice::CURRENCY_MYR
+                && $fallback !== null
+                && $fallback !== Invoice::CURRENCY_MYR) {
+                return [
+                    'currency' => $fallback,
+                    'source' => 'receipt_extraction_fallback',
+                ];
+            }
+
             return [
-                'currency' => array_key_first($visionCurrencies),
+                'currency' => $visionCurrency,
                 'source' => 'vision_currency_check',
             ];
         }
 
         if (count($visionCurrencies) > 1) {
+            $foreignCurrencies = array_values(array_filter(
+                array_keys($visionCurrencies),
+                static fn (string $currency): bool => $currency !== Invoice::CURRENCY_MYR,
+            ));
+
+            if ($fallback !== null
+                && $fallback !== Invoice::CURRENCY_MYR
+                && count($foreignCurrencies) === 1
+                && $foreignCurrencies[0] === $fallback) {
+                return [
+                    'currency' => $fallback,
+                    'source' => 'receipt_extraction_fallback',
+                ];
+            }
+
             return [
                 'currency' => null,
                 'source' => 'conflicting_vision_evidence',
             ];
         }
-
-        $fallback = $this->normalizeCurrency($fallbackCurrency);
 
         if ($fallback !== null && $fallback !== Invoice::CURRENCY_MYR) {
             return [
@@ -178,6 +203,12 @@ final class ReceiptCurrencyDetector
         }
 
         $text = preg_replace('/\s+/u', ' ', strtoupper($documentText)) ?? strtoupper($documentText);
+        $conversionSource = $this->detectConversionSourceCurrency($text);
+
+        if ($conversionSource !== null) {
+            return $conversionSource;
+        }
+
         $candidates = [];
 
         foreach (self::DOCUMENT_PATTERNS as $currency => $patterns) {
@@ -204,6 +235,35 @@ final class ReceiptCurrencyDetector
         }
 
         return null;
+    }
+
+    private function detectConversionSourceCurrency(string $text): ?string
+    {
+        if (preg_match(
+            '/\bUSING\s+1\s+(USD|MYR|SGD|AUD|CAD|HKD|NZD|EUR|GBP|JPY|CNY|THB|IDR|INR|KRW|PHP|VND|CHF|AED|SAR|BRL|ZAR|US\$|S\$|A\$|C\$|HK\$|NZ\$|\$)\s*=\s*[-+]?[0-9][0-9,.]*\s+(MYR|RM|[A-Z]{3})\b/i',
+            $text,
+            $matches,
+        ) !== 1) {
+            return null;
+        }
+
+        return $this->normalizeCurrencyMarker($matches[1]);
+    }
+
+    private function normalizeCurrencyMarker(string $marker): ?string
+    {
+        $marker = strtoupper(trim($marker));
+
+        return match ($marker) {
+            '$', 'US$' => 'USD',
+            'RM' => Invoice::CURRENCY_MYR,
+            'S$' => 'SGD',
+            'A$' => 'AUD',
+            'C$' => 'CAD',
+            'HK$' => 'HKD',
+            'NZ$' => 'NZD',
+            default => $this->normalizeCurrency($marker),
+        };
     }
 
     private function normalizeCurrency(mixed $currency): ?string

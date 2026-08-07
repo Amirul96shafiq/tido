@@ -91,7 +91,7 @@ class ReceiptParseNormalizer
             'date_time' => $this->parseDateTime($parsed['date_time'] ?? null),
             'subtotal' => $this->toMoney($parsed['subtotal'] ?? 0),
             'total_tax' => $this->toMoney($parsed['total_tax'] ?? 0),
-            'discount_total' => $this->toMoney($parsed['discount_total'] ?? 0),
+            'discount_total' => abs($this->toMoney($parsed['discount_total'] ?? 0)),
             'rounding_amount' => $this->toMoney($parsed['rounding_amount'] ?? 0),
             'total_amount' => $this->toMoney($parsed['total_amount'] ?? 0),
             'currency' => $this->normalizeCurrency($parsed['currency'] ?? null),
@@ -385,7 +385,7 @@ class ReceiptParseNormalizer
     {
         try {
             $parsed = Carbon::createFromFormat($format, $raw, 'Asia/Kuala_Lumpur');
-            if ($parsed === false) {
+            if ($parsed === null) {
                 return null;
             }
 

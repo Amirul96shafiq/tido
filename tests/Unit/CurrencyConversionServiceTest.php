@@ -133,3 +133,36 @@ test('MYR conversion skips the provider', function () {
         ->and($result['metadata']['currency_conversion_status'])->toBe('not_required')
         ->and($result['metadata']['currency_conversion_rate'])->toBeNull();
 });
+
+test('explicit receipt rate converts without requesting the external provider', function () {
+    Http::preventStrayRequests();
+
+    $service = new CurrencyConversionService(
+        new ExchangeRateService(new CurrencyApiExchangeRateProvider),
+    );
+    $dateTime = Carbon::parse('2026-07-08', 'Asia/Kuala_Lumpur');
+    $normalized = [
+        'subtotal' => 20.0,
+        'total_tax' => 0.0,
+        'discount_total' => 14.0,
+        'rounding_amount' => 0.0,
+        'total_amount' => 6.0,
+        'currency' => 'USD',
+        'date_time' => $dateTime,
+        'items' => [[
+            'description' => 'Cursor Pro',
+            'quantity' => 1.0,
+            'unit_price' => 20.0,
+            'line_total' => 20.0,
+            'serial_number' => null,
+            'label' => null,
+        ]],
+    ];
+
+    $result = $service->convert($normalized, $dateTime, 4.2397);
+
+    expect($result['normalized']['total_amount'])->toBe(25.44)
+        ->and($result['normalized']['items'][0]['line_total'])->toBe(84.79)
+        ->and($result['metadata']['currency_conversion_rate'])->toBe(4.2397)
+        ->and($result['metadata']['currency_conversion_provider'])->toBe('receipt_printed_rate');
+});

@@ -36,7 +36,8 @@ test('treats an unqualified dollar amount as USD when no competing marker exists
 
     expect($detector->detectFromText('Total $6.00'))->toBe('USD')
         ->and($detector->detectFromText('Total SGD $6.00'))->toBe('SGD')
-        ->and($detector->detectFromText('Total USD 6.00 and MYR 27.00'))->toBeNull();
+        ->and($detector->detectFromText('Total USD 6.00 and MYR 27.00'))->toBeNull()
+        ->and($detector->detectFromText('Total $6.00 Charged RM25.44 using 1 USD = 4.2397 MYR'))->toBe('USD');
 });
 
 test('uses a focused vision currency check when PDF text has no currency evidence', function () {
@@ -63,8 +64,31 @@ test('uses a focused vision currency check when PDF text has no currency evidenc
     Http::assertSent(function ($request): bool {
         return $request->url() === 'http://ollama.test/api/generate'
             && str_contains((string) $request['prompt'], 'Never assume MYR')
+            && str_contains((string) $request['prompt'], 'source currency')
             && $request['images'] === ['page-image'];
     });
+});
+
+test('keeps a foreign extraction currency when vision sees only a settlement MYR marker', function () {
+    Http::fake([
+        'http://ollama.test/api/generate' => Http::response([
+            'response' => json_encode([
+                'currency' => 'MYR',
+                'evidence' => 'RM25.44 using 1 USD = 4.2397 MYR',
+            ]),
+        ]),
+    ]);
+
+    $result = app(ReceiptCurrencyDetector::class)->detect(
+        null,
+        ['page-image'],
+        'USD',
+    );
+
+    expect($result)->toBe([
+        'currency' => 'USD',
+        'source' => 'receipt_extraction_fallback',
+    ]);
 });
 
 test('does not fall back to MYR when focused currency detection is unavailable', function () {
@@ -94,7 +118,7 @@ test('rejects conflicting currency evidence across PDF pages', function () {
     $result = app(ReceiptCurrencyDetector::class)->detect(
         null,
         ['page-one', 'page-two'],
-        'USD',
+        null,
     );
 
     expect($result)->toBe([

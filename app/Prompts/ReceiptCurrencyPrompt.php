@@ -13,7 +13,11 @@ Inspect the receipt or invoice image only to identify the currency printed in th
 You must respond with one raw JSON object only. Do not wrap it in markdown formatting.
 
 Rules:
-- Read the currency code, currency name, or symbol printed next to an amount.
+- Identify the source currency used for the receipt's line-item prices and primary total.
+- Read the currency code, currency name, or symbol printed next to those source amounts.
+- Ignore a secondary card-settlement, payment-history, or currency-conversion note when it
+  shows a different currency from the source prices. For example, in
+  "Charged RM25.44 using 1 USD = 4.2397 MYR", the receipt source currency is USD.
 - Never assume MYR because the receipt is being processed by a Malaysian expense app.
 - Printed RM, MYR, Malaysian Ringgit, or Ringgit Malaysia means MYR.
 - Printed USD, US$, US Dollar, or United States Dollar means USD.

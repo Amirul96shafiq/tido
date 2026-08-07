@@ -73,6 +73,7 @@ Malaysia receipt rules (follow strictly):
 - Never default the currency to MYR because the app is Malaysian, the merchant is Malaysian, or the receipt has no visible currency marker.
 - Detect currency from a printed ISO code or unambiguous currency marker on the receipt. Use MYR for printed RM, MYR, or Malaysian Ringgit evidence.
 - Use USD for printed USD, US$, US Dollar, or a bare $ when no competing dollar-currency marker is visible; use null when the dollar symbol is genuinely ambiguous.
+- When a receipt includes a separate card-settlement or currency-conversion note, use the currency of the line-item prices and primary receipt total as the source currency. For example, "Charged RM25.44 using 1 USD = 4.2397 MYR" means the source receipt amount is USD; do not replace it with the settlement currency MYR.
 - Keep every money value in the detected source currency. Do not convert amounts yourself.
 - Prefer Grand Total / Total Paid / Amount Paid for total_amount over guessing from partial lines.
 - payment_method must be an exact name from the available payment methods list below, or null. Prefer aliases when the receipt wording matches them.

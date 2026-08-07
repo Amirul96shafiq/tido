@@ -12,16 +12,28 @@ use Illuminate\Support\Facades\DB;
 
 final class ReceiptCurrencyBackfillService
 {
+    private const CURRENCY_REVIEW_MARKER = '[AI] Currency conversion could not be completed; verify the source amount and rate.';
+
     public function __construct(
         private readonly ReceiptParseNormalizer $normalizer,
         private readonly CurrencyConversionService $currencyConversion,
         private readonly LabelMatcher $labelMatcher,
     ) {}
 
-    public function convert(Invoice $invoice, ?string $sourceCurrency = null): bool
-    {
+    public function convert(
+        Invoice $invoice,
+        ?string $sourceCurrency = null,
+        ?float $rateOverride = null,
+    ): bool {
         if ($invoice->currency_conversion_status === Invoice::CONVERSION_CONVERTED
             && $invoice->currency === Invoice::CURRENCY_MYR) {
+            $notes = $this->removeCurrencyReviewNote($invoice->notes);
+
+            if ($notes !== $invoice->notes) {
+                $invoice->notes = $notes;
+                $invoice->save();
+            }
+
             return true;
         }
 
@@ -73,6 +85,7 @@ final class ReceiptCurrencyBackfillService
             $conversion = $this->currencyConversion->convert(
                 $normalized,
                 $normalized['date_time'],
+                $rateOverride,
             );
         } catch (CurrencyConversionException $exception) {
             $this->markFailure($invoice);
@@ -101,6 +114,7 @@ final class ReceiptCurrencyBackfillService
             $invoice->setAttribute('currency_conversion_date', $metadata['currency_conversion_date']);
             $invoice->currency_conversion_provider = $metadata['currency_conversion_provider'];
             $invoice->setAttribute('currency_conversion_fetched_at', $metadata['currency_conversion_fetched_at']);
+            $invoice->notes = $this->removeCurrencyReviewNote($invoice->notes);
             $invoice->receipt_hash = $this->uniqueReceiptHash($invoice);
             $invoice->save();
 
@@ -132,7 +146,7 @@ final class ReceiptCurrencyBackfillService
 
     private function appendReviewNote(?string $existingNotes): string
     {
-        $marker = '[AI] Currency conversion could not be completed; verify the source amount and rate.';
+        $marker = self::CURRENCY_REVIEW_MARKER;
         $notes = trim((string) $existingNotes);
 
         if ($notes !== '' && str_contains($notes, $marker)) {
@@ -142,6 +156,17 @@ final class ReceiptCurrencyBackfillService
         $markerHtml = '<p>'.$marker.'</p>';
 
         return $notes === '' ? $markerHtml : $notes.$markerHtml;
+    }
+
+    private function removeCurrencyReviewNote(?string $existingNotes): ?string
+    {
+        $notes = trim(str_replace(
+            '<p>'.self::CURRENCY_REVIEW_MARKER.'</p>',
+            '',
+            (string) $existingNotes,
+        ));
+
+        return $notes === '' ? null : $notes;
     }
 
     private function uniqueReceiptHash(Invoice $invoice): string

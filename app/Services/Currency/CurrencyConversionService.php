@@ -27,8 +27,11 @@ final class CurrencyConversionService
      *     },
      * }
      */
-    public function convert(array $normalized, ?CarbonInterface $dateTime): array
-    {
+    public function convert(
+        array $normalized,
+        ?CarbonInterface $dateTime,
+        ?float $rateOverride = null,
+    ): array {
         $currency = $normalized['currency'] ?? null;
 
         if (! is_string($currency) || ! $this->isCurrencyCode($currency)) {
@@ -57,7 +60,14 @@ final class CurrencyConversionService
             throw new CurrencyConversionException('A receipt date is required for foreign-currency conversion.');
         }
 
-        $rateDetails = $this->exchangeRates->rate($currency, self::MYR, $dateTime);
+        $rateDetails = $rateOverride === null
+            ? $this->exchangeRates->rate($currency, self::MYR, $dateTime)
+            : [
+                'rate' => $rateOverride,
+                'effective_date' => $dateTime->toDateString(),
+                'fetched_at' => now()->toDateTimeString(),
+                'provider' => 'receipt_printed_rate',
+            ];
         $rate = (float) $rateDetails['rate'];
 
         if (! is_finite($rate) || $rate <= 0) {

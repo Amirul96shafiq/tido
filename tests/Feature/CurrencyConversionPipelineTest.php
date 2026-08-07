@@ -104,18 +104,18 @@ test('focused document currency detection corrects a MYR misclassification befor
         'merchant_name' => 'Anysphere, Inc.',
         'invoice_number' => 'USD-332',
         'date_time' => '2026-07-08 00:00:00',
-        'subtotal' => 6.00,
+        'subtotal' => 20.00,
         'total_tax' => 0.00,
-        'discount_total' => 0.00,
+        'discount_total' => -14.00,
         'rounding_amount' => 0.00,
         'total_amount' => 6.00,
-        'currency' => 'MYR',
+        'currency' => 'USD',
         'payment_method' => null,
         'items' => [[
             'description' => 'Cursor Pro',
             'quantity' => 1,
-            'unit_price' => 6.00,
-            'line_total' => 6.00,
+            'unit_price' => 20.00,
+            'line_total' => 20.00,
             'label' => null,
         ]],
     ];
@@ -125,8 +125,8 @@ test('focused document currency detection corrects a MYR misclassification befor
         '*/api/generate' => Http::sequence()
             ->push(['response' => json_encode($receipt)])
             ->push(['response' => json_encode([
-                'currency' => 'USD',
-                'evidence' => 'USD',
+                'currency' => 'MYR',
+                'evidence' => 'RM25.44 using 1 USD = 4.2397 MYR',
             ])]),
         'https://currencyapi.test/v3/historical*' => Http::response([
             'meta' => ['last_updated_at' => '2026-07-08T23:59:59Z'],
@@ -160,11 +160,12 @@ test('focused document currency detection corrects a MYR misclassification befor
         ->and($invoice->original_total_amount)->toBe('6.00')
         ->and($invoice->total_amount)->toBe('27.00')
         ->and($invoice->currency_conversion_status)->toBe('converted')
+        ->and($invoice->discount_total)->toBe('63.00')
         ->and($invoice->raw_ai_response['currency_detection'])->toBe([
             'currency' => 'USD',
-            'source' => 'vision_currency_check',
+            'source' => 'receipt_extraction_fallback',
         ])
-        ->and($invoice->invoiceItems->first()->line_total)->toBe('27.00');
+        ->and($invoice->invoiceItems->first()->line_total)->toBe('90.00');
 });
 
 test('foreign receipt without an available rate stays source-denominated and requires review', function () {
@@ -216,7 +217,7 @@ test('foreign receipt without an available rate stays source-denominated and req
         ->and($invoice->notes)->toContain('Currency conversion could not be completed');
 });
 
-test('legacy invoice 332 style receipts support an explicit source currency override', function () {
+test('legacy invoice 332 style receipts support an explicit offline source rate', function () {
     Invoice::unsetEventDispatcher();
     $this->seed(LabelSeeder::class);
 
@@ -236,6 +237,7 @@ test('legacy invoice 332 style receipts support an explicit source currency over
         'original_currency' => 'MYR',
         'original_total_amount' => 6.00,
         'currency_conversion_status' => Invoice::CONVERSION_NOT_REQUIRED,
+        'notes' => '<p>[AI] Currency conversion could not be completed; verify the source amount and rate.</p>',
         'raw_ai_response' => [
             'merchant_name' => 'Cursor',
             'invoice_number' => 'K2WQY0IC-0012',
@@ -268,6 +270,7 @@ test('legacy invoice 332 style receipts support an explicit source currency over
     $this->artisan('receipts:convert-currency', [
         'invoice' => $invoice->id,
         '--source-currency' => 'USD',
+        '--rate' => '4.5',
         '--dry-run' => true,
     ])
         ->assertSuccessful()
@@ -275,16 +278,10 @@ test('legacy invoice 332 style receipts support an explicit source currency over
 
     expect(Http::recorded())->toHaveCount(0);
 
-    Http::fake([
-        'https://currencyapi.test/v3/historical*' => Http::response([
-            'meta' => ['last_updated_at' => '2026-07-08T23:59:59Z'],
-            'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.5]],
-        ]),
-    ]);
-
     $this->artisan('receipts:convert-currency', [
         'invoice' => $invoice->id,
         '--source-currency' => 'USD',
+        '--rate' => '4.5',
     ])
         ->assertSuccessful();
 
@@ -294,7 +291,8 @@ test('legacy invoice 332 style receipts support an explicit source currency over
         ->and($invoice->total_amount)->toBe('27.00')
         ->and($invoice->original_currency)->toBe('USD')
         ->and($invoice->currency_conversion_status)->toBe('converted')
-        ->and($invoice->invoiceItems->first()->line_total)->toBe('90.00');
+        ->and($invoice->invoiceItems->first()->line_total)->toBe('90.00')
+        ->and($invoice->notes)->toBeNull();
 
     $ollamaRequests = collect(Http::recorded())
         ->filter(fn (array $record): bool => str_contains($record[0]->url(), '/api/generate'));

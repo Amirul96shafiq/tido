@@ -14,6 +14,7 @@ class ConvertReceiptCurrencyCommand extends Command
         {invoice? : Invoice ID to convert}
         {--all : Convert all invoices with non-canonical currency data}
         {--source-currency= : Explicit source ISO currency for a targeted legacy invoice}
+        {--rate= : Explicit source-currency to MYR rate for a targeted offline correction}
         {--dry-run : List targets without requesting rates or changing data}';
 
     protected $description = 'Convert stored foreign-currency receipt amounts into canonical MYR values';
@@ -23,6 +24,7 @@ class ConvertReceiptCurrencyCommand extends Command
         $invoiceId = $this->argument('invoice');
         $all = (bool) $this->option('all');
         $sourceCurrency = $this->option('source-currency');
+        $rate = $this->option('rate');
         $dryRun = (bool) $this->option('dry-run');
 
         if ($invoiceId === null && ! $all) {
@@ -51,6 +53,22 @@ class ConvertReceiptCurrencyCommand extends Command
 
                 return self::FAILURE;
             }
+        }
+
+        if ($rate !== null) {
+            if ($invoiceId === null || $sourceCurrency === null) {
+                $this->error('--rate requires one invoice ID and --source-currency.');
+
+                return self::FAILURE;
+            }
+
+            if (! is_numeric($rate) || ! is_finite((float) $rate) || (float) $rate <= 0) {
+                $this->error('The rate must be a positive number.');
+
+                return self::FAILURE;
+            }
+
+            $rate = (float) $rate;
         }
 
         $query = Invoice::query()
@@ -95,19 +113,20 @@ class ConvertReceiptCurrencyCommand extends Command
 
             if ($dryRun) {
                 $this->line(sprintf(
-                    'Would convert invoice #%d: %s %s (%s) [%s]',
+                    'Would convert invoice #%d: %s %s (%s) [%s]%s',
                     $invoice->id,
                     filled($currency) ? $currency : Invoice::CURRENCY_UNKNOWN,
                     filled($amount) ? $amount : '0.00',
                     $invoice->merchant_name,
                     $invoice->currency_conversion_status,
+                    $rate === null ? '' : sprintf(' at %s MYR', $rate),
                 ));
                 $processed++;
 
                 continue;
             }
 
-            if ($backfillService->convert($invoice, $sourceCurrency)) {
+            if ($backfillService->convert($invoice, $sourceCurrency, $rate)) {
                 $this->info("Converted invoice #{$invoice->id} to MYR.");
                 $processed++;
             } else {
