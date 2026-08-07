@@ -95,8 +95,11 @@ final class ReceiptCurrencyBackfillService
 
         $converted = $conversion['normalized'];
         $metadata = $conversion['metadata'];
+        $needsManualReview = ! $this->normalizer->isDateTimeSane($normalized['date_time'])
+            || ! $this->normalizer->amountsReconcile($normalized)
+            || ! $this->normalizer->amountsReconcile($converted);
 
-        DB::transaction(function () use ($invoice, $converted, $metadata): void {
+        DB::transaction(function () use ($invoice, $converted, $metadata, $needsManualReview): void {
             if ($converted['date_time'] !== null) {
                 $invoice->date_time = $converted['date_time'];
             }
@@ -114,6 +117,9 @@ final class ReceiptCurrencyBackfillService
             $invoice->setAttribute('currency_conversion_date', $metadata['currency_conversion_date']);
             $invoice->currency_conversion_provider = $metadata['currency_conversion_provider'];
             $invoice->setAttribute('currency_conversion_fetched_at', $metadata['currency_conversion_fetched_at']);
+            if ($invoice->status !== 'reviewed') {
+                $invoice->status = $needsManualReview ? 'requires_manual_review' : 'parsed';
+            }
             $invoice->notes = $this->removeCurrencyReviewNote($invoice->notes);
             $invoice->receipt_hash = $this->uniqueReceiptHash($invoice);
             $invoice->save();

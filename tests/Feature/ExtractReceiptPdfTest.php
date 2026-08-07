@@ -39,7 +39,7 @@ test('extract receipt data job parses PDF pages then merges them before saving',
         }
 
         if (is_array($process->command) && $process->command[0] === 'pdftotext') {
-            return Process::result(output: "Subtotal \$20.00\nTotal \$10.00\n");
+            return Process::result(output: "Subtotal \$20.00\nTotal \$10.00\nCharged RM42.40 using 1 USD = 4.2397 MYR\n");
         }
 
         $outputPrefix = $process->command[array_key_last($process->command)];
@@ -87,15 +87,12 @@ test('extract receipt data job parses PDF pages then merges them before saving',
         'payment_method' => 'Cash',
     ]);
 
+    Http::preventStrayRequests();
     Http::fake([
         'http://ollama.test/api/generate' => Http::sequence()
             ->push(['response' => json_encode($pageOne)])
             ->push(['response' => json_encode($pageTwo)])
             ->push(['response' => json_encode($merged)]),
-        'https://currencyapi.test/v3/historical*' => Http::response([
-            'meta' => ['last_updated_at' => '2026-08-01T23:59:59Z'],
-            'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.5]],
-        ]),
     ]);
 
     $this->seed(LabelSeeder::class);
@@ -124,14 +121,20 @@ test('extract receipt data job parses PDF pages then merges them before saving',
         ->and($invoice->merchant_name)->toBe('PDF Store')
         ->and($invoice->currency)->toBe('MYR')
         ->and($invoice->original_currency)->toBe('USD')
-        ->and($invoice->total_amount)->toBe('45.00')
+        ->and($invoice->total_amount)->toBe('42.40')
         ->and($invoice->raw_ai_response['currency_detection'])->toBe([
             'currency' => 'USD',
             'source' => 'document_text',
+            'rate' => 4.2397,
+            'rate_source' => 'printed_receipt_rate',
         ])
         ->and($invoice->invoiceItems)->toHaveCount(1)
         ->and($invoice->invoiceItems->first()->description)->toBe('First item')
-        ->and($invoice->invoiceItems->first()->line_total)->toBe('45.00');
+        ->and($invoice->invoiceItems->first()->line_total)->toBe('42.40');
+
+    expect(collect(Http::recorded())->filter(
+        fn (array $record): bool => str_contains($record[0]->url(), 'currencyapi.test'),
+    ))->toHaveCount(0);
 
     $ollamaRequests = collect(Http::recorded())
         ->map(fn (array $record): Request => $record[0])

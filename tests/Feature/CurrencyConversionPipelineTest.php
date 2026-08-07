@@ -109,7 +109,7 @@ test('focused document currency detection corrects a MYR misclassification befor
         'discount_total' => -14.00,
         'rounding_amount' => 0.00,
         'total_amount' => 6.00,
-        'currency' => 'USD',
+        'currency' => 'MYR',
         'payment_method' => null,
         'items' => [[
             'description' => 'Cursor Pro',
@@ -125,13 +125,10 @@ test('focused document currency detection corrects a MYR misclassification befor
         '*/api/generate' => Http::sequence()
             ->push(['response' => json_encode($receipt)])
             ->push(['response' => json_encode([
-                'currency' => 'MYR',
-                'evidence' => 'RM25.44 using 1 USD = 4.2397 MYR',
+                'currency' => 'USD',
+                'evidence' => 'USD',
+                'rate' => 4.2397,
             ])]),
-        'https://currencyapi.test/v3/historical*' => Http::response([
-            'meta' => ['last_updated_at' => '2026-07-08T23:59:59Z'],
-            'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.5]],
-        ]),
     ]);
 
     $this->seed(LabelSeeder::class);
@@ -158,14 +155,18 @@ test('focused document currency detection corrects a MYR misclassification befor
         ->and($invoice->currency)->toBe('MYR')
         ->and($invoice->original_currency)->toBe('USD')
         ->and($invoice->original_total_amount)->toBe('6.00')
-        ->and($invoice->total_amount)->toBe('27.00')
+        ->and($invoice->total_amount)->toBe('25.44')
         ->and($invoice->currency_conversion_status)->toBe('converted')
-        ->and($invoice->discount_total)->toBe('63.00')
+        ->and($invoice->currency_conversion_rate)->toBe('4.2397000000')
+        ->and($invoice->currency_conversion_provider)->toBe('receipt_printed_rate')
+        ->and($invoice->discount_total)->toBe('59.36')
         ->and($invoice->raw_ai_response['currency_detection'])->toBe([
             'currency' => 'USD',
-            'source' => 'receipt_extraction_fallback',
+            'source' => 'vision_currency_check',
+            'rate' => 4.2397,
+            'rate_source' => 'printed_receipt_rate',
         ])
-        ->and($invoice->invoiceItems->first()->line_total)->toBe('90.00');
+        ->and($invoice->invoiceItems->first()->line_total)->toBe('84.79');
 });
 
 test('foreign receipt without an available rate stays source-denominated and requires review', function () {
@@ -291,6 +292,7 @@ test('legacy invoice 332 style receipts support an explicit offline source rate'
         ->and($invoice->total_amount)->toBe('27.00')
         ->and($invoice->original_currency)->toBe('USD')
         ->and($invoice->currency_conversion_status)->toBe('converted')
+        ->and($invoice->status)->toBe('parsed')
         ->and($invoice->invoiceItems->first()->line_total)->toBe('90.00')
         ->and($invoice->notes)->toBeNull();
 

@@ -19,7 +19,7 @@ beforeEach(function (): void {
 
 test('detects explicit currency evidence from PDF text without another vision request', function () {
     $result = app(ReceiptCurrencyDetector::class)->detect(
-        'Subtotal USD 20.00 Total USD 6.00',
+        'Subtotal USD 20.00 Total USD 6.00 Charged RM25.44 using 1 USD = 4.2397 MYR',
         ['page-image'],
         'MYR',
     );
@@ -27,6 +27,8 @@ test('detects explicit currency evidence from PDF text without another vision re
     expect($result)->toBe([
         'currency' => 'USD',
         'source' => 'document_text',
+        'rate' => 4.2397,
+        'rate_source' => 'printed_receipt_rate',
     ])
         ->and(Http::recorded())->toHaveCount(0);
 });
@@ -65,8 +67,34 @@ test('uses a focused vision currency check when PDF text has no currency evidenc
         return $request->url() === 'http://ollama.test/api/generate'
             && str_contains((string) $request['prompt'], 'Never assume MYR')
             && str_contains((string) $request['prompt'], 'source currency')
+            && str_contains((string) $request['prompt'], 'explicitly prints a source-currency-to-MYR rate')
             && $request['images'] === ['page-image'];
     });
+});
+
+test('uses an explicitly printed vision rate when PDF text is unavailable', function () {
+    Http::fake([
+        'http://ollama.test/api/generate' => Http::response([
+            'response' => json_encode([
+                'currency' => 'USD',
+                'evidence' => 'USD',
+                'rate' => 4.2397,
+            ]),
+        ]),
+    ]);
+
+    $result = app(ReceiptCurrencyDetector::class)->detect(
+        null,
+        ['page-image'],
+        'MYR',
+    );
+
+    expect($result)->toBe([
+        'currency' => 'USD',
+        'source' => 'vision_currency_check',
+        'rate' => 4.2397,
+        'rate_source' => 'printed_receipt_rate',
+    ]);
 });
 
 test('keeps a foreign extraction currency when vision sees only a settlement MYR marker', function () {
@@ -88,6 +116,8 @@ test('keeps a foreign extraction currency when vision sees only a settlement MYR
     expect($result)->toBe([
         'currency' => 'USD',
         'source' => 'receipt_extraction_fallback',
+        'rate' => 4.2397,
+        'rate_source' => 'printed_receipt_rate',
     ]);
 });
 

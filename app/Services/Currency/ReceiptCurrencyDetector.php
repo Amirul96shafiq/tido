@@ -113,7 +113,7 @@ final class ReceiptCurrencyDetector
 
     /**
      * @param  list<string>  $base64Pages
-     * @return array{currency: ?string, source: string}
+     * @return array{currency: ?string, source: string, rate?: float, rate_source?: string}
      */
     public function detect(
         ?string $documentText,
@@ -121,22 +121,52 @@ final class ReceiptCurrencyDetector
         ?string $fallbackCurrency = null,
     ): array {
         $fallback = $this->normalizeCurrency($fallbackCurrency);
-        $documentCurrency = $this->detectFromText($documentText);
+        $documentDetails = $this->detectDocumentDetails($documentText);
+        $documentCurrency = $documentDetails['currency'];
 
         if ($documentCurrency !== null) {
-            return [
-                'currency' => $documentCurrency,
-                'source' => 'document_text',
-            ];
+            return $this->buildDetection(
+                $documentCurrency,
+                'document_text',
+                $documentDetails['rate'],
+            );
         }
 
+        /** @var list<array{currency: ?string, source_currency: ?string, rate: ?float}> $visionResults */
+        $visionResults = [];
         $visionCurrencies = [];
         foreach ($base64Pages as $base64Page) {
             $visionResult = $this->ollama->generateJson(
                 ReceiptCurrencyPrompt::build(),
                 [$base64Page],
             );
-            $visionCurrency = $this->normalizeCurrency($visionResult['currency'] ?? null);
+            $visionCurrency = is_array($visionResult)
+                ? $this->normalizeCurrency($visionResult['currency'] ?? null)
+                : null;
+            $visionRate = is_array($visionResult)
+                ? $this->normalizeRate($visionResult['rate'] ?? null)
+                : null;
+            $visionSourceCurrency = $visionCurrency;
+
+            $evidence = is_array($visionResult)
+                ? ($visionResult['rate_evidence'] ?? $visionResult['evidence'] ?? null)
+                : null;
+
+            if (is_string($evidence) && trim($evidence) !== '') {
+                $evidenceText = preg_replace('/\s+/u', ' ', strtoupper($evidence)) ?? strtoupper($evidence);
+                $evidenceDetails = $this->detectConversionEvidence($evidenceText);
+
+                if ($evidenceDetails !== null && $evidenceDetails['currency'] !== null) {
+                    $visionSourceCurrency = $evidenceDetails['currency'];
+                    $visionRate ??= $evidenceDetails['rate'];
+                }
+            }
+
+            $visionResults[] = [
+                'currency' => $visionCurrency,
+                'source_currency' => $visionSourceCurrency,
+                'rate' => $visionRate,
+            ];
 
             if ($visionCurrency !== null) {
                 $visionCurrencies[$visionCurrency] = true;
@@ -149,16 +179,18 @@ final class ReceiptCurrencyDetector
             if ($visionCurrency === Invoice::CURRENCY_MYR
                 && $fallback !== null
                 && $fallback !== Invoice::CURRENCY_MYR) {
-                return [
-                    'currency' => $fallback,
-                    'source' => 'receipt_extraction_fallback',
-                ];
+                return $this->buildDetection(
+                    $fallback,
+                    'receipt_extraction_fallback',
+                    $this->consistentVisionRate($visionResults, $fallback, 'source_currency'),
+                );
             }
 
-            return [
-                'currency' => $visionCurrency,
-                'source' => 'vision_currency_check',
-            ];
+            return $this->buildDetection(
+                $visionCurrency,
+                'vision_currency_check',
+                $this->consistentVisionRate($visionResults, $visionCurrency, 'source_currency'),
+            );
         }
 
         if (count($visionCurrencies) > 1) {
@@ -171,42 +203,42 @@ final class ReceiptCurrencyDetector
                 && $fallback !== Invoice::CURRENCY_MYR
                 && count($foreignCurrencies) === 1
                 && $foreignCurrencies[0] === $fallback) {
-                return [
-                    'currency' => $fallback,
-                    'source' => 'receipt_extraction_fallback',
-                ];
+                return $this->buildDetection(
+                    $fallback,
+                    'receipt_extraction_fallback',
+                    $this->consistentVisionRate($visionResults, $fallback, 'source_currency'),
+                );
             }
 
-            return [
-                'currency' => null,
-                'source' => 'conflicting_vision_evidence',
-            ];
+            return $this->buildDetection(null, 'conflicting_vision_evidence');
         }
 
         if ($fallback !== null && $fallback !== Invoice::CURRENCY_MYR) {
-            return [
-                'currency' => $fallback,
-                'source' => 'receipt_extraction_fallback',
-            ];
+            return $this->buildDetection($fallback, 'receipt_extraction_fallback');
         }
 
-        return [
-            'currency' => null,
-            'source' => 'undetermined',
-        ];
+        return $this->buildDetection(null, 'undetermined');
     }
 
     public function detectFromText(?string $documentText): ?string
     {
+        return $this->detectDocumentDetails($documentText)['currency'];
+    }
+
+    /**
+     * @return array{currency: ?string, rate: ?float}
+     */
+    private function detectDocumentDetails(?string $documentText): array
+    {
         if (blank($documentText)) {
-            return null;
+            return ['currency' => null, 'rate' => null];
         }
 
         $text = preg_replace('/\s+/u', ' ', strtoupper($documentText)) ?? strtoupper($documentText);
-        $conversionSource = $this->detectConversionSourceCurrency($text);
+        $conversionEvidence = $this->detectConversionEvidence($text);
 
-        if ($conversionSource !== null) {
-            return $conversionSource;
+        if ($conversionEvidence !== null) {
+            return $conversionEvidence;
         }
 
         $candidates = [];
@@ -221,33 +253,94 @@ final class ReceiptCurrencyDetector
         }
 
         if (count($candidates) === 1) {
-            return array_key_first($candidates);
+            return [
+                'currency' => array_key_first($candidates),
+                'rate' => null,
+            ];
         }
 
         if ($candidates !== []) {
-            return null;
+            return ['currency' => null, 'rate' => null];
         }
 
         // A bare dollar sign is the common notation on foreign SaaS invoices. It is
         // treated as USD only when no country-specific dollar marker is present.
-        if (preg_match('/\$\s*[-+]?[0-9]/', $text) === 1) {
-            return 'USD';
-        }
-
-        return null;
+        return [
+            'currency' => preg_match('/\$\s*[-+]?[0-9]/', $text) === 1 ? 'USD' : null,
+            'rate' => null,
+        ];
     }
 
-    private function detectConversionSourceCurrency(string $text): ?string
+    /**
+     * @return array{currency: ?string, rate: ?float}|null
+     */
+    private function detectConversionEvidence(string $text): ?array
     {
         if (preg_match(
-            '/\bUSING\s+1\s+(USD|MYR|SGD|AUD|CAD|HKD|NZD|EUR|GBP|JPY|CNY|THB|IDR|INR|KRW|PHP|VND|CHF|AED|SAR|BRL|ZAR|US\$|S\$|A\$|C\$|HK\$|NZ\$|\$)\s*=\s*[-+]?[0-9][0-9,.]*\s+(MYR|RM|[A-Z]{3})\b/i',
+            '/\bUSING\s+1\s+(USD|MYR|SGD|AUD|CAD|HKD|NZD|EUR|GBP|JPY|CNY|THB|IDR|INR|KRW|PHP|VND|CHF|AED|SAR|BRL|ZAR|US\$|S\$|A\$|C\$|HK\$|NZ\$|\$)\s*=\s*([-+]?[0-9][0-9,.]*)\s+(MYR|RM|[A-Z]{3})\b/i',
             $text,
             $matches,
         ) !== 1) {
             return null;
         }
 
-        return $this->normalizeCurrencyMarker($matches[1]);
+        $sourceCurrency = $this->normalizeCurrencyMarker($matches[1]);
+        $targetCurrency = $this->normalizeCurrencyMarker($matches[3]);
+
+        return [
+            'currency' => $sourceCurrency,
+            'rate' => $targetCurrency === Invoice::CURRENCY_MYR
+                ? $this->normalizeRate($matches[2])
+                : null,
+        ];
+    }
+
+    /**
+     * @return array{currency: ?string, source: string, rate?: float, rate_source?: string}
+     */
+    private function buildDetection(?string $currency, string $source, ?float $rate = null): array
+    {
+        $detection = [
+            'currency' => $currency,
+            'source' => $source,
+        ];
+
+        if ($rate !== null && $currency !== null && $currency !== Invoice::CURRENCY_MYR) {
+            $detection['rate'] = $rate;
+            $detection['rate_source'] = 'printed_receipt_rate';
+        }
+
+        return $detection;
+    }
+
+    /**
+     * @param  list<array{currency: ?string, source_currency: ?string, rate: ?float}>  $visionResults
+     */
+    private function consistentVisionRate(
+        array $visionResults,
+        string $currency,
+        string $currencyKey = 'currency',
+    ): ?float {
+        $rates = [];
+
+        foreach ($visionResults as $visionResult) {
+            if ($visionResult[$currencyKey] === $currency && $visionResult['rate'] !== null) {
+                $rates[] = $visionResult['rate'];
+            }
+        }
+
+        if ($rates === []) {
+            return null;
+        }
+
+        $firstRate = $rates[0];
+        foreach ($rates as $rate) {
+            if (abs($rate - $firstRate) > 0.00000001) {
+                return null;
+            }
+        }
+
+        return $firstRate;
     }
 
     private function normalizeCurrencyMarker(string $marker): ?string
@@ -276,6 +369,23 @@ final class ReceiptCurrencyDetector
 
         return preg_match('/^[A-Z]{3}$/', $normalized) === 1
             ? $normalized
+            : null;
+    }
+
+    private function normalizeRate(mixed $rate): ?float
+    {
+        if (is_string($rate)) {
+            $rate = str_replace(',', '', trim($rate));
+        }
+
+        if (! is_numeric($rate)) {
+            return null;
+        }
+
+        $normalized = (float) $rate;
+
+        return is_finite($normalized) && $normalized > 0
+            ? round($normalized, 10)
             : null;
     }
 }

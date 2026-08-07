@@ -133,9 +133,14 @@ class ExtractReceiptDataJob implements ShouldQueue
         $invoice->save();
 
         try {
-            $conversion = $currencyConversionService->convert($normalized, $dateTime);
+            $conversion = $currencyConversionService->convert(
+                $normalized,
+                $dateTime,
+                $currencyDetection['rate'] ?? null,
+            );
         } catch (CurrencyConversionException $exception) {
             $this->markCurrencyConversionFailure($invoice, $exception);
+            $this->notifyWhatsAppParsed($invoice);
 
             return;
         }

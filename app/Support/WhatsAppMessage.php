@@ -179,7 +179,7 @@ final class WhatsAppMessage
     }
 
     /**
-     * @param  array{merchant_name?: string|null, total_amount?: float|int|string|null, payment_method?: string|null}  $details
+     * @param  array{merchant_name?: string|null, total_amount?: float|int|string|null, currency?: string|null, payment_method?: string|null}  $details
      */
     public static function documentParsed(string $editUrl, array $details = []): string
     {
@@ -191,7 +191,7 @@ final class WhatsAppMessage
     }
 
     /**
-     * @param  array{merchant_name?: string|null, total_amount?: float|int|string|null, payment_method?: string|null}  $details
+     * @param  array{merchant_name?: string|null, total_amount?: float|int|string|null, currency?: string|null, payment_method?: string|null}  $details
      */
     public static function documentNeedsReview(string $editUrl, array $details = []): string
     {
@@ -203,7 +203,7 @@ final class WhatsAppMessage
     }
 
     /**
-     * @param  array{merchant_name?: string|null, total_amount?: float|int|string|null, payment_method?: string|null}  $details
+     * @param  array{merchant_name?: string|null, total_amount?: float|int|string|null, currency?: string|null, payment_method?: string|null}  $details
      */
     private static function documentDetailsBody(string $editUrl, array $details = []): string
     {
@@ -219,7 +219,9 @@ final class WhatsAppMessage
             $paymentMethod = 'Unknown';
         }
 
-        $totalAmount = MoneyDisplay::withPrefix($details['total_amount'] ?? 0);
+        $totalAmount = array_key_exists('currency', $details)
+            ? MoneyDisplay::withCurrency($details['total_amount'] ?? 0, $details['currency'])
+            : MoneyDisplay::withPrefix($details['total_amount'] ?? 0);
 
         return implode("\n", [
             "Merchant: *{$merchant}*",
