@@ -20,7 +20,7 @@ class ReceiptParseNormalizer
      *     discount_total: float,
      *     rounding_amount: float,
      *     total_amount: float,
-     *     currency: string,
+     *     currency: ?string,
      *     payment_method: mixed,
      *     items: list<array{description: string, quantity: float, unit_price: float, line_total: float, serial_number: ?string, label: ?string}>
      * }
@@ -94,9 +94,7 @@ class ReceiptParseNormalizer
             'discount_total' => $this->toMoney($parsed['discount_total'] ?? 0),
             'rounding_amount' => $this->toMoney($parsed['rounding_amount'] ?? 0),
             'total_amount' => $this->toMoney($parsed['total_amount'] ?? 0),
-            'currency' => filled($parsed['currency'] ?? null)
-                ? strtoupper(substr(trim((string) $parsed['currency']), 0, 3))
-                : 'MYR',
+            'currency' => $this->normalizeCurrency($parsed['currency'] ?? null),
             'payment_method' => $parsed['payment_method'] ?? null,
             'items' => $items,
         ];
@@ -131,6 +129,21 @@ class ReceiptParseNormalizer
         }
 
         return round((float) $value, 2);
+    }
+
+    public function normalizeCurrency(mixed $value): ?string
+    {
+        if (! is_string($value) && ! is_numeric($value)) {
+            return null;
+        }
+
+        $currency = strtoupper(trim((string) $value));
+
+        if ($currency === '' || in_array(Str::lower($currency), ['none', 'null', 'unknown'], true)) {
+            return null;
+        }
+
+        return preg_match('/^[A-Z]{3}$/', $currency) === 1 ? $currency : null;
     }
 
     public function toQuantity(mixed $value): float

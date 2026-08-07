@@ -10,6 +10,7 @@ use App\Filament\Resources\Invoices\Tables\InvoicesTable;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Helpers\FilenameDisplay;
+use App\Helpers\MoneyDisplay;
 use App\Models\Invoice;
 use App\Support\DashboardSpenderScope;
 use Filament\Actions\Action;
@@ -83,7 +84,11 @@ class RecentReceipts extends BaseWidget
 
                 TextColumn::make('total_amount')
                     ->label('Total Amount')
-                    ->myr()
+                    ->formatStateUsing(fn (?string $state, Invoice $record): string => MoneyDisplay::withCurrency(
+                        $state,
+                        $record->displayCurrency(),
+                    ))
+                    ->tooltip(fn (Invoice $record): ?string => MoneyDisplay::conversionSummary($record))
                     ->sortable(),
 
                 TextColumn::make('paymentMethod.name')

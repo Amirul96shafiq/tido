@@ -47,6 +47,16 @@ return [
         'max_image_dimension' => (int) env('OLLAMA_MAX_IMAGE_DIMENSION', 1280),
     ],
 
+    'currencyapi' => [
+        'provider' => env('CURRENCY_API_PROVIDER', 'currencyapi'),
+        'base_url' => env('CURRENCY_API_BASE_URL', 'https://api.currencyapi.com'),
+        'api_key' => env('CURRENCY_API_KEY'),
+        'timeout' => (int) env('CURRENCY_API_TIMEOUT', 10),
+        'connect_timeout' => (int) env('CURRENCY_API_CONNECT_TIMEOUT', 3),
+        'retry_delays' => [100, 500, 1000],
+        'cache_ttl' => (int) env('CURRENCY_API_CACHE_TTL', 86400),
+    ],
+
     'documents' => [
         'max_bytes' => (int) env('PDF_MAX_BYTES', 10 * 1024 * 1024),
         'max_pdf_pages' => (int) env('PDF_MAX_PAGES', 3),

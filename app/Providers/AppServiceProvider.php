@@ -15,6 +15,8 @@ use App\Models\Invoice;
 use App\Models\User;
 use App\Observers\FamilyMemberObserver;
 use App\Observers\InvoiceObserver;
+use App\Services\Currency\CurrencyApiExchangeRateProvider;
+use App\Services\Currency\ExchangeRateProvider;
 use App\View\Components\ButtonComponent;
 use BladeUI\Icons\Factory;
 use Filament\Actions\Action;
@@ -53,6 +55,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(FilamentButtonComponent::class, ButtonComponent::class);
         $this->app->bind(FilamentNotification::class, AppNotification::class);
         $this->app->bind(LogoutResponseContract::class, LogoutResponse::class);
+        $this->app->bind(ExchangeRateProvider::class, CurrencyApiExchangeRateProvider::class);
     }
 
     /**

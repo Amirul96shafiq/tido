@@ -19,7 +19,7 @@ Activate the relevant skill when the task matches your domain.
 | **Health** | Coming soon |
 | **Task** | Coming soon |
 
-**Finances** (shipped today) uses **Malaysian Ringgit (MYR)**. It ingests receipt **images**, WhatsApp **PDF documents**, and WhatsApp **text manual invoices**, extracts or classifies data with a **local Ollama** model, categorizes line items as **Labels** (model: `Label`), tracks **Budgets**, and surfaces analytics. Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD surface for that module — distinct from the dashboard view tabs.
+**Finances** (shipped today) uses **Malaysian Ringgit (MYR)** for canonical reporting. It ingests receipt **images**, WhatsApp **PDF documents**, and WhatsApp **text manual invoices**, detects printed source currency with a **local Ollama** model, converts foreign receipt amounts using a date-specific exchange-rate provider, categorizes line items as **Labels** (model: `Label`), tracks **Budgets**, and surfaces analytics. Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD surface for that module — distinct from the dashboard view tabs.
 
 Primary Finances ingestion paths:
 
@@ -73,7 +73,7 @@ Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage)
 app/
   Models/           Invoice, InvoiceItem, Label, PaymentMethod, Budget, FamilyMember, User, ContentDraft, Backup, ServiceHealthSample; Concerns/TracksResourceEdits.php
   Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support, Livewire
-  Services/         Ollama, GoogleDrive, WhatsApp, PdfPageInspector, PdfPageRenderer, ReceiptDocumentPreparer, BudgetAlert, SpendingForecast, FamilyMemberLoginService, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
+  Services/         Ollama, Currency exchange/conversion, GoogleDrive, WhatsApp, PdfPageInspector, PdfPageRenderer, ReceiptDocumentPreparer, BudgetAlert, SpendingForecast, FamilyMemberLoginService, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
   Jobs/             ExtractReceiptDataJob, ProcessWhatsAppMediaJob, ProcessManualWhatsAppInvoiceJob, ParseManualWhatsAppInvoiceJob, SyncGoogleDriveJob, …
   Observers/        InvoiceObserver, FamilyMemberObserver
   Policies/         InvoicePolicy (household mutate ACL)
@@ -103,7 +103,7 @@ docs/               architecture + integration setup + this file
 | Uploaded By | Invoice `family_member_id` — null = Primary; set from WhatsApp sender or acting user — `docs/household-access.md` |
 | WhatsApp identity | Classic phone JIDs resolve by phone; `@lid` identities resolve through `whatsapp_lid` after primary linking in Evolution API |
 | Receipt document | `image_path` stores the original image/PDF; `file_mime_type`, `file_page_count`, `original_filename`, and unique `whatsapp_message_id` preserve media metadata |
-| Money | `decimal(12,2)`, cast `decimal:2`, currency `MYR`, UI `RM` |
+| Money | Canonical reporting values are `decimal(12,2)` in `MYR`, cast `decimal:2`, UI `RM`; foreign source currency, original total, rate, effective date, provider, fetch time, and conversion status remain auditable on `Invoice` |
 | Duplicate | `receipt_hash` SHA-256 of number + datetime + total |
 | Statuses | `pending`, `parsed`, `reviewed`, `requires_manual_review`, `failed` |
 | Auth | Filament session; household roles (`HouseholdRole`); no Spatie Permission; no tenancy |
@@ -157,7 +157,8 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 1. Ollama: always `format: json` + strip markdown fences (see `OllamaService`)
 2. PDF receipts: validate the detected MIME type, enforce `PDF_MAX_BYTES` / `PDF_MAX_PAGES`, and render pages with configured Poppler `pdfinfo` / `pdftocairo` binaries before AI extraction
 3. Webhooks: authenticate `Authorization: Bearer <EVOLUTION_WEBHOOK_SECRET>` before payload handling, then resolve phone or linked WhatsApp LID → validate → queue; keep the inbound secret distinct from outbound `EVOLUTION_API_KEY`
-4. Never call real Ollama/Evolution in tests
+4. Foreign receipt conversion uses the configured `CURRENCY_API_*` provider with the receipt date, bounded timeout/retry, and a cached source/target/date lookup; never revalue an already converted invoice automatically
+5. Never call real Ollama, Evolution, or exchange-rate providers in tests
 
 ### After code changes
 

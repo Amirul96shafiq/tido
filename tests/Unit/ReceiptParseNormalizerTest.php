@@ -199,3 +199,13 @@ test('normalize accepts legacy suggested_category key for label', function () {
 
     expect($normalized['items'][0]['label'])->toBe('Food & Dining');
 });
+
+test('normalize only accepts explicit three-letter currency evidence', function () {
+    $normalizer = new ReceiptParseNormalizer;
+
+    expect($normalizer->normalizeCurrency('usd'))->toBe('USD')
+        ->and($normalizer->normalizeCurrency('MYR'))->toBe('MYR')
+        ->and($normalizer->normalizeCurrency('RM'))->toBeNull()
+        ->and($normalizer->normalizeCurrency('$'))->toBeNull()
+        ->and($normalizer->normalizeCurrency(null))->toBeNull();
+});

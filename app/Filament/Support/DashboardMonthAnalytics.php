@@ -96,19 +96,22 @@ final class DashboardMonthAnalytics
             $previousStart = $this->bounds['previous_start'];
             $previousEnd = $this->bounds['previous_end'];
 
+            $pendingCount = $this->invoiceQuery(canonicalMyr: false)
+                ->whereBetween('date_time', [$start, $end])
+                ->where('status', 'pending')
+                ->count();
+
             $row = $this->invoiceQuery()
                 ->whereBetween('date_time', [$previousStart, $end])
                 ->selectRaw(
                     'SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN total_amount ELSE 0 END) as current_total,
                     SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN total_amount ELSE 0 END) as previous_total,
                     SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN total_tax ELSE 0 END) as current_tax,
-                    SUM(CASE WHEN date_time BETWEEN ? AND ? AND status = ? THEN 1 ELSE 0 END) as pending_count,
                     SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN 1 ELSE 0 END) as processed_count',
                     [
                         $start, $end, 'parsed', 'reviewed',
                         $previousStart, $previousEnd, 'parsed', 'reviewed',
                         $start, $end, 'parsed', 'reviewed',
-                        $start, $end, 'pending',
                         $start, $end, 'parsed', 'reviewed',
                     ],
                 )
@@ -118,7 +121,7 @@ final class DashboardMonthAnalytics
                 'current_total' => (float) ($row->current_total ?? 0),
                 'previous_total' => (float) ($row->previous_total ?? 0),
                 'current_tax' => (float) ($row->current_tax ?? 0),
-                'pending_count' => (int) ($row->pending_count ?? 0),
+                'pending_count' => (int) $pendingCount,
                 'processed_count' => (int) ($row->processed_count ?? 0),
             ];
         });
@@ -596,12 +599,16 @@ final class DashboardMonthAnalytics
     /**
      * @return Builder<Invoice>
      */
-    private function invoiceQuery(): Builder
+    private function invoiceQuery(bool $canonicalMyr = true): Builder
     {
         $query = Invoice::query();
 
         if ($this->spenderScope instanceof DashboardSpenderScope) {
             $query = $this->spenderScope->applyToInvoiceQuery($query);
+        }
+
+        if ($canonicalMyr) {
+            $query->canonicalMyr();
         }
 
         return $query;
@@ -617,7 +624,9 @@ final class DashboardMonthAnalytics
             ->join('labels', 'invoice_items.label_id', '=', 'labels.id')
             ->whereNull('invoices.deleted_at')
             ->whereBetween('invoices.date_time', [$start, $end])
-            ->whereIn('invoices.status', Invoice::dashboardAnalyticsStatuses());
+            ->whereIn('invoices.status', Invoice::dashboardAnalyticsStatuses())
+            ->where('invoices.currency', Invoice::CURRENCY_MYR)
+            ->whereIn('invoices.currency_conversion_status', Invoice::CANONICAL_CONVERSION_STATUSES);
 
         if ($this->spenderScope instanceof DashboardSpenderScope) {
             $query = $this->spenderScope->applyToInvoicesJoin($query);

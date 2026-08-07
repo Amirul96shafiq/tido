@@ -115,6 +115,26 @@ test('invoice currency select uses single-line marquee markup', function () {
         );
 });
 
+test('foreign invoice form uses source currency prefixes and shows conversion context', function () {
+    $invoice = Invoice::factory()->create([
+        'image_path' => null,
+        'currency' => 'USD',
+        'original_currency' => 'USD',
+        'original_total_amount' => 6.00,
+        'currency_conversion_status' => Invoice::CONVERSION_FAILED,
+        'status' => 'requires_manual_review',
+    ]);
+
+    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSee('Original Currency')
+        ->assertSee('Rate Provider')
+        ->assertSchemaComponentExists(
+            'total_amount',
+            checkComponentUsing: fn (TextInput $component): bool => $component->getPrefixLabel() === 'USD',
+        );
+});
+
 test('invoice edit form serves receipt image via temporary url', function () {
     Storage::fake();
     $this->travelTo(now()->startOfMinute());

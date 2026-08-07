@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-<code>tido</code> is a single-tenant Life OS designed to bring personal finance, health, training, and everyday productivity into one private hub. <strong>Finance</strong> is currently in active development as a localized MYR expense tracker. It supports receipt ingestion through WhatsApp images and PDFs, scheduled Google Drive sync (coming soon), and manual admin uploads, with on-device parsing powered by local Ollama. Users can manage line items with labels, track budgets, and review spending analytics from the Finance dashboard.
+<code>tido</code> is a single-tenant Life OS designed to bring personal finance, health, training, and everyday productivity into one private hub. <strong>Finance</strong> is currently in active development as a localized MYR expense tracker. It supports receipt ingestion through WhatsApp images and PDFs, scheduled Google Drive sync (coming soon), and manual admin uploads, with on-device parsing powered by local Ollama. Printed receipt currencies are detected automatically; non-MYR amounts are converted using the receipt date and retained with source-currency metadata for review. Users can manage line items with labels, track budgets, and review spending analytics from the Finance dashboard.
 <strong>Training</strong> (workouts, running activities, and Strava
   sync. (TBD)), <strong>Health</strong> (calorie tracking and
   AI-assisted meal analysis from food photos), and <strong>Tasks</strong> (reminders and practical real-life task management) modules are coming soon!
@@ -45,6 +45,7 @@
 - Modular Home dashboard: **Finance** (Ongoing), **Training** / **Health** / **Task** (coming soon) — see [docs/dashboard-views.md](docs/dashboard-views.md)
 - Receipt ingestion from WhatsApp (**images**, **PDFs**, and **text manual invoices**), Google Drive scheduled sync (Coming Soon), and admin upload
 - Local OCR via Ollama with JSON-formatted extraction; manual WhatsApp text uses Ollama for **Labels** only
+- Printed currency detection, historical exchange-rate conversion into MYR, and source amount/rate metadata
 - Line-item **Labels**, duplicate detection, and manual review
 - Per-label budgets with WhatsApp threshold alerts
 - Month-scoped Finance dashboard analytics and spending forecast
@@ -60,6 +61,7 @@
 | Database        | SQLite (default local); PostgreSQL 17 (production target) |
 | Queues          | `database` driver locally; Redis + Horizon in production  |
 | OCR             | Ollama (`qwen2.5vl:7b`, native host)                      |
+| Exchange rates  | CurrencyAPI historical rates with cached receipt-date lookups |
 | WhatsApp        | Evolution API (native host)                               |
 | Drive           | `masbug/flysystem-google-drive-ext`                       |
 | Backups / audit | Spatie Laravel Backup, Spatie Activity Log, resource edit audit |
@@ -80,8 +82,14 @@ flowchart LR
   prepChoice -->|PDF| pdfPages[Poppler_PDF_pages]
   imagePrep --> ollama[Ollama_visions]
   pdfPages --> ollama
-  ollama --> items[Labels_and_line_items]
-  items --> review[Parsed_or_manual_review]
+  ollama --> extracted[Currency_and_receipt_fields]
+  extracted --> items[Labels_and_line_items]
+  extracted --> convert[CurrencyConversionService]
+  items --> convert
+  convert --> rate[Historical_rate_when_non_MYR]
+  rate --> canonical[Canonical_MYR_amounts]
+  convert --> canonical
+  canonical --> review[Parsed_or_manual_review]
   pendingManual --> labelJob[ParseManualWhatsAppInvoiceJob]
   labelJob --> ollamaText[Ollama_text_labels]
   ollamaText --> review
@@ -160,9 +168,11 @@ Admin nav:
 
 **Account switching:** Primary accounts with login-enabled Family Members can open **Swap Account** from the user menu to switch into a linked Family Member account. Use **Switch back** from the same menu to return to the Primary account.
 
-**WhatsApp receipt image/PDF:** Send an image or PDF from an allowlisted number (Profile or Family Members with allowlist enabled) → batched “Document received” → Ollama vision parse → “Document parsed” with edit link. PDFs are limited to 10 MB and 3 pages by default and require Poppler (`pdfinfo` + `pdftocairo`) on the queue worker.
+**WhatsApp receipt image/PDF:** Send an image or PDF from an allowlisted number (Profile or Family Members with allowlist enabled) → batched “Document received” → Ollama vision parse and printed-currency detection → historical conversion into MYR when needed → “Document parsed” with edit link. PDFs are limited to 10 MB and 3 pages by default and require Poppler (`pdfinfo` + `pdftocairo`) on the queue worker.
 
 **WhatsApp manual invoice (no receipt media):** Text format, payment tokens, and replies: [docs/whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md).
+
+**Legacy foreign-currency correction:** Preview a known legacy source-currency correction with `php artisan receipts:convert-currency 332 --source-currency=USD --dry-run`. After checking the target and configuring `CURRENCY_API_KEY`, rerun without `--dry-run` to convert the stored totals and line items without rerunning OCR.
 
 **WhatsApp LID allowlist:** If WhatsApp delivers an inbound chat with a LID instead of a phone JID, link the pending identity to the correct allowlisted contact under **Integrations → Evolution API → WhatsApp LID**. See [docs/evolution-local-windows.md](docs/evolution-local-windows.md).
 
@@ -172,7 +182,7 @@ Admin nav:
 
 ## Configuration
 
-Copy [`.env.example`](.env.example) and set values for your environment. Notable groups (`DB_*`, `QUEUE_CONNECTION`, `EVOLUTION_*`, `OLLAMA_*`, `PDF_*` / Poppler binaries, `GOOGLE_DRIVE_*`) are documented there and in the [setup guides](#installation).
+Copy [`.env.example`](.env.example) and set values for your environment. Notable groups (`DB_*`, `QUEUE_CONNECTION`, `EVOLUTION_*`, `OLLAMA_*`, `PDF_*` / Poppler binaries, `GOOGLE_DRIVE_*`, `CURRENCY_API_*`) are documented there and in the [setup guides](#installation). Set `CURRENCY_API_KEY` to enable non-MYR conversion; receipt-date lookups are cached and use bounded retries.
 
 ## Testing
 
@@ -182,7 +192,7 @@ composer test
 vendor/bin/pint --dirty --format agent
 ```
 
-Tests use in-memory SQLite. Mock external HTTP and queues with `Http::fake()` / `Queue::fake()` — never call live Ollama or Evolution in tests.
+Tests use in-memory SQLite. Mock external HTTP and queues with `Http::fake()` / `Queue::fake()` — never call live Ollama, Evolution, or exchange-rate providers in tests.
 
 ## Documentation
 

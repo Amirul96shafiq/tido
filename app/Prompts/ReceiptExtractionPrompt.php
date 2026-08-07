@@ -70,6 +70,9 @@ Malaysia receipt rules (follow strictly):
 - For each line item, extract serial_number when a barcode / SKU / PLU / item code is printed under or beside the description (digits only strings like 9556072080026). Use null if none is printed.
 - For weight or unit-priced lines, compute line_total as quantity × unit_price (e.g. 5 × 0.220 = 1.10).
 - All money fields must be JSON numbers (or 0). Never use strings like "None", "null", or blank. Never nest money as objects.
+- Detect currency from a printed ISO code or unambiguous currency marker on the receipt. Use MYR for printed RM, MYR, or Malaysian Ringgit evidence.
+- Do not infer USD, EUR, or another currency from an ambiguous "$" or "€" symbol alone. If currency evidence is missing or ambiguous, output null so the receipt can be reviewed safely.
+- Keep every money value in the detected source currency. Do not convert amounts yourself.
 - Prefer Grand Total / Total Paid / Amount Paid for total_amount over guessing from partial lines.
 - payment_method must be an exact name from the available payment methods list below, or null. Prefer aliases when the receipt wording matches them.
 
@@ -96,7 +99,7 @@ The output JSON structure MUST match this exact schema:
   "discount_total": "Number - total discounts and savings (0 if none)",
   "rounding_amount": "Number - rounding adjustment, may be negative (0 if none)",
   "total_amount": "Number - final total paid amount",
-  "currency": "String - default is 'MYR'",
+  "currency": "String - three-letter ISO currency code from printed evidence, or null when missing/ambiguous",
   "payment_method": "String or null - exact payment method name from the list above (e.g. {$paymentMethodNames})",
   "items": [
     {

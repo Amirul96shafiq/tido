@@ -9,6 +9,7 @@ use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Invoices\Tables\InvoicesTable;
 use App\Helpers\FilenameDisplay;
+use App\Helpers\MoneyDisplay;
 use App\Models\Invoice;
 use App\Support\DashboardSpenderScope;
 use Filament\Actions\EditAction;
@@ -183,7 +184,11 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
 
                 TextColumn::make('total_amount')
                     ->label('Total Amount')
-                    ->myr()
+                    ->formatStateUsing(fn (?string $state, Invoice $record): string => MoneyDisplay::withCurrency(
+                        $state,
+                        $record->displayCurrency(),
+                    ))
+                    ->tooltip(fn (Invoice $record): ?string => MoneyDisplay::conversionSummary($record))
                     ->sortable(),
 
                 TextColumn::make('paymentMethod.name')

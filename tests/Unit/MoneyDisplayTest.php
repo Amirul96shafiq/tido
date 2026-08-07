@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Helpers\MoneyDisplay;
+use App\Models\Invoice;
 use Tests\TestCase;
 
 uses(TestCase::class);
@@ -31,6 +32,21 @@ test('withPrefix formats money with RM prefix', function (): void {
     expect(MoneyDisplay::withPrefix(12.5))->toBe('RM 12.50')
         ->and(MoneyDisplay::withPrefix(12.5, spaceAfterPrefix: false))->toBe('RM12.50')
         ->and(MoneyDisplay::withPrefix(1298.58))->toBe('RM 1,298.58');
+});
+
+test('withCurrency uses the source currency code for non MYR amounts', function (): void {
+    expect(MoneyDisplay::withCurrency(6, 'USD'))->toBe('USD 6.00')
+        ->and(MoneyDisplay::withCurrency(6, null))->toBe('Currency 6.00');
+});
+
+test('conversion summary identifies an unconverted foreign amount', function (): void {
+    $invoice = new Invoice([
+        'currency' => 'USD',
+        'total_amount' => 6,
+    ]);
+
+    expect(MoneyDisplay::conversionSummary($invoice))
+        ->toBe('Source amount is recorded in USD; conversion is required before MYR totals.');
 });
 
 test('validateInputAttribute accepts comma formatted amounts', function (): void {

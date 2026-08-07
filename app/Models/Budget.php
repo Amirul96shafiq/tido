@@ -117,7 +117,9 @@ class Budget extends Model
             ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
             ->whereNull('invoices.deleted_at')
             ->whereBetween('invoices.date_time', [$start, $end])
-            ->whereIn('invoices.status', ['parsed', 'reviewed']);
+            ->whereIn('invoices.status', ['parsed', 'reviewed'])
+            ->where('invoices.currency', Invoice::CURRENCY_MYR)
+            ->whereIn('invoices.currency_conversion_status', Invoice::CANONICAL_CONVERSION_STATUSES);
 
         if ($this->label_id) {
             $query->where('invoice_items.label_id', $this->label_id);
