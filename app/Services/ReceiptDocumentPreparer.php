@@ -13,6 +13,7 @@ final class ReceiptDocumentPreparer
     public function __construct(
         private readonly ReceiptImagePreparer $imagePreparer,
         private readonly PdfPageRenderer $pdfRenderer,
+        private readonly PdfTextExtractor $pdfTextExtractor,
     ) {}
 
     /**
@@ -20,11 +21,7 @@ final class ReceiptDocumentPreparer
      */
     public function prepare(Invoice $invoice): array
     {
-        if (blank($invoice->image_path) || ! Storage::exists($invoice->image_path)) {
-            throw new RuntimeException('The receipt document does not exist in storage.');
-        }
-
-        $contents = (string) Storage::get($invoice->image_path);
+        $contents = $this->contents($invoice);
 
         if ($invoice->file_mime_type === 'application/pdf') {
             return array_map(
@@ -34,5 +31,23 @@ final class ReceiptDocumentPreparer
         }
 
         return [$this->imagePreparer->toBase64($contents)];
+    }
+
+    public function extractText(Invoice $invoice): ?string
+    {
+        if ($invoice->file_mime_type !== 'application/pdf') {
+            return null;
+        }
+
+        return $this->pdfTextExtractor->extract($this->contents($invoice));
+    }
+
+    private function contents(Invoice $invoice): string
+    {
+        if (blank($invoice->image_path) || ! Storage::exists($invoice->image_path)) {
+            throw new RuntimeException('The receipt document does not exist in storage.');
+        }
+
+        return (string) Storage::get($invoice->image_path);
     }
 }

@@ -17,6 +17,7 @@ This document defines the architectural blueprint for **tido**, a localized sing
 | **Admin Panel / UI** | FilamentPHP v5 | Auto-generation of data tables, upload widgets, and analytical dashboards. Built on Livewire v4. |
 | **Cloud Storage** | `masbug/flysystem-google-drive-ext` | Direct integration of Google Drive folders as Laravel `Storage` disks. |
 | **AI Parsing Engine** | Ollama (Local) | Zero-cost execution of vision models (e.g., LLaVA, MiniCPM-V) for OCR and data extraction. |
+| **Exchange Rates** | CurrencyAPI (configured external provider) | Historical source-currency to MYR rates for receipt-date conversion; cached and persisted with audit metadata. |
 | **Messaging API** | Evolution API | Headless receipt ingestion and system alert broadcasting via WhatsApp. |
 | **Database** | PostgreSQL 17 | Relational data storage optimized for JSON operations and strict indexing. |
 
@@ -68,6 +69,13 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 * `rounding_amount` (Decimal)
 * `total_amount` (Decimal)
 * `currency` (String)
+* `original_currency` (String, Nullable) - Printed source currency before conversion.
+* `original_total_amount` (Decimal, Nullable) - Extracted total in the printed source currency.
+* `currency_conversion_status` (String) - `not_required`, `converted`, `pending`, or `failed`.
+* `currency_conversion_rate` (Decimal, Nullable) - Exact rate used as MYR per source unit.
+* `currency_conversion_date` (Date, Nullable) - Provider effective date used for the rate.
+* `currency_conversion_provider` (String, Nullable)
+* `currency_conversion_fetched_at` (Timestamp, Nullable)
 * `payment_method_id` (Foreign Key → payment_methods.id, Nullable)
 * `source` (String) - `manual`, `whatsapp`, or `google_drive`.
 * `whatsapp_sender` (String, Nullable)
@@ -97,13 +105,13 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 ### 5.1. Headless Ingestion & Webhooks
 * **Evolution API Integration:** POST webhook (`/api/webhooks/whatsapp`) to Laravel, bypassing UI.
 * **WhatsApp media receipts:** Image or PDF media download → detected MIME validation → pending `Invoice` → batched document ack → `ExtractReceiptDataJob` (Ollama vision). PDF files are limited by `PDF_MAX_BYTES` and `PDF_MAX_PAGES`; rejected files are listed in the acknowledgement and never create an invoice.
-* **WhatsApp PDF extraction:** Accepted PDFs remain stored as PDFs. Poppler `pdfinfo` inspects page count and `pdftocairo` renders pages to JPEG; Ollama extracts each page as JSON, then merges multi-page results before normal invoice normalization and Label matching.
+* **WhatsApp PDF extraction:** Accepted PDFs remain stored as PDFs. Poppler `pdfinfo` inspects page count and `pdftocairo` renders pages to JPEG; Ollama extracts each page as JSON, then merges multi-page results before normal invoice normalization, currency conversion, and Label matching.
 * **WhatsApp manual text invoices:** Fixed `merchant[, payment];` + `item, qty, line_total;` format → pending `Invoice` (no image) → label classification → `requires_manual_review`. See `docs/whatsapp-manual-invoice.md`.
 * **Attribution:** Allowlisted Family Member senders set `invoices.family_member_id`; Profile/primary senders leave it null (**Uploaded By**). Classic phone JIDs and linked WhatsApp LIDs use the same allowlist. Optional family panel login via WhatsApp OTP — see `docs/household-access.md`.
 * **Google Drive:** Scheduled folder poll (`SyncGoogleDriveJob` every 15m) copies images locally and creates pending invoices (Pub/Sub push is not the primary local path).
 
 ### 5.2. 100% Offline AI Extraction
-* Dispatches a queued job (`ExtractReceiptDataJob`) to the local Ollama HTTP API (`OLLAMA_HOST`, default `http://127.0.0.1:11434`) at `/api/generate`. Ollama runs as a native host process (see `docs/ollama-setup.md`).
+* Dispatches a queued job (`ExtractReceiptDataJob`) to the local Ollama HTTP API (`OLLAMA_HOST`, default `http://127.0.0.1:11434`) at `/api/generate`. After source-currency reconciliation, foreign amounts are converted by `CurrencyConversionService` using the configured historical rate provider. Ollama runs as a native host process (see `docs/ollama-setup.md`).
 
 ### 5.3. Dynamic Auto-Categorization & Line-Item Splitting
 * AI maps individual line items to predefined Finance **Labels**. Filament uses a `Repeater` form component for manual review.
@@ -116,6 +124,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 ## 6. Security & Prompt Architecture Critique
 
 * **Hallucination Mitigation:** HTTP client logic must include regex to strip markdown blocks before `json_decode()`. Pass `"format": "json"` in the Ollama API request payload.
+* **Currency evidence:** PDF text is checked for printed ISO codes and currency markers before a focused vision currency pass; prompts must never default to MYR. A bare `$` is treated as USD only when no competing dollar-currency marker is present, while conflicting or missing evidence returns null. Source amounts remain unchanged until conversion succeeds, and a failed or pending conversion remains source-denominated and is excluded from MYR analytics.
 * **Webhook Authentication:** Evolution callbacks accept only `Authorization: Bearer <EVOLUTION_WEBHOOK_SECRET>`. The inbound secret must be a distinct 32+ character value from `EVOLUTION_API_KEY`, which matches Evolution's `AUTHENTICATION_API_KEY`; query-string and raw-token forms are rejected. Other external webhooks require their provider-specific signature, bearer, or private-network boundary.
 * **Household access:** Single panel with Primary vs Family Member roles (`HouseholdRole`); family members mutate only their attributed invoices. Resource edit audit records the authenticated Primary or Family Member separately from invoice spender attribution. See `docs/household-access.md` and `docs/resource-edit-audit.md`.
 * **Storage Limits:** Enforce detected MIME type validation, a maximum file size (`PDF_MAX_BYTES`, default 10 MB), and a PDF page limit (`PDF_MAX_PAGES`, default 3) to prevent memory exhaustion during Base64 encoding and multi-page rendering. Configure absolute Poppler binary paths for Windows queue workers.
@@ -126,9 +135,10 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 
 ### 7.1. Local services & orchestration
 * **Application / DB / queues:** Windows host development runs PHP via `npm run dev:full` with SQLite (default) and a `database` queue connection. `queue:listen` handles `default`, `whatsapp`, and `receipts`.
+* **Exchange-rate provider:** Configure `CURRENCY_API_BASE_URL`, `CURRENCY_API_KEY`, timeout/connect timeout, and cache TTL in deployment configuration. Historical lookups use the receipt date; `receipts:convert-currency --dry-run` inspects existing foreign rows without requesting rates or mutating data. A targeted legacy row whose source was previously stored incorrectly can use `receipts:convert-currency <id> --source-currency=USD --dry-run` before the approved conversion run.
 * **Ollama (OCR):** Native host process on `http://127.0.0.1:11434` with vision model `qwen2.5vl:7b` (see `docs/ollama-setup.md`).
 * **Evolution (WhatsApp):** Native host process on `http://127.0.0.1:8080` via `npm run evolution` (see `docs/evolution-local-windows.md`).
-* **Poppler (PDF OCR):** Native Windows command-line tools `pdfinfo.exe` and `pdftocairo.exe`, configured through `PDFINFO_BINARY` and `PDFTOCAIRO_BINARY`; required by the queue worker for PDF inspection and page rendering.
+* **Poppler (PDF OCR):** Native Windows command-line tools `pdfinfo.exe`, `pdftotext.exe`, and `pdftocairo.exe`, configured through `PDFINFO_BINARY`, `PDFTOTEXT_BINARY`, and `PDFTOCAIRO_BINARY`; `pdfinfo` and a Poppler renderer (`pdftocairo`, with `pdftoppm` fallback through `PDFTOPPM_BINARY`) are required by the queue worker, while `pdftotext` supplies additional currency evidence when available.
 
 ### 7.2. Queue Monitoring & Error Handling
 * **Laravel Horizon:** Install and configure Horizon to monitor Redis queues. AI parsing is heavily resource-dependent and prone to timeouts.
@@ -136,7 +146,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 
 ### 7.3. Automated Testing Suite
 * **Pest PHP:** Implement Pest for PSR-compliant, expressive test coverage.
-* **API Mocking:** Do not trigger the actual Ollama instance during test execution. Use Laravel's `Http::fake()` to mock expected JSON payloads from the AI to ensure tests run in milliseconds rather than minutes.
+* **API Mocking:** Do not trigger actual Ollama, Evolution, or exchange-rate providers during test execution. Use Laravel's `Http::fake()` to mock expected JSON payloads from the AI and rate provider so tests run in milliseconds rather than minutes.
 * **Webhook Feature Tests:** Assert that authorized image/PDF payloads from the Evolution API correctly dispatch media jobs, non-PDF documents are ignored, linked/unlinked LIDs follow the allowlist rules, and unauthorized requests return `401 Unauthorized`.
 
 ### 7.4. Data Backup & Retention Strategy

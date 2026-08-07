@@ -31,7 +31,9 @@ Rules:
 - Prefer final totals and payment method from the last summary page where they are visible.
 - Preserve legitimate repeated purchases.
 - Remove page headers, page footers, subtotals carried between pages, and duplicate summary rows from items.
-- Use MYR when currency is missing.
+- Preserve a non-null currency detected on any page when it is consistent with the receipt.
+- A page with null currency must not overwrite a currency detected on another page. If no page has clear currency evidence, keep currency null.
+- Do not infer a currency from an ambiguous symbol or convert any amounts during merging.
 - Use null for genuinely missing merchant, invoice number, date, or payment method values.
 - Money values must be JSON numbers. Missing money values must be 0.
 - items must be a JSON array.

@@ -41,3 +41,37 @@ test('renders PDF pages to JPEG contents in page order', function () {
             && in_array('144', $process->command, true);
     });
 });
+
+test('falls back to pdftoppm when pdftocairo is unavailable', function () {
+    config([
+        'services.documents.pdfinfo_binary' => 'pdfinfo',
+        'services.documents.pdftocairo_binary' => 'C:/<poppler-install-folder>/Library/bin/pdftocairo.exe',
+        'services.documents.pdftoppm_binary' => 'pdftoppm',
+    ]);
+
+    Process::preventStrayProcesses();
+    Process::fake(function (PendingProcess $process) {
+        if (is_array($process->command) && $process->command[0] === 'pdfinfo') {
+            return Process::result(output: "Pages: 1\n");
+        }
+
+        if (is_array($process->command) && $process->command[0] === 'pdftocairo') {
+            return Process::result(
+                errorOutput: 'The filename, directory name, or volume label syntax is incorrect.',
+                exitCode: 1,
+            );
+        }
+
+        $outputPrefix = $process->command[array_key_last($process->command)];
+        File::put($outputPrefix.'-1.jpg', 'fallback-page');
+
+        return Process::result();
+    });
+
+    expect(app(PdfPageRenderer::class)->render('%PDF-1.7 test'))->toBe(['fallback-page']);
+
+    Process::assertRan(function (PendingProcess $process): bool {
+        return is_array($process->command)
+            && $process->command[0] === 'pdftoppm';
+    });
+});

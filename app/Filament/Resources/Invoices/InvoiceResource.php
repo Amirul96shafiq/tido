@@ -108,9 +108,14 @@ class InvoiceResource extends Resource
         $details = [
             'Invoice #' => $record->invoice_number ?? '—',
             'Date' => $record->date_time?->format('d M Y') ?? '—',
-            'Total' => MoneyDisplay::withPrefix($record->total_amount),
+            'Total' => MoneyDisplay::withCurrency($record->total_amount, $record->displayCurrency()),
             'Status' => $record->status,
         ];
+
+        $conversionSummary = MoneyDisplay::conversionSummary($record);
+        if ($conversionSummary !== null) {
+            $details['Currency'] = $conversionSummary;
+        }
 
         $matchingItems = static::matchingInvoiceItemLabels($record, static::$globalSearchQuery);
 

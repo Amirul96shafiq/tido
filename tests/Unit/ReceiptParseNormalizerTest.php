@@ -143,6 +143,31 @@ test('normalize strips company registration style invoice numbers and none money
         ->and($normalizer->amountsReconcile($normalized))->toBeTrue();
 });
 
+test('normalize stores discounts as positive amounts when OCR includes the printed minus sign', function () {
+    $normalizer = new ReceiptParseNormalizer;
+
+    $normalized = $normalizer->normalize([
+        'merchant_name' => 'Cursor',
+        'date_time' => '2026-07-08 00:00:00',
+        'subtotal' => 20.00,
+        'total_tax' => 0,
+        'discount_total' => -14.00,
+        'rounding_amount' => 0,
+        'total_amount' => 6.00,
+        'currency' => 'USD',
+        'items' => [[
+            'description' => 'Cursor Pro',
+            'quantity' => 1,
+            'unit_price' => 20.00,
+            'line_total' => 20.00,
+            'label' => null,
+        ]],
+    ]);
+
+    expect($normalized['discount_total'])->toBe(14.0)
+        ->and($normalizer->amountsReconcile($normalized))->toBeTrue();
+});
+
 test('amountsReconcile fails when line items disagree with total', function () {
     $normalizer = new ReceiptParseNormalizer;
 
@@ -198,4 +223,14 @@ test('normalize accepts legacy suggested_category key for label', function () {
     ]);
 
     expect($normalized['items'][0]['label'])->toBe('Food & Dining');
+});
+
+test('normalize only accepts explicit three-letter currency evidence', function () {
+    $normalizer = new ReceiptParseNormalizer;
+
+    expect($normalizer->normalizeCurrency('usd'))->toBe('USD')
+        ->and($normalizer->normalizeCurrency('MYR'))->toBe('MYR')
+        ->and($normalizer->normalizeCurrency('RM'))->toBeNull()
+        ->and($normalizer->normalizeCurrency('$'))->toBeNull()
+        ->and($normalizer->normalizeCurrency(null))->toBeNull();
 });

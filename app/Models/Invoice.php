@@ -20,6 +20,31 @@ class Invoice extends Model
 {
     use HasFactory, LogsActivity, SoftDeletes, TracksResourceEdits;
 
+    public const CURRENCY_MYR = 'MYR';
+
+    public const CURRENCY_UNKNOWN = 'UNK';
+
+    public const CONVERSION_NOT_REQUIRED = 'not_required';
+
+    public const CONVERSION_CONVERTED = 'converted';
+
+    public const CONVERSION_PENDING = 'pending';
+
+    public const CONVERSION_FAILED = 'failed';
+
+    /**
+     * @var list<string>
+     */
+    public const CANONICAL_CONVERSION_STATUSES = [
+        self::CONVERSION_NOT_REQUIRED,
+        self::CONVERSION_CONVERTED,
+    ];
+
+    protected $attributes = [
+        'currency' => self::CURRENCY_MYR,
+        'currency_conversion_status' => self::CONVERSION_NOT_REQUIRED,
+    ];
+
     protected $fillable = [
         'merchant_name',
         'invoice_number',
@@ -31,6 +56,13 @@ class Invoice extends Model
         'rounding_amount',
         'total_amount',
         'currency',
+        'original_currency',
+        'original_total_amount',
+        'currency_conversion_status',
+        'currency_conversion_rate',
+        'currency_conversion_date',
+        'currency_conversion_provider',
+        'currency_conversion_fetched_at',
         'payment_method_id',
         'source',
         'whatsapp_sender',
@@ -53,6 +85,10 @@ class Invoice extends Model
         'discount_total' => 'decimal:2',
         'rounding_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
+        'original_total_amount' => 'decimal:2',
+        'currency_conversion_rate' => 'decimal:10',
+        'currency_conversion_date' => 'date',
+        'currency_conversion_fetched_at' => 'datetime',
         'file_page_count' => 'integer',
         'raw_ai_response' => 'array',
     ];
@@ -90,7 +126,42 @@ class Invoice extends Model
      */
     public function scopeDashboardAnalyticsEligible(Builder $query): void
     {
-        $query->whereIn('status', self::dashboardAnalyticsStatuses());
+        $query
+            ->whereIn('status', self::dashboardAnalyticsStatuses())
+            ->canonicalMyr();
+    }
+
+    /**
+     * @param  Builder<Invoice>  $query
+     */
+    public function scopeCanonicalMyr(Builder $query): void
+    {
+        $query
+            ->where('currency', self::CURRENCY_MYR)
+            ->whereIn('currency_conversion_status', self::CANONICAL_CONVERSION_STATUSES);
+    }
+
+    public function isCanonicalMyr(): bool
+    {
+        return $this->currency === self::CURRENCY_MYR
+            && in_array($this->currency_conversion_status, self::CANONICAL_CONVERSION_STATUSES, true);
+    }
+
+    public function displayCurrency(): ?string
+    {
+        if ($this->isCanonicalMyr()) {
+            return self::CURRENCY_MYR;
+        }
+
+        if (filled($this->original_currency)) {
+            return strtoupper((string) $this->original_currency);
+        }
+
+        if (filled($this->currency) && $this->currency !== self::CURRENCY_UNKNOWN) {
+            return strtoupper((string) $this->currency);
+        }
+
+        return null;
     }
 
     /**

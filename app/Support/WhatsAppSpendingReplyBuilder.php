@@ -352,7 +352,7 @@ final class WhatsAppSpendingReplyBuilder
             $lines[] = sprintf(
                 '• *%s* — %s · %s',
                 $invoice->merchant_name,
-                MoneyDisplay::withPrefix($invoice->total_amount),
+                MoneyDisplay::withCurrency($invoice->total_amount, $invoice->displayCurrency()),
                 $invoice->created_at?->format('j M') ?? '—',
             );
         }

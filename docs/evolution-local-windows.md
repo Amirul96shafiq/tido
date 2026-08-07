@@ -114,6 +114,7 @@ PDF_RENDER_TIMEOUT=60
 PDF_RENDER_DPI=144
 PDFINFO_BINARY=C:/path/to/poppler/Library/bin/pdfinfo.exe
 PDFTOCAIRO_BINARY=C:/path/to/poppler/Library/bin/pdftocairo.exe
+PDFTOPPM_BINARY=C:/path/to/poppler/Library/bin/pdftoppm.exe
 ```
 
 Restart `npm run dev:full` after changing these values. The defaults accept PDFs up to 10 MB and 3 pages; adjust only when the queue worker has enough memory and Ollama context for the larger document.
@@ -235,7 +236,7 @@ If Evolution is down, use **Sign in with email & password** (primary user only).
 | Webhook never fires | URL must be `http://127.0.0.1:2000/...` while using `artisan serve`; confirm the registered `Authorization` header uses `EVOLUTION_WEBHOOK_SECRET` |
 | Wrong Evolution URL in `.env` | Use `http://127.0.0.1:8080` |
 | PDF is rejected as unreadable or password-protected | Resend an unencrypted PDF; password-protected and unreadable PDFs are not supported |
-| PDF remains pending or ends in manual review | Confirm `PDFINFO_BINARY` and `PDFTOCAIRO_BINARY` point to working Poppler executables, then restart the queue worker |
+| PDF remains pending or ends in manual review | Confirm `PDFINFO_BINARY`, `PDFTOCAIRO_BINARY`, and `PDFTOPPM_BINARY` point to working Poppler executables, then restart the queue worker |
 | LID sender is ignored | Open the WhatsApp LID section and link the pending LID to the correct allowlisted contact |
 
 Production later: run tido + Evolution as separate managed services on a Linux VPS, not `concurrently` on a desktop.

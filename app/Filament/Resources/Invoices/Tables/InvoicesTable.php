@@ -8,6 +8,7 @@ use App\Enums\HouseholdRole;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Support\RecordActionsGroup;
+use App\Helpers\MoneyDisplay;
 use App\Models\FamilyMember;
 use App\Models\Invoice;
 use App\Models\User;
@@ -68,11 +69,19 @@ class InvoicesTable
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('total_amount')
-                    ->myr()
+                    ->formatStateUsing(fn (?string $state, Invoice $record): string => MoneyDisplay::withCurrency(
+                        $state,
+                        $record->displayCurrency(),
+                    ))
+                    ->tooltip(fn (Invoice $record): ?string => MoneyDisplay::conversionSummary($record))
                     ->sortable(),
 
                 TextColumn::make('discount_total')
-                    ->myr()
+                    ->formatStateUsing(fn (?string $state, Invoice $record): string => MoneyDisplay::withCurrency(
+                        $state,
+                        $record->displayCurrency(),
+                    ))
+                    ->tooltip(fn (Invoice $record): ?string => MoneyDisplay::conversionSummary($record))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 

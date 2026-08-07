@@ -25,13 +25,21 @@ test('extract receipt data job parses PDF pages then merges them before saving',
     config([
         'services.documents.pdfinfo_binary' => 'pdfinfo',
         'services.documents.pdftocairo_binary' => 'pdftocairo',
+        'services.documents.pdftotext_binary' => 'pdftotext',
         'services.ollama.host' => 'http://ollama.test',
+        'services.currencyapi.api_key' => 'test-key',
+        'services.currencyapi.base_url' => 'https://currencyapi.test',
+        'services.currencyapi.retry_delays' => [0, 0],
     ]);
 
     Process::preventStrayProcesses();
     Process::fake(function (PendingProcess $process) {
         if (is_array($process->command) && $process->command[0] === 'pdfinfo') {
             return Process::result(output: "Pages: 2\n");
+        }
+
+        if (is_array($process->command) && $process->command[0] === 'pdftotext') {
+            return Process::result(output: "Subtotal \$20.00\nTotal \$10.00\nCharged RM42.40 using 1 USD = 4.2397 MYR\n");
         }
 
         $outputPrefix = $process->command[array_key_last($process->command)];
@@ -70,7 +78,7 @@ test('extract receipt data job parses PDF pages then merges them before saving',
         'discount_total' => 0,
         'rounding_amount' => 0,
         'total_amount' => 10,
-        'currency' => 'MYR',
+        'currency' => null,
         'payment_method' => 'Cash',
         'items' => [],
     ];
@@ -79,6 +87,7 @@ test('extract receipt data job parses PDF pages then merges them before saving',
         'payment_method' => 'Cash',
     ]);
 
+    Http::preventStrayRequests();
     Http::fake([
         'http://ollama.test/api/generate' => Http::sequence()
             ->push(['response' => json_encode($pageOne)])
@@ -110,9 +119,22 @@ test('extract receipt data job parses PDF pages then merges them before saving',
 
     expect($invoice->status)->toBe('parsed')
         ->and($invoice->merchant_name)->toBe('PDF Store')
-        ->and($invoice->total_amount)->toBe('10.00')
+        ->and($invoice->currency)->toBe('MYR')
+        ->and($invoice->original_currency)->toBe('USD')
+        ->and($invoice->total_amount)->toBe('42.40')
+        ->and($invoice->raw_ai_response['currency_detection'])->toBe([
+            'currency' => 'USD',
+            'source' => 'document_text',
+            'rate' => 4.2397,
+            'rate_source' => 'printed_receipt_rate',
+        ])
         ->and($invoice->invoiceItems)->toHaveCount(1)
-        ->and($invoice->invoiceItems->first()->description)->toBe('First item');
+        ->and($invoice->invoiceItems->first()->description)->toBe('First item')
+        ->and($invoice->invoiceItems->first()->line_total)->toBe('42.40');
+
+    expect(collect(Http::recorded())->filter(
+        fn (array $record): bool => str_contains($record[0]->url(), 'currencyapi.test'),
+    ))->toHaveCount(0);
 
     $ollamaRequests = collect(Http::recorded())
         ->map(fn (array $record): Request => $record[0])

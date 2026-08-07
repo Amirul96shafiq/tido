@@ -62,6 +62,7 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
         $details = [
             'merchant_name' => $invoice->merchant_name,
             'total_amount' => $invoice->total_amount,
+            'currency' => $invoice->displayCurrency(),
             'payment_method' => $paymentMethod,
         ];
 

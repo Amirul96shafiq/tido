@@ -47,13 +47,26 @@ return [
         'max_image_dimension' => (int) env('OLLAMA_MAX_IMAGE_DIMENSION', 1280),
     ],
 
+    'currencyapi' => [
+        'provider' => env('CURRENCY_API_PROVIDER', 'currencyapi'),
+        'base_url' => env('CURRENCY_API_BASE_URL', 'https://api.currencyapi.com'),
+        'api_key' => env('CURRENCY_API_KEY'),
+        'timeout' => (int) env('CURRENCY_API_TIMEOUT', 10),
+        'connect_timeout' => (int) env('CURRENCY_API_CONNECT_TIMEOUT', 3),
+        'retry_delays' => [100, 500, 1000],
+        'cache_ttl' => (int) env('CURRENCY_API_CACHE_TTL', 86400),
+    ],
+
     'documents' => [
         'max_bytes' => (int) env('PDF_MAX_BYTES', 10 * 1024 * 1024),
         'max_pdf_pages' => (int) env('PDF_MAX_PAGES', 3),
         'pdfinfo_binary' => env('PDFINFO_BINARY', 'pdfinfo'),
         'pdftocairo_binary' => env('PDFTOCAIRO_BINARY', 'pdftocairo'),
+        'pdftoppm_binary' => env('PDFTOPPM_BINARY', 'pdftoppm'),
+        'pdftotext_binary' => env('PDFTOTEXT_BINARY', 'pdftotext'),
         'pdf_inspection_timeout' => (int) env('PDF_INSPECTION_TIMEOUT', 15),
         'pdf_render_timeout' => (int) env('PDF_RENDER_TIMEOUT', 60),
+        'pdf_text_timeout' => (int) env('PDF_TEXT_TIMEOUT', 15),
         'pdf_render_dpi' => (int) env('PDF_RENDER_DPI', 144),
     ],
 

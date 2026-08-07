@@ -92,6 +92,87 @@ test('extract receipt data job dispatches gated document parsed whatsapp job', f
     Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/message/sendText/'));
 });
 
+test('extract receipt data job dispatches a needs review whatsapp result when conversion fails', function () {
+    Queue::fake();
+    Storage::fake('local');
+    Storage::put('receipts/wa_USD-FAIL.jpg', 'fake-image-content');
+
+    config([
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
+        'services.evolution.api_url' => 'http://evolution-api.test',
+        'services.evolution.instance_name' => 'tido',
+        'services.currencyapi.api_key' => 'test-key',
+        'services.currencyapi.base_url' => 'https://currencyapi.test',
+        'services.currencyapi.retry_delays' => [0],
+        'cache.default' => 'array',
+    ]);
+
+    Http::preventStrayRequests();
+    Http::fake([
+        '*/api/generate' => Http::response([
+            'response' => json_encode([
+                'merchant_name' => 'Cursor',
+                'invoice_number' => 'USD-FAIL',
+                'date_time' => '2026-07-08 00:00:00',
+                'subtotal' => 20.00,
+                'total_tax' => 0.00,
+                'discount_total' => 14.00,
+                'rounding_amount' => 0.00,
+                'total_amount' => 6.00,
+                'currency' => 'USD',
+                'payment_method' => 'cash',
+                'items' => [[
+                    'description' => 'Cursor Pro',
+                    'quantity' => 1,
+                    'unit_price' => 20.00,
+                    'line_total' => 20.00,
+                    'label' => 'Food & Dining',
+                ]],
+            ]),
+        ]),
+        'https://currencyapi.test/v3/historical*' => Http::failedConnection(),
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    $this->seed(LabelSeeder::class);
+    $this->seed(PaymentMethodSeeder::class);
+
+    $invoice = Invoice::create([
+        'merchant_name' => 'Pending AI Extraction...',
+        'date_time' => now(),
+        'subtotal' => 0.00,
+        'total_tax' => 0.00,
+        'total_amount' => 0.00,
+        'currency' => 'MYR',
+        'source' => 'whatsapp',
+        'whatsapp_sender' => '60123456789',
+        'status' => 'pending',
+        'image_path' => 'receipts/wa_USD-FAIL.jpg',
+        'original_filename' => 'wa_USD-FAIL.jpg',
+    ]);
+
+    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
+
+    expect($invoice->fresh()->status)->toBe('requires_manual_review')
+        ->and($invoice->fresh()->currency)->toBe('USD')
+        ->and($invoice->fresh()->currency_conversion_status)->toBe('failed');
+
+    Queue::assertPushed(SendWhatsAppDocumentParsedJob::class, function (SendWhatsAppDocumentParsedJob $job) use ($invoice): bool {
+        return $job->invoiceId === $invoice->id;
+    });
+
+    Cache::forget(WhatsAppDocumentReceivedDebouncer::cacheKey('60123456789'));
+    (new SendWhatsAppDocumentParsedJob($invoice->id))->handle(app(WhatsAppNotificationService::class));
+
+    Http::assertSent(function (Request $request): bool {
+        $text = (string) ($request['text'] ?? '');
+
+        return str_contains($request->url(), '/message/sendText/')
+            && str_contains($text, '*Document needs review*')
+            && str_contains($text, 'Total Amount: *USD 6.00*');
+    });
+});
+
 test('document parsed job waits while document received ack is pending then sends text url links', function () {
     Storage::fake('local');
     Storage::put('receipts/wa_MSG123.jpg', 'fake-image-content');

@@ -16,7 +16,9 @@ class SpendingForecastService
         $now = now();
         $startLimit = $now->copy()->subDays(90)->startOfDay();
 
-        $dailyTotals = Invoice::where('date_time', '>=', $startLimit)
+        $dailyTotals = Invoice::query()
+            ->canonicalMyr()
+            ->where('date_time', '>=', $startLimit)
             ->whereIn('status', ['parsed', 'reviewed'])
             ->selectRaw('DATE(date_time) as date, SUM(total_amount) as total')
             ->groupBy('date')

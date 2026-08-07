@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Illuminate\Contracts\Process\ProcessResult;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
@@ -32,11 +33,7 @@ final class PdfPageRenderer
             }
 
             $pageCount = $this->pdfPageInspector->pageCountFromPath($inputPath);
-            $result = Process::timeout(max(
-                1,
-                (int) config('services.documents.pdf_render_timeout', 60),
-            ))->run([
-                (string) config('services.documents.pdftocairo_binary', 'pdftocairo'),
+            $renderArguments = [
                 '-jpeg',
                 '-r',
                 (string) max(72, (int) config('services.documents.pdf_render_dpi', 144)),
@@ -46,11 +43,25 @@ final class PdfPageRenderer
                 (string) $pageCount,
                 $inputPath,
                 $outputPrefix,
-            ]);
+            ];
+            $rendererBinary = $this->configuredBinary('pdftocairo_binary', 'pdftocairo');
+            $result = $this->runRenderer($rendererBinary, $renderArguments);
+
+            if (
+                $result->failed()
+                && PdfInspectionException::reasonFromProcessOutput($result->errorOutput())
+                    === PdfInspectionException::DEPENDENCY_MISSING
+            ) {
+                $fallbackBinary = $this->configuredBinary('pdftoppm_binary', 'pdftoppm');
+
+                if ($fallbackBinary !== $rendererBinary) {
+                    $result = $this->runRenderer($fallbackBinary, $renderArguments);
+                }
+            }
 
             if ($result->failed()) {
                 throw new PdfInspectionException(
-                    PdfInspectionException::UNREADABLE,
+                    PdfInspectionException::reasonFromProcessOutput($result->errorOutput()),
                     trim($result->errorOutput()) ?: 'Unable to render the PDF file.',
                 );
             }
@@ -70,5 +81,25 @@ final class PdfPageRenderer
         } finally {
             File::deleteDirectory($temporaryDirectory);
         }
+    }
+
+    /**
+     * @param  list<string>  $arguments
+     */
+    private function runRenderer(string $binary, array $arguments): ProcessResult
+    {
+        return Process::timeout(max(
+            1,
+            (int) config('services.documents.pdf_render_timeout', 60),
+        ))->run([$binary, ...$arguments]);
+    }
+
+    private function configuredBinary(string $key, string $default): string
+    {
+        $configured = trim((string) config('services.documents.'.$key, $default));
+
+        return $configured === '' || str_contains($configured, '<poppler-install-folder>')
+            ? $default
+            : $configured;
     }
 }

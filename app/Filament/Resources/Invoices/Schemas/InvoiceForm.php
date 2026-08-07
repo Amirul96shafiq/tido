@@ -10,6 +10,7 @@ use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Support\SelectValueMarquee;
 use App\Helpers\MoneyDisplay;
 use App\Models\FamilyMember;
+use App\Models\Invoice;
 use App\Models\User;
 use App\Support\HouseholdAccess;
 use Filament\Forms\Components\DatePicker;
@@ -20,6 +21,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class InvoiceForm
@@ -97,9 +99,18 @@ class InvoiceForm
                                             ->placeholder('0.00'),
 
                                         Select::make('currency')
-                                            ->options([
-                                                'MYR' => 'MYR (Malaysian Ringgit)',
-                                            ])
+                                            ->options(function (Get $get): array {
+                                                $options = [
+                                                    'MYR' => 'MYR (Malaysian Ringgit)',
+                                                ];
+                                                $currency = strtoupper(trim((string) $get('currency')));
+
+                                                if ($currency !== '' && $currency !== 'MYR') {
+                                                    $options[$currency] = $currency.' (source; conversion required)';
+                                                }
+
+                                                return $options;
+                                            })
                                             ->default('MYR')
                                             ->searchable()
                                             ->required()
@@ -107,6 +118,38 @@ class InvoiceForm
                                             ->extraAttributes(SelectValueMarquee::extraAttributes()),
 
                                     ]),
+
+                                Grid::make(3)
+                                    ->schema([
+                                        TextInput::make('original_currency')
+                                            ->label('Original Currency')
+                                            ->disabled()
+                                            ->dehydrated(false),
+
+                                        TextInput::make('original_total_amount')
+                                            ->label('Original Amount')
+                                            ->prefix(fn (Get $get): string => MoneyDisplay::prefixForCurrency($get('original_currency')))
+                                            ->disabled()
+                                            ->dehydrated(false),
+
+                                        TextInput::make('currency_conversion_rate')
+                                            ->label('Rate (MYR per unit)')
+                                            ->suffix('MYR')
+                                            ->disabled()
+                                            ->dehydrated(false),
+
+                                        TextInput::make('currency_conversion_date')
+                                            ->label('Rate Date')
+                                            ->disabled()
+                                            ->dehydrated(false),
+
+                                        TextInput::make('currency_conversion_provider')
+                                            ->label('Rate Provider')
+                                            ->disabled()
+                                            ->dehydrated(false),
+                                    ])
+                                    ->visible(fn (?Invoice $record): bool => $record !== null
+                                        && $record->currency_conversion_status !== Invoice::CONVERSION_NOT_REQUIRED),
 
                                 Grid::make(3)
                                     ->schema([

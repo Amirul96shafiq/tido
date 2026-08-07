@@ -18,7 +18,17 @@ class ReceiptReparseService
         }
 
         $invoice->invoiceItems()->delete();
-        $invoice->update(['status' => 'pending']);
+        $invoice->update([
+            'status' => 'pending',
+            'currency' => Invoice::CURRENCY_UNKNOWN,
+            'original_currency' => null,
+            'original_total_amount' => null,
+            'currency_conversion_status' => Invoice::CONVERSION_PENDING,
+            'currency_conversion_rate' => null,
+            'currency_conversion_date' => null,
+            'currency_conversion_provider' => null,
+            'currency_conversion_fetched_at' => null,
+        ]);
 
         ExtractReceiptDataJob::dispatch($invoice->id);
     }
