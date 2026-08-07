@@ -62,8 +62,11 @@ return [
         'max_pdf_pages' => (int) env('PDF_MAX_PAGES', 3),
         'pdfinfo_binary' => env('PDFINFO_BINARY', 'pdfinfo'),
         'pdftocairo_binary' => env('PDFTOCAIRO_BINARY', 'pdftocairo'),
+        'pdftoppm_binary' => env('PDFTOPPM_BINARY', 'pdftoppm'),
+        'pdftotext_binary' => env('PDFTOTEXT_BINARY', 'pdftotext'),
         'pdf_inspection_timeout' => (int) env('PDF_INSPECTION_TIMEOUT', 15),
         'pdf_render_timeout' => (int) env('PDF_RENDER_TIMEOUT', 60),
+        'pdf_text_timeout' => (int) env('PDF_TEXT_TIMEOUT', 15),
         'pdf_render_dpi' => (int) env('PDF_RENDER_DPI', 144),
     ],
 

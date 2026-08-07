@@ -6,7 +6,6 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Str;
 use RuntimeException;
 
 final class PdfPageInspector
@@ -41,28 +40,12 @@ final class PdfPageInspector
         ]);
 
         if ($result->failed()) {
-            $errorOutput = Str::lower($result->errorOutput());
-            $dependencyMissing = Str::contains($errorOutput, [
-                'cannot find the path',
-                'could not find',
-                'not found',
-                'not recognized',
-                'no such file',
-            ]);
-            $passwordProtected = Str::contains($errorOutput, [
-                'incorrect password',
-                'password protected',
-                'encrypted',
-            ]);
-            $reason = match (true) {
-                $dependencyMissing => PdfInspectionException::DEPENDENCY_MISSING,
-                $passwordProtected => PdfInspectionException::PASSWORD_PROTECTED,
-                default => PdfInspectionException::UNREADABLE,
-            };
+            $errorOutput = trim($result->errorOutput());
+            $reason = PdfInspectionException::reasonFromProcessOutput($errorOutput);
 
             throw new PdfInspectionException(
                 $reason,
-                trim($result->errorOutput()) ?: 'Unable to inspect the PDF file.',
+                $errorOutput ?: 'Unable to inspect the PDF file.',
             );
         }
 

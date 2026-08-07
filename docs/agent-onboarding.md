@@ -155,7 +155,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 ### Integrations
 
 1. Ollama: always `format: json` + strip markdown fences (see `OllamaService`)
-2. PDF receipts: validate the detected MIME type, enforce `PDF_MAX_BYTES` / `PDF_MAX_PAGES`, and render pages with configured Poppler `pdfinfo` / `pdftocairo` binaries before AI extraction
+2. PDF receipts: validate the detected MIME type, enforce `PDF_MAX_BYTES` / `PDF_MAX_PAGES`, extract embedded text with configured Poppler `pdftotext` when available, and render pages with configured Poppler `pdfinfo` / `pdftocairo` binaries before AI extraction
 3. Webhooks: authenticate `Authorization: Bearer <EVOLUTION_WEBHOOK_SECRET>` before payload handling, then resolve phone or linked WhatsApp LID → validate → queue; keep the inbound secret distinct from outbound `EVOLUTION_API_KEY`
 4. Foreign receipt conversion uses the configured `CURRENCY_API_*` provider with the receipt date, bounded timeout/retry, and a cached source/target/date lookup; never revalue an already converted invoice automatically
 5. Never call real Ollama, Evolution, or exchange-rate providers in tests

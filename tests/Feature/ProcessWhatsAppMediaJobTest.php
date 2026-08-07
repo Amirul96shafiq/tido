@@ -232,12 +232,15 @@ test('process whatsapp media job rejects a PDF over three pages before creating 
     Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class);
 });
 
-test('process whatsapp media job queues a PDF when the inspection utility is unavailable', function () {
+test('process whatsapp media job queues a PDF when the inspection utility path is invalid', function () {
     Storage::fake('local');
     Queue::fake();
     Process::preventStrayProcesses();
     Process::fake([
-        '*' => Process::result(errorOutput: 'The system cannot find the path specified.', exitCode: 1),
+        '*' => Process::result(
+            errorOutput: 'The filename, directory name, or volume label syntax is incorrect.',
+            exitCode: 1,
+        ),
     ]);
 
     Http::fake([

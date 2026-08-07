@@ -72,3 +72,22 @@ test('reports a missing PDF utility distinctly', function () {
 
     $this->fail('Expected a PDF inspection exception.');
 });
+
+test('reports an invalid Windows PDF utility path as a missing dependency', function () {
+    Process::fake([
+        '*' => Process::result(
+            errorOutput: 'The filename, directory name, or volume label syntax is incorrect.',
+            exitCode: 1,
+        ),
+    ]);
+
+    try {
+        app(PdfPageInspector::class)->pageCount('%PDF-1.7 test');
+    } catch (PdfInspectionException $exception) {
+        expect($exception->reason)->toBe(PdfInspectionException::DEPENDENCY_MISSING);
+
+        return;
+    }
+
+    $this->fail('Expected a PDF inspection exception.');
+});

@@ -95,6 +95,78 @@ test('foreign image receipt is converted to canonical MYR and preserves source m
     ))->toHaveCount(1);
 });
 
+test('focused document currency detection corrects a MYR misclassification before conversion', function () {
+    Queue::fake();
+    Storage::fake('local');
+    Storage::put('receipts/misclassified-usd.jpg', 'fake-image-content');
+
+    $receipt = [
+        'merchant_name' => 'Anysphere, Inc.',
+        'invoice_number' => 'USD-332',
+        'date_time' => '2026-07-08 00:00:00',
+        'subtotal' => 6.00,
+        'total_tax' => 0.00,
+        'discount_total' => 0.00,
+        'rounding_amount' => 0.00,
+        'total_amount' => 6.00,
+        'currency' => 'MYR',
+        'payment_method' => null,
+        'items' => [[
+            'description' => 'Cursor Pro',
+            'quantity' => 1,
+            'unit_price' => 6.00,
+            'line_total' => 6.00,
+            'label' => null,
+        ]],
+    ];
+
+    Http::preventStrayRequests();
+    Http::fake([
+        '*/api/generate' => Http::sequence()
+            ->push(['response' => json_encode($receipt)])
+            ->push(['response' => json_encode([
+                'currency' => 'USD',
+                'evidence' => 'USD',
+            ])]),
+        'https://currencyapi.test/v3/historical*' => Http::response([
+            'meta' => ['last_updated_at' => '2026-07-08T23:59:59Z'],
+            'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.5]],
+        ]),
+    ]);
+
+    $this->seed(LabelSeeder::class);
+    $this->seed(PaymentMethodSeeder::class);
+
+    $invoice = Invoice::create([
+        'merchant_name' => 'Pending AI Extraction...',
+        'date_time' => now(),
+        'subtotal' => 0.00,
+        'total_tax' => 0.00,
+        'total_amount' => 0.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'pending',
+        'image_path' => 'receipts/misclassified-usd.jpg',
+        'original_filename' => 'misclassified-usd.jpg',
+    ]);
+
+    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
+
+    $invoice->refresh();
+
+    expect($invoice->status)->toBe('parsed')
+        ->and($invoice->currency)->toBe('MYR')
+        ->and($invoice->original_currency)->toBe('USD')
+        ->and($invoice->original_total_amount)->toBe('6.00')
+        ->and($invoice->total_amount)->toBe('27.00')
+        ->and($invoice->currency_conversion_status)->toBe('converted')
+        ->and($invoice->raw_ai_response['currency_detection'])->toBe([
+            'currency' => 'USD',
+            'source' => 'vision_currency_check',
+        ])
+        ->and($invoice->invoiceItems->first()->line_total)->toBe('27.00');
+});
+
 test('foreign receipt without an available rate stays source-denominated and requires review', function () {
     Queue::fake();
     Storage::fake('local');

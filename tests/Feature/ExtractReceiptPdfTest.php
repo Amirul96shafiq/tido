@@ -25,6 +25,7 @@ test('extract receipt data job parses PDF pages then merges them before saving',
     config([
         'services.documents.pdfinfo_binary' => 'pdfinfo',
         'services.documents.pdftocairo_binary' => 'pdftocairo',
+        'services.documents.pdftotext_binary' => 'pdftotext',
         'services.ollama.host' => 'http://ollama.test',
         'services.currencyapi.api_key' => 'test-key',
         'services.currencyapi.base_url' => 'https://currencyapi.test',
@@ -35,6 +36,10 @@ test('extract receipt data job parses PDF pages then merges them before saving',
     Process::fake(function (PendingProcess $process) {
         if (is_array($process->command) && $process->command[0] === 'pdfinfo') {
             return Process::result(output: "Pages: 2\n");
+        }
+
+        if (is_array($process->command) && $process->command[0] === 'pdftotext') {
+            return Process::result(output: "Subtotal \$20.00\nTotal \$10.00\n");
         }
 
         $outputPrefix = $process->command[array_key_last($process->command)];
@@ -53,7 +58,7 @@ test('extract receipt data job parses PDF pages then merges them before saving',
         'discount_total' => 0,
         'rounding_amount' => 0,
         'total_amount' => 0,
-        'currency' => 'USD',
+        'currency' => 'MYR',
         'payment_method' => null,
         'items' => [[
             'description' => 'First item',
@@ -120,6 +125,10 @@ test('extract receipt data job parses PDF pages then merges them before saving',
         ->and($invoice->currency)->toBe('MYR')
         ->and($invoice->original_currency)->toBe('USD')
         ->and($invoice->total_amount)->toBe('45.00')
+        ->and($invoice->raw_ai_response['currency_detection'])->toBe([
+            'currency' => 'USD',
+            'source' => 'document_text',
+        ])
         ->and($invoice->invoiceItems)->toHaveCount(1)
         ->and($invoice->invoiceItems->first()->description)->toBe('First item')
         ->and($invoice->invoiceItems->first()->line_total)->toBe('45.00');

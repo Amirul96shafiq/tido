@@ -11,6 +11,7 @@ use App\Prompts\PdfReceiptPagePrompt;
 use App\Prompts\ReceiptExtractionPrompt;
 use App\Services\Currency\CurrencyConversionException;
 use App\Services\Currency\CurrencyConversionService;
+use App\Services\Currency\ReceiptCurrencyDetector;
 use App\Services\LabelMatcher;
 use App\Services\OllamaService;
 use App\Services\PaymentMethodMatcher;
@@ -51,6 +52,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         PaymentMethodMatcher $paymentMethodMatcher,
         ReceiptDocumentPreparer $documentPreparer,
         CurrencyConversionService $currencyConversionService,
+        ReceiptCurrencyDetector $currencyDetector,
     ): void {
         $invoice = Invoice::find($this->invoiceId);
 
@@ -73,6 +75,7 @@ class ExtractReceiptDataJob implements ShouldQueue
             return;
         }
 
+        $documentText = $documentPreparer->extractText($invoice);
         $base64Pages = $documentPreparer->prepare($invoice);
         $parsed = $invoice->file_mime_type === 'application/pdf'
             ? $this->parsePdfDocument($ollama, $base64Pages)
@@ -83,6 +86,19 @@ class ExtractReceiptDataJob implements ShouldQueue
         }
 
         $normalized = $normalizer->normalize($parsed);
+
+        $currencyDetection = $currencyDetector->detect(
+            $documentText,
+            $base64Pages,
+            $normalized['currency'],
+        );
+        $normalized['currency'] = $currencyDetection['currency'];
+
+        Log::info('Receipt currency detected from document content', [
+            'invoice_id' => $invoice->id,
+            'currency' => $currencyDetection['currency'] ?? Invoice::CURRENCY_UNKNOWN,
+            'source' => $currencyDetection['source'],
+        ]);
 
         $dateTime = $normalized['date_time'];
         $dateParsed = $dateTime !== null;
@@ -108,7 +124,9 @@ class ExtractReceiptDataJob implements ShouldQueue
         $invoice->currency_conversion_provider = null;
         $invoice->currency_conversion_fetched_at = null;
         $invoice->payment_method_id = $paymentMethodMatcher->matchId($normalized['payment_method']);
-        $invoice->raw_ai_response = $parsed;
+        $invoice->raw_ai_response = array_merge($parsed, [
+            'currency_detection' => $currencyDetection,
+        ]);
 
         // Persist the source extraction before the outbound rate request so an unavailable
         // provider cannot make a foreign amount look like a MYR expense.
