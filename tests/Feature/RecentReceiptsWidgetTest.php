@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Widgets\RecentReceipts;
 use App\Helpers\FilenameDisplay;
@@ -59,6 +60,27 @@ test('recent receipts widget polls every ten seconds for historical months', fun
     ])
         ->assertSuccessful()
         ->assertSeeHtml('wire:poll.10s.visible');
+});
+
+test('recent receipts widget shows a primary link to recent uploads without table controls', function () {
+    $component = Livewire::test(RecentReceipts::class)
+        ->assertSuccessful()
+        ->assertSee('View all')
+        ->assertSee(ReceiptUploadPage::getUrl().'#recent-uploads', false)
+        ->assertDontSee('Search')
+        ->assertDontSee('Filter')
+        ->assertDontSee('Per page')
+        ->assertDontSee('Next');
+
+    $table = $component->instance()->getTable();
+    $headerAction = $table->getAction('viewRecentUploads');
+
+    expect($table->isSearchable())->toBeFalse()
+        ->and($table->isFilterable())->toBeFalse()
+        ->and($table->isPaginated())->toBeFalse()
+        ->and($headerAction)->not->toBeNull()
+        ->and($headerAction?->getUrl())->toBe(ReceiptUploadPage::getUrl().'#recent-uploads')
+        ->and($headerAction?->getColor())->toBe('primary');
 });
 
 test('recent receipts widget filename links to file in a new tab', function () {
@@ -129,19 +151,26 @@ test('recent receipts widget truncates long merchant names with full name in too
     expect($tooltip)->toBe($longMerchant);
 });
 
-test('recent receipts widget defaults to five records per page', function () {
-    Invoice::factory()->count(6)->create([
+test('recent receipts widget shows only the five latest receipts without pagination', function () {
+    $oldest = Invoice::factory()->create([
+        'merchant_name' => 'Oldest receipt',
         'date_time' => now(),
+        'created_at' => now()->subMinutes(6),
     ]);
+    $latest = collect(range(0, 4))->map(
+        fn (int $index): Invoice => Invoice::factory()->create([
+            'merchant_name' => 'Latest receipt '.($index + 1),
+            'date_time' => now(),
+            'created_at' => now()->subMinutes(5 - $index),
+        ]),
+    );
 
-    $table = Livewire::test(RecentReceipts::class)
+    $component = Livewire::test(RecentReceipts::class)
         ->assertSuccessful()
-        ->assertCountTableRecords(6)
-        ->instance()
-        ->getTable();
+        ->assertCanSeeTableRecords($latest)
+        ->assertCanNotSeeTableRecords([$oldest]);
 
-    expect($table->getDefaultPaginationPageOption())->toBe(5)
-        ->and($table->getPaginationPageOptions())->toBe([5, 10, 25, 50]);
+    expect($component->instance()->getTableRecords())->toHaveCount(5);
 });
 
 test('recent receipts widget excludes invoices with receipt date outside selected month', function () {

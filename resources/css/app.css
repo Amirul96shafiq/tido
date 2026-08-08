@@ -3751,7 +3751,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     max-width: 100%;
 }
 
-/* Recent Receipts widget: title + search/filter on one header row */
+/* Recent Receipts widget: keep the heading and CTA on one header row */
 .fi-wi-recent-receipts .fi-ta-header-ctn {
     display: flex;
     flex-direction: row;
@@ -3792,55 +3792,6 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-.fi-wi-recent-receipts .fi-ta-header-toolbar {
-    display: flex;
-    flex: 0 1 auto;
-    flex-wrap: nowrap;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.5rem;
-    width: auto;
-    max-width: 55%;
-    min-width: 0;
-    margin-inline-start: auto;
-    border-bottom: none;
-    padding: 0;
-}
-
-@media (min-width: 640px) {
-    .fi-wi-recent-receipts .fi-ta-header-toolbar {
-        gap: 0.75rem;
-        max-width: none;
-    }
-}
-
-.fi-wi-recent-receipts .fi-ta-header-toolbar > .fi-ta-actions {
-    order: 2;
-    flex-shrink: 0;
-}
-
-.fi-wi-recent-receipts .fi-ta-header-toolbar > :nth-child(2) {
-    order: 1;
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 0.5rem;
-    margin-inline-start: 0;
-    min-width: 0;
-    flex: 1 1 auto;
-}
-
-.fi-wi-recent-receipts .fi-ta-search-field {
-    flex: 1 1 auto;
-    min-width: 0;
-    width: 8rem;
-    max-width: 14rem;
-}
-
-.fi-wi-recent-receipts .fi-ta-filters-trigger-action-ctn {
-    flex-shrink: 0;
 }
 
 /*
