@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Currency;
 
+use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
@@ -23,31 +25,59 @@ final class CurrencyApiExchangeRateProvider implements ExchangeRateProvider
      *     provider: string,
      * }
      */
+    public function latest(string $baseCurrency, string $targetCurrency): array
+    {
+        [$baseCurrency, $targetCurrency] = $this->normalizeCurrencyPair($baseCurrency, $targetCurrency);
+        $response = $this->fetch('/v3/latest', [
+            'base_currency' => $baseCurrency,
+            'currencies' => $targetCurrency,
+        ]);
+        $lastUpdatedAt = $response->json('meta.last_updated_at');
+
+        return $this->makeRate(
+            $response,
+            $targetCurrency,
+            is_string($lastUpdatedAt) && $lastUpdatedAt !== ''
+                ? $this->effectiveDateFromTimestamp($lastUpdatedAt)
+                : now()->toDateString(),
+        );
+    }
+
+    /**
+     * @return array{
+     *     rate: float,
+     *     effective_date: string,
+     *     fetched_at: string,
+     *     provider: string,
+     * }
+     */
     public function rate(
         string $baseCurrency,
         string $targetCurrency,
         CarbonInterface $date,
     ): array {
-        $baseCurrency = strtoupper(trim($baseCurrency));
-        $targetCurrency = strtoupper(trim($targetCurrency));
+        [$baseCurrency, $targetCurrency] = $this->normalizeCurrencyPair($baseCurrency, $targetCurrency);
+        $response = $this->fetch('/v3/historical', [
+            'date' => $date->toDateString(),
+            'base_currency' => $baseCurrency,
+            'currencies' => $targetCurrency,
+        ]);
 
-        if (! $this->isCurrencyCode($baseCurrency) || ! $this->isCurrencyCode($targetCurrency)) {
-            throw new CurrencyConversionException('The receipt currency is not a valid ISO 4217 code.');
-        }
+        return $this->makeRate($response, $targetCurrency, $date->toDateString());
+    }
 
+    /**
+     * @param  array<string, string>  $query
+     */
+    private function fetch(string $endpoint, array $query): Response
+    {
         $apiKey = config('services.currencyapi.api_key');
         if (! is_string($apiKey) || trim($apiKey) === '') {
             throw new CurrencyConversionException('The exchange-rate provider is not configured.');
         }
 
         try {
-            $response = $this->request()
-                ->get('/v3/historical', [
-                    'date' => $date->toDateString(),
-                    'base_currency' => $baseCurrency,
-                    'currencies' => $targetCurrency,
-                ])
-                ->throw();
+            return $this->request()->get($endpoint, $query)->throw();
         } catch (CurrencyConversionException $exception) {
             throw $exception;
         } catch (ConnectionException $exception) {
@@ -71,7 +101,33 @@ final class CurrencyApiExchangeRateProvider implements ExchangeRateProvider
                 previous: $exception,
             );
         }
+    }
 
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function normalizeCurrencyPair(string $baseCurrency, string $targetCurrency): array
+    {
+        $baseCurrency = strtoupper(trim($baseCurrency));
+        $targetCurrency = strtoupper(trim($targetCurrency));
+
+        if (! $this->isCurrencyCode($baseCurrency) || ! $this->isCurrencyCode($targetCurrency)) {
+            throw new CurrencyConversionException('The requested currency is not a valid ISO 4217 code.');
+        }
+
+        return [$baseCurrency, $targetCurrency];
+    }
+
+    /**
+     * @return array{
+     *     rate: float,
+     *     effective_date: string,
+     *     fetched_at: string,
+     *     provider: string,
+     * }
+     */
+    private function makeRate(Response $response, string $targetCurrency, string $effectiveDate): array
+    {
         $rate = $response->json("data.{$targetCurrency}.value");
         if (! is_numeric($rate) || ! is_finite((float) $rate) || (float) $rate <= 0) {
             throw new CurrencyConversionException('The exchange-rate provider returned an invalid rate.');
@@ -79,10 +135,19 @@ final class CurrencyApiExchangeRateProvider implements ExchangeRateProvider
 
         return [
             'rate' => round((float) $rate, 10),
-            'effective_date' => $date->toDateString(),
+            'effective_date' => $effectiveDate,
             'fetched_at' => now()->toDateTimeString(),
             'provider' => self::NAME,
         ];
+    }
+
+    private function effectiveDateFromTimestamp(string $timestamp): string
+    {
+        try {
+            return Carbon::parse($timestamp)->toDateString();
+        } catch (Throwable) {
+            return now()->toDateString();
+        }
     }
 
     private function request(): PendingRequest

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\Dashboard;
+use App\Filament\Widgets\CurrentCurrency;
 use App\Filament\Widgets\MonthlySpendingOverview;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -30,6 +31,7 @@ test('dashboard section nav lists all widgets as anchor tabs', function () {
         ->assertSee('Spending Forecast')
         ->assertSee('SST Tax Paid')
         ->assertSee('Receipts Processed')
+        ->assertSee('USD to MYR')
         ->assertSee('Monthly Spending Trend')
         ->assertSee('Spending by Label')
         ->assertSee('Budget Performance')
@@ -41,6 +43,7 @@ test('dashboard section nav lists all widgets as anchor tabs', function () {
         ->assertSee('#'.MonthlySpendingOverview::SECTION_SPENDING_FORECAST, false)
         ->assertSee('#'.MonthlySpendingOverview::SECTION_SST_TAX_PAID, false)
         ->assertSee('#'.MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED, false)
+        ->assertSee('#'.CurrentCurrency::SECTION_CURRENCY_RATE, false)
         ->assertSee('#monthly-trend', false)
         ->assertSee('#spending-by-label', false)
         ->assertSee('#budget-status', false)
@@ -58,6 +61,7 @@ test('dashboard section nav items match widgetNavItems helper for current month'
         ['label' => 'Spending Forecast', 'id' => MonthlySpendingOverview::SECTION_SPENDING_FORECAST],
         ['label' => 'SST Tax Paid', 'id' => MonthlySpendingOverview::SECTION_SST_TAX_PAID],
         ['label' => 'Receipts Processed', 'id' => MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED],
+        ['label' => 'USD to MYR', 'id' => CurrentCurrency::SECTION_CURRENCY_RATE],
         ['label' => 'Monthly Spending Trend', 'id' => 'monthly-trend'],
         ['label' => 'Spending by Label', 'id' => 'spending-by-label'],
         ['label' => 'Budget Performance', 'id' => 'budget-status'],
@@ -128,6 +132,7 @@ test('dashboard widgets expose section anchor ids', function () {
         ->toContain('id="'.MonthlySpendingOverview::SECTION_SPENDING_FORECAST.'"')
         ->toContain('id="'.MonthlySpendingOverview::SECTION_SST_TAX_PAID.'"')
         ->toContain('id="'.MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED.'"')
+        ->toContain('id="'.CurrentCurrency::SECTION_CURRENCY_RATE.'"')
         ->toContain('id="monthly-trend"')
         ->toContain('id="recent-receipts"')
         ->not->toContain('id="overview"');
@@ -177,4 +182,13 @@ test('analytics chart grid lines use a visible dark mode color', function () {
     expect($css)
         ->toContain('.dark .fi-wi-chart .fi-wi-chart-grid-color {')
         ->toContain('color: color-mix(in srgb, var(--color-slate-700) 35%, transparent);');
+});
+
+test('dashboard currency card fills the shared overview row', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.tido-dashboard-page #currency-rate > .fi-grid')
+        ->toContain('.tido-dashboard-page #currency-rate .fi-section-content > .fi-grid-col')
+        ->toContain('grid-template-rows: minmax(0, 1fr);');
 });

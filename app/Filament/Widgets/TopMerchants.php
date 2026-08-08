@@ -28,7 +28,7 @@ class TopMerchants extends ChartWidget
 
     private const LABEL_LIMIT = 10;
 
-    protected static ?int $sort = 5;
+    protected static ?int $sort = 6;
 
     protected int|string|array $columnSpan = [
         'default' => 'full',

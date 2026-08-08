@@ -47,6 +47,31 @@ test('currency api provider requests a historical rate with source and target cu
     });
 });
 
+test('currency api provider requests the latest rate without a historical date', function () {
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/latest*' => Http::response([
+            'meta' => ['last_updated_at' => '2026-08-08T10:15:00Z'],
+            'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.612345]],
+        ]),
+    ]);
+
+    $provider = new CurrencyApiExchangeRateProvider;
+    $rate = $provider->latest('USD', 'MYR');
+
+    expect($rate['rate'])->toBe(4.612345)
+        ->and($rate['effective_date'])->toBe('2026-08-08')
+        ->and($rate['provider'])->toBe('currencyapi');
+
+    Http::assertSent(function ($request): bool {
+        return str_contains($request->url(), '/v3/latest?')
+            && str_contains($request->url(), 'base_currency=USD')
+            && str_contains($request->url(), 'currencies=MYR')
+            && ! str_contains($request->url(), 'date=')
+            && $request->hasHeader('apikey', 'test-key');
+    });
+});
+
 test('exchange rate service caches the same source date lookup', function () {
     Http::preventStrayRequests();
     Http::fake([

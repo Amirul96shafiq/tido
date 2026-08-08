@@ -3850,6 +3850,53 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     min-height: 0;
 }
 
+/* Keep the currency card filled to the height of the four-card overview column. */
+.tido-dashboard-page #currency-rate > .fi-grid,
+.tido-dashboard-page #currency-rate > .fi-grid > .fi-grid-col,
+.tido-dashboard-page #currency-rate > .fi-grid > .fi-grid-col > .fi-sc-component,
+.tido-dashboard-page #currency-rate > .fi-grid > .fi-grid-col > .fi-sc-component > .fi-sc-section,
+.tido-dashboard-page #currency-rate
+    > .fi-grid
+    > .fi-grid-col
+    > .fi-sc-component
+    > .fi-sc-section
+    > .fi-section,
+.tido-dashboard-page #currency-rate
+    > .fi-grid
+    > .fi-grid-col
+    > .fi-sc-component
+    > .fi-sc-section
+    > .fi-section
+    > .fi-section-content-ctn,
+.tido-dashboard-page #currency-rate
+    > .fi-grid
+    > .fi-grid-col
+    > .fi-sc-component
+    > .fi-sc-section
+    > .fi-section
+    > .fi-section-content-ctn
+    > .fi-section-content {
+    min-height: 0;
+    height: 100%;
+}
+
+.tido-dashboard-page #currency-rate
+    > .fi-grid
+    > .fi-grid-col
+    > .fi-sc-component
+    > .fi-sc-section
+    > .fi-section
+    > .fi-section-content-ctn
+    > .fi-section-content {
+    grid-template-rows: minmax(0, 1fr);
+}
+
+.tido-dashboard-page #currency-rate .fi-section-content > .fi-grid-col,
+.tido-dashboard-page #currency-rate .fi-section-content > .fi-grid-col > .fi-sc-component,
+.tido-dashboard-page #currency-rate .fi-section-content > .fi-grid-col > .fi-sc-component > .fi-wi-stats-overview-stat {
+    height: 100%;
+}
+
 .fi-wi-chart-frame-no-aspect-ratio {
     height: 300px;
     max-height: 300px;

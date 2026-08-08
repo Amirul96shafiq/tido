@@ -16,6 +16,19 @@ interface ExchangeRateProvider
      *     provider: string,
      * }
      */
+    public function latest(
+        string $baseCurrency,
+        string $targetCurrency,
+    ): array;
+
+    /**
+     * @return array{
+     *     rate: float,
+     *     effective_date: string,
+     *     fetched_at: string,
+     *     provider: string,
+     * }
+     */
     public function rate(
         string $baseCurrency,
         string $targetCurrency,

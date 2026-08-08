@@ -128,3 +128,16 @@ test('monthly spending overview renders a native sparkline for every stat', func
     expect(substr_count($html, 'x-data="statsOverviewStatChart('))->toBe(4)
         ->and(substr_count($html, '<canvas x-ref="canvas" aria-hidden="true"></canvas>'))->toBe(4);
 });
+
+test('monthly spending overview uses half-width desktop and a responsive two-column grid', function () {
+    $widget = Livewire::test(MonthlySpendingOverview::class)->instance();
+    $columns = (new ReflectionProperty($widget, 'columns'))->getValue($widget);
+
+    expect($widget->getColumnSpan())->toBe([
+        'default' => 'full',
+        'xl' => 6,
+    ])->and($columns)->toBe([
+        'default' => 1,
+        'md' => 2,
+    ]);
+});
