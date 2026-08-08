@@ -86,6 +86,12 @@ class ReceiptsBySource extends ChartWidget
                     'label' => 'Receipts',
                     'data' => $sources->pluck('receipt_count')->toArray(),
                     'backgroundColor' => $sources->pluck('color')->toArray(),
+                    'borderWidth' => 1,
+                    'borderRadius' => 6,
+                    'borderSkipped' => false,
+                    'barPercentage' => 0.7,
+                    'categoryPercentage' => 0.8,
+                    'maxBarThickness' => 52,
                     'sourceLabels' => $sources->pluck('label')->toArray(),
                     'totalSpent' => $sources->pluck('total_spent')->toArray(),
                     'receiptSharePercents' => $sources->pluck('receipt_share_percent')->toArray(),
@@ -173,6 +179,7 @@ class ReceiptsBySource extends ChartWidget
                 },
                 scales: {
                     x: {
+                        beginAtZero: true,
                         ticks: {
                             precision: 0,
                         },

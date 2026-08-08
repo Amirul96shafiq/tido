@@ -47,6 +47,7 @@ test('receipts by source widget renders source labels', function () {
 
     Livewire::test(ReceiptsBySource::class)
         ->assertSuccessful()
+        ->assertSee('borderRadius', false)
         ->assertSee('Manual Upload')
         ->assertSee('WhatsApp (Parse)')
         ->assertSee('WhatsApp (Manual)')

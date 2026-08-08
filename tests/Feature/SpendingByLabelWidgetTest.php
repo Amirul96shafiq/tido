@@ -38,7 +38,10 @@ test('spending by label widget renders with enriched chart data', function () {
     Invoice::setEventDispatcher(app('events'));
 
     Livewire::test(SpendingByLabel::class)
-        ->assertSuccessful();
+        ->assertSuccessful()
+        ->assertSee("pointStyle: 'circle'", false)
+        ->assertSee('pointStyleWidth: 14', false)
+        ->assertSee('boxHeight: 10', false);
 });
 
 test('spending by label widget renders empty state', function () {

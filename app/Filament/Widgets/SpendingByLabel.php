@@ -86,6 +86,10 @@ class SpendingByLabel extends ChartWidget
                     'label' => 'Spent (RM)',
                     'data' => $spending->pluck('total')->toArray(),
                     'backgroundColor' => $spending->pluck('color')->map(fn ($color) => $color ?: '#cccccc')->toArray(),
+                    'borderWidth' => 0,
+                    'borderAlign' => 'inner',
+                    'borderRadius' => 6,
+                    'spacing' => 3,
                     'receiptCounts' => $spending->pluck('receipt_count')->toArray(),
                     'ranks' => $spending->pluck('rank')->toArray(),
                     'labelCount' => $spending->first()->label_count,
@@ -107,6 +111,15 @@ class SpendingByLabel extends ChartWidget
             {
                 maintainAspectRatio: false,
                 plugins: {
+                    legend: {
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            pointStyleWidth: 14,
+                            boxWidth: 16,
+                            boxHeight: 10,
+                        },
+                    },
                     tooltip: {
                         callbacks: {
                             label: (item) => {
