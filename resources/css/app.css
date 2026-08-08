@@ -15,6 +15,19 @@
         "Outfit", "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Shared neutral border visual for panel chrome and component surfaces. */
+:root {
+    --tido-border-color: var(--color-gray-100);
+}
+
+.dark {
+    --tido-border-color: color-mix(
+        in srgb,
+        var(--color-slate-700) 60%,
+        transparent
+    );
+}
+
 @media (min-width: 1024px) {
     .fi-topbar-open-sidebar-btn,
     .fi-topbar-close-sidebar-btn {
@@ -232,12 +245,14 @@ html.dark::-webkit-scrollbar-thumb:hover,
 .fi-sidebar {
     border-inline-end: 1px solid var(--color-gray-100) !important;
     background-color: var(--color-white) !important;
+    box-shadow: none !important;
 }
 
 .dark .fi-sidebar {
     border-inline-end: 1px solid
         color-mix(in srgb, var(--color-slate-700) 60%, transparent) !important;
     background-color: var(--color-slate-800) !important;
+    box-shadow: none !important;
 }
 
 /* Collapsed nav: same horizontal pad as Filament expanded px-6 (1.5rem).
@@ -3908,4 +3923,96 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 .fi-select-input-ctn > .fi-dropdown-panel.fi-scrollable {
     max-height: min(60vh, 15rem) !important;
     overflow-y: auto !important;
+}
+
+/*
+ * Neutral Filament surfaces use the panel chrome token for a border-only edge.
+ * Keep the line at 1px without adding a box shadow or changing the component's
+ * radius, spacing, or interactive focus treatment.
+ */
+.fi-section:not(.fi-danger-zone-section > .fi-section),
+.fi-ta-ctn,
+.fi-tabs,
+.fi-wi-stats-overview-stat,
+.fi-dropdown-panel,
+.fi-modal-window,
+.fi-no-database-filters-panel,
+.fi-input-wrp:not(.fi-invalid):not(:focus-within),
+.fi-fo-repeater-item:not(:focus-within),
+.fi-fo-builder-item:not(:focus-within),
+.fi-fo-file-upload .filepond--root:not(:focus-within) {
+    border-style: solid !important;
+    border-width: 1px !important;
+    border-color: var(--tido-border-color) !important;
+    --tw-ring-color: transparent !important;
+    --tw-ring-shadow: 0 0 0 0 transparent !important;
+    box-shadow: none !important;
+}
+
+/* Keep neutral section, table, modal, and widget dividers on the same line. */
+.fi-section:not(.fi-danger-zone-section > .fi-section)
+    > .fi-section-content-ctn,
+.fi-section:not(.fi-danger-zone-section > .fi-section) > .fi-section-footer,
+.fi-ta-header-ctn,
+.fi-modal-header,
+.fi-modal-footer,
+.fi-wi-recent-receipts .fi-ta-header-ctn {
+    border-color: var(--tido-border-color) !important;
+}
+
+/* Neutral explicit borders in custom Blade components share the same token. */
+:is(
+        [class~="border-gray-100"],
+        [class~="border-gray-200"],
+        [class~="border-gray-300"],
+        [class~="border-gray-500/30"],
+        [class~="border-gray-700"],
+        [class~="border-slate-600"],
+        [class~="border-slate-700"],
+        [class~="border-white/10"],
+        [class~="border-white/20"],
+        [class~="dark:border-gray-700"],
+        [class~="dark:border-slate-600"],
+        [class~="dark:border-slate-700"],
+        [class~="dark:border-white/10"],
+        [class~="dark:border-white/20"]
+    ):not(:hover):not(:focus):not(:focus-within) {
+    border-color: var(--tido-border-color);
+    box-shadow: none;
+}
+
+/* Neutral explicit rings become solid 1px borders without changing focus rings. */
+:is(
+        [class~="ring-gray-950/5"],
+        [class~="ring-gray-950/10"],
+        [class~="ring-gray-950/20"],
+        [class~="ring-gray-200/80"],
+        [class~="ring-gray-300"],
+        [class~="ring-gray-500/30"],
+        [class~="ring-slate-600"],
+        [class~="ring-slate-700"],
+        [class~="ring-white/10"],
+        [class~="ring-white/20"],
+        [class~="dark:ring-white/10"],
+        [class~="dark:ring-white/20"]
+    ):not(:hover):not(:focus):not(:focus-within) {
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--tido-border-color);
+    --tw-ring-color: transparent;
+    --tw-ring-shadow: 0 0 0 0 transparent;
+    box-shadow: none;
+}
+
+/*
+ * The dashboard stats schema uses a non-contained section as a layout wrapper.
+ * The four stat cards own the visible borders, so the wrapper must not add a
+ * second outline around the entire row.
+ */
+.tido-dashboard-page .fi-section:has(.fi-wi-stats-overview-stat) {
+    border-width: 0 !important;
+    border-color: transparent !important;
+    --tw-ring-color: transparent !important;
+    --tw-ring-shadow: 0 0 0 0 transparent !important;
+    box-shadow: none !important;
 }
