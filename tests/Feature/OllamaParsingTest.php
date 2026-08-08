@@ -8,6 +8,7 @@ use App\Services\OllamaService;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
@@ -28,6 +29,20 @@ test('ollama service clean and decode json parses clean and fenced markdown', fu
         'merchant_name' => 'McDonalds',
         'total_amount' => 10.60,
     ]);
+});
+
+test('ollama vision requests reserve enough context for long receipt responses', function () {
+    config(['services.ollama.num_ctx' => 8192]);
+
+    Http::fake([
+        '*/api/generate' => Http::response(['response' => '{}']),
+    ]);
+
+    (new OllamaService)->parseReceipt('base64-image', 'receipt prompt');
+
+    Http::assertSent(function (Request $request): bool {
+        return $request->data()['options']['num_ctx'] === 8192;
+    });
 });
 
 test('extract receipt data job processes mock response and updates status', function () {

@@ -39,9 +39,9 @@ return [
         'host' => env('OLLAMA_HOST', 'http://127.0.0.1:11434'),
         'model' => env('OLLAMA_MODEL', 'qwen2.5vl:7b'),
         'timeout' => (int) env('OLLAMA_TIMEOUT', 120),
-        // Ollama silently defaults to 4096 regardless of the model's advertised context.
-        // Raising this grows the KV cache, so only increase it when the GPU has spare VRAM.
-        'num_ctx' => (int) env('OLLAMA_NUM_CTX', 4096),
+        // Keep enough context for long receipts to finish their itemized JSON response.
+        // Raising this grows the KV cache, so lower it only when the GPU has limited VRAM.
+        'num_ctx' => (int) env('OLLAMA_NUM_CTX', 8192),
         // Long-edge cap for vision prompts; qwen2.5vl spends ~1 token per 28x28 pixel block,
         // so full-resolution uploads can fill num_ctx and leave no budget for the JSON answer.
         'max_image_dimension' => (int) env('OLLAMA_MAX_IMAGE_DIMENSION', 1280),
