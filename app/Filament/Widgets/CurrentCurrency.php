@@ -32,10 +32,7 @@ class CurrentCurrency extends StatsOverviewWidget
 
     protected int|array|null $columns = 1;
 
-    /**
-     * @var array{rate?: float, effective_date?: string, provider?: string, unavailable?: bool}
-     */
-    public array $rateDetails = [];
+    protected ?string $pollingInterval = null;
 
     /**
      * @var view-string
@@ -47,30 +44,16 @@ class CurrentCurrency extends StatsOverviewWidget
         return self::SECTION_CURRENCY_RATE;
     }
 
-    public function mount(ExchangeRateService $exchangeRates): void
+    protected function getPollingInterval(): ?string
     {
-        try {
-            $rateDetails = $exchangeRates->latest('USD', 'MYR');
-
-            $this->rateDetails = [
-                'rate' => (float) $rateDetails['rate'],
-                'effective_date' => (string) $rateDetails['effective_date'],
-                'provider' => (string) $rateDetails['provider'],
-            ];
-        } catch (CurrencyConversionException $exception) {
-            Log::warning('Codex debug currency widget unavailable', [
-                'reason' => $exception->getMessage(),
-            ]);
-
-            $this->rateDetails = [
-                'unavailable' => true,
-            ];
-        }
+        return null;
     }
 
     protected function getStats(): array
     {
-        if (($this->rateDetails['unavailable'] ?? false) || ! isset($this->rateDetails['rate'])) {
+        $rateDetails = $this->resolveRateDetails();
+
+        if (($rateDetails['unavailable'] ?? false) || ! isset($rateDetails['rate'])) {
             return [
                 Stat::make('USD to MYR', 'Unavailable')
                     ->description('Current exchange rate unavailable')
@@ -79,17 +62,41 @@ class CurrentCurrency extends StatsOverviewWidget
             ];
         }
 
-        $effectiveDate = Carbon::parse((string) $this->rateDetails['effective_date'])
+        $effectiveDate = Carbon::parse((string) $rateDetails['effective_date'])
             ->format('d M Y');
 
         return [
             Stat::make(
                 'USD to MYR',
-                'RM '.number_format((float) $this->rateDetails['rate'], 4, '.', ','),
+                'RM '.number_format((float) $rateDetails['rate'], 4, '.', ','),
             )
-                ->description('1 USD as of '.$effectiveDate.' via '.$this->rateDetails['provider'])
+                ->description('1 USD as of '.$effectiveDate.' via '.$rateDetails['provider'])
                 ->descriptionIcon('heroicon-m-arrow-right')
                 ->color('info'),
         ];
+    }
+
+    /**
+     * @return array{rate?: float, effective_date?: string, provider?: string, unavailable?: bool}
+     */
+    private function resolveRateDetails(): array
+    {
+        try {
+            $rateDetails = app(ExchangeRateService::class)->latest('USD', 'MYR');
+
+            return [
+                'rate' => (float) $rateDetails['rate'],
+                'effective_date' => (string) $rateDetails['effective_date'],
+                'provider' => (string) $rateDetails['provider'],
+            ];
+        } catch (CurrencyConversionException $exception) {
+            Log::warning('Currency widget rate unavailable', [
+                'reason' => $exception->getMessage(),
+            ]);
+
+            return [
+                'unavailable' => true,
+            ];
+        }
     }
 }

@@ -7,6 +7,7 @@ use App\Services\Currency\CurrencyConversionException;
 use App\Services\Currency\CurrencyConversionService;
 use App\Services\Currency\ExchangeRateService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -89,6 +90,31 @@ test('exchange rate service caches the same source date lookup', function () {
 
     expect($first)->toBe($second);
     Http::assertSentCount(1);
+});
+
+test('exchange rate service falls back to last good latest rate when provider is unreachable', function () {
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/latest*' => Http::sequence()
+            ->push([
+                'meta' => ['last_updated_at' => '2026-08-08T10:15:00Z'],
+                'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.25]],
+            ])
+            ->pushFailedConnection('simulated outage'),
+    ]);
+
+    $service = new ExchangeRateService(new CurrencyApiExchangeRateProvider);
+
+    $first = $service->latest('USD', 'MYR');
+    expect($first['rate'])->toBe(4.25);
+
+    Cache::forget('currency-rate:currencyapi:USD:MYR:latest');
+
+    $fallback = $service->latest('USD', 'MYR');
+
+    expect($fallback['rate'])->toBe(4.25)
+        ->and($fallback['effective_date'])->toBe('2026-08-08')
+        ->and($fallback['provider'])->toBe('currencyapi');
 });
 
 test('currency api provider explains rejected credentials', function () {

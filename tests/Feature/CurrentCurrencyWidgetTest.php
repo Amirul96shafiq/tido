@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Filament\Widgets\CurrentCurrency;
+use App\Services\Currency\ExchangeRateService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
@@ -60,9 +62,36 @@ test('currency widget renders an unavailable state when the provider is not conf
 test('currency widget uses half-width desktop and one internal column', function () {
     $widget = Livewire::test(CurrentCurrency::class)->instance();
     $columns = (new ReflectionProperty($widget, 'columns'))->getValue($widget);
+    $pollingInterval = (new ReflectionProperty($widget, 'pollingInterval'))->getValue($widget);
 
     expect($widget->getColumnSpan())->toBe([
         'default' => 'full',
         'xl' => 6,
-    ])->and($columns)->toBe(1);
+    ])
+        ->and($columns)->toBe(1)
+        ->and($pollingInterval)->toBeNull();
+});
+
+test('currency widget shows last good rate when the live provider is unreachable', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00', 'Asia/Kuala_Lumpur'));
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/latest*' => Http::sequence()
+            ->push([
+                'meta' => ['last_updated_at' => '2026-08-07T23:59:59Z'],
+                'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.091]],
+            ])
+            ->pushFailedConnection('simulated outage'),
+    ]);
+
+    app(ExchangeRateService::class)->latest('USD', 'MYR');
+    Cache::forget('currency-rate:currencyapi:USD:MYR:latest');
+
+    Livewire::test(CurrentCurrency::class)
+        ->assertSuccessful()
+        ->assertSee('USD to MYR')
+        ->assertSee('RM 4.0910')
+        ->assertSee('1 USD as of 07 Aug 2026 via currencyapi')
+        ->assertDontSee('Unavailable');
 });
