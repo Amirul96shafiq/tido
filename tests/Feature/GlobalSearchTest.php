@@ -11,6 +11,7 @@ use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
+use App\Filament\Widgets\CurrentCurrency;
 use App\Models\Backup;
 use App\Models\Budget;
 use App\Models\FamilyMember;
@@ -53,6 +54,17 @@ test('destination search finds dashboard spending forecast section', function ()
 
     expect($match)->not->toBeNull()
         ->and($match->url)->toEndWith('#spending-forecast')
+        ->and($match->details)->toBe(['Page' => 'Dashboard']);
+});
+
+test('destination search finds dashboard usd to myr section', function () {
+    $results = AdminDestinationSearch::search('USD to MYR', GlobalSearchResults::make());
+    $sections = collect($results->getCategories()->get('Sections', []));
+
+    $match = $sections->first(fn ($result): bool => $result->title === 'USD to MYR');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toEndWith('#'.CurrentCurrency::SECTION_CURRENCY_RATE)
         ->and($match->details)->toBe(['Page' => 'Dashboard']);
 });
 

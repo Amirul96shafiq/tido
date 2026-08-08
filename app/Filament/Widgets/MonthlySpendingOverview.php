@@ -26,7 +26,18 @@ class MonthlySpendingOverview extends BaseWidget
 
     protected static bool $isLazy = false;
 
-    protected int|string|array $columnSpan = 'full';
+    /**
+     * @var array<string, int|string>
+     */
+    protected int|string|array $columnSpan = [
+        'default' => 'full',
+        'xl' => 6,
+    ];
+
+    protected int|array|null $columns = [
+        'default' => 1,
+        'md' => 2,
+    ];
 
     protected ?string $pollingInterval = null;
 

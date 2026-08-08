@@ -7,6 +7,7 @@ namespace App\Filament\Pages;
 use App\Filament\Concerns\HasDashboardGreeting;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Support\DashboardMonthPeriod;
+use App\Filament\Widgets\CurrentCurrency;
 use App\Filament\Widgets\MonthlySpendingOverview;
 use App\Support\DashboardSpenderScope;
 use Filament\Actions\Action;
@@ -95,6 +96,7 @@ class Dashboard extends BaseDashboard
             ['label' => $forecastLabel, 'id' => MonthlySpendingOverview::SECTION_SPENDING_FORECAST],
             ['label' => 'SST Tax Paid', 'id' => MonthlySpendingOverview::SECTION_SST_TAX_PAID],
             ['label' => 'Receipts Processed', 'id' => MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED],
+            ['label' => 'USD to MYR', 'id' => CurrentCurrency::SECTION_CURRENCY_RATE],
             ['label' => 'Monthly Spending Trend', 'id' => 'monthly-trend'],
             ['label' => 'Spending by Label', 'id' => 'spending-by-label'],
             ['label' => 'Budget Performance', 'id' => 'budget-status'],

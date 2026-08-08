@@ -7,6 +7,7 @@ use App\Services\Currency\CurrencyConversionException;
 use App\Services\Currency\CurrencyConversionService;
 use App\Services\Currency\ExchangeRateService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -47,6 +48,31 @@ test('currency api provider requests a historical rate with source and target cu
     });
 });
 
+test('currency api provider requests the latest rate without a historical date', function () {
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/latest*' => Http::response([
+            'meta' => ['last_updated_at' => '2026-08-08T10:15:00Z'],
+            'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.612345]],
+        ]),
+    ]);
+
+    $provider = new CurrencyApiExchangeRateProvider;
+    $rate = $provider->latest('USD', 'MYR');
+
+    expect($rate['rate'])->toBe(4.612345)
+        ->and($rate['effective_date'])->toBe('2026-08-08')
+        ->and($rate['provider'])->toBe('currencyapi');
+
+    Http::assertSent(function ($request): bool {
+        return str_contains($request->url(), '/v3/latest?')
+            && str_contains($request->url(), 'base_currency=USD')
+            && str_contains($request->url(), 'currencies=MYR')
+            && ! str_contains($request->url(), 'date=')
+            && $request->hasHeader('apikey', 'test-key');
+    });
+});
+
 test('exchange rate service caches the same source date lookup', function () {
     Http::preventStrayRequests();
     Http::fake([
@@ -64,6 +90,31 @@ test('exchange rate service caches the same source date lookup', function () {
 
     expect($first)->toBe($second);
     Http::assertSentCount(1);
+});
+
+test('exchange rate service falls back to last good latest rate when provider is unreachable', function () {
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/latest*' => Http::sequence()
+            ->push([
+                'meta' => ['last_updated_at' => '2026-08-08T10:15:00Z'],
+                'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.25]],
+            ])
+            ->pushFailedConnection('simulated outage'),
+    ]);
+
+    $service = new ExchangeRateService(new CurrencyApiExchangeRateProvider);
+
+    $first = $service->latest('USD', 'MYR');
+    expect($first['rate'])->toBe(4.25);
+
+    Cache::forget('currency-rate:currencyapi:USD:MYR:latest');
+
+    $fallback = $service->latest('USD', 'MYR');
+
+    expect($fallback['rate'])->toBe(4.25)
+        ->and($fallback['effective_date'])->toBe('2026-08-08')
+        ->and($fallback['provider'])->toBe('currencyapi');
 });
 
 test('currency api provider explains rejected credentials', function () {
@@ -197,4 +248,90 @@ test('explicit receipt rate converts without requesting the external provider', 
         ->and($result['normalized']['items'][0]['line_total'])->toBe(84.79)
         ->and($result['metadata']['currency_conversion_rate'])->toBe(4.2397)
         ->and($result['metadata']['currency_conversion_provider'])->toBe('receipt_printed_rate');
+});
+
+test('exchange rate service returns an oldest-to-newest historical series', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00', 'Asia/Kuala_Lumpur'));
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/historical*' => function ($request) {
+            parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
+            $date = (string) ($query['date'] ?? '');
+            $value = match ($date) {
+                '2026-08-06' => 4.10,
+                '2026-08-07' => 4.20,
+                '2026-08-08' => 4.30,
+                default => 4.00,
+            };
+
+            return Http::response([
+                'meta' => ['last_updated_at' => $date.'T23:59:59Z'],
+                'data' => ['MYR' => ['code' => 'MYR', 'value' => $value]],
+            ]);
+        },
+    ]);
+
+    $service = new ExchangeRateService(new CurrencyApiExchangeRateProvider);
+    $series = $service->series('USD', 'MYR', 3);
+
+    expect($series)->toHaveCount(3)
+        ->and($series[0])->toBe(['date' => '2026-08-06', 'rate' => 4.10])
+        ->and($series[1])->toBe(['date' => '2026-08-07', 'rate' => 4.20])
+        ->and($series[2])->toBe(['date' => '2026-08-08', 'rate' => 4.30]);
+
+    Http::assertSentCount(3);
+
+    $cached = $service->series('USD', 'MYR', 3);
+
+    expect($cached)->toBe($series);
+    Http::assertSentCount(3);
+
+    Carbon::setTestNow();
+});
+
+test('exchange rate service skips failed days in a series', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00', 'Asia/Kuala_Lumpur'));
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/historical*' => function ($request) {
+            parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
+            $date = (string) ($query['date'] ?? '');
+
+            if ($date === '2026-08-07') {
+                return Http::response([], 500);
+            }
+
+            return Http::response([
+                'meta' => ['last_updated_at' => $date.'T23:59:59Z'],
+                'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.15]],
+            ]);
+        },
+    ]);
+
+    $service = new ExchangeRateService(new CurrencyApiExchangeRateProvider);
+    $series = $service->series('USD', 'MYR', 3);
+
+    expect($series)->toHaveCount(2)
+        ->and(array_column($series, 'date'))->toBe(['2026-08-06', '2026-08-08']);
+
+    Carbon::setTestNow();
+});
+
+test('exchange rate service throws when a series has no successful days', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00', 'Asia/Kuala_Lumpur'));
+    Cache::flush();
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/historical*' => Http::response([], 500),
+    ]);
+
+    $service = new ExchangeRateService(new CurrencyApiExchangeRateProvider);
+
+    expect(fn (): array => $service->series('USD', 'MYR', 2))
+        ->toThrow(
+            CurrencyConversionException::class,
+            'No exchange-rate history is available for the requested period.',
+        );
+
+    Carbon::setTestNow();
 });

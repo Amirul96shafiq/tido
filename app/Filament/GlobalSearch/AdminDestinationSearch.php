@@ -15,6 +15,7 @@ use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
+use App\Filament\Widgets\CurrentCurrency;
 use App\Filament\Widgets\MonthlySpendingOverview;
 use App\Support\HouseholdAccess;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResult;
@@ -74,6 +75,13 @@ final class AdminDestinationSearch
                 'keywords' => ['receipts', 'processed', 'parsing', 'pending', 'finance', 'dashboard', 'stats'],
                 'group' => 'Sections',
                 'url' => $dashboardUrl.'#'.MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED,
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
+                'title' => 'USD to MYR',
+                'keywords' => ['usd', 'myr', 'currency', 'exchange', 'rate', 'finance', 'dashboard'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#'.CurrentCurrency::SECTION_CURRENCY_RATE,
                 'details' => ['Page' => 'Dashboard'],
             ],
             [

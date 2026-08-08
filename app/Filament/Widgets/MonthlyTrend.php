@@ -25,7 +25,7 @@ class MonthlyTrend extends ChartWidget
      */
     protected string $view = 'filament.widgets.chart-with-empty-state';
 
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 3;
 
     protected int|string|array $columnSpan = 'full';
 
