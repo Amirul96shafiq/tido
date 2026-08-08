@@ -88,7 +88,7 @@
     </div>
 
     <div
-        class="tido-sidebar-preview relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
+        class="tido-sidebar-preview tido-preview-static relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
         style="aspect-ratio: 32 / 9"
     >
         <div class="h-full">

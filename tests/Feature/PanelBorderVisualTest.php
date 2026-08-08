@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Str;
+
 test('panel surfaces share the chrome border token', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
@@ -33,6 +35,23 @@ test('neutral custom borders preserve interactive border states', function () {
         ->toContain('box-shadow: none !important;')
         ->toContain('box-shadow: none;')
         ->toContain('):not(:hover):not(:focus):not(:focus-within) {');
+});
+
+test('personalize previews keep neutral borders static on hover', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+    $previewBlock = Str::between(
+        $css,
+        '/* Personalize previews are illustrative surfaces, so their neutral borders and rings stay static on hover. */',
+        '/* The dashboard stats schema uses a non-contained section as a layout wrapper. */',
+    );
+
+    expect($previewBlock)
+        ->not->toBeEmpty()
+        ->toContain('.tido-preview-static,')
+        ->toContain('border-color: var(--tido-border-color) !important;')
+        ->toContain('--tw-ring-shadow: 0 0 0 0 transparent !important;')
+        ->toContain('box-shadow: none !important;')
+        ->not->toContain(':hover');
 });
 
 test('dashboard stats wrapper does not add a duplicate outer border', function () {

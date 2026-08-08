@@ -19,6 +19,7 @@ test('profile personalize section renders live sidebar mode preview', function (
         ->assertSee('Sidebar Mode', false)
         ->assertSee('Restricted to larger responsive users.', false)
         ->assertSee('tido-sidebar-preview', false)
+        ->assertSee('tido-preview-static', false)
         ->assertSee('Expanded style', false)
         ->assertSee('collapsed ? \'Collapsed style\' : \'Expanded style\'', false)
         ->assertSee('tido_dark_logo', false)

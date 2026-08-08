@@ -78,7 +78,7 @@
     </div>
 
     <div
-        class="tido-stylized-preview relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
+        class="tido-stylized-preview tido-preview-static relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
         style="aspect-ratio: 1919 / 1079"
     >
         <x-tido.panel-preview-chrome class="h-full">

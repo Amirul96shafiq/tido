@@ -4009,6 +4009,50 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     box-shadow: none;
 }
 
+/* Personalize previews are illustrative surfaces, so their neutral borders and rings stay static on hover. */
+.tido-preview-static,
+.tido-preview-static :is(
+        [class~="border-gray-100"],
+        [class~="border-gray-200"],
+        [class~="border-gray-300"],
+        [class~="border-gray-500/30"],
+        [class~="border-gray-700"],
+        [class~="border-slate-600"],
+        [class~="border-slate-700"],
+        [class~="border-white/10"],
+        [class~="border-white/20"],
+        [class~="dark:border-gray-700"],
+        [class~="dark:border-slate-600"],
+        [class~="dark:border-slate-700"],
+        [class~="dark:border-white/10"],
+        [class~="dark:border-white/20"]
+    ) {
+    border-color: var(--tido-border-color) !important;
+    box-shadow: none !important;
+}
+
+.tido-preview-static :is(
+        [class~="ring-gray-950/5"],
+        [class~="ring-gray-950/10"],
+        [class~="ring-gray-950/20"],
+        [class~="ring-gray-200/80"],
+        [class~="ring-gray-300"],
+        [class~="ring-gray-500/30"],
+        [class~="ring-slate-600"],
+        [class~="ring-slate-700"],
+        [class~="ring-white/10"],
+        [class~="ring-white/20"],
+        [class~="dark:ring-white/10"],
+        [class~="dark:ring-white/20"]
+    ) {
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--tido-border-color) !important;
+    --tw-ring-color: transparent !important;
+    --tw-ring-shadow: 0 0 0 0 transparent !important;
+    box-shadow: none !important;
+}
+
 /*
  * The dashboard stats schema uses a non-contained section as a layout wrapper.
  * The four stat cards own the visible borders, so the wrapper must not add a

@@ -54,6 +54,7 @@ test('background preview shows real panel art at full height', function (): void
 
     Livewire::test(EditProfile::class)
         ->assertSee('tido-stylized-preview', false)
+        ->assertSee('tido-preview-static', false)
         ->assertSee('images/bg-l-v8.webp', false)
         ->assertSee('images/bg-d-v8.webp', false)
         ->assertSee('tido_dark_logo', false)
