@@ -3888,7 +3888,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 .tido-dashboard-page #currency-rate .fi-wi-currency-rate-sparkline > canvas {
     display: block;
     width: 100%;
-    height: 1.5rem;
+    height: 3.5rem;
 }
 
 .tido-dashboard-page #currency-rate .fi-wi-currency-rate-sparkline .fi-wi-stats-overview-stat-chart-bg-color {
@@ -3897,6 +3897,34 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
 .tido-dashboard-page #currency-rate .fi-wi-currency-rate-sparkline .fi-wi-stats-overview-stat-chart-border-color {
     @apply text-primary-500 dark:text-primary-400;
+}
+
+/*
+ * Currency converter / range chips use neutral rings that the global theme remaps
+ * to a 1px border only while not hovered. Keep that border locked so hover/focus
+ * does not drop the border and make the boxes grow.
+ */
+.tido-dashboard-page #currency-rate .fi-wi-current-currency-surface,
+.tido-dashboard-page #currency-rate .fi-wi-current-currency-surface:hover,
+.tido-dashboard-page #currency-rate .fi-wi-current-currency-surface:focus,
+.tido-dashboard-page #currency-rate .fi-wi-current-currency-surface:focus-within {
+    border-style: solid !important;
+    border-width: 1px !important;
+    border-color: var(--tido-border-color) !important;
+    --tw-ring-color: transparent !important;
+    --tw-ring-shadow: 0 0 0 0 transparent !important;
+    box-shadow: none !important;
+}
+
+.tido-dashboard-page #currency-rate .fi-wi-current-currency-converter input[type='number'] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.tido-dashboard-page #currency-rate .fi-wi-current-currency-converter input[type='number']::-webkit-inner-spin-button,
+.tido-dashboard-page #currency-rate .fi-wi-current-currency-converter input[type='number']::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
 }
 
 .fi-wi-chart-frame-no-aspect-ratio {

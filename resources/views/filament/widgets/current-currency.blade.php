@@ -30,19 +30,28 @@
         @else
             <div @class([
                 'flex flex-1 flex-col gap-4',
-                'pb-8' => $hasChart,
+                'pb-16' => $hasChart,
             ])>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-start sm:gap-6">
-                    <div class="flex min-w-0 flex-col gap-1">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] sm:items-start sm:gap-6">
+                    <div class="flex min-w-0 flex-col gap-2">
                         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                             USD to MYR
                         </p>
-                        <p class="text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">
-                            {{ $rateDisplay }}
-                        </p>
-                        <p class="text-sm text-primary-600 dark:text-primary-400">
-                            1 USD as of {{ $effectiveDate }} via {{ $provider }}
-                        </p>
+                        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                            <p class="text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">
+                                {{ $rateDisplay }}
+                            </p>
+                            @if ($hasSeriesStats && filled($changeDisplay))
+                                <p @class([
+                                    'text-sm font-medium',
+                                    'text-success-600 dark:text-success-400' => $changeDirection === 'up',
+                                    'text-danger-600 dark:text-danger-400' => $changeDirection === 'down',
+                                    'text-gray-500 dark:text-gray-400' => $changeDirection === 'flat',
+                                ])>
+                                    {{ $changeDisplay }}
+                                </p>
+                            @endif
+                        </div>
                     </div>
 
                     <div
@@ -74,7 +83,7 @@
                         <template x-if="usdOnTop">
                             <div class="flex flex-col gap-1.5">
                                 <label class="sr-only" for="currency-converter-usd">USD amount</label>
-                                <div class="flex items-stretch overflow-hidden rounded-lg bg-gray-50 ring-1 ring-gray-950/10 dark:bg-white/5 dark:ring-white/10">
+                                <div class="fi-wi-current-currency-surface flex items-stretch overflow-hidden rounded-lg bg-gray-50 ring-1 ring-gray-950/10 dark:bg-white/5 dark:ring-white/10">
                                     <input
                                         id="currency-converter-usd"
                                         type="number"
@@ -90,7 +99,7 @@
                                     </span>
                                 </div>
                                 <label class="sr-only" for="currency-converter-myr">MYR amount</label>
-                                <div class="flex items-stretch overflow-hidden rounded-lg bg-gray-50 ring-1 ring-gray-950/10 dark:bg-white/5 dark:ring-white/10">
+                                <div class="fi-wi-current-currency-surface flex items-stretch overflow-hidden rounded-lg bg-gray-50 ring-1 ring-gray-950/10 dark:bg-white/5 dark:ring-white/10">
                                     <input
                                         id="currency-converter-myr"
                                         type="number"
@@ -111,7 +120,7 @@
                         <template x-if="! usdOnTop">
                             <div class="flex flex-col gap-1.5">
                                 <label class="sr-only" for="currency-converter-myr">MYR amount</label>
-                                <div class="flex items-stretch overflow-hidden rounded-lg bg-gray-50 ring-1 ring-gray-950/10 dark:bg-white/5 dark:ring-white/10">
+                                <div class="fi-wi-current-currency-surface flex items-stretch overflow-hidden rounded-lg bg-gray-50 ring-1 ring-gray-950/10 dark:bg-white/5 dark:ring-white/10">
                                     <input
                                         id="currency-converter-myr"
                                         type="number"
@@ -127,7 +136,7 @@
                                     </span>
                                 </div>
                                 <label class="sr-only" for="currency-converter-usd">USD amount</label>
-                                <div class="flex items-stretch overflow-hidden rounded-lg bg-gray-50 ring-1 ring-gray-950/10 dark:bg-white/5 dark:ring-white/10">
+                                <div class="fi-wi-current-currency-surface flex items-stretch overflow-hidden rounded-lg bg-gray-50 ring-1 ring-gray-950/10 dark:bg-white/5 dark:ring-white/10">
                                     <input
                                         id="currency-converter-usd"
                                         type="number"
@@ -158,6 +167,46 @@
                         </button>
                     </div>
                 </div>
+
+                @if ($hasSeriesStats)
+                    <div class="flex w-full flex-col gap-2">
+                        <dl class="grid w-full grid-cols-3 gap-2">
+                            <div class="fi-wi-current-currency-surface rounded-lg bg-gray-50 px-3 py-2.5 ring-1 ring-gray-950/5 dark:bg-white/5 dark:ring-white/10">
+                                <div class="flex items-center justify-between gap-3">
+                                    <dt class="text-sm text-gray-500 dark:text-gray-400">Low</dt>
+                                    <dd class="text-base font-semibold tabular-nums text-gray-950 dark:text-white">
+                                        {{ $lowDisplay }}
+                                    </dd>
+                                </div>
+                            </div>
+                            <div class="fi-wi-current-currency-surface rounded-lg bg-gray-50 px-3 py-2.5 ring-1 ring-gray-950/5 dark:bg-white/5 dark:ring-white/10">
+                                <div class="flex items-center justify-between gap-3">
+                                    <dt class="text-sm text-gray-500 dark:text-gray-400">High</dt>
+                                    <dd class="text-base font-semibold tabular-nums text-gray-950 dark:text-white">
+                                        {{ $highDisplay }}
+                                    </dd>
+                                </div>
+                            </div>
+                            <div class="fi-wi-current-currency-surface rounded-lg bg-gray-50 px-3 py-2.5 ring-1 ring-gray-950/5 dark:bg-white/5 dark:ring-white/10">
+                                <div class="flex items-center justify-between gap-3">
+                                    <dt class="text-sm text-gray-500 dark:text-gray-400">Avg</dt>
+                                    <dd class="text-base font-semibold tabular-nums text-gray-950 dark:text-white">
+                                        {{ $avgDisplay }}
+                                    </dd>
+                                </div>
+                            </div>
+                        </dl>
+                        @if (filled($sourceDisplay))
+                            <p class="text-left text-sm text-primary-600 dark:text-primary-400">
+                                {{ $sourceDisplay }}
+                            </p>
+                        @endif
+                    </div>
+                @elseif (filled($sourceDisplay))
+                    <p class="text-left text-sm text-primary-600 dark:text-primary-400">
+                        {{ $sourceDisplay }}
+                    </p>
+                @endif
 
                 @if ($hasChart)
                     <div x-data="{ statsOverviewStatChart() {} }">

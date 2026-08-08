@@ -52,16 +52,25 @@ test('currency widget renders the current usd to myr rate with provider context'
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
         ->assertSee('USD to MYR')
-        ->assertSee('RM 4.5123')
-        ->assertSee('1 USD as of 08 Jul 2026 via currencyapi')
+        ->assertSee('1 USD = RM 4.5123')
+        ->assertSee('08 Jul 2026 • currencyapi')
+        ->assertDontSee('1 USD as of 08 Jul 2026 via currencyapi')
+        ->assertSee('0.0000 (0.00%) 30D')
+        ->assertSee('Low')
+        ->assertSee('High')
+        ->assertSee('Avg')
         ->assertSee('USD')
         ->assertSee('MYR')
         ->assertSee("usd: '1'", false)
         ->assertSee('4.5123')
-        ->assertSee('sm:grid-cols-2', false)
+        ->assertSee('sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]', false)
         ->assertSee('fi-wi-currency-rate-sparkline', false)
         ->assertSee('statsOverviewStatChart', false)
         ->assertSee('Swap currencies');
+
+    $html = Livewire::test(CurrentCurrency::class)->html();
+
+    expect(substr_count($html, 'fi-wi-current-currency-surface'))->toBeGreaterThanOrEqual(3);
 
     Http::assertSent(function ($request): bool {
         return str_contains($request->url(), '/v3/latest?')
@@ -118,8 +127,9 @@ test('currency widget shows last good rate when the live provider is unreachable
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
         ->assertSee('USD to MYR')
-        ->assertSee('RM 4.0910')
-        ->assertSee('1 USD as of 07 Aug 2026 via currencyapi')
+        ->assertSee('1 USD = RM 4.0910')
+        ->assertSee('07 Aug 2026 • currencyapi')
+        ->assertDontSee('1 USD as of 07 Aug 2026 via currencyapi')
         ->assertDontSee('Unavailable');
 });
 
@@ -137,8 +147,44 @@ test('currency widget shows rate history unavailable when the series cannot be l
 
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
-        ->assertSee('RM 4.2500')
+        ->assertSee('1 USD = RM 4.2500')
+        ->assertSee('08 Aug 2026 • currencyapi')
         ->assertSee('Rate history unavailable')
         ->assertDontSee('fi-wi-currency-rate-sparkline')
-        ->assertDontSee('statsOverviewStatChart');
+        ->assertDontSee('statsOverviewStatChart')
+        ->assertDontSee('Low')
+        ->assertDontSee('30D');
+});
+
+test('currency widget shows a 30-day change and range from series history', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00', 'Asia/Kuala_Lumpur'));
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/latest*' => Http::response([
+            'meta' => ['last_updated_at' => '2026-08-08T10:15:00Z'],
+            'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.30]],
+        ]),
+        'https://currencyapi.test/v3/historical*' => function ($request) {
+            parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
+            $date = (string) ($query['date'] ?? '');
+            $start = Carbon::parse('2026-07-10', 'Asia/Kuala_Lumpur')->startOfDay();
+            $offset = max(0, (int) $start->diffInDays(Carbon::parse($date, 'Asia/Kuala_Lumpur')->startOfDay()));
+            $value = 4.00 + ($offset * 0.01);
+
+            return Http::response([
+                'meta' => ['last_updated_at' => $date.'T23:59:59Z'],
+                'data' => ['MYR' => ['code' => 'MYR', 'value' => $value]],
+            ]);
+        },
+    ]);
+
+    Livewire::test(CurrentCurrency::class)
+        ->assertSuccessful()
+        ->assertSee('1 USD = RM 4.3000')
+        ->assertSee('30D')
+        ->assertSee('Low')
+        ->assertSee('High')
+        ->assertSee('Avg')
+        ->assertSee('text-success-600', false);
 });

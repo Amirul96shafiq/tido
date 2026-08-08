@@ -48,12 +48,32 @@ class CurrentCurrency extends Widget
      *     rateDisplay: string|null,
      *     effectiveDate: string|null,
      *     provider: string|null,
+     *     sourceDisplay: string|null,
      *     chartRates: list<float>,
      *     hasChart: bool,
+     *     hasSeriesStats: bool,
+     *     changeDelta: float|null,
+     *     changePercent: float|null,
+     *     changeDirection: 'up'|'down'|'flat'|null,
+     *     changeDisplay: string|null,
+     *     lowDisplay: string|null,
+     *     highDisplay: string|null,
+     *     avgDisplay: string|null,
      * }
      */
     protected function getViewData(): array
     {
+        $emptyStats = [
+            'hasSeriesStats' => false,
+            'changeDelta' => null,
+            'changePercent' => null,
+            'changeDirection' => null,
+            'changeDisplay' => null,
+            'lowDisplay' => null,
+            'highDisplay' => null,
+            'avgDisplay' => null,
+        ];
+
         $rateDetails = $this->resolveRateDetails();
 
         if (($rateDetails['unavailable'] ?? false) || ! isset($rateDetails['rate'])) {
@@ -63,8 +83,10 @@ class CurrentCurrency extends Widget
                 'rateDisplay' => null,
                 'effectiveDate' => null,
                 'provider' => null,
+                'sourceDisplay' => null,
                 'chartRates' => [],
                 'hasChart' => false,
+                ...$emptyStats,
             ];
         }
 
@@ -73,15 +95,84 @@ class CurrentCurrency extends Widget
             static fn (array $point): float => (float) $point['rate'],
             $series,
         );
+        $seriesStats = $this->summarizeSeries($chartRates);
 
         return [
             'unavailable' => false,
             'rate' => (float) $rateDetails['rate'],
-            'rateDisplay' => 'RM '.number_format((float) $rateDetails['rate'], 4, '.', ','),
+            'rateDisplay' => '1 USD = RM '.number_format((float) $rateDetails['rate'], 4, '.', ','),
             'effectiveDate' => Carbon::parse((string) $rateDetails['effective_date'])->format('d M Y'),
             'provider' => (string) $rateDetails['provider'],
+            'sourceDisplay' => Carbon::parse((string) $rateDetails['effective_date'])->format('d M Y')
+                .' • '
+                .(string) $rateDetails['provider'],
             'chartRates' => $chartRates,
             'hasChart' => $chartRates !== [],
+            ...$seriesStats,
+        ];
+    }
+
+    /**
+     * @param  list<float>  $chartRates
+     * @return array{
+     *     hasSeriesStats: bool,
+     *     changeDelta: float|null,
+     *     changePercent: float|null,
+     *     changeDirection: 'up'|'down'|'flat'|null,
+     *     changeDisplay: string|null,
+     *     lowDisplay: string|null,
+     *     highDisplay: string|null,
+     *     avgDisplay: string|null,
+     * }
+     */
+    private function summarizeSeries(array $chartRates): array
+    {
+        if ($chartRates === []) {
+            return [
+                'hasSeriesStats' => false,
+                'changeDelta' => null,
+                'changePercent' => null,
+                'changeDirection' => null,
+                'changeDisplay' => null,
+                'lowDisplay' => null,
+                'highDisplay' => null,
+                'avgDisplay' => null,
+            ];
+        }
+
+        $low = min($chartRates);
+        $high = max($chartRates);
+        $avg = array_sum($chartRates) / count($chartRates);
+        $first = $chartRates[array_key_first($chartRates)];
+        $last = $chartRates[array_key_last($chartRates)];
+        $delta = $last - $first;
+        $percent = $first > 0.0 ? ($delta / $first) * 100 : 0.0;
+
+        $direction = match (true) {
+            $delta > 0.00005 => 'up',
+            $delta < -0.00005 => 'down',
+            default => 'flat',
+        };
+
+        $deltaSign = $delta > 0.00005 ? '+' : ($delta < -0.00005 ? '−' : '');
+        $percentSign = $percent > 0.00005 ? '+' : ($percent < -0.00005 ? '−' : '');
+
+        return [
+            'hasSeriesStats' => true,
+            'changeDelta' => $delta,
+            'changePercent' => $percent,
+            'changeDirection' => $direction,
+            'changeDisplay' => sprintf(
+                '%s%s (%s%s%%) %dD',
+                $deltaSign,
+                number_format(abs($delta), 4, '.', ''),
+                $percentSign,
+                number_format(abs($percent), 2, '.', ''),
+                self::SERIES_DAYS,
+            ),
+            'lowDisplay' => number_format($low, 4, '.', ''),
+            'highDisplay' => number_format($high, 4, '.', ''),
+            'avgDisplay' => number_format($avg, 4, '.', ''),
         ];
     }
 

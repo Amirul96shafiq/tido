@@ -190,5 +190,6 @@ test('dashboard currency card fills the shared overview row', function () {
     expect($css)
         ->toContain('.tido-dashboard-page #currency-rate.fi-wi-current-currency')
         ->toContain('.tido-dashboard-page #currency-rate.fi-wi-current-currency > .fi-section')
-        ->toContain('.fi-wi-currency-rate-sparkline');
+        ->toContain('.fi-wi-currency-rate-sparkline')
+        ->toContain('.fi-wi-current-currency-surface');
 });
