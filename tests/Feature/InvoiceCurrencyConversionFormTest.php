@@ -139,7 +139,15 @@ test('edit invoice form converts source amounts and clears the conversion review
         'line_total' => 20.00,
     ]);
 
-    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+    $component = Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+        ->assertSeeInOrder([
+            'Original Currency',
+            'Original Amount',
+            'Rate (MYR per unit)',
+            'Rate Date',
+            'Rate Provider',
+            'Convert to MYR',
+        ])
         ->assertActionVisible(invoiceFormCurrencyAction())
         ->callAction(invoiceFormCurrencyAction())
         ->assertNotified('Currency converted to MYR')

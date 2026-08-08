@@ -78,6 +78,17 @@ class InvoiceForm
 
     public static function configure(Schema $schema): Schema
     {
+        $conversionMetadataVisible = static function (Get $get, ?Invoice $record): bool {
+            $status = $get('currency_conversion_status');
+
+            if (filled($status)) {
+                return $status !== Invoice::CONVERSION_NOT_REQUIRED;
+            }
+
+            return $record instanceof Invoice
+                && $record->currency_conversion_status !== Invoice::CONVERSION_NOT_REQUIRED;
+        };
+
         return $schema
             ->columns(3)
             ->components([
@@ -165,86 +176,84 @@ class InvoiceForm
 
                                     ]),
 
-                                Actions::make([
-                                    Action::make('convertCurrency')
-                                        ->label('Convert to MYR')
-                                        ->icon(Heroicon::ArrowsRightLeft)
-                                        ->color('primary')
-                                        ->button()
-                                        ->action(function (
-                                            array $schemaState,
-                                            Get $schemaGet,
-                                            Set $schemaSet,
-                                            ManualInvoiceCurrencyConversionService $conversionService,
-                                        ): void {
-                                            try {
-                                                $schemaState['invoiceItems'] = $schemaGet('invoiceItems') ?? [];
-                                                $convertedState = $conversionService->convert($schemaState);
-                                            } catch (CurrencyConversionException $exception) {
-                                                Notification::make()
-                                                    ->title('Currency conversion failed')
-                                                    ->body($exception->getMessage())
-                                                    ->danger()
-                                                    ->send();
-
-                                                return;
-                                            }
-
-                                            foreach ($convertedState as $key => $value) {
-                                                $schemaSet($key, $value);
-                                            }
-
-                                            Notification::make()
-                                                ->title('Currency converted to MYR')
-                                                ->body('Amounts were converted using the receipt-date exchange rate.')
-                                                ->success()
-                                                ->send();
-                                        }),
-                                ])
-                                    ->key('currencyConversionActions')
-                                    ->alignment(Alignment::End)
-                                    ->columnSpanFull()
-                                    ->visible(fn (Get $schemaGet): bool => self::isForeignCurrency($schemaGet('currency'))),
-
                                 Grid::make(3)
                                     ->schema([
                                         TextInput::make('original_currency')
                                             ->label('Original Currency')
                                             ->disabled()
-                                            ->dehydrated(),
+                                            ->dehydrated()
+                                            ->visible($conversionMetadataVisible),
 
                                         TextInput::make('original_total_amount')
                                             ->label('Original Amount')
                                             ->prefix(fn (Get $get): string => MoneyDisplay::prefixForCurrency($get('original_currency')))
                                             ->disabled()
-                                            ->dehydrated(),
+                                            ->dehydrated()
+                                            ->visible($conversionMetadataVisible),
 
                                         TextInput::make('currency_conversion_rate')
                                             ->label('Rate (MYR per unit)')
                                             ->suffix('MYR')
                                             ->disabled()
-                                            ->dehydrated(),
+                                            ->dehydrated()
+                                            ->visible($conversionMetadataVisible),
 
                                         TextInput::make('currency_conversion_date')
                                             ->label('Rate Date')
                                             ->disabled()
-                                            ->dehydrated(),
+                                            ->dehydrated()
+                                            ->visible($conversionMetadataVisible),
 
                                         TextInput::make('currency_conversion_provider')
                                             ->label('Rate Provider')
                                             ->disabled()
-                                            ->dehydrated(),
-                                    ])
-                                    ->visible(function (Get $get, ?Invoice $record): bool {
-                                        $status = $get('currency_conversion_status');
+                                            ->dehydrated()
+                                            ->visible($conversionMetadataVisible),
 
-                                        if (filled($status)) {
-                                            return $status !== Invoice::CONVERSION_NOT_REQUIRED;
-                                        }
+                                        Actions::make([
+                                            Action::make('convertCurrency')
+                                                ->label('Convert to MYR')
+                                                ->icon(Heroicon::ArrowsRightLeft)
+                                                ->color('primary')
+                                                ->button()
+                                                ->action(function (
+                                                    array $schemaState,
+                                                    Get $schemaGet,
+                                                    Set $schemaSet,
+                                                    ManualInvoiceCurrencyConversionService $conversionService,
+                                                ): void {
+                                                    try {
+                                                        $schemaState['invoiceItems'] = $schemaGet('invoiceItems') ?? [];
+                                                        $convertedState = $conversionService->convert($schemaState);
+                                                    } catch (CurrencyConversionException $exception) {
+                                                        Notification::make()
+                                                            ->title('Currency conversion failed')
+                                                            ->body($exception->getMessage())
+                                                            ->danger()
+                                                            ->send();
 
-                                        return $record instanceof Invoice
-                                            && $record->currency_conversion_status !== Invoice::CONVERSION_NOT_REQUIRED;
-                                    }),
+                                                        return;
+                                                    }
+
+                                                    foreach ($convertedState as $key => $value) {
+                                                        $schemaSet($key, $value);
+                                                    }
+
+                                                    Notification::make()
+                                                        ->title('Currency converted to MYR')
+                                                        ->body('Amounts were converted using the receipt-date exchange rate.')
+                                                        ->success()
+                                                        ->send();
+                                                }),
+                                        ])
+                                            ->key('currencyConversionActions')
+                                            ->alignment(Alignment::End)
+                                            ->columnStart([
+                                                'default' => 1,
+                                                'lg' => 3,
+                                            ])
+                                            ->visible(fn (Get $schemaGet): bool => self::isForeignCurrency($schemaGet('currency'))),
+                                    ]),
 
                                 Grid::make(3)
                                     ->schema([
