@@ -2,18 +2,25 @@
 
 declare(strict_types=1);
 
+use App\Enums\UserDateFormat;
 use App\Filament\Widgets\CurrentCurrency;
+use App\Models\User;
 use App\Services\Currency\ExchangeRateService;
 use Carbon\Carbon;
 use GuzzleHttp\Promise\PromiseInterface;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
+uses(RefreshDatabase::class);
+
 beforeEach(function (): void {
     config([
         'cache.default' => 'array',
+        'app.timezone' => 'Asia/Kuala_Lumpur',
+        'app.date_format' => UserDateFormat::DmySlash->value,
         'services.currencyapi.provider' => 'currencyapi',
         'services.currencyapi.api_key' => 'test-key',
         'services.currencyapi.base_url' => 'https://currencyapi.test',
@@ -53,7 +60,7 @@ test('currency widget renders the current usd to myr rate with provider context'
         ->assertSuccessful()
         ->assertSee('USD to MYR')
         ->assertSee('1 USD = RM 4.5123')
-        ->assertSee('08 Jul 2026 • 00:00:00 GMT+8 • currencyapi')
+        ->assertSee('08/07/2026 • 00:00:00 GMT+8 • currencyapi')
         ->assertDontSee('1 USD as of 08 Jul 2026 via currencyapi')
         ->assertSee('0.0000 (0.00%) 30D')
         ->assertSee('Low')
@@ -128,7 +135,7 @@ test('currency widget shows last good rate when the live provider is unreachable
         ->assertSuccessful()
         ->assertSee('USD to MYR')
         ->assertSee('1 USD = RM 4.0910')
-        ->assertSee('07 Aug 2026 • 00:00:00 GMT+8 • currencyapi')
+        ->assertSee('07/08/2026 • 00:00:00 GMT+8 • currencyapi')
         ->assertDontSee('1 USD as of 07 Aug 2026 via currencyapi')
         ->assertDontSee('Unavailable');
 });
@@ -148,7 +155,7 @@ test('currency widget shows rate history unavailable when the series cannot be l
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
         ->assertSee('1 USD = RM 4.2500')
-        ->assertSee('08 Aug 2026 • 00:00:00 GMT+8 • currencyapi')
+        ->assertSee('08/08/2026 • 00:00:00 GMT+8 • currencyapi')
         ->assertSee('Rate history unavailable')
         ->assertDontSee('fi-wi-currency-rate-sparkline')
         ->assertDontSee('statsOverviewStatChart')
@@ -187,4 +194,33 @@ test('currency widget shows a 30-day change and range from series history', func
         ->assertSee('High')
         ->assertSee('Avg')
         ->assertSee('text-success-600', false);
+});
+
+test('currency widget source line follows the authenticated user date format and timezone', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00', 'Asia/Kuala_Lumpur'));
+
+    $user = User::factory()->create([
+        'timezone' => 'Asia/Kuala_Lumpur',
+        'date_format' => UserDateFormat::DmySlash->value,
+    ]);
+
+    $this->actingAs($user);
+
+    Http::preventStrayRequests();
+    Http::fake(fakeCurrencyWidgetHttp(4.091, '2026-08-07T23:59:59Z'));
+
+    Livewire::test(CurrentCurrency::class)
+        ->assertSuccessful()
+        ->assertSee('07/08/2026 • 00:00:00 GMT+8 • currencyapi');
+
+    $isoUser = User::factory()->create([
+        'timezone' => 'UTC',
+        'date_format' => UserDateFormat::Iso->value,
+    ]);
+
+    $this->actingAs($isoUser);
+
+    Livewire::test(CurrentCurrency::class)
+        ->assertSuccessful()
+        ->assertSee('2026-08-07 • 00:00:00 GMT+0 • currencyapi');
 });

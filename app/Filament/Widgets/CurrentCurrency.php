@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Widgets;
 
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
+use App\Helpers\UserDateDisplay;
 use App\Services\Currency\CurrencyConversionException;
 use App\Services\Currency\ExchangeRateService;
 use Carbon\Carbon;
@@ -97,7 +98,9 @@ class CurrentCurrency extends Widget
         );
         $seriesStats = $this->summarizeSeries($chartRates);
 
-        $effectiveAt = Carbon::parse((string) $rateDetails['effective_date'], 'Asia/Kuala_Lumpur')
+        $timezone = UserDateDisplay::timezone();
+        $dateFormat = UserDateDisplay::dateFormat();
+        $effectiveAt = Carbon::parse((string) $rateDetails['effective_date'], $timezone)
             ->startOfDay();
         $provider = (string) $rateDetails['provider'];
 
@@ -105,12 +108,14 @@ class CurrentCurrency extends Widget
             'unavailable' => false,
             'rate' => (float) $rateDetails['rate'],
             'rateDisplay' => '1 USD = RM '.number_format((float) $rateDetails['rate'], 4, '.', ','),
-            'effectiveDate' => $effectiveAt->format('d M Y'),
+            'effectiveDate' => $effectiveAt->format($dateFormat),
             'provider' => $provider,
-            'sourceDisplay' => $effectiveAt->format('d M Y')
+            'sourceDisplay' => $effectiveAt->format($dateFormat)
                 .' • '
                 .$effectiveAt->format('H:i:s')
-                .' GMT+8 • '
+                .' '
+                .UserDateDisplay::gmtOffsetLabel($effectiveAt)
+                .' • '
                 .$provider,
             'chartRates' => $chartRates,
             'hasChart' => $chartRates !== [],
