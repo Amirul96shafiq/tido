@@ -18,7 +18,6 @@ use Filament\Actions\EditAction;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 
@@ -49,16 +48,22 @@ class RecentReceipts extends BaseWidget
 
         return $table
             ->heading('Recent Receipts ('.$this->formatSelectedMonth('F Y').')')
-            ->query($query)
+            ->query($query->limit(5))
             ->defaultSort('created_at', 'desc')
             ->poll('10s.visible')
-            ->defaultPaginationPageOption(5)
-            ->paginated([5, 10, 25, 50])
+            ->paginated(false)
+            ->headerActions([
+                Action::make('viewRecentUploads')
+                    ->label('View all')
+                    ->icon(Heroicon::ArrowRight)
+                    ->color('primary')
+                    ->url(ReceiptUploadPage::getUrl().'#recent-uploads')
+                    ->button(),
+            ])
             ->columns([
                 FilenameDisplay::configureTextColumn(
                     TextColumn::make('original_filename')
                         ->label('Filename')
-                        ->searchable()
                         ->sortable()
                         ->weight(FontWeight::Medium)
                         ->color(fn (Invoice $record): ?string => filled($record->image_path) ? 'primary' : null)
@@ -71,7 +76,6 @@ class RecentReceipts extends BaseWidget
 
                 TextColumn::make('merchant_name')
                     ->label('Merchant')
-                    ->searchable()
                     ->sortable()
                     ->limit(20)
                     ->tooltip(function (TextColumn $column, ?string $state): ?string {
@@ -133,31 +137,6 @@ class RecentReceipts extends BaseWidget
                     ->url(
                         fn (Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record]),
                     ),
-            ])
-            ->filters([
-                SelectFilter::make('status')
-                    ->options([
-                        'pending' => 'Pending Parsing',
-                        'parsed' => 'Parsed by AI',
-                        'reviewed' => 'Reviewed',
-                        'requires_manual_review' => 'Requires Manual Review',
-                        'failed' => 'Parsing Failed',
-                    ])
-                    ->searchable(),
-
-                SelectFilter::make('source')
-                    ->options([
-                        'manual' => 'Manual',
-                        'whatsapp' => 'WhatsApp',
-                        'google_drive' => 'Google Drive',
-                    ])
-                    ->searchable(),
-
-                SelectFilter::make('payment_method_id')
-                    ->label('Payment Method')
-                    ->relationship('paymentMethod', 'name')
-                    ->searchable()
-                    ->preload(),
             ])
             ->emptyStateHeading('No receipts')
             ->emptyStateDescription('No receipts recorded for this month.')
