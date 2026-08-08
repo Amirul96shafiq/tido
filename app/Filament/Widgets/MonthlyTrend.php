@@ -55,9 +55,10 @@ class MonthlyTrend extends ChartWidget
     {
         $trend = $this->analytics()->trend(12);
         $selectedIndex = $trend['selected_index'];
+        $chartIndexes = array_keys($trend['data']);
         $pointColors = array_map(
             fn (int $index): string => $index === $selectedIndex ? '#FFA524' : '#FFD07D',
-            array_keys($trend['data']),
+            $chartIndexes,
         );
 
         return [
@@ -66,14 +67,22 @@ class MonthlyTrend extends ChartWidget
                     'label' => 'Spent (RM)',
                     'data' => $trend['data'],
                     'borderColor' => '#FFD07D',
-                    'backgroundColor' => 'rgba(255, 208, 125, 0.1)',
+                    'backgroundColor' => 'rgba(255, 208, 125, 0.18)',
+                    'borderWidth' => 3,
+                    'borderCapStyle' => 'round',
+                    'borderJoinStyle' => 'round',
+                    'tension' => 0.35,
+                    'cubicInterpolationMode' => 'monotone',
                     'pointBackgroundColor' => $pointColors,
                     'pointBorderColor' => $pointColors,
+                    'pointBorderWidth' => 2,
                     'pointRadius' => array_map(
-                        fn (int $index): int => $index === $selectedIndex ? 6 : 4,
-                        array_keys($trend['data']),
+                        fn (int $index): int => $index === $selectedIndex ? 6 : 3,
+                        $chartIndexes,
                     ),
+                    'pointHoverRadius' => 7,
                     'fill' => true,
+                    'spanGaps' => false,
                     'receiptCounts' => $trend['receipt_counts'],
                     'topLabelNames' => array_map(
                         fn (array $labels): array => array_column($labels, 'name'),
@@ -191,6 +200,9 @@ class MonthlyTrend extends ChartWidget
                             autoSkip: false,
                             font: { size: 10 },
                         },
+                    },
+                    y: {
+                        beginAtZero: true,
                     },
                 },
             }

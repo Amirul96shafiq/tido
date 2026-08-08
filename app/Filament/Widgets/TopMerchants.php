@@ -91,6 +91,12 @@ class TopMerchants extends ChartWidget
                     'label' => 'Total Spent (RM)',
                     'data' => $merchants->pluck('total_spent')->toArray(),
                     'backgroundColor' => '#FFD07D',
+                    'borderWidth' => 1,
+                    'borderRadius' => 6,
+                    'borderSkipped' => false,
+                    'barPercentage' => 0.7,
+                    'categoryPercentage' => 0.8,
+                    'maxBarThickness' => 52,
                     'merchantNames' => $names->toArray(),
                     'receiptCounts' => $merchants->pluck('receipt_count')->toArray(),
                     'avgSpends' => $merchants->pluck('avg_spend')->toArray(),
@@ -166,6 +172,9 @@ class TopMerchants extends ChartWidget
                             autoSkip: false,
                             font: { size: 10 },
                         },
+                    },
+                    y: {
+                        beginAtZero: true,
                     },
                 },
             }

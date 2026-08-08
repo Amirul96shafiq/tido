@@ -33,6 +33,7 @@ test('spending by payment method widget renders with axis labels', function () {
 
     Livewire::test(SpendingByPaymentMethod::class)
         ->assertSuccessful()
+        ->assertSee('borderRadius', false)
         ->assertSee('Cash (1)')
         ->assertSeeHtml('wire:poll.30s');
 });

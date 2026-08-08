@@ -86,6 +86,12 @@ class SpendingByPaymentMethod extends ChartWidget
                     'label' => 'Spent (RM)',
                     'data' => $methods->pluck('total')->toArray(),
                     'backgroundColor' => $methods->pluck('color')->toArray(),
+                    'borderWidth' => 1,
+                    'borderRadius' => 6,
+                    'borderSkipped' => false,
+                    'barPercentage' => 0.7,
+                    'categoryPercentage' => 0.8,
+                    'maxBarThickness' => 52,
                     'methodLabels' => $methods->pluck('label')->toArray(),
                     'receiptCounts' => $methods->pluck('receipt_count')->toArray(),
                     'spendSharePercents' => $methods->pluck('spend_share_percent')->toArray(),
@@ -173,6 +179,7 @@ class SpendingByPaymentMethod extends ChartWidget
                 },
                 scales: {
                     x: {
+                        beginAtZero: true,
                         ticks: {
                             callback: (value) => `RM ${value}`,
                         },

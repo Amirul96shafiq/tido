@@ -28,6 +28,7 @@ test('top merchants widget truncates long merchant labels', function () {
 
     Livewire::test(TopMerchants::class)
         ->assertSuccessful()
+        ->assertSee('borderRadius', false)
         ->assertSee('Cosmo Rest... (1)');
 });
 
