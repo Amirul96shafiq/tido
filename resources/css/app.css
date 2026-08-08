@@ -3851,28 +3851,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /* Keep the currency card filled to the height of the four-card overview column. */
-.tido-dashboard-page #currency-rate > .fi-grid,
-.tido-dashboard-page #currency-rate > .fi-grid > .fi-grid-col,
-.tido-dashboard-page #currency-rate > .fi-grid > .fi-grid-col > .fi-sc-component,
-.tido-dashboard-page #currency-rate > .fi-grid > .fi-grid-col > .fi-sc-component > .fi-sc-section,
-.tido-dashboard-page #currency-rate
-    > .fi-grid
-    > .fi-grid-col
-    > .fi-sc-component
-    > .fi-sc-section
-    > .fi-section,
-.tido-dashboard-page #currency-rate
-    > .fi-grid
-    > .fi-grid-col
-    > .fi-sc-component
-    > .fi-sc-section
-    > .fi-section
-    > .fi-section-content-ctn,
-.tido-dashboard-page #currency-rate
-    > .fi-grid
-    > .fi-grid-col
-    > .fi-sc-component
-    > .fi-sc-section
+.tido-dashboard-page #currency-rate.fi-wi-current-currency,
+.tido-dashboard-page #currency-rate.fi-wi-current-currency > .fi-section,
+.tido-dashboard-page #currency-rate.fi-wi-current-currency > .fi-section > .fi-section-content-ctn,
+.tido-dashboard-page #currency-rate.fi-wi-current-currency
     > .fi-section
     > .fi-section-content-ctn
     > .fi-section-content {
@@ -3880,21 +3862,12 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     height: 100%;
 }
 
-.tido-dashboard-page #currency-rate
-    > .fi-grid
-    > .fi-grid-col
-    > .fi-sc-component
-    > .fi-sc-section
+.tido-dashboard-page #currency-rate.fi-wi-current-currency
     > .fi-section
     > .fi-section-content-ctn
     > .fi-section-content {
-    grid-template-rows: minmax(0, 1fr);
-}
-
-.tido-dashboard-page #currency-rate .fi-section-content > .fi-grid-col,
-.tido-dashboard-page #currency-rate .fi-section-content > .fi-grid-col > .fi-sc-component,
-.tido-dashboard-page #currency-rate .fi-section-content > .fi-grid-col > .fi-sc-component > .fi-wi-stats-overview-stat {
-    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .fi-wi-chart-frame-no-aspect-ratio {
@@ -3905,6 +3878,12 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 .fi-wi-chart-frame-no-aspect-ratio:has(canvas[style*="max-height: 200px"]) {
     height: 200px;
     max-height: 200px;
+}
+
+.fi-wi-currency-rate-chart,
+.fi-wi-chart-frame-no-aspect-ratio:has(canvas[style*="max-height: 150px"]) {
+    height: 150px;
+    max-height: 150px;
 }
 
 .fi-wi-chart-frame-no-aspect-ratio canvas {

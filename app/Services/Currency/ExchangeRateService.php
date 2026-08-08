@@ -72,6 +72,62 @@ final class ExchangeRateService
     }
 
     /**
+     * @return list<array{date: string, rate: float}>
+     */
+    public function series(string $baseCurrency, string $targetCurrency, int $days = 30): array
+    {
+        $days = max(1, $days);
+        $providerName = (string) config('services.currencyapi.provider', CurrencyApiExchangeRateProvider::NAME);
+        $cacheKey = implode(':', [
+            'currency-rate',
+            $providerName,
+            strtoupper($baseCurrency),
+            strtoupper($targetCurrency),
+            'series',
+            (string) $days,
+        ]);
+        $ttl = max(60, (int) config('services.currencyapi.cache_ttl', 86400));
+
+        /** @var list<array{date: string, rate: float}> $points */
+        $points = Cache::remember(
+            $cacheKey,
+            now()->addSeconds($ttl),
+            function () use ($baseCurrency, $targetCurrency, $days): array {
+                $series = [];
+
+                for ($offset = $days - 1; $offset >= 0; $offset--) {
+                    $date = now()->startOfDay()->subDays($offset);
+
+                    try {
+                        $rateDetails = $this->rate($baseCurrency, $targetCurrency, $date);
+                    } catch (CurrencyConversionException) {
+                        continue;
+                    }
+
+                    if (! $this->isUsableRate($rateDetails)) {
+                        continue;
+                    }
+
+                    $series[] = [
+                        'date' => $date->toDateString(),
+                        'rate' => (float) $rateDetails['rate'],
+                    ];
+                }
+
+                if ($series === []) {
+                    throw new CurrencyConversionException(
+                        'No exchange-rate history is available for the requested period.',
+                    );
+                }
+
+                return $series;
+            },
+        );
+
+        return $points;
+    }
+
+    /**
      * @param  callable(): array{
      *     rate: float,
      *     effective_date: string,

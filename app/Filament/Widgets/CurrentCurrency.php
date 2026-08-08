@@ -8,15 +8,19 @@ use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Services\Currency\CurrencyConversionException;
 use App\Services\Currency\ExchangeRateService;
 use Carbon\Carbon;
-use Filament\Widgets\StatsOverviewWidget;
-use Filament\Widgets\StatsOverviewWidget\Stat;
+use Filament\Support\RawJs;
+use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Log;
 
-class CurrentCurrency extends StatsOverviewWidget
+class CurrentCurrency extends Widget
 {
     use HasDashboardSectionId;
 
     public const SECTION_CURRENCY_RATE = 'currency-rate';
+
+    public const SERIES_DAYS = 30;
+
+    public const CHART_HEIGHT = '150px';
 
     protected static ?int $sort = 2;
 
@@ -30,50 +34,147 @@ class CurrentCurrency extends StatsOverviewWidget
         'xl' => 6,
     ];
 
-    protected int|array|null $columns = 1;
-
-    protected ?string $pollingInterval = null;
-
     /**
      * @var view-string
      */
-    protected string $view = 'filament.widgets.stats-overview-with-section-id';
+    protected string $view = 'filament.widgets.current-currency';
 
     public static function dashboardSectionId(): string
     {
         return self::SECTION_CURRENCY_RATE;
     }
 
-    protected function getPollingInterval(): ?string
-    {
-        return null;
-    }
-
-    protected function getStats(): array
+    /**
+     * @return array{
+     *     unavailable: bool,
+     *     rate: float|null,
+     *     rateDisplay: string|null,
+     *     effectiveDate: string|null,
+     *     provider: string|null,
+     *     chartLabels: list<string>,
+     *     chartRates: list<float>,
+     *     hasChart: bool,
+     *     chartHeight: string,
+     * }
+     */
+    protected function getViewData(): array
     {
         $rateDetails = $this->resolveRateDetails();
 
         if (($rateDetails['unavailable'] ?? false) || ! isset($rateDetails['rate'])) {
             return [
-                Stat::make('USD to MYR', 'Unavailable')
-                    ->description('Current exchange rate unavailable')
-                    ->descriptionIcon('heroicon-m-exclamation-triangle')
-                    ->color('gray'),
+                'unavailable' => true,
+                'rate' => null,
+                'rateDisplay' => null,
+                'effectiveDate' => null,
+                'provider' => null,
+                'chartLabels' => [],
+                'chartRates' => [],
+                'hasChart' => false,
+                'chartHeight' => self::CHART_HEIGHT,
             ];
         }
 
-        $effectiveDate = Carbon::parse((string) $rateDetails['effective_date'])
-            ->format('d M Y');
+        $series = $this->resolveSeries();
+        $chartLabels = array_map(
+            static fn (array $point): string => Carbon::parse($point['date'])->format('d M'),
+            $series,
+        );
+        $chartRates = array_map(
+            static fn (array $point): float => (float) $point['rate'],
+            $series,
+        );
 
         return [
-            Stat::make(
-                'USD to MYR',
-                'RM '.number_format((float) $rateDetails['rate'], 4, '.', ','),
-            )
-                ->description('1 USD as of '.$effectiveDate.' via '.$rateDetails['provider'])
-                ->descriptionIcon('heroicon-m-arrow-right')
-                ->color('info'),
+            'unavailable' => false,
+            'rate' => (float) $rateDetails['rate'],
+            'rateDisplay' => 'RM '.number_format((float) $rateDetails['rate'], 4, '.', ','),
+            'effectiveDate' => Carbon::parse((string) $rateDetails['effective_date'])->format('d M Y'),
+            'provider' => (string) $rateDetails['provider'],
+            'chartLabels' => $chartLabels,
+            'chartRates' => $chartRates,
+            'hasChart' => $chartRates !== [],
+            'chartHeight' => self::CHART_HEIGHT,
         ];
+    }
+
+    /**
+     * @return array{datasets: list<array<string, mixed>>, labels: list<string>}
+     */
+    public function getChartData(): array
+    {
+        $viewData = $this->getViewData();
+
+        return [
+            'datasets' => [
+                [
+                    'label' => 'USD to MYR',
+                    'data' => $viewData['chartRates'],
+                    'borderColor' => '#38BDF8',
+                    'backgroundColor' => 'rgba(56, 189, 248, 0.18)',
+                    'borderWidth' => 2,
+                    'borderCapStyle' => 'round',
+                    'borderJoinStyle' => 'round',
+                    'tension' => 0.35,
+                    'cubicInterpolationMode' => 'monotone',
+                    'pointRadius' => 0,
+                    'pointHoverRadius' => 4,
+                    'pointBackgroundColor' => '#38BDF8',
+                    'pointBorderColor' => '#38BDF8',
+                    'fill' => true,
+                    'spanGaps' => true,
+                ],
+            ],
+            'labels' => $viewData['chartLabels'],
+        ];
+    }
+
+    public function getChartOptions(): RawJs
+    {
+        return RawJs::make(<<<'JS'
+            {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (item) => {
+                                const value = item.parsed?.y ?? item.raw ?? 0;
+                                const numeric = Number(value);
+
+                                if (!Number.isFinite(numeric)) {
+                                    return 'Rate unavailable';
+                                }
+
+                                return `1 USD = RM ${numeric.toFixed(4)}`;
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            maxRotation: 0,
+                            minRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 6,
+                            font: { size: 10 },
+                        },
+                        grid: {
+                            display: false,
+                        },
+                    },
+                    y: {
+                        ticks: {
+                            font: { size: 10 },
+                            callback: (value) => Number(value).toFixed(2),
+                        },
+                    },
+                },
+            }
+        JS);
     }
 
     /**
@@ -97,6 +198,22 @@ class CurrentCurrency extends StatsOverviewWidget
             return [
                 'unavailable' => true,
             ];
+        }
+    }
+
+    /**
+     * @return list<array{date: string, rate: float}>
+     */
+    private function resolveSeries(): array
+    {
+        try {
+            return app(ExchangeRateService::class)->series('USD', 'MYR', self::SERIES_DAYS);
+        } catch (CurrencyConversionException $exception) {
+            Log::warning('Currency widget series unavailable', [
+                'reason' => $exception->getMessage(),
+            ]);
+
+            return [];
         }
     }
 }

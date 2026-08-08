@@ -188,7 +188,7 @@ test('dashboard currency card fills the shared overview row', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
     expect($css)
-        ->toContain('.tido-dashboard-page #currency-rate > .fi-grid')
-        ->toContain('.tido-dashboard-page #currency-rate .fi-section-content > .fi-grid-col')
-        ->toContain('grid-template-rows: minmax(0, 1fr);');
+        ->toContain('.tido-dashboard-page #currency-rate.fi-wi-current-currency')
+        ->toContain('.tido-dashboard-page #currency-rate.fi-wi-current-currency > .fi-section')
+        ->toContain('.fi-wi-currency-rate-chart');
 });
