@@ -32,6 +32,9 @@ test('monthly trend widget renders with enriched chart data', function () {
         ->assertSee('tension', false)
         ->assertSee('cubicInterpolationMode', false)
         ->assertSee('fill', false)
+        ->assertSee("pointStyle: 'circle'", false)
+        ->assertSee('pointStyleWidth: 14', false)
+        ->assertSee('boxHeight: 10', false)
         ->assertSee('font: { size: 10 }', false)
         ->assertSee("'Top 3 Labels'", false);
 });

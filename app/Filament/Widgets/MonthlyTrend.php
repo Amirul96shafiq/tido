@@ -113,6 +113,15 @@ class MonthlyTrend extends ChartWidget
             {
                 maintainAspectRatio: false,
                 plugins: {
+                    legend: {
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            pointStyleWidth: 14,
+                            boxWidth: 16,
+                            boxHeight: 10,
+                        },
+                    },
                     tooltip: {
                         callbacks: {
                             label: (item) => {
