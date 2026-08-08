@@ -3897,6 +3897,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     z-index: 10;
 }
 
+/* Keep the Active Sessions header below the profile's sticky section tabs. */
+.fi-profile-page #active-sessions .fi-ta-table > thead {
+    z-index: 5;
+}
+
 .fi-ta-table > thead > tr {
     background-color: var(--color-gray-50, #f9fafb);
 }

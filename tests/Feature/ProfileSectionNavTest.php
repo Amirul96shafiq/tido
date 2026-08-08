@@ -22,6 +22,18 @@ test('profile page renders top and bottom sticky blur markers', function () {
         ->assertSee('tido-sticky-marker--bottom', false);
 });
 
+test('active sessions table header stays below sticky profile tabs', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    preg_match(
+        '/\.fi-profile-page\s+#active-sessions\s+\.fi-ta-table\s*>\s*thead\s*\{(?P<declarations>.*?)\}/s',
+        $css,
+        $matches,
+    );
+
+    expect($matches['declarations'] ?? null)->toContain('z-index: 5;');
+});
+
 test('profile section nav lists main column sections as anchor tabs', function () {
     Livewire::test(EditProfile::class)
         ->assertSuccessful()
