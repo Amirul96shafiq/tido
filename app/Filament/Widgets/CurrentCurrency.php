@@ -97,15 +97,21 @@ class CurrentCurrency extends Widget
         );
         $seriesStats = $this->summarizeSeries($chartRates);
 
+        $effectiveAt = Carbon::parse((string) $rateDetails['effective_date'], 'Asia/Kuala_Lumpur')
+            ->startOfDay();
+        $provider = (string) $rateDetails['provider'];
+
         return [
             'unavailable' => false,
             'rate' => (float) $rateDetails['rate'],
             'rateDisplay' => '1 USD = RM '.number_format((float) $rateDetails['rate'], 4, '.', ','),
-            'effectiveDate' => Carbon::parse((string) $rateDetails['effective_date'])->format('d M Y'),
-            'provider' => (string) $rateDetails['provider'],
-            'sourceDisplay' => Carbon::parse((string) $rateDetails['effective_date'])->format('d M Y')
+            'effectiveDate' => $effectiveAt->format('d M Y'),
+            'provider' => $provider,
+            'sourceDisplay' => $effectiveAt->format('d M Y')
                 .' • '
-                .(string) $rateDetails['provider'],
+                .$effectiveAt->format('H:i:s')
+                .' GMT+8 • '
+                .$provider,
             'chartRates' => $chartRates,
             'hasChart' => $chartRates !== [],
             ...$seriesStats,

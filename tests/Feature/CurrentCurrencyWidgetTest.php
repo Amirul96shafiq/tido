@@ -53,7 +53,7 @@ test('currency widget renders the current usd to myr rate with provider context'
         ->assertSuccessful()
         ->assertSee('USD to MYR')
         ->assertSee('1 USD = RM 4.5123')
-        ->assertSee('08 Jul 2026 • currencyapi')
+        ->assertSee('08 Jul 2026 • 00:00:00 GMT+8 • currencyapi')
         ->assertDontSee('1 USD as of 08 Jul 2026 via currencyapi')
         ->assertSee('0.0000 (0.00%) 30D')
         ->assertSee('Low')
@@ -128,7 +128,7 @@ test('currency widget shows last good rate when the live provider is unreachable
         ->assertSuccessful()
         ->assertSee('USD to MYR')
         ->assertSee('1 USD = RM 4.0910')
-        ->assertSee('07 Aug 2026 • currencyapi')
+        ->assertSee('07 Aug 2026 • 00:00:00 GMT+8 • currencyapi')
         ->assertDontSee('1 USD as of 07 Aug 2026 via currencyapi')
         ->assertDontSee('Unavailable');
 });
@@ -148,7 +148,7 @@ test('currency widget shows rate history unavailable when the series cannot be l
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
         ->assertSee('1 USD = RM 4.2500')
-        ->assertSee('08 Aug 2026 • currencyapi')
+        ->assertSee('08 Aug 2026 • 00:00:00 GMT+8 • currencyapi')
         ->assertSee('Rate history unavailable')
         ->assertDontSee('fi-wi-currency-rate-sparkline')
         ->assertDontSee('statsOverviewStatChart')
