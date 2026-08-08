@@ -58,8 +58,9 @@ test('currency widget renders the current usd to myr rate with provider context'
         ->assertSee('MYR')
         ->assertSee("usd: '1'", false)
         ->assertSee('4.5123')
-        ->assertSee('30-day trend')
-        ->assertSee('aria-label="USD to MYR exchange rate over the last 30 days"', false)
+        ->assertSee('sm:grid-cols-2', false)
+        ->assertSee('fi-wi-currency-rate-sparkline', false)
+        ->assertSee('statsOverviewStatChart', false)
         ->assertSee('Swap currencies');
 
     Http::assertSent(function ($request): bool {
@@ -78,8 +79,8 @@ test('currency widget renders an unavailable state when the provider is not conf
         ->assertSuccessful()
         ->assertSee('Unavailable')
         ->assertSee('Current exchange rate unavailable')
-        ->assertDontSee('30-day trend')
-        ->assertDontSee('Swap currencies');
+        ->assertDontSee('Swap currencies')
+        ->assertDontSee('fi-wi-currency-rate-sparkline');
 });
 
 test('currency widget uses half-width desktop layout', function () {
@@ -137,7 +138,7 @@ test('currency widget shows rate history unavailable when the series cannot be l
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
         ->assertSee('RM 4.2500')
-        ->assertSee('30-day trend')
         ->assertSee('Rate history unavailable')
-        ->assertDontSee('aria-label="USD to MYR exchange rate over the last 30 days"', false);
+        ->assertDontSee('fi-wi-currency-rate-sparkline')
+        ->assertDontSee('statsOverviewStatChart');
 });
