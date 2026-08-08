@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Services\Currency\CurrencyApiExchangeRateProvider;
+use App\Services\Currency\CurrencyConversionException;
 use App\Services\Currency\CurrencyConversionService;
 use App\Services\Currency\ExchangeRateService;
 use Carbon\Carbon;
@@ -17,6 +18,7 @@ beforeEach(function (): void {
         'services.currencyapi.provider' => 'currencyapi',
         'services.currencyapi.api_key' => 'test-key',
         'services.currencyapi.base_url' => 'https://currencyapi.test',
+        'services.currencyapi.cainfo' => null,
         'services.currencyapi.retry_delays' => [0, 0],
     ]);
 });
@@ -62,6 +64,36 @@ test('exchange rate service caches the same source date lookup', function () {
 
     expect($first)->toBe($second);
     Http::assertSentCount(1);
+});
+
+test('currency api provider explains rejected credentials', function () {
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/historical*' => Http::response([], 401),
+    ]);
+
+    expect(fn (): array => (new CurrencyApiExchangeRateProvider)->rate(
+        'USD',
+        'MYR',
+        Carbon::parse('2026-07-08', 'Asia/Kuala_Lumpur'),
+    ))->toThrow(
+        CurrencyConversionException::class,
+        'The exchange-rate provider rejected the configured API key.',
+    );
+});
+
+test('currency api provider rejects an unreadable configured ca bundle', function () {
+    config(['services.currencyapi.cainfo' => 'C:/missing/tido-cacert.pem']);
+    Http::preventStrayRequests();
+
+    expect(fn (): array => (new CurrencyApiExchangeRateProvider)->rate(
+        'USD',
+        'MYR',
+        Carbon::parse('2026-07-08', 'Asia/Kuala_Lumpur'),
+    ))->toThrow(
+        CurrencyConversionException::class,
+        'The configured exchange-rate CA bundle could not be found or read.',
+    );
 });
 
 test('currency conversion converts every money field with one rate', function () {

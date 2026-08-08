@@ -53,6 +53,7 @@ return [
         'api_key' => env('CURRENCY_API_KEY'),
         'timeout' => (int) env('CURRENCY_API_TIMEOUT', 10),
         'connect_timeout' => (int) env('CURRENCY_API_CONNECT_TIMEOUT', 3),
+        'cainfo' => env('CURRENCY_API_CAINFO'),
         'retry_delays' => [100, 500, 1000],
         'cache_ttl' => (int) env('CURRENCY_API_CACHE_TTL', 86400),
     ],
