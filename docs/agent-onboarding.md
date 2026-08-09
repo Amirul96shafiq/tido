@@ -52,7 +52,7 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 12. Sticky section tabs + smooth scroll: `docs/ui-section-nav.md` (Finances widget jump tabs — not dashboard view tabs)
 13. Icon CTA tooltips (Filament Tippy, not browser `title`): `docs/ui-tooltips.md`
 14. Single-line text marquee (overflow RTL scroll): `docs/ui-text-marquee.md`
-15. Dark theme (Slate surfaces / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
+15. Dark theme (Slate surfaces / 1px borders without elevation shadows / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
 16. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
 17. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
 18. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
@@ -141,7 +141,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 11. Resource tables use `updated_at` for **Edited At** (`->since()->dateTimeTooltip()` with relative time + full datetime on hover), default newest-first ordering, and **Edited By** for the latest authenticated editor (`display_name` → `name` fallback). See `docs/resource-edit-audit.md`.
 12. Illustrated empty panels: Filament **tables** use `emptyStateHeading` / `Description` / `Icon` / optional `Actions` (see `docs/ui-empty-states.md` — Filament tables section); custom Blade / filtered drawers use `<x-empty-state-panel>` (pattern from `errors/email-change-expired.blade.php`)
 13. Custom Alpine / Blade icon CTAs: use `x-tooltip` + `theme: $store.theme` (never bare `title=`). High-z custom modals (restore backup at `z-index: 99999`) must set Tippy `zIndex: 100000` — see `docs/ui-tooltips.md`
-14. Dark theme surfaces: Slate with slate-800 chrome — see `docs/ui-dark-theme.md` (do not reintroduce Zinc / `#333` tooltips, or white text on solid gold CTAs)
+14. Dark theme surfaces: Slate with slate-800 chrome — see `docs/ui-dark-theme.md` (do not reintroduce Zinc / `#333` tooltips, white text on solid gold CTAs, or elevation drop shadows as panel borders)
 15. UI copy: impersonal voice — no *we* / *you* / *your* in headings, descriptions, notifications; see `docs/ui-copy-style.md`
 16. Resource edit audit (`edited_by`, **Edited By**, **Edited At**): see `docs/resource-edit-audit.md`
 17. Backups / Danger Zone / guest restore: see `docs/backups-and-danger-zone.md` — do not invent a second restore path

@@ -52,7 +52,7 @@ app/Filament/Resources/{Plural}/
 - `created_at` columns: `->since()->dateTimeTooltip()`
 - Notes fields: `NotesRichEditor` for `notes` columns
 - Empty states: `docs/ui-empty-states.md`
-- Dark theme: Slate surfaces — `docs/ui-dark-theme.md`
+- Dark theme: Slate surfaces, 1px borders without elevation shadows — `docs/ui-dark-theme.md`
 - Copy: impersonal voice — no we/you/your — `docs/ui-copy-style.md`
 - Sticky blur: `docs/ui-sticky-blur.md`
 - Form placeholders vs defaults: `docs/ui-form-empty-defaults.md`

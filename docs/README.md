@@ -23,7 +23,7 @@
 | [ui-notes-rich-editor.md](ui-notes-rich-editor.md) | Agents + humans | Shared `NotesRichEditor` for `notes` fields (toolbar + height) |
 | [ui-form-empty-defaults.md](ui-form-empty-defaults.md) | Agents + humans | Placeholders vs defaults on resource Create/Edit forms |
 | [ui-custom-toggles.md](ui-custom-toggles.md) | Agents + humans | Custom Blade toggles: Filament color classes + inlineLabel layout |
-| [ui-dark-theme.md](ui-dark-theme.md) | Agents + humans | Dark mode Slate surfaces, tooltips, scrollbars, solid CTA text |
+| [ui-dark-theme.md](ui-dark-theme.md) | Agents + humans | Dark mode Slate surfaces, borders without elevation shadows, tooltips, scrollbars, solid CTA text |
 | [ui-copy-style.md](ui-copy-style.md) | Agents + humans | Impersonal UI voice (no we/you); auth and panel copy |
 | [content-draft-recovery.md](content-draft-recovery.md) | Agents + humans | Auto-save drafts + crash recovery on Filament Create/Edit |
 | [resource-edit-audit.md](resource-edit-audit.md) | Agents + humans | Resource Edited By / Edited At attribution and table recency |

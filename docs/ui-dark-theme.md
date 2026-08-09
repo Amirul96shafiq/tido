@@ -45,6 +45,25 @@ PHP’s array spread **reindexes integer keys** (`50` → `0`, etc.). Filament t
 
 Light mode is unchanged: white / gray surfaces; Tippy `light` theme stays white.
 
+## Borders & elevation
+
+Surface separation uses **1px borders**, not drop shadows. Apply the same tokens on panel chrome and nested panels/menus so light and dark stay consistent.
+
+| Mode | Border token | Notes |
+|------|--------------|--------|
+| Light | `var(--color-gray-100)` (or Filament `border-gray-100` / equivalent) | Restrained outline on white / gray surfaces |
+| Dark | `color-mix(in srgb, var(--color-slate-700) 60%, transparent)` | Same mix as sidebar/topbar/account-switcher borders |
+| Form fields (dark) | `ring-white/10` on solid `gray-900` | Documented above — ring stands in for the border look on inputs |
+
+**Do not** add elevation `box-shadow` / Tailwind `shadow-*` on chrome, nested panels, or menus to fake a border. Prefer `box-shadow: none` when overriding Filament defaults that add soft elevation.
+
+Reference implementations in `resources/css/app.css`:
+
+- `.fi-sidebar` / `.fi-topbar` — 1px border + `box-shadow: none`
+- `.fi-account-switcher-section` / `.fi-account-switcher-expanded` — same light/dark border tokens, no elevation shadow
+
+**Allowed exceptions:** focus rings (`focus:ring-*`) and intentional modal/toast elevation that already exists (e.g. login toast). Do not extend those shadows to nested user-menu panels or new chrome.
+
 ## Solid CTA buttons (primary gold)
 
 Pale brand golds (`primary` `#FFD07D`, and similarly `success` / `info`) make Filament’s default solid-button map pick **white** text on `dark:bg` shade `600`. That fails WCAG AA and looks washed out on CTAs (Sign in, New budget, Upload, etc.).
@@ -75,6 +94,7 @@ Custom solid buttons outside Filament should use `text-primary-950` (or `900`) o
 5. **Scrollable panels** — Add `custom-scrollbar` on custom `overflow-y-auto` regions. Changelog and database notification slide-overs scroll on Filament’s `.fi-modal-window` — those are themed in `app.css` (do not put `custom-scrollbar` on an inner non-scrolling list). Filament `.fi-dropdown-panel` scrollbars are already themed.
 6. **Hardcoded utilities** — Prefer `slate-*` (or Filament `gray-*`) over `zinc-*` for new dark-mode classes in Blade/CSS.
 7. **Solid gold CTAs** — Rely on `ButtonComponent` for Filament buttons; do not reintroduce white label text on primary fills in dark mode.
+8. **Borders & elevation** — Separate surfaces with the 1px light/dark border tokens above. Do not use drop shadows as a “shadow border” on chrome or nested panels (see **Borders & elevation**).
 
 ## Hex / RGB cheatsheet
 
