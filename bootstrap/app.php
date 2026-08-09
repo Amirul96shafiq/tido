@@ -28,11 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
             $path = $request->getPathInfo();
 
             if (str_contains($path, '/email-change-verification/verify/')) {
-                return response()->view('errors.email-change-expired', [], 403);
+                return redirect()->route('filament.admin.auth.email-change-verification.expired');
             }
 
             if (str_contains($path, '/password-reset/reset')) {
-                return response()->view('errors.password-reset-expired', [], 403);
+                return redirect()->route('filament.admin.auth.password-reset.expired');
             }
         });
     })->create();

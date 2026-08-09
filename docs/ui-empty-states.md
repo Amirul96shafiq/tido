@@ -4,9 +4,9 @@ Canonical pattern for illustrated “nothing here” panels in tido.
 
 ## Reference implementation
 
-**Source of truth (standalone page):** [`resources/views/errors/email-change-expired.blade.php`](../resources/views/errors/email-change-expired.blade.php)
+**Source of truth (in-panel):** [`resources/views/components/empty-state-panel.blade.php`](../resources/views/components/empty-state-panel.blade.php)
 
-That page established the visual language:
+That component established the visual language:
 
 1. Circular icon well with soft tinted background  
 2. Pulsing ring around the icon (custom panels; tables/charts use a **static** well)  
@@ -14,9 +14,9 @@ That page established the visual language:
 4. Short supporting description  
 5. Primary CTA when the next step is not already on the page  
 
-**Reusable Filament/panel component:** [`resources/views/components/empty-state-panel.blade.php`](../resources/views/components/empty-state-panel.blade.php)
-
 Styles live under `.fi-no-empty-panel*` in [`resources/css/app.css`](../resources/css/app.css) (light + dark). Table empties use `.fi-ta-empty-state*` (same visual contract, static icon).
+
+**Auth link-expired screens** (`PasswordResetLinkExpired`, `EmailChangeLinkExpired`) use Filament’s simple auth layout (split background, auth menu, primary button) — not `<x-empty-state-panel>`.
 
 ## When to use which pattern
 
@@ -119,7 +119,7 @@ Do not invent a second empty layout for tables.
 | Surface | File |
 |---------|------|
 | Database notifications — filtered/search empty | `resources/views/filament/livewire/database-notifications.blade.php` |
-| Email change link expired | `resources/views/errors/email-change-expired.blade.php` (standalone HTML; keep in sync visually) |
+| Auth link expired (password reset / email change) | `app/Filament/Pages/Auth/PasswordResetLinkExpired.php`, `EmailChangeLinkExpired.php` (Filament simple layout; not empty-state-panel) |
 | Dashboard chart widgets (empty month) | `resources/views/filament/widgets/chart-with-empty-state.blade.php` + `HasChartEmptyState` |
 | Expenses list | `app/Filament/Resources/Expenses/Tables/ExpensesTable.php` |
 | Budgets list | `app/Filament/Resources/Budgets/Tables/BudgetsTable.php` |

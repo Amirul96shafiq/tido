@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Filament\Pages\Auth\EmailChangeLinkExpired;
 use App\Models\User;
 use App\Notifications\VerifyEmailChange;
 use App\Support\EmailChangeVerification;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Uri;
+use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -46,8 +48,14 @@ test('email change verify url expires after configured seconds', function (): vo
     $this->travel(31)->seconds();
 
     $this->get($url)
-        ->assertForbidden()
-        ->assertSee('Verification Link Expired', false);
+        ->assertRedirect(route('filament.admin.auth.email-change-verification.expired'));
+
+    $this->followingRedirects()
+        ->get($url)
+        ->assertSuccessful()
+        ->assertSee('Verification Link Expired', false)
+        ->assertSee('fi-auth-menu', false)
+        ->assertSee('Return to Profile Settings', false);
 });
 
 test('email change verify url is valid within configured seconds', function (): void {
@@ -86,11 +94,24 @@ test('expire label formats days for production lifetime', function (): void {
     expect(EmailChangeVerification::expireLabel())->toBe('3 days');
 });
 
-test('invalid signature on email change verify path shows expired page', function (): void {
+test('invalid signature on email change verify path redirects to expired page', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
     $this->get('/admin/email-change-verification/verify/1/fake')
-        ->assertForbidden()
-        ->assertSee('Verification Link Expired', false);
+        ->assertRedirect(route('filament.admin.auth.email-change-verification.expired'));
+});
+
+test('email change link expired page shows auth chrome and cta', function (): void {
+    $this->get(route('filament.admin.auth.email-change-verification.expired'))
+        ->assertSuccessful()
+        ->assertSee('Verification Link Expired', false)
+        ->assertSee('Return to Profile Settings', false)
+        ->assertSee('fi-simple-layout', false)
+        ->assertSee('fi-auth-menu', false)
+        ->assertSee('fi-theme-switcher', false);
+
+    Livewire::test(EmailChangeLinkExpired::class)
+        ->assertSee('Verification Link Expired')
+        ->assertSee('Return to Profile Settings');
 });
