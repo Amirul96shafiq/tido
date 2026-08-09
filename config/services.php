@@ -56,6 +56,10 @@ return [
         'cainfo' => env('CURRENCY_API_CAINFO'),
         'retry_delays' => [100, 500, 1000],
         'cache_ttl' => (int) env('CURRENCY_API_CACHE_TTL', 86400),
+        // Sparkline samples (not one request per day). Free tier has no /v3/range.
+        'series_max_points' => (int) env('CURRENCY_API_SERIES_MAX_POINTS', 7),
+        // Series changes slowly; keep longer than latest to protect monthly quota.
+        'series_cache_ttl' => (int) env('CURRENCY_API_SERIES_CACHE_TTL', 604800),
     ],
 
     'documents' => [
