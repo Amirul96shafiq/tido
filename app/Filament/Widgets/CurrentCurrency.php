@@ -192,22 +192,39 @@ class CurrentCurrency extends Widget
      */
     private function resolveRateDetails(): array
     {
+        $exchangeRates = app(ExchangeRateService::class);
+
         try {
-            $rateDetails = app(ExchangeRateService::class)->cachedLatest('USD', 'MYR');
+            $rateDetails = $exchangeRates->cachedLatest('USD', 'MYR');
 
             return [
                 'rate' => (float) $rateDetails['rate'],
                 'effective_date' => (string) $rateDetails['effective_date'],
                 'provider' => (string) $rateDetails['provider'],
             ];
-        } catch (CurrencyConversionException $exception) {
-            Log::warning('Currency widget rate unavailable', [
-                'reason' => $exception->getMessage(),
-            ]);
+        } catch (CurrencyConversionException $cacheMiss) {
+            try {
+                $rateDetails = $exchangeRates->refreshDashboardRates(
+                    'USD',
+                    'MYR',
+                    self::SERIES_DAYS,
+                )['latest'];
 
-            return [
-                'unavailable' => true,
-            ];
+                return [
+                    'rate' => (float) $rateDetails['rate'],
+                    'effective_date' => (string) $rateDetails['effective_date'],
+                    'provider' => (string) $rateDetails['provider'],
+                ];
+            } catch (CurrencyConversionException $exception) {
+                Log::warning('Currency widget rate unavailable', [
+                    'reason' => $exception->getMessage(),
+                    'cache_reason' => $cacheMiss->getMessage(),
+                ]);
+
+                return [
+                    'unavailable' => true,
+                ];
+            }
         }
     }
 

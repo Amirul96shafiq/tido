@@ -95,8 +95,28 @@ test('currency widget renders the current usd to myr rate with provider context'
         ->and(Http::recorded())->toHaveCount(count($sentAfterPrime));
 });
 
-test('currency widget renders an unavailable state when no cached rate exists', function () {
+test('currency widget self-heals by refreshing when no cached rate exists', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00', 'Asia/Kuala_Lumpur'));
+
     Http::preventStrayRequests();
+    Http::fake(fakeCurrencyWidgetHttp(4.2500, '2026-08-08T10:15:00Z'));
+
+    Livewire::test(CurrentCurrency::class)
+        ->assertSuccessful()
+        ->assertSee('USD to MYR')
+        ->assertSee('1 USD = RM 4.2500')
+        ->assertDontSee('Unavailable')
+        ->assertSee('Swap currencies');
+
+    expect(app(ExchangeRateService::class)->cachedLatest('USD', 'MYR')['rate'])->toBe(4.25);
+});
+
+test('currency widget renders an unavailable state when cache and refresh both fail', function () {
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/latest*' => Http::response([], 500),
+        'https://currencyapi.test/v3/historical*' => Http::response([], 500),
+    ]);
 
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
@@ -105,7 +125,7 @@ test('currency widget renders an unavailable state when no cached rate exists', 
         ->assertDontSee('Swap currencies')
         ->assertDontSee('fi-wi-currency-rate-sparkline');
 
-    Http::assertNothingSent();
+    Http::assertSentCount(3);
 });
 
 test('currency widget uses half-width desktop layout', function () {
