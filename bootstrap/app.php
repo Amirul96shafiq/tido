@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Exceptions\InvalidSignatureException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -34,5 +35,17 @@ return Application::configure(basePath: dirname(__DIR__))
             if (str_contains($path, '/password-reset/reset')) {
                 return redirect()->route('filament.admin.auth.password-reset.expired');
             }
+        });
+
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return null;
+            }
+
+            if ($request->routeIs('filament.admin.auth.not-found')) {
+                return null;
+            }
+
+            return redirect()->route('filament.admin.auth.not-found');
         });
     })->create();

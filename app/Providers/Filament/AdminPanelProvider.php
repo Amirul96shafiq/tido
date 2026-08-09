@@ -9,6 +9,7 @@ use App\Filament\Livewire\DatabaseNotifications;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\EmailChangeLinkExpired;
 use App\Filament\Pages\Auth\Login;
+use App\Filament\Pages\Auth\NotFound;
 use App\Filament\Pages\Auth\PasswordResetLinkExpired;
 use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Auth\ResetPassword;
@@ -135,6 +136,7 @@ class AdminPanelProvider extends PanelProvider
                     ResetPassword::class,
                     PasswordResetLinkExpired::class,
                     EmailChangeLinkExpired::class,
+                    NotFound::class,
                 ],
             )
             ->renderHook(
@@ -422,11 +424,14 @@ class AdminPanelProvider extends PanelProvider
                         ->name('password-reset.expired');
                     Route::get('/email-change-verification/expired', EmailChangeLinkExpired::class)
                         ->name('email-change-verification.expired');
+                    Route::get('/not-found', NotFound::class)
+                        ->name('not-found');
                 });
             })
             ->livewireComponents([
                 PasswordResetLinkExpired::class,
                 EmailChangeLinkExpired::class,
+                NotFound::class,
             ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
