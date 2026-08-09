@@ -35,7 +35,7 @@ Dashboard **Finances** widgets live in `app/Filament/Widgets/`. Month filtering 
 
 ## Content draft recovery
 
-Create/Edit resource pages use `App\Filament\Concerns\RecoversContentDraft` (Invoices, Labels, Budgets). See `docs/content-draft-recovery.md` when adding a new Create/Edit page: trait + `contentDraftKey()` + register the page in `AdminPanelProvider` `PAGE_END` poller scopes.
+Create/Edit resource pages use `App\Filament\Concerns\RecoversContentDraft` (Expenses, Labels, Budgets). See `docs/content-draft-recovery.md` when adding a new Create/Edit page: trait + `contentDraftKey()` + register the page in `AdminPanelProvider` `PAGE_END` poller scopes.
 
 ## Sticky form actions (bottom blur)
 
@@ -59,7 +59,7 @@ Prefer native `Toggle::make()`. When a custom Alpine toggle is required (e.g. Fi
 
 ## Edit page title
 
-Every `EditRecord` page must use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the heading ends with the singular model label (e.g. `Edit Overall Budget · Monthly 2026 Budget`, `Edit Food & Dining Label`, `Edit Starbucks Invoice`). The record-title segment is highlighted with primary color (`text-primary-600 dark:text-primary-400`). Does not apply to Create pages, List pages, or `EditProfile`.
+Every `EditRecord` page must use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the heading ends with the singular model label (e.g. `Edit Overall Budget · Monthly 2026 Budget`, `Edit Food & Dining Label`, `Edit Starbucks Expense`). The record-title segment is highlighted with primary color (`text-primary-600 dark:text-primary-400`). Does not apply to Create pages, List pages, or `EditProfile`.
 
 ## Global search (Global Search Modal)
 

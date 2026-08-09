@@ -34,11 +34,11 @@ Each supported resource table exposes:
 - **Edited At** — relative time from `updated_at` with the full date and time available through the datetime tooltip.
 - **Default ordering** — newest `updated_at` records first.
 
-The invoice table retains its existing **Uploaded By** column. **Uploaded By** describes the household spender/source, while **Edited By** describes the user who last changed the record; these values must not be conflated.
+The expense table retains its existing **Uploaded By** column. **Uploaded By** describes the household spender/source, while **Edited By** describes the user who last changed the record; these values must not be conflated.
 
 ## Household semantics
 
-The editor is the authenticated account, whether that account is the Primary user or a linked Family Member. Invoice `family_member_id` remains the source-of-record for household spender attribution and expense mutation authorization. The edit audit does not grant additional access: policies and `HouseholdAccess` continue to control which records a user may mutate.
+The editor is the authenticated account, whether that account is the Primary user or a linked Family Member. Expense `family_member_id` remains the source-of-record for household spender attribution and expense mutation authorization. The edit audit does not grant additional access: policies and `HouseholdAccess` continue to control which records a user may mutate.
 
 Primary users can use the user-menu **Swap Account** control to sign in as an eligible linked Family Member. Edits made during that switched session are attributed to the linked Family Member and remain subject to Family Member authorization; see [household-access.md](household-access.md) for the switching workflow.
 
@@ -52,6 +52,6 @@ The persistence behavior is covered by [`ResourceEditAuditTest`](../tests/Featur
 
 1. Add new supported resource models to the shared edit-tracking concern and migration deliberately; do not duplicate `creating` / `updating` listeners in individual models.
 2. Keep **Edited By** relationship-backed so table columns can eager-load the editor; format the visible username with the `display_name` → `name` fallback.
-3. Use `updated_at` for resource recency. `created_at` remains appropriate for immutable creation history and ingestion-specific timestamps such as invoice purchase or upload time.
-4. Keep editor attribution separate from invoice `family_member_id`, WhatsApp sender attribution, and `uploaded_by` presentation.
+3. Use `updated_at` for resource recency. `created_at` remains appropriate for immutable creation history and ingestion-specific timestamps such as expense purchase or upload time.
+4. Keep editor attribution separate from expense `family_member_id`, WhatsApp sender attribution, and `uploaded_by` presentation.
 5. Cover Primary, Family Member, and unauthenticated/system create or update paths when changing the audit behavior.

@@ -33,9 +33,9 @@ Family / household: use `FamilyMember::factory()->loginEnabled()` when testing p
 ## Patterns in this repo
 
 - Filament: often HTTP `get(Resource::getUrl('index'))`; Livewire for interactive pages (`Livewire::test(EditProfile::class)`)
-- Analytics without jobs: `Invoice::unsetEventDispatcher()` when factories would dispatch extraction
+- Analytics without jobs: `Expense::unsetEventDispatcher()` when factories would dispatch extraction
 - Seed labels when testing category mapping: `LabelSeeder`
-- Factories for all models; MYR amounts and precomputed `receipt_hash` on Invoice
+- Factories for all models; MYR amounts and precomputed `receipt_hash` on Expense
 
 ## Run
 

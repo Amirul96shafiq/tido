@@ -23,7 +23,7 @@ Preparing a single-tenant MYR expense app for eventual **public release**. Find 
 
 ## tido threat model
 
-**Single-tenant household:** One panel; Primary has full `/admin`. Login-enabled Family Members get limited Finances access and may mutate only their attributed expenses (`family_member_id`). No Spatie roles/tenancy. See `docs/household-access.md`. Flag missing `RequiresPrimaryHouseholdAccess` / `HouseholdAccess::canMutateExpense()` on new settings or invoice mutate paths.
+**Single-tenant household:** One panel; Primary has full `/admin`. Login-enabled Family Members get limited Finances access and may mutate only their attributed expenses (`family_member_id`). No Spatie roles/tenancy. See `docs/household-access.md`. Flag missing `RequiresPrimaryHouseholdAccess` / `HouseholdAccess::canMutateExpense()` on new settings or expense mutate paths.
 
 **Public exposure surfaces:**
 
@@ -88,7 +88,7 @@ Preparing a single-tenant MYR expense app for eventual **public release**. Find 
 
 - `"format": "json"` on all Ollama requests
 - Strip markdown fences before `json_decode` — prevents parser confusion, not full prompt injection defense
-- Flag user-controlled text sent to Ollama without length limits (manual WhatsApp invoices)
+- Flag user-controlled text sent to Ollama without length limits (manual WhatsApp expenses)
 - Ollama host must not be user-configurable from untrusted input (SSRF risk)
 - Do not expose `raw_ai_response` to unauthenticated clients
 

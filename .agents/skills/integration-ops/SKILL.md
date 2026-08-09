@@ -83,7 +83,7 @@ npm run dev:full   # vite + serve:2000 + queue
 | Symptom | Likely cause |
 |---------|--------------|
 | Webhook 401 | The callback must use the distinct `EVOLUTION_WEBHOOK_SECRET` bearer value; `EVOLUTION_API_KEY` only authenticates outbound calls. Verify both values are present, 32+ characters, and distinct. |
-| Invoice stuck pending | Queue worker not running; job failed silently |
+| Expense stuck pending | Queue worker not running; job failed silently |
 | Ollama timeout | Model not loaded; host unreachable; increase timeout |
 | WhatsApp no reply | Sender not on allowlist; Evolution disconnected |
 | Drive not syncing | Missing credentials; schedule not running |

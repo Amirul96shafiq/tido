@@ -1,6 +1,6 @@
 # WhatsApp manual expenses (text-only)
 
-When a merchant does not issue a paper/digital receipt image, allowlisted WhatsApp senders can create invoices by sending a **fixed text format** (no image attachment).
+When a merchant does not issue a paper/digital receipt image, allowlisted WhatsApp senders can create expenses by sending a **fixed text format** (no image attachment).
 
 ## Format
 
@@ -15,7 +15,7 @@ Rules:
 - Each line ends with `;`
 - First line of a block = merchant (optional payment token after a comma)
 - Following lines = `description, quantity, line_total`
-- Blank line between blocks = multiple invoices in one message
+- Blank line between blocks = multiple expenses in one message
 - Rapid successive messages are batched into one “Manual expense received” ack (same debounce idea as document uploads)
 
 ### Example
@@ -90,7 +90,7 @@ A total of *N* manual expense(s) saved and queued for AI parsing.
 — Powered by *tido*
 ```
 
-**Parsed** (per invoice):
+**Parsed** (per expense):
 
 ```
 🎉 *Manual expense parsed*
@@ -119,7 +119,7 @@ See **[whatsapp-bot-commands.md](whatsapp-bot-commands.md)** for the full comman
 | Label job | `App\Jobs\ParseManualWhatsAppExpenseJob` |
 | Label prompt | `App\Prompts\ManualExpenseLabelPrompt` |
 | Messages | `App\Support\WhatsAppMessage` |
-| Filename UI | `App\Helpers\FilenameDisplay::MANUAL_INVOICE_LABEL` |
+| Filename UI | `App\Helpers\FilenameDisplay::MANUAL_EXPENSE_LABEL` |
 
 ## Related
 

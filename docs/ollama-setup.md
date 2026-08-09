@@ -74,7 +74,7 @@ After changing env values, restart `npm run dev:full` (or clear config cache if 
 
 ## PDF receipt parsing
 
-WhatsApp PDF receipts are stored as the original PDF and rendered page-by-page before Ollama extraction. The queue worker uses Poppler’s `pdfinfo` to inspect the page count, `pdftotext` to read embedded currency evidence when available, and `pdftocairo` to render JPEG pages. Multi-page results are extracted as page-level JSON and merged before the normal invoice normalization step.
+WhatsApp PDF receipts are stored as the original PDF and rendered page-by-page before Ollama extraction. The queue worker uses Poppler’s `pdfinfo` to inspect the page count, `pdftotext` to read embedded currency evidence when available, and `pdftocairo` to render JPEG pages. Multi-page results are extracted as page-level JSON and merged before the normal expense normalization step.
 
 Install a Windows Poppler distribution that includes the executables, then set absolute paths in `.env`:
 
@@ -97,7 +97,7 @@ Absolute paths are recommended on Windows because queue workers may inherit a di
 
 ## Step 4: Run tido with a queue worker
 
-Parsing is asynchronous. The Filament upload only creates a pending invoice; the queue worker calls Ollama.
+Parsing is asynchronous. The Filament upload only creates a pending expense; the queue worker calls Ollama.
 
 ```bash
 npm run dev:full

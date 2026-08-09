@@ -66,9 +66,9 @@ UI label: **Uploaded By**.
 
 ## Expense permissions
 
-Family members may **view** all invoices (list/slide-over). They may **mutate** (edit, delete, restore, force-delete, reparse, bulk select) only invoices where `family_member_id` matches their linked member. Primary may mutate any.
+Family members may **view** all expenses (list/slide-over). They may **mutate** (edit, delete, restore, force-delete, reparse, bulk select) only expenses where `family_member_id` matches their linked member. Primary may mutate any.
 
-In the Expenses table, only invoices the current user may mutate receive a row edit link. Non-owned invoice cells are rendered without an edit URL, while the read-only View slide-over remains available for all invoices.
+In the Expenses table, only expenses the current user may mutate receive a row edit link. Non-owned expense cells are rendered without an edit URL, while the read-only View slide-over remains available for all expenses.
 
 Create always stamps the family member’s own id (ignores form tampering). **Uploaded By** is disabled/dehydrated for family-member sessions.
 
@@ -80,7 +80,7 @@ The resource tables show the editor’s username as `User.display_name`, falling
 
 ## WhatsApp LID identities
 
-WhatsApp may identify a chat with a Linked ID (`@lid`) instead of a phone-number JID. LIDs are opaque identifiers and cannot be normalized as Malaysian phone numbers. A linked LID is stored on either `users.whatsapp_lid` (Primary) or `family_members.whatsapp_lid` (Family Member), and inbound messages resolve to the existing allowlisted phone before bot routing and invoice attribution.
+WhatsApp may identify a chat with a Linked ID (`@lid`) instead of a phone-number JID. LIDs are opaque identifiers and cannot be normalized as Malaysian phone numbers. A linked LID is stored on either `users.whatsapp_lid` (Primary) or `family_members.whatsapp_lid` (Family Member), and inbound messages resolve to the existing allowlisted phone before bot routing and expense attribution.
 
 An unlinked LID is ignored by the webhook and remembered as a pending identity, including its optional push name, for up to 30 days. A Primary user can open **Integrations → Evolution API → WhatsApp LID**, link it to the Primary contact or an allowlisted Family Member, or dismiss it. Unlinking removes the mapping and causes later messages from that LID to become pending again.
 
@@ -90,13 +90,13 @@ Finance Home filter `spender` (`DashboardSpenderScope`):
 
 | Value | Meaning |
 |-------|---------|
-| `all` | No invoice scope |
+| `all` | No expense scope |
 | `primary` | `family_member_id` is null (label = primary user’s name + ` (me)` when viewing as primary) |
 | `family:{id}` | That Family Member |
 
 - Primary: options = All + Primary (`… (me)`) + every member
 - Family member: options = All + self (`… (me)`); default = self
-- Analytics (`DashboardMonthAnalytics`) apply the scope to invoice queries/joins
+- Analytics (`DashboardMonthAnalytics`) apply the scope to expense queries/joins
 
 ## Login
 
@@ -126,7 +126,7 @@ Account rows use `display_name`, falling back to `name`, and display the current
 ## Agent rules
 
 1. Gate new Settings / Tools / Integrations pages with `RequiresPrimaryHouseholdAccess` (or explicit `HouseholdAccess::isPrimary()`).
-2. Attribute new WhatsApp image/PDF/text and upload invoice creates via `ExpenseSenderAttribution` or the acting user’s `family_member_id`.
+2. Attribute new WhatsApp image/PDF/text and upload expense creates via `ExpenseSenderAttribution` or the acting user’s `family_member_id`.
 3. Expense mutate UI must respect `HouseholdAccess::canMutateExpense()` / `ExpensePolicy` — do not hide View for family members.
 4. Do not invent Spatie roles/tenancy — household role is a column + helpers only.
 5. Tests: `FamilyMember::factory()->loginEnabled()`, `Http::fake` / `Queue::fake` for OTP/WhatsApp.

@@ -15,7 +15,7 @@ Do **not** use restore-on-empty for fields where a placeholder string would poll
 ## Money fields (MYR)
 
 - Optional / secondary amounts that may start at zero: `->myr()->default(0.00)` (e.g. tax, discount, rounding).
-- Required primary amounts the user must enter: `->myr()->placeholder('0.00')` (e.g. invoice subtotal / total, budget limit amount).
+- Required primary amounts the user must enter: `->myr()->placeholder('0.00')` (e.g. expense subtotal / total, budget limit amount).
 - Repeater line totals that drive collapsed labels: `->myr()->default('0.00')` + restore when blank on blur.
 
 Always use the `->myr()` macro (`MoneyDisplay`) — do not hand-roll prefixes or decimal formatting.

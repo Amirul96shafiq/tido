@@ -44,7 +44,7 @@ PDF receipts are accepted only as `application/pdf` documents. The default limit
 - PDF inspection: Poppler `pdfinfo`
 - Page rendering: Poppler `pdftocairo` to JPEG at `PDF_RENDER_DPI` (default 144), with `pdftoppm` fallback
 
-The original PDF is stored on the expense. During extraction, each rendered page is sent to Ollama as a page-specific JSON request; multi-page results are merged before the normal invoice normalization and Label matching step. Password-protected, unreadable, non-PDF, oversized, and over-page-limit documents are not parsed. Rejected PDF details are included in the batched **Document received** acknowledgement, while accepted files are queued after that acknowledgement.
+The original PDF is stored on the expense. During extraction, each rendered page is sent to Ollama as a page-specific JSON request; multi-page results are merged before the normal expense normalization and Label matching step. Password-protected, unreadable, non-PDF, oversized, and over-page-limit documents are not parsed. Rejected PDF details are included in the batched **Document received** acknowledgement, while accepted files are queued after that acknowledgement.
 
 Configure Poppler with absolute paths in `.env` (`PDFINFO_BINARY`, `PDFTOCAIRO_BINARY`, and `PDFTOPPM_BINARY`) and restart the queue worker after changing them. See [evolution-local-windows.md](evolution-local-windows.md) and [ollama-setup.md](ollama-setup.md#pdf-receipt-parsing).
 

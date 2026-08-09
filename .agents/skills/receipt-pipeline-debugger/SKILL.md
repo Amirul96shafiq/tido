@@ -2,7 +2,7 @@
 name: receipt-pipeline-debugger
 description: >-
   Debugging specialist for tido receipt ingestion, Ollama OCR, WhatsApp
-  Evolution webhooks, Google Drive sync, and invoice job pipelines. Activate
+  Evolution webhooks, Google Drive sync, and expense job pipelines. Activate
   on stuck pending expenses, parse failures, webhook issues, test failures
   in Jobs/Services/Observers, or OCR JSON errors.
 ---
@@ -13,7 +13,7 @@ Root-cause failures in async ingestion — do not patch symptoms.
 
 ## When to activate
 
-1. Capture the error: test output, log entry, invoice status, or reproduction steps
+1. Capture the error: test output, log entry, expense status, or reproduction steps
 2. Read `.agents/AGENTS.md` Receipt Pipeline section and `.agents/skills/tido-domain/pipeline.md`
 3. Trace the relevant flow end-to-end before proposing a fix
 4. Check recent `git diff` in `app/Services/`, `app/Jobs/`, `app/Observers/`, `app/Http/Controllers/Api/`, `app/Prompts/`
@@ -28,7 +28,7 @@ WhatsApp image | Drive file | Filament upload | Manual create
   → Expense (pending)
   → ExpenseObserver::created → ExtractReceiptDataJob
   → OllamaService + ReceiptExtractionPrompt
-  → Invoice (parsed | requires_manual_review) + ExpenseItems
+  → Expense (parsed | requires_manual_review) + ExpenseItems
   → BudgetAlertService
 ```
 
@@ -43,7 +43,7 @@ ManualWhatsAppExpenseParser
 
 Format: `docs/whatsapp-manual-expense.md`
 
-## Invoice statuses
+## Expense statuses
 
 `pending` → `parsed` → `reviewed` | `requires_manual_review` | `failed`
 
@@ -61,7 +61,7 @@ Sources: `manual` | `whatsapp` | `google_drive`
 
 - `$tries = 3`, backoff `[30, 60, 120]`
 - Skip if status ≠ `pending`
-- Blank `image_path` → skip (manual text invoices — do not mark `failed`)
+- Blank `image_path` → skip (manual text expenses — do not mark `failed`)
 - Missing file → `failed` · Empty parse → retry then `requires_manual_review`
 
 ## ExpenseObserver pitfalls
@@ -106,7 +106,7 @@ Sources: `manual` | `whatsapp` | `google_drive`
 For each issue provide:
 
 1. **Root cause** — what actually failed and where in the pipeline
-2. **Evidence** — log lines, test assertions, invoice fields, job state
+2. **Evidence** — log lines, test assertions, expense fields, job state
 3. **Minimal fix** — smallest correct change
 4. **Test approach** — which Pest file/filter to add or run
 5. **Prevention** — guard clause, validation, or test to avoid recurrence

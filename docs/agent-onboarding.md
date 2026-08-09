@@ -62,7 +62,7 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 22. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
 23. Service Status (health probes, uptime UI): `docs/service-status.md`
 24. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
-25. Household access (attribution, family login, invoice ACL): `docs/household-access.md`
+25. Household access (attribution, family login, expense ACL): `docs/household-access.md`
 26. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
@@ -151,7 +151,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 17. Backups / Danger Zone / guest restore: see `docs/backups-and-danger-zone.md` — do not invent a second restore path
 18. Service Status / health probes: see `docs/service-status.md`
 19. Profile Active Sessions (embedded table, revoke): see `docs/active-sessions.md`
-20. Household access / family login / invoice ACL: see `docs/household-access.md`
+20. Household access / family login / expense ACL: see `docs/household-access.md`
 21. Sticky section tabs + smooth scroll: see `docs/ui-section-nav.md`
 22. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas
 23. Custom Blade toggles: use `get_component_color_classes(ToggleComponent::class, …)` and Profile `inlineLabel` markup — see `docs/ui-custom-toggles.md`
@@ -161,7 +161,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 1. Ollama: always `format: json` + strip markdown fences (see `OllamaService`)
 2. PDF receipts: validate the detected MIME type, enforce `PDF_MAX_BYTES` / `PDF_MAX_PAGES`, extract embedded text with configured Poppler `pdftotext` when available, and render pages with configured Poppler `pdfinfo` / `pdftocairo` binaries before AI extraction
 3. Webhooks: authenticate `Authorization: Bearer <EVOLUTION_WEBHOOK_SECRET>` before payload handling, then resolve phone or linked WhatsApp LID → validate → queue; keep the inbound secret distinct from outbound `EVOLUTION_API_KEY`
-4. Foreign receipt conversion uses the configured `CURRENCY_API_*` provider with the receipt date, bounded timeout/retry, and a cached source/target/date lookup; never revalue an already converted invoice automatically
+4. Foreign receipt conversion uses the configured `CURRENCY_API_*` provider with the receipt date, bounded timeout/retry, and a cached source/target/date lookup; never revalue an already converted expense automatically
 5. Never call real Ollama, Evolution, or exchange-rate providers in tests
 
 ### After code changes
@@ -214,9 +214,9 @@ php artisan test --compact --filter=YourTest
 
 - Calling categories “Category” in new code — use **Label** / **Labels**
 - Hitting live Ollama in Pest — use `Http::fake()`
-- Forgetting `ExpenseObserver` side effects when creating invoices in tests — use `Queue::fake()` or `unsetEventDispatcher()` when appropriate
+- Forgetting `ExpenseObserver` side effects when creating expenses in tests — use `Queue::fake()` or `unsetEventDispatcher()` when appropriate
 - Assuming multi-tenancy or Spatie roles — single household; use `HouseholdAccess` / `HouseholdRole` — see `docs/household-access.md`
-- Letting family members mutate invoices they did not upload — gate with `HouseholdAccess::canMutateExpense()` / `ExpensePolicy`
+- Letting family members mutate expenses they did not upload — gate with `HouseholdAccess::canMutateExpense()` / `ExpensePolicy`
 - Editing architecture (new ingestion channel, schema) without checking `docs/system-architecture.md`
 - Horizon `viewHorizon` gate empty allowlist — configure before relying on `/horizon` in prod
 - Using browser `title=` on icon CTAs instead of Filament Tippy — see `docs/ui-tooltips.md`

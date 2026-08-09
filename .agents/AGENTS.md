@@ -135,7 +135,7 @@ Dashboard **Finances** widgets live in `app/Filament/Widgets/`. Month filtering 
 
 ### Content draft recovery
 
-Create/Edit resource pages use `App\Filament\Concerns\RecoversContentDraft` (Invoices, Labels, Budgets). See `docs/content-draft-recovery.md` when adding a new Create/Edit page: trait + `contentDraftKey()` + register the page in `AdminPanelProvider` `PAGE_END` poller scopes.
+Create/Edit resource pages use `App\Filament\Concerns\RecoversContentDraft` (Expenses, Labels, Budgets). See `docs/content-draft-recovery.md` when adding a new Create/Edit page: trait + `contentDraftKey()` + register the page in `AdminPanelProvider` `PAGE_END` poller scopes.
 
 ### Sticky form actions (bottom blur)
 
@@ -261,7 +261,7 @@ Sources: `manual` | `whatsapp` | `google_drive`
 - Validate auth/payload first; heavy work via queue/jobs
 - Images → store → pending Expense; text keywords (`spend`/`total`) → monthly total reply
 - Text manual expense format → pending Expense (no image) → label job → `requires_manual_review`
-- Attribute WhatsApp invoices with `ExpenseSenderAttribution` (`family_member_id`; null = Primary) — `docs/household-access.md`
+- Attribute WhatsApp expenses with `ExpenseSenderAttribution` (`family_member_id`; null = Primary) — `docs/household-access.md`
 - Optional merchant payment token: aliases from Settings → Payment Methods
 
 ### Google Drive
@@ -305,9 +305,9 @@ Family / household: use `FamilyMember::factory()->loginEnabled()` when testing p
 ### Patterns in this repo
 
 - Filament: often HTTP `get(Resource::getUrl('index'))`; Livewire for interactive pages (`Livewire::test(EditProfile::class)`)
-- Analytics without jobs: `Invoice::unsetEventDispatcher()` when factories would dispatch extraction
+- Analytics without jobs: `Expense::unsetEventDispatcher()` when factories would dispatch extraction
 - Seed labels when testing category mapping: `LabelSeeder`
-- Factories for all models; MYR amounts and precomputed `receipt_hash` on Invoice
+- Factories for all models; MYR amounts and precomputed `receipt_hash` on Expense
 
 ### Run
 

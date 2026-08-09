@@ -39,7 +39,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 return $table
-    ->emptyStateHeading('No invoices yet')
+    ->emptyStateHeading('No expenses yet')
     ->emptyStateDescription('Upload a receipt or add an expense to start tracking spending.')
     ->emptyStateIcon('heroicon-o-document-text')
     ->emptyStateActions([
