@@ -100,23 +100,26 @@ class CurrentCurrency extends Widget
 
         $timezone = UserDateDisplay::timezone();
         $dateFormat = UserDateDisplay::dateFormat();
-        $effectiveAt = Carbon::parse((string) $rateDetails['effective_date'], $timezone)
-            ->startOfDay();
+        $fetchedAt = trim((string) ($rateDetails['fetched_at'] ?? ''));
+        $sourceAt = $fetchedAt !== ''
+            ? Carbon::parse($fetchedAt, (string) config('app.timezone', 'UTC'))->timezone($timezone)
+            : Carbon::parse((string) $rateDetails['effective_date'], $timezone)->startOfDay();
         $provider = (string) $rateDetails['provider'];
+        $sourceDisplay = $sourceAt->format($dateFormat)
+            .' • '
+            .$sourceAt->format('H:i:s')
+            .' '
+            .UserDateDisplay::gmtOffsetLabel($sourceAt)
+            .' • '
+            .$provider;
 
         return [
             'unavailable' => false,
             'rate' => (float) $rateDetails['rate'],
             'rateDisplay' => '1 USD = RM '.number_format((float) $rateDetails['rate'], 4, '.', ','),
-            'effectiveDate' => $effectiveAt->format($dateFormat),
+            'effectiveDate' => $sourceAt->format($dateFormat),
             'provider' => $provider,
-            'sourceDisplay' => $effectiveAt->format($dateFormat)
-                .' • '
-                .$effectiveAt->format('H:i:s')
-                .' '
-                .UserDateDisplay::gmtOffsetLabel($effectiveAt)
-                .' • '
-                .$provider,
+            'sourceDisplay' => $sourceDisplay,
             'chartRates' => $chartRates,
             'hasChart' => $chartRates !== [],
             ...$seriesStats,
@@ -200,6 +203,7 @@ class CurrentCurrency extends Widget
             return [
                 'rate' => (float) $rateDetails['rate'],
                 'effective_date' => (string) $rateDetails['effective_date'],
+                'fetched_at' => (string) ($rateDetails['fetched_at'] ?? ''),
                 'provider' => (string) $rateDetails['provider'],
             ];
         } catch (CurrencyConversionException $cacheMiss) {
@@ -213,6 +217,7 @@ class CurrentCurrency extends Widget
                 return [
                     'rate' => (float) $rateDetails['rate'],
                     'effective_date' => (string) $rateDetails['effective_date'],
+                    'fetched_at' => (string) ($rateDetails['fetched_at'] ?? ''),
                     'provider' => (string) $rateDetails['provider'],
                 ];
             } catch (CurrencyConversionException $exception) {

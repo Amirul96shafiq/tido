@@ -74,7 +74,7 @@ test('currency widget renders the current usd to myr rate with provider context'
         ->assertSuccessful()
         ->assertSee('USD to MYR')
         ->assertSee('1 USD = RM 4.5123')
-        ->assertSee('08/07/2026 • 00:00:00 GMT+8 • currencyapi')
+        ->assertSee('08/07/2026 • 12:00:00 GMT+8 • currencyapi')
         ->assertDontSee('1 USD as of 08 Jul 2026 via currencyapi')
         ->assertSee('0.0000 (0.00%) 30D')
         ->assertSee('Low')
@@ -152,7 +152,7 @@ test('currency widget shows last good rate when the live cache entry expired', f
         ->assertSuccessful()
         ->assertSee('USD to MYR')
         ->assertSee('1 USD = RM 4.0910')
-        ->assertSee('07/08/2026 • 00:00:00 GMT+8 • currencyapi')
+        ->assertSee('08/08/2026 • 12:00:00 GMT+8 • currencyapi')
         ->assertDontSee('1 USD as of 07 Aug 2026 via currencyapi')
         ->assertDontSee('Unavailable');
 
@@ -177,7 +177,7 @@ test('currency widget shows rate history unavailable when the series cannot be l
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
         ->assertSee('1 USD = RM 4.2500')
-        ->assertSee('08/08/2026 • 00:00:00 GMT+8 • currencyapi')
+        ->assertSee('08/08/2026 • 12:00:00 GMT+8 • currencyapi')
         ->assertSee('Rate history unavailable')
         ->assertDontSee('fi-wi-currency-rate-sparkline')
         ->assertDontSee('statsOverviewStatChart')
@@ -241,7 +241,7 @@ test('currency widget source line follows the authenticated user date format and
 
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
-        ->assertSee('07/08/2026 • 00:00:00 GMT+8 • currencyapi');
+        ->assertSee('08/08/2026 • 12:00:00 GMT+8 • currencyapi');
 
     $isoUser = User::factory()->create([
         'timezone' => 'UTC',
@@ -252,7 +252,7 @@ test('currency widget source line follows the authenticated user date format and
 
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
-        ->assertSee('2026-08-07 • 00:00:00 GMT+0 • currencyapi');
+        ->assertSee('2026-08-08 • 04:00:00 GMT+0 • currencyapi');
 
     expect(Http::recorded())->toHaveCount(count($sentAfterPrime));
 });
