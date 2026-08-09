@@ -14,6 +14,11 @@ use Illuminate\Contracts\Support\Htmlable;
 
 class EmailChangeLinkExpired extends SimplePage
 {
+    public function hasTopbar(): bool
+    {
+        return false;
+    }
+
     public function getTitle(): string|Htmlable
     {
         return 'Verification Link Expired';

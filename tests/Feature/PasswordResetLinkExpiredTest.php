@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\Auth\PasswordResetLinkExpired;
+use App\Models\User;
 use App\Support\AuthLinkExpiry;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,6 +32,23 @@ test('password reset link expired page shows heading and cta', function (): void
         ->assertSee('Link Expired')
         ->assertSee('Return to Login')
         ->assertSee('password reset link has expired');
+});
+
+test('password reset link expired page hides filament simple user menu topbar', function (): void {
+    $page = Livewire::test(PasswordResetLinkExpired::class);
+
+    expect($page->instance()->hasTopbar())->toBeFalse();
+
+    $html = $this->actingAs(User::factory()->create())
+        ->get(route('filament.admin.auth.password-reset.expired'))
+        ->assertSuccessful()
+        ->assertSee('fi-auth-menu', false)
+        ->getContent();
+
+    expect($html)
+        ->not->toContain('class="fi-simple-layout-header"')
+        ->not->toContain('class="fi-simple-user-menu-ctn"')
+        ->not->toContain('>User menu<');
 });
 
 test('expired password reset signature redirects to link expired page', function (): void {

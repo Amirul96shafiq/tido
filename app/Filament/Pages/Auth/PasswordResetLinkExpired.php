@@ -14,6 +14,11 @@ use Illuminate\Contracts\Support\Htmlable;
 
 class PasswordResetLinkExpired extends SimplePage
 {
+    public function hasTopbar(): bool
+    {
+        return false;
+    }
+
     public function getTitle(): string|Htmlable
     {
         return 'Password Reset Link Expired';
