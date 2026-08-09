@@ -65,6 +65,8 @@ test('guest auth pages show auth menu with theme switcher and changelogs', funct
             'token' => 'test-token',
         ],
     ),
+    fn () => route('filament.admin.auth.password-reset.expired'),
+    fn () => route('filament.admin.auth.email-change-verification.expired'),
 ]);
 
 test('auth menu chrome is flush top-right square with left and bottom borders', function () {

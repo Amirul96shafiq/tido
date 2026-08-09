@@ -7,7 +7,11 @@ namespace App\Providers\Filament;
 use App\Filament\GlobalSearch\AdminDestinationSearch;
 use App\Filament\Livewire\DatabaseNotifications;
 use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Pages\Auth\EmailChangeLinkExpired;
+use App\Filament\Pages\Auth\Forbidden;
 use App\Filament\Pages\Auth\Login;
+use App\Filament\Pages\Auth\NotFound;
+use App\Filament\Pages\Auth\PasswordResetLinkExpired;
 use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Auth\ResetPassword;
 use App\Filament\Pages\Dashboard;
@@ -38,6 +42,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Livewire\Component;
@@ -130,6 +135,10 @@ class AdminPanelProvider extends PanelProvider
                     Login::class,
                     RequestPasswordReset::class,
                     ResetPassword::class,
+                    PasswordResetLinkExpired::class,
+                    EmailChangeLinkExpired::class,
+                    NotFound::class,
+                    Forbidden::class,
                 ],
             )
             ->renderHook(
@@ -410,6 +419,24 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Settings'),
                 NavigationGroup::make('Integrations'),
                 NavigationGroup::make('Tools'),
+            ])
+            ->routes(function (): void {
+                Route::name('auth.')->group(function (): void {
+                    Route::get('/password-reset/expired', PasswordResetLinkExpired::class)
+                        ->name('password-reset.expired');
+                    Route::get('/email-change-verification/expired', EmailChangeLinkExpired::class)
+                        ->name('email-change-verification.expired');
+                    Route::get('/not-found', NotFound::class)
+                        ->name('not-found');
+                    Route::get('/forbidden', Forbidden::class)
+                        ->name('forbidden');
+                });
+            })
+            ->livewireComponents([
+                PasswordResetLinkExpired::class,
+                EmailChangeLinkExpired::class,
+                NotFound::class,
+                Forbidden::class,
             ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
