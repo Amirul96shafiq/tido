@@ -85,7 +85,12 @@ test('file upload editor paints above sticky edit page controls', function () {
         ->toContain('z-index: 50 !important;')
         ->toContain('.tido-sticky-scope')
         ->toContain(':has(.tido-sticky-marker)')
-        ->toContain('z-index: -1;');
+        ->toContain('z-index: -1;')
+        ->toContain('.tido-sidebar-preview')
+        ->toContain('.tido-stylized-preview')
+        ->toContain('isolation: isolate;')
+        ->toContain('.fi-grid-col:has(.fi-fo-file-upload-editor)')
+        ->toContain('z-index: 40;');
 });
 
 test('file upload editor overlay calls its Alpine close handler', function () {

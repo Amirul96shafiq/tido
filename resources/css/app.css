@@ -2516,6 +2516,30 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     z-index: -1;
 }
 
+/*
+ * Personalize preview chrome uses relative z-[1]/z-[2] for internal layering
+ * (veil vs content). Those values participate in the page stacking context and
+ * paint above the profile photo editor: fixed z-50 is trapped inside the sticky
+ * photo column (effective level 0). Trap preview internals, and while the
+ * editor is open lift its column above the Personalize previews.
+ */
+.tido-sidebar-preview,
+.tido-stylized-preview {
+    isolation: isolate;
+}
+
+.fi-layout:has(.fi-fo-file-upload-editor:not([style*="display: none"]))
+    .fi-grid-col:has(.fi-fo-file-upload-editor) {
+    z-index: 40;
+}
+
+.fi-layout:has(.fi-fo-file-upload-editor:not([style*="display: none"]))
+    .tido-sidebar-preview,
+.fi-layout:has(.fi-fo-file-upload-editor:not([style*="display: none"]))
+    .tido-stylized-preview {
+    z-index: 0;
+}
+
 .fi-fo-file-upload-editor .fi-fo-file-upload-editor-overlay {
     @apply backdrop-blur-md;
 }
