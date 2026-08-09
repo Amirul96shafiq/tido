@@ -1526,9 +1526,6 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
     border: 1px solid var(--color-gray-100);
     border-radius: var(--radius-lg, 0.5rem);
     background-color: var(--color-white);
-    box-shadow:
-        0 14px 24px -12px rgb(15 23 42 / 0.28),
-        0 8px 12px -10px rgb(15 23 42 / 0.2);
 }
 
 .fi-account-switcher-expanded.fi-opacity-0 {
@@ -1542,9 +1539,6 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
         transparent
     );
     background-color: var(--color-gray-900);
-    box-shadow:
-        0 14px 24px -12px rgb(0 0 0 / 0.55),
-        0 8px 12px -10px rgb(0 0 0 / 0.4);
 }
 
 .fi-account-switcher-expanded-list {

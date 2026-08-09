@@ -337,6 +337,8 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->toContain('bottom: 0;')
         ->toContain('max-height: min(21rem, calc(100dvh - 6rem));')
         ->toContain('overflow: hidden;')
+        ->toContain('border: 1px solid var(--color-gray-100);')
+        ->not->toContain('box-shadow:')
         ->and($accountSwitcherExpandedListBlock)
         ->toContain('display: flex;')
         ->toContain('flex-direction: column;')
