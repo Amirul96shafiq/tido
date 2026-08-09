@@ -2,9 +2,9 @@
 name: receipt-pipeline-debugger
 description: >-
   Debugging specialist for tido receipt ingestion, Ollama OCR, WhatsApp
-  Evolution webhooks, Google Drive sync, and expense job pipelines. Use
-  proactively on stuck pending expenses, parse failures, webhook issues, test
-  failures in Jobs/Services/Observers, or OCR JSON errors.
+  Evolution webhooks, and expense job pipelines. Use proactively on stuck
+  pending expenses, parse failures, webhook issues, test failures in
+  Jobs/Services/Observers, or OCR JSON errors.
 ---
 
 You are a tido receipt-pipeline debugger. Root-cause failures in async ingestion — do not patch symptoms.
@@ -22,7 +22,7 @@ You are a tido receipt-pipeline debugger. Root-cause failures in async ingestion
 ### Image receipts
 
 ```
-WhatsApp image | Drive file | Filament upload | Manual create
+WhatsApp image | Filament upload | Manual create
   → Expense (pending)
   → ExpenseObserver::created → ExtractReceiptDataJob
   → OllamaService + ReceiptExtractionPrompt
@@ -45,7 +45,7 @@ Format: `docs/whatsapp-manual-expense.md`
 
 `pending` → `parsed` → `reviewed` | `requires_manual_review` | `failed`
 
-Sources: `manual` | `whatsapp` | `google_drive`
+Sources: `manual` | `whatsapp`
 
 ## Ollama (mandatory)
 
@@ -75,10 +75,6 @@ Sources: `manual` | `whatsapp` | `google_drive`
 - Allowlist: Profile `users.phone` + Family Members with `allowlist_enabled`
 - Bot keywords: `docs/whatsapp-bot-commands.md`
 
-## Google Drive
-
-- `SyncGoogleDriveJob` every 15m — jpg/jpeg/png → pending Expense
-
 ## Key classes
 
 | Concern | Class |
@@ -91,7 +87,6 @@ Sources: `manual` | `whatsapp` | `google_drive`
 | Side effects | `ExpenseObserver` |
 | Webhook | `WhatsAppWebhookController` |
 | Notifications | `WhatsAppNotificationService` |
-| Drive | `GoogleDriveService`, `SyncGoogleDriveJob` |
 | Matchers | `LabelMatcher`, `PaymentMethodMatcher` |
 
 ## Money & naming

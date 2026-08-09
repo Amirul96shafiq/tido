@@ -109,7 +109,7 @@ Resource::getUrl('index', [
 ## Avoid
 
 - Custom Blade unless native components cannot do the job
-- Putting business logic (Ollama, Drive sync, alerts) inside Resource classes — call Services/Jobs
+- Putting business logic (Ollama, alerts) inside Resource classes — call Services/Jobs
 - Dedicated View pages (`ViewRecord`, `make:filament-page --type=ViewRecord`, `getPages()` `view` routes)
 - Custom resource `infolist()` / `Schemas/*Infolist.php` for table View slide-overs (use the disabled form instead)
 - Omitting View from resource table `recordActions` (except Backups, which has no View)

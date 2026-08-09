@@ -446,7 +446,6 @@ final class DashboardMonthAnalytics
     private const SOURCE_CHANNELS = [
         'whatsapp_parse',
         'whatsapp_manual',
-        'google_drive',
         'manual',
     ];
 
@@ -577,7 +576,6 @@ final class DashboardMonthAnalytics
             'whatsapp_parse' => 'WhatsApp (Parse)',
             'whatsapp_manual' => 'WhatsApp (Manual)',
             'whatsapp' => 'WhatsApp',
-            'google_drive' => 'Google Drive',
             default => 'Unknown',
         };
     }

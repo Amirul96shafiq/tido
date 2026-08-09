@@ -7,7 +7,7 @@ alwaysApply: true
 
 Single-tenant personal hub. **Finances** is shipped (MYR expense & receipt tracking). **Training**, **Health**, and **Task** are planned dashboard modules (coming-soon placeholders). See `docs/dashboard-views.md`.
 
-Finances today: ingest receipts (WhatsApp image or text manual expense, Google Drive, Filament upload), parse with local Ollama, categorize line items, detect duplicates, show budgets/analytics.
+Finances today: ingest receipts (WhatsApp image or text manual expense, Filament upload), parse with local Ollama, categorize line items, detect duplicates, show budgets/analytics.
 
 ## Naming
 

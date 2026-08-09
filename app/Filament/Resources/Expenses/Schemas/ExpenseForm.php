@@ -9,8 +9,8 @@ use App\Enums\LabelType;
 use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Support\SelectValueMarquee;
 use App\Helpers\MoneyDisplay;
-use App\Models\FamilyMember;
 use App\Models\Expense;
+use App\Models\FamilyMember;
 use App\Models\User;
 use App\Services\Currency\CurrencyConversionException;
 use App\Services\ManualExpenseCurrencyConversionService;
@@ -267,7 +267,6 @@ class ExpenseForm
                                             ->options([
                                                 'manual' => 'Manual Upload',
                                                 'whatsapp' => 'WhatsApp',
-                                                'google_drive' => 'Google Drive',
                                             ])
                                             ->default('manual')
                                             ->searchable()

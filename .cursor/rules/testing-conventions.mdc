@@ -23,7 +23,7 @@ Create tests with `php artisan make:test --pest {Name} --no-interaction`.
 ```php
 Http::fake([...]);      // Ollama, Evolution API
 Queue::fake();           // assert ExtractReceiptDataJob pushed
-Storage::fake('local');  // or 'google'
+Storage::fake('local');
 ```
 
 Never call real Ollama/Evolution in CI/tests.

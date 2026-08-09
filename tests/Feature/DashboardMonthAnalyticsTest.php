@@ -1097,19 +1097,6 @@ test('receipts by source groups counts, spend, and mom by upload channel', funct
     ]);
 
     Expense::create([
-        'merchant_name' => 'Drive Store',
-        'invoice_number' => 'INV-GD-1',
-        'receipt_hash' => 'hash-gd-1',
-        'date_time' => $bounds['start']->copy()->addDays(4),
-        'subtotal' => 10.00,
-        'total_tax' => 0.00,
-        'total_amount' => 10.00,
-        'currency' => 'MYR',
-        'source' => 'google_drive',
-        'status' => 'reviewed',
-    ]);
-
-    Expense::create([
         'merchant_name' => 'Pending WhatsApp',
         'invoice_number' => 'INV-WA-PENDING',
         'receipt_hash' => 'hash-wa-pending',
@@ -1140,38 +1127,31 @@ test('receipts by source groups counts, spend, and mom by upload channel', funct
 
     $sources = analyticsForMonth($targetMonth)->receiptsBySource();
 
-    expect($sources)->toHaveCount(4)
+    expect($sources)->toHaveCount(3)
         ->and($sources->pluck('key')->all())->toBe([
             'whatsapp_parse',
             'whatsapp_manual',
-            'google_drive',
             'manual',
         ]);
 
     $whatsappParse = $sources->firstWhere('key', 'whatsapp_parse');
     $whatsappManual = $sources->firstWhere('key', 'whatsapp_manual');
-    $drive = $sources->firstWhere('key', 'google_drive');
     $manual = $sources->firstWhere('key', 'manual');
 
     expect($whatsappParse->label)->toBe('WhatsApp (Parse)')
         ->and($whatsappParse->receipt_count)->toBe(1)
         ->and($whatsappParse->total_spent)->toBe(20.0)
-        ->and($whatsappParse->receipt_share_percent)->toBe(20.0);
+        ->and($whatsappParse->receipt_share_percent)->toBe(25.0);
 
     expect($whatsappManual->label)->toBe('WhatsApp (Manual)')
         ->and($whatsappManual->receipt_count)->toBe(1)
         ->and($whatsappManual->total_spent)->toBe(12.0)
-        ->and($whatsappManual->receipt_share_percent)->toBe(20.0);
-
-    expect($drive->label)->toBe('Google Drive')
-        ->and($drive->receipt_count)->toBe(1)
-        ->and($drive->total_spent)->toBe(10.0)
-        ->and($drive->receipt_share_percent)->toBe(20.0);
+        ->and($whatsappManual->receipt_share_percent)->toBe(25.0);
 
     expect($manual->label)->toBe('Manual Upload')
         ->and($manual->receipt_count)->toBe(2)
         ->and($manual->total_spent)->toBe(80.0)
-        ->and($manual->receipt_share_percent)->toBe(40.0)
+        ->and($manual->receipt_share_percent)->toBe(50.0)
         ->and($manual->mom_change['delta'])->toBe(1.0);
 });
 
@@ -1199,13 +1179,11 @@ test('receipts by source includes empty upload channels when month has data', fu
 
     $sources = analyticsForMonth($targetMonth)->receiptsBySource();
 
-    expect($sources)->toHaveCount(4);
+    expect($sources)->toHaveCount(3);
 
     expect($sources->firstWhere('key', 'whatsapp_parse')->receipt_count)->toBe(1);
     expect($sources->firstWhere('key', 'whatsapp_manual')->receipt_count)->toBe(0)
         ->and($sources->firstWhere('key', 'whatsapp_manual')->label)->toBe('WhatsApp (Manual)');
-    expect($sources->firstWhere('key', 'google_drive')->receipt_count)->toBe(0)
-        ->and($sources->firstWhere('key', 'google_drive')->label)->toBe('Google Drive');
     expect($sources->firstWhere('key', 'manual')->receipt_count)->toBe(0)
         ->and($sources->firstWhere('key', 'manual')->label)->toBe('Manual Upload');
 });

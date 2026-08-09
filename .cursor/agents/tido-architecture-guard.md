@@ -34,7 +34,6 @@ You are a tido architecture guard. Prevent changes that contradict the product b
 |---------|-------|----------|
 | WhatsApp image | `POST /api/webhooks/whatsapp` | Pending Expense → vision OCR |
 | WhatsApp manual text | same webhook | Pending Expense → label job → `requires_manual_review` |
-| Google Drive | `SyncGoogleDriveJob` (15m) | Pending Expense |
 | UI upload | `ReceiptUploadPage` | Pending Expense |
 | Manual CRUD | `ExpenseResource` | Expense (may trigger observer) |
 
@@ -51,7 +50,7 @@ New ingestion channels require explicit architecture review — do not invent si
 | Prompts | Ollama JSON schemas |
 | Controllers (API) | Auth, validation, dispatch jobs |
 
-Never put Ollama, Drive sync, or budget alerts inside Filament Resource classes.
+Never put Ollama or budget alerts inside Filament Resource classes.
 
 ## Database conventions
 

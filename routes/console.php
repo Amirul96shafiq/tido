@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Jobs\SyncGoogleDriveJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -12,7 +11,6 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Scheduled background tasks
-Schedule::job(new SyncGoogleDriveJob)->everyFifteenMinutes();
 Schedule::command('health:probe')->everyFifteenMinutes();
 Schedule::command('currency:refresh-rates')
     ->dailyAt('00:00')

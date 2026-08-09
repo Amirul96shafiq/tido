@@ -202,7 +202,6 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                     ->color(fn (string $state): string => match ($state) {
                         'manual' => 'info',
                         'whatsapp' => 'success',
-                        'google_drive' => 'warning',
                         default => 'gray',
                     })
                     ->sortable(),
@@ -249,7 +248,6 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                     ->options([
                         'manual' => 'Manual',
                         'whatsapp' => 'WhatsApp',
-                        'google_drive' => 'Google Drive',
                     ])
                     ->searchable(),
 

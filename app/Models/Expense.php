@@ -69,7 +69,6 @@ class Expense extends Model
         'whatsapp_message_id',
         'family_member_id',
         'status',
-        'google_drive_file_id',
         'original_filename',
         'image_path',
         'file_mime_type',

@@ -106,7 +106,6 @@ class RecentReceipts extends BaseWidget
                     ->color(fn (string $state): string => match ($state) {
                         'manual' => 'info',
                         'whatsapp' => 'success',
-                        'google_drive' => 'warning',
                         default => 'gray',
                     })
                     ->sortable(),

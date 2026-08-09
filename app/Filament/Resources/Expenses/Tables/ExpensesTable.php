@@ -9,8 +9,8 @@ use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Support\RecordActionsGroup;
 use App\Helpers\MoneyDisplay;
-use App\Models\FamilyMember;
 use App\Models\Expense;
+use App\Models\FamilyMember;
 use App\Models\User;
 use App\Services\ReceiptReparseService;
 use App\Support\HouseholdAccess;
@@ -97,7 +97,6 @@ class ExpensesTable
                     ->color(fn (string $state): string => match ($state) {
                         'manual' => 'info',
                         'whatsapp' => 'success',
-                        'google_drive' => 'warning',
                         default => 'gray',
                     })
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -161,7 +160,6 @@ class ExpensesTable
                     ->options([
                         'manual' => 'Manual',
                         'whatsapp' => 'WhatsApp',
-                        'google_drive' => 'Google Drive',
                     ])
                     ->searchable(),
 
