@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Filament\Widgets\SpendingByLabel;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\Label;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,18 +16,18 @@ beforeEach(function () {
 });
 
 test('spending by label widget renders with enriched chart data', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $label = Label::factory()->create(['name' => 'Groceries', 'slug' => 'groceries']);
 
-    $invoice = Invoice::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Grocery Store',
         'date_time' => now(),
         'status' => 'reviewed',
         'total_amount' => 55.00,
     ]);
 
-    $invoice->invoiceItems()->create([
+    $expense->expenseItems()->create([
         'label_id' => $label->id,
         'description' => 'Vegetables',
         'quantity' => 1,
@@ -35,7 +35,7 @@ test('spending by label widget renders with enriched chart data', function () {
         'line_total' => 55.00,
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     Livewire::test(SpendingByLabel::class)
         ->assertSuccessful()

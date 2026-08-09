@@ -58,9 +58,9 @@ class Label extends Model
             ->get(['id', 'name', 'slug', 'description']);
     }
 
-    public function invoiceItems(): HasMany
+    public function expenseItems(): HasMany
     {
-        return $this->hasMany(InvoiceItem::class);
+        return $this->hasMany(ExpenseItem::class);
     }
 
     public function budgets(): HasMany

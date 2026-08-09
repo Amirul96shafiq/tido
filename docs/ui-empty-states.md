@@ -39,8 +39,8 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 return $table
-    ->emptyStateHeading('No invoices yet')
-    ->emptyStateDescription('Upload a receipt or add an invoice to start tracking spending.')
+    ->emptyStateHeading('No expenses yet')
+    ->emptyStateDescription('Upload a receipt or add an expense to start tracking spending.')
     ->emptyStateIcon('heroicon-o-document-text')
     ->emptyStateActions([
         Action::make('uploadReceipts')
@@ -121,7 +121,7 @@ Do not invent a second empty layout for tables.
 | Database notifications — filtered/search empty | `resources/views/filament/livewire/database-notifications.blade.php` |
 | Email change link expired | `resources/views/errors/email-change-expired.blade.php` (standalone HTML; keep in sync visually) |
 | Dashboard chart widgets (empty month) | `resources/views/filament/widgets/chart-with-empty-state.blade.php` + `HasChartEmptyState` |
-| Invoices list | `app/Filament/Resources/Invoices/Tables/InvoicesTable.php` |
+| Expenses list | `app/Filament/Resources/Expenses/Tables/ExpensesTable.php` |
 | Budgets list | `app/Filament/Resources/Budgets/Tables/BudgetsTable.php` |
 | Labels list | `app/Filament/Resources/Labels/Tables/LabelsTable.php` |
 | Backups list | `app/Filament/Resources/Backups/Tables/BackupsTable.php` |

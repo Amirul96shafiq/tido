@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Services\ReceiptReparseService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
@@ -12,44 +12,44 @@ use Illuminate\Support\Facades\Storage;
 class ReparseReceiptsCommand extends Command
 {
     protected $signature = 'receipts:reparse
-        {invoice? : Invoice ID to reparse}
-        {--all : Reparse all eligible invoices with images}
+        {expense? : Expense ID to reparse}
+        {--all : Reparse all eligible expenses with images}
         {--dry-run : List targets without queueing}';
 
-    protected $description = 'Reset invoice OCR state and re-queue ExtractReceiptDataJob';
+    protected $description = 'Reset expense OCR state and re-queue ExtractReceiptDataJob';
 
     public function handle(ReceiptReparseService $reparseService): int
     {
-        $invoiceId = $this->argument('invoice');
+        $expenseId = $this->argument('expense');
         $all = (bool) $this->option('all');
         $dryRun = (bool) $this->option('dry-run');
 
-        if ($invoiceId === null && ! $all) {
-            $this->error('Pass an invoice ID or use --all.');
+        if ($expenseId === null && ! $all) {
+            $this->error('Pass an expense ID or use --all.');
 
             return self::FAILURE;
         }
 
-        if ($invoiceId !== null && $all) {
-            $this->error('Pass either an invoice ID or --all, not both.');
+        if ($expenseId !== null && $all) {
+            $this->error('Pass either an expense ID or --all, not both.');
 
             return self::FAILURE;
         }
 
-        $query = Invoice::query()
+        $query = Expense::query()
             ->whereNotNull('image_path')
             ->where('image_path', '!=', '');
 
-        if ($invoiceId !== null) {
-            $query->whereKey($invoiceId);
+        if ($expenseId !== null) {
+            $query->whereKey($expenseId);
         } else {
             $query->whereIn('status', ['parsed', 'requires_manual_review', 'failed']);
         }
 
-        $invoices = $query->orderBy('id')->get();
+        $expenses = $query->orderBy('id')->get();
 
-        if ($invoices->isEmpty()) {
-            $this->warn('No matching invoices found.');
+        if ($expenses->isEmpty()) {
+            $this->warn('No matching expenses found.');
 
             return self::SUCCESS;
         }
@@ -57,27 +57,27 @@ class ReparseReceiptsCommand extends Command
         $queued = 0;
         $skipped = 0;
 
-        foreach ($invoices as $invoice) {
-            if (! Storage::exists((string) $invoice->image_path)) {
-                $this->warn("Skipping invoice #{$invoice->id}: image missing ({$invoice->image_path})");
+        foreach ($expenses as $expense) {
+            if (! Storage::exists((string) $expense->image_path)) {
+                $this->warn("Skipping expense #{$expense->id}: image missing ({$expense->image_path})");
                 $skipped++;
 
                 continue;
             }
 
             if ($dryRun) {
-                $this->line("Would reparse invoice #{$invoice->id} [{$invoice->status}] {$invoice->merchant_name}");
+                $this->line("Would reparse expense #{$expense->id} [{$expense->status}] {$expense->merchant_name}");
                 $queued++;
 
                 continue;
             }
 
             try {
-                $reparseService->reparse($invoice);
-                $this->info("Queued reparse for invoice #{$invoice->id}");
+                $reparseService->reparse($expense);
+                $this->info("Queued reparse for expense #{$expense->id}");
                 $queued++;
             } catch (\Throwable $e) {
-                $this->error("Failed invoice #{$invoice->id}: {$e->getMessage()}");
+                $this->error("Failed expense #{$expense->id}: {$e->getMessage()}");
                 $skipped++;
             }
         }

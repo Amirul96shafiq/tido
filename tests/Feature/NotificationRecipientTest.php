@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\User;
 use App\Support\NotificationRecipient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -36,27 +36,27 @@ test('forPhone falls back to primary when no match', function () {
     expect(NotificationRecipient::forPhone('60199999999')?->is($primary))->toBeTrue();
 });
 
-test('forInvoice uses whatsapp sender phone', function () {
+test('forExpense uses whatsapp sender phone', function () {
     User::factory()->create(['phone' => '60111111111']);
     $sender = User::factory()->create(['phone' => '60144444444']);
 
-    $invoice = Invoice::factory()->create([
+    $expense = Expense::factory()->create([
         'whatsapp_sender' => '60144444444',
         'source' => 'whatsapp',
     ]);
 
-    expect(NotificationRecipient::forInvoice($invoice)?->is($sender))->toBeTrue();
+    expect(NotificationRecipient::forExpense($expense)?->is($sender))->toBeTrue();
 });
 
-test('forInvoice falls back to primary when invoice has no whatsapp sender', function () {
+test('forExpense falls back to primary when expense has no whatsapp sender', function () {
     $primary = User::factory()->create(['phone' => '60111111111']);
 
-    $invoice = Invoice::factory()->create([
+    $expense = Expense::factory()->create([
         'whatsapp_sender' => null,
         'source' => 'manual',
     ]);
 
-    expect(NotificationRecipient::forInvoice($invoice)?->is($primary))->toBeTrue();
+    expect(NotificationRecipient::forExpense($expense)?->is($primary))->toBeTrue();
 });
 
 test('findUsersByPhone matches plus-prefix and local forms', function () {

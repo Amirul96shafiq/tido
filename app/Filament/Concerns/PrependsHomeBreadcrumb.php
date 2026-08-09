@@ -12,7 +12,7 @@ use Illuminate\Contracts\Support\Htmlable;
 /**
  * Prepends a Home crumb linking to the panel Dashboard.
  *
- * Example: Home > Invoices > List
+ * Example: Home > Expenses > List
  */
 trait PrependsHomeBreadcrumb
 {

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Enums\LabelType;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use Database\Seeders\LabelSeeder;
@@ -19,7 +19,7 @@ class SeedScannedReceiptsCommand extends Command
 {
     protected $signature = 'receipts:seed-scanned {--source= : Directory containing source receipt images}';
 
-    protected $description = 'Seed scanned receipt invoices into storage and the database (idempotent)';
+    protected $description = 'Seed scanned receipt expenses into storage and the database (idempotent)';
 
     public function handle(): int
     {
@@ -47,8 +47,8 @@ class SeedScannedReceiptsCommand extends Command
             $sourceFilename = (string) $receipt['source_filename'];
             $storagePath = 'receipts/'.$sourceFilename;
 
-            if (Invoice::query()->where('invoice_number', $invoiceNumber)->exists()) {
-                $this->line("Skipped existing invoice {$invoiceNumber}");
+            if (Expense::query()->where('invoice_number', $invoiceNumber)->exists()) {
+                $this->line("Skipped existing expense {$invoiceNumber}");
                 $skipped++;
 
                 continue;
@@ -67,7 +67,7 @@ class SeedScannedReceiptsCommand extends Command
                 DB::transaction(function () use ($receipt, $invoiceNumber, $sourceFilename, $storagePath, &$created): void {
                     $paymentMethod = PaymentMethod::findBySlug((string) $receipt['payment_method']);
 
-                    $invoice = Invoice::create([
+                    $expense = Expense::create([
                         'merchant_name' => $receipt['merchant_name'],
                         'invoice_number' => $invoiceNumber,
                         'date_time' => $receipt['date_time'],
@@ -95,8 +95,8 @@ class SeedScannedReceiptsCommand extends Command
                             throw new \RuntimeException("Missing label slug [{$item['label_slug']}]");
                         }
 
-                        InvoiceItem::create([
-                            'invoice_id' => $invoice->id,
+                        ExpenseItem::create([
+                            'expense_id' => $expense->id,
                             'label_id' => $labelId,
                             'description' => $item['description'],
                             'quantity' => $item['quantity'],
@@ -106,7 +106,7 @@ class SeedScannedReceiptsCommand extends Command
                     }
 
                     $created++;
-                    $this->info("Created invoice {$invoiceNumber} ({$sourceFilename})");
+                    $this->info("Created expense {$invoiceNumber} ({$sourceFilename})");
                 });
             } catch (\Throwable $exception) {
                 $this->error("Failed {$invoiceNumber}: {$exception->getMessage()}");

@@ -62,7 +62,7 @@ test('manual approach includes format sample and payment methods', function () {
 
     expect($message)
         ->toContain('💬 *Manual Approach*')
-        ->toContain('[Invoice title], [Payment method];')
+        ->toContain('[Expense title], [Payment method];')
         ->toContain('ASNB Investment, FPX;')
         ->toContain('Payment method supported:')
         ->toContain('- Cash')
@@ -97,9 +97,9 @@ test('document received includes file count', function () {
     );
 });
 
-test('document parsed includes merchant total payment method and invoice edit url', function () {
+test('document parsed includes merchant total payment method and expense edit url', function () {
     $message = WhatsAppMessage::documentParsed(
-        'https://tido.test/admin/invoices/1/edit',
+        'https://tido.test/admin/expenses/1/edit',
         [
             'merchant_name' => '7-Eleven',
             'total_amount' => '12.50',
@@ -108,13 +108,13 @@ test('document parsed includes merchant total payment method and invoice edit ur
     );
 
     expect($message)->toBe(
-        "🎉 *Document parsed*\n\nMerchant: *7-Eleven*\nTotal Amount: *RM 12.50*\nPayment Method: *Cash*\n\nGo to *invoice edit*\nhttps://tido.test/admin/invoices/1/edit\n\n— Powered by *tido*",
+        "🎉 *Document parsed*\n\nMerchant: *7-Eleven*\nTotal Amount: *RM 12.50*\nPayment Method: *Cash*\n\nGo to *expense edit*\nhttps://tido.test/admin/expenses/1/edit\n\n— Powered by *tido*",
     );
 });
 
 test('document needs review includes merchant total payment method and review note', function () {
     $message = WhatsAppMessage::documentNeedsReview(
-        'https://tido.test/admin/invoices/1/edit',
+        'https://tido.test/admin/expenses/1/edit',
         [
             'merchant_name' => 'Luckin Coffee',
             'total_amount' => '4.23',
@@ -123,21 +123,21 @@ test('document needs review includes merchant total payment method and review no
     );
 
     expect($message)->toBe(
-        "⚠️ *Document needs review*\n\nMerchant: *Luckin Coffee*\nTotal Amount: *RM 4.23*\nPayment Method: *Other*\n\nGo to *invoice edit*\nhttps://tido.test/admin/invoices/1/edit\n\nPlease review and confirm the details in the admin panel.\n\n— Powered by *tido*",
+        "⚠️ *Document needs review*\n\nMerchant: *Luckin Coffee*\nTotal Amount: *RM 4.23*\nPayment Method: *Other*\n\nGo to *expense edit*\nhttps://tido.test/admin/expenses/1/edit\n\nPlease review and confirm the details in the admin panel.\n\n— Powered by *tido*",
     );
 });
 
-test('manual invoice received includes invoice count', function () {
-    $message = WhatsAppMessage::manualInvoiceReceived(2);
+test('manual expense received includes expense count', function () {
+    $message = WhatsAppMessage::manualExpenseReceived(2);
 
     expect($message)->toBe(
-        "📥 *Manual invoice received*\n\nA total of *2* manual invoice(s) saved and queued for AI parsing.\n\n— Powered by *tido*",
+        "📥 *Manual expense received*\n\nA total of *2* manual expense(s) saved and queued for AI parsing.\n\n— Powered by *tido*",
     );
 });
 
-test('manual invoice parsed includes merchant total payment method and invoice edit url', function () {
-    $message = WhatsAppMessage::manualInvoiceParsed(
-        'https://tido.test/admin/invoices/191/edit',
+test('manual expense parsed includes merchant total payment method and expense edit url', function () {
+    $message = WhatsAppMessage::manualExpenseParsed(
+        'https://tido.test/admin/expenses/191/edit',
         [
             'merchant_name' => 'myNEWS Bayu Residensi',
             'total_amount' => '4.20',
@@ -146,6 +146,6 @@ test('manual invoice parsed includes merchant total payment method and invoice e
     );
 
     expect($message)->toBe(
-        "🎉 *Manual invoice parsed*\n\nMerchant: *myNEWS Bayu Residensi*\nTotal Amount: *RM 4.20*\nPayment Method: *Cash*\n\nGo to *invoice edit*\nhttps://tido.test/admin/invoices/191/edit\n\n— Powered by *tido*",
+        "🎉 *Manual expense parsed*\n\nMerchant: *myNEWS Bayu Residensi*\nTotal Amount: *RM 4.20*\nPayment Method: *Cash*\n\nGo to *expense edit*\nhttps://tido.test/admin/expenses/191/edit\n\n— Powered by *tido*",
     );
 });

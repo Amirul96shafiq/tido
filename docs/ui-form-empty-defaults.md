@@ -15,7 +15,7 @@ Do **not** use restore-on-empty for fields where a placeholder string would poll
 ## Money fields (MYR)
 
 - Optional / secondary amounts that may start at zero: `->myr()->default(0.00)` (e.g. tax, discount, rounding).
-- Required primary amounts the user must enter: `->myr()->placeholder('0.00')` (e.g. invoice subtotal / total, budget limit amount).
+- Required primary amounts the user must enter: `->myr()->placeholder('0.00')` (e.g. expense subtotal / total, budget limit amount).
 - Repeater line totals that drive collapsed labels: `->myr()->default('0.00')` + restore when blank on blur.
 
 Always use the `->myr()` macro (`MoneyDisplay`) — do not hand-roll prefixes or decimal formatting.
@@ -35,11 +35,11 @@ When adding or extending `app/Filament/Resources/{Plural}/Schemas/{Singular}Form
 
 | Resource | Field | Pattern | Value |
 |----------|-------|---------|-------|
-| Invoice | `merchant_name`, `invoice_number` | Placeholder | `Merchant name`, `Invoice number` |
-| Invoice | `subtotal`, `total_amount` | Placeholder | `0.00` |
-| Invoice | `total_tax`, `discount_total`, `rounding_amount` | Default | `0.00` |
-| Invoice item | `description` | Default + restore | `Item name` |
-| Invoice item | `line_total` | Default + restore | `0.00` |
+| Expense | `merchant_name`, `invoice_number` | Placeholder | `Merchant name`, `Invoice number` |
+| Expense | `subtotal`, `total_amount` | Placeholder | `0.00` |
+| Expense | `total_tax`, `discount_total`, `rounding_amount` | Default | `0.00` |
+| Expense item | `description` | Default + restore | `Item name` |
+| Expense item | `line_total` | Default + restore | `0.00` |
 | Budget | `amount` (Limit & Period) | Placeholder | `0.00` |
 | Budget | `period`, `year` | Default | `monthly`, current year |
 | Label | `name`, `slug` | Placeholder | `Label name`, `label-slug` |
@@ -47,6 +47,6 @@ When adding or extending `app/Filament/Resources/{Plural}/Schemas/{Singular}Form
 
 ## References
 
-- Forms: `InvoiceForm`, `BudgetForm`, `LabelForm`, `PaymentMethodForm` under `app/Filament/Resources/*/Schemas/`
-- Tests: `tests/Feature/InvoiceFormReceiptImageTest.php`, `BudgetFormTest.php`, `LabelFormTest.php`, `PaymentMethodFormTest.php`
+- Forms: `ExpenseForm`, `BudgetForm`, `LabelForm`, `PaymentMethodForm` under `app/Filament/Resources/*/Schemas/`
+- Tests: `tests/Feature/ExpenseFormReceiptImageTest.php`, `BudgetFormTest.php`, `LabelFormTest.php`, `PaymentMethodFormTest.php`
 - Filament docs: field `placeholder()` vs `default()` (Boost `search-docs`)

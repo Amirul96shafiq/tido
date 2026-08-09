@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\Invoice;
+use App\Models\Expense;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
@@ -19,11 +19,11 @@ final class ReceiptDocumentPreparer
     /**
      * @return list<string>
      */
-    public function prepare(Invoice $invoice): array
+    public function prepare(Expense $expense): array
     {
-        $contents = $this->contents($invoice);
+        $contents = $this->contents($expense);
 
-        if ($invoice->file_mime_type === 'application/pdf') {
+        if ($expense->file_mime_type === 'application/pdf') {
             return array_map(
                 fn (string $page): string => $this->imagePreparer->toBase64($page),
                 $this->pdfRenderer->render($contents),
@@ -33,21 +33,21 @@ final class ReceiptDocumentPreparer
         return [$this->imagePreparer->toBase64($contents)];
     }
 
-    public function extractText(Invoice $invoice): ?string
+    public function extractText(Expense $expense): ?string
     {
-        if ($invoice->file_mime_type !== 'application/pdf') {
+        if ($expense->file_mime_type !== 'application/pdf') {
             return null;
         }
 
-        return $this->pdfTextExtractor->extract($this->contents($invoice));
+        return $this->pdfTextExtractor->extract($this->contents($expense));
     }
 
-    private function contents(Invoice $invoice): string
+    private function contents(Expense $expense): string
     {
-        if (blank($invoice->image_path) || ! Storage::exists($invoice->image_path)) {
+        if (blank($expense->image_path) || ! Storage::exists($expense->image_path)) {
             throw new RuntimeException('The receipt document does not exist in storage.');
         }
 
-        return (string) Storage::get($invoice->image_path);
+        return (string) Storage::get($expense->image_path);
     }
 }

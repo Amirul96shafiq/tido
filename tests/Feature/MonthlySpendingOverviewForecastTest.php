@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Filament\Widgets\MonthlySpendingOverview;
 use App\Models\Budget;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,10 +31,10 @@ test('spending forecast shows exceed percent above one hundred when barely over 
         'year' => 2026,
     ]);
 
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     // Month-to-date spend that projects to ~100.4% of budget (rounds to 100% with %.0f).
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'date_time' => Carbon::parse('2026-07-10 10:00:00', 'Asia/Kuala_Lumpur'),
         'subtotal' => 1191.29,
         'total_tax' => 0,
@@ -45,7 +45,7 @@ test('spending forecast shows exceed percent above one hundred when barely over 
         'invoice_number' => 'INV-FORECAST-001',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $projectedSpend = 1191.29 + ((1191.29 / 21) * 10);
     $rawPercent = ($projectedSpend / 1751.00) * 100;
@@ -70,9 +70,9 @@ test('spending forecast shows large exceed percent without capping at one hundre
         'year' => 2026,
     ]);
 
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'date_time' => Carbon::parse('2026-07-10 10:00:00', 'Asia/Kuala_Lumpur'),
         'subtotal' => 2000.00,
         'total_tax' => 0,
@@ -83,7 +83,7 @@ test('spending forecast shows large exceed percent without capping at one hundre
         'invoice_number' => 'INV-FORECAST-002',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     // 2000 + (2000/21)*10 = ~2952.38 → ~295% of 1000
     Livewire::test(MonthlySpendingOverview::class)
@@ -95,9 +95,9 @@ test('spending forecast shows large exceed percent without capping at one hundre
 test('monthly spending overview renders a native sparkline for every stat', function () {
     Carbon::setTestNow(Carbon::parse('2026-07-21 12:00:00', 'Asia/Kuala_Lumpur'));
 
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'date_time' => Carbon::parse('2026-06-10 10:00:00', 'Asia/Kuala_Lumpur'),
         'subtotal' => 80.00,
         'total_tax' => 4.00,
@@ -108,7 +108,7 @@ test('monthly spending overview renders a native sparkline for every stat', func
         'invoice_number' => 'INV-SPARKLINE-001',
     ]);
 
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'date_time' => Carbon::parse('2026-07-10 10:00:00', 'Asia/Kuala_Lumpur'),
         'subtotal' => 120.00,
         'total_tax' => 6.00,
@@ -119,7 +119,7 @@ test('monthly spending overview renders a native sparkline for every stat', func
         'invoice_number' => 'INV-SPARKLINE-002',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $html = Livewire::test(MonthlySpendingOverview::class)
         ->assertSuccessful()

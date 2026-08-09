@@ -22,7 +22,7 @@ class ContentDraftFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'key' => 'invoice-create',
+            'key' => 'expense-create',
             'payload' => [
                 'merchant_name' => $this->faker->company(),
                 'notes' => $this->faker->sentence(),

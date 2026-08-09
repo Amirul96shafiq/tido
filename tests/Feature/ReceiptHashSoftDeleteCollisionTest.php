@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Jobs\ExtractReceiptDataJob;
 use App\Jobs\SendWhatsAppDocumentParsedJob;
-use App\Models\Invoice;
+use App\Models\Expense;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
-test('extract receipt data job uniquifies hash when soft-deleted invoice owns the same hash', function () {
+test('extract receipt data job uniquifies hash when soft-deleted expense owns the same hash', function () {
     Queue::fake();
     Storage::fake('local');
     Storage::put('receipts/wa_NEW.jpg', 'fake-image-content');
@@ -26,7 +26,7 @@ test('extract receipt data job uniquifies hash when soft-deleted invoice owns th
     $total = '7.80';
     $baseHash = hash('sha256', $invoiceNumber.$dateTime.$total);
 
-    $trashed = Invoice::factory()->create([
+    $trashed = Expense::factory()->create([
         'invoice_number' => $invoiceNumber,
         'date_time' => $dateTime,
         'total_amount' => $total,
@@ -36,7 +36,7 @@ test('extract receipt data job uniquifies hash when soft-deleted invoice owns th
     ]);
     $trashed->delete();
 
-    expect(Invoice::withTrashed()->where('receipt_hash', $baseHash)->exists())->toBeTrue();
+    expect(Expense::withTrashed()->where('receipt_hash', $baseHash)->exists())->toBeTrue();
 
     Http::fake([
         '*/api/generate' => Http::response([
@@ -71,7 +71,7 @@ test('extract receipt data job uniquifies hash when soft-deleted invoice owns th
         ]),
     ]);
 
-    $invoice = Invoice::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -85,15 +85,15 @@ test('extract receipt data job uniquifies hash when soft-deleted invoice owns th
         'original_filename' => 'wa_NEW.jpg',
     ]);
 
-    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
+    app()->call([new ExtractReceiptDataJob($expense->id), 'handle']);
 
-    $invoice->refresh();
+    $expense->refresh();
 
-    expect($invoice->status)->toBeIn(['parsed', 'requires_manual_review'])
-        ->and($invoice->receipt_hash)->not->toBe($baseHash)
-        ->and($invoice->receipt_hash)->toBe(hash('sha256', $baseHash.'|'.$invoice->id));
+    expect($expense->status)->toBeIn(['parsed', 'requires_manual_review'])
+        ->and($expense->receipt_hash)->not->toBe($baseHash)
+        ->and($expense->receipt_hash)->toBe(hash('sha256', $baseHash.'|'.$expense->id));
 
-    Queue::assertPushed(SendWhatsAppDocumentParsedJob::class, function (SendWhatsAppDocumentParsedJob $job) use ($invoice): bool {
-        return $job->invoiceId === $invoice->id;
+    Queue::assertPushed(SendWhatsAppDocumentParsedJob::class, function (SendWhatsAppDocumentParsedJob $job) use ($expense): bool {
+        return $job->expenseId === $expense->id;
     });
 });

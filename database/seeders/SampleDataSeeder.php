@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\Label;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -165,12 +165,12 @@ class SampleDataSeeder extends Seeder
 
                 $tax = round($subtotal * 0.06, 2);
                 $total = $subtotal + $tax;
-                $invoiceNum = 'INV-'.strtoupper(substr(md5((string) mt_rand()), 0, 8));
+                $expenseNum = 'INV-'.strtoupper(substr(md5((string) mt_rand()), 0, 8));
 
-                $invoice = Invoice::create([
+                $expense = Expense::create([
                     'merchant_name' => $merchant['name'],
-                    'invoice_number' => $invoiceNum,
-                    'receipt_hash' => hash('sha256', $invoiceNum.$dateTime->format('Y-m-d H:i:s').$total),
+                    'invoice_number' => $expenseNum,
+                    'receipt_hash' => hash('sha256', $expenseNum.$dateTime->format('Y-m-d H:i:s').$total),
                     'date_time' => $dateTime,
                     'subtotal' => $subtotal,
                     'total_tax' => $tax,
@@ -184,8 +184,8 @@ class SampleDataSeeder extends Seeder
                 foreach ($itemsData as $itemData) {
                     $label = $labels->get($itemData['category']);
 
-                    InvoiceItem::create([
-                        'invoice_id' => $invoice->id,
+                    ExpenseItem::create([
+                        'expense_id' => $expense->id,
                         'label_id' => $label?->id,
                         'description' => $itemData['description'],
                         'quantity' => $itemData['quantity'],
@@ -196,6 +196,6 @@ class SampleDataSeeder extends Seeder
             }
         }
 
-        $this->command->info('✅ Sample data seeded: ~32 invoices for '.$now->format('F Y'));
+        $this->command->info('✅ Sample data seeded: ~32 expenses for '.$now->format('F Y'));
     }
 }

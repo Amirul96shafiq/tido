@@ -10,7 +10,7 @@
 | [dashboard-views.md](dashboard-views.md) | Agents + humans | Modular Home dashboard (Finances / Training / Health / Task) |
 | [ollama-setup.md](ollama-setup.md) | Ops | Native host Ollama / qwen2.5vl:7b (no Docker) |
 | [evolution-local-windows.md](evolution-local-windows.md) | Ops | WhatsApp Evolution instance, webhook, PDF media, and LID allowlist (Windows host) |
-| [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md) | Humans + agents | Text-only WhatsApp manual invoice format and pipeline |
+| [whatsapp-manual-expense.md](whatsapp-manual-expense.md) | Humans + agents | Text-only WhatsApp manual expense format and pipeline |
 | [whatsapp-bot-commands.md](whatsapp-bot-commands.md) | Humans + agents | WhatsApp media handling, command / keyword reference, and auto-replies |
 | [google-drive-setup.md](google-drive-setup.md) | Ops | Drive folder sync credentials |
 | [ui-empty-states.md](ui-empty-states.md) | Agents + humans | Illustrated empty panels (email-change expiry pattern) |
@@ -30,7 +30,7 @@
 | [backups-and-danger-zone.md](backups-and-danger-zone.md) | Agents + humans | Backup catalog, restore tokens, guest restore, profile Danger Zone |
 | [service-status.md](service-status.md) | Agents + humans | Tools Service Status page, health probes, uptime history |
 | [active-sessions.md](active-sessions.md) | Agents + humans | Profile Active Sessions list, revoke, user-agent parsing |
-| [household-access.md](household-access.md) | Agents + humans | Household roles, receipt attribution, family WhatsApp login, invoice ACL |
+| [household-access.md](household-access.md) | Agents + humans | Household roles, receipt attribution, family WhatsApp login, expense ACL |
 | [git-workflow.md](git-workflow.md) | Agents + humans | Feature/fix branches → PR → main; staging/production promotion |
 
 ## Agent assets (outside `docs/`)

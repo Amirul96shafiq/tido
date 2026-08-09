@@ -11,8 +11,8 @@ use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Pages\ServiceStatusPage;
 use App\Filament\Resources\Backups\BackupResource;
 use App\Filament\Resources\Budgets\BudgetResource;
+use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
-use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Filament\Widgets\CurrentCurrency;
@@ -140,10 +140,10 @@ final class AdminDestinationSearch
                 'url' => $uploadUrl,
             ],
             [
-                'title' => 'Invoices',
+                'title' => 'Expenses',
                 'keywords' => ['invoice', 'invoices', 'receipt', 'receipts', 'finances', 'expenses'],
                 'group' => 'Pages',
-                'url' => InvoiceResource::getUrl('index'),
+                'url' => ExpenseResource::getUrl('index'),
             ],
             [
                 'title' => 'Budgets',

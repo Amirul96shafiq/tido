@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Models\Budget;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\Label;
 use App\Support\WhatsAppSpendingCommandParser;
 use App\Support\WhatsAppSpendingReplyBuilder;
@@ -15,9 +15,9 @@ use Tests\TestCase;
 uses(TestCase::class, RefreshDatabase::class);
 
 test('summary includes total receipts comparison and footer', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Store A',
         'invoice_number' => 'INV-001',
         'receipt_hash' => 'hash-spend-001',
@@ -30,7 +30,7 @@ test('summary includes total receipts comparison and footer', function () {
         'status' => 'reviewed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Store B',
         'invoice_number' => 'INV-002',
         'receipt_hash' => 'hash-spend-002',
@@ -43,7 +43,7 @@ test('summary includes total receipts comparison and footer', function () {
         'status' => 'reviewed',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $message = (new WhatsAppSpendingReplyBuilder(now()->format('Y-m')))->build();
 
@@ -58,7 +58,7 @@ test('summary includes total receipts comparison and footer', function () {
 });
 
 test('labels mode lists label spending for selected month', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
@@ -68,7 +68,7 @@ test('labels mode lists label spending for selected month', function () {
         'slug' => 'groceries',
     ]);
 
-    $invoice = Invoice::create([
+    $expense = Expense::create([
         'merchant_name' => 'Grocery Store',
         'invoice_number' => 'INV-GROC',
         'receipt_hash' => 'hash-groc-spend',
@@ -81,8 +81,8 @@ test('labels mode lists label spending for selected month', function () {
         'status' => 'reviewed',
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Vegetables',
         'quantity' => 1,
@@ -90,7 +90,7 @@ test('labels mode lists label spending for selected month', function () {
         'line_total' => 45.00,
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $message = (new WhatsAppSpendingReplyBuilder(
         $targetMonth,

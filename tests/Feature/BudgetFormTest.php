@@ -6,8 +6,8 @@ use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Resources\Budgets\Pages\CreateBudget;
 use App\Filament\Resources\Budgets\Pages\EditBudget;
 use App\Models\Budget;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\Label;
 use App\Models\User;
 use Filament\Forms\Components\TextInput;
@@ -114,7 +114,7 @@ test('budget performance uses live form amount before save', function () {
 });
 
 test('budget performance shows overspend instead of zero remaining', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $label = Label::factory()->create(['name' => 'Groceries & Household']);
 
@@ -128,14 +128,14 @@ test('budget performance shows overspend instead of zero remaining', function ()
         'critical_threshold' => 100,
     ]);
 
-    $invoice = Invoice::factory()->create([
+    $expense = Expense::factory()->create([
         'status' => 'reviewed',
         'date_time' => now(),
         'total_amount' => 721.11,
     ]);
 
-    InvoiceItem::factory()->create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::factory()->create([
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'line_total' => 721.11,
     ]);

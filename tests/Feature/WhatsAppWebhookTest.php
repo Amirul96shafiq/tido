@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use App\Jobs\ProcessWhatsAppMediaJob;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\FamilyMember;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
 use App\Models\Label;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -110,7 +110,7 @@ test('whatsapp webhook ignores non-allowlisted senders without replying', functi
         ->assertJson(['status' => 'ignored_sender']);
 
     Http::assertNothingSent();
-    expect(Invoice::count())->toBe(0);
+    expect(Expense::count())->toBe(0);
 });
 
 test('whatsapp webhook ignores strangers image uploads', function () {
@@ -141,11 +141,11 @@ test('whatsapp webhook ignores strangers image uploads', function () {
 
     Http::assertNothingSent();
     Queue::assertNothingPushed();
-    expect(Invoice::count())->toBe(0);
+    expect(Expense::count())->toBe(0);
 });
 
 test('whatsapp webhook handles text queries for monthly spent', function () {
-    Invoice::factory()->count(3)->create([
+    Expense::factory()->count(3)->create([
         'total_amount' => 50.00,
         'date_time' => now(),
         'status' => 'reviewed',
@@ -183,14 +183,14 @@ test('whatsapp webhook handles text queries for monthly spent', function () {
 });
 
 test('whatsapp webhook handles spend labels sub-command', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $label = Label::factory()->create([
         'name' => 'Transport',
         'slug' => 'transport',
     ]);
 
-    $invoice = Invoice::create([
+    $expense = Expense::create([
         'merchant_name' => 'Petronas',
         'invoice_number' => 'INV-FUEL',
         'receipt_hash' => 'hash-fuel-001',
@@ -203,8 +203,8 @@ test('whatsapp webhook handles spend labels sub-command', function () {
         'status' => 'reviewed',
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'RON95',
         'quantity' => 1,
@@ -212,7 +212,7 @@ test('whatsapp webhook handles spend labels sub-command', function () {
         'line_total' => 60.00,
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     Http::fake([
         '*/message/sendText/*' => Http::response(['status' => 'success']),
@@ -311,7 +311,7 @@ test('whatsapp webhook accepts image message and dispatches media job', function
             && $job->declaredMimeType === 'image/jpeg';
     });
 
-    expect(Invoice::count())->toBe(0);
+    expect(Expense::count())->toBe(0);
 });
 
 test('whatsapp webhook accepts a PDF document and dispatches its metadata', function () {

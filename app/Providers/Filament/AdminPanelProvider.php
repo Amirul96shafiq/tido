@@ -12,8 +12,8 @@ use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Auth\ResetPassword;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\ReceiptUploadPage;
-use App\Filament\Resources\Invoices\Pages\CreateInvoice;
-use App\Filament\Resources\Invoices\Pages\EditInvoice;
+use App\Filament\Resources\Expenses\Pages\CreateExpense;
+use App\Filament\Resources\Expenses\Pages\EditExpense;
 use App\Http\Middleware\SetUserPreferences;
 use App\Support\FilamentAuthLogout;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
@@ -163,8 +163,8 @@ class AdminPanelProvider extends PanelProvider
                 fn (): string => Blade::render('@vite([\'resources/js/receipt-image-preview.js\'])'),
                 scopes: [
                     ReceiptUploadPage::class,
-                    CreateInvoice::class,
-                    EditInvoice::class,
+                    CreateExpense::class,
+                    EditExpense::class,
                 ],
             )
             ->renderHook(

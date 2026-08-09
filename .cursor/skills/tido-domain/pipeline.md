@@ -5,20 +5,20 @@
 ```
 WhatsApp image | Drive file | Filament upload | Manual create
         ↓
-Invoice (status=pending, image_path set, source=…, family_member_id?)
-  WhatsApp → InvoiceSenderAttribution (allowlisted Family Member phone)
+Expense (status=pending, image_path set, source=…, family_member_id?)
+  WhatsApp → ExpenseSenderAttribution (allowlisted Family Member phone)
   Filament family user → acting user’s family_member_id
   Primary / unknown → null (Primary spender)
         ↓
-InvoiceObserver::created → ExtractReceiptDataJob::dispatch(invoiceId)
+ExpenseObserver::created → ExtractReceiptDataJob::dispatch(expenseId)
   (WhatsApp waits for document-received ack first)
         ↓
 OllamaService::parseReceipt(base64, ReceiptExtractionPrompt::build())
         ↓
-Update Invoice fields + create InvoiceItems (label via LabelMatcher)
+Update Expense fields + create ExpenseItems (label via LabelMatcher)
 status = parsed | requires_manual_review
         ↓
-InvoiceObserver / BudgetAlertService (threshold WhatsApp + DB notifications)
+ExpenseObserver / BudgetAlertService (threshold WhatsApp + DB notifications)
 ```
 
 ## End-to-end (WhatsApp PDF receipts)
@@ -40,40 +40,40 @@ ReceiptDocumentPreparer → PdfPageRenderer (Poppler pdftocairo → JPEG pages)
 ExtractReceiptDataJob
   → Ollama page JSON (`PdfReceiptPagePrompt`)
   → merge multi-page JSON (`PdfReceiptMergePrompt`)
-  → normalize invoice + match Labels / payment method
+  → normalize expense + match Labels / payment method
   → status = parsed | requires_manual_review
 ```
 
-Defaults are 10 MB (`PDF_MAX_BYTES`) and 3 pages (`PDF_MAX_PAGES`). Password-protected and unreadable PDFs are rejected before invoice creation. If `pdfinfo` is unavailable during intake, the PDF may be stored with a null page count, but `pdftocairo` must still be available when the extraction job runs.
+Defaults are 10 MB (`PDF_MAX_BYTES`) and 3 pages (`PDF_MAX_PAGES`). Password-protected and unreadable PDFs are rejected before expense creation. If `pdfinfo` is unavailable during intake, the PDF may be stored with a null page count, but `pdftocairo` must still be available when the extraction job runs.
 
 ## End-to-end (WhatsApp manual text)
 
 ```
-WhatsApp text (ManualWhatsAppInvoiceParser)
+WhatsApp text (ManualWhatsAppExpenseParser)
         ↓
-ProcessManualWhatsAppInvoiceJob
-  → Invoice (pending, no image, MYR, payment from token or cash, family_member_id from sender)
-  → InvoiceItems (label_id null)
+ProcessManualWhatsAppExpenseJob
+  → Expense (pending, no image, MYR, payment from token or cash, family_member_id from sender)
+  → ExpenseItems (label_id null)
         ↓
-WhatsAppManualInvoiceReceivedDebouncer → Manual invoice received ack
+WhatsAppManualExpenseReceivedDebouncer → Manual expense received ack
         ↓
-ParseManualWhatsAppInvoiceJob
-  → OllamaService::generateJson(ManualInvoiceLabelPrompt)
+ParseManualWhatsAppExpenseJob
+  → OllamaService::generateJson(ManualExpenseLabelPrompt)
   → LabelMatcher → label_id
   → status = requires_manual_review
         ↓
-Manual invoice parsed WhatsApp reply (edit URL)
+Manual expense parsed WhatsApp reply (edit URL)
 ```
 
-User-facing format and tokens: [docs/whatsapp-manual-invoice.md](../../../docs/whatsapp-manual-invoice.md).
+User-facing format and tokens: [docs/whatsapp-manual-expense.md](../../../docs/whatsapp-manual-expense.md).
 
 ## ExtractReceiptDataJob
 
-- PDF invoices use Poppler `pdfinfo` / `pdftocairo`; each page is extracted separately and multi-page results are merged before normalization
+- PDF receipts use Poppler `pdfinfo` / `pdftocairo`; each page is extracted separately and multi-page results are merged before normalization
 
 - `$tries = 3`, backoff `[30, 60, 120]`
-- Skip if invoice missing or status ≠ `pending`
-- Blank `image_path` → skip (do not mark `failed`; used by manual text invoices)
+- Skip if expense missing or status ≠ `pending`
+- Blank `image_path` → skip (do not mark `failed`; used by manual text expenses)
 - Missing file on disk → `failed`
 - Empty Ollama parse → throw (retry); `failed()` → `requires_manual_review`
 - Label: match AI `label` (legacy `suggested_category`) via `LabelMatcher` to Finance `Label`; leave null if unknown
@@ -96,9 +96,9 @@ Unique on `receipt_hash`. Factories should set a unique hash.
 - Sender allowlist: Profile `users.phone` + Family Members with `allowlist_enabled` (normalized); others → `ignored_sender` (no reply)
 - Panel login: Family Members with `login_enabled` get a linked `User` and may OTP-login — see `docs/household-access.md`
 - Self-chat allowed when `remoteJid` matches allowlist (including `fromMe: true`)
-- Image: fetch media → `receipts/` storage → pending Invoice (`family_member_id` via `InvoiceSenderAttribution`) → ack text
+- Image: fetch media → `receipts/` storage → pending Expense (`family_member_id` via `ExpenseSenderAttribution`) → ack text
 - Text: spend/total keywords → monthly sum via Evolution `sendText`
-- Text manual invoice format (`merchant[, payment];` + `item, qty, line_total;` blocks, multi-block OK) → pending Invoice (no image; attributed; payment token optional: `qr` / `tngo` / `card` / `cash`…, default cash) → Manual invoice received ack → `ParseManualWhatsAppInvoiceJob` (Ollama labels only) → `requires_manual_review` + Manual invoice parsed reply
+- Text manual expense format (`merchant[, payment];` + `item, qty, line_total;` blocks, multi-block OK) → pending Expense (no image; attributed; payment token optional: `qr` / `tngo` / `card` / `cash`…, default cash) → Manual expense received ack → `ParseManualWhatsAppExpenseJob` (Ollama labels only) → `requires_manual_review` + Manual expense parsed reply
 
 ## WhatsApp identity resolution
 
@@ -108,7 +108,7 @@ Unique on `receipt_hash`. Factories should set a unique hash.
 ## Google Drive sync
 
 - Schedule: every 15 minutes → `SyncGoogleDriveJob`
-- List jpg/jpeg/png in configured folder → copy local → pending Invoice → delete remote
+- List jpg/jpeg/png in configured folder → copy local → pending Expense → delete remote
 - Missing Drive credentials: Google disk falls back (see `AppServiceProvider`)
 
 ## Ollama client checklist
@@ -129,5 +129,5 @@ Supervisors listen on `default`, `receipts`, `whatsapp`. Jobs today often use th
 
 - Blueprint: `docs/system-architecture.md`
 - Agent map: `docs/agent-onboarding.md`
-- Manual WhatsApp text: `docs/whatsapp-manual-invoice.md`
+- Manual WhatsApp text: `docs/whatsapp-manual-expense.md`
 - Ops: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/google-drive-setup.md`

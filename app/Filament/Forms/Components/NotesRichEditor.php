@@ -7,7 +7,7 @@ namespace App\Filament\Forms\Components;
 use Filament\Forms\Components\RichEditor;
 
 /**
- * Shared rich notes field for tido forms (Budget, Invoice, future notes columns).
+ * Shared rich notes field for tido forms (Budget, Expense, future notes columns).
  *
  * @see docs/ui-notes-rich-editor.md
  */

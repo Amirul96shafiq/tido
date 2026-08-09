@@ -5,13 +5,13 @@ declare(strict_types=1);
 use App\Enums\LabelType;
 use App\Filament\Resources\Budgets\Pages\CreateBudget;
 use App\Filament\Resources\Budgets\Pages\EditBudget;
-use App\Filament\Resources\Invoices\Pages\CreateInvoice;
-use App\Filament\Resources\Invoices\Pages\EditInvoice;
+use App\Filament\Resources\Expenses\Pages\CreateExpense;
+use App\Filament\Resources\Expenses\Pages\EditExpense;
 use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Filament\Resources\Labels\Pages\EditLabel;
 use App\Models\Budget;
 use App\Models\ContentDraft;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\Label;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,7 +29,7 @@ beforeEach(function () {
 });
 
 test('saveDraft persists meaningful create form payload', function () {
-    Livewire::test(CreateInvoice::class)
+    Livewire::test(CreateExpense::class)
         ->fillForm([
             'merchant_name' => 'FamilyMart Pinggiran',
             'notes' => 'Keep this draft',
@@ -38,7 +38,7 @@ test('saveDraft persists meaningful create form payload', function () {
 
     $draft = ContentDraft::query()
         ->where('user_id', $this->user->id)
-        ->where('key', 'invoice-create')
+        ->where('key', 'expense-create')
         ->first();
 
     expect($draft)->not->toBeNull()
@@ -48,13 +48,13 @@ test('saveDraft persists meaningful create form payload', function () {
 });
 
 test('saveDraft does not persist an empty create form', function () {
-    Livewire::test(CreateInvoice::class)
+    Livewire::test(CreateExpense::class)
         ->call('saveDraft');
 
     expect(
         ContentDraft::query()
             ->where('user_id', $this->user->id)
-            ->where('key', 'invoice-create')
+            ->where('key', 'expense-create')
             ->exists()
     )->toBeFalse();
 });
@@ -62,7 +62,7 @@ test('saveDraft does not persist an empty create form', function () {
 test('create page offers draft recovery and restore fills the form', function () {
     ContentDraft::factory()->create([
         'user_id' => $this->user->id,
-        'key' => 'invoice-create',
+        'key' => 'expense-create',
         'payload' => [
             'merchant_name' => 'Restored Merchant',
             'notes' => 'From draft',
@@ -70,7 +70,7 @@ test('create page offers draft recovery and restore fills the form', function ()
         ],
     ]);
 
-    Livewire::test(CreateInvoice::class)
+    Livewire::test(CreateExpense::class)
         ->assertNotified('Unsaved draft found')
         ->dispatch('restore-content-draft')
         ->assertFormSet([
@@ -83,13 +83,13 @@ test('create page offers draft recovery and restore fills the form', function ()
 test('discard clears the draft and removes recovery prompt work', function () {
     ContentDraft::factory()->create([
         'user_id' => $this->user->id,
-        'key' => 'invoice-create',
+        'key' => 'expense-create',
         'payload' => [
             'merchant_name' => 'Discard Me',
         ],
     ]);
 
-    Livewire::test(CreateInvoice::class)
+    Livewire::test(CreateExpense::class)
         ->assertNotified('Unsaved draft found')
         ->dispatch('discard-content-draft')
         ->assertNotified('Draft discarded');
@@ -97,7 +97,7 @@ test('discard clears the draft and removes recovery prompt work', function () {
     expect(
         ContentDraft::query()
             ->where('user_id', $this->user->id)
-            ->where('key', 'invoice-create')
+            ->where('key', 'expense-create')
             ->exists()
     )->toBeFalse();
 });
@@ -109,14 +109,14 @@ test('successful create clears the draft', function () {
 
     ContentDraft::factory()->create([
         'user_id' => $this->user->id,
-        'key' => 'invoice-create',
+        'key' => 'expense-create',
         'payload' => [
             'merchant_name' => 'Will Be Cleared',
         ],
     ]);
 
-    Livewire::test(CreateInvoice::class)
-        ->set('data.invoiceItems', [])
+    Livewire::test(CreateExpense::class)
+        ->set('data.expenseItems', [])
         ->fillForm([
             'merchant_name' => 'Manual Store',
             'invoice_number' => 'INV-DRAFT-1',
@@ -129,7 +129,7 @@ test('successful create clears the draft', function () {
             'currency' => 'MYR',
             'source' => 'manual',
             'status' => 'reviewed',
-            'invoiceItems' => [
+            'expenseItems' => [
                 [
                     'description' => 'Nasi Lemak',
                     'label_id' => $label->id,
@@ -142,38 +142,38 @@ test('successful create clears the draft', function () {
         ->call('create')
         ->assertHasNoFormErrors();
 
-    expect(Invoice::query()->where('merchant_name', 'Manual Store')->exists())->toBeTrue()
+    expect(Expense::query()->where('merchant_name', 'Manual Store')->exists())->toBeTrue()
         ->and(
             ContentDraft::query()
                 ->where('user_id', $this->user->id)
-                ->where('key', 'invoice-create')
+                ->where('key', 'expense-create')
                 ->exists()
         )->toBeFalse();
 });
 
 test('edit page does not keep a recoverable draft when form is unchanged', function () {
-    $invoice = Invoice::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Original Merchant',
         'notes' => 'Original notes',
     ]);
 
-    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->call('saveDraft');
 
     expect(
         ContentDraft::query()
             ->where('user_id', $this->user->id)
-            ->where('key', 'invoice-edit-'.$invoice->getKey())
+            ->where('key', 'expense-edit-'.$expense->getKey())
             ->exists()
     )->toBeFalse();
 });
 
 test('edit page saves a draft when the form is dirty', function () {
-    $invoice = Invoice::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Original Merchant',
     ]);
 
-    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->fillForm([
             'merchant_name' => 'Updated Merchant Draft',
         ])
@@ -181,7 +181,7 @@ test('edit page saves a draft when the form is dirty', function () {
 
     $draft = ContentDraft::query()
         ->where('user_id', $this->user->id)
-        ->where('key', 'invoice-edit-'.$invoice->getKey())
+        ->where('key', 'expense-edit-'.$expense->getKey())
         ->first();
 
     expect($draft)->not->toBeNull()
@@ -189,11 +189,11 @@ test('edit page saves a draft when the form is dirty', function () {
 });
 
 test('reverting an edit to its original state clears the saved draft indicator', function () {
-    $invoice = Invoice::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Original Merchant',
     ]);
 
-    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->fillForm([
             'merchant_name' => 'Updated Merchant Draft',
         ])
@@ -208,13 +208,13 @@ test('reverting an edit to its original state clears the saved draft indicator',
     expect(
         ContentDraft::query()
             ->where('user_id', $this->user->id)
-            ->where('key', 'invoice-edit-'.$invoice->getKey())
+            ->where('key', 'expense-edit-'.$expense->getKey())
             ->exists()
     )->toBeFalse();
 });
 
 test('successful edit save prevents the draft from reappearing on the next autosave poll', function () {
-    $invoice = Invoice::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Original Merchant',
         'subtotal' => 10.00,
         'total_tax' => 0.00,
@@ -228,13 +228,13 @@ test('successful edit save prevents the draft from reappearing on the next autos
 
     ContentDraft::factory()->create([
         'user_id' => $this->user->id,
-        'key' => 'invoice-edit-'.$invoice->getKey(),
+        'key' => 'expense-edit-'.$expense->getKey(),
         'payload' => [
             'merchant_name' => 'Stale Draft',
         ],
     ]);
 
-    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->fillForm([
             'merchant_name' => 'Saved Merchant',
         ])
@@ -243,11 +243,11 @@ test('successful edit save prevents the draft from reappearing on the next autos
         ->call('saveDraft')
         ->assertNotDispatched('content-draft-saved');
 
-    expect($invoice->fresh()->merchant_name)->toBe('Saved Merchant')
+    expect($expense->fresh()->merchant_name)->toBe('Saved Merchant')
         ->and(
             ContentDraft::query()
                 ->where('user_id', $this->user->id)
-                ->where('key', 'invoice-edit-'.$invoice->getKey())
+                ->where('key', 'expense-edit-'.$expense->getKey())
                 ->exists()
         )->toBeFalse();
 });

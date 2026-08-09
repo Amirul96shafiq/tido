@@ -10,11 +10,11 @@ use App\Helpers\UserDateDisplay;
 use App\Http\Middleware\LogLivewireUpdates;
 use App\Http\Responses\LogoutResponse;
 use App\Listeners\RegisterScheduledBackupCatalog;
+use App\Models\Expense;
 use App\Models\FamilyMember;
-use App\Models\Invoice;
 use App\Models\User;
+use App\Observers\ExpenseObserver;
 use App\Observers\FamilyMemberObserver;
-use App\Observers\InvoiceObserver;
 use App\Services\Currency\CurrencyApiExchangeRateProvider;
 use App\Services\Currency\ExchangeRateProvider;
 use App\View\Components\ButtonComponent;
@@ -70,7 +70,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        Invoice::observe(InvoiceObserver::class);
+        Expense::observe(ExpenseObserver::class);
         FamilyMember::observe(FamilyMemberObserver::class);
 
         Event::listen(BackupWasSuccessful::class, RegisterScheduledBackupCatalog::class);

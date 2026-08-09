@@ -7,15 +7,15 @@ use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Resources\Budgets\Pages\CreateBudget;
 use App\Filament\Resources\Budgets\Pages\EditBudget;
+use App\Filament\Resources\Expenses\Pages\CreateExpense;
+use App\Filament\Resources\Expenses\Pages\EditExpense;
 use App\Filament\Resources\FamilyMembers\Pages\CreateFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\EditFamilyMember;
-use App\Filament\Resources\Invoices\Pages\CreateInvoice;
-use App\Filament\Resources\Invoices\Pages\EditInvoice;
 use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Filament\Resources\Labels\Pages\EditLabel;
 use App\Models\Budget;
+use App\Models\Expense;
 use App\Models\FamilyMember;
-use App\Models\Invoice;
 use App\Models\Label;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,8 +37,8 @@ beforeEach(function () {
 function stickyBlurFormActionPages(): array
 {
     return [
-        'create invoice' => [CreateInvoice::class, []],
-        'edit invoice' => [EditInvoice::class, []],
+        'create expense' => [CreateExpense::class, []],
+        'edit expense' => [EditExpense::class, []],
         'create label' => [CreateLabel::class, []],
         'edit label' => [EditLabel::class, []],
         'create budget' => [CreateBudget::class, []],
@@ -52,8 +52,8 @@ function stickyBlurFormActionPages(): array
 test('create edit and profile pages use sticky blur form action markers', function (string $pageClass, array $params) {
     $this->actingAs($this->admin);
 
-    if ($pageClass === EditInvoice::class) {
-        $params['record'] = Invoice::factory()->create()->getRouteKey();
+    if ($pageClass === EditExpense::class) {
+        $params['record'] = Expense::factory()->create()->getRouteKey();
     }
 
     if ($pageClass === EditLabel::class) {
@@ -74,11 +74,11 @@ test('create edit and profile pages use sticky blur form action markers', functi
         ->assertSee('tido-sticky-marker--bottom', false);
 })->with(stickyBlurFormActionPages());
 
-test('draft saved indicator shares the invoice sticky action row', function () {
+test('draft saved indicator shares the expense sticky action row', function () {
     $this->actingAs($this->admin);
 
-    Livewire::test(EditInvoice::class, [
-        'record' => Invoice::factory()->create()->getRouteKey(),
+    Livewire::test(EditExpense::class, [
+        'record' => Expense::factory()->create()->getRouteKey(),
     ])
         ->assertSuccessful()
         ->assertSee('tido-sticky-form-actions-row', false)
@@ -108,8 +108,8 @@ test('create label still submits with sticky blur form actions', function () {
 
 test('sticky blur form actions trait is wired on resource and profile pages', function () {
     $pages = [
-        CreateInvoice::class,
-        EditInvoice::class,
+        CreateExpense::class,
+        EditExpense::class,
         CreateLabel::class,
         EditLabel::class,
         CreateBudget::class,

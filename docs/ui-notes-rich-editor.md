@@ -11,14 +11,14 @@ Canonical Filament field for note-like HTML columns in tido admin forms (`notes`
 | Component | `App\Filament\Forms\Components\NotesRichEditor` |
 | CSS height | `.fi-notes-rich-editor` in `resources/css/app.css` (`min-height: 10rem`) |
 | Constant | `NotesRichEditor::EXTRA_CLASS` → `fi-notes-rich-editor` |
-| Tests | `BudgetFormTest`, `InvoiceFormReceiptImageTest`, `LabelFormTest`, `PaymentMethodFormTest`, `ContentDraftRecoveryTest`, `ReceiptExtractionPromptTest`, `ReceiptReparseTest` |
+| Tests | `BudgetFormTest`, `ExpenseFormReceiptImageTest`, `LabelFormTest`, `PaymentMethodFormTest`, `ContentDraftRecoveryTest`, `ReceiptExtractionPromptTest`, `ReceiptReparseTest` |
 
 ## Current consumers
 
 | Form | Column | UI label |
 |------|--------|----------|
 | `BudgetForm` | `notes` | Hidden (section **Budget Notes**) |
-| `InvoiceForm` | `notes` | **Invoice Notes** |
+| `ExpenseForm` | `notes` | **Expense Notes** |
 | `LabelForm` | `description` | **Label Notes** (column name kept for schema / OCR hints) |
 | `PaymentMethodForm` | `notes` | Hidden (section **Payment Method Notes**) |
 
@@ -65,7 +65,7 @@ Defaults baked into `NotesRichEditor::setUp()`:
 | Field | Why |
 |-------|-----|
 | Non-notes rich content | Use stock `RichEditor` with its own toolbar/CSS; do **not** force `fi-notes-rich-editor` |
-| Invoice line-item `description` | Short line title — stays `TextInput`, not rich notes |
+| Expense line-item `description` | Short line title — stays `TextInput`, not rich notes |
 
 ## Related
 

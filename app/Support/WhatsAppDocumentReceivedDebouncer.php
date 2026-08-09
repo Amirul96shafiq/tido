@@ -23,7 +23,7 @@ final class WhatsAppDocumentReceivedDebouncer
     /**
      * @param  array{
      *     message_id: string,
-     *     invoice_id: int|null,
+     *     expense_id: int|null,
      *     filename: string,
      *     mime_type: string,
      *     page_count: int|null,
@@ -58,20 +58,20 @@ final class WhatsAppDocumentReceivedDebouncer
             }
 
             $documents[] = $document;
-            $invoiceIds = [];
+            $expenseIds = [];
 
             foreach ($documents as $item) {
-                $invoiceId = $item['invoice_id'] ?? null;
+                $expenseId = $item['expense_id'] ?? null;
 
-                if (($item['status'] ?? null) === 'accepted' && is_numeric($invoiceId) && (int) $invoiceId > 0) {
-                    $invoiceIds[] = (int) $invoiceId;
+                if (($item['status'] ?? null) === 'accepted' && is_numeric($expenseId) && (int) $expenseId > 0) {
+                    $expenseIds[] = (int) $expenseId;
                 }
             }
 
             Cache::put($key, [
                 'count' => count($documents),
                 'token' => $token,
-                'invoice_ids' => $invoiceIds,
+                'expense_ids' => $expenseIds,
                 'documents' => $documents,
             ], $ttl);
         });

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\ReceiptUploadPage;
-use App\Filament\Resources\Invoices\InvoiceResource;
-use App\Filament\Resources\Invoices\Pages\CreateInvoice;
-use App\Filament\Resources\Invoices\Pages\EditInvoice;
-use App\Filament\Resources\Invoices\Pages\ListInvoices;
-use App\Models\Invoice;
+use App\Filament\Resources\Expenses\ExpenseResource;
+use App\Filament\Resources\Expenses\Pages\CreateExpense;
+use App\Filament\Resources\Expenses\Pages\EditExpense;
+use App\Filament\Resources\Expenses\Pages\ListExpenses;
+use App\Models\Expense;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,11 +24,11 @@ beforeEach(function () {
     Filament::bootCurrentPanel();
 });
 
-test('create invoice page shows native breadcrumbs to index', function () {
-    $indexUrl = InvoiceResource::getUrl('index');
+test('create expense page shows native breadcrumbs to index', function () {
+    $indexUrl = ExpenseResource::getUrl('index');
     $homeUrl = Dashboard::getUrl();
 
-    Livewire::test(CreateInvoice::class)
+    Livewire::test(CreateExpense::class)
         ->assertSee('fi-breadcrumbs', false)
         ->assertSee('Home')
         ->assertSee($homeUrl, false)
@@ -36,12 +36,12 @@ test('create invoice page shows native breadcrumbs to index', function () {
         ->assertDontSee('Go back to table');
 });
 
-test('edit invoice page shows native breadcrumbs to index', function () {
-    $invoice = Invoice::factory()->create();
-    $indexUrl = InvoiceResource::getUrl('index');
+test('edit expense page shows native breadcrumbs to index', function () {
+    $expense = Expense::factory()->create();
+    $indexUrl = ExpenseResource::getUrl('index');
     $homeUrl = Dashboard::getUrl();
 
-    Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->assertSee('fi-breadcrumbs', false)
         ->assertSee('Home')
         ->assertSee($homeUrl, false)
@@ -49,15 +49,15 @@ test('edit invoice page shows native breadcrumbs to index', function () {
         ->assertDontSee('Go back to table');
 });
 
-test('list invoices page shows home invoices list breadcrumbs', function () {
-    $indexUrl = InvoiceResource::getUrl('index');
+test('list expenses page shows home expenses list breadcrumbs', function () {
+    $indexUrl = ExpenseResource::getUrl('index');
     $homeUrl = Dashboard::getUrl();
 
-    Livewire::test(ListInvoices::class)
+    Livewire::test(ListExpenses::class)
         ->assertSee('fi-breadcrumbs', false)
         ->assertSee('Home')
         ->assertSee($homeUrl, false)
-        ->assertSee('Invoices')
+        ->assertSee('Expenses')
         ->assertSee('List')
         ->assertSee($indexUrl, false)
         ->assertDontSee('Go back to table');

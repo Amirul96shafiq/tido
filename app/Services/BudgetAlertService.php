@@ -6,7 +6,7 @@ namespace App\Services;
 
 use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Support\NotificationRecipient;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppMessage;
@@ -17,9 +17,9 @@ class BudgetAlertService
 {
     public function __construct(protected WhatsAppNotificationService $waService) {}
 
-    public function checkAlertsForInvoice(Invoice $invoice): void
+    public function checkAlertsForExpense(Expense $expense): void
     {
-        $labelIds = $invoice->invoiceItems()->pluck('label_id')->unique()->filter()->toArray();
+        $labelIds = $expense->expenseItems()->pluck('label_id')->unique()->filter()->toArray();
 
         $budgets = Budget::query()
             ->where('is_active', true)

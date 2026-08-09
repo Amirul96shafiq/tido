@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\ProcessManualWhatsAppInvoiceJob;
+use App\Jobs\ProcessManualWhatsAppExpenseJob;
 use App\Jobs\ProcessWhatsAppMediaJob;
 use App\Services\WhatsAppNotificationService;
 use App\Support\EvolutionCredential;
-use App\Support\ManualWhatsAppInvoiceParser;
+use App\Support\ManualWhatsAppExpenseParser;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppLid;
 use App\Support\WhatsAppMessage;
@@ -156,8 +156,8 @@ class WhatsAppWebhookController extends Controller
     {
         $originalText = trim($text);
 
-        if (ManualWhatsAppInvoiceParser::looksLike($originalText)) {
-            ProcessManualWhatsAppInvoiceJob::dispatch($senderNumber, $originalText);
+        if (ManualWhatsAppExpenseParser::looksLike($originalText)) {
+            ProcessManualWhatsAppExpenseJob::dispatch($senderNumber, $originalText);
 
             return response()->json(['status' => 'accepted']);
         }

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Jobs\ExtractReceiptDataJob;
-use App\Models\Invoice;
+use App\Models\Expense;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,7 +20,7 @@ uses(RefreshDatabase::class);
 test('extract receipt data job parses PDF pages then merges them before saving', function () {
     Queue::fake();
     Storage::fake('local');
-    Storage::put('receipts/invoice.pdf', "%PDF-1.7\ntest invoice");
+    Storage::put('receipts/expense.pdf', "%PDF-1.7\ntest expense");
 
     config([
         'services.documents.pdfinfo_binary' => 'pdfinfo',
@@ -98,7 +98,7 @@ test('extract receipt data job parses PDF pages then merges them before saving',
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Invoice::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0,
@@ -107,30 +107,30 @@ test('extract receipt data job parses PDF pages then merges them before saving',
         'currency' => 'MYR',
         'source' => 'manual',
         'status' => 'pending',
-        'image_path' => 'receipts/invoice.pdf',
-        'original_filename' => 'invoice.pdf',
+        'image_path' => 'receipts/expense.pdf',
+        'original_filename' => 'expense.pdf',
         'file_mime_type' => 'application/pdf',
         'file_page_count' => 2,
     ]);
 
-    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
+    app()->call([new ExtractReceiptDataJob($expense->id), 'handle']);
 
-    $invoice->refresh();
+    $expense->refresh();
 
-    expect($invoice->status)->toBe('parsed')
-        ->and($invoice->merchant_name)->toBe('PDF Store')
-        ->and($invoice->currency)->toBe('MYR')
-        ->and($invoice->original_currency)->toBe('USD')
-        ->and($invoice->total_amount)->toBe('42.40')
-        ->and($invoice->raw_ai_response['currency_detection'])->toBe([
+    expect($expense->status)->toBe('parsed')
+        ->and($expense->merchant_name)->toBe('PDF Store')
+        ->and($expense->currency)->toBe('MYR')
+        ->and($expense->original_currency)->toBe('USD')
+        ->and($expense->total_amount)->toBe('42.40')
+        ->and($expense->raw_ai_response['currency_detection'])->toBe([
             'currency' => 'USD',
             'source' => 'document_text',
             'rate' => 4.2397,
             'rate_source' => 'printed_receipt_rate',
         ])
-        ->and($invoice->invoiceItems)->toHaveCount(1)
-        ->and($invoice->invoiceItems->first()->description)->toBe('First item')
-        ->and($invoice->invoiceItems->first()->line_total)->toBe('42.40');
+        ->and($expense->expenseItems)->toHaveCount(1)
+        ->and($expense->expenseItems->first()->description)->toBe('First item')
+        ->and($expense->expenseItems->first()->line_total)->toBe('42.40');
 
     expect(collect(Http::recorded())->filter(
         fn (array $record): bool => str_contains($record[0]->url(), 'currencyapi.test'),

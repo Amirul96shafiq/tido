@@ -1,6 +1,6 @@
 ---
 description: Receipt ingestion, Ollama parsing, WhatsApp, and Google Drive rules
-globs: app/Services/**/*.php, app/Jobs/**/*.php, app/Observers/**/*.php, app/Http/Controllers/Api/**/*.php, app/Prompts/**/*.php, app/Support/ManualWhatsAppInvoiceParser.php, app/Support/WhatsAppMessage.php
+globs: app/Services/**/*.php, app/Jobs/**/*.php, app/Observers/**/*.php, app/Http/Controllers/Api/**/*.php, app/Prompts/**/*.php, app/Support/ManualWhatsAppExpenseParser.php, app/Support/WhatsAppMessage.php
 alwaysApply: false
 ---
 
@@ -9,20 +9,20 @@ alwaysApply: false
 ## Flow (image)
 
 ```
-Image → Invoice (pending) → InvoiceObserver → ExtractReceiptDataJob
+Image → Expense (pending) → ExpenseObserver → ExtractReceiptDataJob
   → OllamaService + ReceiptExtractionPrompt
-  → Invoice (parsed) + InvoiceItems → BudgetAlertService
+  → Expense (parsed) + ExpenseItems → BudgetAlertService
 ```
 
 ## Flow (WhatsApp manual text)
 
 ```
-Text format → ProcessManualWhatsAppInvoiceJob → pending Invoice (no image)
-  → Manual invoice received ack → ParseManualWhatsAppInvoiceJob
-  → Ollama text labels → requires_manual_review → Manual invoice parsed reply
+Text format → ProcessManualWhatsAppExpenseJob → pending Expense (no image)
+  → Manual expense received ack → ParseManualWhatsAppExpenseJob
+  → Ollama text labels → requires_manual_review → Manual expense parsed reply
 ```
 
-Format + payment tokens: `docs/whatsapp-manual-invoice.md`.
+Format + payment tokens: `docs/whatsapp-manual-expense.md`.
 
 Statuses: `pending` → `parsed` → `reviewed` | `requires_manual_review` | `failed`  
 Sources: `manual` | `whatsapp` | `google_drive`
@@ -32,27 +32,27 @@ Sources: `manual` | `whatsapp` | `google_drive`
 - POST with `"format": "json"`
 - Strip markdown fences with regex before `json_decode` (`OllamaService::cleanAndDecodeJson`)
 - Vision prompt/schema: `app/Prompts/ReceiptExtractionPrompt.php`
-- Manual text labels: `app/Prompts/ManualInvoiceLabelPrompt.php` via `OllamaService::generateJson` (no `images`)
+- Manual text labels: `app/Prompts/ManualExpenseLabelPrompt.php` via `OllamaService::generateJson` (no `images`)
 - Map AI `label` (legacy `suggested_category`) via `LabelMatcher` → `Label` where `type = Finance`
 
 ## Duplicate detection
 
-`receipt_hash = sha256(invoice_number + date_time + total_amount)` on create (`InvoiceObserver`). Unique DB constraint — handle collisions gracefully.
+`receipt_hash = sha256(invoice_number + date_time + total_amount)` on create (`ExpenseObserver`). Unique DB constraint — handle collisions gracefully.
 
 ## WhatsApp (Evolution API)
 
 - `POST /api/webhooks/whatsapp` — `Authorization: Bearer <EVOLUTION_WEBHOOK_SECRET>` from `config('services.evolution.webhook_secret')`; outbound Evolution calls use `config('services.evolution.api_key')`
 - Validate auth/payload first; heavy work via queue/jobs
-- Images → store → pending Invoice; text keywords (`spend`/`total`) → monthly total reply
-- Text manual invoice format → pending Invoice (no image) → label job → `requires_manual_review`
-- Attribute WhatsApp invoices with `InvoiceSenderAttribution` (`family_member_id`; null = Primary) — `docs/household-access.md`
+- Images → store → pending Expense; text keywords (`spend`/`total`) → monthly total reply
+- Text manual expense format → pending Expense (no image) → label job → `requires_manual_review`
+- Attribute WhatsApp expenses with `ExpenseSenderAttribution` (`family_member_id`; null = Primary) — `docs/household-access.md`
 - Optional merchant payment token: aliases from Settings → Payment Methods (defaults: `qr` / `tngo` / `card` / `cash` / …)
 
 ## Google Drive
 
 - `GoogleDriveService` via `Storage::disk('google')`
 - `SyncGoogleDriveJob` every 15 min (`routes/console.php`)
-- Copy image locally, create pending Invoice, delete remote file
+- Copy image locally, create pending Expense, delete remote file
 
 ## Queues
 

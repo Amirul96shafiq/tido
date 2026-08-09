@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Models\Budget;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -36,10 +36,10 @@ class DangerZoneTestUsersSeeder extends Seeder
             ],
         );
 
-        if (Invoice::query()->count() < 5) {
-            Invoice::factory(8)->create()->each(function (Invoice $invoice): void {
-                InvoiceItem::factory(random_int(1, 3))->create([
-                    'invoice_id' => $invoice->id,
+        if (Expense::query()->count() < 5) {
+            Expense::factory(8)->create()->each(function (Expense $expense): void {
+                ExpenseItem::factory(random_int(1, 3))->create([
+                    'expense_id' => $expense->id,
                 ]);
             });
 

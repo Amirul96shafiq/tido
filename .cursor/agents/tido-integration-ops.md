@@ -23,7 +23,7 @@ You are a tido integration operations specialist. Dev runs on a **Windows host**
 |-------------|-----|
 | Ollama | `docs/ollama-setup.md` |
 | Evolution API | `docs/evolution-local-windows.md` |
-| WhatsApp manual invoices | `docs/whatsapp-manual-invoice.md` |
+| WhatsApp manual expenses | `docs/whatsapp-manual-expense.md` |
 | WhatsApp bot commands | `docs/whatsapp-bot-commands.md` |
 | Google Drive | `docs/google-drive-setup.md` |
 | Service Status | `docs/service-status.md` |
@@ -49,7 +49,7 @@ npm run dev:full   # vite + serve:2000 + queue
 - Auth: `Authorization: Bearer {evolution.webhook_secret}` for inbound callbacks; outbound calls use `{evolution.api_key}`
 - Outbound: `WhatsAppNotificationService` via Evolution `sendText`
 - Allowlist: Profile phone + Family Members (`allowlist_enabled`)
-- Manual invoice format and payment tokens: `docs/whatsapp-manual-invoice.md`
+- Manual expense format and payment tokens: `docs/whatsapp-manual-expense.md`
 
 ## Queues & Horizon
 
@@ -81,7 +81,7 @@ npm run dev:full   # vite + serve:2000 + queue
 | Symptom | Likely cause |
 |---------|--------------|
 | Webhook 401 | The callback must use the distinct `EVOLUTION_WEBHOOK_SECRET` bearer value; `EVOLUTION_API_KEY` only authenticates outbound calls. Verify both values are present, 32+ characters, and distinct. |
-| Invoice stuck pending | Queue worker not running; job failed silently |
+| Expense stuck pending | Queue worker not running; job failed silently |
 | Ollama timeout | Model not loaded; host unreachable; increase timeout |
 | WhatsApp no reply | Sender not on allowlist; Evolution disconnected |
 | Drive not syncing | Missing credentials; schedule not running |

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Filament\Widgets\ReceiptsBySource;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -15,35 +15,35 @@ beforeEach(function () {
 });
 
 test('receipts by source widget renders source labels', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'date_time' => now(),
         'status' => 'reviewed',
         'source' => 'manual',
     ]);
 
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'date_time' => now(),
         'status' => 'reviewed',
         'source' => 'whatsapp',
         'image_path' => 'receipts/wa_parse.jpg',
     ]);
 
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'date_time' => now(),
         'status' => 'reviewed',
         'source' => 'whatsapp',
         'image_path' => null,
     ]);
 
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'date_time' => now(),
         'status' => 'reviewed',
         'source' => 'google_drive',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     Livewire::test(ReceiptsBySource::class)
         ->assertSuccessful()
@@ -56,16 +56,16 @@ test('receipts by source widget renders source labels', function () {
 });
 
 test('receipts by source widget shows empty channels when only whatsapp has receipts', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'date_time' => now(),
         'status' => 'reviewed',
         'source' => 'whatsapp',
         'image_path' => 'receipts/wa_only.jpg',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     Livewire::test(ReceiptsBySource::class)
         ->assertSuccessful()

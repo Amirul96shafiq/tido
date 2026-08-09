@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Jobs\ExtractReceiptDataJob;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -115,8 +115,8 @@ test('admin panel registers receipt image preview script', function () {
         ->toContain('receipt-image-preview')
         ->toContain('resources/js/receipt-image-preview.js')
         ->toContain('ReceiptUploadPage::class')
-        ->toContain('CreateInvoice::class')
-        ->toContain('EditInvoice::class');
+        ->toContain('CreateExpense::class')
+        ->toContain('EditExpense::class');
 });
 
 test('receipt image preview script raises filepond max height for receipt uploads', function () {
@@ -129,7 +129,7 @@ test('receipt image preview script raises filepond max height for receipt upload
         ->toContain('MAX_PREVIEW_HEIGHT = 500');
 });
 
-test('receipt upload page save creates pending invoice and dispatches extraction job', function () {
+test('receipt upload page save creates pending expense and dispatches extraction job', function () {
     Storage::fake('public');
     Queue::fake();
 
@@ -141,15 +141,15 @@ test('receipt upload page save creates pending invoice and dispatches extraction
         ->assertHasNoErrors()
         ->assertNotified();
 
-    $invoice = Invoice::query()->first();
+    $expense = Expense::query()->first();
 
-    expect($invoice)->not->toBeNull()
-        ->and($invoice->status)->toBe('pending')
-        ->and($invoice->source)->toBe('manual')
-        ->and($invoice->merchant_name)->toBe('Pending AI Extraction...')
-        ->and($invoice->image_path)->toStartWith('receipts/')
-        ->and($invoice->original_filename)->toEndWith('.jpg')
-        ->and($invoice->file_mime_type)->toBe('image/jpeg');
+    expect($expense)->not->toBeNull()
+        ->and($expense->status)->toBe('pending')
+        ->and($expense->source)->toBe('manual')
+        ->and($expense->merchant_name)->toBe('Pending AI Extraction...')
+        ->and($expense->image_path)->toStartWith('receipts/')
+        ->and($expense->original_filename)->toEndWith('.jpg')
+        ->and($expense->file_mime_type)->toBe('image/jpeg');
 
     Queue::assertPushed(ExtractReceiptDataJob::class);
 });
@@ -166,13 +166,13 @@ test('receipt upload page stores PDF MIME metadata for PDF extraction', function
         ->assertHasNoErrors()
         ->assertNotified();
 
-    $invoice = Invoice::query()->first();
+    $expense = Expense::query()->first();
 
-    expect($invoice)->not->toBeNull()
-        ->and($invoice->file_mime_type)->toBe('application/pdf')
-        ->and($invoice->original_filename)->toEndWith('.pdf');
+    expect($expense)->not->toBeNull()
+        ->and($expense->file_mime_type)->toBe('application/pdf')
+        ->and($expense->original_filename)->toEndWith('.pdf');
 
-    Storage::disk('local')->assertExists($invoice->image_path);
+    Storage::disk('local')->assertExists($expense->image_path);
     Queue::assertPushed(ExtractReceiptDataJob::class);
 });
 
@@ -191,9 +191,9 @@ test('receipt upload page saves every selected receipt', function () {
         ->assertHasNoErrors()
         ->assertNotified();
 
-    $filenames = Invoice::query()->pluck('original_filename')->all();
+    $filenames = Expense::query()->pluck('original_filename')->all();
 
-    expect(Invoice::query()->count())->toBe(2)
+    expect(Expense::query()->count())->toBe(2)
         ->and($filenames)->toHaveCount(2)
         ->and(array_unique($filenames))->toHaveCount(2)
         ->and($filenames[0])->toEndWith('.jpg')

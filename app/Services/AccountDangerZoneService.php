@@ -9,7 +9,7 @@ use App\Models\Backup;
 use App\Models\Budget;
 use App\Models\ContentDraft;
 use App\Models\EvolutionApiConnectionLog;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use App\Models\User;
@@ -59,7 +59,7 @@ class AccountDangerZoneService
     {
         return [
             function (): void {
-                $this->wipeInvoices();
+                $this->wipeExpenses();
             },
             fn (): mixed => Budget::query()->delete(),
             function (): void {
@@ -75,17 +75,17 @@ class AccountDangerZoneService
         ];
     }
 
-    protected function wipeInvoices(): void
+    protected function wipeExpenses(): void
     {
-        Invoice::query()
+        Expense::query()
             ->withTrashed()
             ->cursor()
-            ->each(function (Invoice $invoice): void {
-                if (filled($invoice->image_path) && Storage::exists($invoice->image_path)) {
-                    Storage::delete($invoice->image_path);
+            ->each(function (Expense $expense): void {
+                if (filled($expense->image_path) && Storage::exists($expense->image_path)) {
+                    Storage::delete($expense->image_path);
                 }
 
-                $invoice->forceDelete();
+                $expense->forceDelete();
             });
     }
 

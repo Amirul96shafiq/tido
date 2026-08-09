@@ -7,16 +7,16 @@ use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\EvolutionApiPage;
 use App\Filament\Resources\Backups\BackupResource;
 use App\Filament\Resources\Budgets\BudgetResource;
+use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
-use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Filament\Widgets\CurrentCurrency;
 use App\Models\Backup;
 use App\Models\Budget;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\FamilyMember;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use App\Models\User;
@@ -125,14 +125,14 @@ test('destination search finds evolutionapi page', function () {
         ->and($match->url)->toBe(EvolutionApiPage::getUrl());
 });
 
-test('destination search finds invoices list page', function () {
-    $results = AdminDestinationSearch::search('Invoices', GlobalSearchResults::make());
+test('destination search finds expenses list page', function () {
+    $results = AdminDestinationSearch::search('Expenses', GlobalSearchResults::make());
     $pages = collect($results->getCategories()->get('Pages', []));
 
-    $match = $pages->first(fn ($result): bool => $result->title === 'Invoices');
+    $match = $pages->first(fn ($result): bool => $result->title === 'Expenses');
 
     expect($match)->not->toBeNull()
-        ->and($match->url)->toBe(InvoiceResource::getUrl('index'));
+        ->and($match->url)->toBe(ExpenseResource::getUrl('index'));
 });
 
 test('destination search finds backups list page', function () {
@@ -146,15 +146,15 @@ test('destination search finds backups list page', function () {
 });
 
 test('search engine merges destination results with resource records', function () {
-    Invoice::factory()->create([
-        'merchant_name' => 'Invoices Corner Shop',
+    Expense::factory()->create([
+        'merchant_name' => 'Expenses Corner Shop',
     ]);
 
-    $results = app(SearchEngine::class)->search('Invoices');
+    $results = app(SearchEngine::class)->search('Expenses');
 
     expect($results)->not->toBeNull()
         ->and($results->getCategories()->has('Pages'))->toBeTrue()
-        ->and($results->getCategories()->has('invoices'))->toBeTrue();
+        ->and($results->getCategories()->has('expenses'))->toBeTrue();
 });
 
 test('profile edit page exposes searchable section anchors', function () {
@@ -211,59 +211,59 @@ test('only configured resources are globally searchable', function () {
     expect($searchable)->toBe([
         BackupResource::class,
         BudgetResource::class,
+        ExpenseResource::class,
         FamilyMemberResource::class,
-        InvoiceResource::class,
         LabelResource::class,
         PaymentMethodResource::class,
     ]);
 });
 
 test('global search opt-in requires explicit resource declaration', function () {
-    $declaringClass = (new ReflectionProperty(InvoiceResource::class, 'isGloballySearchable'))
+    $declaringClass = (new ReflectionProperty(ExpenseResource::class, 'isGloballySearchable'))
         ->getDeclaringClass()
         ->getName();
 
-    expect($declaringClass)->toBe(InvoiceResource::class);
+    expect($declaringClass)->toBe(ExpenseResource::class);
 });
 
-test('invoice global search finds merchant name', function () {
-    $invoice = Invoice::factory()->create([
+test('expense global search finds merchant name', function () {
+    $expense = Expense::factory()->create([
         'merchant_name' => 'UniqueMerchantXYZ',
     ]);
 
-    $results = InvoiceResource::getGlobalSearchResults('UniqueMerchantXYZ');
+    $results = ExpenseResource::getGlobalSearchResults('UniqueMerchantXYZ');
 
     expect($results)->toHaveCount(1)
         ->and($results->first()->title)->toBe('UniqueMerchantXYZ');
 });
 
-test('invoice global search finds status', function () {
-    $invoice = Invoice::factory()->create([
+test('expense global search finds status', function () {
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Status Store',
         'invoice_number' => 'INV-STATUS-XYZ',
-        'notes' => 'Ordinary invoice note.',
+        'notes' => 'Ordinary expense note.',
         'original_filename' => 'receipt.jpg',
         'status' => 'reviewed',
     ]);
 
-    $results = InvoiceResource::getGlobalSearchResults('reviewed');
+    $results = ExpenseResource::getGlobalSearchResults('reviewed');
 
     expect($results)->toHaveCount(1)
         ->and($results->first()->title)->toBe('Status Store');
 });
 
-test('invoice global search finds line item description', function () {
-    $invoice = Invoice::factory()->create([
+test('expense global search finds line item description', function () {
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Generic Store',
     ]);
 
-    InvoiceItem::factory()
-        ->for($invoice)
+    ExpenseItem::factory()
+        ->for($expense)
         ->create([
             'description' => 'Organic Almond Milk Special',
         ]);
 
-    $results = InvoiceResource::getGlobalSearchResults('Almond Milk');
+    $results = ExpenseResource::getGlobalSearchResults('Almond Milk');
 
     expect($results)->toHaveCount(1)
         ->and($results->first()->title)->toBe('Generic Store')
@@ -272,12 +272,12 @@ test('invoice global search finds line item description', function () {
 });
 
 test('global search highlights matching detail values with the primary color', function () {
-    $invoice = Invoice::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Generic Store',
     ]);
 
-    InvoiceItem::factory()
-        ->for($invoice)
+    ExpenseItem::factory()
+        ->for($expense)
         ->create([
             'description' => 'Organic Almond Milk Special',
         ]);
@@ -291,12 +291,12 @@ test('global search highlights matching detail values with the primary color', f
         ->toContain('Organic <span class="text-primary-500 font-semibold hover:underline">Almond Milk</span> Special');
 });
 
-test('invoice global search omits items detail when only merchant matches', function () {
-    Invoice::factory()->create([
+test('expense global search omits items detail when only merchant matches', function () {
+    Expense::factory()->create([
         'merchant_name' => 'Cake Bakery Only',
     ]);
 
-    $results = InvoiceResource::getGlobalSearchResults('Cake Bakery Only');
+    $results = ExpenseResource::getGlobalSearchResults('Cake Bakery Only');
 
     expect($results)->toHaveCount(1)
         ->and($results->first()->details)->not->toHaveKey('Items');

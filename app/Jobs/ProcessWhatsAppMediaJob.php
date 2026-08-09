@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Services\PdfInspectionException;
 use App\Services\PdfPageInspector;
 use App\Services\WhatsAppNotificationService;
 use App\Support\EvolutionCredential;
-use App\Support\InvoiceSenderAttribution;
+use App\Support\ExpenseSenderAttribution;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppMessage;
 use Illuminate\Bus\Queueable;
@@ -163,7 +163,7 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
         }
 
         try {
-            $invoice = Invoice::create([
+            $expense = Expense::create([
                 'merchant_name' => 'Pending AI Extraction...',
                 'date_time' => now(),
                 'subtotal' => 0.00,
@@ -173,7 +173,7 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
                 'source' => 'whatsapp',
                 'whatsapp_sender' => $this->senderNumber,
                 'whatsapp_message_id' => $this->messageId,
-                'family_member_id' => InvoiceSenderAttribution::familyMemberIdForSender($this->senderNumber),
+                'family_member_id' => ExpenseSenderAttribution::familyMemberIdForSender($this->senderNumber),
                 'status' => 'pending',
                 'image_path' => $localPath,
                 'original_filename' => $originalFilename,
@@ -188,7 +188,7 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
 
         WhatsAppDocumentReceivedDebouncer::register($this->senderNumber, [
             'message_id' => $this->messageId,
-            'invoice_id' => $invoice->id,
+            'expense_id' => $expense->id,
             'filename' => $originalFilename,
             'mime_type' => $detectedMimeType,
             'page_count' => $pageCount,
@@ -197,7 +197,7 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
         ]);
 
         Log::info('WhatsApp receipt media processed', [
-            'invoice_id' => $invoice->id,
+            'expense_id' => $expense->id,
             'message_id' => $this->messageId,
         ]);
     }
@@ -266,7 +266,7 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
             return true;
         }
 
-        if (Invoice::query()->where('whatsapp_message_id', $this->messageId)->exists()) {
+        if (Expense::query()->where('whatsapp_message_id', $this->messageId)->exists()) {
             return true;
         }
 
@@ -341,7 +341,7 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
     ): void {
         WhatsAppDocumentReceivedDebouncer::register($this->senderNumber, [
             'message_id' => $this->messageId,
-            'invoice_id' => null,
+            'expense_id' => null,
             'filename' => $filename,
             'mime_type' => $mimeType,
             'page_count' => $pageCount,

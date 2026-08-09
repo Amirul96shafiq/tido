@@ -25,8 +25,8 @@ Auto-save form drafts to the database and offer crash recovery on remount. Patte
 
 | Page | Draft key |
 |------|-----------|
-| `CreateInvoice` | `invoice-create` |
-| `EditInvoice` | `invoice-edit-{id}` |
+| `CreateExpense` | `expense-create` |
+| `EditExpense` | `expense-edit-{id}` |
 | `CreateLabel` | `label-create` |
 | `EditLabel` | `label-edit-{id}` |
 | `CreateBudget` | `budget-create` |
@@ -60,7 +60,7 @@ class EditThing extends EditRecord
 }
 ```
 
-2. Register the page classes in the `PAGE_END` render-hook `scopes` array in `AdminPanelProvider` (same list as Invoices / Labels / Budgets).
+2. Register the page classes in the `PAGE_END` render-hook `scopes` array in `AdminPanelProvider` (same list as Expenses / Labels / Budgets).
 
 3. Override when needed:
    - `contentDraftExcludedFields()` — skip non-recoverable fields (uploads, secrets).

@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\ReceiptUploadPage;
-use App\Filament\Resources\Invoices\InvoiceResource;
+use App\Filament\Resources\Expenses\ExpenseResource;
+use App\Models\Expense;
 use App\Models\FamilyMember;
-use App\Models\Invoice;
 use App\Models\User;
 use App\Support\DashboardSpenderScope;
 use Filament\Actions\Testing\TestAction;
@@ -21,8 +21,8 @@ beforeEach(function () {
     $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
 });
 
-test('receipt upload page lists recent invoices', function () {
-    $invoice = Invoice::factory()->create([
+test('receipt upload page lists recent expenses', function () {
+    $expense = Expense::factory()->create([
         'original_filename' => 'wa_receipt_preview.jpg',
         'image_path' => 'receipts/wa_receipt_preview.jpg',
     ]);
@@ -30,11 +30,11 @@ test('receipt upload page lists recent invoices', function () {
     Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
         ->assertSeeHtml('wire:poll.10s.visible')
-        ->assertCanSeeTableRecords([$invoice])
+        ->assertCanSeeTableRecords([$expense])
         ->assertSee('wa_receipt....jpg');
 });
 
-test('receipt upload page polls every ten seconds when no invoice is pending', function () {
+test('receipt upload page polls every ten seconds when no expense is pending', function () {
     Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
         ->assertSeeHtml('wire:poll.10s.visible');
@@ -46,7 +46,7 @@ test('filename links to file in a new tab', function () {
     $path = 'receipts/wa_receipt_preview.jpg';
     Storage::put($path, 'fake-image-bytes');
 
-    $invoice = Invoice::factory()->create([
+    $expense = Expense::factory()->create([
         'original_filename' => 'wa_receipt_preview.jpg',
         'image_path' => $path,
     ]);
@@ -55,32 +55,32 @@ test('filename links to file in a new tab', function () {
 
     Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
-        ->assertCanSeeTableRecords([$invoice])
+        ->assertCanSeeTableRecords([$expense])
         ->assertSeeHtml('target="_blank"')
         ->assertSeeHtml(e($url));
 });
 
 test('filename without file path has no link', function () {
-    $invoice = Invoice::factory()->create([
+    $expense = Expense::factory()->create([
         'original_filename' => 'missing_file.jpg',
         'image_path' => null,
     ]);
 
     Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
-        ->assertCanSeeTableRecords([$invoice])
+        ->assertCanSeeTableRecords([$expense])
         ->assertDontSeeHtml('missing_file.jpg</a>');
 });
 
 test('receipt upload page truncates long merchant names with full name in tooltip', function () {
     $longMerchant = 'Cosmo Restaurants Sdn Bhd';
-    $invoice = Invoice::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => $longMerchant,
     ]);
 
     Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
-        ->assertCanSeeTableRecords([$invoice])
+        ->assertCanSeeTableRecords([$expense])
         ->assertSee('Cosmo Restaurants Sd...');
 
     $column = Livewire::test(ReceiptUploadPage::class)
@@ -91,7 +91,7 @@ test('receipt upload page truncates long merchant names with full name in toolti
     expect($column)->not->toBeNull()
         ->and($column->getCharacterLimit())->toBe(20);
 
-    $tooltip = $column->record($invoice)->getTooltip($longMerchant);
+    $tooltip = $column->record($expense)->getTooltip($longMerchant);
 
     expect($tooltip)->toBe($longMerchant);
 });
@@ -111,38 +111,38 @@ test('receipt upload page filters recent uploads by from spender', function () {
         'display_name' => 'Ahlong',
     ]);
 
-    $familyInvoice = Invoice::factory()->create([
+    $familyExpense = Expense::factory()->create([
         'original_filename' => 'family_receipt.jpg',
         'family_member_id' => $member->id,
     ]);
 
-    $primaryInvoice = Invoice::factory()->create([
+    $primaryExpense = Expense::factory()->create([
         'original_filename' => 'primary_receipt.jpg',
         'family_member_id' => null,
     ]);
 
     Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
-        ->assertCanSeeTableRecords([$familyInvoice, $primaryInvoice])
+        ->assertCanSeeTableRecords([$familyExpense, $primaryExpense])
         ->filterTable('spender', DashboardSpenderScope::familyValue((int) $member->id))
-        ->assertCanSeeTableRecords([$familyInvoice])
-        ->assertCanNotSeeTableRecords([$primaryInvoice])
+        ->assertCanSeeTableRecords([$familyExpense])
+        ->assertCanNotSeeTableRecords([$primaryExpense])
         ->filterTable('spender', DashboardSpenderScope::PRIMARY)
-        ->assertCanSeeTableRecords([$primaryInvoice])
-        ->assertCanNotSeeTableRecords([$familyInvoice]);
+        ->assertCanSeeTableRecords([$primaryExpense])
+        ->assertCanNotSeeTableRecords([$familyExpense]);
 });
 
-test('receipt upload page edit action spa navigates to invoice edit', function () {
+test('receipt upload page edit action spa navigates to expense edit', function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
     Filament::bootCurrentPanel();
 
-    $invoice = Invoice::factory()->create([
+    $expense = Expense::factory()->create([
         'original_filename' => null,
         'image_path' => null,
     ]);
 
-    $editUrl = InvoiceResource::getUrl('edit', ['record' => $invoice]);
-    $editAction = TestAction::make('edit')->table($invoice);
+    $editUrl = ExpenseResource::getUrl('edit', ['record' => $expense]);
+    $editAction = TestAction::make('edit')->table($expense);
 
     $table = Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
@@ -161,7 +161,7 @@ test('receipt upload page edit action spa navigates to invoice edit', function (
         ->and($action->getTooltip())->toBe($action->getLabel());
 });
 
-test('family member sees the recent upload edit action disabled for unsupported invoices', function () {
+test('family member sees the recent upload edit action disabled for unsupported expenses', function () {
     $member = FamilyMember::factory()->loginEnabled()->create([
         'name' => 'Nor Ezrieana Harun',
         'display_name' => 'Along',
@@ -170,10 +170,10 @@ test('family member sees the recent upload edit action disabled for unsupported 
         ->where('family_member_id', $member->id)
         ->firstOrFail();
 
-    $ownInvoice = Invoice::factory()->create([
+    $ownExpense = Expense::factory()->create([
         'family_member_id' => $member->id,
     ]);
-    $primaryInvoice = Invoice::factory()->create([
+    $primaryExpense = Expense::factory()->create([
         'family_member_id' => null,
     ]);
 
@@ -181,8 +181,8 @@ test('family member sees the recent upload edit action disabled for unsupported 
 
     Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
-        ->assertActionVisible(TestAction::make('edit')->table($ownInvoice))
-        ->assertActionEnabled(TestAction::make('edit')->table($ownInvoice))
-        ->assertActionVisible(TestAction::make('edit')->table($primaryInvoice))
-        ->assertActionDisabled(TestAction::make('edit')->table($primaryInvoice));
+        ->assertActionVisible(TestAction::make('edit')->table($ownExpense))
+        ->assertActionEnabled(TestAction::make('edit')->table($ownExpense))
+        ->assertActionVisible(TestAction::make('edit')->table($primaryExpense))
+        ->assertActionDisabled(TestAction::make('edit')->table($primaryExpense));
 });

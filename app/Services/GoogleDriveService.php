@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\Invoice;
+use App\Models\Expense;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,12 +25,12 @@ class GoogleDriveService
                 }
 
                 $filename = basename($file);
-                $localPath = 'receipts/' . uniqid() . '_' . $filename;
+                $localPath = 'receipts/'.uniqid().'_'.$filename;
 
                 $contents = $disk->get($file);
                 Storage::put($localPath, $contents);
 
-                Invoice::create([
+                Expense::create([
                     'merchant_name' => 'Pending AI Extraction...',
                     'date_time' => now(),
                     'subtotal' => 0.00,

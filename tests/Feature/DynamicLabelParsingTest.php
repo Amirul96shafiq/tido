@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Jobs\ExtractReceiptDataJob;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\Label;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
@@ -28,7 +28,7 @@ test('extract receipt data job maps custom user label from ai response', functio
         'description' => 'Pet food, grooming, vet supplies',
     ]);
 
-    $invoice = Invoice::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -67,11 +67,11 @@ test('extract receipt data job maps custom user label from ai response', functio
         ]),
     ]);
 
-    $job = new ExtractReceiptDataJob($invoice->id);
+    $job = new ExtractReceiptDataJob($expense->id);
     app()->call([$job, 'handle']);
 
-    $invoice->refresh();
+    $expense->refresh();
 
-    expect($invoice->invoiceItems)->toHaveCount(1)
-        ->and($invoice->invoiceItems->first()->label->name)->toBe('Pet Supplies');
+    expect($expense->expenseItems)->toHaveCount(1)
+        ->and($expense->expenseItems->first()->label->name)->toBe('Pet Supplies');
 });

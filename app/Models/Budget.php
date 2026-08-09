@@ -113,19 +113,19 @@ class Budget extends Model
         $start = $this->getStartDate($reference);
         $end = $this->getEndDate($reference);
 
-        $query = InvoiceItem::query()
-            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-            ->whereNull('invoices.deleted_at')
-            ->whereBetween('invoices.date_time', [$start, $end])
-            ->whereIn('invoices.status', ['parsed', 'reviewed'])
-            ->where('invoices.currency', Invoice::CURRENCY_MYR)
-            ->whereIn('invoices.currency_conversion_status', Invoice::CANONICAL_CONVERSION_STATUSES);
+        $query = ExpenseItem::query()
+            ->join('expenses', 'expense_items.expense_id', '=', 'expenses.id')
+            ->whereNull('expenses.deleted_at')
+            ->whereBetween('expenses.date_time', [$start, $end])
+            ->whereIn('expenses.status', ['parsed', 'reviewed'])
+            ->where('expenses.currency', Expense::CURRENCY_MYR)
+            ->whereIn('expenses.currency_conversion_status', Expense::CANONICAL_CONVERSION_STATUSES);
 
         if ($this->label_id) {
-            $query->where('invoice_items.label_id', $this->label_id);
+            $query->where('expense_items.label_id', $this->label_id);
         }
 
-        return (float) $query->sum('invoice_items.line_total');
+        return (float) $query->sum('expense_items.line_total');
     }
 
     public function getStartDate(?Carbon $reference = null): Carbon

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Filament\Resources\Invoices\InvoiceResource;
+use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Jobs\ExtractReceiptDataJob;
 use App\Jobs\SendWhatsAppDocumentParsedJob;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\PaymentMethod;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
@@ -66,7 +66,7 @@ test('extract receipt data job dispatches gated document parsed whatsapp job', f
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Invoice::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -80,13 +80,13 @@ test('extract receipt data job dispatches gated document parsed whatsapp job', f
         'original_filename' => 'wa_MSG123.jpg',
     ]);
 
-    $job = new ExtractReceiptDataJob($invoice->id);
+    $job = new ExtractReceiptDataJob($expense->id);
     app()->call([$job, 'handle']);
 
-    expect($invoice->fresh()->status)->toBe('parsed');
+    expect($expense->fresh()->status)->toBe('parsed');
 
-    Queue::assertPushed(SendWhatsAppDocumentParsedJob::class, function (SendWhatsAppDocumentParsedJob $job) use ($invoice): bool {
-        return $job->invoiceId === $invoice->id;
+    Queue::assertPushed(SendWhatsAppDocumentParsedJob::class, function (SendWhatsAppDocumentParsedJob $job) use ($expense): bool {
+        return $job->expenseId === $expense->id;
     });
 
     Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/message/sendText/'));
@@ -137,7 +137,7 @@ test('extract receipt data job dispatches a needs review whatsapp result when co
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Invoice::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -151,18 +151,18 @@ test('extract receipt data job dispatches a needs review whatsapp result when co
         'original_filename' => 'wa_USD-FAIL.jpg',
     ]);
 
-    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
+    app()->call([new ExtractReceiptDataJob($expense->id), 'handle']);
 
-    expect($invoice->fresh()->status)->toBe('requires_manual_review')
-        ->and($invoice->fresh()->currency)->toBe('USD')
-        ->and($invoice->fresh()->currency_conversion_status)->toBe('failed');
+    expect($expense->fresh()->status)->toBe('requires_manual_review')
+        ->and($expense->fresh()->currency)->toBe('USD')
+        ->and($expense->fresh()->currency_conversion_status)->toBe('failed');
 
-    Queue::assertPushed(SendWhatsAppDocumentParsedJob::class, function (SendWhatsAppDocumentParsedJob $job) use ($invoice): bool {
-        return $job->invoiceId === $invoice->id;
+    Queue::assertPushed(SendWhatsAppDocumentParsedJob::class, function (SendWhatsAppDocumentParsedJob $job) use ($expense): bool {
+        return $job->expenseId === $expense->id;
     });
 
     Cache::forget(WhatsAppDocumentReceivedDebouncer::cacheKey('60123456789'));
-    (new SendWhatsAppDocumentParsedJob($invoice->id))->handle(app(WhatsAppNotificationService::class));
+    (new SendWhatsAppDocumentParsedJob($expense->id))->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request): bool {
         $text = (string) ($request['text'] ?? '');
@@ -191,7 +191,7 @@ test('document parsed job waits while document received ack is pending then send
 
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Invoice::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => '7-Eleven',
         'total_amount' => '2.00',
         'payment_method_id' => PaymentMethod::findBySlug('cash')->id,
@@ -205,10 +205,10 @@ test('document parsed job waits while document received ack is pending then send
     Cache::put(WhatsAppDocumentReceivedDebouncer::cacheKey('60123456789'), [
         'count' => 2,
         'token' => 'pending-token',
-        'invoice_ids' => [$invoice->id],
+        'expense_ids' => [$expense->id],
     ], now()->addMinutes(5));
 
-    $job = new class($invoice->id) extends SendWhatsAppDocumentParsedJob
+    $job = new class($expense->id) extends SendWhatsAppDocumentParsedJob
     {
         public bool $released = false;
 
@@ -231,7 +231,7 @@ test('document parsed job waits while document received ack is pending then send
     expect($job->released)->toBeFalse();
 
     $editUrl = WhatsAppPublicUrl::withRoot(
-        fn (): string => InvoiceResource::getUrl('edit', ['record' => $invoice]),
+        fn (): string => ExpenseResource::getUrl('edit', ['record' => $expense]),
     );
 
     Http::assertSent(function (Request $request) use ($editUrl): bool {
@@ -242,7 +242,7 @@ test('document parsed job waits while document received ack is pending then send
             && str_contains($text, 'Merchant: *7-Eleven*')
             && str_contains($text, 'Total Amount: *RM 2.00*')
             && str_contains($text, 'Payment Method:')
-            && str_contains($text, '*invoice edit*')
+            && str_contains($text, '*expense edit*')
             && str_contains($text, $editUrl)
             && ! str_contains($text, 'wa_MSG123.jpg')
             && ! str_contains($text, '/storage/receipts/');
@@ -252,7 +252,7 @@ test('document parsed job waits while document received ack is pending then send
         || str_contains($request->url(), '/message/sendButtons/'));
 });
 
-test('extract receipt data job does not dispatch document parsed for non-whatsapp invoices', function () {
+test('extract receipt data job does not dispatch document parsed for non-whatsapp expenses', function () {
     Queue::fake();
     Storage::fake('local');
     Storage::put('receipts/manual.jpg', 'fake-image-content');
@@ -267,7 +267,7 @@ test('extract receipt data job does not dispatch document parsed for non-whatsap
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Invoice::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -280,10 +280,10 @@ test('extract receipt data job does not dispatch document parsed for non-whatsap
         'original_filename' => 'manual.jpg',
     ]);
 
-    $job = new ExtractReceiptDataJob($invoice->id);
+    $job = new ExtractReceiptDataJob($expense->id);
     app()->call([$job, 'handle']);
 
-    expect($invoice->fresh()->status)->toBe('parsed');
+    expect($expense->fresh()->status)->toBe('parsed');
     Queue::assertNotPushed(SendWhatsAppDocumentParsedJob::class);
 });
 
@@ -302,7 +302,7 @@ test('extract receipt data job does not dispatch document parsed without whatsap
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Invoice::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -316,9 +316,9 @@ test('extract receipt data job does not dispatch document parsed without whatsap
         'original_filename' => 'wa_NOSENDER.jpg',
     ]);
 
-    $job = new ExtractReceiptDataJob($invoice->id);
+    $job = new ExtractReceiptDataJob($expense->id);
     app()->call([$job, 'handle']);
 
-    expect($invoice->fresh()->status)->toBe('parsed');
+    expect($expense->fresh()->status)->toBe('parsed');
     Queue::assertNotPushed(SendWhatsAppDocumentParsedJob::class);
 });

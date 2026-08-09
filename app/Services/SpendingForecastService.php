@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\Invoice;
+use App\Models\Expense;
 
 class SpendingForecastService
 {
@@ -16,7 +16,7 @@ class SpendingForecastService
         $now = now();
         $startLimit = $now->copy()->subDays(90)->startOfDay();
 
-        $dailyTotals = Invoice::query()
+        $dailyTotals = Expense::query()
             ->canonicalMyr()
             ->where('date_time', '>=', $startLimit)
             ->whereIn('status', ['parsed', 'reviewed'])

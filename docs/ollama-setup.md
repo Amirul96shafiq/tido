@@ -10,7 +10,7 @@ Run Ollama on the Windows host so tido can parse receipt images and rendered PDF
 | Poppler | Windows command-line tools | `pdfinfo` page inspection + `pdftotext` currency text extraction + `pdftocairo` PDF-to-JPEG rendering |
 | tido | `npm run dev:full` | Vite + `artisan serve` + queue worker |
 
-Upload → pending `Invoice` → `ExtractReceiptDataJob` → `OllamaService` → `POST /api/generate` → status `parsed`.
+Upload → pending `Expense` → `ExtractReceiptDataJob` → `OllamaService` → `POST /api/generate` → status `parsed`.
 
 ---
 
@@ -74,7 +74,7 @@ After changing env values, restart `npm run dev:full` (or clear config cache if 
 
 ## PDF receipt parsing
 
-WhatsApp PDF receipts are stored as the original PDF and rendered page-by-page before Ollama extraction. The queue worker uses Poppler’s `pdfinfo` to inspect the page count, `pdftotext` to read embedded currency evidence when available, and `pdftocairo` to render JPEG pages. Multi-page results are extracted as page-level JSON and merged before the normal invoice normalization step.
+WhatsApp PDF receipts are stored as the original PDF and rendered page-by-page before Ollama extraction. The queue worker uses Poppler’s `pdfinfo` to inspect the page count, `pdftotext` to read embedded currency evidence when available, and `pdftocairo` to render JPEG pages. Multi-page results are extracted as page-level JSON and merged before the normal expense normalization step.
 
 Install a Windows Poppler distribution that includes the executables, then set absolute paths in `.env`:
 
@@ -97,7 +97,7 @@ Absolute paths are recommended on Windows because queue workers may inherit a di
 
 ## Step 4: Run tido with a queue worker
 
-Parsing is asynchronous. The Filament upload only creates a pending invoice; the queue worker calls Ollama.
+Parsing is asynchronous. The Filament upload only creates a pending expense; the queue worker calls Ollama.
 
 ```bash
 npm run dev:full
@@ -110,7 +110,7 @@ That starts Vite, `php artisan serve` (port 2000), and `queue:listen` on `defaul
 ## Step 5: Smoke test
 
 1. Open Filament → **Upload Receipts** and upload a receipt image, or send an image/PDF from an allowlisted WhatsApp number.
-2. Open the invoice: status should move from `pending` → `parsed` with merchant / amounts / line items.
+2. Open the expense: status should move from `pending` → `parsed` with merchant / amounts / line items.
 3. If status stays `pending`, the queue worker is not running.
 4. If status becomes `requires_manual_review`, check `storage/logs/laravel.log` for Ollama connection or HTTP errors.
 

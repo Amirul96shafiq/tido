@@ -8,7 +8,7 @@ use App\Filament\Support\DashboardMonthAnalytics;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
-use App\Models\Invoice;
+use App\Models\Expense;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -328,14 +328,14 @@ final class WhatsAppSpendingReplyBuilder
     {
         $bounds = $this->bounds();
 
-        $invoices = Invoice::query()
+        $expenses = Expense::query()
             ->with('paymentMethod')
             ->whereBetween('created_at', [$bounds['start'], $bounds['end']])
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();
 
-        if ($invoices->isEmpty()) {
+        if ($expenses->isEmpty()) {
             return WhatsAppMessage::compose(
                 '🧾',
                 'Recent Receipts',
@@ -348,12 +348,12 @@ final class WhatsAppSpendingReplyBuilder
             '',
         ];
 
-        foreach ($invoices as $invoice) {
+        foreach ($expenses as $expense) {
             $lines[] = sprintf(
                 '• *%s* — %s · %s',
-                $invoice->merchant_name,
-                MoneyDisplay::withCurrency($invoice->total_amount, $invoice->displayCurrency()),
-                $invoice->created_at?->format('j M') ?? '—',
+                $expense->merchant_name,
+                MoneyDisplay::withCurrency($expense->total_amount, $expense->displayCurrency()),
+                $expense->created_at?->format('j M') ?? '—',
             );
         }
 

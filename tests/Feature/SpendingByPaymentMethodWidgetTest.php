@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Filament\Widgets\SpendingByPaymentMethod;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\PaymentMethod;
 use App\Models\User;
 use Database\Seeders\PaymentMethodSeeder;
@@ -17,11 +17,11 @@ beforeEach(function () {
 });
 
 test('spending by payment method widget renders with axis labels', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $this->seed(PaymentMethodSeeder::class);
 
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'merchant_name' => 'Corner Shop',
         'date_time' => now(),
         'status' => 'reviewed',
@@ -29,7 +29,7 @@ test('spending by payment method widget renders with axis labels', function () {
         'payment_method_id' => PaymentMethod::findBySlug('cash')->id,
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     Livewire::test(SpendingByPaymentMethod::class)
         ->assertSuccessful()

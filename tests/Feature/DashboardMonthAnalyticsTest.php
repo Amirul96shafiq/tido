@@ -5,8 +5,8 @@ declare(strict_types=1);
 use App\Filament\Support\DashboardMonthAnalytics;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Models\Budget;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use Database\Seeders\PaymentMethodSeeder;
@@ -25,12 +25,12 @@ function analyticsForMonth(string $month): DashboardMonthAnalytics
 }
 
 test('summary aggregates respect month bounds and processed status filter', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Processed Store',
         'invoice_number' => 'INV-001',
         'receipt_hash' => 'hash-processed-001',
@@ -43,7 +43,7 @@ test('summary aggregates respect month bounds and processed status filter', func
         'status' => 'reviewed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Pending Store',
         'invoice_number' => 'INV-002',
         'receipt_hash' => 'hash-pending-002',
@@ -56,7 +56,7 @@ test('summary aggregates respect month bounds and processed status filter', func
         'status' => 'pending',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Previous Month Store',
         'invoice_number' => 'INV-003',
         'receipt_hash' => 'hash-previous-003',
@@ -69,7 +69,7 @@ test('summary aggregates respect month bounds and processed status filter', func
         'status' => 'reviewed',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $summary = analyticsForMonth($targetMonth)->summary();
 
@@ -81,12 +81,12 @@ test('summary aggregates respect month bounds and processed status filter', func
 });
 
 test('trend returns six buckets ending at selected month', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonths(2)->startOfMonth();
     $monthKey = $targetMonth->format('Y-m');
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Trend Store',
         'invoice_number' => 'INV-TREND',
         'receipt_hash' => 'hash-trend-001',
@@ -99,7 +99,7 @@ test('trend returns six buckets ending at selected month', function () {
         'status' => 'parsed',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $trend = analyticsForMonth($monthKey)->trend();
 
@@ -119,12 +119,12 @@ test('trend returns six buckets ending at selected month', function () {
 });
 
 test('year to date trend ends at selected month', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->month(7)->startOfMonth();
     $monthKey = $targetMonth->format('Y-m');
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'July Store',
         'invoice_number' => 'INV-JULY',
         'receipt_hash' => 'hash-july-001',
@@ -137,7 +137,7 @@ test('year to date trend ends at selected month', function () {
         'status' => 'reviewed',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $trend = analyticsForMonth($monthKey)->trend(yearToDate: true);
 
@@ -149,13 +149,13 @@ test('year to date trend ends at selected month', function () {
 });
 
 test('rolling twelve month trend ends at selected month', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->month(7)->startOfMonth();
     $monthKey = $targetMonth->format('Y-m');
     $rangeStart = $targetMonth->copy()->subMonths(11);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Prior Year Store',
         'invoice_number' => 'INV-PRIOR-YEAR',
         'receipt_hash' => 'hash-prior-year-001',
@@ -168,7 +168,7 @@ test('rolling twelve month trend ends at selected month', function () {
         'status' => 'reviewed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'July Store',
         'invoice_number' => 'INV-JULY-ROLLING',
         'receipt_hash' => 'hash-july-rolling-001',
@@ -181,7 +181,7 @@ test('rolling twelve month trend ends at selected month', function () {
         'status' => 'reviewed',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $trend = analyticsForMonth($monthKey)->trend(12);
 
@@ -194,12 +194,12 @@ test('rolling twelve month trend ends at selected month', function () {
 });
 
 test('calendar year trend returns twelve buckets for selected year', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->month(7)->startOfMonth();
     $monthKey = $targetMonth->format('Y-m');
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'July Store',
         'invoice_number' => 'INV-JULY',
         'receipt_hash' => 'hash-july-001',
@@ -212,7 +212,7 @@ test('calendar year trend returns twelve buckets for selected year', function ()
         'status' => 'reviewed',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $trend = analyticsForMonth($monthKey)->trend(calendarYear: true);
 
@@ -224,13 +224,13 @@ test('calendar year trend returns twelve buckets for selected year', function ()
 });
 
 test('trend computes month over month change for consecutive months', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->startOfMonth();
     $monthKey = $targetMonth->format('Y-m');
     $priorMonth = $targetMonth->copy()->subMonth();
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Prior Month Store',
         'invoice_number' => 'INV-PRIOR',
         'receipt_hash' => 'hash-prior-001',
@@ -243,7 +243,7 @@ test('trend computes month over month change for consecutive months', function (
         'status' => 'reviewed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Current Month Store',
         'invoice_number' => 'INV-CURRENT',
         'receipt_hash' => 'hash-current-001',
@@ -256,7 +256,7 @@ test('trend computes month over month change for consecutive months', function (
         'status' => 'reviewed',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $trend = analyticsForMonth($monthKey)->trend();
     $selectedIndex = $trend['selected_index'];
@@ -269,7 +269,7 @@ test('trend computes month over month change for consecutive months', function (
 });
 
 test('trend returns top three labels per month bucket', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->startOfMonth();
     $monthKey = $targetMonth->format('Y-m');
@@ -279,7 +279,7 @@ test('trend returns top three labels per month bucket', function () {
     $dining = Label::factory()->create(['name' => 'Dining', 'slug' => 'dining']);
     $misc = Label::factory()->create(['name' => 'Misc', 'slug' => 'misc']);
 
-    $invoice = Invoice::create([
+    $expense = Expense::create([
         'merchant_name' => 'Multi Label Store',
         'invoice_number' => 'INV-LABELS',
         'receipt_hash' => 'hash-labels-001',
@@ -298,8 +298,8 @@ test('trend returns top three labels per month bucket', function () {
         [$dining, 40.00],
         [$misc, 20.00],
     ] as [$label, $amount]) {
-        InvoiceItem::create([
-            'invoice_id' => $invoice->id,
+        ExpenseItem::create([
+            'expense_id' => $expense->id,
             'label_id' => $label->id,
             'description' => $label->name,
             'quantity' => 1,
@@ -308,7 +308,7 @@ test('trend returns top three labels per month bucket', function () {
         ]);
     }
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $trend = analyticsForMonth($monthKey)->trend();
     $selectedIndex = $trend['selected_index'];
@@ -321,13 +321,13 @@ test('trend returns top three labels per month bucket', function () {
 });
 
 test('trend period shares sum to one hundred percent when data present', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->startOfMonth();
     $monthKey = $targetMonth->format('Y-m');
     $priorMonth = $targetMonth->copy()->subMonth();
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Prior Month Store',
         'invoice_number' => 'INV-SHARE-PRIOR',
         'receipt_hash' => 'hash-share-prior',
@@ -340,7 +340,7 @@ test('trend period shares sum to one hundred percent when data present', functio
         'status' => 'reviewed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Current Month Store',
         'invoice_number' => 'INV-SHARE-CURRENT',
         'receipt_hash' => 'hash-share-current',
@@ -353,7 +353,7 @@ test('trend period shares sum to one hundred percent when data present', functio
         'status' => 'reviewed',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $trend = analyticsForMonth($monthKey)->trend();
     $shareSum = array_sum($trend['period_shares']);
@@ -363,7 +363,7 @@ test('trend period shares sum to one hundred percent when data present', functio
 });
 
 test('spent by label sums line items for selected month', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
@@ -373,7 +373,7 @@ test('spent by label sums line items for selected month', function () {
         'slug' => 'groceries',
     ]);
 
-    $invoice = Invoice::create([
+    $expense = Expense::create([
         'merchant_name' => 'Grocery Store',
         'invoice_number' => 'INV-GROC',
         'receipt_hash' => 'hash-groc-001',
@@ -386,8 +386,8 @@ test('spent by label sums line items for selected month', function () {
         'status' => 'reviewed',
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Vegetables',
         'quantity' => 1,
@@ -395,7 +395,7 @@ test('spent by label sums line items for selected month', function () {
         'line_total' => 45.00,
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $spending = analyticsForMonth($targetMonth)->spentByLabel();
 
@@ -415,8 +415,8 @@ test('spent by label sums line items for selected month', function () {
     ]);
 });
 
-test('spent by label excludes soft deleted invoices', function () {
-    Invoice::unsetEventDispatcher();
+test('spent by label excludes soft deleted expenses', function () {
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
@@ -426,7 +426,7 @@ test('spent by label excludes soft deleted invoices', function () {
         'slug' => 'dining',
     ]);
 
-    $active = Invoice::create([
+    $active = Expense::create([
         'merchant_name' => 'Active Cafe',
         'invoice_number' => 'INV-ACTIVE',
         'receipt_hash' => 'hash-active-soft-001',
@@ -439,7 +439,7 @@ test('spent by label excludes soft deleted invoices', function () {
         'status' => 'reviewed',
     ]);
 
-    $trashed = Invoice::create([
+    $trashed = Expense::create([
         'merchant_name' => 'Trashed Cafe',
         'invoice_number' => 'INV-TRASHED',
         'receipt_hash' => 'hash-trashed-soft-001',
@@ -452,8 +452,8 @@ test('spent by label excludes soft deleted invoices', function () {
         'status' => 'reviewed',
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $active->id,
+    ExpenseItem::create([
+        'expense_id' => $active->id,
         'label_id' => $label->id,
         'description' => 'Coffee',
         'quantity' => 1,
@@ -461,8 +461,8 @@ test('spent by label excludes soft deleted invoices', function () {
         'line_total' => 20.00,
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $trashed->id,
+    ExpenseItem::create([
+        'expense_id' => $trashed->id,
         'label_id' => $label->id,
         'description' => 'Lunch',
         'quantity' => 1,
@@ -472,7 +472,7 @@ test('spent by label excludes soft deleted invoices', function () {
 
     $trashed->delete();
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $analytics = analyticsForMonth($targetMonth);
     $spending = $analytics->spentByLabel();
@@ -491,7 +491,7 @@ test('spent by label excludes soft deleted invoices', function () {
 });
 
 test('spent by label ranks higher totals first', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
@@ -503,7 +503,7 @@ test('spent by label ranks higher totals first', function () {
         [$groceries, 30.00, 'Small Grocery'],
         [$transport, 90.00, 'Petrol Station'],
     ] as [$label, $amount, $merchant]) {
-        $invoice = Invoice::create([
+        $expense = Expense::create([
             'merchant_name' => $merchant,
             'invoice_number' => 'INV-'.strtoupper($label->slug),
             'receipt_hash' => 'hash-'.$label->slug,
@@ -516,8 +516,8 @@ test('spent by label ranks higher totals first', function () {
             'status' => 'reviewed',
         ]);
 
-        InvoiceItem::create([
-            'invoice_id' => $invoice->id,
+        ExpenseItem::create([
+            'expense_id' => $expense->id,
             'label_id' => $label->id,
             'description' => $label->name,
             'quantity' => 1,
@@ -526,7 +526,7 @@ test('spent by label ranks higher totals first', function () {
         ]);
     }
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $spending = analyticsForMonth($targetMonth)->spentByLabel();
 
@@ -539,14 +539,14 @@ test('spent by label ranks higher totals first', function () {
 });
 
 test('spent by label counts one receipt with multiple line items', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
 
     $label = Label::factory()->create(['name' => 'Groceries', 'slug' => 'groceries']);
 
-    $invoice = Invoice::create([
+    $expense = Expense::create([
         'merchant_name' => 'Grocery Store',
         'invoice_number' => 'INV-MULTI',
         'receipt_hash' => 'hash-multi-001',
@@ -560,8 +560,8 @@ test('spent by label counts one receipt with multiple line items', function () {
     ]);
 
     foreach ([25.00, 45.00] as $amount) {
-        InvoiceItem::create([
-            'invoice_id' => $invoice->id,
+        ExpenseItem::create([
+            'expense_id' => $expense->id,
             'label_id' => $label->id,
             'description' => 'Item',
             'quantity' => 1,
@@ -570,7 +570,7 @@ test('spent by label counts one receipt with multiple line items', function () {
         ]);
     }
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $spending = analyticsForMonth($targetMonth)->spentByLabel();
 
@@ -579,7 +579,7 @@ test('spent by label counts one receipt with multiple line items', function () {
 });
 
 test('spent by label computes month over month change', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->startOfMonth();
     $monthKey = $targetMonth->format('Y-m');
@@ -591,7 +591,7 @@ test('spent by label computes month over month change', function () {
         [$priorMonth, 40.00, 'hash-prior-groc'],
         [$targetMonth, 100.00, 'hash-current-groc'],
     ] as [$month, $amount, $hash]) {
-        $invoice = Invoice::create([
+        $expense = Expense::create([
             'merchant_name' => 'Grocery Store',
             'invoice_number' => 'INV-'.$hash,
             'receipt_hash' => $hash,
@@ -604,8 +604,8 @@ test('spent by label computes month over month change', function () {
             'status' => 'reviewed',
         ]);
 
-        InvoiceItem::create([
-            'invoice_id' => $invoice->id,
+        ExpenseItem::create([
+            'expense_id' => $expense->id,
             'label_id' => $label->id,
             'description' => 'Groceries',
             'quantity' => 1,
@@ -614,7 +614,7 @@ test('spent by label computes month over month change', function () {
         ]);
     }
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $spending = analyticsForMonth($monthKey)->spentByLabel();
 
@@ -625,7 +625,7 @@ test('spent by label computes month over month change', function () {
 });
 
 test('spent by label picks highest spend merchant for label', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
@@ -636,7 +636,7 @@ test('spent by label picks highest spend merchant for label', function () {
         ['Cafe A', 20.00, 'hash-cafe-a'],
         ['Restaurant B', 80.00, 'hash-restaurant-b'],
     ] as [$merchant, $amount, $hash]) {
-        $invoice = Invoice::create([
+        $expense = Expense::create([
             'merchant_name' => $merchant,
             'invoice_number' => 'INV-'.$hash,
             'receipt_hash' => $hash,
@@ -649,8 +649,8 @@ test('spent by label picks highest spend merchant for label', function () {
             'status' => 'reviewed',
         ]);
 
-        InvoiceItem::create([
-            'invoice_id' => $invoice->id,
+        ExpenseItem::create([
+            'expense_id' => $expense->id,
             'label_id' => $label->id,
             'description' => 'Meal',
             'quantity' => 1,
@@ -659,7 +659,7 @@ test('spent by label picks highest spend merchant for label', function () {
         ]);
     }
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $spending = analyticsForMonth($targetMonth)->spentByLabel();
 
@@ -669,8 +669,8 @@ test('spent by label picks highest spend merchant for label', function () {
     ]);
 });
 
-test('spent by label includes requires manual review invoices with labeled line items', function () {
-    Invoice::unsetEventDispatcher();
+test('spent by label includes requires manual review expenses with labeled line items', function () {
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
@@ -680,7 +680,7 @@ test('spent by label includes requires manual review invoices with labeled line 
         'slug' => 'pet-supplies',
     ]);
 
-    $invoice = Invoice::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pet Lovers Centre',
         'invoice_number' => 'INV-PET',
         'receipt_hash' => 'hash-pet-manual-001',
@@ -694,8 +694,8 @@ test('spent by label includes requires manual review invoices with labeled line 
         'status' => 'requires_manual_review',
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Pet food',
         'quantity' => 1,
@@ -703,8 +703,8 @@ test('spent by label includes requires manual review invoices with labeled line 
         'line_total' => 19.86,
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Pet treats',
         'quantity' => 1,
@@ -712,8 +712,8 @@ test('spent by label includes requires manual review invoices with labeled line 
         'line_total' => 32.60,
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Promo discount',
         'quantity' => 1,
@@ -721,7 +721,7 @@ test('spent by label includes requires manual review invoices with labeled line 
         'line_total' => -8.80,
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $spending = analyticsForMonth($targetMonth)->spentByLabel();
 
@@ -731,7 +731,7 @@ test('spent by label includes requires manual review invoices with labeled line 
 });
 
 test('budget mapping uses calendar month bounds for weekly budgets', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->startOfMonth();
     $monthKey = $targetMonth->format('Y-m');
@@ -751,7 +751,7 @@ test('budget mapping uses calendar month bounds for weekly budgets', function ()
         'is_active' => true,
     ]);
 
-    $invoice = Invoice::create([
+    $expense = Expense::create([
         'merchant_name' => 'Petrol Station',
         'invoice_number' => 'INV-PETROL',
         'receipt_hash' => 'hash-petrol-001',
@@ -764,8 +764,8 @@ test('budget mapping uses calendar month bounds for weekly budgets', function ()
         'status' => 'reviewed',
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Fuel',
         'quantity' => 1,
@@ -773,7 +773,7 @@ test('budget mapping uses calendar month bounds for weekly budgets', function ()
         'line_total' => 120.00,
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $totals = analyticsForMonth($monthKey)->spentTotalsByLabelId();
 
@@ -781,12 +781,12 @@ test('budget mapping uses calendar month bounds for weekly budgets', function ()
 });
 
 test('top merchants aggregates spent, discount, receipts, and spend share', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Merchant A',
         'invoice_number' => 'INV-A1',
         'receipt_hash' => 'hash-a1',
@@ -800,7 +800,7 @@ test('top merchants aggregates spent, discount, receipts, and spend share', func
         'status' => 'reviewed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Merchant A',
         'invoice_number' => 'INV-A2',
         'receipt_hash' => 'hash-a2',
@@ -814,7 +814,7 @@ test('top merchants aggregates spent, discount, receipts, and spend share', func
         'status' => 'reviewed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Merchant B',
         'invoice_number' => 'INV-B1',
         'receipt_hash' => 'hash-b1',
@@ -828,7 +828,7 @@ test('top merchants aggregates spent, discount, receipts, and spend share', func
         'status' => 'reviewed',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $merchants = analyticsForMonth($targetMonth)->topMerchants();
 
@@ -851,13 +851,13 @@ test('top merchants aggregates spent, discount, receipts, and spend share', func
 });
 
 test('top merchants defaults to three results', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
 
     foreach (['A' => 100, 'B' => 80, 'C' => 60, 'D' => 40] as $name => $amount) {
-        Invoice::create([
+        Expense::create([
             'merchant_name' => "Merchant {$name}",
             'invoice_number' => "INV-TOP-{$name}",
             'receipt_hash' => "hash-top-{$name}",
@@ -871,7 +871,7 @@ test('top merchants defaults to three results', function () {
         ]);
     }
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $merchants = analyticsForMonth($targetMonth)->topMerchants();
 
@@ -884,7 +884,7 @@ test('top merchants defaults to three results', function () {
 });
 
 test('spent by payment method groups spend, excludes pending, and computes mom', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $this->seed(PaymentMethodSeeder::class);
 
@@ -894,7 +894,7 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Cash Store',
         'invoice_number' => 'INV-CASH-1',
         'receipt_hash' => 'hash-cash-1',
@@ -908,7 +908,7 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
         'status' => 'reviewed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Card Store',
         'invoice_number' => 'INV-VISA-1',
         'receipt_hash' => 'hash-visa-1',
@@ -922,7 +922,7 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
         'status' => 'reviewed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Pending Store',
         'invoice_number' => 'INV-PENDING-PM',
         'receipt_hash' => 'hash-pending-pm',
@@ -936,7 +936,7 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
         'status' => 'pending',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Unknown Method Store',
         'invoice_number' => 'INV-UNKNOWN-PM',
         'receipt_hash' => 'hash-unknown-pm',
@@ -950,7 +950,7 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
         'status' => 'reviewed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Prior Cash Store',
         'invoice_number' => 'INV-CASH-PRIOR',
         'receipt_hash' => 'hash-cash-prior',
@@ -964,7 +964,7 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
         'status' => 'reviewed',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $methods = analyticsForMonth($targetMonth)->spentByPaymentMethod();
 
@@ -992,7 +992,7 @@ test('spent by payment method groups spend, excludes pending, and computes mom',
 });
 
 test('spent by payment method defaults to three results', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $this->seed(PaymentMethodSeeder::class);
 
@@ -1009,7 +1009,7 @@ test('spent by payment method defaults to three results', function () {
     foreach ($methods as $slug => $amount) {
         $paymentMethod = PaymentMethod::findBySlug($slug);
 
-        Invoice::create([
+        Expense::create([
             'merchant_name' => "Store {$slug}",
             'invoice_number' => "INV-PM-{$slug}",
             'receipt_hash' => "hash-pm-{$slug}",
@@ -1024,7 +1024,7 @@ test('spent by payment method defaults to three results', function () {
         ]);
     }
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $rows = analyticsForMonth($targetMonth)->spentByPaymentMethod();
 
@@ -1037,12 +1037,12 @@ test('spent by payment method defaults to three results', function () {
 });
 
 test('receipts by source groups counts, spend, and mom by upload channel', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Manual Store A',
         'invoice_number' => 'INV-MAN-1',
         'receipt_hash' => 'hash-man-1',
@@ -1055,7 +1055,7 @@ test('receipts by source groups counts, spend, and mom by upload channel', funct
         'status' => 'reviewed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Manual Store B',
         'invoice_number' => 'INV-MAN-2',
         'receipt_hash' => 'hash-man-2',
@@ -1068,7 +1068,7 @@ test('receipts by source groups counts, spend, and mom by upload channel', funct
         'status' => 'reviewed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'WhatsApp Parse Store',
         'invoice_number' => 'INV-WA-PARSE-1',
         'receipt_hash' => 'hash-wa-parse-1',
@@ -1082,7 +1082,7 @@ test('receipts by source groups counts, spend, and mom by upload channel', funct
         'status' => 'parsed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'WhatsApp Manual Store',
         'invoice_number' => 'INV-WA-MAN-1',
         'receipt_hash' => 'hash-wa-man-1',
@@ -1096,7 +1096,7 @@ test('receipts by source groups counts, spend, and mom by upload channel', funct
         'status' => 'reviewed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Drive Store',
         'invoice_number' => 'INV-GD-1',
         'receipt_hash' => 'hash-gd-1',
@@ -1109,7 +1109,7 @@ test('receipts by source groups counts, spend, and mom by upload channel', funct
         'status' => 'reviewed',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Pending WhatsApp',
         'invoice_number' => 'INV-WA-PENDING',
         'receipt_hash' => 'hash-wa-pending',
@@ -1123,7 +1123,7 @@ test('receipts by source groups counts, spend, and mom by upload channel', funct
         'status' => 'pending',
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Prior Manual',
         'invoice_number' => 'INV-MAN-PRIOR',
         'receipt_hash' => 'hash-man-prior',
@@ -1136,7 +1136,7 @@ test('receipts by source groups counts, spend, and mom by upload channel', funct
         'status' => 'reviewed',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $sources = analyticsForMonth($targetMonth)->receiptsBySource();
 
@@ -1176,12 +1176,12 @@ test('receipts by source groups counts, spend, and mom by upload channel', funct
 });
 
 test('receipts by source includes empty upload channels when month has data', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'WhatsApp Only',
         'invoice_number' => 'INV-WA-ONLY',
         'receipt_hash' => 'hash-wa-only',
@@ -1195,7 +1195,7 @@ test('receipts by source includes empty upload channels when month has data', fu
         'status' => 'reviewed',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $sources = analyticsForMonth($targetMonth)->receiptsBySource();
 
@@ -1211,12 +1211,12 @@ test('receipts by source includes empty upload channels when month has data', fu
 });
 
 test('dashboard month analytics reuses request-scoped instance and memoizes summary', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $targetMonth = now()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Memo Store',
         'invoice_number' => 'INV-MEMO',
         'receipt_hash' => 'hash-memo-001',
@@ -1229,7 +1229,7 @@ test('dashboard month analytics reuses request-scoped instance and memoizes summ
         'status' => 'reviewed',
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     DashboardMonthAnalytics::flushInstances();
 

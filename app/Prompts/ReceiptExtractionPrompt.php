@@ -62,7 +62,7 @@ You must respond with a raw JSON object only. Do not wrap it in markdown formatt
 
 Malaysia receipt rules (follow strictly):
 - Dates are usually DD/MM/YY or DD/MM/YYYY (day first). If the receipt shows 14/07/26 or 14/07/2026, output 2026-07-14 (day first; two-digit years use 2000+).
-- Read the printed Date / Time line carefully. Do not invent the day from other numbers (invoice no, terminal id, batch, approval). Example: if Date is 08/07/2026, date_time must be 2026-07-08 … not 2026-07-14.
+- Read the printed Date / Time line carefully. Do not invent the day from other numbers (expense no, terminal id, batch, approval). Example: if Date is 08/07/2026, date_time must be 2026-07-08 … not 2026-07-14.
 - date_time MUST be exactly "YYYY-MM-DD HH:MM:SS" with a space separator. Never use T, Z, milliseconds, or timezone suffixes.
 - Never invent a year from the day number (e.g. day 14 must NOT become year 2014). Prefer a printed 4-digit year when visible (e.g. 14-Jul-2026).
 - invoice_number is the receipt / bill / invoice reference only (e.g. Bill No, Invoice No). Never use company registration numbers (e.g. 199401020616) or tax IDs (CBP / SST / TIN) as invoice_number.

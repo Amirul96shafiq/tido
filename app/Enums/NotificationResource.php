@@ -7,7 +7,7 @@ namespace App\Enums;
 enum NotificationResource: string
 {
     case Profile = 'profile';
-    case Invoices = 'invoices';
+    case Expenses = 'expenses';
     case WhatsApp = 'whatsapp';
     case EvolutionApi = 'evolution-api';
     case Budgets = 'budgets';
@@ -16,7 +16,7 @@ enum NotificationResource: string
     {
         return match ($this) {
             self::Profile => 'Profile',
-            self::Invoices => 'Invoices',
+            self::Expenses => 'Expenses',
             self::WhatsApp => 'WhatsApp',
             self::EvolutionApi => 'Evolution API',
             self::Budgets => 'Budgets',
@@ -27,7 +27,7 @@ enum NotificationResource: string
     {
         return match ($this) {
             self::Profile => 'Profile%',
-            self::Invoices => 'Receipt%',
+            self::Expenses => 'Receipt%',
             self::WhatsApp => 'WhatsApp%',
             self::EvolutionApi => 'Evolution API%',
             self::Budgets => 'Budget%',

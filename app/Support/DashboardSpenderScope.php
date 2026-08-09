@@ -155,7 +155,7 @@ final class DashboardSpenderScope
      * @param  Builder<Model>  $query
      * @return Builder<Model>
      */
-    public function applyToInvoiceQuery(Builder $query): Builder
+    public function applyToExpenseQuery(Builder $query): Builder
     {
         if ($this->spender === self::ALL) {
             return $query;
@@ -178,20 +178,20 @@ final class DashboardSpenderScope
      * @param  Builder<Model>  $query
      * @return Builder<Model>
      */
-    public function applyToInvoicesJoin(Builder $query, string $invoicesAlias = 'invoices'): Builder
+    public function applyToExpensesJoin(Builder $query, string $expensesAlias = 'expenses'): Builder
     {
         if ($this->spender === self::ALL) {
             return $query;
         }
 
         if ($this->spender === self::PRIMARY) {
-            return $query->whereNull("{$invoicesAlias}.family_member_id");
+            return $query->whereNull("{$expensesAlias}.family_member_id");
         }
 
         if (str_starts_with($this->spender, self::FAMILY_PREFIX)) {
             $id = (int) substr($this->spender, strlen(self::FAMILY_PREFIX));
 
-            return $query->where("{$invoicesAlias}.family_member_id", $id);
+            return $query->where("{$expensesAlias}.family_member_id", $id);
         }
 
         return $query;

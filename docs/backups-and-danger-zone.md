@@ -33,18 +33,18 @@ The client-supplied filename is not a filesystem location. Path-like, reserved, 
 
 ## Safe manual verification
 
-Reset Data and Delete Account remove invoice records and their stored receipt files, so do not perform the zero-user guest-restore test against a local database that contains valuable data. Use a disposable local sandbox with its own SQLite database and `storage/app` directories.
+Reset Data and Delete Account remove expense records and their stored receipt files, so do not perform the zero-user guest-restore test against a local database that contains valuable data. Use a disposable local sandbox with its own SQLite database and `storage/app` directories.
 
 The recommended browser flow is:
 
-1. Create one synthetic invoice and receipt image in the sandbox.
+1. Create one synthetic expense and receipt image in the sandbox.
 2. Create and download a complete backup from **Backups**.
 3. Use the sandbox Danger Zone to delete the sandbox account.
 4. Open the guest **Restore Backup** modal from the sandbox login page.
 5. Upload the backup, enter its token, and exercise a path-like client filename such as `..\\..\\CON.zip` when the browser permits it.
-6. Confirm that the restore succeeds, the invoice returns, and the receipt file opens.
+6. Confirm that the restore succeeds, the expense returns, and the receipt file opens.
 
-A copied `database.sqlite` file alone is not a complete rollback because it restores invoice rows and their `image_path` values but not the receipt bytes. Preserve the complete backup archive and its token outside the sandbox. Never place a real restore token, real receipt content, or session data in documentation or logs.
+A copied `database.sqlite` file alone is not a complete rollback because it restores expense rows and their `image_path` values but not the receipt bytes. Preserve the complete backup archive and its token outside the sandbox. Never place a real restore token, real receipt content, or session data in documentation or logs.
 
 ## Agent rules
 

@@ -4,7 +4,7 @@ Shared sticky **in-page tab menu** for long Filament pages. Jumps between anchor
 
 **Not the Home dashboard module switcher.** Finances / Training / Health / Task header icon tabs are documented in [`dashboard-views.md`](dashboard-views.md). On the Finances view, this section-nav pattern is the **widget jump strip** beside the month filter.
 
-**Consumers:** [`EditProfile`](../app/Filament/Pages/Auth/EditProfile.php) at `/admin/profile`, [`Dashboard`](../app/Filament/Pages/Dashboard.php) Finances widget jump tabs beside the month filter, [`ReceiptUploadPage`](../app/Filament/Pages/ReceiptUploadPage.php), Invoice/Budget Create/Edit resource pages, [`EvolutionApiPage`](../app/Filament/Pages/EvolutionApiPage.php), [`ServiceStatusPage`](../app/Filament/Pages/ServiceStatusPage.php), and Label / Payment Method / Family Member Create/Edit resource pages.
+**Consumers:** [`EditProfile`](../app/Filament/Pages/Auth/EditProfile.php) at `/admin/profile`, [`Dashboard`](../app/Filament/Pages/Dashboard.php) Finances widget jump tabs beside the month filter, [`ReceiptUploadPage`](../app/Filament/Pages/ReceiptUploadPage.php), Expense/Budget Create/Edit resource pages, [`EvolutionApiPage`](../app/Filament/Pages/EvolutionApiPage.php), [`ServiceStatusPage`](../app/Filament/Pages/ServiceStatusPage.php), and Label / Payment Method / Family Member Create/Edit resource pages.
 
 ## When to use
 
@@ -106,15 +106,15 @@ Home module tabs (Finances / Training / Health / Task) are **not** section nav �
 | Anchors | `#upload-receipts`, `#recent-uploads` in [`receipt-upload-content.blade.php`](../resources/views/filament/pages/partials/receipt-upload-content.blade.php) |
 | Tests | [`tests/Feature/ReceiptUploadSectionNavTest.php`](../tests/Feature/ReceiptUploadSectionNavTest.php) |
 
-## Invoice Create / Edit
+## Expense Create / Edit
 
 | Layer | Path |
 |-------|------|
-| Section list | `InvoiceForm::sectionNavItems()` — wired on Create/Edit pages |
+| Section list | `ExpenseForm::sectionNavItems()` — wired on Create/Edit pages |
 | Sticky pin | `HasStickyBlurFormActions` + `sectionNavItems()` on page |
-| Page class | `.fi-invoice-form-page` |
-| Anchors | `->id(...)` on each `Section::make(...)` in [`InvoiceForm.php`](../app/Filament/Resources/Invoices/Schemas/InvoiceForm.php) |
-| Tests | [`tests/Feature/InvoiceFormSectionNavTest.php`](../tests/Feature/InvoiceFormSectionNavTest.php) |
+| Page class | `.fi-expense-form-page` |
+| Anchors | `->id(...)` on each `Section::make(...)` in [`ExpenseForm.php`](../app/Filament/Resources/Expenses/Schemas/ExpenseForm.php) |
+| Tests | [`tests/Feature/ExpenseFormSectionNavTest.php`](../tests/Feature/ExpenseFormSectionNavTest.php) |
 
 ## Budget Create / Edit
 

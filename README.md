@@ -43,7 +43,7 @@
 ## Features
 
 - Modular Home dashboard: **Finance** (Ongoing), **Training** / **Health** / **Task** (coming soon) — see [docs/dashboard-views.md](docs/dashboard-views.md)
-- Receipt ingestion from WhatsApp (**images**, **PDFs**, and **text manual invoices**), Google Drive scheduled sync (Coming Soon), and admin upload
+- Receipt ingestion from WhatsApp (**images**, **PDFs**, and **text manual expenses**), Google Drive scheduled sync (Coming Soon), and admin upload
 - Local OCR via Ollama with JSON-formatted extraction; manual WhatsApp text uses Ollama for **Labels** only
 - Printed currency detection, historical exchange-rate conversion into MYR, and source amount/rate metadata
 - Line-item **Labels**, duplicate detection, and manual review
@@ -72,8 +72,8 @@
 
 ```mermaid
 flowchart LR
-  waMedia[WhatsApp_image_or_PDF] --> pending[Pending_Invoice]
-  waText[WhatsApp_manual_text] --> pendingManual[Pending_manual_Invoice]
+  waMedia[WhatsApp_image_or_PDF] --> pending[Pending_Expense]
+  waText[WhatsApp_manual_text] --> pendingManual[Pending_manual_Expense]
   drive[Drive_sync_15m] --> pending
   upload[Web_upload] --> pending
   pending --> job[ExtractReceiptDataJob]
@@ -90,7 +90,7 @@ flowchart LR
   rate --> canonical[Canonical_MYR_amounts]
   convert --> canonical
   canonical --> review[Parsed_or_manual_review]
-  pendingManual --> labelJob[ParseManualWhatsAppInvoiceJob]
+  pendingManual --> labelJob[ParseManualWhatsAppExpenseJob]
   labelJob --> ollamaText[Ollama_text_labels]
   ollamaText --> review
 ```
@@ -159,7 +159,7 @@ Setup guides: [Ollama](docs/ollama-setup.md) · [Evolution API](docs/evolution-l
 
 Admin nav:
 
-- **Finances** — Invoices, Budgets
+- **Finances** — Expenses, Budgets
 - **Settings** — Labels, Payment Methods, Family Members
 - **Integrations** — Evolution API
 - **Tools** — Backups
@@ -170,7 +170,7 @@ Admin nav:
 
 **WhatsApp receipt image/PDF:** Send an image or PDF from an allowlisted number (Profile or Family Members with allowlist enabled) → batched “Document received” → Ollama vision parse and printed-currency detection → historical conversion into MYR when needed → “Document parsed” with edit link. PDFs are limited to 10 MB and 3 pages by default and require Poppler (`pdfinfo` + `pdftocairo`) on the queue worker.
 
-**WhatsApp manual invoice (no receipt media):** Text format, payment tokens, and replies: [docs/whatsapp-manual-invoice.md](docs/whatsapp-manual-invoice.md).
+**WhatsApp manual expense (no receipt media):** Text format, payment tokens, and replies: [docs/whatsapp-manual-expense.md](docs/whatsapp-manual-expense.md).
 
 **Legacy foreign-currency correction:** Preview a known legacy source-currency correction with `php artisan receipts:convert-currency 332 --source-currency=USD --dry-run`. After checking the target and configuring `CURRENCY_API_KEY`, rerun without `--dry-run` to convert the stored totals and line items without rerunning OCR.
 

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Helpers;
 
-use App\Models\Invoice;
+use App\Models\Expense;
 use Filament\Tables\Columns\TextColumn;
 
 final class FilenameDisplay
 {
     public const PREFIX_LENGTH = 10;
 
-    public const MANUAL_INVOICE_LABEL = 'Manual invoice';
+    public const MANUAL_EXPENSE_LABEL = 'Manual expense';
 
     public static function truncate(?string $filename, int $prefixLength = self::PREFIX_LENGTH): string
     {
@@ -31,19 +31,19 @@ final class FilenameDisplay
         return mb_substr($basename, 0, $prefixLength).'...'.$suffix;
     }
 
-    public static function labelForInvoice(Invoice $invoice): string
+    public static function labelForExpense(Expense $expense): string
     {
-        if (blank($invoice->image_path) && blank($invoice->original_filename)) {
-            return self::MANUAL_INVOICE_LABEL;
+        if (blank($expense->image_path) && blank($expense->original_filename)) {
+            return self::MANUAL_EXPENSE_LABEL;
         }
 
-        return self::truncate($invoice->original_filename);
+        return self::truncate($expense->original_filename);
     }
 
     public static function configureTextColumn(TextColumn $column): TextColumn
     {
         return $column->getStateUsing(
-            fn (Invoice $record): string => self::labelForInvoice($record),
+            fn (Expense $record): string => self::labelForExpense($record),
         );
     }
 }
