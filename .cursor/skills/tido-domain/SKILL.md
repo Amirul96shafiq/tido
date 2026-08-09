@@ -2,11 +2,10 @@
 name: tido-domain
 description: >-
   tido domain knowledge for expense receipts, expenses, labels, budgets,
-  family members / household access, Ollama OCR, WhatsApp Evolution webhooks,
-  and Google Drive sync. Use when working on Expense/ExpenseItem/Label/Budget/
-  FamilyMember models, receipt parsing, ExtractReceiptDataJob, OllamaService,
-  WhatsApp webhooks, Drive sync, budget alerts, dashboard analytics, household
-  roles, or any MYR spending feature.
+  family members / household access, Ollama OCR, and WhatsApp Evolution webhooks.
+  Use when working on Expense/ExpenseItem/Label/Budget/FamilyMember models,
+  receipt parsing, ExtractReceiptDataJob, OllamaService, WhatsApp webhooks,
+  budget alerts, dashboard analytics, household roles, or any MYR spending feature.
 ---
 
 # tido Domain
@@ -35,7 +34,7 @@ Money is always **MYR** (`decimal(12,2)`). Display as `RM …`.
 
 `pending` → `parsed` → `reviewed`  
 Failure paths: `requires_manual_review` | `failed`  
-Sources: `manual` | `whatsapp` | `google_drive`
+Sources: `manual` | `whatsapp`
 
 Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`.
 
@@ -75,7 +74,6 @@ Attribution: `family_member_id` null = Primary; set from WhatsApp sender (`Expen
 | WhatsApp in | `App\Http\Controllers\Api\WhatsAppWebhookController` |
 | WhatsApp LID mapping | `App\Support\WhatsAppLid` |
 | WhatsApp out | `App\Services\WhatsAppNotificationService` |
-| Drive sync | `App\Services\GoogleDriveService` + `SyncGoogleDriveJob` |
 | Budget breach | `App\Services\BudgetAlertService` |
 | Forecast widget | `App\Services\SpendingForecastService` |
 | Matcher | `App\Services\LabelMatcher`, `App\Services\PaymentMethodMatcher` |
@@ -86,7 +84,7 @@ Attribution: `family_member_id` null = Primary; set from WhatsApp sender (`Expen
 ## Filament map
 
 - Resources: Upload Receipts, Expenses, Budgets (Finances); Labels, Payment Methods, Family Members (Settings); Evolution API (Integrations); Backups, Service Status (Tools) — models `Label`, `PaymentMethod`, `FamilyMember`, `Backup`
-- Primary-only: Budgets, Labels, Payment Methods, Family Members, Evolution, Backups, Service Status (`RequiresPrimaryHouseholdAccess`)
+- Primary-only: Budgets, Labels, Payment Methods, Family Members, Evolution, Backups (`RequiresPrimaryHouseholdAccess`); Service Status is household-readable with primary-only manual probes
 - View records: always `ViewAction::make()->slideOver()` — never dedicated View pages; use the disabled form schema (no custom `infolist()` / `*Infolist.php`)
 - Upload UI: `ReceiptUploadPage` → creates pending expenses (stamps `family_member_id` for family users)
 - Dashboard: Finances widgets use `DashboardMonthAnalytics` / month + spender filters; Training / Health / Task are coming-soon shells — `docs/dashboard-views.md`
@@ -99,8 +97,7 @@ Attribution: `family_member_id` null = Primary; set from WhatsApp sender (`Expen
 
 - `config/services.php` → `ollama.*`, `documents.*`, `evolution.*` (API URL, outbound API key, distinct inbound webhook secret, instance). PDF parsing uses Poppler `pdfinfo` / `pdftocairo`; configure `PDF_MAX_BYTES`, `PDF_MAX_PAGES`, `PDFINFO_BINARY`, and `PDFTOCAIRO_BINARY`. Contact allowlist: Profile `users.phone` + Family Members with allowlist enabled; linked WhatsApp LIDs are stored on `users.whatsapp_lid` / `family_members.whatsapp_lid`.
 - Family OTP local test: `WHATSAPP_LOGIN_DEV_OTP` / `WHATSAPP_LOGIN_DEV_PHONES` — `docs/household-access.md`, `docs/evolution-local-windows.md`
-- `config/filesystems.php` → `google` disk
-- Setup guides: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-manual-expense.md`, `docs/google-drive-setup.md`, `docs/service-status.md`, `docs/household-access.md`
+- Setup guides: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-manual-expense.md`, `docs/service-status.md`, `docs/household-access.md`
 
 ## Hard rules
 

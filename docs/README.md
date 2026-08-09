@@ -12,7 +12,6 @@
 | [evolution-local-windows.md](evolution-local-windows.md) | Ops | WhatsApp Evolution instance, webhook, PDF media, and LID allowlist (Windows host) |
 | [whatsapp-manual-expense.md](whatsapp-manual-expense.md) | Humans + agents | Text-only WhatsApp manual expense format and pipeline |
 | [whatsapp-bot-commands.md](whatsapp-bot-commands.md) | Humans + agents | WhatsApp media handling, command / keyword reference, and auto-replies |
-| [google-drive-setup.md](google-drive-setup.md) | Ops | Drive folder sync credentials |
 | [ui-empty-states.md](ui-empty-states.md) | Agents + humans | Illustrated empty panels (email-change expiry pattern) |
 | [ui-modal-overlay.md](ui-modal-overlay.md) | Agents + humans | Modal backdrop blur + Filament action modal width |
 | [vite-assets.md](vite-assets.md) | Agents + humans | Vite panel assets: `Vite::asset()` vs `@vite`, when `npm run build` is required |

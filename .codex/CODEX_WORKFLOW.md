@@ -118,7 +118,7 @@ If Codex can reproduce and gather equivalent evidence locally, continue without 
 4. Remove all temporary instrumentation unless the user explicitly approves keeping production-safe observability.
 5. Add a regression test, run the relevant verification matrix, and reproduce the original flow again.
 
-For receipt ingestion, queue, Ollama, Evolution, Drive, or Poppler work, success requires the asynchronous job to finish and the resulting invoice state/data to be inspected. Upload acceptance, a stored file, a queued job, or a webhook `2xx` is not completion.
+For receipt ingestion, queue, Ollama, Evolution, or Poppler work, success requires the asynchronous job to finish and the resulting invoice state/data to be inspected. Upload acceptance, a stored file, a queued job, or a webhook `2xx` is not completion.
 
 Do not repeat an identical failing diagnostic more than twice without changing the hypothesis, evidence source, or method. Never broadly terminate every `php.exe`; identify the exact tido-owned PID and command line first.
 
@@ -140,7 +140,7 @@ Stop for explicit approval before:
 - Introducing a new top-level `app/` directory or contradicting the documented architecture.
 - Destructive filesystem, database, Git, backup/restore, account, or process actions whose exact targets are not already authorized.
 - Sending live messages, invoking production APIs, modifying remote systems, deploying, or touching production data.
-- Starting Evolution/WhatsApp, Drive synchronization, or another process that connects to a live external account unless the user authorized that live interaction.
+- Starting Evolution/WhatsApp or another process that connects to a live external account unless the user authorized that live interaction.
 - Committing, amending, staging for the user, pushing, force-pushing, creating or merging a PR, or changing protected branches.
 
 ## 8. Git and branch discipline

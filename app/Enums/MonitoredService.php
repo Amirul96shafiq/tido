@@ -11,7 +11,6 @@ enum MonitoredService: string
     case Ollama = 'ollama';
     case Evolution = 'evolution';
     case Queue = 'queue';
-    case GoogleDrive = 'google_drive';
 
     public function label(): string
     {
@@ -21,7 +20,6 @@ enum MonitoredService: string
             self::Ollama => 'Ollama',
             self::Evolution => 'Evolution API',
             self::Queue => 'Queue',
-            self::GoogleDrive => 'Google Drive',
         };
     }
 
@@ -33,7 +31,6 @@ enum MonitoredService: string
             self::Ollama => 30,
             self::Evolution => 40,
             self::Queue => 50,
-            self::GoogleDrive => 60,
         };
     }
 
@@ -41,7 +38,6 @@ enum MonitoredService: string
     {
         return match ($this) {
             self::App, self::Database, self::Ollama, self::Evolution, self::Queue => true,
-            self::GoogleDrive => self::googleDriveIsConfigured(),
         };
     }
 
@@ -54,19 +50,5 @@ enum MonitoredService: string
             self::cases(),
             static fn (self $service): bool => $service->isConfigured(),
         ));
-    }
-
-    private static function googleDriveIsConfigured(): bool
-    {
-        $disk = config('filesystems.disks.google');
-
-        if (! is_array($disk)) {
-            return false;
-        }
-
-        return filled($disk['clientId'] ?? null)
-            && filled($disk['clientSecret'] ?? null)
-            && filled($disk['refreshToken'] ?? null)
-            && filled($disk['folderId'] ?? null);
     }
 }

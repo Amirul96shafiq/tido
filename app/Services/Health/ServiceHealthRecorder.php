@@ -8,7 +8,6 @@ use App\Models\ServiceHealthSample;
 use App\Services\Health\Probes\AppProbe;
 use App\Services\Health\Probes\DatabaseProbe;
 use App\Services\Health\Probes\EvolutionProbe;
-use App\Services\Health\Probes\GoogleDriveProbe;
 use App\Services\Health\Probes\OllamaProbe;
 use App\Services\Health\Probes\QueueProbe;
 
@@ -25,7 +24,6 @@ class ServiceHealthRecorder
         OllamaProbe $ollamaProbe,
         EvolutionProbe $evolutionProbe,
         QueueProbe $queueProbe,
-        GoogleDriveProbe $googleDriveProbe,
     ) {
         $this->probes = [
             $appProbe,
@@ -33,7 +31,6 @@ class ServiceHealthRecorder
             $ollamaProbe,
             $evolutionProbe,
             $queueProbe,
-            $googleDriveProbe,
         ];
     }
 

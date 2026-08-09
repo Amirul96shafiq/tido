@@ -31,18 +31,10 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Support\View\Components\ButtonComponent as FilamentButtonComponent;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Google\Client;
-use Google\Service\Drive;
-use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
-use League\Flysystem\Filesystem;
-use League\Flysystem\Local\LocalFilesystemAdapter;
 use Livewire\Livewire;
-use Masbug\Flysystem\GoogleDriveAdapter;
 use Spatie\Backup\Events\BackupWasSuccessful;
 
 class AppServiceProvider extends ServiceProvider
@@ -82,30 +74,6 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureFilamentDateFormats();
         $this->configureFilamentMoneyFormatting();
-
-        try {
-            Storage::extend('google', function ($app, $config) {
-                if (empty($config['clientId']) || empty($config['clientSecret']) || empty($config['refreshToken'])) {
-                    $adapter = new LocalFilesystemAdapter(storage_path('app/private'));
-                    $driver = new Filesystem($adapter);
-
-                    return new FilesystemAdapter($driver, $adapter);
-                }
-
-                $client = new Client;
-                $client->setClientId($config['clientId']);
-                $client->setClientSecret($config['clientSecret']);
-                $client->refreshToken($config['refreshToken']);
-
-                $service = new Drive($client);
-                $adapter = new GoogleDriveAdapter($service, $config['folderId'] ?? '/');
-                $driver = new Filesystem($adapter);
-
-                return new FilesystemAdapter($driver, $adapter);
-            });
-        } catch (\Throwable $e) {
-            Log::warning('Failed to load Google Drive driver: '.$e->getMessage());
-        }
     }
 
     protected function configureFilamentDateFormats(): void

@@ -37,12 +37,6 @@ test('receipts by source widget renders source labels', function () {
         'image_path' => null,
     ]);
 
-    Expense::factory()->create([
-        'date_time' => now(),
-        'status' => 'reviewed',
-        'source' => 'google_drive',
-    ]);
-
     Expense::setEventDispatcher(app('events'));
 
     Livewire::test(ReceiptsBySource::class)
@@ -51,7 +45,7 @@ test('receipts by source widget renders source labels', function () {
         ->assertSee('Manual Upload')
         ->assertSee('WhatsApp (Parse)')
         ->assertSee('WhatsApp (Manual)')
-        ->assertSee('Google Drive')
+        ->assertDontSee('Google Drive')
         ->assertSeeHtml('wire:poll.30s');
 });
 
@@ -71,7 +65,7 @@ test('receipts by source widget shows empty channels when only whatsapp has rece
         ->assertSuccessful()
         ->assertSee('WhatsApp (Parse)')
         ->assertSee('WhatsApp (Manual)')
-        ->assertSee('Google Drive')
+        ->assertDontSee('Google Drive')
         ->assertSee('Manual Upload')
         ->assertDontSee('No receipts');
 });

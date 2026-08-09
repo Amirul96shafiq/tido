@@ -31,7 +31,6 @@ final class DashboardChartColors
     {
         return match ($source) {
             'manual' => self::PRIMARY_LIGHT,
-            'google_drive' => self::PRIMARY,
             'whatsapp_manual' => self::PRIMARY_MID,
             'whatsapp', 'whatsapp_parse' => self::PRIMARY_DARK,
             default => self::UNKNOWN,

@@ -8,7 +8,7 @@
 
 Single-tenant personal hub. **Finances** is shipped (MYR expense & receipt tracking). **Training**, **Health**, and **Task** are planned dashboard modules (coming-soon placeholders). See `docs/dashboard-views.md`.
 
-Finances today: ingest receipts (WhatsApp image or text manual expense, Google Drive, Filament upload), parse with local Ollama, categorize line items, detect duplicates, show budgets/analytics.
+Finances today: ingest receipts (WhatsApp image or text manual expense, Filament upload), parse with local Ollama, categorize line items, detect duplicates, show budgets/analytics.
 
 ### Naming
 
@@ -209,7 +209,7 @@ Resource::getUrl('index', [
 ### Avoid
 
 - Custom Blade unless native components cannot do the job
-- Putting business logic (Ollama, Drive sync, alerts) inside Resource classes — call Services/Jobs
+- Putting business logic (Ollama, alerts) inside Resource classes — call Services/Jobs
 - Dedicated View pages (`ViewRecord`, `make:filament-page --type=ViewRecord`, `getPages()` `view` routes)
 - Custom resource `infolist()` / `Schemas/*Infolist.php` for table View slide-overs
 - Omitting View from resource table `recordActions` (except Backups)
@@ -241,7 +241,7 @@ Text format → ProcessManualWhatsAppExpenseJob → pending Expense (no image)
 Format + payment tokens: `docs/whatsapp-manual-expense.md`.
 
 Statuses: `pending` → `parsed` → `reviewed` | `requires_manual_review` | `failed`
-Sources: `manual` | `whatsapp` | `google_drive`
+Sources: `manual` | `whatsapp`
 
 ### Ollama (mandatory)
 
@@ -263,12 +263,6 @@ Sources: `manual` | `whatsapp` | `google_drive`
 - Text manual expense format → pending Expense (no image) → label job → `requires_manual_review`
 - Attribute WhatsApp expenses with `ExpenseSenderAttribution` (`family_member_id`; null = Primary) — `docs/household-access.md`
 - Optional merchant payment token: aliases from Settings → Payment Methods
-
-### Google Drive
-
-- `GoogleDriveService` via `Storage::disk('google')`
-- `SyncGoogleDriveJob` every 15 min (`routes/console.php`)
-- Copy image locally, create pending Expense, delete remote file
 
 ### Queues
 
@@ -295,7 +289,7 @@ Create tests with `php artisan make:test --pest {Name} --no-interaction`.
 ```php
 Http::fake([...]);      // Ollama, Evolution API
 Queue::fake();           // assert ExtractReceiptDataJob pushed
-Storage::fake('local');  // or 'google'
+Storage::fake('local');
 ```
 
 Never call real Ollama/Evolution in CI/tests.

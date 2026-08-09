@@ -91,7 +91,7 @@ For every security change, cover the relevant combination of:
 - secret/error/log redaction;
 - external HTTP/process/storage fakes.
 
-For webhook and backup work, use `Http::fake()`, `Queue::fake()`, `Storage::fake()`, and ZIP fixtures as appropriate. Never call real Evolution, Ollama, Google Drive, or a live backup store in automated tests.
+For webhook and backup work, use `Http::fake()`, `Queue::fake()`, `Storage::fake()`, and ZIP fixtures as appropriate. Never call real Evolution, Ollama, or a live backup store in automated tests.
 
 For asynchronous work, prove the final persisted state and idempotency behavior. A queued job alone is not verification.
 

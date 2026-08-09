@@ -3,7 +3,7 @@
 ## End-to-end (image receipts)
 
 ```
-WhatsApp image | Drive file | Filament upload | Manual create
+WhatsApp image | Filament upload | Manual create
         ↓
 Expense (status=pending, image_path set, source=…, family_member_id?)
   WhatsApp → ExpenseSenderAttribution (allowlisted Family Member phone)
@@ -105,12 +105,6 @@ Unique on `receipt_hash`. Factories should set a unique hash.
 - Classic phone JIDs resolve by phone; `@lid` JIDs resolve only after `WhatsAppLid` links them to an allowlisted Primary or Family Member.
 - Unlinked LIDs are remembered as pending for the Evolution API page and ignored by the webhook until linked or dismissed.
 
-## Google Drive sync
-
-- Schedule: every 15 minutes → `SyncGoogleDriveJob`
-- List jpg/jpeg/png in configured folder → copy local → pending Expense → delete remote
-- Missing Drive credentials: Google disk falls back (see `AppServiceProvider`)
-
 ## Ollama client checklist
 
 When editing `OllamaService` or adding AI calls:
@@ -130,4 +124,4 @@ Supervisors listen on `default`, `receipts`, `whatsapp`. Jobs today often use th
 - Blueprint: `docs/system-architecture.md`
 - Agent map: `docs/agent-onboarding.md`
 - Manual WhatsApp text: `docs/whatsapp-manual-expense.md`
-- Ops: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/google-drive-setup.md`
+- Ops: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`

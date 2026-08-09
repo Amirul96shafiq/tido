@@ -2,9 +2,9 @@
 name: integration-ops
 description: >-
   tido local integration ops for Ollama, Evolution API WhatsApp, Horizon
-  queues, Google Drive sync, and Service Status health probes. Activate
-  when webhooks fail, OCR times out, Evolution disconnects, queues stall,
-  npm run dev:full issues, or Service Status shows unhealthy on Windows host.
+  queues, and Service Status health probes. Activate when webhooks fail,
+  OCR times out, Evolution disconnects, queues stall, npm run dev:full
+  issues, or Service Status shows unhealthy on Windows host.
 ---
 
 # Integration Ops
@@ -13,7 +13,7 @@ Dev runs on a **Windows host** with native Ollama and Evolution — no Docker/Sa
 
 ## When to activate
 
-1. Identify which integration is failing: Ollama, Evolution, Horizon/queue, Drive, or health probes
+1. Identify which integration is failing: Ollama, Evolution, Horizon/queue, or health probes
 2. Read the relevant setup doc before suggesting changes
 3. Check `config/services.php` and env values (never expose secrets in output)
 4. Inspect logs, queue state, and Service Status page logic
@@ -27,7 +27,6 @@ Dev runs on a **Windows host** with native Ollama and Evolution — no Docker/Sa
 | Evolution API | `docs/evolution-local-windows.md` |
 | WhatsApp manual expenses | `docs/whatsapp-manual-expense.md` |
 | WhatsApp bot commands | `docs/whatsapp-bot-commands.md` |
-| Google Drive | `docs/google-drive-setup.md` |
 | Service Status | `docs/service-status.md` |
 
 ## Local dev stack
@@ -58,7 +57,7 @@ npm run dev:full   # vite + serve:2000 + queue
 - Heavy webhook work must be queued — never block the HTTP response
 - Horizon dashboard: configure `viewHorizon` gate before relying on `/horizon` in prod
 - Activate `.agents/skills/configuring-horizon` for supervisor/worker issues
-- Scheduled: Drive sync (15m), backups, `health:probe` / `health:prune`
+- Scheduled: backups, `health:probe` / `health:prune`
 
 ## Service Status
 
@@ -66,11 +65,6 @@ npm run dev:full   # vite + serve:2000 + queue
 - Page: `ServiceStatusPage` under Tools nav group
 - Probes run via scheduled `health:probe` — see `docs/service-status.md`
 - Test reference: `tests/Feature/ServiceHealthTest.php`, `ServiceStatusPageTest.php`
-
-## Google Drive
-
-- `SyncGoogleDriveJob` — every 15 minutes
-- Missing credentials: Google disk falls back (see `AppServiceProvider`)
 
 ## Ollama health checks
 
@@ -86,13 +80,12 @@ npm run dev:full   # vite + serve:2000 + queue
 | Expense stuck pending | Queue worker not running; job failed silently |
 | Ollama timeout | Model not loaded; host unreachable; increase timeout |
 | WhatsApp no reply | Sender not on allowlist; Evolution disconnected |
-| Drive not syncing | Missing credentials; schedule not running |
 | Health probe red | Target service down; stale samples |
 
 ## Testing integrations
 
 - **Never** hit live Ollama/Evolution in Pest — use `Http::fake()` and `Queue::fake()`
-- Reference tests: `WhatsAppWebhookTest`, `OllamaParsingTest`, `GoogleDriveTest`, `ProcessWhatsAppMediaJobTest`
+- Reference tests: `WhatsAppWebhookTest`, `OllamaParsingTest`, `ProcessWhatsAppMediaJobTest`
 
 ## Output format
 

@@ -176,7 +176,7 @@ class SampleDataSeeder extends Seeder
                     'total_tax' => $tax,
                     'total_amount' => $total,
                     'currency' => 'MYR',
-                    'source' => collect(['manual', 'whatsapp', 'google_drive'])->random(),
+                    'source' => collect(['manual', 'whatsapp'])->random(),
                     'status' => collect(['parsed', 'reviewed'])->random(),
                     'notes' => null,
                 ]);

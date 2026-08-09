@@ -15,7 +15,6 @@ This document defines the architectural blueprint for **tido**, a localized sing
 | :--- | :--- | :--- |
 | **Backend Framework** | Laravel 12 | API routing, ORM, queued jobs, and task scheduling. Must follow PSR-12 coding standards. |
 | **Admin Panel / UI** | FilamentPHP v5 | Auto-generation of data tables, upload widgets, and analytical dashboards. Built on Livewire v4. |
-| **Cloud Storage** | `masbug/flysystem-google-drive-ext` | Direct integration of Google Drive folders as Laravel `Storage` disks. |
 | **AI Parsing Engine** | Ollama (Local) | Zero-cost execution of vision models (e.g., LLaVA, MiniCPM-V) for OCR and data extraction. |
 | **Exchange Rates** | CurrencyAPI (configured external provider) | Historical source-currency to MYR rates for receipt-date conversion; cached and persisted with audit metadata. |
 | **Messaging API** | Evolution API | Headless receipt ingestion and system alert broadcasting via WhatsApp. |
@@ -77,11 +76,10 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 * `currency_conversion_provider` (String, Nullable)
 * `currency_conversion_fetched_at` (Timestamp, Nullable)
 * `payment_method_id` (Foreign Key → payment_methods.id, Nullable)
-* `source` (String) - `manual`, `whatsapp`, or `google_drive`.
+* `source` (String) - `manual` or `whatsapp`.
 * `whatsapp_sender` (String, Nullable)
 * `whatsapp_message_id` (String, Unique, Nullable) - Evolution message id for media deduplication.
 * `family_member_id` (Foreign Key → family_members.id, Nullable) — **Uploaded By**; null = Primary
-* `google_drive_file_id` (String)
 * `original_filename` (String, Nullable)
 * `image_path` (String, Nullable) - Original image or PDF path; null for text-only manual expenses.
 * `file_mime_type` (String, Nullable)
@@ -108,7 +106,6 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 * **WhatsApp PDF extraction:** Accepted PDFs remain stored as PDFs. Poppler `pdfinfo` inspects page count and `pdftocairo` renders pages to JPEG; Ollama extracts each page as JSON, then merges multi-page results before normal expense normalization, currency conversion, and Label matching.
 * **WhatsApp manual text expenses:** Fixed `merchant[, payment];` + `item, qty, line_total;` format → pending `Expense` (no image) → label classification → `requires_manual_review`. See `docs/whatsapp-manual-expense.md`.
 * **Attribution:** Allowlisted Family Member senders set `expenses.family_member_id`; Profile/primary senders leave it null (**Uploaded By**). Classic phone JIDs and linked WhatsApp LIDs use the same allowlist. Optional family panel login via WhatsApp OTP — see `docs/household-access.md`.
-* **Google Drive:** Scheduled folder poll (`SyncGoogleDriveJob` every 15m) copies images locally and creates pending expenses (Pub/Sub push is not the primary local path).
 
 ### 5.2. 100% Offline AI Extraction
 * Dispatches a queued job (`ExtractReceiptDataJob`) to the local Ollama HTTP API (`OLLAMA_HOST`, default `http://127.0.0.1:11434`) at `/api/generate`. After source-currency reconciliation, foreign amounts are converted by `CurrencyConversionService` using the configured historical rate provider. Ollama runs as a native host process (see `docs/ollama-setup.md`).
@@ -160,6 +157,6 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 ### 7.5. Service Status (health probes)
 
 * **Filament UI:** **Tools → Service Status** — summary report + per-service 30-day uptime bars (12h pieces). See `docs/service-status.md`.
-* **Probes:** `health:probe` every 15 minutes stores samples in `service_health_samples` (App, Database, Ollama, Evolution, Queue, optional Google Drive).
+* **Probes:** `health:probe` every 15 minutes stores samples in `service_health_samples` (App, Database, Ollama, Evolution, Queue).
 * **Retention:** `health:prune` daily; 30-day sample window matches the visible chart.
 * **Tests:** Mock Ollama/Evolution with `Http::fake()`; do not hit real services in CI.

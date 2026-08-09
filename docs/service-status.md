@@ -25,7 +25,6 @@ Filament **Tools → Service Status** (`/admin/service-status`) monitors critica
 | `ollama` | Ollama | Always (`GET {OLLAMA_HOST}/api/tags`) |
 | `evolution` | Evolution API | Always (`EvolutionInstanceService::connectionState()`) |
 | `queue` | Queue | Always (DB connection + failed-job threshold; Redis ping when driver is `redis`) |
-| `google_drive` | Google Drive | Only when `filesystems.disks.google` credentials are configured |
 
 Status values: `operational`, `degraded`, `down` (UI-only `unknown` for empty history pieces).
 

@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-<code>tido</code> is a single-tenant Life OS designed to bring personal finance, health, training, and everyday productivity into one private hub. <strong>Finance</strong> is currently in active development as a localized MYR expense tracker. It supports receipt ingestion through WhatsApp images and PDFs, scheduled Google Drive sync (coming soon), and manual admin uploads, with on-device parsing powered by local Ollama. Printed receipt currencies are detected automatically; non-MYR amounts are converted using the receipt date and retained with source-currency metadata for review. Users can manage line items with labels, track budgets, and review spending analytics from the Finance dashboard.
+<code>tido</code> is a single-tenant Life OS designed to bring personal finance, health, training, and everyday productivity into one private hub. <strong>Finance</strong> is currently in active development as a localized MYR expense tracker. It supports receipt ingestion through WhatsApp images and PDFs and manual admin uploads, with on-device parsing powered by local Ollama. Printed receipt currencies are detected automatically; non-MYR amounts are converted using the receipt date and retained with source-currency metadata for review. Users can manage line items with labels, track budgets, and review spending analytics from the Finance dashboard.
 <strong>Training</strong> (workouts, running activities, and Strava
   sync. (TBD)), <strong>Health</strong> (calorie tracking and
   AI-assisted meal analysis from food photos), and <strong>Tasks</strong> (reminders and practical real-life task management) modules are coming soon!
@@ -43,7 +43,7 @@
 ## Features
 
 - Modular Home dashboard: **Finance** (Ongoing), **Training** / **Health** / **Task** (coming soon) — see [docs/dashboard-views.md](docs/dashboard-views.md)
-- Receipt ingestion from WhatsApp (**images**, **PDFs**, and **text manual expenses**), Google Drive scheduled sync (Coming Soon), and admin upload
+- Receipt ingestion from WhatsApp (**images**, **PDFs**, and **text manual expenses**) and admin upload
 - Local OCR via Ollama with JSON-formatted extraction; manual WhatsApp text uses Ollama for **Labels** only
 - Printed currency detection, historical exchange-rate conversion into MYR, and source amount/rate metadata
 - Line-item **Labels**, duplicate detection, and manual review
@@ -63,7 +63,6 @@
 | OCR             | Ollama (`qwen2.5vl:7b`, native host)                      |
 | Exchange rates  | CurrencyAPI historical rates with cached receipt-date lookups |
 | WhatsApp        | Evolution API (native host)                               |
-| Drive           | `masbug/flysystem-google-drive-ext`                       |
 | Backups / audit | Spatie Laravel Backup, Spatie Activity Log, resource edit audit |
 | Tests           | Pest v3                                                   |
 | Dev env         | Windows host PHP (`npm run dev:full`)                     |
@@ -74,7 +73,6 @@
 flowchart LR
   waMedia[WhatsApp_image_or_PDF] --> pending[Pending_Expense]
   waText[WhatsApp_manual_text] --> pendingManual[Pending_manual_Expense]
-  drive[Drive_sync_15m] --> pending
   upload[Web_upload] --> pending
   pending --> job[ExtractReceiptDataJob]
   job --> prepChoice{Document_type?}
@@ -153,7 +151,7 @@ Default seeded login: `admin@tido.local` / `password`.
 
 Outside `local`, allow Horizon dashboard access by adding emails to the `viewHorizon` gate in [`app/Providers/HorizonServiceProvider.php`](app/Providers/HorizonServiceProvider.php) (the allowlist starts empty).
 
-Setup guides: [Ollama](docs/ollama-setup.md) · [Evolution API](docs/evolution-local-windows.md) · [Google Drive](docs/google-drive-setup.md).
+Setup guides: [Ollama](docs/ollama-setup.md) · [Evolution API](docs/evolution-local-windows.md).
 
 ## Usage
 
@@ -182,7 +180,7 @@ Admin nav:
 
 ## Configuration
 
-Copy [`.env.example`](.env.example) and set values for your environment. Notable groups (`DB_*`, `QUEUE_CONNECTION`, `EVOLUTION_*`, `OLLAMA_*`, `PDF_*` / Poppler binaries, `GOOGLE_DRIVE_*`, `CURRENCY_API_*`) are documented there and in the [setup guides](#installation). Set `CURRENCY_API_KEY` to enable non-MYR conversion; receipt-date lookups are cached and use bounded retries.
+Copy [`.env.example`](.env.example) and set values for your environment. Notable groups (`DB_*`, `QUEUE_CONNECTION`, `EVOLUTION_*`, `OLLAMA_*`, `PDF_*` / Poppler binaries, `CURRENCY_API_*`) are documented there and in the [setup guides](#installation). Set `CURRENCY_API_KEY` to enable non-MYR conversion; receipt-date lookups are cached and use bounded retries.
 
 ## Testing
 

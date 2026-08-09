@@ -28,7 +28,6 @@ Primary Finances ingestion paths:
 | WhatsApp image | `POST /api/webhooks/whatsapp` | Pending `Expense` → vision OCR |
 | WhatsApp PDF | same webhook (`application/pdf`) | Validated/stored pending `Expense` → Poppler page rendering → page extraction + merge |
 | WhatsApp manual text | same webhook (fixed text format) | Pending `Expense` (no image) → label job → `requires_manual_review` |
-| Google Drive | `SyncGoogleDriveJob` (every 15m) | Pending `Expense` |
 | UI upload | `ReceiptUploadPage` | Pending `Expense` |
 | Manual CRUD | `ExpenseResource` | Expense (may still trigger observer) |
 
@@ -44,7 +43,7 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 4. Dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md`
 5. Domain skill: activate the `tido-domain` skill surfaced by the active agent (+ its `pipeline.md` when touching OCR/webhooks) — Finances domain
 6. Framework skills surfaced by the active agent: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
-7. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-bot-commands.md`, `docs/whatsapp-manual-expense.md`, `docs/google-drive-setup.md`
+7. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-bot-commands.md`, `docs/whatsapp-manual-expense.md`
 8. UI empty panels: `docs/ui-empty-states.md`
 9. Modal blur / width: `docs/ui-modal-overlay.md`
 10. Vite panel assets (`Vite::asset` vs `@vite`, when to `npm run build`): `docs/vite-assets.md`
@@ -73,8 +72,8 @@ Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage)
 app/
   Models/           Expense, ExpenseItem, Label, PaymentMethod, Budget, FamilyMember, User, ContentDraft, Backup, ServiceHealthSample; Concerns/TracksResourceEdits.php
   Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support, Livewire
-  Services/         Ollama, Currency exchange/conversion, GoogleDrive, WhatsApp, PdfPageInspector, PdfPageRenderer, ReceiptDocumentPreparer, BudgetAlert, SpendingForecast, FamilyMemberLoginService, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
-  Jobs/             ExtractReceiptDataJob, ProcessWhatsAppMediaJob, ProcessManualWhatsAppExpenseJob, ParseManualWhatsAppExpenseJob, SyncGoogleDriveJob, …
+  Services/         Ollama, Currency exchange/conversion, WhatsApp, PdfPageInspector, PdfPageRenderer, ReceiptDocumentPreparer, BudgetAlert, SpendingForecast, FamilyMemberLoginService, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
+  Jobs/             ExtractReceiptDataJob, ProcessWhatsAppMediaJob, ProcessManualWhatsAppExpenseJob, ParseManualWhatsAppExpenseJob, …
   Observers/        ExpenseObserver, FamilyMemberObserver
   Policies/         ExpensePolicy (household mutate ACL)
   Prompts/          ReceiptExtractionPrompt, PdfReceiptPagePrompt, PdfReceiptMergePrompt, ManualExpenseLabelPrompt
@@ -84,7 +83,7 @@ app/
 routes/
   web.php           / → /admin, changelog JSON, backup download / guest restore
   api.php           WhatsApp webhook
-  console.php       schedules (Drive sync, backups, health:probe / health:prune)
+  console.php       schedules (backups, health:probe / health:prune)
 database/
   migrations|factories|seeders
 docs/               architecture + integration setup + this file
