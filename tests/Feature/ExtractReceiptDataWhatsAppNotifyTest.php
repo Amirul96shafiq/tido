@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Filament\Resources\Invoices\InvoiceResource;
+use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Jobs\ExtractReceiptDataJob;
 use App\Jobs\SendWhatsAppDocumentParsedJob;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\PaymentMethod;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
@@ -66,7 +66,7 @@ test('extract receipt data job dispatches gated document parsed whatsapp job', f
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -86,7 +86,7 @@ test('extract receipt data job dispatches gated document parsed whatsapp job', f
     expect($invoice->fresh()->status)->toBe('parsed');
 
     Queue::assertPushed(SendWhatsAppDocumentParsedJob::class, function (SendWhatsAppDocumentParsedJob $job) use ($invoice): bool {
-        return $job->invoiceId === $invoice->id;
+        return $job->expenseId === $invoice->id;
     });
 
     Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/message/sendText/'));
@@ -137,7 +137,7 @@ test('extract receipt data job dispatches a needs review whatsapp result when co
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -158,7 +158,7 @@ test('extract receipt data job dispatches a needs review whatsapp result when co
         ->and($invoice->fresh()->currency_conversion_status)->toBe('failed');
 
     Queue::assertPushed(SendWhatsAppDocumentParsedJob::class, function (SendWhatsAppDocumentParsedJob $job) use ($invoice): bool {
-        return $job->invoiceId === $invoice->id;
+        return $job->expenseId === $invoice->id;
     });
 
     Cache::forget(WhatsAppDocumentReceivedDebouncer::cacheKey('60123456789'));
@@ -191,7 +191,7 @@ test('document parsed job waits while document received ack is pending then send
 
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'merchant_name' => '7-Eleven',
         'total_amount' => '2.00',
         'payment_method_id' => PaymentMethod::findBySlug('cash')->id,
@@ -205,7 +205,7 @@ test('document parsed job waits while document received ack is pending then send
     Cache::put(WhatsAppDocumentReceivedDebouncer::cacheKey('60123456789'), [
         'count' => 2,
         'token' => 'pending-token',
-        'invoice_ids' => [$invoice->id],
+        'expense_ids' => [$invoice->id],
     ], now()->addMinutes(5));
 
     $job = new class($invoice->id) extends SendWhatsAppDocumentParsedJob
@@ -231,7 +231,7 @@ test('document parsed job waits while document received ack is pending then send
     expect($job->released)->toBeFalse();
 
     $editUrl = WhatsAppPublicUrl::withRoot(
-        fn (): string => InvoiceResource::getUrl('edit', ['record' => $invoice]),
+        fn (): string => ExpenseResource::getUrl('edit', ['record' => $invoice]),
     );
 
     Http::assertSent(function (Request $request) use ($editUrl): bool {
@@ -242,7 +242,7 @@ test('document parsed job waits while document received ack is pending then send
             && str_contains($text, 'Merchant: *7-Eleven*')
             && str_contains($text, 'Total Amount: *RM 2.00*')
             && str_contains($text, 'Payment Method:')
-            && str_contains($text, '*invoice edit*')
+            && str_contains($text, '*expense edit*')
             && str_contains($text, $editUrl)
             && ! str_contains($text, 'wa_MSG123.jpg')
             && ! str_contains($text, '/storage/receipts/');
@@ -267,7 +267,7 @@ test('extract receipt data job does not dispatch document parsed for non-whatsap
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -302,7 +302,7 @@ test('extract receipt data job does not dispatch document parsed without whatsap
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,

@@ -1,6 +1,6 @@
 # Resource edit audit
 
-Supported resource records keep the user responsible for their latest create or update. The audit metadata answers who last changed a resource while preserving the existing household attribution rules for invoices.
+Supported resource records keep the user responsible for their latest create or update. The audit metadata answers who last changed a resource while preserving the existing household attribution rules for expenses.
 
 ## Scope
 
@@ -11,7 +11,7 @@ The audit applies to these Eloquent models and Filament resources:
 | `Backup` | `backups` | Tools → Backups |
 | `Budget` | `budgets` | Finances → Budgets |
 | `FamilyMember` | `family_members` | Settings → Family Members |
-| `Invoice` | `invoices` | Finances → Invoices |
+| `Expense` | `expenses` | Finances → Expenses |
 | `Label` | `labels` | Settings → Labels |
 | `PaymentMethod` | `payment_methods` | Settings → Payment Methods |
 
@@ -38,7 +38,7 @@ The invoice table retains its existing **Uploaded By** column. **Uploaded By** d
 
 ## Household semantics
 
-The editor is the authenticated account, whether that account is the Primary user or a linked Family Member. Invoice `family_member_id` remains the source-of-record for household spender attribution and invoice mutation authorization. The edit audit does not grant additional access: policies and `HouseholdAccess` continue to control which records a user may mutate.
+The editor is the authenticated account, whether that account is the Primary user or a linked Family Member. Invoice `family_member_id` remains the source-of-record for household spender attribution and expense mutation authorization. The edit audit does not grant additional access: policies and `HouseholdAccess` continue to control which records a user may mutate.
 
 Primary users can use the user-menu **Swap Account** control to sign in as an eligible linked Family Member. Edits made during that switched session are attributed to the linked Family Member and remain subject to Family Member authorization; see [household-access.md](household-access.md) for the switching workflow.
 

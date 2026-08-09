@@ -2,19 +2,20 @@
 
 declare(strict_types=1);
 
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Services\SpendingForecastService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
-uses(\Tests\TestCase::class, RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 test('forecast monthly spend calculates projections', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     for ($i = 10; $i >= 1; $i--) {
-        Invoice::create([
+        Expense::create([
             'merchant_name' => 'Store',
-            'invoice_number' => 'INV-' . $i,
+            'invoice_number' => 'INV-'.$i,
             'date_time' => now()->subDays($i),
             'subtotal' => 10.00 * (11 - $i),
             'total_tax' => 0.00,
@@ -22,13 +23,13 @@ test('forecast monthly spend calculates projections', function () {
             'currency' => 'MYR',
             'source' => 'manual',
             'status' => 'reviewed',
-            'receipt_hash' => 'HASH_' . $i,
+            'receipt_hash' => 'HASH_'.$i,
         ]);
     }
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
-    $service = new SpendingForecastService();
+    $service = new SpendingForecastService;
     $result = $service->forecastMonthlySpend();
 
     expect($result)->toHaveKey('forecast');

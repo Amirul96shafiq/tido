@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Enums\LabelType;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use Database\Seeders\LabelSeeder;
@@ -47,7 +47,7 @@ class SeedScannedReceiptsCommand extends Command
             $sourceFilename = (string) $receipt['source_filename'];
             $storagePath = 'receipts/'.$sourceFilename;
 
-            if (Invoice::query()->where('invoice_number', $invoiceNumber)->exists()) {
+            if (Expense::query()->where('invoice_number', $invoiceNumber)->exists()) {
                 $this->line("Skipped existing invoice {$invoiceNumber}");
                 $skipped++;
 
@@ -67,7 +67,7 @@ class SeedScannedReceiptsCommand extends Command
                 DB::transaction(function () use ($receipt, $invoiceNumber, $sourceFilename, $storagePath, &$created): void {
                     $paymentMethod = PaymentMethod::findBySlug((string) $receipt['payment_method']);
 
-                    $invoice = Invoice::create([
+                    $invoice = Expense::create([
                         'merchant_name' => $receipt['merchant_name'],
                         'invoice_number' => $invoiceNumber,
                         'date_time' => $receipt['date_time'],
@@ -95,8 +95,8 @@ class SeedScannedReceiptsCommand extends Command
                             throw new \RuntimeException("Missing label slug [{$item['label_slug']}]");
                         }
 
-                        InvoiceItem::create([
-                            'invoice_id' => $invoice->id,
+                        ExpenseItem::create([
+                            'expense_id' => $invoice->id,
                             'label_id' => $labelId,
                             'description' => $item['description'],
                             'quantity' => $item['quantity'],

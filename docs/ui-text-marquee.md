@@ -33,7 +33,7 @@ The older `.tido-text-marquee` pattern remains available for surfaces that inten
 | Surface | Path |
 |---------|------|
 | Budget Performance widget (Blade + Alpine) | [`resources/views/filament/widgets/budget-status.blade.php`](../resources/views/filament/widgets/budget-status.blade.php) |
-| Filament JS Select selected value | Invoice `currency` via [`SelectValueMarquee`](../app/Filament/Support/SelectValueMarquee.php) |
+| Filament JS Select selected value | Expense `currency` via [`SelectValueMarquee`](../app/Filament/Support/SelectValueMarquee.php) |
 
 **Shared CSS:** [`.tido-text-marquee`](../resources/css/app.css) in `resources/css/app.css`  
 **Select helper JS:** [`resources/js/select-value-marquee.js`](../resources/js/select-value-marquee.js) (panel asset)
@@ -240,7 +240,7 @@ Reference: [`tests/Feature/BudgetStatusWidgetTest.php`](../tests/Feature/BudgetS
 );
 ```
 
-Reference: [`tests/Feature/InvoiceFormReceiptImageTest.php`](../tests/Feature/InvoiceFormReceiptImageTest.php) → `invoice currency select uses single-line marquee markup`.
+Reference: [`tests/Feature/ExpenseFormReceiptImageTest.php`](../tests/Feature/ExpenseFormReceiptImageTest.php) → `expense currency select uses single-line marquee markup`.
 
 ## Do not
 

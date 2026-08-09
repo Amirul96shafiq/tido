@@ -23,7 +23,7 @@ You are a tido integration operations specialist. Dev runs on a **Windows host**
 |-------------|-----|
 | Ollama | `docs/ollama-setup.md` |
 | Evolution API | `docs/evolution-local-windows.md` |
-| WhatsApp manual invoices | `docs/whatsapp-manual-invoice.md` |
+| WhatsApp manual expenses | `docs/whatsapp-manual-expense.md` |
 | WhatsApp bot commands | `docs/whatsapp-bot-commands.md` |
 | Google Drive | `docs/google-drive-setup.md` |
 | Service Status | `docs/service-status.md` |
@@ -49,7 +49,7 @@ npm run dev:full   # vite + serve:2000 + queue
 - Auth: `Authorization: Bearer {evolution.webhook_secret}` for inbound callbacks; outbound calls use `{evolution.api_key}`
 - Outbound: `WhatsAppNotificationService` via Evolution `sendText`
 - Allowlist: Profile phone + Family Members (`allowlist_enabled`)
-- Manual invoice format and payment tokens: `docs/whatsapp-manual-invoice.md`
+- Manual expense format and payment tokens: `docs/whatsapp-manual-expense.md`
 
 ## Queues & Horizon
 

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Filament\Resources\Invoices\InvoiceResource;
+use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Jobs\ExtractReceiptDataJob;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -13,7 +13,7 @@ uses(RefreshDatabase::class);
 test('sends database notification with view and edit actions when invoice requires manual review', function () {
     $user = User::factory()->create();
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'merchant_name' => 'Test Cafe',
         'original_filename' => 'lunch.jpg',
         'status' => 'parsed',
@@ -27,7 +27,7 @@ test('sends database notification with view and edit actions when invoice requir
 
     $notification = $user->notifications()->first();
 
-    $expectedViewUrl = InvoiceResource::getUrl('index', [
+    $expectedViewUrl = ExpenseResource::getUrl('index', [
         'tableAction' => 'view',
         'tableActionRecord' => $invoice->getRouteKey(),
     ]);
@@ -42,7 +42,7 @@ test('sends database notification with view and edit actions when invoice requir
         ->and($notification->data['actions'][0]['shouldOpenUrlInNewTab'])->toBeTrue()
         ->and($notification->data['actions'][1]['name'])->toBe('edit')
         ->and($notification->data['actions'][1]['label'])->toBe('Edit')
-        ->and($notification->data['actions'][1]['url'])->toBe(InvoiceResource::getUrl('edit', ['record' => $invoice]))
+        ->and($notification->data['actions'][1]['url'])->toBe(ExpenseResource::getUrl('edit', ['record' => $invoice]))
         ->and($notification->data['actions'][1]['shouldOpenUrlInNewTab'])->toBeTrue();
 });
 
@@ -50,7 +50,7 @@ test('notifies only the primary admin when multiple users exist', function () {
     $primary = User::factory()->create(['phone' => '60111111111']);
     $other = User::factory()->create(['phone' => '60122222222']);
 
-    $invoice = Invoice::factory()->create(['status' => 'parsed']);
+    $invoice = Expense::factory()->create(['status' => 'parsed']);
 
     $invoice->update(['status' => 'requires_manual_review']);
 
@@ -62,7 +62,7 @@ test('notifies the user matching whatsapp sender phone', function () {
     $primary = User::factory()->create(['phone' => '60111111111']);
     $senderUser = User::factory()->create(['phone' => '60133333333']);
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'status' => 'parsed',
         'source' => 'whatsapp',
         'whatsapp_sender' => '60133333333',
@@ -78,7 +78,7 @@ test('falls back to primary admin when whatsapp sender has no user account', fun
     $primary = User::factory()->create(['phone' => '60111111111']);
     $other = User::factory()->create(['phone' => '60122222222']);
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'status' => 'parsed',
         'source' => 'whatsapp',
         'whatsapp_sender' => '60199999999',
@@ -94,7 +94,7 @@ test('prefers primary admin when multiple users share the sender phone', functio
     $primary = User::factory()->create(['phone' => '601116330705']);
     $duplicate = User::factory()->create(['phone' => '601116330705']);
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'status' => 'parsed',
         'source' => 'whatsapp',
         'whatsapp_sender' => '601116330705',
@@ -109,7 +109,7 @@ test('prefers primary admin when multiple users share the sender phone', functio
 test('does not notify when status changes to a non-review status', function () {
     $user = User::factory()->create();
 
-    $invoice = Invoice::factory()->create(['status' => 'parsed']);
+    $invoice = Expense::factory()->create(['status' => 'parsed']);
 
     $invoice->update(['status' => 'reviewed']);
 
@@ -119,7 +119,7 @@ test('does not notify when status changes to a non-review status', function () {
 test('extract job failed method sets requires_manual_review and notifies users', function () {
     $user = User::factory()->create();
 
-    $invoice = Invoice::factory()->create(['status' => 'parsed']);
+    $invoice = Expense::factory()->create(['status' => 'parsed']);
 
     $job = new ExtractReceiptDataJob($invoice->id);
     $job->failed(new Exception('Ollama unavailable'));
@@ -131,9 +131,9 @@ test('extract job failed method sets requires_manual_review and notifies users',
 test('view notification cta opens invoice list with view slide-over query params', function () {
     $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
 
-    $invoice = Invoice::factory()->create(['status' => 'requires_manual_review']);
+    $invoice = Expense::factory()->create(['status' => 'requires_manual_review']);
 
-    $url = InvoiceResource::getUrl('index', [
+    $url = ExpenseResource::getUrl('index', [
         'tableAction' => 'view',
         'tableActionRecord' => $invoice->getRouteKey(),
     ]);

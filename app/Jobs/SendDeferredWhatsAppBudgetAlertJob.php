@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Services\BudgetAlertService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -20,7 +20,7 @@ class SendDeferredWhatsAppBudgetAlertJob implements ShouldQueue
 
     public function __construct(
         public string $senderNumber,
-        public int $invoiceId,
+        public int $expenseId,
     ) {
         $this->onQueue('whatsapp');
     }
@@ -41,7 +41,7 @@ class SendDeferredWhatsAppBudgetAlertJob implements ShouldQueue
             return;
         }
 
-        $pendingExists = Invoice::query()
+        $pendingExists = Expense::query()
             ->where('source', 'whatsapp')
             ->where('whatsapp_sender', $sender)
             ->where('status', 'pending')
@@ -53,12 +53,12 @@ class SendDeferredWhatsAppBudgetAlertJob implements ShouldQueue
             return;
         }
 
-        $invoice = Invoice::query()->find($this->invoiceId);
+        $invoice = Expense::query()->find($this->expenseId);
 
         if ($invoice === null || $invoice->source !== 'whatsapp' || $invoice->status !== 'parsed') {
             return;
         }
 
-        $budgetAlerts->checkAlertsForInvoice($invoice);
+        $budgetAlerts->checkAlertsForExpense($invoice);
     }
 }

@@ -2,18 +2,18 @@
 
 Allowlisted WhatsApp senders (Profile phone + allowlisted Family Members) can interact with the **tido** bot via text and media. WhatsApp image and PDF receipts are attributed to the sender (Primary vs Family Member). Family members with **login enabled** can sign in to `/admin` with their WhatsApp OTP (limited panel access).
 
-**In chat:** type `help` for a short overview, `manual` for manual invoice format, or `finance others` for the finance keyword list.
+**In chat:** type `help` for a short overview, `manual` for manual expense format, or `finance others` for the finance keyword list.
 
-Setup: [evolution-local-windows.md](evolution-local-windows.md) · Manual invoice format detail: [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md)
+Setup: [evolution-local-windows.md](evolution-local-windows.md) · Manual expense format detail: [whatsapp-manual-expense.md](whatsapp-manual-expense.md)
 
 ## Routing priority
 
 Inbound text is handled in this order:
 
-1. **Manual invoice format** — structured text blocks (see [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md))
+1. **Manual expense format** — structured text blocks (see [whatsapp-manual-expense.md](whatsapp-manual-expense.md))
 2. **Spend / total** — message contains `spend` or `total` (see below)
 3. **`finance others`** — finance keyword reference reply
-4. **`manual`** or **`manual way`** — manual invoice guide
+4. **`manual`** or **`manual way`** — manual expense guide
 5. **Anything else** — help reply
 
 Images and PDF documents are handled separately (receipt upload → OCR pipeline). Text commands are routed only after the sender has passed the phone or linked-LID allowlist check.
@@ -23,15 +23,15 @@ Images and PDF documents are handled separately (receipt upload → OCR pipeline
 | Action | What happens |
 |--------|----------------|
 | Send **image(s) or PDF(s)** | Validated, saved, and queued for AI parsing → attributed to sender (Primary vs Family Member) → document received ack → document parsed/review reply with edit URL |
-| Send **manual invoice text** | Fixed `merchant[, payment];` + `item, qty, total;` lines → attributed → manual invoice received ack → parsed reply |
+| Send **manual expense text** | Fixed `merchant[, payment];` + `item, qty, total;` lines → attributed → manual expense received ack → parsed reply |
 
-Manual format rules and payment tokens: [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md). Household attribution + panel login: [household-access.md](household-access.md).
+Manual format rules and payment tokens: [whatsapp-manual-expense.md](whatsapp-manual-expense.md). Household attribution + panel login: [household-access.md](household-access.md).
 
 ## Help and guides
 
 | Type in chat | Reply |
 |--------------|-------|
-| *(anything unrecognized)* | `help` — upload options, manual invoice hint, spend hint |
+| *(anything unrecognized)* | `help` — upload options, manual expense hint, spend hint |
 | `manual` or `manual way` | Manual approach — format, sample, supported payment method names |
 | `finance others` | Finance keywords — full list of spending commands |
 
@@ -44,7 +44,7 @@ PDF receipts are accepted only as `application/pdf` documents. The default limit
 - PDF inspection: Poppler `pdfinfo`
 - Page rendering: Poppler `pdftocairo` to JPEG at `PDF_RENDER_DPI` (default 144), with `pdftoppm` fallback
 
-The original PDF is stored on the invoice. During extraction, each rendered page is sent to Ollama as a page-specific JSON request; multi-page results are merged before the normal invoice normalization and Label matching step. Password-protected, unreadable, non-PDF, oversized, and over-page-limit documents are not parsed. Rejected PDF details are included in the batched **Document received** acknowledgement, while accepted files are queued after that acknowledgement.
+The original PDF is stored on the expense. During extraction, each rendered page is sent to Ollama as a page-specific JSON request; multi-page results are merged before the normal invoice normalization and Label matching step. Password-protected, unreadable, non-PDF, oversized, and over-page-limit documents are not parsed. Rejected PDF details are included in the batched **Document received** acknowledgement, while accepted files are queued after that acknowledgement.
 
 Configure Poppler with absolute paths in `.env` (`PDFINFO_BINARY`, `PDFTOCAIRO_BINARY`, and `PDFTOPPM_BINARY`) and restart the queue worker after changing them. See [evolution-local-windows.md](evolution-local-windows.md) and [ollama-setup.md](ollama-setup.md#pdf-receipt-parsing).
 
@@ -97,8 +97,8 @@ These are sent by the bot after ingestion jobs complete (no keyword needed):
 |-------|---------|
 | Document/image/PDF received (batched) | Document received; rejected PDFs include the filename and reason |
 | Document parsed | Document parsed + merchant, total, payment method, edit URL |
-| Manual invoice received (batched) | Manual invoice received |
-| Manual invoice parsed | Manual invoice parsed + edit URL |
+| Manual expense received (batched) | Manual expense received |
+| Manual expense parsed | Manual expense parsed + edit URL |
 | Upload download failed | Upload failed (with retry hint) |
 | Budget threshold crossed | Budget alert / Budget critical (proactive, Profile phone) |
 
@@ -110,13 +110,13 @@ These are sent by the bot after ingestion jobs complete (no keyword needed):
 | Message templates | `App\Support\WhatsAppMessage` |
 | Spend command parser | `App\Support\WhatsAppSpendingCommandParser` |
 | Spend reply builder | `App\Support\WhatsAppSpendingReplyBuilder` |
-| Manual text parser | `App\Support\ManualWhatsAppInvoiceParser` |
-| Sender attribution | `App\Support\InvoiceSenderAttribution` |
+| Manual text parser | `App\Support\ManualWhatsAppExpenseParser` |
+| Sender attribution | `App\Support\ExpenseSenderAttribution` |
 | Analytics data | `App\Filament\Support\DashboardMonthAnalytics` |
 
 ## Related
 
 - [household-access.md](household-access.md) — attribution, family OTP login, panel ACL
-- [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md) — manual invoice text format and pipeline
+- [whatsapp-manual-expense.md](whatsapp-manual-expense.md) — manual expense text format and pipeline
 - [evolution-local-windows.md](evolution-local-windows.md) — Evolution API + webhook setup
 - [`.agents/skills/tido-domain/pipeline.md`](../.agents/skills/tido-domain/pipeline.md) — ingestion pipeline detail

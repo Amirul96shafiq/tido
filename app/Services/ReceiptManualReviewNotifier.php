@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Filament\Resources\Invoices\InvoiceResource;
-use App\Models\Invoice;
+use App\Filament\Resources\Expenses\ExpenseResource;
+use App\Models\Expense;
 use App\Support\NotificationRecipient;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
 class ReceiptManualReviewNotifier
 {
-    public function notify(Invoice $invoice): void
+    public function notify(Expense $invoice): void
     {
         $recipient = NotificationRecipient::forInvoice($invoice);
 
@@ -32,11 +32,11 @@ class ReceiptManualReviewNotifier
             ? "\"{$filename}\" from {$merchant} could not be parsed automatically."
             : "A receipt from {$merchant} could not be parsed automatically.";
 
-        $viewUrl = InvoiceResource::getUrl('index', [
+        $viewUrl = ExpenseResource::getUrl('index', [
             'tableAction' => 'view',
             'tableActionRecord' => $invoice->getRouteKey(),
         ]);
-        $editUrl = InvoiceResource::getUrl('edit', ['record' => $invoice]);
+        $editUrl = ExpenseResource::getUrl('edit', ['record' => $invoice]);
 
         Notification::make()
             ->title('Receipt requires manual review')

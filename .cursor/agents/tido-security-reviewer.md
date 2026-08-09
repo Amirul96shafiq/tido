@@ -21,7 +21,7 @@ You are a tido security reviewer preparing a single-tenant MYR expense app for e
 
 ## tido threat model
 
-**Single-tenant household:** One panel; Primary has full `/admin`. Login-enabled Family Members get limited Finances access and may mutate only their attributed invoices (`family_member_id`). No Spatie roles/tenancy. See `docs/household-access.md`. Flag missing `RequiresPrimaryHouseholdAccess` / `HouseholdAccess::canMutateInvoice()` on new settings or invoice mutate paths.
+**Single-tenant household:** One panel; Primary has full `/admin`. Login-enabled Family Members get limited Finances access and may mutate only their attributed expenses (`family_member_id`). No Spatie roles/tenancy. See `docs/household-access.md`. Flag missing `RequiresPrimaryHouseholdAccess` / `HouseholdAccess::canMutateExpense()` on new settings or invoice mutate paths.
 
 **Public exposure surfaces:**
 
@@ -56,7 +56,7 @@ You are a tido security reviewer preparing a single-tenant MYR expense app for e
 - Eloquent / Query Builder only — no raw user input in SQL
 - Blade: `{{ }}` escaping; `{!! !!}` only for trusted/sanitized HTML (e.g. `NotesRichEditor` output)
 - WhatsApp webhook: validate event type, sender JID, message shape before dispatching jobs
-- Manual invoice parser: reject malformed input without code execution paths
+- Manual expense parser: reject malformed input without code execution paths
 
 ### Webhooks & APIs
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Jobs\ExtractReceiptDataJob;
 use App\Jobs\ProcessWhatsAppMediaJob;
 use App\Jobs\SendWhatsAppDocumentReceivedAckJob;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -49,7 +49,7 @@ test('process whatsapp media job stores receipt and schedules batched document r
 
     app()->call([$job, 'handle']);
 
-    $invoice = Invoice::first();
+    $invoice = Expense::first();
     expect($invoice)->not->toBeNull()
         ->and($invoice->source)->toBe('whatsapp')
         ->and($invoice->whatsapp_sender)->toBe('60123456789')
@@ -94,7 +94,7 @@ test('process whatsapp media job sends attempt 1 failure message and throws', fu
             && str_contains((string) $request['text'], 'Automatic retry in about 60 seconds');
     });
 
-    expect(Invoice::count())->toBe(0);
+    expect(Expense::count())->toBe(0);
 });
 
 test('process whatsapp media job sends final attempt failure message', function () {
@@ -141,7 +141,7 @@ test('process whatsapp media job skips duplicate message processing', function (
     app()->call([$job, 'handle']);
 
     Http::assertNothingSent();
-    expect(Invoice::count())->toBe(0);
+    expect(Expense::count())->toBe(0);
 });
 
 test('process whatsapp media job retries three times with 60 second backoff', function () {
@@ -181,7 +181,7 @@ test('process whatsapp media job stores an accepted PDF with document metadata',
 
     app()->call([$job, 'handle']);
 
-    $invoice = Invoice::sole();
+    $invoice = Expense::sole();
 
     expect($invoice->original_filename)->toBe('shop receipt.pdf')
         ->and($invoice->whatsapp_message_id)->toBe('MSG-PDF-2')
@@ -220,10 +220,10 @@ test('process whatsapp media job rejects a PDF over three pages before creating 
 
     $batch = Cache::get(WhatsAppDocumentReceivedDebouncer::cacheKey('60123456789'));
 
-    expect(Invoice::count())->toBe(0)
+    expect(Expense::count())->toBe(0)
         ->and(Storage::allFiles('receipts'))->toBe([])
         ->and($batch['count'])->toBe(1)
-        ->and($batch['invoice_ids'])->toBe([])
+        ->and($batch['expense_ids'])->toBe([])
         ->and($batch['documents'][0]['status'])->toBe('rejected')
         ->and($batch['documents'][0]['reason'])->toBe('pdf_page_limit')
         ->and($batch['documents'][0]['page_count'])->toBe(4);
@@ -261,7 +261,7 @@ test('process whatsapp media job queues a PDF when the inspection utility path i
 
     app()->call([$job, 'handle']);
 
-    $invoice = Invoice::sole();
+    $invoice = Expense::sole();
 
     expect($invoice->file_page_count)->toBeNull()
         ->and($invoice->file_mime_type)->toBe('application/pdf')

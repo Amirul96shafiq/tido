@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Support;
 
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\PaymentMethod;
 use App\Support\DashboardSpenderScope;
 use Carbon\Carbon;
@@ -96,12 +96,12 @@ final class DashboardMonthAnalytics
             $previousStart = $this->bounds['previous_start'];
             $previousEnd = $this->bounds['previous_end'];
 
-            $pendingCount = $this->invoiceQuery(canonicalMyr: false)
+            $pendingCount = $this->expenseQuery(canonicalMyr: false)
                 ->whereBetween('date_time', [$start, $end])
                 ->where('status', 'pending')
                 ->count();
 
-            $row = $this->invoiceQuery()
+            $row = $this->expenseQuery()
                 ->whereBetween('date_time', [$previousStart, $end])
                 ->selectRaw(
                     'SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN total_amount ELSE 0 END) as current_total,
@@ -157,9 +157,9 @@ final class DashboardMonthAnalytics
                 $rangeEnd = $endMonth->copy()->endOfMonth();
             }
 
-            $monthExpression = $this->monthTruncExpression('invoices.date_time');
+            $monthExpression = $this->monthTruncExpression('expenses.date_time');
 
-            $monthlyStats = $this->invoiceQuery()
+            $monthlyStats = $this->expenseQuery()
                 ->processed()
                 ->whereBetween('date_time', [$rangeStart, $rangeEnd])
                 ->selectRaw("{$monthExpression} as month_key, SUM(total_amount) as total, SUM(total_tax) as tax_total, COUNT(*) as receipt_count")
@@ -168,7 +168,7 @@ final class DashboardMonthAnalytics
                 ->keyBy('month_key');
 
             $labelRows = $this->labelSpendingQuery($rangeStart, $rangeEnd)
-                ->selectRaw("{$monthExpression} as month_key, labels.name, SUM(invoice_items.line_total) as total")
+                ->selectRaw("{$monthExpression} as month_key, labels.name, SUM(expense_items.line_total) as total")
                 ->groupBy('month_key', 'labels.name', 'labels.id')
                 ->get();
 
@@ -264,14 +264,14 @@ final class DashboardMonthAnalytics
             $previousEnd = $this->bounds['previous_end'];
 
             $rows = $this->labelSpendingQuery($start, $end)
-                ->selectRaw('labels.id as label_id, labels.name, labels.color, SUM(invoice_items.line_total) as total, COUNT(DISTINCT invoices.id) as receipt_count')
+                ->selectRaw('labels.id as label_id, labels.name, labels.color, SUM(expense_items.line_total) as total, COUNT(DISTINCT expenses.id) as receipt_count')
                 ->groupBy('labels.id', 'labels.name', 'labels.color')
                 ->orderByDesc('total')
                 ->orderBy('labels.name')
                 ->get();
 
             $priorTotals = $this->labelSpendingQuery($previousStart, $previousEnd)
-                ->selectRaw('labels.id as label_id, SUM(invoice_items.line_total) as total')
+                ->selectRaw('labels.id as label_id, SUM(expense_items.line_total) as total')
                 ->groupBy('labels.id')
                 ->pluck('total', 'label_id')
                 ->map(fn ($total): float => (float) $total);
@@ -280,8 +280,8 @@ final class DashboardMonthAnalytics
 
             foreach (
                 $this->labelSpendingQuery($start, $end)
-                    ->selectRaw('labels.id as label_id, invoices.merchant_name, SUM(invoice_items.line_total) as total')
-                    ->groupBy('labels.id', 'invoices.merchant_name')
+                    ->selectRaw('labels.id as label_id, expenses.merchant_name, SUM(expense_items.line_total) as total')
+                    ->groupBy('labels.id', 'expenses.merchant_name')
                     ->get()
                     ->groupBy('label_id') as $labelId => $merchants
             ) {
@@ -338,7 +338,7 @@ final class DashboardMonthAnalytics
         return $this->remember("topMerchants:{$limit}", function () use ($limit): Collection {
             $monthTotal = $this->summary()['current_total'];
 
-            return $this->invoiceQuery()
+            return $this->expenseQuery()
                 ->processed()
                 ->inPeriod($this->bounds['start'], $this->bounds['end'])
                 ->selectRaw('
@@ -387,7 +387,7 @@ final class DashboardMonthAnalytics
             $previousEnd = $this->bounds['previous_end'];
             $monthTotal = $this->summary()['current_total'];
 
-            $rows = $this->invoiceQuery()
+            $rows = $this->expenseQuery()
                 ->processed()
                 ->inPeriod($start, $end)
                 ->selectRaw('payment_method_id, SUM(total_amount) as total, COUNT(*) as receipt_count')
@@ -401,7 +401,7 @@ final class DashboardMonthAnalytics
                 ->get()
                 ->keyBy('id');
 
-            $priorTotals = $this->invoiceQuery()
+            $priorTotals = $this->expenseQuery()
                 ->processed()
                 ->inPeriod($previousStart, $previousEnd)
                 ->selectRaw('payment_method_id, SUM(total_amount) as total')
@@ -470,7 +470,7 @@ final class DashboardMonthAnalytics
             $previousEnd = $this->bounds['previous_end'];
             $channelExpression = $this->sourceChannelExpression();
 
-            $rows = $this->invoiceQuery()
+            $rows = $this->expenseQuery()
                 ->processed()
                 ->inPeriod($start, $end)
                 ->selectRaw("{$channelExpression} as source_channel, COUNT(*) as receipt_count, SUM(total_amount) as total_spent")
@@ -482,7 +482,7 @@ final class DashboardMonthAnalytics
                 return collect();
             }
 
-            $priorCounts = $this->invoiceQuery()
+            $priorCounts = $this->expenseQuery()
                 ->processed()
                 ->inPeriod($previousStart, $previousEnd)
                 ->selectRaw("{$channelExpression} as source_channel, COUNT(*) as receipt_count")
@@ -530,7 +530,7 @@ final class DashboardMonthAnalytics
             }
 
             $overall = $this->labelSpendingQuery($this->bounds['start'], $this->bounds['end'])
-                ->sum('invoice_items.line_total');
+                ->sum('expense_items.line_total');
 
             $totals[0] = (float) $overall;
 
@@ -597,14 +597,14 @@ final class DashboardMonthAnalytics
     }
 
     /**
-     * @return Builder<Invoice>
+     * @return Builder<Expense>
      */
-    private function invoiceQuery(bool $canonicalMyr = true): Builder
+    private function expenseQuery(bool $canonicalMyr = true): Builder
     {
-        $query = Invoice::query();
+        $query = Expense::query();
 
         if ($this->spenderScope instanceof DashboardSpenderScope) {
-            $query = $this->spenderScope->applyToInvoiceQuery($query);
+            $query = $this->spenderScope->applyToExpenseQuery($query);
         }
 
         if ($canonicalMyr) {
@@ -615,21 +615,21 @@ final class DashboardMonthAnalytics
     }
 
     /**
-     * @return Builder<InvoiceItem>
+     * @return Builder<ExpenseItem>
      */
     private function labelSpendingQuery(Carbon $start, Carbon $end): Builder
     {
-        $query = InvoiceItem::query()
-            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-            ->join('labels', 'invoice_items.label_id', '=', 'labels.id')
-            ->whereNull('invoices.deleted_at')
-            ->whereBetween('invoices.date_time', [$start, $end])
-            ->whereIn('invoices.status', Invoice::dashboardAnalyticsStatuses())
-            ->where('invoices.currency', Invoice::CURRENCY_MYR)
-            ->whereIn('invoices.currency_conversion_status', Invoice::CANONICAL_CONVERSION_STATUSES);
+        $query = ExpenseItem::query()
+            ->join('expenses', 'expense_items.expense_id', '=', 'expenses.id')
+            ->join('labels', 'expense_items.label_id', '=', 'labels.id')
+            ->whereNull('expenses.deleted_at')
+            ->whereBetween('expenses.date_time', [$start, $end])
+            ->whereIn('expenses.status', Expense::dashboardAnalyticsStatuses())
+            ->where('expenses.currency', Expense::CURRENCY_MYR)
+            ->whereIn('expenses.currency_conversion_status', Expense::CANONICAL_CONVERSION_STATUSES);
 
         if ($this->spenderScope instanceof DashboardSpenderScope) {
-            $query = $this->spenderScope->applyToInvoicesJoin($query);
+            $query = $this->spenderScope->applyToExpensesJoin($query);
         }
 
         return $query;

@@ -8,7 +8,7 @@ use App\Filament\Support\DashboardMonthAnalytics;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
-use App\Models\Invoice;
+use App\Models\Expense;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -328,7 +328,7 @@ final class WhatsAppSpendingReplyBuilder
     {
         $bounds = $this->bounds();
 
-        $invoices = Invoice::query()
+        $invoices = Expense::query()
             ->with('paymentMethod')
             ->whereBetween('created_at', [$bounds['start'], $bounds['end']])
             ->orderByDesc('created_at')

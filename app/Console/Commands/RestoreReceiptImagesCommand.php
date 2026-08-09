@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Models\Invoice;
+use App\Models\Expense;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
@@ -30,11 +30,11 @@ class RestoreReceiptImagesCommand extends Command
         $alreadyPresent = 0;
         $missingSource = 0;
 
-        Invoice::query()
+        Expense::query()
             ->whereNotNull('image_path')
             ->where('image_path', '!=', '')
             ->orderBy('id')
-            ->each(function (Invoice $invoice) use ($sourceDirectory, &$restored, &$alreadyPresent, &$missingSource): void {
+            ->each(function (Expense $invoice) use ($sourceDirectory, &$restored, &$alreadyPresent, &$missingSource): void {
                 $imagePath = (string) $invoice->image_path;
 
                 if (Storage::disk('local')->exists($imagePath) || Storage::exists($imagePath)) {

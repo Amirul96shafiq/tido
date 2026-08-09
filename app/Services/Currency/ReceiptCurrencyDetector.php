@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Currency;
 
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Prompts\ReceiptCurrencyPrompt;
 use App\Services\OllamaService;
 
@@ -163,7 +163,7 @@ final class ReceiptCurrencyDetector
             }
 
             if ($visionSourceCurrency !== null
-                && $visionSourceCurrency !== Invoice::CURRENCY_MYR
+                && $visionSourceCurrency !== Expense::CURRENCY_MYR
                 && $visionRate === null) {
                 $printedRate = $this->detectPrintedRateFromVision($base64Page, $visionSourceCurrency);
                 $visionRate = $printedRate['rate'];
@@ -184,9 +184,9 @@ final class ReceiptCurrencyDetector
         if (count($visionCurrencies) === 1) {
             $visionCurrency = array_key_first($visionCurrencies);
 
-            if ($visionCurrency === Invoice::CURRENCY_MYR
+            if ($visionCurrency === Expense::CURRENCY_MYR
                 && $fallback !== null
-                && $fallback !== Invoice::CURRENCY_MYR) {
+                && $fallback !== Expense::CURRENCY_MYR) {
                 return $this->buildDetection(
                     $fallback,
                     'receipt_extraction_fallback',
@@ -204,11 +204,11 @@ final class ReceiptCurrencyDetector
         if (count($visionCurrencies) > 1) {
             $foreignCurrencies = array_values(array_filter(
                 array_keys($visionCurrencies),
-                static fn (string $currency): bool => $currency !== Invoice::CURRENCY_MYR,
+                static fn (string $currency): bool => $currency !== Expense::CURRENCY_MYR,
             ));
 
             if ($fallback !== null
-                && $fallback !== Invoice::CURRENCY_MYR
+                && $fallback !== Expense::CURRENCY_MYR
                 && count($foreignCurrencies) === 1
                 && $foreignCurrencies[0] === $fallback) {
                 return $this->buildDetection(
@@ -221,7 +221,7 @@ final class ReceiptCurrencyDetector
             return $this->buildDetection(null, 'conflicting_vision_evidence');
         }
 
-        if ($fallback !== null && $fallback !== Invoice::CURRENCY_MYR) {
+        if ($fallback !== null && $fallback !== Expense::CURRENCY_MYR) {
             return $this->buildDetection($fallback, 'receipt_extraction_fallback');
         }
 
@@ -311,7 +311,7 @@ final class ReceiptCurrencyDetector
             return ['currency' => null, 'rate' => null];
         }
 
-        // A bare dollar sign is the common notation on foreign SaaS invoices. It is
+        // A bare dollar sign is the common notation on foreign SaaS expenses. It is
         // treated as USD only when no country-specific dollar marker is present.
         return [
             'currency' => preg_match('/\$\s*[-+]?[0-9]/', $text) === 1 ? 'USD' : null,
@@ -337,7 +337,7 @@ final class ReceiptCurrencyDetector
 
         return [
             'currency' => $sourceCurrency,
-            'rate' => $targetCurrency === Invoice::CURRENCY_MYR
+            'rate' => $targetCurrency === Expense::CURRENCY_MYR
                 ? $this->normalizeRate($matches[2])
                 : null,
         ];
@@ -353,7 +353,7 @@ final class ReceiptCurrencyDetector
             'source' => $source,
         ];
 
-        if ($rate !== null && $currency !== null && $currency !== Invoice::CURRENCY_MYR) {
+        if ($rate !== null && $currency !== null && $currency !== Expense::CURRENCY_MYR) {
             $detection['rate'] = $rate;
             $detection['rate_source'] = 'printed_receipt_rate';
         }
@@ -397,7 +397,7 @@ final class ReceiptCurrencyDetector
 
         return match ($marker) {
             '$', 'US$' => 'USD',
-            'RM' => Invoice::CURRENCY_MYR,
+            'RM' => Expense::CURRENCY_MYR,
             'S$' => 'SGD',
             'A$' => 'AUD',
             'C$' => 'CAD',

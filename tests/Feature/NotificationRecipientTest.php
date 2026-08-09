@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\User;
 use App\Support\NotificationRecipient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -40,7 +40,7 @@ test('forInvoice uses whatsapp sender phone', function () {
     User::factory()->create(['phone' => '60111111111']);
     $sender = User::factory()->create(['phone' => '60144444444']);
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'whatsapp_sender' => '60144444444',
         'source' => 'whatsapp',
     ]);
@@ -51,7 +51,7 @@ test('forInvoice uses whatsapp sender phone', function () {
 test('forInvoice falls back to primary when invoice has no whatsapp sender', function () {
     $primary = User::factory()->create(['phone' => '60111111111']);
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'whatsapp_sender' => null,
         'source' => 'manual',
     ]);

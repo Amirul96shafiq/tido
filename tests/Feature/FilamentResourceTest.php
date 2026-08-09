@@ -8,9 +8,9 @@ use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Backups\Pages\ListBackups;
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Resources\Budgets\Pages\ListBudgets;
+use App\Filament\Resources\Expenses\ExpenseResource;
+use App\Filament\Resources\Expenses\Pages\ListExpenses;
 use App\Filament\Resources\FamilyMembers\Pages\ListFamilyMembers;
-use App\Filament\Resources\Invoices\InvoiceResource;
-use App\Filament\Resources\Invoices\Pages\ListInvoices;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Filament\Resources\Labels\Pages\EditLabel;
@@ -18,8 +18,8 @@ use App\Filament\Resources\Labels\Pages\ListLabels;
 use App\Filament\Resources\PaymentMethods\Pages\ListPaymentMethods;
 use App\Models\Backup;
 use App\Models\Budget;
+use App\Models\Expense;
 use App\Models\FamilyMember;
-use App\Models\Invoice;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use App\Models\User;
@@ -61,7 +61,7 @@ test('authenticated user can load labels list', function () {
 
 test('authenticated user can load invoices list', function () {
     $this->actingAs($this->admin)
-        ->get(InvoiceResource::getUrl('index'))
+        ->get(ExpenseResource::getUrl('index'))
         ->assertSuccessful();
 });
 
@@ -82,9 +82,9 @@ test('authenticated user can load upload page', function () {
 test('invoices table has view slide-over action', function () {
     $this->actingAs($this->admin);
 
-    $invoice = Invoice::factory()->create();
+    $invoice = Expense::factory()->create();
 
-    Livewire::test(ListInvoices::class)
+    Livewire::test(ListExpenses::class)
         ->assertSuccessful()
         ->assertActionExists(TestAction::make('view')->table($invoice));
 });
@@ -93,7 +93,7 @@ test('resource tables show id column', function (string $pageClass) {
     $this->actingAs($this->admin);
 
     match ($pageClass) {
-        ListInvoices::class => Invoice::factory()->create(),
+        ListExpenses::class => Expense::factory()->create(),
         ListLabels::class => Label::factory()->create(),
         ListBudgets::class => Budget::factory()->create(),
         ListPaymentMethods::class => PaymentMethod::factory()->create(),
@@ -108,7 +108,7 @@ test('resource tables show id column', function (string $pageClass) {
         ->assertCanRenderTableColumn('editedBy.name')
         ->assertCanRenderTableColumn('updated_at');
 })->with([
-    'invoices' => [ListInvoices::class],
+    'expenses' => [ListExpenses::class],
     'labels' => [ListLabels::class],
     'budgets' => [ListBudgets::class],
     'payment methods' => [ListPaymentMethods::class],
@@ -196,9 +196,9 @@ test('resource table icon actions use filament tooltips', function () {
 test('invoices table keeps reparse action under record actions group', function () {
     $this->actingAs($this->admin);
 
-    Invoice::factory()->create();
+    Expense::factory()->create();
 
-    $table = Livewire::test(ListInvoices::class)
+    $table = Livewire::test(ListExpenses::class)
         ->assertSuccessful()
         ->instance()
         ->getTable();
@@ -215,7 +215,7 @@ test('invoices table keeps reparse action under record actions group', function 
 test('resource list create actions have plus icon', function () {
     $this->actingAs($this->admin);
 
-    foreach ([ListLabels::class, ListBudgets::class, ListInvoices::class] as $page) {
+    foreach ([ListLabels::class, ListBudgets::class, ListExpenses::class] as $page) {
         Livewire::test($page)
             ->assertSuccessful()
             ->assertActionHasIcon('create', Heroicon::Plus);
@@ -230,7 +230,7 @@ test('resource tables show updated_at as relative time with datetime tooltip', f
 
     $label = Label::factory()->create(['updated_at' => $editedAt]);
     $budget = Budget::factory()->create(['updated_at' => $editedAt]);
-    $invoice = Invoice::factory()->create(['updated_at' => $editedAt]);
+    $invoice = Expense::factory()->create(['updated_at' => $editedAt]);
 
     Livewire::test(ListLabels::class)
         ->assertSuccessful()
@@ -242,11 +242,11 @@ test('resource tables show updated_at as relative time with datetime tooltip', f
         ->assertCanSeeTableRecords([$budget])
         ->assertSee($relative);
 
-    Livewire::test(ListInvoices::class)
+    Livewire::test(ListExpenses::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$invoice]);
 
-    foreach ([ListLabels::class, ListBudgets::class, ListInvoices::class] as $page) {
+    foreach ([ListLabels::class, ListBudgets::class, ListExpenses::class] as $page) {
         $column = Livewire::test($page)
             ->instance()
             ->getTable()
@@ -290,17 +290,17 @@ test('invoices table truncates long merchant names with full name in tooltip', f
     $this->actingAs($this->admin);
 
     $longMerchant = 'Cosmo Restaurants Sdn Bhd';
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'merchant_name' => $longMerchant,
     ]);
 
-    Livewire::test(ListInvoices::class)
+    Livewire::test(ListExpenses::class)
         ->assertSuccessful()
         ->toggleAllTableColumns()
         ->assertCanSeeTableRecords([$invoice])
         ->assertSee('Cosmo Restaurants Sd...');
 
-    $column = Livewire::test(ListInvoices::class)
+    $column = Livewire::test(ListExpenses::class)
         ->instance()
         ->getTable()
         ->getColumn('merchant_name');
@@ -317,16 +317,16 @@ test('invoices table leaves short merchant names unchanged', function () {
     $this->actingAs($this->admin);
 
     $shortMerchant = '7-Eleven';
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'merchant_name' => $shortMerchant,
     ]);
 
-    Livewire::test(ListInvoices::class)
+    Livewire::test(ListExpenses::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$invoice])
         ->assertSee($shortMerchant);
 
-    $column = Livewire::test(ListInvoices::class)
+    $column = Livewire::test(ListExpenses::class)
         ->instance()
         ->getTable()
         ->getColumn('merchant_name');
@@ -342,16 +342,16 @@ test('invoices table shows date_time as relative time with datetime tooltip', fu
     $dateTime = now()->subDays(2)->seconds(0);
     $relative = $dateTime->diffForHumans();
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'date_time' => $dateTime,
         'created_at' => now()->subMinutes(5),
     ]);
 
-    Livewire::test(ListInvoices::class)
+    Livewire::test(ListExpenses::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$invoice]);
 
-    $column = Livewire::test(ListInvoices::class)
+    $column = Livewire::test(ListExpenses::class)
         ->instance()
         ->getTable()
         ->getColumn('date_time');

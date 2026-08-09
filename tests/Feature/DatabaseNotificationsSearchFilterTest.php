@@ -133,7 +133,7 @@ test('can filter by resource', function () {
     seedDatabaseNotifications($this->user);
 
     Livewire::test(DatabaseNotifications::class)
-        ->set('filters.resource', NotificationResource::Invoices->value)
+        ->set('filters.resource', NotificationResource::Expenses->value)
         ->assertSee('Receipt requires manual review')
         ->assertDontSee('Profile Settings Updated')
         ->assertDontSee('WhatsApp Connected')
@@ -223,7 +223,7 @@ test('reset filters clears applied filters', function () {
     seedDatabaseNotifications($this->user);
 
     Livewire::test(DatabaseNotifications::class)
-        ->set('filters.resource', NotificationResource::Invoices->value)
+        ->set('filters.resource', NotificationResource::Expenses->value)
         ->set('filters.status', 'unread')
         ->assertDontSee('Profile Settings Updated')
         ->call('resetFilters')

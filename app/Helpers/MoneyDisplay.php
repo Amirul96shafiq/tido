@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Helpers;
 
 use App\Filament\Support\MoneyStateCast;
-use App\Models\Invoice;
+use App\Models\Expense;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Utilities\Get;
@@ -69,9 +69,9 @@ final class MoneyDisplay
         return self::withPrefix($amount, self::prefixForCurrency($currency), $spaceAfterPrefix);
     }
 
-    public static function conversionSummary(Invoice $invoice): ?string
+    public static function conversionSummary(Expense $invoice): ?string
     {
-        if ($invoice->currency_conversion_status === Invoice::CONVERSION_CONVERTED) {
+        if ($invoice->currency_conversion_status === Expense::CONVERSION_CONVERTED) {
             $rate = $invoice->currency_conversion_rate === null
                 ? 'unknown'
                 : rtrim(rtrim(number_format((float) $invoice->currency_conversion_rate, 10, '.', ''), '0'), '.');
@@ -90,11 +90,11 @@ final class MoneyDisplay
             );
         }
 
-        if ($invoice->currency_conversion_status === Invoice::CONVERSION_FAILED) {
+        if ($invoice->currency_conversion_status === Expense::CONVERSION_FAILED) {
             return 'Currency conversion failed; source amount requires manual review.';
         }
 
-        if ($invoice->currency_conversion_status === Invoice::CONVERSION_PENDING) {
+        if ($invoice->currency_conversion_status === Expense::CONVERSION_PENDING) {
             return 'Currency conversion pending; source amount is not included in MYR totals.';
         }
 
@@ -146,7 +146,7 @@ final class MoneyDisplay
                     $currency = $get($path);
                 }
 
-                if (! filled($currency) && $record instanceof Invoice) {
+                if (! filled($currency) && $record instanceof Expense) {
                     $currency = $record->displayCurrency();
                 }
 

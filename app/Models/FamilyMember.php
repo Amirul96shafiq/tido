@@ -97,10 +97,10 @@ class FamilyMember extends Model
     }
 
     /**
-     * @return HasMany<Invoice, $this>
+     * @return HasMany<Expense, $this>
      */
     public function invoices(): HasMany
     {
-        return $this->hasMany(Invoice::class);
+        return $this->hasMany(Expense::class);
     }
 }

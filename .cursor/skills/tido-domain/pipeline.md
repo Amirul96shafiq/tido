@@ -6,19 +6,19 @@
 WhatsApp image | Drive file | Filament upload | Manual create
         ↓
 Invoice (status=pending, image_path set, source=…, family_member_id?)
-  WhatsApp → InvoiceSenderAttribution (allowlisted Family Member phone)
+  WhatsApp → ExpenseSenderAttribution (allowlisted Family Member phone)
   Filament family user → acting user’s family_member_id
   Primary / unknown → null (Primary spender)
         ↓
-InvoiceObserver::created → ExtractReceiptDataJob::dispatch(invoiceId)
+ExpenseObserver::created → ExtractReceiptDataJob::dispatch(invoiceId)
   (WhatsApp waits for document-received ack first)
         ↓
 OllamaService::parseReceipt(base64, ReceiptExtractionPrompt::build())
         ↓
-Update Invoice fields + create InvoiceItems (label via LabelMatcher)
+Update Invoice fields + create ExpenseItems (label via LabelMatcher)
 status = parsed | requires_manual_review
         ↓
-InvoiceObserver / BudgetAlertService (threshold WhatsApp + DB notifications)
+ExpenseObserver / BudgetAlertService (threshold WhatsApp + DB notifications)
 ```
 
 ## End-to-end (WhatsApp PDF receipts)
@@ -49,23 +49,23 @@ Defaults are 10 MB (`PDF_MAX_BYTES`) and 3 pages (`PDF_MAX_PAGES`). Password-pro
 ## End-to-end (WhatsApp manual text)
 
 ```
-WhatsApp text (ManualWhatsAppInvoiceParser)
+WhatsApp text (ManualWhatsAppExpenseParser)
         ↓
-ProcessManualWhatsAppInvoiceJob
+ProcessManualWhatsAppExpenseJob
   → Invoice (pending, no image, MYR, payment from token or cash, family_member_id from sender)
-  → InvoiceItems (label_id null)
+  → ExpenseItems (label_id null)
         ↓
-WhatsAppManualInvoiceReceivedDebouncer → Manual invoice received ack
+WhatsAppManualInvoiceReceivedDebouncer → Manual expense received ack
         ↓
-ParseManualWhatsAppInvoiceJob
-  → OllamaService::generateJson(ManualInvoiceLabelPrompt)
+ParseManualWhatsAppExpenseJob
+  → OllamaService::generateJson(ManualExpenseLabelPrompt)
   → LabelMatcher → label_id
   → status = requires_manual_review
         ↓
-Manual invoice parsed WhatsApp reply (edit URL)
+Manual expense parsed WhatsApp reply (edit URL)
 ```
 
-User-facing format and tokens: [docs/whatsapp-manual-invoice.md](../../../docs/whatsapp-manual-invoice.md).
+User-facing format and tokens: [docs/whatsapp-manual-expense.md](../../../docs/whatsapp-manual-expense.md).
 
 ## ExtractReceiptDataJob
 
@@ -96,9 +96,9 @@ Unique on `receipt_hash`. Factories should set a unique hash.
 - Sender allowlist: Profile `users.phone` + Family Members with `allowlist_enabled` (normalized); others → `ignored_sender` (no reply)
 - Panel login: Family Members with `login_enabled` get a linked `User` and may OTP-login — see `docs/household-access.md`
 - Self-chat allowed when `remoteJid` matches allowlist (including `fromMe: true`)
-- Image: fetch media → `receipts/` storage → pending Invoice (`family_member_id` via `InvoiceSenderAttribution`) → ack text
+- Image: fetch media → `receipts/` storage → pending Expense (`family_member_id` via `ExpenseSenderAttribution`) → ack text
 - Text: spend/total keywords → monthly sum via Evolution `sendText`
-- Text manual invoice format (`merchant[, payment];` + `item, qty, line_total;` blocks, multi-block OK) → pending Invoice (no image; attributed; payment token optional: `qr` / `tngo` / `card` / `cash`…, default cash) → Manual invoice received ack → `ParseManualWhatsAppInvoiceJob` (Ollama labels only) → `requires_manual_review` + Manual invoice parsed reply
+- Text manual expense format (`merchant[, payment];` + `item, qty, line_total;` blocks, multi-block OK) → pending Expense (no image; attributed; payment token optional: `qr` / `tngo` / `card` / `cash`…, default cash) → Manual expense received ack → `ParseManualWhatsAppExpenseJob` (Ollama labels only) → `requires_manual_review` + Manual expense parsed reply
 
 ## WhatsApp identity resolution
 
@@ -108,7 +108,7 @@ Unique on `receipt_hash`. Factories should set a unique hash.
 ## Google Drive sync
 
 - Schedule: every 15 minutes → `SyncGoogleDriveJob`
-- List jpg/jpeg/png in configured folder → copy local → pending Invoice → delete remote
+- List jpg/jpeg/png in configured folder → copy local → pending Expense → delete remote
 - Missing Drive credentials: Google disk falls back (see `AppServiceProvider`)
 
 ## Ollama client checklist
@@ -129,5 +129,5 @@ Supervisors listen on `default`, `receipts`, `whatsapp`. Jobs today often use th
 
 - Blueprint: `docs/system-architecture.md`
 - Agent map: `docs/agent-onboarding.md`
-- Manual WhatsApp text: `docs/whatsapp-manual-invoice.md`
+- Manual WhatsApp text: `docs/whatsapp-manual-expense.md`
 - Ops: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/google-drive-setup.md`

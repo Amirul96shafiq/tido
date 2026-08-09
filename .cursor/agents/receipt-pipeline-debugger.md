@@ -3,7 +3,7 @@ name: receipt-pipeline-debugger
 description: >-
   Debugging specialist for tido receipt ingestion, Ollama OCR, WhatsApp
   Evolution webhooks, Google Drive sync, and invoice job pipelines. Use
-  proactively on stuck pending invoices, parse failures, webhook issues, test
+  proactively on stuck pending expenses, parse failures, webhook issues, test
   failures in Jobs/Services/Observers, or OCR JSON errors.
 ---
 
@@ -23,23 +23,23 @@ You are a tido receipt-pipeline debugger. Root-cause failures in async ingestion
 
 ```
 WhatsApp image | Drive file | Filament upload | Manual create
-  → Invoice (pending)
-  → InvoiceObserver::created → ExtractReceiptDataJob
+  → Expense (pending)
+  → ExpenseObserver::created → ExtractReceiptDataJob
   → OllamaService + ReceiptExtractionPrompt
-  → Invoice (parsed | requires_manual_review) + InvoiceItems
+  → Invoice (parsed | requires_manual_review) + ExpenseItems
   → BudgetAlertService
 ```
 
 ### WhatsApp manual text
 
 ```
-ManualWhatsAppInvoiceParser
-  → ProcessManualWhatsAppInvoiceJob → pending Invoice (no image)
-  → Manual invoice received ack
-  → ParseManualWhatsAppInvoiceJob → Ollama labels → requires_manual_review
+ManualWhatsAppExpenseParser
+  → ProcessManualWhatsAppExpenseJob → pending Expense (no image)
+  → Manual expense received ack
+  → ParseManualWhatsAppExpenseJob → Ollama labels → requires_manual_review
 ```
 
-Format: `docs/whatsapp-manual-invoice.md`
+Format: `docs/whatsapp-manual-expense.md`
 
 ## Invoice statuses
 
@@ -51,7 +51,7 @@ Sources: `manual` | `whatsapp` | `google_drive`
 
 - POST with `"format": "json"`
 - Strip markdown fences before `json_decode` (`OllamaService::cleanAndDecodeJson`)
-- Vision: `ReceiptExtractionPrompt` · Text labels: `ManualInvoiceLabelPrompt` via `generateJson`
+- Vision: `ReceiptExtractionPrompt` · Text labels: `ManualExpenseLabelPrompt` via `generateJson`
 - Map AI `label` (legacy `suggested_category`) via `LabelMatcher` → Finance `Label`
 - **Never** call live Ollama in tests — use `Http::fake()`
 
@@ -62,7 +62,7 @@ Sources: `manual` | `whatsapp` | `google_drive`
 - Blank `image_path` → skip (manual text invoices — do not mark `failed`)
 - Missing file → `failed` · Empty parse → retry then `requires_manual_review`
 
-## InvoiceObserver pitfalls
+## ExpenseObserver pitfalls
 
 - `receipt_hash = sha256(invoice_number + date_time + total_amount)` on create
 - Unique constraint — handle collisions gracefully
@@ -77,7 +77,7 @@ Sources: `manual` | `whatsapp` | `google_drive`
 
 ## Google Drive
 
-- `SyncGoogleDriveJob` every 15m — jpg/jpeg/png → pending Invoice
+- `SyncGoogleDriveJob` every 15m — jpg/jpeg/png → pending Expense
 
 ## Key classes
 
@@ -85,10 +85,10 @@ Sources: `manual` | `whatsapp` | `google_drive`
 |---------|-------|
 | OCR HTTP | `OllamaService` |
 | Vision prompt | `ReceiptExtractionPrompt` |
-| Manual labels | `ManualInvoiceLabelPrompt`, `ParseManualWhatsAppInvoiceJob` |
-| Manual parser | `ManualWhatsAppInvoiceParser` |
+| Manual labels | `ManualExpenseLabelPrompt`, `ParseManualWhatsAppExpenseJob` |
+| Manual parser | `ManualWhatsAppExpenseParser` |
 | Parse job | `ExtractReceiptDataJob` |
-| Side effects | `InvoiceObserver` |
+| Side effects | `ExpenseObserver` |
 | Webhook | `WhatsAppWebhookController` |
 | Notifications | `WhatsAppNotificationService` |
 | Drive | `GoogleDriveService`, `SyncGoogleDriveJob` |

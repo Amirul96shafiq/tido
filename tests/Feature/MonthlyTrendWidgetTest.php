@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Filament\Widgets\MonthlyTrend;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -15,15 +15,15 @@ beforeEach(function () {
 });
 
 test('monthly trend widget renders with enriched chart data', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'date_time' => now(),
         'status' => 'reviewed',
         'total_amount' => 120.00,
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     Livewire::test(MonthlyTrend::class)
         ->assertSuccessful()

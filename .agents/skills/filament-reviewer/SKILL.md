@@ -16,7 +16,7 @@ Product: single-tenant MYR expense tracker at `/admin`. Expense categories are *
 1. Review `git diff` — focus on `app/Filament/` and `resources/views/filament/`
 2. Read `.agents/AGENTS.md` Filament v5 Conventions section
 3. Cross-check against relevant `docs/ui-*.md` and `docs/ui-copy-style.md`
-4. Compare against sibling resources (Invoice, Budget, Label) for consistency
+4. Compare against sibling resources (Expense, Budget, Label) for consistency
 5. Recommend targeted tests: `php artisan test --compact --filter=...`
 
 ## Resource layout (required)
@@ -60,7 +60,7 @@ app/Filament/Resources/{Plural}/
 
 ## Navigation groups
 
-Finances (Upload Receipts, Invoices, Budgets) · Settings (Labels, Payment Methods, Family Members) · Integrations (Evolution API) · Tools (Backups, Service Status) — Tools last
+Finances (Upload Receipts, Expenses, Budgets) · Settings (Labels, Payment Methods, Family Members) · Integrations (Evolution API) · Tools (Backups, Service Status) — Tools last
 
 ## Global search
 

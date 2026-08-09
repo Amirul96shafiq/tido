@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Resources\Budgets\Pages\EditBudget;
-use App\Filament\Resources\Invoices\InvoiceResource;
-use App\Filament\Resources\Invoices\Pages\EditInvoice;
+use App\Filament\Resources\Expenses\ExpenseResource;
+use App\Filament\Resources\Expenses\Pages\EditExpense;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\Labels\Pages\EditLabel;
 use App\Models\Budget;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\Label;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -54,17 +54,17 @@ test('edit label title appends Label model label and highlights record title', f
         ->toEndWith(LabelResource::getTitleCaseModelLabel());
 });
 
-test('edit invoice title appends Invoice model label and highlights record title', function () {
-    $invoice = Invoice::factory()->create(['merchant_name' => 'Starbucks']);
+test('edit expense title appends Expense model label and highlights record title', function () {
+    $invoice = Expense::factory()->create(['merchant_name' => 'Starbucks']);
     $recordTitle = 'Starbucks #'.$invoice->getKey();
 
-    $page = Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()]);
+    $page = Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()]);
     $titleHtml = (string) $page->instance()->getTitle();
 
     expect(html_entity_decode(strip_tags($titleHtml)))
-        ->toBe('Edit '.$recordTitle.' Invoice')
+        ->toBe('Edit '.$recordTitle.' Expense')
         ->and($titleHtml)
         ->toContain('text-primary-600 dark:text-primary-400')
         ->toContain('<span class="text-primary-600 dark:text-primary-400">'.$recordTitle.'</span>')
-        ->toEndWith(InvoiceResource::getTitleCaseModelLabel());
+        ->toEndWith(ExpenseResource::getTitleCaseModelLabel());
 });

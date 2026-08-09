@@ -2,8 +2,8 @@
 
 use App\Models\Backup;
 use App\Models\Budget;
+use App\Models\Expense;
 use App\Models\FamilyMember;
-use App\Models\Invoice;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use App\Models\User;
@@ -34,7 +34,7 @@ test('resource models stamp the authenticated editor on create and update', func
     'backups' => [Backup::class, ['filename' => 'edited-backup.zip']],
     'budgets' => [Budget::class, ['title' => 'Edited budget']],
     'family members' => [FamilyMember::class, ['display_name' => 'Edited member']],
-    'invoices' => [Invoice::class, ['merchant_name' => 'Edited merchant']],
+    'expenses' => [Expense::class, ['merchant_name' => 'Edited merchant']],
     'labels' => [Label::class, ['name' => 'Edited label']],
     'payment methods' => [PaymentMethod::class, ['name' => 'Edited payment method']],
 ]);

@@ -29,10 +29,10 @@ test('withRoot forces generated absolute urls onto the whatsapp base', function 
         'services.evolution.public_app_url' => 'http://10.0.0.8:2000',
     ]);
 
-    $url = WhatsAppPublicUrl::withRoot(fn (): string => URL::to('/admin/invoices/1/edit'));
+    $url = WhatsAppPublicUrl::withRoot(fn (): string => URL::to('/admin/expenses/1/edit'));
 
     expect($url)->toStartWith('http://10.0.0.8:2000/')
-        ->and($url)->toContain('/admin/invoices/1/edit');
+        ->and($url)->toContain('/admin/expenses/1/edit');
 });
 
 test('isLoopbackHost recognizes localhost variants', function () {

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Filament\Widgets;
 
 use App\Filament\Pages\ReceiptUploadPage;
-use App\Filament\Resources\Invoices\InvoiceResource;
-use App\Filament\Resources\Invoices\Tables\InvoicesTable;
+use App\Filament\Resources\Expenses\ExpenseResource;
+use App\Filament\Resources\Expenses\Tables\ExpensesTable;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Helpers\FilenameDisplay;
 use App\Helpers\MoneyDisplay;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Support\DashboardSpenderScope;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -42,9 +42,9 @@ class RecentReceipts extends BaseWidget
         $bounds = $this->getSelectedMonthBounds();
         $spenderScope = DashboardSpenderScope::fromFilters($this->pageFilters ?? []);
 
-        $query = Invoice::query()
+        $query = Expense::query()
             ->inPeriod($bounds['start'], $bounds['end']);
-        $spenderScope->applyToInvoiceQuery($query);
+        $spenderScope->applyToExpenseQuery($query);
 
         return $table
             ->heading('Recent Receipts ('.$this->formatSelectedMonth('F Y').')')
@@ -66,10 +66,10 @@ class RecentReceipts extends BaseWidget
                         ->label('Filename')
                         ->sortable()
                         ->weight(FontWeight::Medium)
-                        ->color(fn (Invoice $record): ?string => filled($record->image_path) ? 'primary' : null)
-                        ->tooltip(fn (Invoice $record): ?string => filled($record->image_path) ? (string) $record->original_filename : null)
+                        ->color(fn (Expense $record): ?string => filled($record->image_path) ? 'primary' : null)
+                        ->tooltip(fn (Expense $record): ?string => filled($record->image_path) ? (string) $record->original_filename : null)
                         ->url(
-                            fn (Invoice $record): ?string => $record->fileUrl(),
+                            fn (Expense $record): ?string => $record->fileUrl(),
                             shouldOpenInNewTab: true,
                         ),
                 ),
@@ -88,17 +88,17 @@ class RecentReceipts extends BaseWidget
 
                 TextColumn::make('total_amount')
                     ->label('Total Amount')
-                    ->formatStateUsing(fn (?string $state, Invoice $record): string => MoneyDisplay::withCurrency(
+                    ->formatStateUsing(fn (?string $state, Expense $record): string => MoneyDisplay::withCurrency(
                         $state,
                         $record->displayCurrency(),
                     ))
-                    ->tooltip(fn (Invoice $record): ?string => MoneyDisplay::conversionSummary($record))
+                    ->tooltip(fn (Expense $record): ?string => MoneyDisplay::conversionSummary($record))
                     ->sortable(),
 
                 TextColumn::make('paymentMethod.name')
                     ->label('Payment Method')
                     ->badge()
-                    ->icon(fn (Invoice $record): ?string => $record->paymentMethod?->icon)
+                    ->icon(fn (Expense $record): ?string => $record->paymentMethod?->icon)
                     ->placeholder('-'),
 
                 TextColumn::make('source')
@@ -131,11 +131,11 @@ class RecentReceipts extends BaseWidget
             ])
             ->recordActions([
                 EditAction::make()
-                    ->authorize(fn (Invoice $record): bool => InvoiceResource::canEdit($record))
+                    ->authorize(fn (Expense $record): bool => ExpenseResource::canEdit($record))
                     ->authorizationTooltip()
-                    ->authorizationMessage(fn (Invoice $record): string => InvoicesTable::familyMemberActionAuthorizationMessage($record))
+                    ->authorizationMessage(fn (Expense $record): string => ExpensesTable::familyMemberActionAuthorizationMessage($record))
                     ->url(
-                        fn (Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record]),
+                        fn (Expense $record): string => ExpenseResource::getUrl('edit', ['record' => $record]),
                     ),
             ])
             ->emptyStateHeading('No receipts')

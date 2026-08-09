@@ -42,7 +42,7 @@ The recommended browser flow is:
 3. Use the sandbox Danger Zone to delete the sandbox account.
 4. Open the guest **Restore Backup** modal from the sandbox login page.
 5. Upload the backup, enter its token, and exercise a path-like client filename such as `..\\..\\CON.zip` when the browser permits it.
-6. Confirm that the restore succeeds, the invoice returns, and the receipt file opens.
+6. Confirm that the restore succeeds, the expense returns, and the receipt file opens.
 
 A copied `database.sqlite` file alone is not a complete rollback because it restores invoice rows and their `image_path` values but not the receipt bytes. Preserve the complete backup archive and its token outside the sandbox. Never place a real restore token, real receipt content, or session data in documentation or logs.
 

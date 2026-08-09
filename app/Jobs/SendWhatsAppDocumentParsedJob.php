@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Filament\Resources\Invoices\InvoiceResource;
-use App\Models\Invoice;
+use App\Filament\Resources\Expenses\ExpenseResource;
+use App\Models\Expense;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppMessage;
@@ -23,7 +23,7 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
 
     public int $tries = 60;
 
-    public function __construct(public int $invoiceId)
+    public function __construct(public int $expenseId)
     {
         $this->onQueue('whatsapp');
     }
@@ -38,7 +38,7 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
 
     public function handle(WhatsAppNotificationService $waService): void
     {
-        $invoice = Invoice::find($this->invoiceId);
+        $invoice = Expense::find($this->expenseId);
 
         if (! $invoice || $invoice->source !== 'whatsapp' || blank($invoice->whatsapp_sender)) {
             return;
@@ -54,7 +54,7 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
         }
 
         $editUrl = WhatsAppPublicUrl::withRoot(
-            fn (): string => InvoiceResource::getUrl('edit', ['record' => $invoice]),
+            fn (): string => ExpenseResource::getUrl('edit', ['record' => $invoice]),
         );
 
         $paymentMethod = $invoice->paymentMethod?->name;

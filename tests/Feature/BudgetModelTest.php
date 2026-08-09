@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Models\Budget;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\Label;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -67,19 +67,19 @@ test('spent in period sums parsed invoice items for the budget label', function 
         'year' => (int) now()->year,
     ]);
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'date_time' => now(),
         'status' => 'parsed',
     ]);
 
-    InvoiceItem::factory()->create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::factory()->create([
+        'expense_id' => $invoice->id,
         'label_id' => $label->id,
         'line_total' => 80.00,
     ]);
 
-    InvoiceItem::factory()->create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::factory()->create([
+        'expense_id' => $invoice->id,
         'label_id' => $otherLabel->id,
         'line_total' => 40.00,
     ]);
@@ -97,24 +97,24 @@ test('spent in period excludes soft deleted invoices', function () {
         'year' => (int) now()->year,
     ]);
 
-    $active = Invoice::factory()->create([
+    $active = Expense::factory()->create([
         'date_time' => now(),
         'status' => 'reviewed',
     ]);
 
-    $trashed = Invoice::factory()->create([
+    $trashed = Expense::factory()->create([
         'date_time' => now(),
         'status' => 'parsed',
     ]);
 
-    InvoiceItem::factory()->create([
-        'invoice_id' => $active->id,
+    ExpenseItem::factory()->create([
+        'expense_id' => $active->id,
         'label_id' => $label->id,
         'line_total' => 100.00,
     ]);
 
-    InvoiceItem::factory()->create([
-        'invoice_id' => $trashed->id,
+    ExpenseItem::factory()->create([
+        'expense_id' => $trashed->id,
         'label_id' => $label->id,
         'line_total' => 250.00,
     ]);

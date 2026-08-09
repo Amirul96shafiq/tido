@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Jobs\ExtractReceiptDataJob;
-use App\Models\Invoice;
+use App\Models\Expense;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -98,7 +98,7 @@ test('extract receipt data job parses PDF pages then merges them before saving',
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0,
@@ -128,9 +128,9 @@ test('extract receipt data job parses PDF pages then merges them before saving',
             'rate' => 4.2397,
             'rate_source' => 'printed_receipt_rate',
         ])
-        ->and($invoice->invoiceItems)->toHaveCount(1)
-        ->and($invoice->invoiceItems->first()->description)->toBe('First item')
-        ->and($invoice->invoiceItems->first()->line_total)->toBe('42.40');
+        ->and($invoice->expenseItems)->toHaveCount(1)
+        ->and($invoice->expenseItems->first()->description)->toBe('First item')
+        ->and($invoice->expenseItems->first()->line_total)->toBe('42.40');
 
     expect(collect(Http::recorded())->filter(
         fn (array $record): bool => str_contains($record[0]->url(), 'currencyapi.test'),

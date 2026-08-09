@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Backups\Pages\ListBackups;
 use App\Filament\Resources\Budgets\Pages\ListBudgets;
-use App\Filament\Resources\Invoices\Pages\ListInvoices;
+use App\Filament\Resources\Expenses\Pages\ListExpenses;
 use App\Filament\Resources\Labels\Pages\ListLabels;
 use App\Filament\Widgets\RecentReceipts;
 use App\Models\User;
@@ -20,10 +20,10 @@ beforeEach(function () {
 });
 
 test('invoices list shows illustrated empty state', function () {
-    Livewire::test(ListInvoices::class)
+    Livewire::test(ListExpenses::class)
         ->assertSuccessful()
-        ->assertSee('No invoices yet')
-        ->assertSee('Upload a receipt or add an invoice to start tracking spending.')
+        ->assertSee('No expenses yet')
+        ->assertSee('Upload a receipt or add an expense to start tracking spending.')
         ->assertSee('Upload Receipts');
 });
 

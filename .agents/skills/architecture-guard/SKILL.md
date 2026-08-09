@@ -38,7 +38,7 @@ Prevent changes that contradict the product blueprint or established patterns.
 | WhatsApp manual text | same webhook | Pending Invoice → label job → `requires_manual_review` |
 | Google Drive | `SyncGoogleDriveJob` (15m) | Pending Invoice |
 | UI upload | `ReceiptUploadPage` | Pending Invoice |
-| Manual CRUD | `InvoiceResource` | Invoice (may trigger observer) |
+| Manual CRUD | `ExpenseResource` | Invoice (may trigger observer) |
 
 New ingestion channels require explicit architecture review — do not invent silently.
 

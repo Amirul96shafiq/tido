@@ -57,7 +57,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 
 ## 4. Database Schema Architecture
 
-### `invoices` Table
+### `expenses` Table
 * `id` (Primary Key)
 * `merchant_name` (String)
 * `invoice_number` (String, Nullable)
@@ -83,13 +83,13 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 * `family_member_id` (Foreign Key → family_members.id, Nullable) — **Uploaded By**; null = Primary
 * `google_drive_file_id` (String)
 * `original_filename` (String, Nullable)
-* `image_path` (String, Nullable) - Original image or PDF path; null for text-only manual invoices.
+* `image_path` (String, Nullable) - Original image or PDF path; null for text-only manual expenses.
 * `file_mime_type` (String, Nullable)
 * `file_page_count` (Unsigned Small Integer, Nullable) - Populated for inspected PDFs.
 
-### `invoice_items` Table
+### `expense_items` Table
 * `id` (Primary Key)
-* `invoice_id` (Foreign Key -> invoices.id)
+* `expense_id` (Foreign Key -> expenses.id)
 * `label_id` (Foreign Key -> labels.id, Nullable)
 * `description` (String)
 * `quantity` (Integer)
@@ -104,11 +104,11 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 
 ### 5.1. Headless Ingestion & Webhooks
 * **Evolution API Integration:** POST webhook (`/api/webhooks/whatsapp`) to Laravel, bypassing UI.
-* **WhatsApp media receipts:** Image or PDF media download → detected MIME validation → pending `Invoice` → batched document ack → `ExtractReceiptDataJob` (Ollama vision). PDF files are limited by `PDF_MAX_BYTES` and `PDF_MAX_PAGES`; rejected files are listed in the acknowledgement and never create an invoice.
+* **WhatsApp media receipts:** Image or PDF media download → detected MIME validation → pending `Expense` → batched document ack → `ExtractReceiptDataJob` (Ollama vision). PDF files are limited by `PDF_MAX_BYTES` and `PDF_MAX_PAGES`; rejected files are listed in the acknowledgement and never create an expense.
 * **WhatsApp PDF extraction:** Accepted PDFs remain stored as PDFs. Poppler `pdfinfo` inspects page count and `pdftocairo` renders pages to JPEG; Ollama extracts each page as JSON, then merges multi-page results before normal invoice normalization, currency conversion, and Label matching.
-* **WhatsApp manual text invoices:** Fixed `merchant[, payment];` + `item, qty, line_total;` format → pending `Invoice` (no image) → label classification → `requires_manual_review`. See `docs/whatsapp-manual-invoice.md`.
-* **Attribution:** Allowlisted Family Member senders set `invoices.family_member_id`; Profile/primary senders leave it null (**Uploaded By**). Classic phone JIDs and linked WhatsApp LIDs use the same allowlist. Optional family panel login via WhatsApp OTP — see `docs/household-access.md`.
-* **Google Drive:** Scheduled folder poll (`SyncGoogleDriveJob` every 15m) copies images locally and creates pending invoices (Pub/Sub push is not the primary local path).
+* **WhatsApp manual text expenses:** Fixed `merchant[, payment];` + `item, qty, line_total;` format → pending `Expense` (no image) → label classification → `requires_manual_review`. See `docs/whatsapp-manual-expense.md`.
+* **Attribution:** Allowlisted Family Member senders set `expenses.family_member_id`; Profile/primary senders leave it null (**Uploaded By**). Classic phone JIDs and linked WhatsApp LIDs use the same allowlist. Optional family panel login via WhatsApp OTP — see `docs/household-access.md`.
+* **Google Drive:** Scheduled folder poll (`SyncGoogleDriveJob` every 15m) copies images locally and creates pending expenses (Pub/Sub push is not the primary local path).
 
 ### 5.2. 100% Offline AI Extraction
 * Dispatches a queued job (`ExtractReceiptDataJob`) to the local Ollama HTTP API (`OLLAMA_HOST`, default `http://127.0.0.1:11434`) at `/api/generate`. After source-currency reconciliation, foreign amounts are converted by `CurrencyConversionService` using the configured historical rate provider. Ollama runs as a native host process (see `docs/ollama-setup.md`).
@@ -126,7 +126,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 * **Hallucination Mitigation:** HTTP client logic must include regex to strip markdown blocks before `json_decode()`. Pass `"format": "json"` in the Ollama API request payload.
 * **Currency evidence:** PDF text is checked for printed ISO codes and currency markers before a focused vision currency pass; prompts must never default to MYR. A bare `$` is treated as USD only when no competing dollar-currency marker is present, while conflicting or missing evidence returns null. Source amounts remain unchanged until conversion succeeds, and a failed or pending conversion remains source-denominated and is excluded from MYR analytics.
 * **Webhook Authentication:** Evolution callbacks accept only `Authorization: Bearer <EVOLUTION_WEBHOOK_SECRET>`. The inbound secret must be a distinct 32+ character value from `EVOLUTION_API_KEY`, which matches Evolution's `AUTHENTICATION_API_KEY`; query-string and raw-token forms are rejected. Other external webhooks require their provider-specific signature, bearer, or private-network boundary.
-* **Household access:** Single panel with Primary vs Family Member roles (`HouseholdRole`); family members mutate only their attributed invoices. Resource edit audit records the authenticated Primary or Family Member separately from invoice spender attribution. See `docs/household-access.md` and `docs/resource-edit-audit.md`.
+* **Household access:** Single panel with Primary vs Family Member roles (`HouseholdRole`); family members mutate only their attributed expenses. Resource edit audit records the authenticated Primary or Family Member separately from invoice spender attribution. See `docs/household-access.md` and `docs/resource-edit-audit.md`.
 * **Storage Limits:** Enforce detected MIME type validation, a maximum file size (`PDF_MAX_BYTES`, default 10 MB), and a PDF page limit (`PDF_MAX_PAGES`, default 3) to prevent memory exhaustion during Base64 encoding and multi-page rendering. Configure absolute Poppler binary paths for Windows queue workers.
 
 ---

@@ -8,7 +8,7 @@
 
 Single-tenant personal hub. **Finances** is shipped (MYR expense & receipt tracking). **Training**, **Health**, and **Task** are planned dashboard modules (coming-soon placeholders). See `docs/dashboard-views.md`.
 
-Finances today: ingest receipts (WhatsApp image or text manual invoice, Google Drive, Filament upload), parse with local Ollama, categorize line items, detect duplicates, show budgets/analytics.
+Finances today: ingest receipts (WhatsApp image or text manual expense, Google Drive, Filament upload), parse with local Ollama, categorize line items, detect duplicates, show budgets/analytics.
 
 ### Naming
 
@@ -23,7 +23,7 @@ Prefer this over older version numbers in `docs/system-architecture.md`.
 
 ### Single-tenant household
 
-No multi-tenancy package. One Filament panel with **household roles** (`primary` vs `family_member`): Primary owns settings; login-enabled Family Members get limited Finances access. Receipts are attributed via `invoices.family_member_id` (**Uploaded By**). See `docs/household-access.md`.
+No multi-tenancy package. One Filament panel with **household roles** (`primary` vs `family_member`): Primary owns settings; login-enabled Family Members get limited Finances access. Receipts are attributed via `expenses.family_member_id` (**Uploaded By**). See `docs/household-access.md`.
 
 ### Agent entry points
 
@@ -45,7 +45,7 @@ No multi-tenancy package. One Filament panel with **household roles** (`primary`
 16. Service Status / health probes — `docs/service-status.md`
 17. Profile Active Sessions — `docs/active-sessions.md`
 18. Household access / family login / attribution — `docs/household-access.md`
-19. WhatsApp text manual invoices — `docs/whatsapp-manual-invoice.md`
+19. WhatsApp text manual expenses — `docs/whatsapp-manual-expense.md`
 20. WhatsApp bot commands / keywords — `docs/whatsapp-bot-commands.md`
 
 ### Do not
@@ -79,7 +79,7 @@ Typed params/returns, constructor property promotion, enums + `match` where appr
 
 - Match sibling models: domain models use `protected $casts = [...]`; `User` uses `casts()` method
 - Money: `decimal(12,2)` columns, cast `'decimal:2'`, currency default `MYR`, UI as `RM {amount}`
-- SoftDeletes + Spatie `LogsActivity` on Invoice, InvoiceItem, Label, Budget
+- SoftDeletes + Spatie `LogsActivity` on Expense, ExpenseItem, Label, Budget
 - Prefer Eloquent/Query Builder — never raw user input in SQL
 
 ### Enums
@@ -122,9 +122,9 @@ Use Filament `Schema` for forms (v5), not legacy Form API. Prefer native Form/Ta
 
 ### Navigation
 
-- Groups: **Finances** (Upload Receipts, Invoices, Budgets), **Settings** (Labels, Payment Methods, Family Members), **Integrations** (Evolution API), **Tools** (Backups, Service Status) — Tools is last
+- Groups: **Finances** (Upload Receipts, Expenses, Budgets), **Settings** (Labels, Payment Methods, Family Members), **Integrations** (Evolution API), **Tools** (Backups, Service Status) — Tools is last
 - Home dashboard modules (Finances / Training / Health / Task icon tabs): see `docs/dashboard-views.md` — not sidebar nav groups
-- **Primary-only** Settings / Tools / Integrations / Budgets: use `RequiresPrimaryHouseholdAccess` (or `HouseholdAccess::isPrimary()`). Family members get Finances (Upload + Invoices) + Profile only — see `docs/household-access.md`
+- **Primary-only** Settings / Tools / Integrations / Budgets: use `RequiresPrimaryHouseholdAccess` (or `HouseholdAccess::isPrimary()`). Family members get Finances (Upload + Expenses) + Profile only — see `docs/household-access.md`
 - Theme: amber/zinc accents + Slate dark surfaces (see `docs/ui-dark-theme.md`), Outfit font, SPA mode, collapsible sidebar, database notifications
 - Breadcrumbs: Filament native panel breadcrumbs with `PrependsHomeBreadcrumb`. Kept visible on small screens via `.fi-header .fi-breadcrumbs` override in `app.css`. Do not disable panel-wide or replace with a custom back link. When adding a new Create/Edit/List/custom page, use `PrependsHomeBreadcrumb` and register Create/Edit pages in the `PAGE_END` draft-poller scopes.
 - Custom pages: `Dashboard`, `ReceiptUploadPage`, `Auth/EditProfile`, `EvolutionApiPage`, `ServiceStatusPage`
@@ -225,20 +225,20 @@ Resource::getUrl('index', [
 ### Flow (image)
 
 ```
-Image → Invoice (pending) → InvoiceObserver → ExtractReceiptDataJob
+Image → Expense (pending) → ExpenseObserver → ExtractReceiptDataJob
   → OllamaService + ReceiptExtractionPrompt
-  → Invoice (parsed) + InvoiceItems → BudgetAlertService
+  → Expense (parsed) + ExpenseItems → BudgetAlertService
 ```
 
 ### Flow (WhatsApp manual text)
 
 ```
-Text format → ProcessManualWhatsAppInvoiceJob → pending Invoice (no image)
-  → Manual invoice received ack → ParseManualWhatsAppInvoiceJob
-  → Ollama text labels → requires_manual_review → Manual invoice parsed reply
+Text format → ProcessManualWhatsAppExpenseJob → pending Expense (no image)
+  → Manual expense received ack → ParseManualWhatsAppExpenseJob
+  → Ollama text labels → requires_manual_review → Manual expense parsed reply
 ```
 
-Format + payment tokens: `docs/whatsapp-manual-invoice.md`.
+Format + payment tokens: `docs/whatsapp-manual-expense.md`.
 
 Statuses: `pending` → `parsed` → `reviewed` | `requires_manual_review` | `failed`
 Sources: `manual` | `whatsapp` | `google_drive`
@@ -248,27 +248,27 @@ Sources: `manual` | `whatsapp` | `google_drive`
 - POST with `"format": "json"`
 - Strip markdown fences with regex before `json_decode` (`OllamaService::cleanAndDecodeJson`)
 - Vision prompt/schema: `app/Prompts/ReceiptExtractionPrompt.php`
-- Manual text labels: `app/Prompts/ManualInvoiceLabelPrompt.php` via `OllamaService::generateJson` (no `images`)
+- Manual text labels: `app/Prompts/ManualExpenseLabelPrompt.php` via `OllamaService::generateJson` (no `images`)
 - Map AI `label` (legacy `suggested_category`) via `LabelMatcher` → `Label` where `type = Finance`
 
 ### Duplicate detection
 
-`receipt_hash = sha256(invoice_number + date_time + total_amount)` on create (`InvoiceObserver`). Unique DB constraint — handle collisions gracefully.
+`receipt_hash = sha256(invoice_number + date_time + total_amount)` on create (`ExpenseObserver`). Unique DB constraint — handle collisions gracefully.
 
 ### WhatsApp (Evolution API)
 
 - `POST /api/webhooks/whatsapp` — `Authorization: Bearer <EVOLUTION_WEBHOOK_SECRET>` from `config('services.evolution.webhook_secret')`; outbound Evolution calls use `config('services.evolution.api_key')`
 - Validate auth/payload first; heavy work via queue/jobs
-- Images → store → pending Invoice; text keywords (`spend`/`total`) → monthly total reply
-- Text manual invoice format → pending Invoice (no image) → label job → `requires_manual_review`
-- Attribute WhatsApp invoices with `InvoiceSenderAttribution` (`family_member_id`; null = Primary) — `docs/household-access.md`
+- Images → store → pending Expense; text keywords (`spend`/`total`) → monthly total reply
+- Text manual expense format → pending Expense (no image) → label job → `requires_manual_review`
+- Attribute WhatsApp invoices with `ExpenseSenderAttribution` (`family_member_id`; null = Primary) — `docs/household-access.md`
 - Optional merchant payment token: aliases from Settings → Payment Methods
 
 ### Google Drive
 
 - `GoogleDriveService` via `Storage::disk('google')`
 - `SyncGoogleDriveJob` every 15 min (`routes/console.php`)
-- Copy image locally, create pending Invoice, delete remote file
+- Copy image locally, create pending Expense, delete remote file
 
 ### Queues
 

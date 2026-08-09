@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Helpers\MoneyDisplay;
-use App\Models\Invoice;
+use App\Models\Expense;
 use Tests\TestCase;
 
 uses(TestCase::class);
@@ -40,7 +40,7 @@ test('withCurrency uses the source currency code for non MYR amounts', function 
 });
 
 test('conversion summary identifies an unconverted foreign amount', function (): void {
-    $invoice = new Invoice([
+    $invoice = new Expense([
         'currency' => 'USD',
         'total_amount' => 6,
     ]);

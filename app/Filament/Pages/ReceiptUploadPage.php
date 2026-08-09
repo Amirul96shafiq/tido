@@ -6,11 +6,11 @@ namespace App\Filament\Pages;
 
 use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
-use App\Filament\Resources\Invoices\InvoiceResource;
-use App\Filament\Resources\Invoices\Tables\InvoicesTable;
+use App\Filament\Resources\Expenses\ExpenseResource;
+use App\Filament\Resources\Expenses\Tables\ExpensesTable;
 use App\Helpers\FilenameDisplay;
 use App\Helpers\MoneyDisplay;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Support\DashboardSpenderScope;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
@@ -122,7 +122,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
         foreach ($state['receipts'] as $filePath) {
             $familyMemberId = $user?->family_member_id;
 
-            $invoice = Invoice::create([
+            $invoice = Expense::create([
                 'merchant_name' => 'Pending AI Extraction...',
                 'date_time' => now(),
                 'subtotal' => 0.00,
@@ -151,7 +151,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(Invoice::query())
+            ->query(Expense::query())
             ->defaultSort('created_at', 'desc')
             ->poll('10s.visible')
             ->columns([
@@ -161,10 +161,10 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                         ->searchable()
                         ->sortable()
                         ->weight(FontWeight::Medium)
-                        ->color(fn (Invoice $record): ?string => filled($record->image_path) ? 'primary' : null)
-                        ->tooltip(fn (Invoice $record): ?string => filled($record->image_path) ? (string) $record->original_filename : null)
+                        ->color(fn (Expense $record): ?string => filled($record->image_path) ? 'primary' : null)
+                        ->tooltip(fn (Expense $record): ?string => filled($record->image_path) ? (string) $record->original_filename : null)
                         ->url(
-                            fn (Invoice $record): ?string => $record->fileUrl(),
+                            fn (Expense $record): ?string => $record->fileUrl(),
                             shouldOpenInNewTab: true,
                         ),
                 ),
@@ -184,17 +184,17 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
 
                 TextColumn::make('total_amount')
                     ->label('Total Amount')
-                    ->formatStateUsing(fn (?string $state, Invoice $record): string => MoneyDisplay::withCurrency(
+                    ->formatStateUsing(fn (?string $state, Expense $record): string => MoneyDisplay::withCurrency(
                         $state,
                         $record->displayCurrency(),
                     ))
-                    ->tooltip(fn (Invoice $record): ?string => MoneyDisplay::conversionSummary($record))
+                    ->tooltip(fn (Expense $record): ?string => MoneyDisplay::conversionSummary($record))
                     ->sortable(),
 
                 TextColumn::make('paymentMethod.name')
                     ->label('Payment Method')
                     ->badge()
-                    ->icon(fn (Invoice $record): ?string => $record->paymentMethod?->icon)
+                    ->icon(fn (Expense $record): ?string => $record->paymentMethod?->icon)
                     ->placeholder('-'),
 
                 TextColumn::make('source')
@@ -227,11 +227,11 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
             ])
             ->recordActions([
                 EditAction::make()
-                    ->authorize(fn (Invoice $record): bool => InvoiceResource::canEdit($record))
+                    ->authorize(fn (Expense $record): bool => ExpenseResource::canEdit($record))
                     ->authorizationTooltip()
-                    ->authorizationMessage(fn (Invoice $record): string => InvoicesTable::familyMemberActionAuthorizationMessage($record))
+                    ->authorizationMessage(fn (Expense $record): string => ExpensesTable::familyMemberActionAuthorizationMessage($record))
                     ->url(
-                        fn (Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record]),
+                        fn (Expense $record): string => ExpenseResource::getUrl('edit', ['record' => $record]),
                     ),
             ])
             ->filters([
@@ -279,7 +279,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                             return $query;
                         }
 
-                        return (new DashboardSpenderScope($spender))->applyToInvoiceQuery($query);
+                        return (new DashboardSpenderScope($spender))->applyToExpenseQuery($query);
                     })
                     ->searchable(),
             ])

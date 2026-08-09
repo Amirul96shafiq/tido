@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Enums\FamilyRelationship;
+use App\Models\Expense;
 use App\Models\FamilyMember;
-use App\Models\Invoice;
 use App\Services\FamilyMemberLoginService;
 use Illuminate\Database\Seeder;
 
@@ -33,11 +33,11 @@ class FamilyMemberLoginTestSeeder extends Seeder
 
         app(FamilyMemberLoginService::class)->syncLoginUser($member);
 
-        if (Invoice::query()->where('family_member_id', $member->id)->exists()) {
+        if (Expense::query()->where('family_member_id', $member->id)->exists()) {
             return;
         }
 
-        Invoice::factory()->create([
+        Expense::factory()->create([
             'merchant_name' => 'Family Groceries',
             'source' => 'whatsapp',
             'whatsapp_sender' => self::SAMPLE_PHONE,
@@ -47,7 +47,7 @@ class FamilyMemberLoginTestSeeder extends Seeder
             'subtotal' => 85.50,
         ]);
 
-        Invoice::factory()->create([
+        Expense::factory()->create([
             'merchant_name' => 'Family Cafe',
             'source' => 'whatsapp',
             'whatsapp_sender' => self::SAMPLE_PHONE,

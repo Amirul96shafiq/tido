@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Jobs\SendWhatsAppDocumentParsedJob;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\PaymentMethod;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
@@ -29,7 +29,7 @@ beforeEach(function (): void {
 test('sends document parsed message when invoice is parsed', function () {
     $paymentMethod = PaymentMethod::factory()->create(['name' => 'Cash']);
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'status' => 'parsed',
         'source' => 'whatsapp',
         'whatsapp_sender' => '601116330705',
@@ -55,7 +55,7 @@ test('sends document parsed message when invoice is parsed', function () {
 test('sends document needs review message when invoice requires manual review', function () {
     $paymentMethod = PaymentMethod::factory()->create(['name' => 'Other']);
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'status' => 'requires_manual_review',
         'source' => 'whatsapp',
         'whatsapp_sender' => '601116330705',

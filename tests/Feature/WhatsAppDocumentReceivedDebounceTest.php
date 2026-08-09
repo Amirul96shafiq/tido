@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Jobs\ExtractReceiptDataJob;
 use App\Jobs\ProcessWhatsAppMediaJob;
 use App\Jobs\SendWhatsAppDocumentReceivedAckJob;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -56,11 +56,11 @@ test('two media jobs for same sender batch into one document received ack then d
 
     expect($payload)->toBeArray()
         ->and($payload['count'])->toBe(2)
-        ->and($payload['invoice_ids'])->toHaveCount(2)
+        ->and($payload['expense_ids'])->toHaveCount(2)
         ->and($payload['token'])->toBeString();
 
     $winningToken = $payload['token'];
-    $invoiceIds = $payload['invoice_ids'];
+    $expenseIds = $payload['expense_ids'];
 
     (new SendWhatsAppDocumentReceivedAckJob($sender, 'stale-token'))
         ->handle(app(WhatsAppNotificationService::class));
@@ -81,13 +81,13 @@ test('two media jobs for same sender batch into one document received ack then d
     expect(Cache::get(WhatsAppDocumentReceivedDebouncer::cacheKey($sender)))->toBeNull();
 
     Queue::assertPushed(ExtractReceiptDataJob::class, 2);
-    foreach ($invoiceIds as $invoiceId) {
-        Queue::assertPushed(ExtractReceiptDataJob::class, function (ExtractReceiptDataJob $job) use ($invoiceId): bool {
-            return $job->invoiceId === (int) $invoiceId;
+    foreach ($expenseIds as $expenseId) {
+        Queue::assertPushed(ExtractReceiptDataJob::class, function (ExtractReceiptDataJob $job) use ($expenseId): bool {
+            return $job->expenseId === (int) $expenseId;
         });
     }
 
-    expect(Invoice::count())->toBe(2);
+    expect(Expense::count())->toBe(2);
 });
 
 test('superseded document received ack token is ignored', function () {
@@ -101,7 +101,7 @@ test('superseded document received ack token is ignored', function () {
 
     WhatsAppDocumentReceivedDebouncer::register($sender, [
         'message_id' => 'MSG-101',
-        'invoice_id' => 101,
+        'expense_id' => 101,
         'filename' => 'one.jpg',
         'mime_type' => 'image/jpeg',
         'page_count' => null,
@@ -110,7 +110,7 @@ test('superseded document received ack token is ignored', function () {
     ]);
     WhatsAppDocumentReceivedDebouncer::register($sender, [
         'message_id' => 'MSG-102',
-        'invoice_id' => 102,
+        'expense_id' => 102,
         'filename' => 'two.jpg',
         'mime_type' => 'image/jpeg',
         'page_count' => null,
@@ -120,7 +120,7 @@ test('superseded document received ack token is ignored', function () {
 
     $payload = Cache::get(WhatsAppDocumentReceivedDebouncer::cacheKey($sender));
     expect($payload['count'])->toBe(2)
-        ->and($payload['invoice_ids'])->toBe([101, 102]);
+        ->and($payload['expense_ids'])->toBe([101, 102]);
 
     (new SendWhatsAppDocumentReceivedAckJob($sender, 'old-token'))
         ->handle(app(WhatsAppNotificationService::class));
@@ -142,7 +142,7 @@ test('mixed PDF batch acknowledges rejected files and only dispatches accepted i
 
     WhatsAppDocumentReceivedDebouncer::register($sender, [
         'message_id' => 'MSG-VALID',
-        'invoice_id' => 101,
+        'expense_id' => 101,
         'filename' => 'receipt.pdf',
         'mime_type' => 'application/pdf',
         'page_count' => 2,
@@ -151,7 +151,7 @@ test('mixed PDF batch acknowledges rejected files and only dispatches accepted i
     ]);
     WhatsAppDocumentReceivedDebouncer::register($sender, [
         'message_id' => 'MSG-LONG',
-        'invoice_id' => null,
+        'expense_id' => null,
         'filename' => 'statement.pdf',
         'mime_type' => 'application/pdf',
         'page_count' => 8,
@@ -173,7 +173,7 @@ test('mixed PDF batch acknowledges rejected files and only dispatches accepted i
             && str_contains($text, 'statement.pdf - 8 pages (maximum 3)');
     });
 
-    Queue::assertPushed(ExtractReceiptDataJob::class, fn (ExtractReceiptDataJob $job): bool => $job->invoiceId === 101);
+    Queue::assertPushed(ExtractReceiptDataJob::class, fn (ExtractReceiptDataJob $job): bool => $job->expenseId === 101);
     Queue::assertPushed(ExtractReceiptDataJob::class, 1);
 });
 
@@ -187,7 +187,7 @@ test('document received fallback acknowledges a PDF processing failure after a d
 
     WhatsAppDocumentReceivedDebouncer::register($sender, [
         'message_id' => 'MSG-VALID',
-        'invoice_id' => 101,
+        'expense_id' => 101,
         'filename' => 'receipt.pdf',
         'mime_type' => 'application/pdf',
         'page_count' => 2,
@@ -196,7 +196,7 @@ test('document received fallback acknowledges a PDF processing failure after a d
     ]);
     WhatsAppDocumentReceivedDebouncer::register($sender, [
         'message_id' => 'MSG-LOCKED',
-        'invoice_id' => null,
+        'expense_id' => null,
         'filename' => 'statement.pdf',
         'mime_type' => 'application/pdf',
         'page_count' => null,
@@ -219,5 +219,5 @@ test('document received fallback acknowledges a PDF processing failure after a d
             && str_contains($text, 'statement.pdf - could not be processed; please resend the PDF');
     });
 
-    Queue::assertPushed(ExtractReceiptDataJob::class, fn (ExtractReceiptDataJob $job): bool => $job->invoiceId === 101);
+    Queue::assertPushed(ExtractReceiptDataJob::class, fn (ExtractReceiptDataJob $job): bool => $job->expenseId === 101);
 });

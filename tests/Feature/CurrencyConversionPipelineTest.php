@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Filament\Support\DashboardMonthAnalytics;
 use App\Jobs\ExtractReceiptDataJob;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use Carbon\Carbon;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
@@ -62,7 +62,7 @@ test('foreign image receipt is converted to canonical MYR and preserves source m
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -88,7 +88,7 @@ test('foreign image receipt is converted to canonical MYR and preserves source m
         ->and((float) $invoice->currency_conversion_rate)->toBe(4.5)
         ->and($invoice->currency_conversion_date->format('Y-m-d'))->toBe('2026-07-08')
         ->and($invoice->currency_conversion_provider)->toBe('currencyapi')
-        ->and($invoice->invoiceItems->first()->line_total)->toBe('90.00');
+        ->and($invoice->expenseItems->first()->line_total)->toBe('90.00');
 
     expect(collect(Http::recorded())->filter(
         fn (array $record): bool => str_contains($record[0]->url(), 'currencyapi.test'),
@@ -138,7 +138,7 @@ test('focused document currency detection corrects a MYR misclassification befor
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -170,7 +170,7 @@ test('focused document currency detection corrects a MYR misclassification befor
             'rate' => 4.2397,
             'rate_source' => 'printed_receipt_rate',
         ])
-        ->and($invoice->invoiceItems->first()->line_total)->toBe('84.79');
+        ->and($invoice->expenseItems->first()->line_total)->toBe('84.79');
 });
 
 test('foreign receipt without an available rate stays source-denominated and requires review', function () {
@@ -196,7 +196,7 @@ test('foreign receipt without an available rate stays source-denominated and req
         'https://currencyapi.test/v3/historical*' => Http::failedConnection(),
     ]);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -223,10 +223,10 @@ test('foreign receipt without an available rate stays source-denominated and req
 });
 
 test('legacy invoice 332 style receipts support an explicit offline source rate', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
     $this->seed(LabelSeeder::class);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Cursor',
         'invoice_number' => 'K2WQY0IC-0012',
         'receipt_hash' => hash('sha256', 'legacy-332'),
@@ -241,7 +241,7 @@ test('legacy invoice 332 style receipts support an explicit offline source rate'
         'status' => 'requires_manual_review',
         'original_currency' => 'MYR',
         'original_total_amount' => 6.00,
-        'currency_conversion_status' => Invoice::CONVERSION_NOT_REQUIRED,
+        'currency_conversion_status' => Expense::CONVERSION_NOT_REQUIRED,
         'notes' => '<p>[AI] Currency conversion could not be completed; verify the source amount and rate.</p>',
         'raw_ai_response' => [
             'merchant_name' => 'Cursor',
@@ -263,8 +263,8 @@ test('legacy invoice 332 style receipts support an explicit offline source rate'
         ],
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $invoice->id,
         'description' => 'Cursor Pro',
         'quantity' => 1,
         'unit_price' => 20.00,
@@ -297,7 +297,7 @@ test('legacy invoice 332 style receipts support an explicit offline source rate'
         ->and($invoice->original_currency)->toBe('USD')
         ->and($invoice->currency_conversion_status)->toBe('converted')
         ->and($invoice->status)->toBe('parsed')
-        ->and($invoice->invoiceItems->first()->line_total)->toBe('90.00')
+        ->and($invoice->expenseItems->first()->line_total)->toBe('90.00')
         ->and($invoice->notes)->toBeNull();
 
     $ollamaRequests = collect(Http::recorded())
@@ -306,7 +306,7 @@ test('legacy invoice 332 style receipts support an explicit offline source rate'
 });
 
 test('analytics exclude reviewed foreign rows that were not converted', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
     $month = Carbon::create(2026, 8, 1, 0, 0, 0, 'Asia/Kuala_Lumpur');
     $bounds = [
         'start' => $month->copy()->startOfMonth(),
@@ -315,32 +315,32 @@ test('analytics exclude reviewed foreign rows that were not converted', function
         'previous_end' => $month->copy()->subMonth()->endOfMonth(),
     ];
 
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'date_time' => $month->copy()->addDay(),
         'total_amount' => 10.00,
         'subtotal' => 10.00,
         'total_tax' => 0.00,
         'status' => 'reviewed',
         'currency' => 'MYR',
-        'currency_conversion_status' => Invoice::CONVERSION_NOT_REQUIRED,
+        'currency_conversion_status' => Expense::CONVERSION_NOT_REQUIRED,
     ]);
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'date_time' => $month->copy()->addDays(2),
         'total_amount' => 999.00,
         'subtotal' => 999.00,
         'total_tax' => 0.00,
         'status' => 'reviewed',
         'currency' => 'USD',
-        'currency_conversion_status' => Invoice::CONVERSION_FAILED,
+        'currency_conversion_status' => Expense::CONVERSION_FAILED,
     ]);
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'date_time' => $month->copy()->addDays(3),
         'total_amount' => 999.00,
         'subtotal' => 999.00,
         'total_tax' => 0.00,
         'status' => 'pending',
         'currency' => 'USD',
-        'currency_conversion_status' => Invoice::CONVERSION_PENDING,
+        'currency_conversion_status' => Expense::CONVERSION_PENDING,
     ]);
 
     $summary = (new DashboardMonthAnalytics($bounds))->summary();

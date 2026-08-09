@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support;
 
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,7 +36,7 @@ final class HouseholdAccess
         return self::isPrimary();
     }
 
-    public static function canMutateInvoice(Invoice $invoice): bool
+    public static function canMutateExpense(Expense $invoice): bool
     {
         $user = self::user();
 

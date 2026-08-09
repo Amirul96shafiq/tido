@@ -38,9 +38,9 @@ final class WhatsAppMessage
             '🤖',
             'Help',
             implode("\n", [
-                'Use one of the approaches below in WhatsApp chat to start AI parsing and store it as an invoice:',
+                'Use one of the approaches below in WhatsApp chat to start AI parsing and store it as an expense:',
                 '- Upload a *document(s)* or *image(s)*',
-                '- Type a *manual invoice text* (type *manual* to learn more)',
+                '- Type a *manual expense text* (type *manual* to learn more)',
                 '- Type *spend* or *total* for spending summary (type *finance others* to learn more)',
             ]),
         );
@@ -75,7 +75,7 @@ final class WhatsAppMessage
         $body = implode("\n", array_filter([
             'Type the exact format below in this WhatsApp chat:',
             '',
-            '[Invoice title], [Payment method];',
+            '[Expense title], [Payment method];',
             '[Line item 1  label], [quantity], [total price];',
             '...',
             '',
@@ -228,26 +228,26 @@ final class WhatsAppMessage
             "Total Amount: *{$totalAmount}*",
             "Payment Method: *{$paymentMethod}*",
             '',
-            'Go to *invoice edit*',
+            'Go to *expense edit*',
             $editUrl,
         ]);
     }
 
-    public static function manualInvoiceReceived(int $count): string
+    public static function manualExpenseReceived(int $count): string
     {
         $count = max(1, $count);
 
         return self::compose(
             '📥',
-            'Manual invoice received',
-            sprintf('A total of *%d* manual invoice(s) saved and queued for AI parsing.', $count),
+            'Manual expense received',
+            sprintf('A total of *%d* manual expense(s) saved and queued for AI parsing.', $count),
         );
     }
 
     /**
      * @param  array{merchant_name?: string|null, total_amount?: float|int|string|null, payment_method?: string|null}  $details
      */
-    public static function manualInvoiceParsed(string $editUrl, array $details = []): string
+    public static function manualExpenseParsed(string $editUrl, array $details = []): string
     {
         $editUrl = trim($editUrl);
         $merchant = trim((string) ($details['merchant_name'] ?? ''));
@@ -268,10 +268,10 @@ final class WhatsAppMessage
             "Total Amount: *{$totalAmount}*",
             "Payment Method: *{$paymentMethod}*",
             '',
-            'Go to *invoice edit*',
+            'Go to *expense edit*',
             $editUrl,
         ]);
 
-        return self::compose('🎉', 'Manual invoice parsed', $body);
+        return self::compose('🎉', 'Manual expense parsed', $body);
     }
 }

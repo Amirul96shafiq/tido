@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support;
 
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -67,7 +67,7 @@ final class NotificationRecipient
     /**
      * Recipient for invoice-related Filament alerts (WhatsApp sender phone when present).
      */
-    public static function forInvoice(Invoice $invoice): ?User
+    public static function forInvoice(Expense $invoice): ?User
     {
         if (filled($invoice->whatsapp_sender)) {
             return self::forPhone((string) $invoice->whatsapp_sender);

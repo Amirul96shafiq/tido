@@ -10,8 +10,8 @@ use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Filament\Support\DashboardMonthAnalytics;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Jobs\ProcessWhatsAppMediaJob;
+use App\Models\Expense;
 use App\Models\FamilyMember;
-use App\Models\Invoice;
 use App\Models\User;
 use App\Services\FamilyMemberLoginService;
 use App\Services\WhatsAppLoginOtpService;
@@ -62,7 +62,7 @@ test('whatsapp media job attributes invoice to allowlisted family member', funct
     );
     app()->call([$job, 'handle']);
 
-    $invoice = Invoice::query()->first();
+    $invoice = Expense::query()->first();
 
     expect($invoice)->not->toBeNull()
         ->and($invoice->family_member_id)->toBe($member->id)
@@ -89,17 +89,17 @@ test('whatsapp media job leaves family member null for primary sender', function
     );
     app()->call([$job, 'handle']);
 
-    expect(Invoice::query()->value('family_member_id'))->toBeNull();
+    expect(Expense::query()->value('family_member_id'))->toBeNull();
 });
 
 test('dashboard analytics respects family member spender scope', function () {
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
     $month = now()->format('Y-m');
     $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $month]);
     $member = FamilyMember::factory()->create();
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Primary Store',
         'invoice_number' => 'INV-P',
         'receipt_hash' => 'hash-primary-scope',
@@ -113,7 +113,7 @@ test('dashboard analytics respects family member spender scope', function () {
         'family_member_id' => null,
     ]);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'Family Store',
         'invoice_number' => 'INV-F',
         'receipt_hash' => 'hash-family-scope',
@@ -127,7 +127,7 @@ test('dashboard analytics respects family member spender scope', function () {
         'family_member_id' => $member->id,
     ]);
 
-    Invoice::setEventDispatcher(app('events'));
+    Expense::setEventDispatcher(app('events'));
 
     $combined = new DashboardMonthAnalytics($bounds, new DashboardSpenderScope(DashboardSpenderScope::ALL));
     $primary = new DashboardMonthAnalytics($bounds, new DashboardSpenderScope(DashboardSpenderScope::PRIMARY));
@@ -295,7 +295,7 @@ test('family member login test seeder creates sample member and invoices', funct
     expect($member)->not->toBeNull()
         ->and($member->login_enabled)->toBeTrue()
         ->and(User::query()->where('family_member_id', $member->id)->exists())->toBeTrue()
-        ->and(Invoice::query()->where('family_member_id', $member->id)->count())->toBe(2);
+        ->and(Expense::query()->where('family_member_id', $member->id)->count())->toBe(2);
 });
 
 test('dashboard spender filter options use updated labels', function () {

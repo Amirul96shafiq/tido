@@ -11,7 +11,7 @@ Top-level **dashboard modules** on the Filament Home page. These are distinct fr
 | **Health** | Coming soon | `heroicon-m-heart` | `?view=health` |
 | **Task** | Coming soon | `heroicon-m-rectangle-stack` | `?view=task` |
 
-Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD surface for the Finance module. It is not the same as the dashboard view tab (**Finance**).
+Sidebar nav group **Finances** (Upload Receipts, Expenses, Budgets) is the CRUD surface for the Finance module. It is not the same as the dashboard view tab (**Finance**).
 
 ## Source of truth
 

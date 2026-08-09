@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Jobs\ExtractReceiptDataJob;
 use App\Jobs\SendWhatsAppDocumentParsedJob;
-use App\Models\Invoice;
+use App\Models\Expense;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,7 +26,7 @@ test('extract receipt data job uniquifies hash when soft-deleted invoice owns th
     $total = '7.80';
     $baseHash = hash('sha256', $invoiceNumber.$dateTime.$total);
 
-    $trashed = Invoice::factory()->create([
+    $trashed = Expense::factory()->create([
         'invoice_number' => $invoiceNumber,
         'date_time' => $dateTime,
         'total_amount' => $total,
@@ -36,7 +36,7 @@ test('extract receipt data job uniquifies hash when soft-deleted invoice owns th
     ]);
     $trashed->delete();
 
-    expect(Invoice::withTrashed()->where('receipt_hash', $baseHash)->exists())->toBeTrue();
+    expect(Expense::withTrashed()->where('receipt_hash', $baseHash)->exists())->toBeTrue();
 
     Http::fake([
         '*/api/generate' => Http::response([
@@ -71,7 +71,7 @@ test('extract receipt data job uniquifies hash when soft-deleted invoice owns th
         ]),
     ]);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -94,6 +94,6 @@ test('extract receipt data job uniquifies hash when soft-deleted invoice owns th
         ->and($invoice->receipt_hash)->toBe(hash('sha256', $baseHash.'|'.$invoice->id));
 
     Queue::assertPushed(SendWhatsAppDocumentParsedJob::class, function (SendWhatsAppDocumentParsedJob $job) use ($invoice): bool {
-        return $job->invoiceId === $invoice->id;
+        return $job->expenseId === $invoice->id;
     });
 });

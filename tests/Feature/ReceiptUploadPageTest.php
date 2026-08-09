@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\ReceiptUploadPage;
-use App\Filament\Resources\Invoices\InvoiceResource;
+use App\Filament\Resources\Expenses\ExpenseResource;
+use App\Models\Expense;
 use App\Models\FamilyMember;
-use App\Models\Invoice;
 use App\Models\User;
 use App\Support\DashboardSpenderScope;
 use Filament\Actions\Testing\TestAction;
@@ -22,7 +22,7 @@ beforeEach(function () {
 });
 
 test('receipt upload page lists recent invoices', function () {
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'original_filename' => 'wa_receipt_preview.jpg',
         'image_path' => 'receipts/wa_receipt_preview.jpg',
     ]);
@@ -46,7 +46,7 @@ test('filename links to file in a new tab', function () {
     $path = 'receipts/wa_receipt_preview.jpg';
     Storage::put($path, 'fake-image-bytes');
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'original_filename' => 'wa_receipt_preview.jpg',
         'image_path' => $path,
     ]);
@@ -61,7 +61,7 @@ test('filename links to file in a new tab', function () {
 });
 
 test('filename without file path has no link', function () {
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'original_filename' => 'missing_file.jpg',
         'image_path' => null,
     ]);
@@ -74,7 +74,7 @@ test('filename without file path has no link', function () {
 
 test('receipt upload page truncates long merchant names with full name in tooltip', function () {
     $longMerchant = 'Cosmo Restaurants Sdn Bhd';
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'merchant_name' => $longMerchant,
     ]);
 
@@ -111,12 +111,12 @@ test('receipt upload page filters recent uploads by from spender', function () {
         'display_name' => 'Ahlong',
     ]);
 
-    $familyInvoice = Invoice::factory()->create([
+    $familyInvoice = Expense::factory()->create([
         'original_filename' => 'family_receipt.jpg',
         'family_member_id' => $member->id,
     ]);
 
-    $primaryInvoice = Invoice::factory()->create([
+    $primaryInvoice = Expense::factory()->create([
         'original_filename' => 'primary_receipt.jpg',
         'family_member_id' => null,
     ]);
@@ -136,12 +136,12 @@ test('receipt upload page edit action spa navigates to invoice edit', function (
     Filament::setCurrentPanel(Filament::getPanel('admin'));
     Filament::bootCurrentPanel();
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'original_filename' => null,
         'image_path' => null,
     ]);
 
-    $editUrl = InvoiceResource::getUrl('edit', ['record' => $invoice]);
+    $editUrl = ExpenseResource::getUrl('edit', ['record' => $invoice]);
     $editAction = TestAction::make('edit')->table($invoice);
 
     $table = Livewire::test(ReceiptUploadPage::class)
@@ -170,10 +170,10 @@ test('family member sees the recent upload edit action disabled for unsupported 
         ->where('family_member_id', $member->id)
         ->firstOrFail();
 
-    $ownInvoice = Invoice::factory()->create([
+    $ownInvoice = Expense::factory()->create([
         'family_member_id' => $member->id,
     ]);
-    $primaryInvoice = Invoice::factory()->create([
+    $primaryInvoice = Expense::factory()->create([
         'family_member_id' => null,
     ]);
 

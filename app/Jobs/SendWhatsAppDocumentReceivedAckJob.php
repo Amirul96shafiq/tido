@@ -61,24 +61,24 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
     {
         $key = WhatsAppDocumentReceivedDebouncer::cacheKey($this->senderNumber);
         $count = 0;
-        /** @var list<int> $invoiceIds */
-        $invoiceIds = [];
+        /** @var list<int> $expenseIds */
+        $expenseIds = [];
         /** @var list<array<string, mixed>> $documents */
         $documents = [];
 
         Cache::lock(WhatsAppDocumentReceivedDebouncer::lockKey($this->senderNumber), 5)
-            ->block(5, function () use ($key, &$count, &$invoiceIds, &$documents): void {
+            ->block(5, function () use ($key, &$count, &$expenseIds, &$documents): void {
                 $payload = Cache::get($key);
 
                 if (! is_array($payload) || ($payload['token'] ?? null) !== $this->token) {
                     return;
                 }
 
-                $invoiceIds = array_values(array_map(
+                $expenseIds = array_values(array_map(
                     static fn (mixed $id): int => (int) $id,
-                    $payload['invoice_ids'] ?? [],
+                    $payload['expense_ids'] ?? [],
                 ));
-                $count = max((int) ($payload['count'] ?? 0), count($invoiceIds));
+                $count = max((int) ($payload['count'] ?? 0), count($expenseIds));
                 $documents = array_values(array_filter(
                     $payload['documents'] ?? [],
                     static fn (mixed $document): bool => is_array($document),
@@ -96,9 +96,9 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
             WhatsAppMessage::documentReceived($count, $documents),
         );
 
-        foreach ($invoiceIds as $invoiceId) {
-            if ($invoiceId > 0) {
-                ExtractReceiptDataJob::dispatch($invoiceId);
+        foreach ($expenseIds as $expenseId) {
+            if ($expenseId > 0) {
+                ExtractReceiptDataJob::dispatch($expenseId);
             }
         }
     }

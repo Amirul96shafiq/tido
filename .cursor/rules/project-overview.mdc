@@ -7,7 +7,7 @@ alwaysApply: true
 
 Single-tenant personal hub. **Finances** is shipped (MYR expense & receipt tracking). **Training**, **Health**, and **Task** are planned dashboard modules (coming-soon placeholders). See `docs/dashboard-views.md`.
 
-Finances today: ingest receipts (WhatsApp image or text manual invoice, Google Drive, Filament upload), parse with local Ollama, categorize line items, detect duplicates, show budgets/analytics.
+Finances today: ingest receipts (WhatsApp image or text manual expense, Google Drive, Filament upload), parse with local Ollama, categorize line items, detect duplicates, show budgets/analytics.
 
 ## Naming
 
@@ -22,7 +22,7 @@ Prefer this over older version numbers in `docs/system-architecture.md`.
 
 ## Single-tenant household
 
-No multi-tenancy package. One Filament panel with **household roles** (`primary` vs `family_member`): Primary owns settings; login-enabled Family Members get limited Finances access. Receipts are attributed via `invoices.family_member_id` (**Uploaded By**). See `docs/household-access.md`.
+No multi-tenancy package. One Filament panel with **household roles** (`primary` vs `family_member`): Primary owns settings; login-enabled Family Members get limited Finances access. Receipts are attributed via `expenses.family_member_id` (**Uploaded By**). See `docs/household-access.md`.
 
 ## Agent entry points
 
@@ -44,7 +44,7 @@ No multi-tenancy package. One Filament panel with **household roles** (`primary`
 16. Service Status / health probes — `docs/service-status.md`
 17. Profile Active Sessions — `docs/active-sessions.md`
 18. Household access / family login / attribution — `docs/household-access.md`
-19. WhatsApp text manual invoices — `docs/whatsapp-manual-invoice.md`
+19. WhatsApp text manual expenses — `docs/whatsapp-manual-expense.md`
 20. WhatsApp bot commands / keywords — `docs/whatsapp-bot-commands.md`
 
 ## Do not

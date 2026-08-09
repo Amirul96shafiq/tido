@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Filament\Resources\Invoices\Pages\ListInvoices;
-use App\Models\Invoice;
+use App\Filament\Resources\Expenses\Pages\ListExpenses;
+use App\Models\Expense;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -14,13 +14,13 @@ beforeEach(function () {
 
     $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
 
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 });
 
 test('invoice list pagination per page uses filament searchable select', function () {
-    Invoice::factory()->count(12)->create();
+    Expense::factory()->count(12)->create();
 
-    $html = Livewire::test(ListInvoices::class)
+    $html = Livewire::test(ListExpenses::class)
         ->assertSuccessful()
         ->html();
 
@@ -39,9 +39,9 @@ test('invoice list pagination per page uses filament searchable select', functio
 });
 
 test('invoice list can change records per page via livewire property', function () {
-    Invoice::factory()->count(30)->create();
+    Expense::factory()->count(30)->create();
 
-    $component = Livewire::test(ListInvoices::class)
+    $component = Livewire::test(ListExpenses::class)
         ->assertSuccessful();
 
     expect($component->instance()->getTableRecords()->count())->toBe(10);

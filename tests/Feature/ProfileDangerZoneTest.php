@@ -6,7 +6,7 @@ use App\Enums\BackupType;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Models\Backup;
 use App\Models\Budget;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use App\Models\User;
@@ -73,8 +73,8 @@ test('exact phrase and password show reset cta and hide save', function () {
 });
 
 test('wrong password on reset data shows notification and does not wipe', function () {
-    Invoice::factory()->create();
-    $initialInvoiceCount = Invoice::query()->count();
+    Expense::factory()->create();
+    $initialInvoiceCount = Expense::query()->count();
 
     Livewire::test(EditProfile::class)
         ->set('data.enable_reset_data', true)
@@ -83,13 +83,13 @@ test('wrong password on reset data shows notification and does not wipe', functi
         ->callAction(formAction('resetData'))
         ->assertNotified('Incorrect password');
 
-    expect(Invoice::query()->count())->toBe($initialInvoiceCount);
+    expect(Expense::query()->count())->toBe($initialInvoiceCount);
 
     $this->assertAuthenticatedAs($this->user);
 });
 
 test('reset data wipes domain data keeps user system labels and backups', function () {
-    Invoice::factory(3)->create();
+    Expense::factory(3)->create();
     Budget::factory(2)->create();
 
     $systemLabelCount = Label::query()->where('is_system', true)->count();
@@ -119,7 +119,7 @@ test('reset data wipes domain data keeps user system labels and backups', functi
         ->callMountedAction()
         ->assertRedirect('/admin/login');
 
-    expect(Invoice::query()->count())->toBe(0)
+    expect(Expense::query()->count())->toBe(0)
         ->and(Budget::query()->count())->toBe(0)
         ->and(Label::query()->whereKey($userLabel->getKey())->exists())->toBeFalse()
         ->and(Label::query()->where('is_system', true)->count())->toBe($systemLabelCount)
@@ -227,13 +227,13 @@ test('disabling delete account toggle clears confirmation fields and hides cta',
 });
 
 test('account danger zone service wipe preserves backups table', function () {
-    Invoice::factory()->create();
+    Expense::factory()->create();
 
     $backup = Backup::factory()->create();
 
     app(AccountDangerZoneService::class)->wipeSharedAppData($this->user);
 
-    expect(Invoice::query()->count())->toBe(0)
+    expect(Expense::query()->count())->toBe(0)
         ->and(Backup::query()->whereKey($backup->getKey())->exists())->toBeTrue();
 });
 

@@ -176,7 +176,7 @@ Only Profile WhatsApp numbers plus Family Members with allowlist enabled are all
 Inbound handling — full command list: [whatsapp-bot-commands.md](whatsapp-bot-commands.md). Household roles / family login: [household-access.md](household-access.md).
 
 - **Image / PDF document** — receipt upload + OCR. Images are parsed directly; accepted PDFs are rendered page-by-page with Poppler before Ollama extraction. Non-PDF document types are ignored.
-- **Manual invoice text** — structured `merchant[, payment];` + line items (no image); see [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md)
+- **Manual expense text** — structured `merchant[, payment];` + line items (no image); see [whatsapp-manual-expense.md](whatsapp-manual-expense.md)
 - **`spend` / `total`** and sub-commands — spending analytics replies
 - **`manual`**, **`finance others`**, or other text — guides / help
 

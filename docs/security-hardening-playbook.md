@@ -12,7 +12,7 @@ Do not:
 
 - make application changes directly on `main`;
 - create a second backup or restore path outside `BackupService` and `AccountDangerZoneService`;
-- weaken `HouseholdAccess`, `InvoicePolicy`, or Primary-only gates to simplify a security test;
+- weaken `HouseholdAccess`, `ExpensePolicy`, or Primary-only gates to simplify a security test;
 - add a dependency or update a lockfile without explicit user approval;
 - expose a real secret, restore token, session identifier, raw receipt, full webhook payload, or unredacted upstream response in code, tests, docs, or logs;
 - mark a finding verified because a request returned `2xx`, a file was uploaded, a job was dispatched, or a UI control was hidden;
@@ -67,7 +67,7 @@ Prefer the existing Laravel boundary:
 | Security surface | Preferred implementation boundary |
 |------------------|------------------------------------|
 | Authentication/session | Filament auth page, session config, middleware, password/OTP service |
-| Household authorization | `HouseholdAccess`, `InvoicePolicy`, `RequiresPrimaryHouseholdAccess` |
+| Household authorization | `HouseholdAccess`, `ExpensePolicy`, `RequiresPrimaryHouseholdAccess` |
 | Webhook | Route middleware/Form Request/DTO, verifier service, queued job, idempotency store |
 | Guest restore | `GuestRestoreBackupRequest`, `GuestRestoreBackupController`, `BackupService` |
 | Backup | `BackupService`, `config/backup.php`, storage disk and retention configuration |
@@ -146,7 +146,7 @@ Use this map to locate the implementation context without broadening the selecte
 | `SEC-002` | `composer.json`, `composer.lock`, installed package metadata, Composer audit output |
 | `SEC-012`, `SEC-021`, `SEC-024`, `SEC-025` | `config/session.php`, `config/database.php`, `config/services.php`, `HorizonServiceProvider`, deployment/reverse-proxy documentation |
 | `SEC-013`, `SEC-014`, `SEC-015` | `routes/web.php`, `ChangelogHelper`, ignored debug artifacts, public disclosure policy |
-| `SEC-016`, `SEC-017`, `SEC-018`, `SEC-027` | [whatsapp-bot-commands.md](whatsapp-bot-commands.md), [whatsapp-manual-invoice.md](whatsapp-manual-invoice.md), media/manual jobs, `OllamaService`, receipt tests |
+| `SEC-016`, `SEC-017`, `SEC-018`, `SEC-027` | [whatsapp-bot-commands.md](whatsapp-bot-commands.md), [whatsapp-manual-expense.md](whatsapp-manual-expense.md), media/manual jobs, `OllamaService`, receipt tests |
 | `SEC-019`, `SEC-020`, `SEC-026` | [active-sessions.md](active-sessions.md), [household-access.md](household-access.md), Filament login/OTP/password-reset pages and tests |
 | `SEC-022`, `SEC-023` | [service-status.md](service-status.md), health probes, models, resources, policies, and authorization tests |
 

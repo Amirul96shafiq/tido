@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\ReceiptUploadPage;
-use App\Filament\Resources\Invoices\Pages\ListInvoices;
+use App\Filament\Resources\Expenses\Pages\ListExpenses;
 use App\Filament\Resources\PaymentMethods\Pages\ListPaymentMethods;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\PaymentMethod;
 use App\Models\User;
 use Database\Seeders\PaymentMethodSeeder;
@@ -29,16 +29,16 @@ test('payment methods table shows aliases as comma separated text', function () 
 });
 
 test('invoice table shows payment method labels for qr and touch n go', function () {
-    $qrInvoice = Invoice::factory()->create([
+    $qrInvoice = Expense::factory()->create([
         'payment_method_id' => PaymentMethod::findBySlug('pay_with_qr')->id,
         'merchant_name' => 'QR Merchant',
     ]);
-    $tngInvoice = Invoice::factory()->create([
+    $tngInvoice = Expense::factory()->create([
         'payment_method_id' => PaymentMethod::findBySlug('touchngo')->id,
         'merchant_name' => 'TNG Merchant',
     ]);
 
-    Livewire::test(ListInvoices::class)
+    Livewire::test(ListExpenses::class)
         ->assertSuccessful()
         ->toggleAllTableColumns()
         ->assertCanSeeTableRecords([$qrInvoice, $tngInvoice])
@@ -47,11 +47,11 @@ test('invoice table shows payment method labels for qr and touch n go', function
 });
 
 test('upload receipts table shows payment method labels for qr and touch n go', function () {
-    $qrInvoice = Invoice::factory()->create([
+    $qrInvoice = Expense::factory()->create([
         'payment_method_id' => PaymentMethod::findBySlug('pay_with_qr')->id,
         'original_filename' => 'qr_receipt.jpg',
     ]);
-    $tngInvoice = Invoice::factory()->create([
+    $tngInvoice = Expense::factory()->create([
         'payment_method_id' => PaymentMethod::findBySlug('touchngo')->id,
         'original_filename' => 'tng_receipt.jpg',
     ]);

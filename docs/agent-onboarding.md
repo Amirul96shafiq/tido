@@ -19,18 +19,18 @@ Activate the relevant skill when the task matches your domain.
 | **Health** | Coming soon |
 | **Task** | Coming soon |
 
-**Finances** (shipped today) uses **Malaysian Ringgit (MYR)** for canonical reporting. It ingests receipt **images**, WhatsApp **PDF documents**, and WhatsApp **text manual invoices**, detects printed source currency with a **local Ollama** model, converts foreign receipt amounts using a date-specific exchange-rate provider, categorizes line items as **Labels** (model: `Label`), tracks **Budgets**, and surfaces analytics. Sidebar nav group **Finances** (Upload Receipts, Invoices, Budgets) is the CRUD surface for that module — distinct from the dashboard view tabs.
+**Finances** (shipped today) uses **Malaysian Ringgit (MYR)** for canonical reporting. It ingests receipt **images**, WhatsApp **PDF documents**, and WhatsApp **text manual expenses**, detects printed source currency with a **local Ollama** model, converts foreign receipt amounts using a date-specific exchange-rate provider, categorizes line items as **Labels** (model: `Label`), tracks **Budgets**, and surfaces analytics. Sidebar nav group **Finances** (Upload Receipts, Expenses, Budgets) is the CRUD surface for that module — distinct from the dashboard view tabs.
 
 Primary Finances ingestion paths:
 
 | Channel | Entry | Creates |
 |---------|-------|---------|
-| WhatsApp image | `POST /api/webhooks/whatsapp` | Pending `Invoice` → vision OCR |
-| WhatsApp PDF | same webhook (`application/pdf`) | Validated/stored pending `Invoice` → Poppler page rendering → page extraction + merge |
-| WhatsApp manual text | same webhook (fixed text format) | Pending `Invoice` (no image) → label job → `requires_manual_review` |
-| Google Drive | `SyncGoogleDriveJob` (every 15m) | Pending `Invoice` |
-| UI upload | `ReceiptUploadPage` | Pending `Invoice` |
-| Manual CRUD | `InvoiceResource` | Invoice (may still trigger observer) |
+| WhatsApp image | `POST /api/webhooks/whatsapp` | Pending `Expense` → vision OCR |
+| WhatsApp PDF | same webhook (`application/pdf`) | Validated/stored pending `Expense` → Poppler page rendering → page extraction + merge |
+| WhatsApp manual text | same webhook (fixed text format) | Pending `Expense` (no image) → label job → `requires_manual_review` |
+| Google Drive | `SyncGoogleDriveJob` (every 15m) | Pending `Expense` |
+| UI upload | `ReceiptUploadPage` | Pending `Expense` |
+| Manual CRUD | `ExpenseResource` | Expense (may still trigger observer) |
 
 Default login (seeded): `admin@tido.local` / `password`.
 
@@ -44,7 +44,7 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 4. Dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md`
 5. Domain skill: activate the `tido-domain` skill surfaced by the active agent (+ its `pipeline.md` when touching OCR/webhooks) — Finances domain
 6. Framework skills surfaced by the active agent: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
-7. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-bot-commands.md`, `docs/whatsapp-manual-invoice.md`, `docs/google-drive-setup.md`
+7. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-bot-commands.md`, `docs/whatsapp-manual-expense.md`, `docs/google-drive-setup.md`
 8. UI empty panels: `docs/ui-empty-states.md`
 9. Modal blur / width: `docs/ui-modal-overlay.md`
 10. Vite panel assets (`Vite::asset` vs `@vite`, when to `npm run build`): `docs/vite-assets.md`
@@ -71,14 +71,14 @@ Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage)
 
 ```
 app/
-  Models/           Invoice, InvoiceItem, Label, PaymentMethod, Budget, FamilyMember, User, ContentDraft, Backup, ServiceHealthSample; Concerns/TracksResourceEdits.php
+  Models/           Expense, ExpenseItem, Label, PaymentMethod, Budget, FamilyMember, User, ContentDraft, Backup, ServiceHealthSample; Concerns/TracksResourceEdits.php
   Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support, Livewire
   Services/         Ollama, Currency exchange/conversion, GoogleDrive, WhatsApp, PdfPageInspector, PdfPageRenderer, ReceiptDocumentPreparer, BudgetAlert, SpendingForecast, FamilyMemberLoginService, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
-  Jobs/             ExtractReceiptDataJob, ProcessWhatsAppMediaJob, ProcessManualWhatsAppInvoiceJob, ParseManualWhatsAppInvoiceJob, SyncGoogleDriveJob, …
-  Observers/        InvoiceObserver, FamilyMemberObserver
-  Policies/         InvoicePolicy (household mutate ACL)
-  Prompts/          ReceiptExtractionPrompt, PdfReceiptPagePrompt, PdfReceiptMergePrompt, ManualInvoiceLabelPrompt
-  Support/          HouseholdAccess, DashboardSpenderScope, InvoiceSenderAttribution, ManualWhatsAppInvoiceParser, WhatsAppLid, WhatsAppMessage, …
+  Jobs/             ExtractReceiptDataJob, ProcessWhatsAppMediaJob, ProcessManualWhatsAppExpenseJob, ParseManualWhatsAppExpenseJob, SyncGoogleDriveJob, …
+  Observers/        ExpenseObserver, FamilyMemberObserver
+  Policies/         ExpensePolicy (household mutate ACL)
+  Prompts/          ReceiptExtractionPrompt, PdfReceiptPagePrompt, PdfReceiptMergePrompt, ManualExpenseLabelPrompt
+  Support/          HouseholdAccess, DashboardSpenderScope, ExpenseSenderAttribution, ManualWhatsAppExpenseParser, WhatsAppLid, WhatsAppMessage, …
   Enums/            HouseholdRole, LabelType, UserLocale, UserDateFormat, MonitoredService, ServiceHealthStatus
   Http/Controllers/ Api webhooks, BackupDownload, GuestRestoreBackup
 routes/
@@ -97,19 +97,23 @@ docs/               architecture + integration setup + this file
 
 | Concept | Truth in code |
 |---------|----------------|
+| Expense | **`Expense`** model / `expenses` table — spending record (Filament **Expenses** CRUD) |
+| Expense item | **`ExpenseItem`** / `expense_items` — line items; FK `expense_id` |
+| Receipt | Uploaded document / ingestion vocabulary (`ReceiptUploadPage`, `receipt_hash`, OCR pipeline) — not the model name |
+| `invoice_number` | Printed bill/invoice # from OCR (column + UI label **Invoice number**) — not the record PK |
 | Category | **`Label`** model / `labels` table (UI: **Label** / **Labels**) |
 | Payment method | **`PaymentMethod`** model / `payment_methods` table (Settings CRUD; AI/WhatsApp via aliases) |
 | Family member | **`FamilyMember`** model / `family_members` table (Settings CRUD; bot allowlist + optional panel login) |
-| Uploaded By | Invoice `family_member_id` — null = Primary; set from WhatsApp sender or acting user — `docs/household-access.md` |
+| Uploaded By | Expense `family_member_id` — null = Primary; set from WhatsApp sender or acting user — `docs/household-access.md` |
 | WhatsApp identity | Classic phone JIDs resolve by phone; `@lid` identities resolve through `whatsapp_lid` after primary linking in Evolution API |
 | Receipt document | `image_path` stores the original image/PDF; `file_mime_type`, `file_page_count`, `original_filename`, and unique `whatsapp_message_id` preserve media metadata |
-| Money | Canonical reporting values are `decimal(12,2)` in `MYR`, cast `decimal:2`, UI `RM`; foreign source currency, original total, rate, effective date, provider, fetch time, and conversion status remain auditable on `Invoice` |
+| Money | Canonical reporting values are `decimal(12,2)` in `MYR`, cast `decimal:2`, UI `RM`; foreign source currency, original total, rate, effective date, provider, fetch time, and conversion status remain auditable on `Expense` |
 | Duplicate | `receipt_hash` SHA-256 of number + datetime + total |
 | Statuses | `pending`, `parsed`, `reviewed`, `requires_manual_review`, `failed` |
 | Auth | Filament session; household roles (`HouseholdRole`); no Spatie Permission; no tenancy |
 | Panel | `AdminPanelProvider` only — path `admin`; family members get limited Finances access |
 
-Relationships: Invoice `hasMany` InvoiceItems; Invoice `belongsTo` FamilyMember (optional); InvoiceItem `belongsTo` Label; Budget `belongsTo` Label; FamilyMember `hasOne` login User.
+Relationships: Expense `hasMany` ExpenseItems; Expense `belongsTo` FamilyMember (optional); ExpenseItem `belongsTo` Label; Budget `belongsTo` Label; FamilyMember `hasOne` login User.
 
 ## 5. How to implement features
 
@@ -135,7 +139,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 5. Filter and Column Manager triggers also get Tippy tooltips globally via `filtersTriggerAction` / `columnManagerTriggerAction` in `AppServiceProvider`
 6. List-page “New …” CTAs use a plus Heroicon panel-wide (`AppServiceProvider` → `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`); new List pages only need `CreateAction::make()`
 7. Edit pages: use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the title ends with the singular model label (see the Filament conventions surfaced by the active agent)
-8. Nav groups: Finances (Upload Receipts, Invoices, Budgets) / Settings (Labels, Payment Methods, Family Members) / Integrations (Evolution API) / Tools (Backups, Service Status) — Tools last. Home dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md` (not sidebar groups)
+8. Nav groups: Finances (Upload Receipts, Expenses, Budgets) / Settings (Labels, Payment Methods, Family Members) / Integrations (Evolution API) / Tools (Backups, Service Status) — Tools last. Home dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md` (not sidebar groups)
 9. Breadcrumbs use Filament native defaults plus `App\Filament\Concerns\PrependsHomeBreadcrumb` (Home → resource → page). Do not disable panel-wide or add a custom “Go back to table” header. New pages must use the trait; Create/Edit pages also register in the `PAGE_END` draft-poller scopes.
 10. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
 11. Resource tables use `updated_at` for **Edited At** (`->since()->dateTimeTooltip()` with relative time + full datetime on hover), default newest-first ordering, and **Edited By** for the latest authenticated editor (`display_name` → `name` fallback). See `docs/resource-edit-audit.md`.
@@ -210,9 +214,9 @@ php artisan test --compact --filter=YourTest
 
 - Calling categories “Category” in new code — use **Label** / **Labels**
 - Hitting live Ollama in Pest — use `Http::fake()`
-- Forgetting `InvoiceObserver` side effects when creating invoices in tests — use `Queue::fake()` or `unsetEventDispatcher()` when appropriate
+- Forgetting `ExpenseObserver` side effects when creating invoices in tests — use `Queue::fake()` or `unsetEventDispatcher()` when appropriate
 - Assuming multi-tenancy or Spatie roles — single household; use `HouseholdAccess` / `HouseholdRole` — see `docs/household-access.md`
-- Letting family members mutate invoices they did not upload — gate with `HouseholdAccess::canMutateInvoice()` / `InvoicePolicy`
+- Letting family members mutate invoices they did not upload — gate with `HouseholdAccess::canMutateExpense()` / `ExpensePolicy`
 - Editing architecture (new ingestion channel, schema) without checking `docs/system-architecture.md`
 - Horizon `viewHorizon` gate empty allowlist — configure before relying on `/horizon` in prod
 - Using browser `title=` on icon CTAs instead of Filament Tippy — see `docs/ui-tooltips.md`

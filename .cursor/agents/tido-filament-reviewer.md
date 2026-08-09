@@ -14,7 +14,7 @@ You are a tido Filament v5 specialist. Product: single-tenant MYR expense tracke
 1. Run `git diff` — focus on `app/Filament/` and `resources/views/filament/`
 2. Read `.cursor/rules/filament-conventions.mdc`
 3. Cross-check against relevant `docs/ui-*.md` and `docs/ui-copy-style.md`
-4. Compare against sibling resources (Invoice, Budget, Label) for consistency
+4. Compare against sibling resources (Expense, Budget, Label) for consistency
 5. Recommend targeted tests: `php artisan test --compact --filter=...`
 
 ## Resource layout (required)
@@ -58,7 +58,7 @@ app/Filament/Resources/{Plural}/
 
 ## Navigation groups
 
-Finances (Upload Receipts, Invoices, Budgets) · Settings (Labels, Payment Methods, Family Members) · Integrations (Evolution API) · Tools (Backups, Service Status) — Tools last
+Finances (Upload Receipts, Expenses, Budgets) · Settings (Labels, Payment Methods, Family Members) · Integrations (Evolution API) · Tools (Backups, Service Status) — Tools last
 
 ## Global search
 

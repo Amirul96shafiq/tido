@@ -2735,7 +2735,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
 /* Section nav — offset topbar + sticky tab bar when scrolling to hash. */
 .fi-profile-page .fi-sc-section[id],
-.fi-invoice-form-page .fi-sc-section[id],
+.fi-expense-form-page .fi-sc-section[id],
 .fi-budget-form-page .fi-sc-section[id],
 .fi-label-form-page .fi-sc-section[id],
 .fi-payment-method-form-page .fi-sc-section[id],
@@ -3008,15 +3008,15 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
         order: 2;
     }
 
-    .fi-invoice-form-page
+    .fi-expense-form-page
         .fi-sc-form
-        .fi-grid-col:has(.fi-invoice-sidebar-sticky) {
+        .fi-grid-col:has(.fi-expense-sidebar-sticky) {
         order: 1;
     }
 
-    .fi-invoice-form-page
+    .fi-expense-form-page
         .fi-sc-form
-        .fi-grid-col:has(.fi-invoice-main-column) {
+        .fi-grid-col:has(.fi-expense-main-column) {
         order: 2;
     }
 
@@ -3163,7 +3163,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     /* overflow-x-clip on .fi-layout breaks position: sticky for descendants */
     .fi-layout:has(.fi-profile-page),
     .fi-layout:has(.fi-budget-form-page),
-    .fi-layout:has(.fi-invoice-form-page),
+    .fi-layout:has(.fi-expense-form-page),
     .fi-layout:has(.fi-label-form-page),
     .fi-layout:has(.fi-payment-method-form-page),
     .fi-layout:has(.fi-family-member-form-page),
@@ -3177,9 +3177,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     .fi-budget-form-page
         .fi-sc-form
         .fi-grid-col:has(.fi-budget-sidebar-sticky),
-    .fi-invoice-form-page
+    .fi-expense-form-page
         .fi-sc-form
-        .fi-grid-col:has(.fi-invoice-sidebar-sticky),
+        .fi-grid-col:has(.fi-expense-sidebar-sticky),
     .fi-label-form-page .fi-sc-form .fi-grid-col:has(.fi-label-sidebar-sticky),
     .fi-payment-method-form-page
         .fi-sc-form
@@ -3201,9 +3201,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     .fi-budget-form-page
         .fi-sc-form
         .fi-grid-col:has(.fi-budget-sidebar-sticky),
-    .fi-invoice-form-page
+    .fi-expense-form-page
         .fi-sc-form
-        .fi-grid-col:has(.fi-invoice-sidebar-sticky),
+        .fi-grid-col:has(.fi-expense-sidebar-sticky),
     .fi-label-form-page .fi-sc-form .fi-grid-col:has(.fi-label-sidebar-sticky),
     .fi-payment-method-form-page
         .fi-sc-form

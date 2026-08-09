@@ -5,8 +5,8 @@ declare(strict_types=1);
 use App\Jobs\SendDeferredWhatsAppBudgetAlertJob;
 use App\Jobs\SendWhatsAppDocumentParsedJob;
 use App\Models\Budget;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\Label;
 use App\Models\User;
 use App\Services\BudgetAlertService;
@@ -50,7 +50,7 @@ test('whatsapp parsed status does not send budget alert synchronously from obser
         'is_active' => true,
     ]);
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'source' => 'whatsapp',
         'whatsapp_sender' => '60123456789',
         'status' => 'pending',
@@ -58,8 +58,8 @@ test('whatsapp parsed status does not send budget alert synchronously from obser
         'total_amount' => 90,
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $invoice->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -78,7 +78,7 @@ test('document parsed job queues deferred budget alert after whatsapp reply', fu
 
     User::factory()->create(['phone' => '60123456789']);
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'source' => 'whatsapp',
         'whatsapp_sender' => '60123456789',
         'status' => 'parsed',
@@ -94,7 +94,7 @@ test('document parsed job queues deferred budget alert after whatsapp reply', fu
 
     Queue::assertPushed(SendDeferredWhatsAppBudgetAlertJob::class, function (SendDeferredWhatsAppBudgetAlertJob $job) use ($invoice): bool {
         return $job->senderNumber === '60123456789'
-            && $job->invoiceId === $invoice->id;
+            && $job->expenseId === $invoice->id;
     });
 });
 
@@ -115,7 +115,7 @@ test('deferred budget alert waits while sender still has pending whatsapp invoic
         'is_active' => true,
     ]);
 
-    $parsed = Invoice::factory()->create([
+    $parsed = Expense::factory()->create([
         'source' => 'whatsapp',
         'whatsapp_sender' => '60123456789',
         'status' => 'parsed',
@@ -123,8 +123,8 @@ test('deferred budget alert waits while sender still has pending whatsapp invoic
         'total_amount' => 90,
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $parsed->id,
+    ExpenseItem::create([
+        'expense_id' => $parsed->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -132,7 +132,7 @@ test('deferred budget alert waits while sender still has pending whatsapp invoic
         'line_total' => 90.00,
     ]);
 
-    Invoice::factory()->create([
+    Expense::factory()->create([
         'source' => 'whatsapp',
         'whatsapp_sender' => '60123456789',
         'status' => 'pending',
@@ -167,7 +167,7 @@ test('deferred budget alert sends after all sender pending invoices are gone', f
         'is_active' => true,
     ]);
 
-    $parsed = Invoice::factory()->create([
+    $parsed = Expense::factory()->create([
         'source' => 'whatsapp',
         'whatsapp_sender' => '60123456789',
         'status' => 'parsed',
@@ -175,8 +175,8 @@ test('deferred budget alert sends after all sender pending invoices are gone', f
         'total_amount' => 90,
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $parsed->id,
+    ExpenseItem::create([
+        'expense_id' => $parsed->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,

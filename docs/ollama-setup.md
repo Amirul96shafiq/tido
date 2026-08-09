@@ -10,7 +10,7 @@ Run Ollama on the Windows host so tido can parse receipt images and rendered PDF
 | Poppler | Windows command-line tools | `pdfinfo` page inspection + `pdftotext` currency text extraction + `pdftocairo` PDF-to-JPEG rendering |
 | tido | `npm run dev:full` | Vite + `artisan serve` + queue worker |
 
-Upload → pending `Invoice` → `ExtractReceiptDataJob` → `OllamaService` → `POST /api/generate` → status `parsed`.
+Upload → pending `Expense` → `ExtractReceiptDataJob` → `OllamaService` → `POST /api/generate` → status `parsed`.
 
 ---
 
@@ -110,7 +110,7 @@ That starts Vite, `php artisan serve` (port 2000), and `queue:listen` on `defaul
 ## Step 5: Smoke test
 
 1. Open Filament → **Upload Receipts** and upload a receipt image, or send an image/PDF from an allowlisted WhatsApp number.
-2. Open the invoice: status should move from `pending` → `parsed` with merchant / amounts / line items.
+2. Open the expense: status should move from `pending` → `parsed` with merchant / amounts / line items.
 3. If status stays `pending`, the queue worker is not running.
 4. If status becomes `requires_manual_review`, check `storage/logs/laravel.log` for Ollama connection or HTTP errors.
 

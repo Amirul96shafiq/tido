@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Models\Budget;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\Label;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,7 +35,7 @@ test('budget alert service triggers alerts on threshold breach', function () {
         'is_active' => true,
     ]);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-111',
         'date_time' => now(),
@@ -47,8 +47,8 @@ test('budget alert service triggers alerts on threshold breach', function () {
         'status' => 'pending',
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $invoice->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -97,7 +97,7 @@ test('budget alert service skips users who opted out of budget alerts', function
         'is_active' => true,
     ]);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-222',
         'date_time' => now(),
@@ -109,8 +109,8 @@ test('budget alert service skips users who opted out of budget alerts', function
         'status' => 'pending',
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $invoice->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -149,7 +149,7 @@ test('budget alert service sends critical notification at critical threshold', f
         'is_active' => true,
     ]);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-333',
         'date_time' => now(),
@@ -161,8 +161,8 @@ test('budget alert service sends critical notification at critical threshold', f
         'status' => 'pending',
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $invoice->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -209,7 +209,7 @@ test('budget alert service skips whatsapp when notify_whatsapp is false', functi
         'is_active' => true,
     ]);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-444',
         'date_time' => now(),
@@ -221,8 +221,8 @@ test('budget alert service skips whatsapp when notify_whatsapp is false', functi
         'status' => 'pending',
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $invoice->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -264,7 +264,7 @@ test('budget alert service skips filament when notify_filament is false', functi
         'is_active' => true,
     ]);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-555',
         'date_time' => now(),
@@ -276,8 +276,8 @@ test('budget alert service skips filament when notify_filament is false', functi
         'status' => 'pending',
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $invoice->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -317,7 +317,7 @@ test('budget alert service notifies only the primary admin even when other users
         'is_active' => true,
     ]);
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-666',
         'date_time' => now(),
@@ -329,8 +329,8 @@ test('budget alert service notifies only the primary admin even when other users
         'status' => 'pending',
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::create([
+        'expense_id' => $invoice->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -370,7 +370,7 @@ test('budget alert service does not re-alert the same budget level in the same p
         'is_active' => true,
     ]);
 
-    $first = Invoice::create([
+    $first = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-777',
         'date_time' => now(),
@@ -382,8 +382,8 @@ test('budget alert service does not re-alert the same budget level in the same p
         'status' => 'pending',
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $first->id,
+    ExpenseItem::create([
+        'expense_id' => $first->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -397,7 +397,7 @@ test('budget alert service does not re-alert the same budget level in the same p
 
     $first->update(['status' => 'parsed']);
 
-    $second = Invoice::create([
+    $second = Expense::create([
         'merchant_name' => 'Starbucks',
         'invoice_number' => 'INV-778',
         'date_time' => now(),
@@ -409,8 +409,8 @@ test('budget alert service does not re-alert the same budget level in the same p
         'status' => 'pending',
     ]);
 
-    InvoiceItem::create([
-        'invoice_id' => $second->id,
+    ExpenseItem::create([
+        'expense_id' => $second->id,
         'label_id' => $label->id,
         'description' => 'Coffee',
         'quantity' => 1,

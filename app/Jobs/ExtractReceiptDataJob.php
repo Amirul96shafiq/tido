@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Prompts\PdfReceiptMergePrompt;
 use App\Prompts\PdfReceiptPagePrompt;
 use App\Prompts\ReceiptExtractionPrompt;
@@ -40,7 +40,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         return [30, 60, 120];
     }
 
-    public function __construct(public int $invoiceId)
+    public function __construct(public int $expenseId)
     {
         $this->onQueue('receipts');
     }
@@ -54,22 +54,22 @@ class ExtractReceiptDataJob implements ShouldQueue
         CurrencyConversionService $currencyConversionService,
         ReceiptCurrencyDetector $currencyDetector,
     ): void {
-        $invoice = Invoice::find($this->invoiceId);
+        $invoice = Expense::find($this->expenseId);
 
         if (! $invoice || $invoice->status !== 'pending') {
             return;
         }
 
         if (empty($invoice->image_path)) {
-            Log::info('ExtractReceiptDataJob skipped: invoice has no image (manual text invoice)', [
-                'invoice_id' => $this->invoiceId,
+            Log::info('ExtractReceiptDataJob skipped: expense has no image (manual text expense)', [
+                'expense_id' => $this->expenseId,
             ]);
 
             return;
         }
 
         if (! Storage::exists($invoice->image_path)) {
-            Log::error('Invoice image path does not exist', ['invoice_id' => $this->invoiceId]);
+            Log::error('Expense image path does not exist', ['expense_id' => $this->expenseId]);
             $invoice->update(['status' => 'failed']);
 
             return;
@@ -95,8 +95,8 @@ class ExtractReceiptDataJob implements ShouldQueue
         $normalized['currency'] = $currencyDetection['currency'];
 
         Log::info('Receipt currency detected from document content', [
-            'invoice_id' => $invoice->id,
-            'currency' => $currencyDetection['currency'] ?? Invoice::CURRENCY_UNKNOWN,
+            'expense_id' => $invoice->id,
+            'currency' => $currencyDetection['currency'] ?? Expense::CURRENCY_UNKNOWN,
             'source' => $currencyDetection['source'],
             'rate_source' => $currencyDetection['rate_source'] ?? null,
         ]);
@@ -116,10 +116,10 @@ class ExtractReceiptDataJob implements ShouldQueue
         $invoice->discount_total = $normalized['discount_total'];
         $invoice->rounding_amount = $normalized['rounding_amount'];
         $invoice->total_amount = $normalized['total_amount'];
-        $invoice->currency = $normalized['currency'] ?? Invoice::CURRENCY_UNKNOWN;
+        $invoice->currency = $normalized['currency'] ?? Expense::CURRENCY_UNKNOWN;
         $invoice->original_currency = $normalized['currency'];
         $invoice->original_total_amount = $normalized['total_amount'];
-        $invoice->currency_conversion_status = Invoice::CONVERSION_PENDING;
+        $invoice->currency_conversion_status = Expense::CONVERSION_PENDING;
         $invoice->currency_conversion_rate = null;
         $invoice->currency_conversion_date = null;
         $invoice->currency_conversion_provider = null;
@@ -154,7 +154,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         $invoice->discount_total = $normalized['discount_total'];
         $invoice->rounding_amount = $normalized['rounding_amount'];
         $invoice->total_amount = $normalized['total_amount'];
-        $invoice->currency = Invoice::CURRENCY_MYR;
+        $invoice->currency = Expense::CURRENCY_MYR;
         $invoice->original_currency = $metadata['original_currency'];
         $invoice->original_total_amount = $metadata['original_total_amount'];
         $invoice->currency_conversion_status = $metadata['currency_conversion_status'];
@@ -173,11 +173,11 @@ class ExtractReceiptDataJob implements ShouldQueue
         $invoice->receipt_hash = $this->uniqueReceiptHash($invoice);
         $invoice->save();
 
-        $invoice->invoiceItems()->delete();
+        $invoice->expenseItems()->delete();
 
         foreach ($normalized['items'] as $item) {
-            InvoiceItem::create([
-                'invoice_id' => $invoice->id,
+            ExpenseItem::create([
+                'expense_id' => $invoice->id,
                 'label_id' => $labelMatcher->matchId($item['label']),
                 'description' => $item['description'],
                 'quantity' => $item['quantity'],
@@ -189,8 +189,8 @@ class ExtractReceiptDataJob implements ShouldQueue
 
         $this->notifyWhatsAppParsed($invoice);
 
-        Log::info('Invoice parsed successfully via AI pipeline', [
-            'invoice_id' => $invoice->id,
+        Log::info('Expense parsed successfully via AI pipeline', [
+            'expense_id' => $invoice->id,
             'status' => $invoice->status,
         ]);
     }
@@ -231,24 +231,24 @@ class ExtractReceiptDataJob implements ShouldQueue
 
     public function failed(\Throwable $exception): void
     {
-        $invoice = Invoice::find($this->invoiceId);
+        $invoice = Expense::find($this->expenseId);
         if ($invoice) {
             $updates = ['status' => 'requires_manual_review'];
 
-            if ($invoice->currency_conversion_status === Invoice::CONVERSION_PENDING) {
-                $updates['currency_conversion_status'] = Invoice::CONVERSION_FAILED;
+            if ($invoice->currency_conversion_status === Expense::CONVERSION_PENDING) {
+                $updates['currency_conversion_status'] = Expense::CONVERSION_FAILED;
             }
 
             $invoice->update($updates);
         }
 
         Log::error('ExtractReceiptDataJob failed after maximum retries', [
-            'invoice_id' => $this->invoiceId,
+            'expense_id' => $this->expenseId,
             'error' => $exception->getMessage(),
         ]);
     }
 
-    protected function notifyWhatsAppParsed(Invoice $invoice): void
+    protected function notifyWhatsAppParsed(Expense $invoice): void
     {
         if ($invoice->source !== 'whatsapp' || blank($invoice->whatsapp_sender)) {
             return;
@@ -281,18 +281,18 @@ class ExtractReceiptDataJob implements ShouldQueue
     }
 
     protected function markCurrencyConversionFailure(
-        Invoice $invoice,
+        Expense $invoice,
         CurrencyConversionException $exception,
     ): void {
-        $invoice->currency_conversion_status = Invoice::CONVERSION_FAILED;
+        $invoice->currency_conversion_status = Expense::CONVERSION_FAILED;
         $invoice->status = 'requires_manual_review';
         $invoice->notes = $this->appendCurrencyReviewNote($invoice->notes);
         $invoice->receipt_hash = $this->uniqueReceiptHash($invoice);
         $invoice->save();
 
-        Log::warning('Invoice currency conversion requires manual review', [
-            'invoice_id' => $invoice->id,
-            'currency' => $invoice->original_currency ?? Invoice::CURRENCY_UNKNOWN,
+        Log::warning('Expense currency conversion requires manual review', [
+            'expense_id' => $invoice->id,
+            'currency' => $invoice->original_currency ?? Expense::CURRENCY_UNKNOWN,
             'reason' => $exception->getMessage(),
         ]);
     }
@@ -311,7 +311,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         return $notes === '' ? $markerHtml : $notes.$markerHtml;
     }
 
-    protected function uniqueReceiptHash(Invoice $invoice): string
+    protected function uniqueReceiptHash(Expense $invoice): string
     {
         $dateTimeStr = $invoice->date_time->format('Y-m-d H:i:s');
 
@@ -321,7 +321,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         );
 
         // Soft-deleted rows still occupy the unique index; include them in the collision check.
-        $collision = Invoice::withTrashed()
+        $collision = Expense::withTrashed()
             ->where('receipt_hash', $base)
             ->where('id', '!=', $invoice->id)
             ->exists();

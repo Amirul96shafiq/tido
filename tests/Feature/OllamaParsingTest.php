@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Jobs\ExtractReceiptDataJob;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Services\OllamaService;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
@@ -51,7 +51,7 @@ test('extract receipt data job processes mock response and updates status', func
     Storage::fake('local');
     Storage::put('receipts/mock.jpg', 'fake-image-content');
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -107,7 +107,7 @@ test('extract receipt data job processes mock response and updates status', func
     expect($invoice->discount_total)->toBe('0.50');
     expect($invoice->rounding_amount)->toBe('-0.01');
     expect($invoice->paymentMethod->slug)->toBe('mastercard');
-    expect($invoice->invoiceItems)->toHaveCount(1);
-    expect($invoice->invoiceItems->first()->description)->toBe('2-pc Chicken Meal');
-    expect($invoice->invoiceItems->first()->label->name)->toBe('Food & Dining');
+    expect($invoice->expenseItems)->toHaveCount(1);
+    expect($invoice->expenseItems->first()->description)->toBe('2-pc Chicken Meal');
+    expect($invoice->expenseItems->first()->label->name)->toBe('Food & Dining');
 });

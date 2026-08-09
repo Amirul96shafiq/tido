@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Filament\Resources\Invoices\Pages\ListInvoices;
-use App\Models\Invoice;
+use App\Filament\Resources\Expenses\Pages\ListExpenses;
+use App\Models\Expense;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -16,10 +16,10 @@ beforeEach(function (): void {
 });
 
 test('table filters apply live without deferred apply action', function () {
-    $pending = Invoice::factory()->create(['status' => 'pending']);
-    $parsed = Invoice::factory()->create(['status' => 'parsed']);
+    $pending = Expense::factory()->create(['status' => 'pending']);
+    $parsed = Expense::factory()->create(['status' => 'parsed']);
 
-    $component = Livewire::test(ListInvoices::class)
+    $component = Livewire::test(ListExpenses::class)
         ->assertSuccessful()
         ->assertSeeHtml('wire:poll.10s.visible')
         ->assertCanSeeTableRecords([$pending, $parsed]);

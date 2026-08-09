@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Jobs\ExtractReceiptDataJob;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Services\ReceiptReparseService;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
@@ -20,7 +20,7 @@ test('extract receipt data job flags mismatched amounts for manual review', func
     Storage::fake('local');
     Storage::put('receipts/mock.jpg', 'fake-image-content');
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -76,7 +76,7 @@ test('extract receipt data job flags mismatched amounts for manual review', func
     expect($invoice->status)->toBe('requires_manual_review')
         ->and($invoice->paymentMethod->slug)->toBe('other')
         ->and($invoice->date_time->format('Y-m-d'))->toBe('2026-07-14')
-        ->and($invoice->invoiceItems)->toHaveCount(2);
+        ->and($invoice->expenseItems)->toHaveCount(2);
 });
 
 test('receipt reparse service clears items and dispatches extraction job', function () {
@@ -84,16 +84,16 @@ test('receipt reparse service clears items and dispatches extraction job', funct
     Storage::fake('local');
     Storage::put('receipts/mock.jpg', 'fake-image-content');
 
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'status' => 'parsed',
         'image_path' => 'receipts/mock.jpg',
         'merchant_name' => 'Old Merchant',
     ]);
 
-    InvoiceItem::factory()->create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::factory()->create([
+        'expense_id' => $invoice->id,
         'description' => 'Old item',
     ]);
 
@@ -102,10 +102,10 @@ test('receipt reparse service clears items and dispatches extraction job', funct
     $invoice->refresh();
 
     expect($invoice->status)->toBe('pending')
-        ->and($invoice->invoiceItems)->toHaveCount(0);
+        ->and($invoice->expenseItems)->toHaveCount(0);
 
     Queue::assertPushed(ExtractReceiptDataJob::class, function (ExtractReceiptDataJob $job) use ($invoice): bool {
-        return $job->invoiceId === $invoice->id;
+        return $job->expenseId === $invoice->id;
     });
 });
 
@@ -114,9 +114,9 @@ test('receipts reparse command queues invoice by id', function () {
     Storage::fake('local');
     Storage::put('receipts/mock.jpg', 'fake-image-content');
 
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'status' => 'parsed',
         'image_path' => 'receipts/mock.jpg',
     ]);
@@ -136,16 +136,16 @@ test('extract receipt data job replaces items on successful reparse', function (
     Storage::fake('local');
     Storage::put('receipts/mock.jpg', 'fake-image-content');
 
-    Invoice::unsetEventDispatcher();
+    Expense::unsetEventDispatcher();
 
-    $invoice = Invoice::factory()->create([
+    $invoice = Expense::factory()->create([
         'status' => 'pending',
         'image_path' => 'receipts/mock.jpg',
         'merchant_name' => 'Pending AI Extraction...',
     ]);
 
-    InvoiceItem::factory()->create([
-        'invoice_id' => $invoice->id,
+    ExpenseItem::factory()->create([
+        'expense_id' => $invoice->id,
         'description' => 'Stale item',
         'line_total' => 99.00,
     ]);
@@ -185,8 +185,8 @@ test('extract receipt data job replaces items on successful reparse', function (
 
     expect($invoice->status)->toBe('parsed')
         ->and($invoice->merchant_name)->toBe('KFC')
-        ->and($invoice->invoiceItems)->toHaveCount(1)
-        ->and($invoice->invoiceItems->first()->description)->toBe('2-pc Chicken Meal');
+        ->and($invoice->expenseItems)->toHaveCount(1)
+        ->and($invoice->expenseItems->first()->description)->toBe('2-pc Chicken Meal');
 });
 
 test('extract receipt data job flags implausible date for manual review', function () {
@@ -196,7 +196,7 @@ test('extract receipt data job flags implausible date for manual review', functi
 
     $uploadTime = now();
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => $uploadTime,
         'subtotal' => 0.00,
@@ -254,7 +254,7 @@ test('extract receipt data job keeps upload date when ai datetime cannot be pars
 
     $uploadTime = now()->startOfSecond();
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => $uploadTime,
         'subtotal' => 0.00,
@@ -310,7 +310,7 @@ test('extract receipt data job parses day first datetime with T suffix correctly
     Storage::fake('local');
     Storage::put('receipts/mock.jpg', 'fake-image-content');
 
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,

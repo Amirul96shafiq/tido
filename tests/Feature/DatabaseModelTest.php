@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Budget;
-use App\Models\Invoice;
+use App\Models\Expense;
 use App\Models\Label;
 use Database\Seeders\LabelSeeder;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -31,7 +31,7 @@ test('manually created labels are not system locked', function () {
 });
 
 test('invoices generate hash on creation and block duplicates', function () {
-    $invoice = Invoice::create([
+    $invoice = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-001',
         'date_time' => now(),
@@ -46,7 +46,7 @@ test('invoices generate hash on creation and block duplicates', function () {
 
     $this->expectException(UniqueConstraintViolationException::class);
 
-    Invoice::create([
+    Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-001',
         'date_time' => $invoice->date_time,
