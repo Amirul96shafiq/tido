@@ -30,8 +30,8 @@ test('manually created labels are not system locked', function () {
     expect($label->is_system)->toBeFalse();
 });
 
-test('invoices generate hash on creation and block duplicates', function () {
-    $invoice = Expense::create([
+test('expenses generate hash on creation and block duplicates', function () {
+    $expense = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-001',
         'date_time' => now(),
@@ -42,14 +42,14 @@ test('invoices generate hash on creation and block duplicates', function () {
         'status' => 'reviewed',
     ]);
 
-    $this->assertNotEmpty($invoice->receipt_hash);
+    $this->assertNotEmpty($expense->receipt_hash);
 
     $this->expectException(UniqueConstraintViolationException::class);
 
     Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-001',
-        'date_time' => $invoice->date_time,
+        'date_time' => $expense->date_time,
         'subtotal' => 10.00,
         'total_tax' => 0.60,
         'total_amount' => 10.60,

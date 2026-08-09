@@ -11,14 +11,14 @@ use RuntimeException;
 
 class ReceiptReparseService
 {
-    public function reparse(Expense $invoice): void
+    public function reparse(Expense $expense): void
     {
-        if (blank($invoice->image_path) || ! Storage::exists($invoice->image_path)) {
-            throw new RuntimeException("Expense #{$invoice->id} has no readable receipt image.");
+        if (blank($expense->image_path) || ! Storage::exists($expense->image_path)) {
+            throw new RuntimeException("Expense #{$expense->id} has no readable receipt image.");
         }
 
-        $invoice->expenseItems()->delete();
-        $invoice->update([
+        $expense->expenseItems()->delete();
+        $expense->update([
             'status' => 'pending',
             'currency' => Expense::CURRENCY_UNKNOWN,
             'original_currency' => null,
@@ -30,6 +30,6 @@ class ReceiptReparseService
             'currency_conversion_fetched_at' => null,
         ]);
 
-        ExtractReceiptDataJob::dispatch($invoice->id);
+        ExtractReceiptDataJob::dispatch($expense->id);
     }
 }

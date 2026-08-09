@@ -28,12 +28,12 @@ test('payment methods table shows aliases as comma separated text', function () 
         ->assertDontSee('—, —, —, —');
 });
 
-test('invoice table shows payment method labels for qr and touch n go', function () {
-    $qrInvoice = Expense::factory()->create([
+test('expense table shows payment method labels for qr and touch n go', function () {
+    $qrExpense = Expense::factory()->create([
         'payment_method_id' => PaymentMethod::findBySlug('pay_with_qr')->id,
         'merchant_name' => 'QR Merchant',
     ]);
-    $tngInvoice = Expense::factory()->create([
+    $tngExpense = Expense::factory()->create([
         'payment_method_id' => PaymentMethod::findBySlug('touchngo')->id,
         'merchant_name' => 'TNG Merchant',
     ]);
@@ -41,24 +41,24 @@ test('invoice table shows payment method labels for qr and touch n go', function
     Livewire::test(ListExpenses::class)
         ->assertSuccessful()
         ->toggleAllTableColumns()
-        ->assertCanSeeTableRecords([$qrInvoice, $tngInvoice])
+        ->assertCanSeeTableRecords([$qrExpense, $tngExpense])
         ->assertSee('Pay with QR')
         ->assertSee("Touch 'n Go");
 });
 
 test('upload receipts table shows payment method labels for qr and touch n go', function () {
-    $qrInvoice = Expense::factory()->create([
+    $qrExpense = Expense::factory()->create([
         'payment_method_id' => PaymentMethod::findBySlug('pay_with_qr')->id,
         'original_filename' => 'qr_receipt.jpg',
     ]);
-    $tngInvoice = Expense::factory()->create([
+    $tngExpense = Expense::factory()->create([
         'payment_method_id' => PaymentMethod::findBySlug('touchngo')->id,
         'original_filename' => 'tng_receipt.jpg',
     ]);
 
     Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
-        ->assertCanSeeTableRecords([$qrInvoice, $tngInvoice])
+        ->assertCanSeeTableRecords([$qrExpense, $tngExpense])
         ->assertSee('Pay with QR')
         ->assertSee("Touch 'n Go");
 });

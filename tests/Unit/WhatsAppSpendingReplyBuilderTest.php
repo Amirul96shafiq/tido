@@ -68,7 +68,7 @@ test('labels mode lists label spending for selected month', function () {
         'slug' => 'groceries',
     ]);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'Grocery Store',
         'invoice_number' => 'INV-GROC',
         'receipt_hash' => 'hash-groc-spend',
@@ -82,7 +82,7 @@ test('labels mode lists label spending for selected month', function () {
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Vegetables',
         'quantity' => 1,

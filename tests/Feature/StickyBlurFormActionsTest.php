@@ -37,8 +37,8 @@ beforeEach(function () {
 function stickyBlurFormActionPages(): array
 {
     return [
-        'create invoice' => [CreateExpense::class, []],
-        'edit invoice' => [EditExpense::class, []],
+        'create expense' => [CreateExpense::class, []],
+        'edit expense' => [EditExpense::class, []],
         'create label' => [CreateLabel::class, []],
         'edit label' => [EditLabel::class, []],
         'create budget' => [CreateBudget::class, []],
@@ -74,7 +74,7 @@ test('create edit and profile pages use sticky blur form action markers', functi
         ->assertSee('tido-sticky-marker--bottom', false);
 })->with(stickyBlurFormActionPages());
 
-test('draft saved indicator shares the invoice sticky action row', function () {
+test('draft saved indicator shares the expense sticky action row', function () {
     $this->actingAs($this->admin);
 
     Livewire::test(EditExpense::class, [

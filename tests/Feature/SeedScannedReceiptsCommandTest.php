@@ -33,7 +33,7 @@ afterEach(function () {
     File::deleteDirectory($this->sourceDir);
 });
 
-test('receipts seed scanned creates reviewed invoices with storage images', function () {
+test('receipts seed scanned creates reviewed expenses with storage images', function () {
     $exitCode = Artisan::call('receipts:seed-scanned', [
         '--source' => $this->sourceDir,
     ]);
@@ -42,16 +42,16 @@ test('receipts seed scanned creates reviewed invoices with storage images', func
     expect(Expense::query()->count())->toBe(count($this->fixture));
 
     $first = $this->fixture[0];
-    $invoice = Expense::query()->where('invoice_number', $first['invoice_number'])->first();
+    $expense = Expense::query()->where('invoice_number', $first['invoice_number'])->first();
 
-    expect($invoice)->not->toBeNull();
-    expect($invoice->status)->toBe('reviewed');
-    expect($invoice->source)->toBe('manual');
-    expect($invoice->image_path)->toBe('receipts/'.$first['source_filename']);
-    expect($invoice->original_filename)->toBe($first['source_filename']);
-    expect($invoice->paymentMethod->slug)->toBe($first['payment_method']);
-    expect($invoice->expenseItems)->toHaveCount(count($first['items']));
-    expect(Storage::exists($invoice->image_path))->toBeTrue();
+    expect($expense)->not->toBeNull();
+    expect($expense->status)->toBe('reviewed');
+    expect($expense->source)->toBe('manual');
+    expect($expense->image_path)->toBe('receipts/'.$first['source_filename']);
+    expect($expense->original_filename)->toBe($first['source_filename']);
+    expect($expense->paymentMethod->slug)->toBe($first['payment_method']);
+    expect($expense->expenseItems)->toHaveCount(count($first['items']));
+    expect(Storage::exists($expense->image_path))->toBeTrue();
 });
 
 test('receipts seed scanned is idempotent', function () {

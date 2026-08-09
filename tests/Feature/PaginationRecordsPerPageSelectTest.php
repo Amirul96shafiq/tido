@@ -17,7 +17,7 @@ beforeEach(function () {
     Expense::unsetEventDispatcher();
 });
 
-test('invoice list pagination per page uses filament searchable select', function () {
+test('expense list pagination per page uses filament searchable select', function () {
     Expense::factory()->count(12)->create();
 
     $html = Livewire::test(ListExpenses::class)
@@ -38,7 +38,7 @@ test('invoice list pagination per page uses filament searchable select', functio
     ))->toBe(0);
 });
 
-test('invoice list can change records per page via livewire property', function () {
+test('expense list can change records per page via livewire property', function () {
     Expense::factory()->count(30)->create();
 
     $component = Livewire::test(ListExpenses::class)

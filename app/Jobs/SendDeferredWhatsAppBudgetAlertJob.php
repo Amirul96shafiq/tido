@@ -53,12 +53,12 @@ class SendDeferredWhatsAppBudgetAlertJob implements ShouldQueue
             return;
         }
 
-        $invoice = Expense::query()->find($this->expenseId);
+        $expense = Expense::query()->find($this->expenseId);
 
-        if ($invoice === null || $invoice->source !== 'whatsapp' || $invoice->status !== 'parsed') {
+        if ($expense === null || $expense->source !== 'whatsapp' || $expense->status !== 'parsed') {
             return;
         }
 
-        $budgetAlerts->checkAlertsForExpense($invoice);
+        $budgetAlerts->checkAlertsForExpense($expense);
     }
 }

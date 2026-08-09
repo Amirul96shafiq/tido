@@ -19,7 +19,7 @@ beforeEach(function () {
     $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
 });
 
-test('invoices list shows illustrated empty state', function () {
+test('expenses list shows illustrated empty state', function () {
     Livewire::test(ListExpenses::class)
         ->assertSuccessful()
         ->assertSee('No expenses yet')

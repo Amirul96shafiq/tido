@@ -69,39 +69,39 @@ final class MoneyDisplay
         return self::withPrefix($amount, self::prefixForCurrency($currency), $spaceAfterPrefix);
     }
 
-    public static function conversionSummary(Expense $invoice): ?string
+    public static function conversionSummary(Expense $expense): ?string
     {
-        if ($invoice->currency_conversion_status === Expense::CONVERSION_CONVERTED) {
-            $rate = $invoice->currency_conversion_rate === null
+        if ($expense->currency_conversion_status === Expense::CONVERSION_CONVERTED) {
+            $rate = $expense->currency_conversion_rate === null
                 ? 'unknown'
-                : rtrim(rtrim(number_format((float) $invoice->currency_conversion_rate, 10, '.', ''), '0'), '.');
-            $date = $invoice->currency_conversion_date?->format('d M Y') ?? 'unknown date';
-            $provider = filled($invoice->currency_conversion_provider)
-                ? (string) $invoice->currency_conversion_provider
+                : rtrim(rtrim(number_format((float) $expense->currency_conversion_rate, 10, '.', ''), '0'), '.');
+            $date = $expense->currency_conversion_date?->format('d M Y') ?? 'unknown date';
+            $provider = filled($expense->currency_conversion_provider)
+                ? (string) $expense->currency_conversion_provider
                 : 'exchange-rate provider';
 
             return sprintf(
                 'Converted from %s using rate %s MYR per %s on %s via %s.',
-                self::withCurrency($invoice->original_total_amount, $invoice->original_currency),
+                self::withCurrency($expense->original_total_amount, $expense->original_currency),
                 $rate,
-                (string) ($invoice->original_currency ?? 'foreign currency'),
+                (string) ($expense->original_currency ?? 'foreign currency'),
                 $date,
                 $provider,
             );
         }
 
-        if ($invoice->currency_conversion_status === Expense::CONVERSION_FAILED) {
+        if ($expense->currency_conversion_status === Expense::CONVERSION_FAILED) {
             return 'Currency conversion failed; source amount requires manual review.';
         }
 
-        if ($invoice->currency_conversion_status === Expense::CONVERSION_PENDING) {
+        if ($expense->currency_conversion_status === Expense::CONVERSION_PENDING) {
             return 'Currency conversion pending; source amount is not included in MYR totals.';
         }
 
-        if ($invoice->displayCurrency() !== self::CURRENCY_CODE) {
+        if ($expense->displayCurrency() !== self::CURRENCY_CODE) {
             return sprintf(
                 'Source amount is recorded in %s; conversion is required before MYR totals.',
-                (string) ($invoice->displayCurrency() ?? 'an unknown currency'),
+                (string) ($expense->displayCurrency() ?? 'an unknown currency'),
             );
         }
 

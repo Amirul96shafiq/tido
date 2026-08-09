@@ -74,7 +74,7 @@ test('exact phrase and password show reset cta and hide save', function () {
 
 test('wrong password on reset data shows notification and does not wipe', function () {
     Expense::factory()->create();
-    $initialInvoiceCount = Expense::query()->count();
+    $initialExpenseCount = Expense::query()->count();
 
     Livewire::test(EditProfile::class)
         ->set('data.enable_reset_data', true)
@@ -83,7 +83,7 @@ test('wrong password on reset data shows notification and does not wipe', functi
         ->callAction(formAction('resetData'))
         ->assertNotified('Incorrect password');
 
-    expect(Expense::query()->count())->toBe($initialInvoiceCount);
+    expect(Expense::query()->count())->toBe($initialExpenseCount);
 
     $this->assertAuthenticatedAs($this->user);
 });

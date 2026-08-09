@@ -21,20 +21,20 @@ test('truncate handles empty values', function (): void {
         ->and(FilenameDisplay::truncate(''))->toBe('');
 });
 
-test('label for invoice shows Manual expense when there is no file', function (): void {
-    $invoice = new Expense([
+test('label for expense shows Manual expense when there is no file', function (): void {
+    $expense = new Expense([
         'original_filename' => null,
         'image_path' => null,
     ]);
 
-    expect(FilenameDisplay::labelForExpense($invoice))->toBe('Manual expense');
+    expect(FilenameDisplay::labelForExpense($expense))->toBe('Manual expense');
 });
 
-test('label for invoice truncates real filenames', function (): void {
-    $invoice = new Expense([
+test('label for expense truncates real filenames', function (): void {
+    $expense = new Expense([
         'original_filename' => 'wa_ACBF4B3FCAA816DB31A42F65843AA568.jpg',
         'image_path' => 'receipts/wa_ACBF4B3FCAA816DB31A42F65843AA568.jpg',
     ]);
 
-    expect(FilenameDisplay::labelForExpense($invoice))->toBe('wa_ACBF4B3....jpg');
+    expect(FilenameDisplay::labelForExpense($expense))->toBe('wa_ACBF4B3....jpg');
 });

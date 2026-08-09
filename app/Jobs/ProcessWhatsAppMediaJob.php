@@ -163,7 +163,7 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
         }
 
         try {
-            $invoice = Expense::create([
+            $expense = Expense::create([
                 'merchant_name' => 'Pending AI Extraction...',
                 'date_time' => now(),
                 'subtotal' => 0.00,
@@ -188,7 +188,7 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
 
         WhatsAppDocumentReceivedDebouncer::register($this->senderNumber, [
             'message_id' => $this->messageId,
-            'expense_id' => $invoice->id,
+            'expense_id' => $expense->id,
             'filename' => $originalFilename,
             'mime_type' => $detectedMimeType,
             'page_count' => $pageCount,
@@ -197,7 +197,7 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
         ]);
 
         Log::info('WhatsApp receipt media processed', [
-            'expense_id' => $invoice->id,
+            'expense_id' => $expense->id,
             'message_id' => $this->messageId,
         ]);
     }

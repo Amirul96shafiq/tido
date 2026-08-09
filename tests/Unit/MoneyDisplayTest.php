@@ -40,12 +40,12 @@ test('withCurrency uses the source currency code for non MYR amounts', function 
 });
 
 test('conversion summary identifies an unconverted foreign amount', function (): void {
-    $invoice = new Expense([
+    $expense = new Expense([
         'currency' => 'USD',
         'total_amount' => 6,
     ]);
 
-    expect(MoneyDisplay::conversionSummary($invoice))
+    expect(MoneyDisplay::conversionSummary($expense))
         ->toBe('Source amount is recorded in USD; conversion is required before MYR totals.');
 });
 

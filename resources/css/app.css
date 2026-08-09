@@ -2431,7 +2431,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
 /*
  * Filament .fi-page-header-main-ctn uses py-8. With tido's topbar
- * (4.5rem - 1px), list pages that pack to the fold (e.g. Invoices @ 10 rows)
+ * (4.5rem - 1px), list pages that pack to the fold (e.g. Expenses @ 10 rows)
  * end up 1px over 100dvh (topbar 71 + content 875 = 946 on a 945px viewport).
  * Shave 1px from bottom padding so fold-packed tables do not force a scrollbar.
  */
@@ -3087,7 +3087,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     margin-bottom: 0 !important;
 }
 
-/* Invoice receipt FileUpload: native preview inside FilePond image layer */
+/* Expense receipt FileUpload: native preview inside FilePond image layer */
 .fi-receipt-image-upload.tido-receipt-has-native-preview .filepond--item {
     position: relative;
     width: 100%;

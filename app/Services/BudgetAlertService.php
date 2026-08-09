@@ -17,9 +17,9 @@ class BudgetAlertService
 {
     public function __construct(protected WhatsAppNotificationService $waService) {}
 
-    public function checkAlertsForExpense(Expense $invoice): void
+    public function checkAlertsForExpense(Expense $expense): void
     {
-        $labelIds = $invoice->expenseItems()->pluck('label_id')->unique()->filter()->toArray();
+        $labelIds = $expense->expenseItems()->pluck('label_id')->unique()->filter()->toArray();
 
         $budgets = Budget::query()
             ->where('is_active', true)

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 class ReparseReceiptsCommand extends Command
 {
     protected $signature = 'receipts:reparse
-        {invoice? : Expense ID to reparse}
+        {expense? : Expense ID to reparse}
         {--all : Reparse all eligible expenses with images}
         {--dry-run : List targets without queueing}';
 
@@ -20,7 +20,7 @@ class ReparseReceiptsCommand extends Command
 
     public function handle(ReceiptReparseService $reparseService): int
     {
-        $expenseId = $this->argument('invoice');
+        $expenseId = $this->argument('expense');
         $all = (bool) $this->option('all');
         $dryRun = (bool) $this->option('dry-run');
 
@@ -31,7 +31,7 @@ class ReparseReceiptsCommand extends Command
         }
 
         if ($expenseId !== null && $all) {
-            $this->error('Pass either an invoice ID or --all, not both.');
+            $this->error('Pass either an expense ID or --all, not both.');
 
             return self::FAILURE;
         }
@@ -46,10 +46,10 @@ class ReparseReceiptsCommand extends Command
             $query->whereIn('status', ['parsed', 'requires_manual_review', 'failed']);
         }
 
-        $invoices = $query->orderBy('id')->get();
+        $expenses = $query->orderBy('id')->get();
 
-        if ($invoices->isEmpty()) {
-            $this->warn('No matching invoices found.');
+        if ($expenses->isEmpty()) {
+            $this->warn('No matching expenses found.');
 
             return self::SUCCESS;
         }
@@ -57,27 +57,27 @@ class ReparseReceiptsCommand extends Command
         $queued = 0;
         $skipped = 0;
 
-        foreach ($invoices as $invoice) {
-            if (! Storage::exists((string) $invoice->image_path)) {
-                $this->warn("Skipping invoice #{$invoice->id}: image missing ({$invoice->image_path})");
+        foreach ($expenses as $expense) {
+            if (! Storage::exists((string) $expense->image_path)) {
+                $this->warn("Skipping expense #{$expense->id}: image missing ({$expense->image_path})");
                 $skipped++;
 
                 continue;
             }
 
             if ($dryRun) {
-                $this->line("Would reparse invoice #{$invoice->id} [{$invoice->status}] {$invoice->merchant_name}");
+                $this->line("Would reparse expense #{$expense->id} [{$expense->status}] {$expense->merchant_name}");
                 $queued++;
 
                 continue;
             }
 
             try {
-                $reparseService->reparse($invoice);
-                $this->info("Queued reparse for invoice #{$invoice->id}");
+                $reparseService->reparse($expense);
+                $this->info("Queued reparse for expense #{$expense->id}");
                 $queued++;
             } catch (\Throwable $e) {
-                $this->error("Failed invoice #{$invoice->id}: {$e->getMessage()}");
+                $this->error("Failed expense #{$expense->id}: {$e->getMessage()}");
                 $skipped++;
             }
         }

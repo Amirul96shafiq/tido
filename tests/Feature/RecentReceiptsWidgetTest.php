@@ -27,7 +27,7 @@ beforeEach(function () {
 });
 
 test('recent receipts widget shows upload table columns', function () {
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'original_filename' => 'dashboard_receipt.jpg',
         'image_path' => 'receipts/dashboard_receipt.jpg',
         'merchant_name' => 'Widget Merchant',
@@ -42,7 +42,7 @@ test('recent receipts widget shows upload table columns', function () {
         ->assertSuccessful()
         ->assertSeeHtml('fi-wi-recent-receipts')
         ->assertSeeHtml('wire:poll.10s.visible')
-        ->assertCanSeeTableRecords([$invoice])
+        ->assertCanSeeTableRecords([$expense])
         ->assertSee('dashboard_....jpg')
         ->assertSee('Widget Merchant')
         ->assertSee('Cash')
@@ -89,7 +89,7 @@ test('recent receipts widget filename links to file in a new tab', function () {
     $path = 'receipts/dashboard_receipt.jpg';
     Storage::put($path, 'fake-image-bytes');
 
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'original_filename' => 'dashboard_receipt.jpg',
         'image_path' => $path,
         'date_time' => now(),
@@ -99,13 +99,13 @@ test('recent receipts widget filename links to file in a new tab', function () {
 
     Livewire::test(RecentReceipts::class)
         ->assertSuccessful()
-        ->assertCanSeeTableRecords([$invoice])
+        ->assertCanSeeTableRecords([$expense])
         ->assertSeeHtml('target="_blank"')
         ->assertSeeHtml(e($url));
 });
 
 test('recent receipts widget shows Manual expense plain text without file link', function () {
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Kedai Makan Seri Ayu',
         'original_filename' => null,
         'image_path' => null,
@@ -118,24 +118,24 @@ test('recent receipts widget shows Manual expense plain text without file link',
 
     Livewire::test(RecentReceipts::class)
         ->assertSuccessful()
-        ->assertCanSeeTableRecords([$invoice])
+        ->assertCanSeeTableRecords([$expense])
         ->assertSee(FilenameDisplay::MANUAL_EXPENSE_LABEL)
         ->assertSee('Kedai Makan Seri Ayu');
 
-    expect(FilenameDisplay::labelForExpense($invoice))->toBe('Manual expense')
-        ->and($invoice->fileUrl())->toBeNull();
+    expect(FilenameDisplay::labelForExpense($expense))->toBe('Manual expense')
+        ->and($expense->fileUrl())->toBeNull();
 });
 
 test('recent receipts widget truncates long merchant names with full name in tooltip', function () {
     $longMerchant = 'Cosmo Restaurants Sdn Bhd';
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => $longMerchant,
         'date_time' => now(),
     ]);
 
     Livewire::test(RecentReceipts::class)
         ->assertSuccessful()
-        ->assertCanSeeTableRecords([$invoice])
+        ->assertCanSeeTableRecords([$expense])
         ->assertSee('Cosmo Restaurants Sd...');
 
     $column = Livewire::test(RecentReceipts::class)
@@ -146,7 +146,7 @@ test('recent receipts widget truncates long merchant names with full name in too
     expect($column)->not->toBeNull()
         ->and($column->getCharacterLimit())->toBe(20);
 
-    $tooltip = $column->record($invoice)->getTooltip($longMerchant);
+    $tooltip = $column->record($expense)->getTooltip($longMerchant);
 
     expect($tooltip)->toBe($longMerchant);
 });
@@ -173,7 +173,7 @@ test('recent receipts widget shows only the five latest receipts without paginat
     expect($component->instance()->getTableRecords())->toHaveCount(5);
 });
 
-test('recent receipts widget excludes invoices with receipt date outside selected month', function () {
+test('recent receipts widget excludes expenses with receipt date outside selected month', function () {
     $inMonth = Expense::factory()->create([
         'merchant_name' => 'This Month Receipt',
         'date_time' => now(),
@@ -211,13 +211,13 @@ test('recent receipts widget filters by family member spender scope', function (
         'display_name' => 'Ahlong',
     ]);
 
-    $familyInvoice = Expense::factory()->create([
+    $familyExpense = Expense::factory()->create([
         'merchant_name' => 'Ahlong Merchant',
         'date_time' => now(),
         'family_member_id' => $member->id,
     ]);
 
-    $primaryInvoice = Expense::factory()->create([
+    $primaryExpense = Expense::factory()->create([
         'merchant_name' => 'Primary Merchant',
         'date_time' => now(),
         'family_member_id' => null,
@@ -230,22 +230,22 @@ test('recent receipts widget filters by family member spender scope', function (
         ],
     ])
         ->assertSuccessful()
-        ->assertCanSeeTableRecords([$familyInvoice])
-        ->assertCanNotSeeTableRecords([$primaryInvoice]);
+        ->assertCanSeeTableRecords([$familyExpense])
+        ->assertCanNotSeeTableRecords([$primaryExpense]);
 });
 
-test('recent receipts widget edit action spa navigates to invoice edit', function () {
+test('recent receipts widget edit action spa navigates to expense edit', function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
     Filament::bootCurrentPanel();
 
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'date_time' => now(),
         'original_filename' => null,
         'image_path' => null,
     ]);
 
-    $editUrl = ExpenseResource::getUrl('edit', ['record' => $invoice]);
-    $editAction = TestAction::make('edit')->table($invoice);
+    $editUrl = ExpenseResource::getUrl('edit', ['record' => $expense]);
+    $editAction = TestAction::make('edit')->table($expense);
 
     $table = Livewire::test(RecentReceipts::class)
         ->assertSuccessful()
@@ -264,7 +264,7 @@ test('recent receipts widget edit action spa navigates to invoice edit', functio
         ->and($action->getTooltip())->toBe($action->getLabel());
 });
 
-test('family member sees the recent receipts edit action disabled for unsupported invoices', function () {
+test('family member sees the recent receipts edit action disabled for unsupported expenses', function () {
     $member = FamilyMember::factory()->loginEnabled()->create([
         'name' => 'Nor Ezrieana Harun',
         'display_name' => 'Along',
@@ -273,11 +273,11 @@ test('family member sees the recent receipts edit action disabled for unsupporte
         ->where('family_member_id', $member->id)
         ->firstOrFail();
 
-    $ownInvoice = Expense::factory()->create([
+    $ownExpense = Expense::factory()->create([
         'family_member_id' => $member->id,
         'date_time' => now(),
     ]);
-    $primaryInvoice = Expense::factory()->create([
+    $primaryExpense = Expense::factory()->create([
         'family_member_id' => null,
         'date_time' => now(),
     ]);
@@ -286,8 +286,8 @@ test('family member sees the recent receipts edit action disabled for unsupporte
 
     Livewire::test(RecentReceipts::class)
         ->assertSuccessful()
-        ->assertActionVisible(TestAction::make('edit')->table($ownInvoice))
-        ->assertActionEnabled(TestAction::make('edit')->table($ownInvoice))
-        ->assertActionVisible(TestAction::make('edit')->table($primaryInvoice))
-        ->assertActionDisabled(TestAction::make('edit')->table($primaryInvoice));
+        ->assertActionVisible(TestAction::make('edit')->table($ownExpense))
+        ->assertActionEnabled(TestAction::make('edit')->table($ownExpense))
+        ->assertActionVisible(TestAction::make('edit')->table($primaryExpense))
+        ->assertActionDisabled(TestAction::make('edit')->table($primaryExpense));
 });

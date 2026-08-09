@@ -1,7 +1,7 @@
 /**
- * Keep unsupported invoice selection controls visible without making them selectable.
+ * Keep unsupported expense selection controls visible without making them selectable.
  * Filament omits the native checkbox when isRecordSelectable() returns false, so
- * this adds a disabled visual control to the marked invoice rows after each render.
+ * this adds a disabled visual control to the marked expense rows after each render.
  */
 const UNSUPPORTED_ROW_SELECTOR = '.tido-ta-record-unsupported';
 const CHECKBOX_SELECTOR = '[data-tido-unsupported-checkbox]';

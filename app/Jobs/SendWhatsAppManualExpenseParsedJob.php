@@ -38,17 +38,17 @@ class SendWhatsAppManualExpenseParsedJob implements ShouldQueue
 
     public function handle(WhatsAppNotificationService $waService): void
     {
-        $invoice = Expense::find($this->expenseId);
+        $expense = Expense::find($this->expenseId);
 
-        if (! $invoice || $invoice->source !== 'whatsapp' || blank($invoice->whatsapp_sender)) {
+        if (! $expense || $expense->source !== 'whatsapp' || blank($expense->whatsapp_sender)) {
             return;
         }
 
-        if (filled($invoice->image_path)) {
+        if (filled($expense->image_path)) {
             return;
         }
 
-        $sender = (string) $invoice->whatsapp_sender;
+        $sender = (string) $expense->whatsapp_sender;
         $pendingAck = Cache::get(WhatsAppManualExpenseReceivedDebouncer::cacheKey($sender));
 
         if (is_array($pendingAck)) {
@@ -58,14 +58,14 @@ class SendWhatsAppManualExpenseParsedJob implements ShouldQueue
         }
 
         $editUrl = WhatsAppPublicUrl::withRoot(
-            fn (): string => ExpenseResource::getUrl('edit', ['record' => $invoice]),
+            fn (): string => ExpenseResource::getUrl('edit', ['record' => $expense]),
         );
 
-        $paymentMethod = $invoice->paymentMethod?->name;
+        $paymentMethod = $expense->paymentMethod?->name;
 
         $message = WhatsAppMessage::manualExpenseParsed($editUrl, [
-            'merchant_name' => $invoice->merchant_name,
-            'total_amount' => $invoice->total_amount,
+            'merchant_name' => $expense->merchant_name,
+            'total_amount' => $expense->total_amount,
             'payment_method' => $paymentMethod,
         ]);
 

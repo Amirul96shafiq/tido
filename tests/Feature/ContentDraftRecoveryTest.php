@@ -152,28 +152,28 @@ test('successful create clears the draft', function () {
 });
 
 test('edit page does not keep a recoverable draft when form is unchanged', function () {
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Original Merchant',
         'notes' => 'Original notes',
     ]);
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->call('saveDraft');
 
     expect(
         ContentDraft::query()
             ->where('user_id', $this->user->id)
-            ->where('key', 'expense-edit-'.$invoice->getKey())
+            ->where('key', 'expense-edit-'.$expense->getKey())
             ->exists()
     )->toBeFalse();
 });
 
 test('edit page saves a draft when the form is dirty', function () {
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Original Merchant',
     ]);
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->fillForm([
             'merchant_name' => 'Updated Merchant Draft',
         ])
@@ -181,7 +181,7 @@ test('edit page saves a draft when the form is dirty', function () {
 
     $draft = ContentDraft::query()
         ->where('user_id', $this->user->id)
-        ->where('key', 'expense-edit-'.$invoice->getKey())
+        ->where('key', 'expense-edit-'.$expense->getKey())
         ->first();
 
     expect($draft)->not->toBeNull()
@@ -189,11 +189,11 @@ test('edit page saves a draft when the form is dirty', function () {
 });
 
 test('reverting an edit to its original state clears the saved draft indicator', function () {
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Original Merchant',
     ]);
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->fillForm([
             'merchant_name' => 'Updated Merchant Draft',
         ])
@@ -208,13 +208,13 @@ test('reverting an edit to its original state clears the saved draft indicator',
     expect(
         ContentDraft::query()
             ->where('user_id', $this->user->id)
-            ->where('key', 'expense-edit-'.$invoice->getKey())
+            ->where('key', 'expense-edit-'.$expense->getKey())
             ->exists()
     )->toBeFalse();
 });
 
 test('successful edit save prevents the draft from reappearing on the next autosave poll', function () {
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Original Merchant',
         'subtotal' => 10.00,
         'total_tax' => 0.00,
@@ -228,13 +228,13 @@ test('successful edit save prevents the draft from reappearing on the next autos
 
     ContentDraft::factory()->create([
         'user_id' => $this->user->id,
-        'key' => 'expense-edit-'.$invoice->getKey(),
+        'key' => 'expense-edit-'.$expense->getKey(),
         'payload' => [
             'merchant_name' => 'Stale Draft',
         ],
     ]);
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->fillForm([
             'merchant_name' => 'Saved Merchant',
         ])
@@ -243,11 +243,11 @@ test('successful edit save prevents the draft from reappearing on the next autos
         ->call('saveDraft')
         ->assertNotDispatched('content-draft-saved');
 
-    expect($invoice->fresh()->merchant_name)->toBe('Saved Merchant')
+    expect($expense->fresh()->merchant_name)->toBe('Saved Merchant')
         ->and(
             ContentDraft::query()
                 ->where('user_id', $this->user->id)
-                ->where('key', 'expense-edit-'.$invoice->getKey())
+                ->where('key', 'expense-edit-'.$expense->getKey())
                 ->exists()
         )->toBeFalse();
 });

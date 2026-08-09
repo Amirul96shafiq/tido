@@ -80,12 +80,12 @@ class AccountDangerZoneService
         Expense::query()
             ->withTrashed()
             ->cursor()
-            ->each(function (Expense $invoice): void {
-                if (filled($invoice->image_path) && Storage::exists($invoice->image_path)) {
-                    Storage::delete($invoice->image_path);
+            ->each(function (Expense $expense): void {
+                if (filled($expense->image_path) && Storage::exists($expense->image_path)) {
+                    Storage::delete($expense->image_path);
                 }
 
-                $invoice->forceDelete();
+                $expense->forceDelete();
             });
     }
 

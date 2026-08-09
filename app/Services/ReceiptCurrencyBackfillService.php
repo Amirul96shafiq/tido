@@ -21,25 +21,25 @@ final class ReceiptCurrencyBackfillService
     ) {}
 
     public function convert(
-        Expense $invoice,
+        Expense $expense,
         ?string $sourceCurrency = null,
         ?float $rateOverride = null,
     ): bool {
-        if ($invoice->currency_conversion_status === Expense::CONVERSION_CONVERTED
-            && $invoice->currency === Expense::CURRENCY_MYR) {
-            $notes = $this->removeCurrencyReviewNote($invoice->notes);
+        if ($expense->currency_conversion_status === Expense::CONVERSION_CONVERTED
+            && $expense->currency === Expense::CURRENCY_MYR) {
+            $notes = $this->removeCurrencyReviewNote($expense->notes);
 
-            if ($notes !== $invoice->notes) {
-                $invoice->notes = $notes;
-                $invoice->save();
+            if ($notes !== $expense->notes) {
+                $expense->notes = $notes;
+                $expense->save();
             }
 
             return true;
         }
 
-        $parsed = $invoice->raw_ai_response;
+        $parsed = $expense->raw_ai_response;
         if (! is_array($parsed)) {
-            $this->markFailure($invoice);
+            $this->markFailure($expense);
 
             return false;
         }
@@ -49,37 +49,37 @@ final class ReceiptCurrencyBackfillService
             $sourceCurrency = $this->normalizer->normalizeCurrency($sourceCurrency);
 
             if ($sourceCurrency === null) {
-                $this->markFailure($invoice);
+                $this->markFailure($expense);
 
                 return false;
             }
         }
 
-        if ($sourceCurrency === null && $this->isCurrencyCode((string) $invoice->currency)
-            && $invoice->currency !== Expense::CURRENCY_MYR) {
+        if ($sourceCurrency === null && $this->isCurrencyCode((string) $expense->currency)
+            && $expense->currency !== Expense::CURRENCY_MYR) {
             // Existing foreign rows may have persisted the detected code before conversion
             // was introduced; that stored value is the source evidence for this backfill.
-            $normalized['currency'] = strtoupper((string) $invoice->currency);
+            $normalized['currency'] = strtoupper((string) $expense->currency);
         }
 
         if ($sourceCurrency !== null) {
             $normalized['currency'] = $sourceCurrency;
         }
 
-        $invoice->subtotal = $normalized['subtotal'];
-        $invoice->total_tax = $normalized['total_tax'];
-        $invoice->discount_total = $normalized['discount_total'];
-        $invoice->rounding_amount = $normalized['rounding_amount'];
-        $invoice->total_amount = $normalized['total_amount'];
-        $invoice->currency = $normalized['currency'] ?? Expense::CURRENCY_UNKNOWN;
-        $invoice->original_currency = $normalized['currency'];
-        $invoice->original_total_amount = $normalized['total_amount'];
-        $invoice->currency_conversion_status = Expense::CONVERSION_PENDING;
-        $invoice->currency_conversion_rate = null;
-        $invoice->setAttribute('currency_conversion_date', null);
-        $invoice->currency_conversion_provider = null;
-        $invoice->setAttribute('currency_conversion_fetched_at', null);
-        $invoice->save();
+        $expense->subtotal = $normalized['subtotal'];
+        $expense->total_tax = $normalized['total_tax'];
+        $expense->discount_total = $normalized['discount_total'];
+        $expense->rounding_amount = $normalized['rounding_amount'];
+        $expense->total_amount = $normalized['total_amount'];
+        $expense->currency = $normalized['currency'] ?? Expense::CURRENCY_UNKNOWN;
+        $expense->original_currency = $normalized['currency'];
+        $expense->original_total_amount = $normalized['total_amount'];
+        $expense->currency_conversion_status = Expense::CONVERSION_PENDING;
+        $expense->currency_conversion_rate = null;
+        $expense->setAttribute('currency_conversion_date', null);
+        $expense->currency_conversion_provider = null;
+        $expense->setAttribute('currency_conversion_fetched_at', null);
+        $expense->save();
 
         try {
             $conversion = $this->currencyConversion->convert(
@@ -88,7 +88,7 @@ final class ReceiptCurrencyBackfillService
                 $rateOverride,
             );
         } catch (CurrencyConversionException $exception) {
-            $this->markFailure($invoice);
+            $this->markFailure($expense);
 
             return false;
         }
@@ -99,36 +99,36 @@ final class ReceiptCurrencyBackfillService
             || ! $this->normalizer->amountsReconcile($normalized)
             || ! $this->normalizer->amountsReconcile($converted);
 
-        DB::transaction(function () use ($invoice, $converted, $metadata, $needsManualReview): void {
+        DB::transaction(function () use ($expense, $converted, $metadata, $needsManualReview): void {
             if ($converted['date_time'] !== null) {
-                $invoice->date_time = $converted['date_time'];
+                $expense->date_time = $converted['date_time'];
             }
 
-            $invoice->subtotal = $converted['subtotal'];
-            $invoice->total_tax = $converted['total_tax'];
-            $invoice->discount_total = $converted['discount_total'];
-            $invoice->rounding_amount = $converted['rounding_amount'];
-            $invoice->total_amount = $converted['total_amount'];
-            $invoice->currency = Expense::CURRENCY_MYR;
-            $invoice->original_currency = $metadata['original_currency'];
-            $invoice->original_total_amount = $metadata['original_total_amount'];
-            $invoice->currency_conversion_status = $metadata['currency_conversion_status'];
-            $invoice->currency_conversion_rate = $metadata['currency_conversion_rate'];
-            $invoice->setAttribute('currency_conversion_date', $metadata['currency_conversion_date']);
-            $invoice->currency_conversion_provider = $metadata['currency_conversion_provider'];
-            $invoice->setAttribute('currency_conversion_fetched_at', $metadata['currency_conversion_fetched_at']);
-            if ($invoice->status !== 'reviewed') {
-                $invoice->status = $needsManualReview ? 'requires_manual_review' : 'parsed';
+            $expense->subtotal = $converted['subtotal'];
+            $expense->total_tax = $converted['total_tax'];
+            $expense->discount_total = $converted['discount_total'];
+            $expense->rounding_amount = $converted['rounding_amount'];
+            $expense->total_amount = $converted['total_amount'];
+            $expense->currency = Expense::CURRENCY_MYR;
+            $expense->original_currency = $metadata['original_currency'];
+            $expense->original_total_amount = $metadata['original_total_amount'];
+            $expense->currency_conversion_status = $metadata['currency_conversion_status'];
+            $expense->currency_conversion_rate = $metadata['currency_conversion_rate'];
+            $expense->setAttribute('currency_conversion_date', $metadata['currency_conversion_date']);
+            $expense->currency_conversion_provider = $metadata['currency_conversion_provider'];
+            $expense->setAttribute('currency_conversion_fetched_at', $metadata['currency_conversion_fetched_at']);
+            if ($expense->status !== 'reviewed') {
+                $expense->status = $needsManualReview ? 'requires_manual_review' : 'parsed';
             }
-            $invoice->notes = $this->removeCurrencyReviewNote($invoice->notes);
-            $invoice->receipt_hash = $this->uniqueReceiptHash($invoice);
-            $invoice->save();
+            $expense->notes = $this->removeCurrencyReviewNote($expense->notes);
+            $expense->receipt_hash = $this->uniqueReceiptHash($expense);
+            $expense->save();
 
-            $invoice->expenseItems()->delete();
+            $expense->expenseItems()->delete();
 
             foreach ($converted['items'] as $item) {
                 ExpenseItem::create([
-                    'expense_id' => $invoice->id,
+                    'expense_id' => $expense->id,
                     'label_id' => $this->labelMatcher->matchId($item['label']),
                     'description' => $item['description'],
                     'quantity' => $item['quantity'],
@@ -142,12 +142,12 @@ final class ReceiptCurrencyBackfillService
         return true;
     }
 
-    private function markFailure(Expense $invoice): void
+    private function markFailure(Expense $expense): void
     {
-        $invoice->currency_conversion_status = Expense::CONVERSION_FAILED;
-        $invoice->status = 'requires_manual_review';
-        $invoice->notes = $this->appendReviewNote($invoice->notes);
-        $invoice->save();
+        $expense->currency_conversion_status = Expense::CONVERSION_FAILED;
+        $expense->status = 'requires_manual_review';
+        $expense->notes = $this->appendReviewNote($expense->notes);
+        $expense->save();
     }
 
     private function appendReviewNote(?string $existingNotes): string
@@ -175,17 +175,17 @@ final class ReceiptCurrencyBackfillService
         return $notes === '' ? null : $notes;
     }
 
-    private function uniqueReceiptHash(Expense $invoice): string
+    private function uniqueReceiptHash(Expense $expense): string
     {
-        $dateTime = $invoice->date_time->format('Y-m-d H:i:s');
-        $base = hash('sha256', ($invoice->invoice_number ?? '').$dateTime.$invoice->total_amount);
+        $dateTime = $expense->date_time->format('Y-m-d H:i:s');
+        $base = hash('sha256', ($expense->invoice_number ?? '').$dateTime.$expense->total_amount);
 
         $collision = Expense::withTrashed()
             ->where('receipt_hash', $base)
-            ->where('id', '!=', $invoice->id)
+            ->where('id', '!=', $expense->id)
             ->exists();
 
-        return $collision ? hash('sha256', $base.'|'.$invoice->id) : $base;
+        return $collision ? hash('sha256', $base.'|'.$expense->id) : $base;
     }
 
     private function isCurrencyCode(string $currency): bool

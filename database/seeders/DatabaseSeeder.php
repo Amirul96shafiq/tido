@@ -40,9 +40,9 @@ class DatabaseSeeder extends Seeder
 
         Budget::factory(5)->create();
 
-        Expense::factory(50)->create()->each(function ($invoice) {
+        Expense::factory(50)->create()->each(function ($expense) {
             ExpenseItem::factory(random_int(1, 5))->create([
-                'expense_id' => $invoice->id,
+                'expense_id' => $expense->id,
             ]);
         });
 

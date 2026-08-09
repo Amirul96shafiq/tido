@@ -24,7 +24,7 @@ beforeEach(function () {
     Filament::bootCurrentPanel();
 });
 
-test('create invoice page shows native breadcrumbs to index', function () {
+test('create expense page shows native breadcrumbs to index', function () {
     $indexUrl = ExpenseResource::getUrl('index');
     $homeUrl = Dashboard::getUrl();
 
@@ -36,12 +36,12 @@ test('create invoice page shows native breadcrumbs to index', function () {
         ->assertDontSee('Go back to table');
 });
 
-test('edit invoice page shows native breadcrumbs to index', function () {
-    $invoice = Expense::factory()->create();
+test('edit expense page shows native breadcrumbs to index', function () {
+    $expense = Expense::factory()->create();
     $indexUrl = ExpenseResource::getUrl('index');
     $homeUrl = Dashboard::getUrl();
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->assertSee('fi-breadcrumbs', false)
         ->assertSee('Home')
         ->assertSee($homeUrl, false)
@@ -49,7 +49,7 @@ test('edit invoice page shows native breadcrumbs to index', function () {
         ->assertDontSee('Go back to table');
 });
 
-test('list invoices page shows home invoices list breadcrumbs', function () {
+test('list expenses page shows home expenses list breadcrumbs', function () {
     $indexUrl = ExpenseResource::getUrl('index');
     $homeUrl = Dashboard::getUrl();
 

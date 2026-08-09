@@ -20,14 +20,14 @@ test('spending by label widget renders with enriched chart data', function () {
 
     $label = Label::factory()->create(['name' => 'Groceries', 'slug' => 'groceries']);
 
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Grocery Store',
         'date_time' => now(),
         'status' => 'reviewed',
         'total_amount' => 55.00,
     ]);
 
-    $invoice->expenseItems()->create([
+    $expense->expenseItems()->create([
         'label_id' => $label->id,
         'description' => 'Vegetables',
         'quantity' => 1,

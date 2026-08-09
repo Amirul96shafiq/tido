@@ -11,7 +11,7 @@ use Illuminate\Console\Command;
 class ConvertReceiptCurrencyCommand extends Command
 {
     protected $signature = 'receipts:convert-currency
-        {invoice? : Expense ID to convert}
+        {expense? : Expense ID to convert}
         {--all : Convert all expenses with non-canonical currency data}
         {--source-currency= : Explicit source ISO currency for a targeted legacy expense}
         {--rate= : Explicit source-currency to MYR rate for a targeted offline correction}
@@ -21,7 +21,7 @@ class ConvertReceiptCurrencyCommand extends Command
 
     public function handle(ReceiptCurrencyBackfillService $backfillService): int
     {
-        $expenseId = $this->argument('invoice');
+        $expenseId = $this->argument('expense');
         $all = (bool) $this->option('all');
         $sourceCurrency = $this->option('source-currency');
         $rate = $this->option('rate');
@@ -34,7 +34,7 @@ class ConvertReceiptCurrencyCommand extends Command
         }
 
         if ($expenseId !== null && $all) {
-            $this->error('Pass either an invoice ID or --all, not both.');
+            $this->error('Pass either an expense ID or --all, not both.');
 
             return self::FAILURE;
         }
@@ -49,7 +49,7 @@ class ConvertReceiptCurrencyCommand extends Command
             }
 
             if ($all) {
-                $this->error('--source-currency requires one targeted invoice ID.');
+                $this->error('--source-currency requires one targeted expense ID.');
 
                 return self::FAILURE;
             }
@@ -57,7 +57,7 @@ class ConvertReceiptCurrencyCommand extends Command
 
         if ($rate !== null) {
             if ($expenseId === null || $sourceCurrency === null) {
-                $this->error('--rate requires one invoice ID and --source-currency.');
+                $this->error('--rate requires one expense ID and --source-currency.');
 
                 return self::FAILURE;
             }
@@ -93,9 +93,9 @@ class ConvertReceiptCurrencyCommand extends Command
             });
         }
 
-        $invoices = $query->get();
-        if ($invoices->isEmpty()) {
-            $this->warn('No matching invoices found.');
+        $expenses = $query->get();
+        if ($expenses->isEmpty()) {
+            $this->warn('No matching expenses found.');
 
             return self::SUCCESS;
         }
@@ -103,22 +103,22 @@ class ConvertReceiptCurrencyCommand extends Command
         $processed = 0;
         $failed = 0;
 
-        foreach ($invoices as $invoice) {
-            $currency = $sourceCurrency ?? (filled($invoice->original_currency)
-                ? (string) $invoice->original_currency
-                : (string) $invoice->currency);
-            $amount = filled($invoice->original_total_amount)
-                ? (string) $invoice->original_total_amount
-                : (string) $invoice->total_amount;
+        foreach ($expenses as $expense) {
+            $currency = $sourceCurrency ?? (filled($expense->original_currency)
+                ? (string) $expense->original_currency
+                : (string) $expense->currency);
+            $amount = filled($expense->original_total_amount)
+                ? (string) $expense->original_total_amount
+                : (string) $expense->total_amount;
 
             if ($dryRun) {
                 $this->line(sprintf(
-                    'Would convert invoice #%d: %s %s (%s) [%s]%s',
-                    $invoice->id,
+                    'Would convert expense #%d: %s %s (%s) [%s]%s',
+                    $expense->id,
                     filled($currency) ? $currency : Expense::CURRENCY_UNKNOWN,
                     filled($amount) ? $amount : '0.00',
-                    $invoice->merchant_name,
-                    $invoice->currency_conversion_status,
+                    $expense->merchant_name,
+                    $expense->currency_conversion_status,
                     $rate === null ? '' : sprintf(' at %s MYR', $rate),
                 ));
                 $processed++;
@@ -126,11 +126,11 @@ class ConvertReceiptCurrencyCommand extends Command
                 continue;
             }
 
-            if ($backfillService->convert($invoice, $sourceCurrency, $rate)) {
-                $this->info("Converted invoice #{$invoice->id} to MYR.");
+            if ($backfillService->convert($expense, $sourceCurrency, $rate)) {
+                $this->info("Converted expense #{$expense->id} to MYR.");
                 $processed++;
             } else {
-                $this->error("Expense #{$invoice->id} requires manual review.");
+                $this->error("Expense #{$expense->id} requires manual review.");
                 $failed++;
             }
         }

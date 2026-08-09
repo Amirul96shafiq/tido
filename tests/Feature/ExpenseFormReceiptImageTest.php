@@ -23,12 +23,12 @@ beforeEach(function () {
     $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
 });
 
-test('invoice edit form uses private visibility for receipt image', function () {
-    $invoice = Expense::factory()->create([
+test('expense edit form uses private visibility for receipt image', function () {
+    $expense = Expense::factory()->create([
         'image_path' => null,
     ]);
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->assertSuccessful()
         ->assertSchemaComponentExists(
             'image_path',
@@ -36,12 +36,12 @@ test('invoice edit form uses private visibility for receipt image', function () 
         );
 });
 
-test('invoice edit form receipt image upload uses natural height preview class', function () {
-    $invoice = Expense::factory()->create([
+test('expense edit form receipt image upload uses natural height preview class', function () {
+    $expense = Expense::factory()->create([
         'image_path' => null,
     ]);
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->assertSuccessful()
         ->assertSee('fi-receipt-image-upload', false)
         ->assertSchemaComponentExists(
@@ -56,12 +56,12 @@ test('invoice edit form receipt image upload uses natural height preview class',
         );
 });
 
-test('invoice form uses rich editor for notes', function () {
-    $invoice = Expense::factory()->create([
+test('expense form uses rich editor for notes', function () {
+    $expense = Expense::factory()->create([
         'image_path' => null,
     ]);
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->assertSuccessful()
         ->assertSchemaComponentExists(
             'notes',
@@ -75,12 +75,12 @@ test('invoice form uses rich editor for notes', function () {
         );
 });
 
-test('invoice form uses left right sticky layout', function () {
-    $invoice = Expense::factory()->create([
+test('expense form uses left right sticky layout', function () {
+    $expense = Expense::factory()->create([
         'image_path' => null,
     ]);
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->assertSuccessful()
         ->assertSee('Receipt Details')
         ->assertSee('Expense Notes')
@@ -97,12 +97,12 @@ test('invoice form uses left right sticky layout', function () {
         ]);
 });
 
-test('invoice currency select uses single-line marquee markup', function () {
-    $invoice = Expense::factory()->create([
+test('expense currency select uses single-line marquee markup', function () {
+    $expense = Expense::factory()->create([
         'image_path' => null,
     ]);
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->assertSuccessful()
         ->assertSee(SelectValueMarquee::EXTRA_CLASS, false)
         ->assertSchemaComponentExists(
@@ -115,8 +115,8 @@ test('invoice currency select uses single-line marquee markup', function () {
         );
 });
 
-test('foreign invoice form uses source currency prefixes and shows conversion context', function () {
-    $invoice = Expense::factory()->create([
+test('foreign expense form uses source currency prefixes and shows conversion context', function () {
+    $expense = Expense::factory()->create([
         'image_path' => null,
         'currency' => 'USD',
         'original_currency' => 'USD',
@@ -125,7 +125,7 @@ test('foreign invoice form uses source currency prefixes and shows conversion co
         'status' => 'requires_manual_review',
     ]);
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->assertSuccessful()
         ->assertSee('Original Currency')
         ->assertSee('Rate Provider')
@@ -135,14 +135,14 @@ test('foreign invoice form uses source currency prefixes and shows conversion co
         );
 });
 
-test('invoice edit form serves receipt image via temporary url', function () {
+test('expense edit form serves receipt image via temporary url', function () {
     Storage::fake();
     $this->travelTo(now()->startOfMinute());
 
     $path = 'receipts/20260708_174004.jpg';
     Storage::put($path, 'fake-image-bytes');
 
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'image_path' => $path,
         'original_filename' => '20260708_174004.jpg',
     ]);
@@ -152,7 +152,7 @@ test('invoice edit form serves receipt image via temporary url', function () {
         now()->addMinutes(config('filament.temporary_file_url_expiry_minutes', 30))->endOfHour(),
     );
 
-    $component = Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    $component = Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->assertSuccessful()
         ->assertSchemaStateSet([
             'image_path' => $path,
@@ -170,14 +170,14 @@ test('invoice edit form serves receipt image via temporary url', function () {
         ->and($fileMeta['name'])->toBe('20260708_174004.jpg');
 });
 
-test('invoice line item repeater uses description and line total as item label', function () {
-    $invoice = Expense::factory()->create();
-    $item = ExpenseItem::factory()->for($invoice)->create([
+test('expense line item repeater uses description and line total as item label', function () {
+    $expense = Expense::factory()->create();
+    $item = ExpenseItem::factory()->for($expense)->create([
         'description' => 'Nasi Lemak Special',
         'line_total' => 10.00,
     ]);
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->assertSuccessful()
         ->assertFormFieldExists(
             'expenseItems',
@@ -190,10 +190,10 @@ test('invoice line item repeater uses description and line total as item label',
         );
 });
 
-test('invoice line item quantity supports hundredths', function () {
-    $invoice = Expense::factory()->create();
+test('expense line item quantity supports hundredths', function () {
+    $expense = Expense::factory()->create();
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->assertSuccessful()
         ->assertFormFieldExists(
             'expenseItems',
@@ -211,16 +211,16 @@ test('invoice line item quantity supports hundredths', function () {
         );
 });
 
-test('invoice line item description and line total restore defaults when emptied', function () {
-    $invoice = Expense::factory()->create();
-    $item = ExpenseItem::factory()->for($invoice)->create([
+test('expense line item description and line total restore defaults when emptied', function () {
+    $expense = Expense::factory()->create();
+    $item = ExpenseItem::factory()->for($expense)->create([
         'description' => 'Nasi Lemak Special',
         'line_total' => 10.00,
     ]);
 
     $itemKey = "record-{$item->getKey()}";
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->assertSuccessful()
         ->assertFormFieldExists(
             'expenseItems',
@@ -248,12 +248,12 @@ test('invoice line item description and line total restore defaults when emptied
         ->assertSet("data.expenseItems.{$itemKey}.line_total", '0.00');
 });
 
-test('invoice receipt fields have placeholders for empty values', function () {
-    $invoice = Expense::factory()->create([
+test('expense receipt fields have placeholders for empty values', function () {
+    $expense = Expense::factory()->create([
         'image_path' => null,
     ]);
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->assertSuccessful()
         ->assertSchemaComponentExists(
             'merchant_name',

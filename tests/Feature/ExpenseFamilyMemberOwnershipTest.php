@@ -7,8 +7,8 @@ use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Resources\Expenses\Pages\CreateExpense;
 use App\Filament\Resources\Expenses\Pages\EditExpense;
 use App\Filament\Resources\Expenses\Pages\ListExpenses;
-use App\Models\FamilyMember;
 use App\Models\Expense;
+use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\User;
 use App\Support\HouseholdAccess;
@@ -63,7 +63,7 @@ function ownershipFixtures(): array
     ];
 }
 
-test('household access allows family member to mutate only own invoices', function () {
+test('household access allows family member to mutate only own expenses', function () {
     $fixtures = ownershipFixtures();
 
     $this->actingAs($fixtures['user']);
@@ -73,7 +73,7 @@ test('household access allows family member to mutate only own invoices', functi
         ->and(HouseholdAccess::canMutateExpense($fixtures['otherOwned']))->toBeFalse();
 });
 
-test('primary user can mutate any invoice', function () {
+test('primary user can mutate any expense', function () {
     $fixtures = ownershipFixtures();
     $primaryUser = User::factory()->create();
 
@@ -84,7 +84,7 @@ test('primary user can mutate any invoice', function () {
         ->and(HouseholdAccess::canMutateExpense($fixtures['otherOwned']))->toBeTrue();
 });
 
-test('family member can open edit page for own invoice only', function () {
+test('family member can open edit page for own expense only', function () {
     $fixtures = ownershipFixtures();
 
     $this->actingAs($fixtures['user']);
@@ -99,7 +99,7 @@ test('family member can open edit page for own invoice only', function () {
         ->assertForbidden();
 });
 
-test('primary user can open edit page for any invoice', function () {
+test('primary user can open edit page for any expense', function () {
     $fixtures = ownershipFixtures();
 
     $this->actingAs(User::factory()->create());
@@ -114,7 +114,7 @@ test('primary user can open edit page for any invoice', function () {
         ->assertSuccessful();
 });
 
-test('family member cannot select non-owned invoices for bulk actions', function () {
+test('family member cannot select non-owned expenses for bulk actions', function () {
     $fixtures = ownershipFixtures();
 
     $this->actingAs($fixtures['user']);
@@ -132,7 +132,7 @@ test('family member cannot select non-owned invoices for bulk actions', function
         ->and($table->getRecordClasses($fixtures['otherOwned']))->toContain('tido-ta-record-unsupported');
 });
 
-test('family member sees mutation actions disabled on non-owned invoices', function () {
+test('family member sees mutation actions disabled on non-owned expenses', function () {
     Storage::fake('local');
     Storage::put('receipts/own.jpg', 'fake');
     Storage::put('receipts/primary.jpg', 'fake');
@@ -164,7 +164,7 @@ test('family member sees mutation actions disabled on non-owned invoices', funct
         ->assertActionDisabled(TestAction::make('reparse')->table($fixtures['otherOwned']));
 });
 
-test('family member cannot follow a row edit link for non-owned invoices', function () {
+test('family member cannot follow a row edit link for non-owned expenses', function () {
     $fixtures = ownershipFixtures();
 
     $this->actingAs($fixtures['user']);
@@ -182,7 +182,7 @@ test('family member cannot follow a row edit link for non-owned invoices', funct
         ->and($table->getRecordUrl($fixtures['otherOwned']))->toBeNull();
 });
 
-test('primary user keeps mutation actions enabled for every invoice', function () {
+test('primary user keeps mutation actions enabled for every expense', function () {
     Storage::fake('local');
     Storage::put('receipts/own.jpg', 'fake');
     Storage::put('receipts/primary.jpg', 'fake');
@@ -245,7 +245,7 @@ test('family member create forces their family_member_id', function () {
         ->and($created->family_member_id)->toBe($fixtures['member']->id);
 });
 
-test('invoice resource canEdit matches ownership', function () {
+test('expense resource canEdit matches ownership', function () {
     $fixtures = ownershipFixtures();
 
     $this->actingAs($fixtures['user']);

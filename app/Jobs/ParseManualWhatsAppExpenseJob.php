@@ -36,21 +36,21 @@ class ParseManualWhatsAppExpenseJob implements ShouldQueue
 
     public function handle(OllamaService $ollama, LabelMatcher $labelMatcher): void
     {
-        $invoice = Expense::with('expenseItems')->find($this->expenseId);
+        $expense = Expense::with('expenseItems')->find($this->expenseId);
 
-        if (! $invoice || $invoice->status !== 'pending') {
+        if (! $expense || $expense->status !== 'pending') {
             return;
         }
 
-        if ($invoice->source !== 'whatsapp' || filled($invoice->image_path)) {
+        if ($expense->source !== 'whatsapp' || filled($expense->image_path)) {
             return;
         }
 
-        $items = $invoice->expenseItems;
+        $items = $expense->expenseItems;
 
         if ($items->isEmpty()) {
-            $invoice->update(['status' => 'requires_manual_review']);
-            $this->notifyParsed($invoice);
+            $expense->update(['status' => 'requires_manual_review']);
+            $this->notifyParsed($expense);
 
             return;
         }
@@ -78,26 +78,26 @@ class ParseManualWhatsAppExpenseJob implements ShouldQueue
             $item->save();
         }
 
-        $raw = is_array($invoice->raw_ai_response) ? $invoice->raw_ai_response : [];
+        $raw = is_array($expense->raw_ai_response) ? $expense->raw_ai_response : [];
         $raw['label_classification'] = $parsed;
-        $invoice->raw_ai_response = $raw;
-        $invoice->status = 'requires_manual_review';
-        $invoice->save();
+        $expense->raw_ai_response = $raw;
+        $expense->status = 'requires_manual_review';
+        $expense->save();
 
-        $this->notifyParsed($invoice);
+        $this->notifyParsed($expense);
 
-        Log::info('Manual WhatsApp invoice labels applied', [
-            'expense_id' => $invoice->id,
-            'status' => $invoice->status,
+        Log::info('Manual WhatsApp expense labels applied', [
+            'expense_id' => $expense->id,
+            'status' => $expense->status,
         ]);
     }
 
     public function failed(\Throwable $exception): void
     {
-        $invoice = Expense::find($this->expenseId);
-        if ($invoice && $invoice->status === 'pending') {
-            $invoice->update(['status' => 'requires_manual_review']);
-            $this->notifyParsed($invoice);
+        $expense = Expense::find($this->expenseId);
+        if ($expense && $expense->status === 'pending') {
+            $expense->update(['status' => 'requires_manual_review']);
+            $this->notifyParsed($expense);
         }
 
         Log::error('ParseManualWhatsAppExpenseJob failed after maximum retries', [
@@ -106,13 +106,13 @@ class ParseManualWhatsAppExpenseJob implements ShouldQueue
         ]);
     }
 
-    protected function notifyParsed(Expense $invoice): void
+    protected function notifyParsed(Expense $expense): void
     {
-        if ($invoice->source !== 'whatsapp' || blank($invoice->whatsapp_sender)) {
+        if ($expense->source !== 'whatsapp' || blank($expense->whatsapp_sender)) {
             return;
         }
 
-        SendWhatsAppManualExpenseParsedJob::dispatch($invoice->id);
+        SendWhatsAppManualExpenseParsedJob::dispatch($expense->id);
     }
 
     /**

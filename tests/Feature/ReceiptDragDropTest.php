@@ -129,7 +129,7 @@ test('receipt image preview script raises filepond max height for receipt upload
         ->toContain('MAX_PREVIEW_HEIGHT = 500');
 });
 
-test('receipt upload page save creates pending invoice and dispatches extraction job', function () {
+test('receipt upload page save creates pending expense and dispatches extraction job', function () {
     Storage::fake('public');
     Queue::fake();
 
@@ -141,15 +141,15 @@ test('receipt upload page save creates pending invoice and dispatches extraction
         ->assertHasNoErrors()
         ->assertNotified();
 
-    $invoice = Expense::query()->first();
+    $expense = Expense::query()->first();
 
-    expect($invoice)->not->toBeNull()
-        ->and($invoice->status)->toBe('pending')
-        ->and($invoice->source)->toBe('manual')
-        ->and($invoice->merchant_name)->toBe('Pending AI Extraction...')
-        ->and($invoice->image_path)->toStartWith('receipts/')
-        ->and($invoice->original_filename)->toEndWith('.jpg')
-        ->and($invoice->file_mime_type)->toBe('image/jpeg');
+    expect($expense)->not->toBeNull()
+        ->and($expense->status)->toBe('pending')
+        ->and($expense->source)->toBe('manual')
+        ->and($expense->merchant_name)->toBe('Pending AI Extraction...')
+        ->and($expense->image_path)->toStartWith('receipts/')
+        ->and($expense->original_filename)->toEndWith('.jpg')
+        ->and($expense->file_mime_type)->toBe('image/jpeg');
 
     Queue::assertPushed(ExtractReceiptDataJob::class);
 });
@@ -166,13 +166,13 @@ test('receipt upload page stores PDF MIME metadata for PDF extraction', function
         ->assertHasNoErrors()
         ->assertNotified();
 
-    $invoice = Expense::query()->first();
+    $expense = Expense::query()->first();
 
-    expect($invoice)->not->toBeNull()
-        ->and($invoice->file_mime_type)->toBe('application/pdf')
-        ->and($invoice->original_filename)->toEndWith('.pdf');
+    expect($expense)->not->toBeNull()
+        ->and($expense->file_mime_type)->toBe('application/pdf')
+        ->and($expense->original_filename)->toEndWith('.pdf');
 
-    Storage::disk('local')->assertExists($invoice->image_path);
+    Storage::disk('local')->assertExists($expense->image_path);
     Queue::assertPushed(ExtractReceiptDataJob::class);
 });
 

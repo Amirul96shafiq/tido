@@ -62,7 +62,7 @@ test('foreign image receipt is converted to canonical MYR and preserves source m
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -75,20 +75,20 @@ test('foreign image receipt is converted to canonical MYR and preserves source m
         'original_filename' => 'usd.jpg',
     ]);
 
-    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
+    app()->call([new ExtractReceiptDataJob($expense->id), 'handle']);
 
-    $invoice->refresh();
+    $expense->refresh();
 
-    expect($invoice->status)->toBe('parsed')
-        ->and($invoice->currency)->toBe('MYR')
-        ->and($invoice->original_currency)->toBe('USD')
-        ->and($invoice->original_total_amount)->toBe('6.00')
-        ->and($invoice->total_amount)->toBe('27.00')
-        ->and($invoice->currency_conversion_status)->toBe('converted')
-        ->and((float) $invoice->currency_conversion_rate)->toBe(4.5)
-        ->and($invoice->currency_conversion_date->format('Y-m-d'))->toBe('2026-07-08')
-        ->and($invoice->currency_conversion_provider)->toBe('currencyapi')
-        ->and($invoice->expenseItems->first()->line_total)->toBe('90.00');
+    expect($expense->status)->toBe('parsed')
+        ->and($expense->currency)->toBe('MYR')
+        ->and($expense->original_currency)->toBe('USD')
+        ->and($expense->original_total_amount)->toBe('6.00')
+        ->and($expense->total_amount)->toBe('27.00')
+        ->and($expense->currency_conversion_status)->toBe('converted')
+        ->and((float) $expense->currency_conversion_rate)->toBe(4.5)
+        ->and($expense->currency_conversion_date->format('Y-m-d'))->toBe('2026-07-08')
+        ->and($expense->currency_conversion_provider)->toBe('currencyapi')
+        ->and($expense->expenseItems->first()->line_total)->toBe('90.00');
 
     expect(collect(Http::recorded())->filter(
         fn (array $record): bool => str_contains($record[0]->url(), 'currencyapi.test'),
@@ -138,7 +138,7 @@ test('focused document currency detection corrects a MYR misclassification befor
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -151,26 +151,26 @@ test('focused document currency detection corrects a MYR misclassification befor
         'original_filename' => 'misclassified-usd.jpg',
     ]);
 
-    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
+    app()->call([new ExtractReceiptDataJob($expense->id), 'handle']);
 
-    $invoice->refresh();
+    $expense->refresh();
 
-    expect($invoice->status)->toBe('parsed')
-        ->and($invoice->currency)->toBe('MYR')
-        ->and($invoice->original_currency)->toBe('USD')
-        ->and($invoice->original_total_amount)->toBe('6.00')
-        ->and($invoice->total_amount)->toBe('25.44')
-        ->and($invoice->currency_conversion_status)->toBe('converted')
-        ->and($invoice->currency_conversion_rate)->toBe('4.2397000000')
-        ->and($invoice->currency_conversion_provider)->toBe('receipt_printed_rate')
-        ->and($invoice->discount_total)->toBe('59.36')
-        ->and($invoice->raw_ai_response['currency_detection'])->toBe([
+    expect($expense->status)->toBe('parsed')
+        ->and($expense->currency)->toBe('MYR')
+        ->and($expense->original_currency)->toBe('USD')
+        ->and($expense->original_total_amount)->toBe('6.00')
+        ->and($expense->total_amount)->toBe('25.44')
+        ->and($expense->currency_conversion_status)->toBe('converted')
+        ->and($expense->currency_conversion_rate)->toBe('4.2397000000')
+        ->and($expense->currency_conversion_provider)->toBe('receipt_printed_rate')
+        ->and($expense->discount_total)->toBe('59.36')
+        ->and($expense->raw_ai_response['currency_detection'])->toBe([
             'currency' => 'USD',
             'source' => 'vision_currency_check',
             'rate' => 4.2397,
             'rate_source' => 'printed_receipt_rate',
         ])
-        ->and($invoice->expenseItems->first()->line_total)->toBe('84.79');
+        ->and($expense->expenseItems->first()->line_total)->toBe('84.79');
 });
 
 test('foreign receipt without an available rate stays source-denominated and requires review', function () {
@@ -196,7 +196,7 @@ test('foreign receipt without an available rate stays source-denominated and req
         'https://currencyapi.test/v3/historical*' => Http::failedConnection(),
     ]);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -209,24 +209,24 @@ test('foreign receipt without an available rate stays source-denominated and req
         'original_filename' => 'usd.jpg',
     ]);
 
-    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
+    app()->call([new ExtractReceiptDataJob($expense->id), 'handle']);
 
-    $invoice->refresh();
+    $expense->refresh();
 
-    expect($invoice->status)->toBe('requires_manual_review')
-        ->and($invoice->currency)->toBe('USD')
-        ->and($invoice->original_currency)->toBe('USD')
-        ->and($invoice->original_total_amount)->toBe('6.00')
-        ->and($invoice->total_amount)->toBe('6.00')
-        ->and($invoice->currency_conversion_status)->toBe('failed')
-        ->and($invoice->notes)->toContain('Currency conversion could not be completed');
+    expect($expense->status)->toBe('requires_manual_review')
+        ->and($expense->currency)->toBe('USD')
+        ->and($expense->original_currency)->toBe('USD')
+        ->and($expense->original_total_amount)->toBe('6.00')
+        ->and($expense->total_amount)->toBe('6.00')
+        ->and($expense->currency_conversion_status)->toBe('failed')
+        ->and($expense->notes)->toContain('Currency conversion could not be completed');
 });
 
-test('legacy invoice 332 style receipts support an explicit offline source rate', function () {
+test('legacy expense 332 style receipts support an explicit offline source rate', function () {
     Expense::unsetEventDispatcher();
     $this->seed(LabelSeeder::class);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'Cursor',
         'invoice_number' => 'K2WQY0IC-0012',
         'receipt_hash' => hash('sha256', 'legacy-332'),
@@ -264,7 +264,7 @@ test('legacy invoice 332 style receipts support an explicit offline source rate'
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'description' => 'Cursor Pro',
         'quantity' => 1,
         'unit_price' => 20.00,
@@ -273,32 +273,32 @@ test('legacy invoice 332 style receipts support an explicit offline source rate'
 
     Http::preventStrayRequests();
     $this->artisan('receipts:convert-currency', [
-        'invoice' => $invoice->id,
+        'expense' => $expense->id,
         '--source-currency' => 'USD',
         '--rate' => '4.5',
         '--dry-run' => true,
     ])
         ->assertSuccessful()
-        ->expectsOutputToContain("Would convert invoice #{$invoice->id}: USD 6");
+        ->expectsOutputToContain("Would convert expense #{$expense->id}: USD 6");
 
     expect(Http::recorded())->toHaveCount(0);
 
     $this->artisan('receipts:convert-currency', [
-        'invoice' => $invoice->id,
+        'expense' => $expense->id,
         '--source-currency' => 'USD',
         '--rate' => '4.5',
     ])
         ->assertSuccessful();
 
-    $invoice->refresh();
+    $expense->refresh();
 
-    expect($invoice->currency)->toBe('MYR')
-        ->and($invoice->total_amount)->toBe('27.00')
-        ->and($invoice->original_currency)->toBe('USD')
-        ->and($invoice->currency_conversion_status)->toBe('converted')
-        ->and($invoice->status)->toBe('parsed')
-        ->and($invoice->expenseItems->first()->line_total)->toBe('90.00')
-        ->and($invoice->notes)->toBeNull();
+    expect($expense->currency)->toBe('MYR')
+        ->and($expense->total_amount)->toBe('27.00')
+        ->and($expense->original_currency)->toBe('USD')
+        ->and($expense->currency_conversion_status)->toBe('converted')
+        ->and($expense->status)->toBe('parsed')
+        ->and($expense->expenseItems->first()->line_total)->toBe('90.00')
+        ->and($expense->notes)->toBeNull();
 
     $ollamaRequests = collect(Http::recorded())
         ->filter(fn (array $record): bool => str_contains($record[0]->url(), '/api/generate'));

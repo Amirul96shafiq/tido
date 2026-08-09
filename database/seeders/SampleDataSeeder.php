@@ -165,12 +165,12 @@ class SampleDataSeeder extends Seeder
 
                 $tax = round($subtotal * 0.06, 2);
                 $total = $subtotal + $tax;
-                $invoiceNum = 'INV-'.strtoupper(substr(md5((string) mt_rand()), 0, 8));
+                $expenseNum = 'INV-'.strtoupper(substr(md5((string) mt_rand()), 0, 8));
 
-                $invoice = Expense::create([
+                $expense = Expense::create([
                     'merchant_name' => $merchant['name'],
-                    'invoice_number' => $invoiceNum,
-                    'receipt_hash' => hash('sha256', $invoiceNum.$dateTime->format('Y-m-d H:i:s').$total),
+                    'invoice_number' => $expenseNum,
+                    'receipt_hash' => hash('sha256', $expenseNum.$dateTime->format('Y-m-d H:i:s').$total),
                     'date_time' => $dateTime,
                     'subtotal' => $subtotal,
                     'total_tax' => $tax,
@@ -185,7 +185,7 @@ class SampleDataSeeder extends Seeder
                     $label = $labels->get($itemData['category']);
 
                     ExpenseItem::create([
-                        'expense_id' => $invoice->id,
+                        'expense_id' => $expense->id,
                         'label_id' => $label?->id,
                         'description' => $itemData['description'],
                         'quantity' => $itemData['quantity'],
@@ -196,6 +196,6 @@ class SampleDataSeeder extends Seeder
             }
         }
 
-        $this->command->info('✅ Sample data seeded: ~32 invoices for '.$now->format('F Y'));
+        $this->command->info('✅ Sample data seeded: ~32 expenses for '.$now->format('F Y'));
     }
 }

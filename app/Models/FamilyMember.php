@@ -99,7 +99,7 @@ class FamilyMember extends Model
     /**
      * @return HasMany<Expense, $this>
      */
-    public function invoices(): HasMany
+    public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class);
     }

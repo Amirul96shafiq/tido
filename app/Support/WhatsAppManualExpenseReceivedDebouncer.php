@@ -21,7 +21,7 @@ final class WhatsAppManualExpenseReceivedDebouncer
     }
 
     /**
-     * Record a saved manual WhatsApp invoice and schedule a batched received ack.
+     * Record a saved manual WhatsApp expense and schedule a batched received ack.
      * Label parsing is dispatched only after that ack is sent.
      */
     public static function register(string $senderNumber, int $expenseId): void

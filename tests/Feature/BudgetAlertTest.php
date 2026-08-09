@@ -35,7 +35,7 @@ test('budget alert service triggers alerts on threshold breach', function () {
         'is_active' => true,
     ]);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-111',
         'date_time' => now(),
@@ -48,7 +48,7 @@ test('budget alert service triggers alerts on threshold breach', function () {
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -61,7 +61,7 @@ test('budget alert service triggers alerts on threshold breach', function () {
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
     ]);
 
-    $invoice->update(['status' => 'parsed']);
+    $expense->update(['status' => 'parsed']);
 
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/')
@@ -97,7 +97,7 @@ test('budget alert service skips users who opted out of budget alerts', function
         'is_active' => true,
     ]);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-222',
         'date_time' => now(),
@@ -110,7 +110,7 @@ test('budget alert service skips users who opted out of budget alerts', function
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -122,7 +122,7 @@ test('budget alert service skips users who opted out of budget alerts', function
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
     ]);
 
-    $invoice->update(['status' => 'parsed']);
+    $expense->update(['status' => 'parsed']);
 
     $this->assertDatabaseCount('notifications', 1);
 });
@@ -149,7 +149,7 @@ test('budget alert service sends critical notification at critical threshold', f
         'is_active' => true,
     ]);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-333',
         'date_time' => now(),
@@ -162,7 +162,7 @@ test('budget alert service sends critical notification at critical threshold', f
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -174,7 +174,7 @@ test('budget alert service sends critical notification at critical threshold', f
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
     ]);
 
-    $invoice->update(['status' => 'parsed']);
+    $expense->update(['status' => 'parsed']);
 
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/')
@@ -209,7 +209,7 @@ test('budget alert service skips whatsapp when notify_whatsapp is false', functi
         'is_active' => true,
     ]);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-444',
         'date_time' => now(),
@@ -222,7 +222,7 @@ test('budget alert service skips whatsapp when notify_whatsapp is false', functi
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -234,7 +234,7 @@ test('budget alert service skips whatsapp when notify_whatsapp is false', functi
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
     ]);
 
-    $invoice->update(['status' => 'parsed']);
+    $expense->update(['status' => 'parsed']);
 
     Http::assertNothingSent();
     $this->assertDatabaseCount('notifications', 1);
@@ -264,7 +264,7 @@ test('budget alert service skips filament when notify_filament is false', functi
         'is_active' => true,
     ]);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-555',
         'date_time' => now(),
@@ -277,7 +277,7 @@ test('budget alert service skips filament when notify_filament is false', functi
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -289,7 +289,7 @@ test('budget alert service skips filament when notify_filament is false', functi
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
     ]);
 
-    $invoice->update(['status' => 'parsed']);
+    $expense->update(['status' => 'parsed']);
 
     Http::assertSent(fn (Request $request) => str_contains($request->url(), '/message/sendText/'));
     $this->assertDatabaseCount('notifications', 0);
@@ -317,7 +317,7 @@ test('budget alert service notifies only the primary admin even when other users
         'is_active' => true,
     ]);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'McDonalds',
         'invoice_number' => 'INV-666',
         'date_time' => now(),
@@ -330,7 +330,7 @@ test('budget alert service notifies only the primary admin even when other users
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -342,7 +342,7 @@ test('budget alert service notifies only the primary admin even when other users
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
     ]);
 
-    $invoice->update(['status' => 'parsed']);
+    $expense->update(['status' => 'parsed']);
 
     expect($primary->fresh()->notifications()->count())->toBe(1)
         ->and($other->fresh()->notifications()->count())->toBe(0);

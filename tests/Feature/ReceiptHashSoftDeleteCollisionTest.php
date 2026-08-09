@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
-test('extract receipt data job uniquifies hash when soft-deleted invoice owns the same hash', function () {
+test('extract receipt data job uniquifies hash when soft-deleted expense owns the same hash', function () {
     Queue::fake();
     Storage::fake('local');
     Storage::put('receipts/wa_NEW.jpg', 'fake-image-content');
@@ -71,7 +71,7 @@ test('extract receipt data job uniquifies hash when soft-deleted invoice owns th
         ]),
     ]);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -85,15 +85,15 @@ test('extract receipt data job uniquifies hash when soft-deleted invoice owns th
         'original_filename' => 'wa_NEW.jpg',
     ]);
 
-    app()->call([new ExtractReceiptDataJob($invoice->id), 'handle']);
+    app()->call([new ExtractReceiptDataJob($expense->id), 'handle']);
 
-    $invoice->refresh();
+    $expense->refresh();
 
-    expect($invoice->status)->toBeIn(['parsed', 'requires_manual_review'])
-        ->and($invoice->receipt_hash)->not->toBe($baseHash)
-        ->and($invoice->receipt_hash)->toBe(hash('sha256', $baseHash.'|'.$invoice->id));
+    expect($expense->status)->toBeIn(['parsed', 'requires_manual_review'])
+        ->and($expense->receipt_hash)->not->toBe($baseHash)
+        ->and($expense->receipt_hash)->toBe(hash('sha256', $baseHash.'|'.$expense->id));
 
-    Queue::assertPushed(SendWhatsAppDocumentParsedJob::class, function (SendWhatsAppDocumentParsedJob $job) use ($invoice): bool {
-        return $job->expenseId === $invoice->id;
+    Queue::assertPushed(SendWhatsAppDocumentParsedJob::class, function (SendWhatsAppDocumentParsedJob $job) use ($expense): bool {
+        return $job->expenseId === $expense->id;
     });
 });

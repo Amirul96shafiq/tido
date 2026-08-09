@@ -24,11 +24,11 @@ test('google drive sync imports images and deletes them from drive', function ()
 
     expect($importedCount)->toBe(1);
 
-    $invoice = Expense::first();
-    expect($invoice)->not->toBeNull();
-    expect($invoice->source)->toBe('google_drive');
-    expect($invoice->original_filename)->toBe('receipt_june.png');
-    expect(Storage::disk('local')->exists($invoice->image_path))->toBeTrue();
+    $expense = Expense::first();
+    expect($expense)->not->toBeNull();
+    expect($expense->source)->toBe('google_drive');
+    expect($expense->original_filename)->toBe('receipt_june.png');
+    expect(Storage::disk('local')->exists($expense->image_path))->toBeTrue();
 
     expect(Storage::disk('google')->exists('receipt_june.png'))->toBeFalse();
 });

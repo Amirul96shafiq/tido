@@ -128,14 +128,14 @@ test('budget performance shows overspend instead of zero remaining', function ()
         'critical_threshold' => 100,
     ]);
 
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'status' => 'reviewed',
         'date_time' => now(),
         'total_amount' => 721.11,
     ]);
 
     ExpenseItem::factory()->create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'line_total' => 721.11,
     ]);

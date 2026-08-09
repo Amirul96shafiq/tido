@@ -190,7 +190,7 @@ test('whatsapp webhook handles spend labels sub-command', function () {
         'slug' => 'transport',
     ]);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'Petronas',
         'invoice_number' => 'INV-FUEL',
         'receipt_hash' => 'hash-fuel-001',
@@ -204,7 +204,7 @@ test('whatsapp webhook handles spend labels sub-command', function () {
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'RON95',
         'quantity' => 1,

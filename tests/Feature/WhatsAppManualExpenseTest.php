@@ -181,35 +181,35 @@ test('whatsapp finance others reply lists spending keywords', function () {
     });
 });
 
-test('process manual whatsapp invoice job creates invoice items and registers debounce', function () {
+test('process manual whatsapp expense job creates expense items and registers debounce', function () {
     Queue::fake();
 
     $text = "myNEWS Bayu Residensi;\nGARDENIA QUICKBITES CREAM ROLL, 1, 1.2;\nGARDENIA ORIG CLASSIC ENR.WHIT, 1, 3;";
 
     (new ProcessManualWhatsAppExpenseJob('60123456789', $text))->handle();
 
-    $invoice = Expense::query()->with('expenseItems')->first();
+    $expense = Expense::query()->with('expenseItems')->first();
 
-    expect($invoice)->not->toBeNull()
-        ->and($invoice->merchant_name)->toBe('myNEWS Bayu Residensi')
-        ->and((float) $invoice->total_amount)->toBe(4.2)
-        ->and((float) $invoice->subtotal)->toBe(4.2)
-        ->and($invoice->currency)->toBe('MYR')
-        ->and($invoice->paymentMethod->slug)->toBe('cash')
-        ->and($invoice->source)->toBe('whatsapp')
-        ->and($invoice->whatsapp_sender)->toBe('60123456789')
-        ->and($invoice->status)->toBe('pending')
-        ->and($invoice->image_path)->toBeNull()
-        ->and($invoice->expenseItems)->toHaveCount(2)
-        ->and($invoice->expenseItems[0]->label_id)->toBeNull()
-        ->and((float) $invoice->expenseItems[0]->unit_price)->toBe(1.2)
-        ->and((float) $invoice->expenseItems[1]->unit_price)->toBe(3.0);
+    expect($expense)->not->toBeNull()
+        ->and($expense->merchant_name)->toBe('myNEWS Bayu Residensi')
+        ->and((float) $expense->total_amount)->toBe(4.2)
+        ->and((float) $expense->subtotal)->toBe(4.2)
+        ->and($expense->currency)->toBe('MYR')
+        ->and($expense->paymentMethod->slug)->toBe('cash')
+        ->and($expense->source)->toBe('whatsapp')
+        ->and($expense->whatsapp_sender)->toBe('60123456789')
+        ->and($expense->status)->toBe('pending')
+        ->and($expense->image_path)->toBeNull()
+        ->and($expense->expenseItems)->toHaveCount(2)
+        ->and($expense->expenseItems[0]->label_id)->toBeNull()
+        ->and((float) $expense->expenseItems[0]->unit_price)->toBe(1.2)
+        ->and((float) $expense->expenseItems[1]->unit_price)->toBe(3.0);
 
     $payload = Cache::get(WhatsAppManualExpenseReceivedDebouncer::cacheKey('60123456789'));
 
     expect($payload)->toBeArray()
         ->and($payload['count'])->toBe(1)
-        ->and($payload['expense_ids'])->toContain($invoice->id);
+        ->and($payload['expense_ids'])->toContain($expense->id);
 
     Queue::assertPushed(SendWhatsAppManualExpenseReceivedAckJob::class, 1);
     Queue::assertNotPushed(ParseManualWhatsAppExpenseJob::class);
@@ -226,15 +226,15 @@ TEXT;
 
     (new ProcessManualWhatsAppExpenseJob('60123456789', $text))->handle();
 
-    $invoice = Expense::query()->first();
+    $expense = Expense::query()->first();
 
-    expect($invoice)->not->toBeNull()
-        ->and($invoice->merchant_name)->toBe('Kedai Makan Seri Ayu')
-        ->and($invoice->paymentMethod->slug)->toBe('pay_with_qr')
-        ->and((float) $invoice->total_amount)->toBe(14.5);
+    expect($expense)->not->toBeNull()
+        ->and($expense->merchant_name)->toBe('Kedai Makan Seri Ayu')
+        ->and($expense->paymentMethod->slug)->toBe('pay_with_qr')
+        ->and((float) $expense->total_amount)->toBe(14.5);
 });
 
-test('process job creates multiple invoices from one message', function () {
+test('process job creates multiple expenses from one message', function () {
     Queue::fake();
 
     $text = <<<'TEXT'
@@ -263,14 +263,14 @@ test('manual expense received ack sends message and dispatches parse jobs', func
     ]);
 
     $sender = '60123456789';
-    $invoiceA = Expense::factory()->create([
+    $expenseA = Expense::factory()->create([
         'source' => 'whatsapp',
         'whatsapp_sender' => $sender,
         'status' => 'pending',
         'image_path' => null,
         'payment_method_id' => PaymentMethod::findBySlug('cash')->id,
     ]);
-    $invoiceB = Expense::factory()->create([
+    $expenseB = Expense::factory()->create([
         'source' => 'whatsapp',
         'whatsapp_sender' => $sender,
         'status' => 'pending',
@@ -278,9 +278,9 @@ test('manual expense received ack sends message and dispatches parse jobs', func
         'payment_method_id' => PaymentMethod::findBySlug('cash')->id,
     ]);
 
-    WhatsAppManualExpenseReceivedDebouncer::register($sender, $invoiceA->id);
+    WhatsAppManualExpenseReceivedDebouncer::register($sender, $expenseA->id);
     $this->travel(1)->second();
-    WhatsAppManualExpenseReceivedDebouncer::register($sender, $invoiceB->id);
+    WhatsAppManualExpenseReceivedDebouncer::register($sender, $expenseB->id);
 
     $payload = Cache::get(WhatsAppManualExpenseReceivedDebouncer::cacheKey($sender));
     $token = $payload['token'];
@@ -299,7 +299,7 @@ test('manual expense received ack sends message and dispatches parse jobs', func
     Queue::assertPushed(ParseManualWhatsAppExpenseJob::class, 2);
 });
 
-test('parse manual whatsapp invoice job applies labels and requires manual review', function () {
+test('parse manual whatsapp expense job applies labels and requires manual review', function () {
     Queue::fake();
     $this->seed(LabelSeeder::class);
 
@@ -320,7 +320,7 @@ test('parse manual whatsapp invoice job applies labels and requires manual revie
         ]),
     ]);
 
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'myNEWS Bayu Residensi',
         'total_amount' => 4.20,
         'subtotal' => 4.20,
@@ -332,14 +332,14 @@ test('parse manual whatsapp invoice job applies labels and requires manual revie
         'image_path' => null,
     ]);
 
-    $invoice->expenseItems()->create([
+    $expense->expenseItems()->create([
         'description' => 'GARDENIA QUICKBITES CREAM ROLL',
         'quantity' => 1,
         'unit_price' => 1.20,
         'line_total' => 1.20,
         'label_id' => null,
     ]);
-    $invoice->expenseItems()->create([
+    $expense->expenseItems()->create([
         'description' => 'GARDENIA ORIG CLASSIC ENR.WHIT',
         'quantity' => 1,
         'unit_price' => 3.00,
@@ -347,20 +347,20 @@ test('parse manual whatsapp invoice job applies labels and requires manual revie
         'label_id' => null,
     ]);
 
-    (new ParseManualWhatsAppExpenseJob($invoice->id))->handle(
+    (new ParseManualWhatsAppExpenseJob($expense->id))->handle(
         app(OllamaService::class),
         app(LabelMatcher::class),
     );
 
-    $invoice->refresh()->load('expenseItems');
+    $expense->refresh()->load('expenseItems');
 
     $food = Label::query()->where('name', 'Food & Dining')->firstOrFail();
     $groceries = Label::query()->where('name', 'Groceries & Household')->firstOrFail();
 
-    expect($invoice->status)->toBe('requires_manual_review')
-        ->and($invoice->expenseItems[0]->label_id)->toBe($food->id)
-        ->and($invoice->expenseItems[1]->label_id)->toBe($groceries->id)
-        ->and($invoice->raw_ai_response)->toHaveKey('label_classification');
+    expect($expense->status)->toBe('requires_manual_review')
+        ->and($expense->expenseItems[0]->label_id)->toBe($food->id)
+        ->and($expense->expenseItems[1]->label_id)->toBe($groceries->id)
+        ->and($expense->raw_ai_response)->toHaveKey('label_classification');
 
     Http::assertSent(function (Request $request): bool {
         $body = $request->data();
@@ -370,8 +370,8 @@ test('parse manual whatsapp invoice job applies labels and requires manual revie
             && ! array_key_exists('images', $body);
     });
 
-    Queue::assertPushed(SendWhatsAppManualExpenseParsedJob::class, function (SendWhatsAppManualExpenseParsedJob $job) use ($invoice): bool {
-        return $job->expenseId === $invoice->id;
+    Queue::assertPushed(SendWhatsAppManualExpenseParsedJob::class, function (SendWhatsAppManualExpenseParsedJob $job) use ($expense): bool {
+        return $job->expenseId === $expense->id;
     });
 });
 
@@ -380,7 +380,7 @@ test('send manual expense parsed job sends whatsapp message with edit url', func
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
 
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'myNEWS Bayu Residensi',
         'total_amount' => 4.20,
         'payment_method_id' => PaymentMethod::findBySlug('cash')->id,
@@ -390,10 +390,10 @@ test('send manual expense parsed job sends whatsapp message with edit url', func
         'image_path' => null,
     ]);
 
-    (new SendWhatsAppManualExpenseParsedJob($invoice->id))
+    (new SendWhatsAppManualExpenseParsedJob($expense->id))
         ->handle(app(WhatsAppNotificationService::class));
 
-    Http::assertSent(function (Request $request) use ($invoice): bool {
+    Http::assertSent(function (Request $request) use ($expense): bool {
         $text = (string) $request['text'];
 
         return str_contains($request->url(), '/message/sendText/')
@@ -401,6 +401,6 @@ test('send manual expense parsed job sends whatsapp message with edit url', func
             && str_contains($text, 'myNEWS Bayu Residensi')
             && str_contains($text, 'RM 4.20')
             && str_contains($text, 'Cash')
-            && str_contains($text, '/admin/expenses/'.$invoice->id.'/edit');
+            && str_contains($text, '/admin/expenses/'.$expense->id.'/edit');
     });
 });

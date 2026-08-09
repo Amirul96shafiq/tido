@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Resources\Expenses\Pages\CreateExpense;
-use App\Models\FamilyMember;
 use App\Models\Expense;
+use App\Models\FamilyMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -21,7 +21,7 @@ beforeEach(function () {
     ]));
 });
 
-test('invoice create form uses uploaded by wording', function () {
+test('expense create form uses uploaded by wording', function () {
     FamilyMember::factory()->create([
         'name' => 'Nor Ezrieana Harun',
         'display_name' => 'nor',
@@ -35,7 +35,7 @@ test('invoice create form uses uploaded by wording', function () {
         ->assertDontSee('Nor Ezrieana Harun');
 });
 
-test('invoice list shows uploaded by usernames', function () {
+test('expense list shows uploaded by usernames', function () {
     $member = FamilyMember::factory()->create([
         'name' => 'Nor Ezrieana Harun',
         'display_name' => 'nor',
@@ -44,12 +44,12 @@ test('invoice list shows uploaded by usernames', function () {
     Expense::unsetEventDispatcher();
 
     Expense::factory()->create([
-        'merchant_name' => 'Primary Invoice',
+        'merchant_name' => 'Primary Expense',
         'family_member_id' => null,
     ]);
 
     Expense::factory()->create([
-        'merchant_name' => 'Family Invoice',
+        'merchant_name' => 'Family Expense',
         'family_member_id' => $member->id,
     ]);
 

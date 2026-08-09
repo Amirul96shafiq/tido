@@ -122,7 +122,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
         foreach ($state['receipts'] as $filePath) {
             $familyMemberId = $user?->family_member_id;
 
-            $invoice = Expense::create([
+            $expense = Expense::create([
                 'merchant_name' => 'Pending AI Extraction...',
                 'date_time' => now(),
                 'subtotal' => 0.00,

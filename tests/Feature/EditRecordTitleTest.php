@@ -55,10 +55,10 @@ test('edit label title appends Label model label and highlights record title', f
 });
 
 test('edit expense title appends Expense model label and highlights record title', function () {
-    $invoice = Expense::factory()->create(['merchant_name' => 'Starbucks']);
-    $recordTitle = 'Starbucks #'.$invoice->getKey();
+    $expense = Expense::factory()->create(['merchant_name' => 'Starbucks']);
+    $recordTitle = 'Starbucks #'.$expense->getKey();
 
-    $page = Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()]);
+    $page = Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()]);
     $titleHtml = (string) $page->instance()->getTitle();
 
     expect(html_entity_decode(strip_tags($titleHtml)))

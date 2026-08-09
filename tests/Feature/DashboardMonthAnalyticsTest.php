@@ -279,7 +279,7 @@ test('trend returns top three labels per month bucket', function () {
     $dining = Label::factory()->create(['name' => 'Dining', 'slug' => 'dining']);
     $misc = Label::factory()->create(['name' => 'Misc', 'slug' => 'misc']);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'Multi Label Store',
         'invoice_number' => 'INV-LABELS',
         'receipt_hash' => 'hash-labels-001',
@@ -299,7 +299,7 @@ test('trend returns top three labels per month bucket', function () {
         [$misc, 20.00],
     ] as [$label, $amount]) {
         ExpenseItem::create([
-            'expense_id' => $invoice->id,
+            'expense_id' => $expense->id,
             'label_id' => $label->id,
             'description' => $label->name,
             'quantity' => 1,
@@ -373,7 +373,7 @@ test('spent by label sums line items for selected month', function () {
         'slug' => 'groceries',
     ]);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'Grocery Store',
         'invoice_number' => 'INV-GROC',
         'receipt_hash' => 'hash-groc-001',
@@ -387,7 +387,7 @@ test('spent by label sums line items for selected month', function () {
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Vegetables',
         'quantity' => 1,
@@ -415,7 +415,7 @@ test('spent by label sums line items for selected month', function () {
     ]);
 });
 
-test('spent by label excludes soft deleted invoices', function () {
+test('spent by label excludes soft deleted expenses', function () {
     Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
@@ -503,7 +503,7 @@ test('spent by label ranks higher totals first', function () {
         [$groceries, 30.00, 'Small Grocery'],
         [$transport, 90.00, 'Petrol Station'],
     ] as [$label, $amount, $merchant]) {
-        $invoice = Expense::create([
+        $expense = Expense::create([
             'merchant_name' => $merchant,
             'invoice_number' => 'INV-'.strtoupper($label->slug),
             'receipt_hash' => 'hash-'.$label->slug,
@@ -517,7 +517,7 @@ test('spent by label ranks higher totals first', function () {
         ]);
 
         ExpenseItem::create([
-            'expense_id' => $invoice->id,
+            'expense_id' => $expense->id,
             'label_id' => $label->id,
             'description' => $label->name,
             'quantity' => 1,
@@ -546,7 +546,7 @@ test('spent by label counts one receipt with multiple line items', function () {
 
     $label = Label::factory()->create(['name' => 'Groceries', 'slug' => 'groceries']);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'Grocery Store',
         'invoice_number' => 'INV-MULTI',
         'receipt_hash' => 'hash-multi-001',
@@ -561,7 +561,7 @@ test('spent by label counts one receipt with multiple line items', function () {
 
     foreach ([25.00, 45.00] as $amount) {
         ExpenseItem::create([
-            'expense_id' => $invoice->id,
+            'expense_id' => $expense->id,
             'label_id' => $label->id,
             'description' => 'Item',
             'quantity' => 1,
@@ -591,7 +591,7 @@ test('spent by label computes month over month change', function () {
         [$priorMonth, 40.00, 'hash-prior-groc'],
         [$targetMonth, 100.00, 'hash-current-groc'],
     ] as [$month, $amount, $hash]) {
-        $invoice = Expense::create([
+        $expense = Expense::create([
             'merchant_name' => 'Grocery Store',
             'invoice_number' => 'INV-'.$hash,
             'receipt_hash' => $hash,
@@ -605,7 +605,7 @@ test('spent by label computes month over month change', function () {
         ]);
 
         ExpenseItem::create([
-            'expense_id' => $invoice->id,
+            'expense_id' => $expense->id,
             'label_id' => $label->id,
             'description' => 'Groceries',
             'quantity' => 1,
@@ -636,7 +636,7 @@ test('spent by label picks highest spend merchant for label', function () {
         ['Cafe A', 20.00, 'hash-cafe-a'],
         ['Restaurant B', 80.00, 'hash-restaurant-b'],
     ] as [$merchant, $amount, $hash]) {
-        $invoice = Expense::create([
+        $expense = Expense::create([
             'merchant_name' => $merchant,
             'invoice_number' => 'INV-'.$hash,
             'receipt_hash' => $hash,
@@ -650,7 +650,7 @@ test('spent by label picks highest spend merchant for label', function () {
         ]);
 
         ExpenseItem::create([
-            'expense_id' => $invoice->id,
+            'expense_id' => $expense->id,
             'label_id' => $label->id,
             'description' => 'Meal',
             'quantity' => 1,
@@ -669,7 +669,7 @@ test('spent by label picks highest spend merchant for label', function () {
     ]);
 });
 
-test('spent by label includes requires manual review invoices with labeled line items', function () {
+test('spent by label includes requires manual review expenses with labeled line items', function () {
     Expense::unsetEventDispatcher();
 
     $targetMonth = now()->copy()->subMonth()->format('Y-m');
@@ -680,7 +680,7 @@ test('spent by label includes requires manual review invoices with labeled line 
         'slug' => 'pet-supplies',
     ]);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pet Lovers Centre',
         'invoice_number' => 'INV-PET',
         'receipt_hash' => 'hash-pet-manual-001',
@@ -695,7 +695,7 @@ test('spent by label includes requires manual review invoices with labeled line 
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Pet food',
         'quantity' => 1,
@@ -704,7 +704,7 @@ test('spent by label includes requires manual review invoices with labeled line 
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Pet treats',
         'quantity' => 1,
@@ -713,7 +713,7 @@ test('spent by label includes requires manual review invoices with labeled line 
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Promo discount',
         'quantity' => 1,
@@ -751,7 +751,7 @@ test('budget mapping uses calendar month bounds for weekly budgets', function ()
         'is_active' => true,
     ]);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'Petrol Station',
         'invoice_number' => 'INV-PETROL',
         'receipt_hash' => 'hash-petrol-001',
@@ -765,7 +765,7 @@ test('budget mapping uses calendar month bounds for weekly budgets', function ()
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Fuel',
         'quantity' => 1,

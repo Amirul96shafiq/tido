@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Storage;
 class RestoreReceiptImagesCommand extends Command
 {
     protected $signature = 'receipts:restore-images
-        {--source= : Directory containing receipt image files named to match invoice image_path basenames}';
+        {--source= : Directory containing receipt image files named to match expense image_path basenames}';
 
-    protected $description = 'Copy missing receipt images from a source folder back into storage for existing invoices';
+    protected $description = 'Copy missing receipt images from a source folder back into storage for existing expenses';
 
     public function handle(): int
     {
@@ -34,8 +34,8 @@ class RestoreReceiptImagesCommand extends Command
             ->whereNotNull('image_path')
             ->where('image_path', '!=', '')
             ->orderBy('id')
-            ->each(function (Expense $invoice) use ($sourceDirectory, &$restored, &$alreadyPresent, &$missingSource): void {
-                $imagePath = (string) $invoice->image_path;
+            ->each(function (Expense $expense) use ($sourceDirectory, &$restored, &$alreadyPresent, &$missingSource): void {
+                $imagePath = (string) $expense->image_path;
 
                 if (Storage::disk('local')->exists($imagePath) || Storage::exists($imagePath)) {
                     $alreadyPresent++;
@@ -47,7 +47,7 @@ class RestoreReceiptImagesCommand extends Command
                 $sourcePath = $sourceDirectory.DIRECTORY_SEPARATOR.$basename;
 
                 if (! is_file($sourcePath)) {
-                    $this->warn("Missing source for invoice #{$invoice->getKey()}: {$basename}");
+                    $this->warn("Missing source for expense #{$expense->getKey()}: {$basename}");
                     $missingSource++;
 
                     return;
@@ -63,7 +63,7 @@ class RestoreReceiptImagesCommand extends Command
                 }
 
                 Storage::disk('local')->put($imagePath, $contents);
-                $this->info("Restored invoice #{$invoice->getKey()} → {$imagePath}");
+                $this->info("Restored expense #{$expense->getKey()} → {$imagePath}");
                 $restored++;
             });
 

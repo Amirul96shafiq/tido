@@ -53,7 +53,7 @@ class ProcessManualWhatsAppExpenseJob implements ShouldQueue
             $items = $block['items'];
             $totalAmount = round(array_sum(array_column($items, 'line_total')), 2);
 
-            $invoice = Expense::create([
+            $expense = Expense::create([
                 'merchant_name' => $block['merchant_name'],
                 'date_time' => now(),
                 'subtotal' => $totalAmount,
@@ -86,7 +86,7 @@ class ProcessManualWhatsAppExpenseJob implements ShouldQueue
                     : 0.00;
 
                 ExpenseItem::create([
-                    'expense_id' => $invoice->id,
+                    'expense_id' => $expense->id,
                     'label_id' => null,
                     'description' => $item['description'],
                     'quantity' => $quantity,
@@ -95,11 +95,11 @@ class ProcessManualWhatsAppExpenseJob implements ShouldQueue
                 ]);
             }
 
-            WhatsAppManualExpenseReceivedDebouncer::register($this->senderNumber, $invoice->id);
+            WhatsAppManualExpenseReceivedDebouncer::register($this->senderNumber, $expense->id);
 
-            Log::info('Manual WhatsApp invoice created', [
-                'expense_id' => $invoice->id,
-                'merchant_name' => $invoice->merchant_name,
+            Log::info('Manual WhatsApp expense created', [
+                'expense_id' => $expense->id,
+                'merchant_name' => $expense->merchant_name,
                 'item_count' => count($items),
             ]);
         }

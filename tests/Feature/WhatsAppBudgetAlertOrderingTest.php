@@ -50,7 +50,7 @@ test('whatsapp parsed status does not send budget alert synchronously from obser
         'is_active' => true,
     ]);
 
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'source' => 'whatsapp',
         'whatsapp_sender' => '60123456789',
         'status' => 'pending',
@@ -59,7 +59,7 @@ test('whatsapp parsed status does not send budget alert synchronously from obser
     ]);
 
     ExpenseItem::create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'description' => 'Burgers',
         'quantity' => 1,
@@ -67,7 +67,7 @@ test('whatsapp parsed status does not send budget alert synchronously from obser
         'line_total' => 90.00,
     ]);
 
-    $invoice->update(['status' => 'parsed']);
+    $expense->update(['status' => 'parsed']);
 
     Http::assertNothingSent();
     $this->assertDatabaseCount('notifications', 0);
@@ -78,7 +78,7 @@ test('document parsed job queues deferred budget alert after whatsapp reply', fu
 
     User::factory()->create(['phone' => '60123456789']);
 
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'source' => 'whatsapp',
         'whatsapp_sender' => '60123456789',
         'status' => 'parsed',
@@ -88,17 +88,17 @@ test('document parsed job queues deferred budget alert after whatsapp reply', fu
 
     Cache::forget(WhatsAppDocumentReceivedDebouncer::cacheKey('60123456789'));
 
-    (new SendWhatsAppDocumentParsedJob($invoice->id))->handle(app(WhatsAppNotificationService::class));
+    (new SendWhatsAppDocumentParsedJob($expense->id))->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(fn (Request $request) => str_contains((string) $request['text'], 'Document parsed'));
 
-    Queue::assertPushed(SendDeferredWhatsAppBudgetAlertJob::class, function (SendDeferredWhatsAppBudgetAlertJob $job) use ($invoice): bool {
+    Queue::assertPushed(SendDeferredWhatsAppBudgetAlertJob::class, function (SendDeferredWhatsAppBudgetAlertJob $job) use ($expense): bool {
         return $job->senderNumber === '60123456789'
-            && $job->expenseId === $invoice->id;
+            && $job->expenseId === $expense->id;
     });
 });
 
-test('deferred budget alert waits while sender still has pending whatsapp invoices', function () {
+test('deferred budget alert waits while sender still has pending whatsapp expenses', function () {
     User::factory()->create(['phone' => '60123456789']);
 
     $label = Label::factory()->create([
@@ -150,7 +150,7 @@ test('deferred budget alert waits while sender still has pending whatsapp invoic
     $this->assertDatabaseCount('notifications', 0);
 });
 
-test('deferred budget alert sends after all sender pending invoices are gone', function () {
+test('deferred budget alert sends after all sender pending expenses are gone', function () {
     User::factory()->create(['phone' => '60123456789']);
 
     $label = Label::factory()->create([

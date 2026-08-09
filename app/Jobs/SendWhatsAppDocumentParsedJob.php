@@ -38,13 +38,13 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
 
     public function handle(WhatsAppNotificationService $waService): void
     {
-        $invoice = Expense::find($this->expenseId);
+        $expense = Expense::find($this->expenseId);
 
-        if (! $invoice || $invoice->source !== 'whatsapp' || blank($invoice->whatsapp_sender)) {
+        if (! $expense || $expense->source !== 'whatsapp' || blank($expense->whatsapp_sender)) {
             return;
         }
 
-        $sender = (string) $invoice->whatsapp_sender;
+        $sender = (string) $expense->whatsapp_sender;
         $pendingAck = Cache::get(WhatsAppDocumentReceivedDebouncer::cacheKey($sender));
 
         if (is_array($pendingAck)) {
@@ -54,26 +54,26 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
         }
 
         $editUrl = WhatsAppPublicUrl::withRoot(
-            fn (): string => ExpenseResource::getUrl('edit', ['record' => $invoice]),
+            fn (): string => ExpenseResource::getUrl('edit', ['record' => $expense]),
         );
 
-        $paymentMethod = $invoice->paymentMethod?->name;
+        $paymentMethod = $expense->paymentMethod?->name;
 
         $details = [
-            'merchant_name' => $invoice->merchant_name,
-            'total_amount' => $invoice->total_amount,
-            'currency' => $invoice->displayCurrency(),
+            'merchant_name' => $expense->merchant_name,
+            'total_amount' => $expense->total_amount,
+            'currency' => $expense->displayCurrency(),
             'payment_method' => $paymentMethod,
         ];
 
-        $message = $invoice->status === 'requires_manual_review'
+        $message = $expense->status === 'requires_manual_review'
             ? WhatsAppMessage::documentNeedsReview($editUrl, $details)
             : WhatsAppMessage::documentParsed($editUrl, $details);
 
         $waService->sendMessage($sender, $message);
 
-        if ($invoice->status === 'parsed') {
-            SendDeferredWhatsAppBudgetAlertJob::dispatch($sender, $invoice->id)
+        if ($expense->status === 'parsed') {
+            SendDeferredWhatsAppBudgetAlertJob::dispatch($sender, $expense->id)
                 ->delay(now()->addSeconds(2));
         }
     }

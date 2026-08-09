@@ -15,7 +15,7 @@ class ExpensePolicy
         return true;
     }
 
-    public function view(User $user, Expense $invoice): bool
+    public function view(User $user, Expense $expense): bool
     {
         return true;
     }
@@ -25,24 +25,24 @@ class ExpensePolicy
         return true;
     }
 
-    public function update(User $user, Expense $invoice): bool
+    public function update(User $user, Expense $expense): bool
     {
-        return HouseholdAccess::canMutateExpense($invoice);
+        return HouseholdAccess::canMutateExpense($expense);
     }
 
-    public function delete(User $user, Expense $invoice): bool
+    public function delete(User $user, Expense $expense): bool
     {
-        return HouseholdAccess::canMutateExpense($invoice);
+        return HouseholdAccess::canMutateExpense($expense);
     }
 
-    public function restore(User $user, Expense $invoice): bool
+    public function restore(User $user, Expense $expense): bool
     {
-        return HouseholdAccess::canMutateExpense($invoice);
+        return HouseholdAccess::canMutateExpense($expense);
     }
 
-    public function forceDelete(User $user, Expense $invoice): bool
+    public function forceDelete(User $user, Expense $expense): bool
     {
-        return HouseholdAccess::canMutateExpense($invoice);
+        return HouseholdAccess::canMutateExpense($expense);
     }
 
     public function deleteAny(User $user): bool

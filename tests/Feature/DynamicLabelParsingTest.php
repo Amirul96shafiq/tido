@@ -28,7 +28,7 @@ test('extract receipt data job maps custom user label from ai response', functio
         'description' => 'Pet food, grooming, vet supplies',
     ]);
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -67,11 +67,11 @@ test('extract receipt data job maps custom user label from ai response', functio
         ]),
     ]);
 
-    $job = new ExtractReceiptDataJob($invoice->id);
+    $job = new ExtractReceiptDataJob($expense->id);
     app()->call([$job, 'handle']);
 
-    $invoice->refresh();
+    $expense->refresh();
 
-    expect($invoice->expenseItems)->toHaveCount(1)
-        ->and($invoice->expenseItems->first()->label->name)->toBe('Pet Supplies');
+    expect($expense->expenseItems)->toHaveCount(1)
+        ->and($expense->expenseItems->first()->label->name)->toBe('Pet Supplies');
 });

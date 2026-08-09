@@ -31,13 +31,13 @@ final class FilenameDisplay
         return mb_substr($basename, 0, $prefixLength).'...'.$suffix;
     }
 
-    public static function labelForExpense(Expense $invoice): string
+    public static function labelForExpense(Expense $expense): string
     {
-        if (blank($invoice->image_path) && blank($invoice->original_filename)) {
+        if (blank($expense->image_path) && blank($expense->original_filename)) {
             return self::MANUAL_EXPENSE_LABEL;
         }
 
-        return self::truncate($invoice->original_filename);
+        return self::truncate($expense->original_filename);
     }
 
     public static function configureTextColumn(TextColumn $column): TextColumn

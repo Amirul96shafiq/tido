@@ -51,7 +51,7 @@ test('extract receipt data job processes mock response and updates status', func
     Storage::fake('local');
     Storage::put('receipts/mock.jpg', 'fake-image-content');
 
-    $invoice = Expense::create([
+    $expense = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
         'subtotal' => 0.00,
@@ -95,19 +95,19 @@ test('extract receipt data job processes mock response and updates status', func
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
-    $job = new ExtractReceiptDataJob($invoice->id);
+    $job = new ExtractReceiptDataJob($expense->id);
     app()->call([$job, 'handle']);
 
-    $invoice->refresh();
+    $expense->refresh();
 
-    expect($invoice->status)->toBe('parsed');
-    expect($invoice->merchant_name)->toBe('KFC');
-    expect($invoice->invoice_number)->toBe('INV-999');
-    expect($invoice->total_amount)->toBe('20.69');
-    expect($invoice->discount_total)->toBe('0.50');
-    expect($invoice->rounding_amount)->toBe('-0.01');
-    expect($invoice->paymentMethod->slug)->toBe('mastercard');
-    expect($invoice->expenseItems)->toHaveCount(1);
-    expect($invoice->expenseItems->first()->description)->toBe('2-pc Chicken Meal');
-    expect($invoice->expenseItems->first()->label->name)->toBe('Food & Dining');
+    expect($expense->status)->toBe('parsed');
+    expect($expense->merchant_name)->toBe('KFC');
+    expect($expense->invoice_number)->toBe('INV-999');
+    expect($expense->total_amount)->toBe('20.69');
+    expect($expense->discount_total)->toBe('0.50');
+    expect($expense->rounding_amount)->toBe('-0.01');
+    expect($expense->paymentMethod->slug)->toBe('mastercard');
+    expect($expense->expenseItems)->toHaveCount(1);
+    expect($expense->expenseItems->first()->description)->toBe('2-pc Chicken Meal');
+    expect($expense->expenseItems->first()->label->name)->toBe('Food & Dining');
 });

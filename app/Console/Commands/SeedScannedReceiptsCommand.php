@@ -19,7 +19,7 @@ class SeedScannedReceiptsCommand extends Command
 {
     protected $signature = 'receipts:seed-scanned {--source= : Directory containing source receipt images}';
 
-    protected $description = 'Seed scanned receipt invoices into storage and the database (idempotent)';
+    protected $description = 'Seed scanned receipt expenses into storage and the database (idempotent)';
 
     public function handle(): int
     {
@@ -48,7 +48,7 @@ class SeedScannedReceiptsCommand extends Command
             $storagePath = 'receipts/'.$sourceFilename;
 
             if (Expense::query()->where('invoice_number', $invoiceNumber)->exists()) {
-                $this->line("Skipped existing invoice {$invoiceNumber}");
+                $this->line("Skipped existing expense {$invoiceNumber}");
                 $skipped++;
 
                 continue;
@@ -67,7 +67,7 @@ class SeedScannedReceiptsCommand extends Command
                 DB::transaction(function () use ($receipt, $invoiceNumber, $sourceFilename, $storagePath, &$created): void {
                     $paymentMethod = PaymentMethod::findBySlug((string) $receipt['payment_method']);
 
-                    $invoice = Expense::create([
+                    $expense = Expense::create([
                         'merchant_name' => $receipt['merchant_name'],
                         'invoice_number' => $invoiceNumber,
                         'date_time' => $receipt['date_time'],
@@ -96,7 +96,7 @@ class SeedScannedReceiptsCommand extends Command
                         }
 
                         ExpenseItem::create([
-                            'expense_id' => $invoice->id,
+                            'expense_id' => $expense->id,
                             'label_id' => $labelId,
                             'description' => $item['description'],
                             'quantity' => $item['quantity'],
@@ -106,7 +106,7 @@ class SeedScannedReceiptsCommand extends Command
                     }
 
                     $created++;
-                    $this->info("Created invoice {$invoiceNumber} ({$sourceFilename})");
+                    $this->info("Created expense {$invoiceNumber} ({$sourceFilename})");
                 });
             } catch (\Throwable $exception) {
                 $this->error("Failed {$invoiceNumber}: {$exception->getMessage()}");

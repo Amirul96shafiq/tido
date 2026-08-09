@@ -36,7 +36,7 @@ final class HouseholdAccess
         return self::isPrimary();
     }
 
-    public static function canMutateExpense(Expense $invoice): bool
+    public static function canMutateExpense(Expense $expense): bool
     {
         $user = self::user();
 
@@ -48,7 +48,7 @@ final class HouseholdAccess
             return false;
         }
 
-        return $invoice->family_member_id !== null
-            && (int) $invoice->family_member_id === (int) $user->family_member_id;
+        return $expense->family_member_id !== null
+            && (int) $expense->family_member_id === (int) $user->family_member_id;
     }
 }

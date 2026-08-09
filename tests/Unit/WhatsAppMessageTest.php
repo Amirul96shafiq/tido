@@ -97,7 +97,7 @@ test('document received includes file count', function () {
     );
 });
 
-test('document parsed includes merchant total payment method and invoice edit url', function () {
+test('document parsed includes merchant total payment method and expense edit url', function () {
     $message = WhatsAppMessage::documentParsed(
         'https://tido.test/admin/expenses/1/edit',
         [
@@ -127,7 +127,7 @@ test('document needs review includes merchant total payment method and review no
     );
 });
 
-test('manual expense received includes invoice count', function () {
+test('manual expense received includes expense count', function () {
     $message = WhatsAppMessage::manualExpenseReceived(2);
 
     expect($message)->toBe(
@@ -135,7 +135,7 @@ test('manual expense received includes invoice count', function () {
     );
 });
 
-test('manual expense parsed includes merchant total payment method and invoice edit url', function () {
+test('manual expense parsed includes merchant total payment method and expense edit url', function () {
     $message = WhatsAppMessage::manualExpenseParsed(
         'https://tido.test/admin/expenses/191/edit',
         [

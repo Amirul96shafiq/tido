@@ -63,7 +63,7 @@ class PaymentMethod extends Model
         return $query->where('is_system', true);
     }
 
-    public function invoices(): HasMany
+    public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class);
     }

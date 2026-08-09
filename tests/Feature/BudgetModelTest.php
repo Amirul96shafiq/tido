@@ -56,7 +56,7 @@ test('display icon falls back to label icon then banknotes', function () {
         ->and($overall->display_icon)->toBe('heroicon-o-banknotes');
 });
 
-test('spent in period sums parsed invoice items for the budget label', function () {
+test('spent in period sums parsed expense items for the budget label', function () {
     $label = Label::factory()->create();
     $otherLabel = Label::factory()->create();
 
@@ -67,19 +67,19 @@ test('spent in period sums parsed invoice items for the budget label', function 
         'year' => (int) now()->year,
     ]);
 
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'date_time' => now(),
         'status' => 'parsed',
     ]);
 
     ExpenseItem::factory()->create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $label->id,
         'line_total' => 80.00,
     ]);
 
     ExpenseItem::factory()->create([
-        'expense_id' => $invoice->id,
+        'expense_id' => $expense->id,
         'label_id' => $otherLabel->id,
         'line_total' => 40.00,
     ]);
@@ -87,7 +87,7 @@ test('spent in period sums parsed invoice items for the budget label', function 
     expect($budget->spentInPeriod())->toBe(80.0);
 });
 
-test('spent in period excludes soft deleted invoices', function () {
+test('spent in period excludes soft deleted expenses', function () {
     $label = Label::factory()->create();
 
     $budget = Budget::factory()->create([

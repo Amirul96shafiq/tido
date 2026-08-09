@@ -16,7 +16,7 @@ beforeEach(function () {
     $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
 });
 
-test('invoice create page renders sticky section nav markers', function () {
+test('expense create page renders sticky section nav markers', function () {
     Livewire::test(CreateExpense::class)
         ->assertSuccessful()
         ->assertSee('tido-sticky-scope', false)
@@ -25,17 +25,17 @@ test('invoice create page renders sticky section nav markers', function () {
         ->assertSee('tido-section-nav', false);
 });
 
-test('invoice edit page renders sticky section nav markers', function () {
-    $invoice = Expense::factory()->create();
+test('expense edit page renders sticky section nav markers', function () {
+    $expense = Expense::factory()->create();
 
-    Livewire::test(EditExpense::class, ['record' => $invoice->getRouteKey()])
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
         ->assertSuccessful()
         ->assertSee('tido-sticky-scope', false)
         ->assertSee('tido-sticky-marker--top', false)
         ->assertSee('tido-section-nav', false);
 });
 
-test('invoice section nav lists anchor tabs', function () {
+test('expense section nav lists anchor tabs', function () {
     Livewire::test(CreateExpense::class)
         ->assertSuccessful()
         ->assertSee('Image &amp; Uploads', false)
@@ -50,7 +50,7 @@ test('invoice section nav lists anchor tabs', function () {
         ->assertSee('#expense-status', false);
 });
 
-test('invoice section nav items match sectionNavItems helper', function () {
+test('expense section nav items match sectionNavItems helper', function () {
     expect(ExpenseForm::sectionNavItems())->toBe([
         ['label' => 'Image & Uploads', 'id' => 'image-uploads'],
         ['label' => 'Receipt Details', 'id' => 'receipt-details'],
@@ -60,7 +60,7 @@ test('invoice section nav items match sectionNavItems helper', function () {
     ]);
 });
 
-test('invoice section nav smooth scrolls on tab click', function () {
+test('expense section nav smooth scrolls on tab click', function () {
     Livewire::test(CreateExpense::class)
         ->assertSuccessful()
         ->assertSee('scrollToSection', false)

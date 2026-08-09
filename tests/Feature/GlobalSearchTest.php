@@ -125,7 +125,7 @@ test('destination search finds evolutionapi page', function () {
         ->and($match->url)->toBe(EvolutionApiPage::getUrl());
 });
 
-test('destination search finds invoices list page', function () {
+test('destination search finds expenses list page', function () {
     $results = AdminDestinationSearch::search('Expenses', GlobalSearchResults::make());
     $pages = collect($results->getCategories()->get('Pages', []));
 
@@ -226,8 +226,8 @@ test('global search opt-in requires explicit resource declaration', function () 
     expect($declaringClass)->toBe(ExpenseResource::class);
 });
 
-test('invoice global search finds merchant name', function () {
-    $invoice = Expense::factory()->create([
+test('expense global search finds merchant name', function () {
+    $expense = Expense::factory()->create([
         'merchant_name' => 'UniqueMerchantXYZ',
     ]);
 
@@ -237,11 +237,11 @@ test('invoice global search finds merchant name', function () {
         ->and($results->first()->title)->toBe('UniqueMerchantXYZ');
 });
 
-test('invoice global search finds status', function () {
-    $invoice = Expense::factory()->create([
+test('expense global search finds status', function () {
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Status Store',
         'invoice_number' => 'INV-STATUS-XYZ',
-        'notes' => 'Ordinary invoice note.',
+        'notes' => 'Ordinary expense note.',
         'original_filename' => 'receipt.jpg',
         'status' => 'reviewed',
     ]);
@@ -252,13 +252,13 @@ test('invoice global search finds status', function () {
         ->and($results->first()->title)->toBe('Status Store');
 });
 
-test('invoice global search finds line item description', function () {
-    $invoice = Expense::factory()->create([
+test('expense global search finds line item description', function () {
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Generic Store',
     ]);
 
     ExpenseItem::factory()
-        ->for($invoice)
+        ->for($expense)
         ->create([
             'description' => 'Organic Almond Milk Special',
         ]);
@@ -272,12 +272,12 @@ test('invoice global search finds line item description', function () {
 });
 
 test('global search highlights matching detail values with the primary color', function () {
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'merchant_name' => 'Generic Store',
     ]);
 
     ExpenseItem::factory()
-        ->for($invoice)
+        ->for($expense)
         ->create([
             'description' => 'Organic Almond Milk Special',
         ]);
@@ -291,7 +291,7 @@ test('global search highlights matching detail values with the primary color', f
         ->toContain('Organic <span class="text-primary-500 font-semibold hover:underline">Almond Milk</span> Special');
 });
 
-test('invoice global search omits items detail when only merchant matches', function () {
+test('expense global search omits items detail when only merchant matches', function () {
     Expense::factory()->create([
         'merchant_name' => 'Cake Bakery Only',
     ]);

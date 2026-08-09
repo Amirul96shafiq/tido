@@ -49,13 +49,13 @@ test('process whatsapp media job stores receipt and schedules batched document r
 
     app()->call([$job, 'handle']);
 
-    $invoice = Expense::first();
-    expect($invoice)->not->toBeNull()
-        ->and($invoice->source)->toBe('whatsapp')
-        ->and($invoice->whatsapp_sender)->toBe('60123456789')
-        ->and($invoice->whatsapp_message_id)->toBe('MSG456')
-        ->and($invoice->file_mime_type)->toBe('image/png')
-        ->and(Storage::exists($invoice->image_path))->toBeTrue();
+    $expense = Expense::first();
+    expect($expense)->not->toBeNull()
+        ->and($expense->source)->toBe('whatsapp')
+        ->and($expense->whatsapp_sender)->toBe('60123456789')
+        ->and($expense->whatsapp_message_id)->toBe('MSG456')
+        ->and($expense->file_mime_type)->toBe('image/png')
+        ->and(Storage::exists($expense->image_path))->toBeTrue();
 
     Queue::assertNotPushed(ExtractReceiptDataJob::class);
     Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class, function (SendWhatsAppDocumentReceivedAckJob $ack): bool {
@@ -181,20 +181,20 @@ test('process whatsapp media job stores an accepted PDF with document metadata',
 
     app()->call([$job, 'handle']);
 
-    $invoice = Expense::sole();
+    $expense = Expense::sole();
 
-    expect($invoice->original_filename)->toBe('shop receipt.pdf')
-        ->and($invoice->whatsapp_message_id)->toBe('MSG-PDF-2')
-        ->and($invoice->file_mime_type)->toBe('application/pdf')
-        ->and($invoice->file_page_count)->toBe(2)
-        ->and($invoice->image_path)->toEndWith('.pdf')
-        ->and(Storage::exists($invoice->image_path))->toBeTrue();
+    expect($expense->original_filename)->toBe('shop receipt.pdf')
+        ->and($expense->whatsapp_message_id)->toBe('MSG-PDF-2')
+        ->and($expense->file_mime_type)->toBe('application/pdf')
+        ->and($expense->file_page_count)->toBe(2)
+        ->and($expense->image_path)->toEndWith('.pdf')
+        ->and(Storage::exists($expense->image_path))->toBeTrue();
 
     Queue::assertNotPushed(ExtractReceiptDataJob::class);
     Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class);
 });
 
-test('process whatsapp media job rejects a PDF over three pages before creating an invoice', function () {
+test('process whatsapp media job rejects a PDF over three pages before creating an expense', function () {
     Storage::fake('local');
     Queue::fake();
     Process::preventStrayProcesses();
@@ -261,11 +261,11 @@ test('process whatsapp media job queues a PDF when the inspection utility path i
 
     app()->call([$job, 'handle']);
 
-    $invoice = Expense::sole();
+    $expense = Expense::sole();
 
-    expect($invoice->file_page_count)->toBeNull()
-        ->and($invoice->file_mime_type)->toBe('application/pdf')
-        ->and(Storage::exists($invoice->image_path))->toBeTrue();
+    expect($expense->file_page_count)->toBeNull()
+        ->and($expense->file_mime_type)->toBe('application/pdf')
+        ->and(Storage::exists($expense->image_path))->toBeTrue();
 
     Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class);
 });

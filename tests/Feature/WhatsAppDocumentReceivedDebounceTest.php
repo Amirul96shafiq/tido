@@ -132,7 +132,7 @@ test('superseded document received ack token is ignored', function () {
         ->and(Cache::get(WhatsAppDocumentReceivedDebouncer::cacheKey($sender))['count'])->toBe(2);
 });
 
-test('mixed PDF batch acknowledges rejected files and only dispatches accepted invoices', function () {
+test('mixed PDF batch acknowledges rejected files and only dispatches accepted expenses', function () {
     Queue::fake();
     Http::fake([
         '*/message/sendText/*' => Http::response(['status' => 'success']),

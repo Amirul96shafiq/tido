@@ -39,7 +39,7 @@ beforeEach(function () {
     ]);
 });
 
-test('whatsapp media job attributes invoice to allowlisted family member', function () {
+test('whatsapp media job attributes expense to allowlisted family member', function () {
     Storage::fake('local');
     Queue::fake();
 
@@ -62,11 +62,11 @@ test('whatsapp media job attributes invoice to allowlisted family member', funct
     );
     app()->call([$job, 'handle']);
 
-    $invoice = Expense::query()->first();
+    $expense = Expense::query()->first();
 
-    expect($invoice)->not->toBeNull()
-        ->and($invoice->family_member_id)->toBe($member->id)
-        ->and($invoice->whatsapp_sender)->toBe('60111111111');
+    expect($expense)->not->toBeNull()
+        ->and($expense->family_member_id)->toBe($member->id)
+        ->and($expense->whatsapp_sender)->toBe('60111111111');
 });
 
 test('whatsapp media job leaves family member null for primary sender', function () {
@@ -287,7 +287,7 @@ test('dev otp service stores fixed code without evolution send', function () {
     expect(app(WhatsAppLoginOtpService::class)->verify($user, '123456'))->toBeTrue();
 });
 
-test('family member login test seeder creates sample member and invoices', function () {
+test('family member login test seeder creates sample member and expenses', function () {
     $this->seed(FamilyMemberLoginTestSeeder::class);
 
     $member = FamilyMember::query()->where('phone', FamilyMemberLoginTestSeeder::SAMPLE_PHONE)->first();

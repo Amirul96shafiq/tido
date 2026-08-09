@@ -12,20 +12,20 @@ use Filament\Notifications\Notification;
 
 class ReceiptManualReviewNotifier
 {
-    public function notify(Expense $invoice): void
+    public function notify(Expense $expense): void
     {
-        $recipient = NotificationRecipient::forInvoice($invoice);
+        $recipient = NotificationRecipient::forExpense($expense);
 
         if ($recipient === null) {
             return;
         }
 
-        $merchant = filled($invoice->merchant_name)
-            ? (string) $invoice->merchant_name
+        $merchant = filled($expense->merchant_name)
+            ? (string) $expense->merchant_name
             : 'Unknown merchant';
 
-        $filename = filled($invoice->original_filename)
-            ? (string) $invoice->original_filename
+        $filename = filled($expense->original_filename)
+            ? (string) $expense->original_filename
             : null;
 
         $body = $filename !== null
@@ -34,9 +34,9 @@ class ReceiptManualReviewNotifier
 
         $viewUrl = ExpenseResource::getUrl('index', [
             'tableAction' => 'view',
-            'tableActionRecord' => $invoice->getRouteKey(),
+            'tableActionRecord' => $expense->getRouteKey(),
         ]);
-        $editUrl = ExpenseResource::getUrl('edit', ['record' => $invoice]);
+        $editUrl = ExpenseResource::getUrl('edit', ['record' => $expense]);
 
         Notification::make()
             ->title('Receipt requires manual review')

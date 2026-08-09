@@ -37,9 +37,9 @@ class DangerZoneTestUsersSeeder extends Seeder
         );
 
         if (Expense::query()->count() < 5) {
-            Expense::factory(8)->create()->each(function (Expense $invoice): void {
+            Expense::factory(8)->create()->each(function (Expense $expense): void {
                 ExpenseItem::factory(random_int(1, 3))->create([
-                    'expense_id' => $invoice->id,
+                    'expense_id' => $expense->id,
                 ]);
             });
 

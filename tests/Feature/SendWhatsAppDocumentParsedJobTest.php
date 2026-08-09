@@ -26,10 +26,10 @@ beforeEach(function (): void {
     ]);
 });
 
-test('sends document parsed message when invoice is parsed', function () {
+test('sends document parsed message when expense is parsed', function () {
     $paymentMethod = PaymentMethod::factory()->create(['name' => 'Cash']);
 
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'status' => 'parsed',
         'source' => 'whatsapp',
         'whatsapp_sender' => '601116330705',
@@ -40,7 +40,7 @@ test('sends document parsed message when invoice is parsed', function () {
 
     Cache::forget(WhatsAppDocumentReceivedDebouncer::cacheKey('601116330705'));
 
-    (new SendWhatsAppDocumentParsedJob($invoice->id))->handle(app(WhatsAppNotificationService::class));
+    (new SendWhatsAppDocumentParsedJob($expense->id))->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request) {
         $text = (string) $request['text'];
@@ -52,10 +52,10 @@ test('sends document parsed message when invoice is parsed', function () {
     });
 });
 
-test('sends document needs review message when invoice requires manual review', function () {
+test('sends document needs review message when expense requires manual review', function () {
     $paymentMethod = PaymentMethod::factory()->create(['name' => 'Other']);
 
-    $invoice = Expense::factory()->create([
+    $expense = Expense::factory()->create([
         'status' => 'requires_manual_review',
         'source' => 'whatsapp',
         'whatsapp_sender' => '601116330705',
@@ -66,7 +66,7 @@ test('sends document needs review message when invoice requires manual review', 
 
     Cache::forget(WhatsAppDocumentReceivedDebouncer::cacheKey('601116330705'));
 
-    (new SendWhatsAppDocumentParsedJob($invoice->id))->handle(app(WhatsAppNotificationService::class));
+    (new SendWhatsAppDocumentParsedJob($expense->id))->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request) {
         $text = (string) $request['text'];
