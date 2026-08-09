@@ -26,7 +26,10 @@ beforeEach(function (): void {
         'services.currencyapi.base_url' => 'https://currencyapi.test',
         'services.currencyapi.cainfo' => null,
         'services.currencyapi.retry_delays' => [0, 0],
+        'services.currencyapi.series_max_points' => 7,
+        'services.currencyapi.series_cache_ttl' => 604800,
     ]);
+    Cache::flush();
 });
 
 afterEach(function (): void {
@@ -50,11 +53,22 @@ function fakeCurrencyWidgetHttp(float $latestRate = 4.512345, string $latestUpda
     ];
 }
 
+function primeCurrencyWidgetCache(): void
+{
+    app(ExchangeRateService::class)->refreshDashboardRates(
+        'USD',
+        'MYR',
+        CurrentCurrency::SERIES_DAYS,
+    );
+}
+
 test('currency widget renders the current usd to myr rate with provider context', function () {
     Carbon::setTestNow(Carbon::parse('2026-07-08 12:00:00', 'Asia/Kuala_Lumpur'));
 
     Http::preventStrayRequests();
     Http::fake(fakeCurrencyWidgetHttp());
+    primeCurrencyWidgetCache();
+    $sentAfterPrime = Http::recorded();
 
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
@@ -77,19 +91,12 @@ test('currency widget renders the current usd to myr rate with provider context'
 
     $html = Livewire::test(CurrentCurrency::class)->html();
 
-    expect(substr_count($html, 'fi-wi-current-currency-surface'))->toBeGreaterThanOrEqual(3);
-
-    Http::assertSent(function ($request): bool {
-        return str_contains($request->url(), '/v3/latest?')
-            && str_contains($request->url(), 'base_currency=USD')
-            && str_contains($request->url(), 'currencies=MYR')
-            && $request->hasHeader('apikey', 'test-key');
-    });
+    expect(substr_count($html, 'fi-wi-current-currency-surface'))->toBeGreaterThanOrEqual(3)
+        ->and(Http::recorded())->toHaveCount(count($sentAfterPrime));
 });
 
-test('currency widget renders an unavailable state when the provider is not configured', function () {
+test('currency widget renders an unavailable state when no cached rate exists', function () {
     Http::preventStrayRequests();
-    config(['services.currencyapi.api_key' => null]);
 
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
@@ -97,11 +104,12 @@ test('currency widget renders an unavailable state when the provider is not conf
         ->assertSee('Current exchange rate unavailable')
         ->assertDontSee('Swap currencies')
         ->assertDontSee('fi-wi-currency-rate-sparkline');
+
+    Http::assertNothingSent();
 });
 
 test('currency widget uses half-width desktop layout', function () {
     Http::preventStrayRequests();
-    Http::fake(fakeCurrencyWidgetHttp());
 
     $widget = Livewire::test(CurrentCurrency::class)->instance();
 
@@ -111,25 +119,14 @@ test('currency widget uses half-width desktop layout', function () {
     ]);
 });
 
-test('currency widget shows last good rate when the live provider is unreachable', function () {
+test('currency widget shows last good rate when the live cache entry expired', function () {
     Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00', 'Asia/Kuala_Lumpur'));
 
     Http::preventStrayRequests();
-    Http::fake([
-        'https://currencyapi.test/v3/latest*' => Http::sequence()
-            ->push([
-                'meta' => ['last_updated_at' => '2026-08-07T23:59:59Z'],
-                'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.091]],
-            ])
-            ->pushFailedConnection('simulated outage'),
-        'https://currencyapi.test/v3/historical*' => Http::response([
-            'meta' => ['last_updated_at' => '2026-08-07T23:59:59Z'],
-            'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.091]],
-        ]),
-    ]);
-
-    app(ExchangeRateService::class)->latest('USD', 'MYR');
+    Http::fake(fakeCurrencyWidgetHttp(4.091, '2026-08-07T23:59:59Z'));
+    primeCurrencyWidgetCache();
     Cache::forget('currency-rate:currencyapi:USD:MYR:latest');
+    $sentAfterPrime = Http::recorded();
 
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
@@ -138,6 +135,8 @@ test('currency widget shows last good rate when the live provider is unreachable
         ->assertSee('07/08/2026 • 00:00:00 GMT+8 • currencyapi')
         ->assertDontSee('1 USD as of 07 Aug 2026 via currencyapi')
         ->assertDontSee('Unavailable');
+
+    expect(Http::recorded())->toHaveCount(count($sentAfterPrime));
 });
 
 test('currency widget shows rate history unavailable when the series cannot be loaded', function () {
@@ -152,6 +151,9 @@ test('currency widget shows rate history unavailable when the series cannot be l
         'https://currencyapi.test/v3/historical*' => Http::response([], 500),
     ]);
 
+    app(ExchangeRateService::class)->latest('USD', 'MYR');
+    $sentAfterPrime = Http::recorded();
+
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
         ->assertSee('1 USD = RM 4.2500')
@@ -161,6 +163,8 @@ test('currency widget shows rate history unavailable when the series cannot be l
         ->assertDontSee('statsOverviewStatChart')
         ->assertDontSee('Low')
         ->assertDontSee('30D');
+
+    expect(Http::recorded())->toHaveCount(count($sentAfterPrime));
 });
 
 test('currency widget shows a 30-day change and range from series history', function () {
@@ -175,7 +179,7 @@ test('currency widget shows a 30-day change and range from series history', func
         'https://currencyapi.test/v3/historical*' => function ($request) {
             parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
             $date = (string) ($query['date'] ?? '');
-            $start = Carbon::parse('2026-07-10', 'Asia/Kuala_Lumpur')->startOfDay();
+            $start = Carbon::parse('2026-07-09', 'Asia/Kuala_Lumpur')->startOfDay();
             $offset = max(0, (int) $start->diffInDays(Carbon::parse($date, 'Asia/Kuala_Lumpur')->startOfDay()));
             $value = 4.00 + ($offset * 0.01);
 
@@ -185,6 +189,8 @@ test('currency widget shows a 30-day change and range from series history', func
             ]);
         },
     ]);
+    primeCurrencyWidgetCache();
+    $sentAfterPrime = Http::recorded();
 
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
@@ -194,6 +200,8 @@ test('currency widget shows a 30-day change and range from series history', func
         ->assertSee('High')
         ->assertSee('Avg')
         ->assertSee('text-success-600', false);
+
+    expect(Http::recorded())->toHaveCount(count($sentAfterPrime));
 });
 
 test('currency widget source line follows the authenticated user date format and timezone', function () {
@@ -208,6 +216,8 @@ test('currency widget source line follows the authenticated user date format and
 
     Http::preventStrayRequests();
     Http::fake(fakeCurrencyWidgetHttp(4.091, '2026-08-07T23:59:59Z'));
+    primeCurrencyWidgetCache();
+    $sentAfterPrime = Http::recorded();
 
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
@@ -223,4 +233,21 @@ test('currency widget source line follows the authenticated user date format and
     Livewire::test(CurrentCurrency::class)
         ->assertSuccessful()
         ->assertSee('2026-08-07 • 00:00:00 GMT+0 • currencyapi');
+
+    expect(Http::recorded())->toHaveCount(count($sentAfterPrime));
+});
+
+test('currency widget does not call currencyapi on dashboard render', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00', 'Asia/Kuala_Lumpur'));
+
+    Http::preventStrayRequests();
+    Http::fake(fakeCurrencyWidgetHttp(4.25, '2026-08-08T10:15:00Z'));
+    primeCurrencyWidgetCache();
+    Http::fake(); // reset recorder; further requests would be stray and fail
+
+    Livewire::test(CurrentCurrency::class)
+        ->assertSuccessful()
+        ->assertSee('1 USD = RM 4.2500');
+
+    Http::assertNothingSent();
 });

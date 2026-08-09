@@ -14,6 +14,10 @@ Artisan::command('inspire', function () {
 // Scheduled background tasks
 Schedule::job(new SyncGoogleDriveJob)->everyFifteenMinutes();
 Schedule::command('health:probe')->everyFifteenMinutes();
+Schedule::command('currency:refresh-rates')
+    ->dailyAt('00:00')
+    ->timezone(config('app.timezone'))
+    ->withoutOverlapping();
 Schedule::command('backup:clean')->daily()->at('03:00');
 Schedule::command('backup:run')->daily()->at('02:00');
 Schedule::command('health:prune')->daily()->at('04:00');

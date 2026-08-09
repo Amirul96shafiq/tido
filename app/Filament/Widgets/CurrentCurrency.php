@@ -193,7 +193,7 @@ class CurrentCurrency extends Widget
     private function resolveRateDetails(): array
     {
         try {
-            $rateDetails = app(ExchangeRateService::class)->latest('USD', 'MYR');
+            $rateDetails = app(ExchangeRateService::class)->cachedLatest('USD', 'MYR');
 
             return [
                 'rate' => (float) $rateDetails['rate'],
@@ -217,7 +217,7 @@ class CurrentCurrency extends Widget
     private function resolveSeries(): array
     {
         try {
-            return app(ExchangeRateService::class)->series('USD', 'MYR', self::SERIES_DAYS);
+            return app(ExchangeRateService::class)->cachedSeries('USD', 'MYR', self::SERIES_DAYS);
         } catch (CurrencyConversionException $exception) {
             Log::warning('Currency widget series unavailable', [
                 'reason' => $exception->getMessage(),
