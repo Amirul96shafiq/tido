@@ -8,6 +8,7 @@ use App\Filament\GlobalSearch\AdminDestinationSearch;
 use App\Filament\Livewire\DatabaseNotifications;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\EmailChangeLinkExpired;
+use App\Filament\Pages\Auth\Forbidden;
 use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Auth\NotFound;
 use App\Filament\Pages\Auth\PasswordResetLinkExpired;
@@ -137,6 +138,7 @@ class AdminPanelProvider extends PanelProvider
                     PasswordResetLinkExpired::class,
                     EmailChangeLinkExpired::class,
                     NotFound::class,
+                    Forbidden::class,
                 ],
             )
             ->renderHook(
@@ -426,12 +428,15 @@ class AdminPanelProvider extends PanelProvider
                         ->name('email-change-verification.expired');
                     Route::get('/not-found', NotFound::class)
                         ->name('not-found');
+                    Route::get('/forbidden', Forbidden::class)
+                        ->name('forbidden');
                 });
             })
             ->livewireComponents([
                 PasswordResetLinkExpired::class,
                 EmailChangeLinkExpired::class,
                 NotFound::class,
+                Forbidden::class,
             ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

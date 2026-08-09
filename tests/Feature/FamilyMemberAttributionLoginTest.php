@@ -260,7 +260,7 @@ test('family member user cannot access evolution api page', function () {
 
     $this->actingAs($user)
         ->get(EvolutionApiPage::getUrl())
-        ->assertForbidden();
+        ->assertRedirect(route('filament.admin.auth.forbidden'));
 });
 
 test('family member user cannot access family members resource', function () {
@@ -272,7 +272,7 @@ test('family member user cannot access family members resource', function () {
 
     $this->actingAs($user)
         ->get(FamilyMemberResource::getUrl('index'))
-        ->assertForbidden();
+        ->assertRedirect(route('filament.admin.auth.forbidden'));
 });
 
 test('dev otp service stores fixed code without evolution send', function () {

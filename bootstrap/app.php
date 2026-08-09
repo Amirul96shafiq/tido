@@ -4,8 +4,10 @@ use App\Http\Middleware\SetUserPreferences;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Exceptions\InvalidSignatureException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -29,11 +31,11 @@ return Application::configure(basePath: dirname(__DIR__))
             $path = $request->getPathInfo();
 
             if (str_contains($path, '/email-change-verification/verify/')) {
-                return redirect()->route('filament.admin.auth.email-change-verification.expired');
+                return new RedirectResponse(route('filament.admin.auth.email-change-verification.expired'));
             }
 
             if (str_contains($path, '/password-reset/reset')) {
-                return redirect()->route('filament.admin.auth.password-reset.expired');
+                return new RedirectResponse(route('filament.admin.auth.password-reset.expired'));
             }
         });
 
@@ -46,6 +48,22 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            return redirect()->route('filament.admin.auth.not-found');
+            return new RedirectResponse(route('filament.admin.auth.not-found'));
+        });
+
+        $exceptions->render(function (HttpException $e, Request $request) {
+            if ($e->getStatusCode() !== 403) {
+                return null;
+            }
+
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return null;
+            }
+
+            if ($request->routeIs('filament.admin.auth.forbidden')) {
+                return null;
+            }
+
+            return new RedirectResponse(route('filament.admin.auth.forbidden'));
         });
     })->create();

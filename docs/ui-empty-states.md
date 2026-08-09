@@ -16,7 +16,7 @@ That component established the visual language:
 
 Styles live under `.fi-no-empty-panel*` in [`resources/css/app.css`](../resources/css/app.css) (light + dark). Table empties use `.fi-ta-empty-state*` (same visual contract, static icon).
 
-**Auth link-expired screens** (`PasswordResetLinkExpired`, `EmailChangeLinkExpired`) and the **404 page** (`NotFound`) use Filament’s simple auth layout (split background, auth menu, primary button) — not `<x-empty-state-panel>`.
+**Auth link-expired screens** (`PasswordResetLinkExpired`, `EmailChangeLinkExpired`) and HTTP error pages (`NotFound`, `Forbidden`) use Filament’s simple auth layout (split background, auth menu, primary button) — not `<x-empty-state-panel>`.
 
 ## When to use which pattern
 
