@@ -366,6 +366,13 @@ test('nested dropdown panels are not clipped by the parent dropdown overflow rul
         ->toContain('overflow-y: auto !important;')
         ->toContain('.fi-select-input-ctn > .fi-dropdown-panel.fi-scrollable {')
         ->toContain('max-height: min(60vh, 15rem) !important;')
+        ->toContain('.fi-dropdown.fi-ta-filters-dropdown')
+        ->toContain('.fi-dropdown.fi-ta-col-manager-dropdown')
+        ->toContain('> .fi-dropdown-panel.fi-scrollable[style*="display: block"]')
+        ->toContain('display: flex !important;')
+        ->toContain('overflow-y: hidden !important;')
+        ->toContain('.fi-ta-filters-dropdown .fi-ta-filters-body,')
+        ->toContain('.fi-ta-col-manager-dropdown .fi-ta-col-manager-body {')
         ->not->toContain(".fi-dropdown-panel {\n    max-height: 60vh !important;")
         ->not->toContain(".fi-dropdown-panel {\n    max-height: min(40vh, 20rem) !important;")
         ->not->toContain(".fi-dropdown-panel {\n    overflow-y: auto !important;");

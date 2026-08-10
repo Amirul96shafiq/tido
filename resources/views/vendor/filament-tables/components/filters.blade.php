@@ -10,7 +10,9 @@
 @endphp
 
 <div {{ $attributes->class(['fi-ta-filters']) }}>
-    {{ $form }}
+    <div class="fi-ta-filters-body">
+        {{ $form }}
+    </div>
 
     <div class="fi-ta-filters-actions-ctn">
         <x-filament::button
