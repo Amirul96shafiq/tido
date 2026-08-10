@@ -311,7 +311,7 @@
                 <x-slot name="footer">
                     <div
                         wire:key="database-notifications-pagination-{{ $notifications->currentPage() }}"
-                        class="fi-no-database-pagination flex w-full justify-center"
+                        class="fi-no-database-pagination w-full"
                     >
                         <x-filament::pagination :paginator="$notifications" />
                     </div>
