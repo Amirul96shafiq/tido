@@ -62,11 +62,11 @@ test('database notifications component is registered on the panel', function () 
         ->toBe(DatabaseNotifications::class);
 });
 
-test('database notifications modal content does not create a nested scrollport', function () {
+test('database notifications slide-over scrolls content under pinned footer', function () {
     seedDatabaseNotifications($this->user);
 
     Livewire::test(DatabaseNotifications::class)
-        ->assertDontSeeHtml('overflow-x: hidden');
+        ->assertSeeHtml('fi-no-database');
 
     $css = (string) file_get_contents(resource_path('css/app.css'));
     $databaseNotificationsBlock = Str::between(
@@ -76,9 +76,23 @@ test('database notifications modal content does not create a nested scrollport',
     );
 
     expect($databaseNotificationsBlock)
-        ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window .fi-modal-content')
-        ->not->toContain('overflow-x: hidden')
-        ->not->toContain('overflow-x:hidden');
+        ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window {')
+        ->toContain('overflow: hidden !important;')
+        ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content')
+        ->toContain('overflow-y: auto;')
+        ->toContain('min-height: 0;');
+
+    expect($css)
+        ->toContain(
+            <<<'CSS'
+.fi-no-database .fi-no-database-pagination {
+    width: 100%;
+}
+CSS
+        )
+        ->not->toContain('.fi-no-database .fi-pagination:not(.fi-simple) .fi-pagination-items')
+        ->not->toContain('.fi-no-database .fi-pagination:not(.fi-simple) .fi-pagination-previous-btn')
+        ->not->toContain('.fi-no-database .fi-pagination:not(.fi-simple) {');
 });
 
 test('can search database notifications by title', function () {

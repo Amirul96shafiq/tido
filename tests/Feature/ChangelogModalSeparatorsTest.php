@@ -35,11 +35,11 @@ test('changelog and database notification slide-overs use the shared custom scro
 
     expect($css)
         ->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window,')
-        ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window {')
+        ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content,')
         ->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,')
-        ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar {')
+        ->toContain('> .fi-modal-content::-webkit-scrollbar,')
         ->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,')
-        ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb {');
+        ->toContain('> .fi-modal-content::-webkit-scrollbar-thumb,');
 
     $blade = (string) file_get_contents(resource_path('views/components/changelog-modal.blade.php'));
 

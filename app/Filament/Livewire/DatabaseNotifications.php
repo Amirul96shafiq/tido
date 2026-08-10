@@ -81,10 +81,12 @@ class DatabaseNotifications extends BaseDatabaseNotifications
             return $this->getFilteredNotificationsQuery()->get();
         }
 
-        return $this->getFilteredNotificationsQuery()->paginate(
-            self::NOTIFICATIONS_PER_PAGE,
-            pageName: 'database-notifications-page',
-        );
+        return $this->getFilteredNotificationsQuery()
+            ->paginate(
+                self::NOTIFICATIONS_PER_PAGE,
+                pageName: 'database-notifications-page',
+            )
+            ->onEachSide(1);
     }
 
     public function hasAnyNotifications(): bool

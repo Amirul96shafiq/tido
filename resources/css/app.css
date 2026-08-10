@@ -40,15 +40,15 @@
  * Chromium: those standard props win and suppress ::-webkit-scrollbar-track
  * borders (needed to match the sidebar separator). Firefox gets them via
  * @supports below.
- * Changelog + database notification slide-overs scroll on .fi-modal-window
- * (Filament overflow-y-auto), not an inner custom-scrollbar region. */
+ * Changelog slide-over scrolls on .fi-modal-window (Filament overflow-y-auto).
+ * Database notifications pin header/footer and scroll .fi-modal-content. */
 .fi-sidebar-nav,
 .custom-scrollbar,
 .fi-dropdown-panel,
 .fi-ta-filters-body,
 .fi-ta-col-manager-body,
 .fi-changelog .fi-modal-window-ctn > .fi-modal-window,
-.fi-no-database .fi-modal-window-ctn > .fi-modal-window,
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content,
 .results-container,
 .fi-ta-content-ctn {
     scrollbar-width: thin !important;
@@ -82,7 +82,10 @@ body::-webkit-scrollbar,
 .fi-ta-filters-body::-webkit-scrollbar,
 .fi-ta-col-manager-body::-webkit-scrollbar,
 .fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,
-.fi-no-database .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,
+.fi-no-database
+    .fi-modal-window-ctn
+    > .fi-modal-window
+    > .fi-modal-content::-webkit-scrollbar,
 .results-container::-webkit-scrollbar,
 .fi-ta-content-ctn::-webkit-scrollbar {
     width: 6px !important;
@@ -101,7 +104,8 @@ body::-webkit-scrollbar-track,
 .fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-track,
 .fi-no-database
     .fi-modal-window-ctn
-    > .fi-modal-window::-webkit-scrollbar-track,
+    > .fi-modal-window
+    > .fi-modal-content::-webkit-scrollbar-track,
 .results-container::-webkit-scrollbar-track,
 .fi-ta-content-ctn::-webkit-scrollbar-track {
     background: transparent !important;
@@ -147,7 +151,8 @@ body::-webkit-scrollbar-thumb,
 .fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,
 .fi-no-database
     .fi-modal-window-ctn
-    > .fi-modal-window::-webkit-scrollbar-thumb,
+    > .fi-modal-window
+    > .fi-modal-content::-webkit-scrollbar-thumb,
 .results-container::-webkit-scrollbar-thumb,
 .fi-ta-content-ctn::-webkit-scrollbar-thumb {
     background-color: rgba(156, 163, 175, 0.3) !important;
@@ -168,7 +173,8 @@ body::-webkit-scrollbar-thumb:hover,
     > .fi-modal-window::-webkit-scrollbar-thumb:hover,
 .fi-no-database
     .fi-modal-window-ctn
-    > .fi-modal-window::-webkit-scrollbar-thumb:hover,
+    > .fi-modal-window
+    > .fi-modal-content::-webkit-scrollbar-thumb:hover,
 .results-container::-webkit-scrollbar-thumb:hover,
 .fi-ta-content-ctn::-webkit-scrollbar-thumb:hover {
     background-color: rgba(156, 163, 175, 0.5) !important;
@@ -180,7 +186,11 @@ body::-webkit-scrollbar-thumb:hover,
 .dark .fi-ta-filters-body,
 .dark .fi-ta-col-manager-body,
 .dark .fi-changelog .fi-modal-window-ctn > .fi-modal-window,
-.dark .fi-no-database .fi-modal-window-ctn > .fi-modal-window,
+.dark
+    .fi-no-database
+    .fi-modal-window-ctn
+    > .fi-modal-window
+    > .fi-modal-content,
 .dark .results-container,
 .dark .fi-ta-content-ctn {
     scrollbar-color: rgba(51, 65, 85, 0.5) transparent !important;
@@ -202,7 +212,8 @@ html.dark::-webkit-scrollbar-thumb,
 .dark
     .fi-no-database
     .fi-modal-window-ctn
-    > .fi-modal-window::-webkit-scrollbar-thumb,
+    > .fi-modal-window
+    > .fi-modal-content::-webkit-scrollbar-thumb,
 .dark .results-container::-webkit-scrollbar-thumb,
 .dark .fi-ta-content-ctn::-webkit-scrollbar-thumb {
     background-color: rgba(51, 65, 85, 0.5) !important;
@@ -224,7 +235,8 @@ html.dark::-webkit-scrollbar-thumb:hover,
 .dark
     .fi-no-database
     .fi-modal-window-ctn
-    > .fi-modal-window::-webkit-scrollbar-thumb:hover,
+    > .fi-modal-window
+    > .fi-modal-content::-webkit-scrollbar-thumb:hover,
 .dark .results-container::-webkit-scrollbar-thumb:hover,
 .dark .fi-ta-content-ctn::-webkit-scrollbar-thumb:hover {
     background-color: rgba(71, 85, 105, 0.7) !important;
@@ -3287,10 +3299,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
  * widens past the modal and shows a horizontal scrollbar.
  */
 /*
- * Do not set overflow-x on the modal window or .fi-modal-content.
- * CSS overflow pairing turns a lone overflow-x into overflow-y: auto, which
- * nests a second scrollbar inside Filament's slide-over (already overflow-y-auto)
- * and can clip the unread count badge (absolute -top-1).
+ * Database notifications: pin header/footer on the window; scroll only
+ * .fi-modal-content. Set both overflow axes explicitly so a lone overflow-x
+ * does not force a second window-level scrollbar.
  * Horizontal bleed is fixed by zeroing Filament's -mx-6 / px-6 below.
  */
 .fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-header {
@@ -3312,12 +3323,25 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     top: 0;
 }
 
-.fi-no-database .fi-modal-window-ctn > .fi-modal-window .fi-modal-content {
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window {
+    /* Pin header/footer; list scrolls in .fi-modal-content (not the window). */
+    overflow: hidden !important;
+}
+
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-header,
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-footer {
+    flex-shrink: 0;
+}
+
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content {
     margin-inline: 0;
     padding-inline: 0;
     padding-block: 0;
     row-gap: 0;
     max-width: 100%;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .fi-no-database
@@ -3786,24 +3810,13 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /*
- * Full pagination (prev + page numbers + next) in the narrow slide-over.
- * Filament hides .fi-pagination-items until @4xl; force them here and drop
- * the text Previous/Next buttons so the footer stays compact.
+ * Database notifications footer: use Filament's native pagination layout.
+ * Do not force .fi-pagination-items in the narrow slide-over — Filament hides
+ * them until the pagination container reaches @4xl and shows Previous/Next,
+ * matching resource tables.
  */
-.fi-no-database .fi-pagination:not(.fi-simple) {
-    display: flex;
-    justify-content: center;
-}
-
-.fi-no-database .fi-pagination:not(.fi-simple) .fi-pagination-previous-btn,
-.fi-no-database .fi-pagination:not(.fi-simple) .fi-pagination-next-btn,
-.fi-no-database .fi-pagination:not(.fi-simple) .fi-pagination-overview {
-    display: none;
-}
-
-.fi-no-database .fi-pagination:not(.fi-simple) .fi-pagination-items {
-    display: flex;
-    justify-self: center;
+.fi-no-database .fi-no-database-pagination {
+    width: 100%;
 }
 
 /*
