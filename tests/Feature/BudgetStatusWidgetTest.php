@@ -85,6 +85,32 @@ test('budget status widget uses single-line title marquee markup', function () {
         ->assertSee('whitespace-nowrap', false);
 });
 
+test('budget status widget renders period and shared pills with contrast', function () {
+    $label = Label::factory()->create(['name' => 'Groceries']);
+
+    Budget::factory()->shared()->create([
+        'label_id' => $label->id,
+        'amount' => 500.00,
+        'period' => 'monthly',
+        'is_active' => true,
+    ]);
+
+    Livewire::test(BudgetStatus::class)
+        ->assertSuccessful()
+        ->assertSee('Monthly')
+        ->assertSee('Shared')
+        ->assertSee(
+            'inline-flex w-fit shrink-0 items-center rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-600 dark:text-slate-100',
+            false,
+        )
+        ->assertSee(
+            'inline-flex w-fit shrink-0 items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-400/25 dark:text-primary-300',
+            false,
+        )
+        ->assertDontSee('dark:bg-gray-800 dark:text-gray-500', false)
+        ->assertDontSee('rounded-md bg-gray-100', false);
+});
+
 test('budget status widget links each budget to its edit page', function () {
     $label = Label::factory()->create(['name' => 'Groceries']);
 
