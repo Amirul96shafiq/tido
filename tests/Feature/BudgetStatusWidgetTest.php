@@ -99,6 +99,7 @@ test('budget status widget renders period and shared pills with contrast', funct
         ->assertSuccessful()
         ->assertSee('Monthly')
         ->assertSee('Shared')
+        ->assertSee('flex w-fit shrink-0 flex-row flex-wrap items-center gap-1.5', false)
         ->assertSee(
             'inline-flex w-fit shrink-0 items-center rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-600 dark:text-slate-100',
             false,

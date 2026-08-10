@@ -122,10 +122,12 @@
                                                 :class="{ 'tido-text-marquee': overflowing }"
                                             >{{ $budget['name'] }}</span>
                                         </div>
-                                        <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-600 dark:text-slate-100">{{ ucfirst($budget['period']) }}</span>
-                                        @if ($budget['is_shared'] ?? false)
-                                            <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-400/25 dark:text-primary-300">Shared</span>
-                                        @endif
+                                        <div class="flex w-fit shrink-0 flex-row flex-wrap items-center gap-1.5">
+                                            <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-600 dark:text-slate-100">{{ ucfirst($budget['period']) }}</span>
+                                            @if ($budget['is_shared'] ?? false)
+                                                <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-400/25 dark:text-primary-300">Shared</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="flex shrink-0 flex-col items-end gap-0.5 text-right whitespace-nowrap sm:flex-row sm:items-baseline sm:gap-1">
