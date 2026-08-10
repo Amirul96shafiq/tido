@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\Budget;
+use App\Models\FamilyMember;
 use App\Models\Label;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -24,6 +25,8 @@ class BudgetFactory extends Factory
             'title' => null,
             'icon' => null,
             'label_id' => $this->faker->boolean(80) ? Label::factory() : null,
+            'family_member_id' => null,
+            'is_shared' => false,
             'amount' => $this->faker->randomFloat(2, 50, 5000),
             'period' => $period,
             'quarter' => $quarter,
@@ -35,5 +38,20 @@ class BudgetFactory extends Factory
             'is_active' => true,
             'notes' => null,
         ];
+    }
+
+    public function shared(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'is_shared' => true,
+        ]);
+    }
+
+    public function forFamilyMember(?FamilyMember $familyMember = null): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'family_member_id' => $familyMember?->id ?? FamilyMember::factory(),
+            'is_shared' => false,
+        ]);
     }
 }

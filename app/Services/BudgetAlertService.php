@@ -7,6 +7,8 @@ namespace App\Services;
 use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
 use App\Models\Expense;
+use App\Models\FamilyMember;
+use App\Models\User;
 use App\Support\NotificationRecipient;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppMessage;
@@ -22,6 +24,7 @@ class BudgetAlertService
         $labelIds = $expense->expenseItems()->pluck('label_id')->unique()->filter()->toArray();
 
         $budgets = Budget::query()
+            ->with('familyMember.loginUser')
             ->where('is_active', true)
             ->where(function ($query) use ($labelIds): void {
                 $query->whereIn('label_id', $labelIds)
@@ -30,6 +33,10 @@ class BudgetAlertService
             ->get();
 
         foreach ($budgets as $budget) {
+            if (! $budget->appliesToExpense($expense)) {
+                continue;
+            }
+
             $budgetAmount = (float) $budget->amount;
 
             if ($budgetAmount <= 0) {
@@ -74,48 +81,91 @@ class BudgetAlertService
         $isCritical = $level === 'critical';
         $alertHeading = $isCritical ? 'Budget critical' : 'Budget alert';
 
-        if ($budget->notify_whatsapp) {
-            $message = WhatsAppMessage::compose(
-                $isCritical ? '🚨' : '⚠️',
-                $alertHeading,
-                sprintf(
-                    "Spending for this budget has reached the %s threshold.\n\nBudget: *%s*\nSpent: *RM %s* / *RM %s* (%.1f%%)\nPeriod: *%s*",
-                    $isCritical ? 'critical' : 'warning',
-                    $labelName,
-                    MoneyDisplay::format($spent),
-                    MoneyDisplay::format($budgetAmount),
-                    $percentage,
-                    $periodName,
-                ),
-            );
+        $message = WhatsAppMessage::compose(
+            $isCritical ? '🚨' : '⚠️',
+            $alertHeading,
+            sprintf(
+                "Spending for this budget has reached the %s threshold.\n\nBudget: *%s*\nSpent: *RM %s* / *RM %s* (%.1f%%)\nPeriod: *%s*",
+                $isCritical ? 'critical' : 'warning',
+                $labelName,
+                MoneyDisplay::format($spent),
+                MoneyDisplay::format($budgetAmount),
+                $percentage,
+                $periodName,
+            ),
+        );
 
-            $personalNumber = PhoneNumber::primaryWhatsAppNumber();
-            if ($personalNumber !== null) {
-                $this->waService->sendMessage($personalNumber, $message);
-            }
+        if ($budget->notify_whatsapp) {
+            $this->sendWhatsAppAlerts($budget, $message);
         }
 
         if (! $budget->notify_filament) {
             return;
         }
 
-        $user = NotificationRecipient::primaryAdmin();
+        $filamentTitle = ($isCritical ? 'Budget Critical: ' : 'Budget Alert: ').$labelName;
+        $filamentBody = MoneyDisplay::withPrefix($spent).' / '.MoneyDisplay::withPrefix($budgetAmount).' ('.round($percentage).'%)';
 
-        if ($user === null || ! $user->notify_budget_alerts) {
-            return;
+        $this->sendFilamentAlerts($budget, $filamentTitle, $filamentBody, $isCritical);
+    }
+
+    private function sendWhatsAppAlerts(Budget $budget, string $message): void
+    {
+        $numbers = [];
+
+        $primaryNumber = PhoneNumber::primaryWhatsAppNumber();
+        if ($primaryNumber !== null) {
+            $numbers[$primaryNumber] = true;
         }
 
-        $notification = FilamentNotification::make()
-            ->title(($isCritical ? 'Budget Critical: ' : 'Budget Alert: ').$labelName)
-            ->body(MoneyDisplay::withPrefix($spent).' / '.MoneyDisplay::withPrefix($budgetAmount).' ('.round($percentage).'%)');
-
-        if ($isCritical) {
-            $notification->danger();
-        } else {
-            $notification->warning();
+        $owner = $budget->familyMember;
+        if ($owner instanceof FamilyMember && filled($owner->phone)) {
+            $normalized = PhoneNumber::normalize((string) $owner->phone);
+            if ($normalized !== null) {
+                $numbers[$normalized] = true;
+            }
         }
 
-        $notification->sendToDatabase($user);
+        foreach (array_keys($numbers) as $number) {
+            $this->waService->sendMessage((string) $number, $message);
+        }
+    }
+
+    private function sendFilamentAlerts(
+        Budget $budget,
+        string $title,
+        string $body,
+        bool $isCritical,
+    ): void {
+        $recipients = [];
+
+        $primary = NotificationRecipient::primaryAdmin();
+        if ($primary instanceof User && $primary->notify_budget_alerts) {
+            $recipients[$primary->getKey()] = $primary;
+        }
+
+        $ownerUser = $budget->familyMember?->loginUser;
+        if (
+            $ownerUser instanceof User
+            && $budget->familyMember?->login_enabled
+            && $ownerUser->notify_budget_alerts
+        ) {
+            $recipients[$ownerUser->getKey()] = $ownerUser;
+        }
+
+        foreach ($recipients as $user) {
+            $notification = FilamentNotification::make()
+                ->title($title)
+                ->body($body);
+
+            if ($isCritical) {
+                $notification->danger();
+            } else {
+                $notification->warning();
+            }
+
+            $notification->sendToDatabase($user);
+        }
     }
 
     /**

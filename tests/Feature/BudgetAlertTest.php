@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\Budget;
 use App\Models\Expense;
 use App\Models\ExpenseItem;
+use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -422,4 +423,179 @@ test('budget alert service does not re-alert the same budget level in the same p
 
     $this->assertDatabaseCount('notifications', 1);
     Http::assertSentCount(1);
+});
+
+test('budget alert service ignores personal budgets for other household members', function () {
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    User::factory()->create(['phone' => '60123456789']);
+    $member = FamilyMember::factory()->create();
+
+    $label = Label::factory()->create([
+        'name' => 'Food & Dining',
+        'slug' => 'food-dining',
+    ]);
+
+    Budget::factory()->forFamilyMember($member)->create([
+        'label_id' => $label->id,
+        'amount' => 100.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+        'alert_threshold' => 80,
+        'is_active' => true,
+    ]);
+
+    $expense = Expense::create([
+        'merchant_name' => 'McDonalds',
+        'invoice_number' => 'INV-PERSONAL-SKIP',
+        'date_time' => now(),
+        'subtotal' => 90.00,
+        'total_tax' => 0.00,
+        'total_amount' => 90.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'pending',
+        'family_member_id' => null,
+    ]);
+
+    ExpenseItem::create([
+        'expense_id' => $expense->id,
+        'label_id' => $label->id,
+        'description' => 'Burgers',
+        'quantity' => 1,
+        'unit_price' => 90.00,
+        'line_total' => 90.00,
+    ]);
+
+    config([
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
+    ]);
+
+    $expense->update(['status' => 'parsed']);
+
+    Http::assertNothingSent();
+    $this->assertDatabaseCount('notifications', 0);
+});
+
+test('budget alert service notifies assigned family member via whatsapp', function () {
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    User::factory()->create(['phone' => '60123456789']);
+    $member = FamilyMember::factory()->create([
+        'phone' => '60199887766',
+    ]);
+
+    $label = Label::factory()->create([
+        'name' => 'Food & Dining',
+        'slug' => 'food-dining',
+    ]);
+
+    Budget::factory()->forFamilyMember($member)->create([
+        'label_id' => $label->id,
+        'amount' => 100.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+        'alert_threshold' => 80,
+        'is_active' => true,
+        'notify_whatsapp' => true,
+        'notify_filament' => true,
+    ]);
+
+    $expense = Expense::create([
+        'merchant_name' => 'McDonalds',
+        'invoice_number' => 'INV-OWNER-WA',
+        'date_time' => now(),
+        'subtotal' => 90.00,
+        'total_tax' => 0.00,
+        'total_amount' => 90.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'pending',
+        'family_member_id' => $member->id,
+    ]);
+
+    ExpenseItem::create([
+        'expense_id' => $expense->id,
+        'label_id' => $label->id,
+        'description' => 'Burgers',
+        'quantity' => 1,
+        'unit_price' => 90.00,
+        'line_total' => 90.00,
+    ]);
+
+    config([
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
+    ]);
+
+    $expense->update(['status' => 'parsed']);
+
+    $sentNumbers = collect(Http::recorded())
+        ->map(fn (array $pair): string => (string) ($pair[0]['number'] ?? ''))
+        ->filter()
+        ->values()
+        ->all();
+
+    expect($sentNumbers)->toContain('60123456789@s.whatsapp.net')
+        ->and($sentNumbers)->toContain('60199887766@s.whatsapp.net');
+
+    $this->assertDatabaseCount('notifications', 1);
+});
+
+test('shared budget still alerts when any household member spends', function () {
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    User::factory()->create(['phone' => '60123456789']);
+    $member = FamilyMember::factory()->create();
+
+    $label = Label::factory()->create([
+        'name' => 'Food & Dining',
+        'slug' => 'food-dining',
+    ]);
+
+    Budget::factory()->shared()->create([
+        'label_id' => $label->id,
+        'family_member_id' => null,
+        'amount' => 100.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+        'alert_threshold' => 80,
+        'is_active' => true,
+    ]);
+
+    $expense = Expense::create([
+        'merchant_name' => 'McDonalds',
+        'invoice_number' => 'INV-SHARED',
+        'date_time' => now(),
+        'subtotal' => 90.00,
+        'total_tax' => 0.00,
+        'total_amount' => 90.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'pending',
+        'family_member_id' => $member->id,
+    ]);
+
+    ExpenseItem::create([
+        'expense_id' => $expense->id,
+        'label_id' => $label->id,
+        'description' => 'Burgers',
+        'quantity' => 1,
+        'unit_price' => 90.00,
+        'line_total' => 90.00,
+    ]);
+
+    config([
+        'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
+    ]);
+
+    $expense->update(['status' => 'parsed']);
+
+    Http::assertSent(fn (Request $request) => str_contains($request->url(), '/message/sendText/'));
+    $this->assertDatabaseCount('notifications', 1);
 });
