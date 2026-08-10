@@ -31,8 +31,15 @@ test('table filters apply live without deferred apply action', function () {
     expect($html)
         ->toContain('resetTableFiltersForm')
         ->toContain('aria-label="Reset"')
+        ->toContain('fi-ta-filters-dropdown')
+        ->toContain('fi-ta-col-manager-dropdown')
+        ->toContain('max-height: min(40vh, 20rem)')
+        ->toContain('fi-scrollable')
         ->not->toContain(__('filament-tables::table.filters.actions.apply.label'))
         ->not->toContain('fi-ta-filters-heading');
+
+    expect($component->instance()->getTable()->getFiltersFormMaxHeight())->toBe('min(40vh, 20rem)')
+        ->and($component->instance()->getTable()->getColumnManagerMaxHeight())->toBe('min(40vh, 20rem)');
 
     $component
         ->filterTable('status', 'pending')

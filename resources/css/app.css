@@ -4015,7 +4015,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
  * Select panels can open above the parent instead of being cut off inside it.
  */
 .fi-dropdown > .fi-dropdown-panel.fi-scrollable {
-    max-height: 60vh !important;
+    max-height: min(40vh, 20rem) !important;
     overflow-y: auto !important;
 }
 

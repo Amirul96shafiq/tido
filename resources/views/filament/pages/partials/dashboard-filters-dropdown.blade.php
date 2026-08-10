@@ -8,6 +8,7 @@
     placement="bottom-end"
     shift
     :flip="false"
+    max-height="min(40vh, 20rem)"
     :width="Width::ExtraSmall"
     :wire:key="$this->getId().'.dashboard.filters'"
     class="tido-dashboard-filters-dropdown"
