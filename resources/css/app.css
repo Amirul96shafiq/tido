@@ -3461,8 +3461,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply flex items-start justify-start gap-3;
 }
 
-/* Live table filter menus — reset icon only (no Apply / Filters heading). */
-.fi-ta-filters .fi-ta-filters-actions-ctn {
+/* Live table filter / column manager menus — reset icon only (no Apply / heading). */
+.fi-ta-filters .fi-ta-filters-actions-ctn,
+.fi-ta-col-manager .fi-ta-col-manager-actions-ctn {
     @apply flex items-start justify-start gap-3;
 }
 

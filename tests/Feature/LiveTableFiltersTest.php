@@ -34,13 +34,17 @@ test('table filters and column manager apply live without deferred apply action'
         ->toContain('resetTableColumnManager')
         ->toContain('aria-label="Reset"')
         ->toContain('fi-ta-filters-dropdown')
+        ->toContain('fi-ta-filters-actions-ctn')
         ->toContain('fi-ta-col-manager-dropdown')
+        ->toContain('fi-ta-col-manager-actions-ctn')
         ->toContain('max-height: min(40vh, 20rem)')
         ->toContain('fi-scrollable')
         ->toContain('isLive: true')
         ->not->toContain(__('filament-tables::table.filters.actions.apply.label'))
         ->not->toContain(__('filament-tables::table.column_manager.actions.apply.label'))
-        ->not->toContain('fi-ta-filters-heading');
+        ->not->toContain('fi-ta-filters-heading')
+        ->not->toContain('fi-ta-col-manager-heading')
+        ->not->toContain('fi-ta-col-manager-header');
 
     expect($component->instance()->getTable()->getFiltersFormMaxHeight())->toBe('min(40vh, 20rem)')
         ->and($component->instance()->getTable()->getColumnManagerMaxHeight())->toBe('min(40vh, 20rem)');
