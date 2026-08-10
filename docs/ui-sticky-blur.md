@@ -84,7 +84,7 @@ Place the pin Group **after** the scrolling content if the bar should sit at the
 
 ## Form actions (bottom)
 
-Create / Edit resource pages and the profile page use the shared trait [`HasStickyBlurFormActions`](../app/Filament/Concerns/HasStickyBlurFormActions.php) so form CTAs (Create, Create & create another, Save changes, Cancel, and any other `getFormActions()` buttons) stick to the viewport bottom with the same blur veil. Draft-enabled resource pages place the non-interactive “Draft saved at …” indicator in the same row, aligned to the right.
+Create / Edit resource pages and the profile page use the shared trait [`HasStickyBlurFormActions`](../app/Filament/Concerns/HasStickyBlurFormActions.php) so form CTAs (Create, Create & create another, Save, Back, and any other `getFormActions()` buttons) stick to the viewport bottom with the same blur veil. Draft-enabled resource pages place the non-interactive “Draft saved at …” indicator in the same row, aligned to the right.
 
 Do **not** use Filament’s `stickyFormActions()` — that applies an opaque fixed card, not the tido frosted veil.
 
