@@ -331,3 +331,28 @@ test('family member spender options exclude primary and other members', function
         ->and($options)->not->toHaveKey(DashboardSpenderScope::PRIMARY)
         ->and($options)->not->toHaveKey(DashboardSpenderScope::familyValue((int) FamilyMember::query()->where('name', 'Beta')->value('id')));
 });
+
+test('spender scope defaults to the current user', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'household_role' => HouseholdRole::Primary,
+    ]);
+
+    $member = FamilyMember::factory()->create(['name' => 'Alpha']);
+    $familyUser = User::factory()
+        ->familyMember($member->id)
+        ->create([
+            'household_role' => HouseholdRole::FamilyMember,
+            'phone' => '60115554444',
+        ]);
+
+    expect(DashboardSpenderScope::defaultFor($primary)->value())->toBe(DashboardSpenderScope::PRIMARY)
+        ->and(DashboardSpenderScope::defaultFor($familyUser)->value())->toBe(DashboardSpenderScope::familyValue((int) $member->id));
+
+    $this->actingAs($primary);
+
+    expect(DashboardSpenderScope::fromFilters([])->value())->toBe(DashboardSpenderScope::PRIMARY);
+
+    $this->actingAs($familyUser);
+
+    expect(DashboardSpenderScope::fromFilters([])->value())->toBe(DashboardSpenderScope::familyValue((int) $member->id));
+});

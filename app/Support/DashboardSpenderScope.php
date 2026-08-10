@@ -28,10 +28,10 @@ final class DashboardSpenderScope
      */
     public static function fromFilters(array $filters): self
     {
-        $spender = $filters['spender'] ?? self::ALL;
+        $spender = $filters['spender'] ?? null;
 
         if (! is_string($spender) || ! self::isValid($spender)) {
-            return new self(self::ALL);
+            return self::defaultFor();
         }
 
         return new self($spender);
@@ -45,7 +45,7 @@ final class DashboardSpenderScope
             return new self(self::familyValue((int) $user->family_member_id));
         }
 
-        return new self(self::ALL);
+        return new self(self::PRIMARY);
     }
 
     public function value(): string
