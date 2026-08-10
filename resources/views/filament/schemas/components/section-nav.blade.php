@@ -46,7 +46,24 @@
             this.scrollSyncFrame = window.requestAnimationFrame(() => {
                 this.scrollSyncFrame = null;
                 this.syncActiveSection();
+                this.resetTabsScrollAtPageTop();
             });
+        },
+        resetTabsScrollAtPageTop() {
+            const tabs = this.$refs.tabs;
+
+            if (! tabs) {
+                return;
+            }
+
+            const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+
+            if (scrollY > 8 || tabs.scrollLeft <= 0) {
+                return;
+            }
+
+            tabs.scrollLeft = 0;
+            this.updateScrollHints();
         },
         scrollToSection(id) {
             const element = document.getElementById(id);
@@ -111,8 +128,12 @@
             }
 
             const activeTab = tabs.querySelector(`a[href='#${CSS.escape(this.activeId)}']`);
+            const isFirstSection = this.activeId === this.sectionIds[0];
 
-            if (activeTab) {
+            if (isFirstSection) {
+                // nearest leaves a leftover offset when the first tab is already mostly visible
+                tabs.scrollLeft = 0;
+            } else if (activeTab) {
                 activeTab.scrollIntoView({ inline: 'nearest', block: 'nearest' });
             }
 

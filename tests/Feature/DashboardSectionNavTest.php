@@ -104,7 +104,8 @@ test('dashboard section nav exposes horizontal scroll hint affordances', functio
         ->assertSee('tido-section-nav__fade--right', false)
         ->assertSee('tido-section-nav--can-scroll-left', false)
         ->assertSee('tido-section-nav--can-scroll-right', false)
-        ->assertSee('scrollActiveTabIntoView', false);
+        ->assertSee('scrollActiveTabIntoView', false)
+        ->assertSee('resetTabsScrollAtPageTop', false);
 });
 
 test('dashboard section nav supports click drag horizontal scroll', function () {

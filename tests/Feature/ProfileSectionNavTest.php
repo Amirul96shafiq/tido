@@ -127,7 +127,8 @@ test('profile section nav exposes horizontal scroll hint affordances', function 
         ->assertSee('tido-section-nav__fade--right', false)
         ->assertSee('tido-section-nav--can-scroll-left', false)
         ->assertSee('tido-section-nav--can-scroll-right', false)
-        ->assertSee('scrollActiveTabIntoView', false);
+        ->assertSee('scrollActiveTabIntoView', false)
+        ->assertSee('resetTabsScrollAtPageTop', false);
 });
 
 test('profile section nav tracks the section at the visible scroll boundary', function () {
