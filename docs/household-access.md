@@ -38,6 +38,21 @@ Primary-only surfaces use `RequiresPrimaryHouseholdAccess` (`canAccess` + hide n
 
 Family members **can** use: Home (Finance dashboard), Upload Receipts, Expenses, Service Status (read-only), Profile (own account), WhatsApp OTP login.
 
+## Budgets (owner + share)
+
+Budgets are **Primary-managed** (CRUD stays primary-only). Each budget has:
+
+| Field | Meaning |
+|-------|---------|
+| `family_member_id` | Owner. `null` = Primary; non-null = that Family Member |
+| `is_shared` | Spending pool. `false` = only the owner’s expenses count; `true` = all household expenses count |
+
+**Visibility (Home Budget Performance):** Primary sees all active budgets. Family members see budgets they own **or** budgets with `is_shared = true` (read-only progress; no edit/reorder; Budgets nav still hidden).
+
+**Alerts:** Primary always receives WhatsApp/Filament alerts when enabled on the budget. If the budget is assigned to a Family Member, that member’s WhatsApp number is also notified; their linked login user receives Filament alerts only when login is enabled and `notify_budget_alerts` is on.
+
+Existing budgets migrated with `is_shared = true` (household pool). New budgets default to personal (`is_shared = false`) assigned to Primary.
+
 ## Family Member model
 
 `family_members` (Settings CRUD — primary only):

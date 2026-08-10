@@ -75,9 +75,14 @@ class BudgetResource extends Resource
         ];
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['label', 'familyMember', 'editedBy']);
+    }
+
     public static function getGlobalSearchEloquentQuery(): Builder
     {
-        return parent::getGlobalSearchEloquentQuery()->with('label');
+        return parent::getGlobalSearchEloquentQuery()->with(['label', 'familyMember']);
     }
 
     /**

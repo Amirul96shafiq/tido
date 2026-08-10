@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\Budget;
 use App\Models\Expense;
 use App\Models\ExpenseItem;
+use App\Models\FamilyMember;
 use App\Models\Label;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -95,6 +96,7 @@ test('spent in period excludes soft deleted expenses', function () {
         'amount' => 500.00,
         'period' => 'monthly',
         'year' => (int) now()->year,
+        'is_shared' => true,
     ]);
 
     $active = Expense::factory()->create([
@@ -122,4 +124,122 @@ test('spent in period excludes soft deleted expenses', function () {
     $trashed->delete();
 
     expect($budget->spentInPeriod())->toBe(100.0);
+});
+
+test('personal budget spent counts only the assignee expenses', function () {
+    $label = Label::factory()->create();
+    $member = FamilyMember::factory()->create();
+
+    $personal = Budget::factory()->forFamilyMember($member)->create([
+        'label_id' => $label->id,
+        'amount' => 500.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+    ]);
+
+    $primaryExpense = Expense::factory()->create([
+        'date_time' => now(),
+        'status' => 'parsed',
+        'family_member_id' => null,
+    ]);
+
+    $memberExpense = Expense::factory()->create([
+        'date_time' => now(),
+        'status' => 'parsed',
+        'family_member_id' => $member->id,
+    ]);
+
+    ExpenseItem::factory()->create([
+        'expense_id' => $primaryExpense->id,
+        'label_id' => $label->id,
+        'line_total' => 40.00,
+    ]);
+
+    ExpenseItem::factory()->create([
+        'expense_id' => $memberExpense->id,
+        'label_id' => $label->id,
+        'line_total' => 60.00,
+    ]);
+
+    expect($personal->spentInPeriod())->toBe(60.0);
+});
+
+test('shared budget spent counts all household expenses', function () {
+    $label = Label::factory()->create();
+    $member = FamilyMember::factory()->create();
+
+    $shared = Budget::factory()->shared()->create([
+        'label_id' => $label->id,
+        'family_member_id' => $member->id,
+        'amount' => 500.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+    ]);
+
+    $primaryExpense = Expense::factory()->create([
+        'date_time' => now(),
+        'status' => 'parsed',
+        'family_member_id' => null,
+    ]);
+
+    $memberExpense = Expense::factory()->create([
+        'date_time' => now(),
+        'status' => 'parsed',
+        'family_member_id' => $member->id,
+    ]);
+
+    ExpenseItem::factory()->create([
+        'expense_id' => $primaryExpense->id,
+        'label_id' => $label->id,
+        'line_total' => 40.00,
+    ]);
+
+    ExpenseItem::factory()->create([
+        'expense_id' => $memberExpense->id,
+        'label_id' => $label->id,
+        'line_total' => 60.00,
+    ]);
+
+    expect($shared->spentInPeriod())->toBe(100.0);
+});
+
+test('applies to expense matches personal and shared ownership', function () {
+    $member = FamilyMember::factory()->create();
+    $other = FamilyMember::factory()->create();
+
+    $personal = Budget::factory()->forFamilyMember($member)->create();
+    $shared = Budget::factory()->forFamilyMember($member)->shared()->create();
+    $primaryPersonal = Budget::factory()->create(['is_shared' => false, 'family_member_id' => null]);
+
+    $memberExpense = Expense::factory()->create(['family_member_id' => $member->id]);
+    $otherExpense = Expense::factory()->create(['family_member_id' => $other->id]);
+    $primaryExpense = Expense::factory()->create(['family_member_id' => null]);
+
+    expect($personal->appliesToExpense($memberExpense))->toBeTrue()
+        ->and($personal->appliesToExpense($otherExpense))->toBeFalse()
+        ->and($personal->appliesToExpense($primaryExpense))->toBeFalse()
+        ->and($shared->appliesToExpense($otherExpense))->toBeTrue()
+        ->and($primaryPersonal->appliesToExpense($primaryExpense))->toBeTrue()
+        ->and($primaryPersonal->appliesToExpense($memberExpense))->toBeFalse();
+});
+
+test('visible to scope shows owned or shared budgets for family members', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create();
+    $other = FamilyMember::factory()->create();
+    $loginUser = $member->loginUser;
+
+    $owned = Budget::factory()->forFamilyMember($member)->create(['title' => 'Mine']);
+    $shared = Budget::factory()->shared()->create([
+        'title' => 'Household',
+        'family_member_id' => null,
+    ]);
+    $hidden = Budget::factory()->forFamilyMember($other)->create(['title' => 'Other personal']);
+
+    $visibleIds = Budget::query()
+        ->visibleTo($loginUser)
+        ->pluck('id')
+        ->all();
+
+    expect($visibleIds)->toContain($owned->id, $shared->id)
+        ->and($visibleIds)->not->toContain($hidden->id);
 });

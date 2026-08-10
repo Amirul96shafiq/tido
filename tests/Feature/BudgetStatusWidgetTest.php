@@ -5,6 +5,9 @@ declare(strict_types=1);
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Widgets\BudgetStatus;
 use App\Models\Budget;
+use App\Models\Expense;
+use App\Models\ExpenseItem;
+use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -183,4 +186,108 @@ test('budget status widget polls for live updates', function () {
     Livewire::test(BudgetStatus::class)
         ->assertSuccessful()
         ->assertSeeHtml('wire:poll.30s');
+});
+
+test('budget status widget hides other members personal budgets from family users', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create();
+    $other = FamilyMember::factory()->create();
+    $loginUser = $member->loginUser;
+
+    Budget::factory()->forFamilyMember($member)->create([
+        'title' => 'My Cap',
+        'is_active' => true,
+    ]);
+
+    Budget::factory()->shared()->create([
+        'title' => 'Shared Cap',
+        'is_active' => true,
+    ]);
+
+    Budget::factory()->forFamilyMember($other)->create([
+        'title' => 'Hidden Cap',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($loginUser);
+
+    Livewire::test(BudgetStatus::class)
+        ->assertSuccessful()
+        ->assertSee('My Cap')
+        ->assertSee('Shared Cap')
+        ->assertDontSee('Hidden Cap')
+        ->assertDontSee(BudgetResource::getUrl('edit', [
+            'record' => Budget::query()->where('title', 'My Cap')->first(),
+        ]), false)
+        ->assertDontSee('wire:sort="reorderBudgets"', false);
+});
+
+test('budget status widget scopes personal spend for family member budgets', function () {
+    $label = Label::factory()->create(['name' => 'Snacks']);
+    $member = FamilyMember::factory()->create();
+
+    $budget = Budget::factory()->forFamilyMember($member)->create([
+        'label_id' => $label->id,
+        'title' => 'Snack Cap',
+        'amount' => 100.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+        'is_active' => true,
+    ]);
+
+    $primaryExpense = Expense::factory()->create([
+        'date_time' => now(),
+        'status' => 'parsed',
+        'family_member_id' => null,
+    ]);
+
+    $memberExpense = Expense::factory()->create([
+        'date_time' => now(),
+        'status' => 'parsed',
+        'family_member_id' => $member->id,
+    ]);
+
+    ExpenseItem::factory()->create([
+        'expense_id' => $primaryExpense->id,
+        'label_id' => $label->id,
+        'line_total' => 70.00,
+    ]);
+
+    ExpenseItem::factory()->create([
+        'expense_id' => $memberExpense->id,
+        'label_id' => $label->id,
+        'line_total' => 25.00,
+    ]);
+
+    expect($budget->spentInPeriod())->toBe(25.0);
+
+    Livewire::test(BudgetStatus::class)
+        ->assertSuccessful()
+        ->assertSee('Snack Cap')
+        ->assertSee('RM 25.00');
+});
+
+test('budget status widget blocks reorder for family members', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create();
+    $loginUser = $member->loginUser;
+
+    $first = Budget::factory()->forFamilyMember($member)->create([
+        'title' => 'Alpha Cap',
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+
+    $second = Budget::factory()->forFamilyMember($member)->create([
+        'title' => 'Beta Cap',
+        'sort_order' => 1,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($loginUser);
+
+    Livewire::test(BudgetStatus::class)
+        ->call('reorderBudgets', $second->id, 0)
+        ->assertSuccessful();
+
+    expect($first->fresh()->sort_order)->toBe(0)
+        ->and($second->fresh()->sort_order)->toBe(1);
 });

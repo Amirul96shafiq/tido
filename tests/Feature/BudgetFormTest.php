@@ -8,6 +8,7 @@ use App\Filament\Resources\Budgets\Pages\EditBudget;
 use App\Models\Budget;
 use App\Models\Expense;
 use App\Models\ExpenseItem;
+use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\User;
 use Filament\Forms\Components\TextInput;
@@ -49,8 +50,39 @@ test('create budget page saves new fields', function () {
         ->and($budget->notes)->toBe('<p>Includes litter and food</p>')
         ->and($budget->critical_threshold)->toBe(100)
         ->and($budget->notify_whatsapp)->toBeFalse()
+        ->and($budget->is_shared)->toBeFalse()
+        ->and($budget->family_member_id)->toBeNull()
         ->and($budget->display_title)->toBe('Pets 2026')
         ->and($budget->display_icon)->toBe('heroicon-o-heart');
+});
+
+test('create budget page saves assignee and shared flag', function () {
+    $label = Label::factory()->create(['name' => 'Transport']);
+    $member = FamilyMember::factory()->create(['name' => 'Sample Spouse']);
+
+    Livewire::test(CreateBudget::class)
+        ->fillForm([
+            'title' => 'Spouse Transport',
+            'label_id' => $label->id,
+            'family_member_id' => $member->id,
+            'is_shared' => true,
+            'amount' => 150.00,
+            'period' => 'monthly',
+            'year' => (int) now()->year,
+            'alert_threshold' => 80,
+            'critical_threshold' => 100,
+            'notify_filament' => true,
+            'notify_whatsapp' => true,
+            'is_active' => true,
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $budget = Budget::query()->first();
+
+    expect($budget)->not->toBeNull()
+        ->and($budget->family_member_id)->toBe($member->id)
+        ->and($budget->is_shared)->toBeTrue();
 });
 
 test('budget form uses rich editor for notes', function () {

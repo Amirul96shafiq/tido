@@ -112,7 +112,7 @@ docs/               architecture + integration setup + this file
 | Auth | Filament session; household roles (`HouseholdRole`); no Spatie Permission; no tenancy |
 | Panel | `AdminPanelProvider` only — path `admin`; family members get limited Finances access |
 
-Relationships: Expense `hasMany` ExpenseItems; Expense `belongsTo` FamilyMember (optional); ExpenseItem `belongsTo` Label; Budget `belongsTo` Label; FamilyMember `hasOne` login User.
+Relationships: Expense `hasMany` ExpenseItems; Expense `belongsTo` FamilyMember (optional); ExpenseItem `belongsTo` Label; Budget `belongsTo` Label; Budget `belongsTo` FamilyMember (optional owner; `null` = Primary); Budget `is_shared` spending pool; FamilyMember `hasMany` Budgets; FamilyMember `hasOne` login User.
 
 ## 5. How to implement features
 

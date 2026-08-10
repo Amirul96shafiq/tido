@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Budgets\Tables;
 
+use App\Enums\HouseholdRole;
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Support\RecordActionsGroup;
 use App\Models\Budget;
+use App\Models\FamilyMember;
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -18,6 +21,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class BudgetsTable
@@ -66,6 +70,31 @@ class BudgetsTable
                 IconColumn::make('display_icon')
                     ->label('Icon')
                     ->icon(fn (?string $state): ?string => $state)
+                    ->toggleable(),
+
+                TextColumn::make('familyMember.name')
+                    ->label('Assigned to')
+                    ->formatStateUsing(function (?string $state, Budget $record): string {
+                        if ($record->family_member_id === null) {
+                            return self::primaryUsername();
+                        }
+
+                        $member = $record->familyMember;
+
+                        if (! $member instanceof FamilyMember) {
+                            return 'Family member';
+                        }
+
+                        return filled($member->display_name)
+                            ? (string) $member->display_name
+                            : (string) $member->name;
+                    })
+                    ->sortable()
+                    ->toggleable(),
+
+                IconColumn::make('is_shared')
+                    ->label('Shared')
+                    ->boolean()
                     ->toggleable(),
 
                 TextColumn::make('amount')
@@ -133,6 +162,41 @@ class BudgetsTable
                     ])
                     ->searchable(),
 
+                SelectFilter::make('family_member_id')
+                    ->label('Assigned to')
+                    ->options(fn (): array => [
+                        'primary' => self::primaryUsername(),
+                        ...FamilyMember::query()
+                            ->orderBy('name')
+                            ->get(['id', 'name', 'display_name'])
+                            ->mapWithKeys(fn (FamilyMember $familyMember): array => [
+                                (string) $familyMember->getKey() => filled($familyMember->display_name)
+                                    ? (string) $familyMember->display_name
+                                    : (string) $familyMember->name,
+                            ])
+                            ->all(),
+                    ])
+                    ->query(function ($query, array $data) {
+                        $value = $data['value'] ?? null;
+
+                        if (blank($value)) {
+                            return $query;
+                        }
+
+                        if ($value === 'primary') {
+                            return $query->whereNull('family_member_id');
+                        }
+
+                        return $query->where('family_member_id', (int) $value);
+                    })
+                    ->searchable(),
+
+                TernaryFilter::make('is_shared')
+                    ->label('Shared with household')
+                    ->placeholder('All')
+                    ->trueLabel('Shared')
+                    ->falseLabel('Personal'),
+
                 SelectFilter::make('is_active')
                     ->label('Active')
                     ->options([
@@ -165,5 +229,25 @@ class BudgetsTable
                     ->url(BudgetResource::getUrl('create'))
                     ->button(),
             ]);
+    }
+
+    protected static function primaryUsername(): string
+    {
+        $primaryUser = User::query()
+            ->where(function ($query): void {
+                $query
+                    ->where('household_role', HouseholdRole::Primary->value)
+                    ->orWhereNull('household_role');
+            })
+            ->orderBy('id')
+            ->first(['name', 'display_name']);
+
+        if (! $primaryUser instanceof User) {
+            return 'Primary';
+        }
+
+        return filled($primaryUser->display_name)
+            ? (string) $primaryUser->display_name
+            : (string) $primaryUser->name;
     }
 }

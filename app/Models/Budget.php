@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Concerns\TracksResourceEdits;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,7 @@ class Budget extends Model
         'alert_threshold' => 80,
         'critical_threshold' => 100,
         'is_active' => true,
+        'is_shared' => false,
         'notify_filament' => true,
         'notify_whatsapp' => true,
     ];
@@ -30,6 +32,8 @@ class Budget extends Model
         'title',
         'icon',
         'label_id',
+        'family_member_id',
+        'is_shared',
         'amount',
         'period',
         'quarter',
@@ -52,6 +56,7 @@ class Budget extends Model
         'notify_filament' => 'boolean',
         'notify_whatsapp' => 'boolean',
         'is_active' => 'boolean',
+        'is_shared' => 'boolean',
         'sort_order' => 'integer',
     ];
 
@@ -69,6 +74,48 @@ class Budget extends Model
     public function label(): BelongsTo
     {
         return $this->belongsTo(Label::class);
+    }
+
+    public function familyMember(): BelongsTo
+    {
+        return $this->belongsTo(FamilyMember::class);
+    }
+
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
+    public function scopeVisibleTo(Builder $query, ?User $user): Builder
+    {
+        if ($user === null || $user->isPrimary()) {
+            return $query;
+        }
+
+        if (! $user->isFamilyMember() || $user->family_member_id === null) {
+            return $query->whereRaw('0 = 1');
+        }
+
+        $familyMemberId = (int) $user->family_member_id;
+
+        return $query->where(function (Builder $inner) use ($familyMemberId): void {
+            $inner
+                ->where('is_shared', true)
+                ->orWhere('family_member_id', $familyMemberId);
+        });
+    }
+
+    public function appliesToExpense(Expense $expense): bool
+    {
+        if ($this->is_shared) {
+            return true;
+        }
+
+        if ($this->family_member_id === null) {
+            return $expense->family_member_id === null;
+        }
+
+        return $expense->family_member_id !== null
+            && (int) $expense->family_member_id === (int) $this->family_member_id;
     }
 
     /**
@@ -123,6 +170,14 @@ class Budget extends Model
 
         if ($this->label_id) {
             $query->where('expense_items.label_id', $this->label_id);
+        }
+
+        if (! $this->is_shared) {
+            if ($this->family_member_id === null) {
+                $query->whereNull('expenses.family_member_id');
+            } else {
+                $query->where('expenses.family_member_id', $this->family_member_id);
+            }
         }
 
         return (float) $query->sum('expense_items.line_total');

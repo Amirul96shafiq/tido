@@ -10,7 +10,11 @@ use App\Filament\Widgets\Concerns\HasDashboardChartPolling;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Models\Budget;
+use App\Models\User;
+use App\Support\HouseholdAccess;
+use Carbon\Carbon;
 use Filament\Widgets\Widget;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class BudgetStatus extends Widget
@@ -35,6 +39,10 @@ class BudgetStatus extends Widget
 
     public function reorderBudgets(int|string $id, int $position): void
     {
+        if (! HouseholdAccess::isPrimary()) {
+            return;
+        }
+
         $budgetId = (int) $id;
 
         $orderedIds = Budget::query()
@@ -67,10 +75,13 @@ class BudgetStatus extends Widget
 
     protected function getViewData(): array
     {
-        $spentTotals = $this->analytics()->spentTotalsByLabelId();
+        $user = Auth::user();
+        $isPrimary = HouseholdAccess::isPrimary();
+        $reference = Carbon::parse($this->getMonthReferenceDate());
 
-        $budgets = Budget::with('label')
+        $budgets = Budget::with(['label', 'familyMember'])
             ->where('is_active', true)
+            ->visibleTo($user instanceof User ? $user : null)
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get();
@@ -78,15 +89,17 @@ class BudgetStatus extends Widget
         $budgetStates = [];
 
         foreach ($budgets as $budget) {
-            $labelKey = $budget->label_id ?? 0;
-            $spent = $spentTotals[$labelKey] ?? 0.0;
+            $spent = $budget->spentInPeriod($reference);
             $percentage = $budget->amount > 0 ? ($spent / $budget->amount) * 100 : 0;
             $warnThreshold = (float) $budget->alert_threshold;
             $criticalThreshold = (float) $budget->critical_threshold;
 
             $budgetStates[] = [
                 'id' => $budget->id,
-                'edit_url' => BudgetResource::getUrl('edit', ['record' => $budget]),
+                'edit_url' => $isPrimary
+                    ? BudgetResource::getUrl('edit', ['record' => $budget])
+                    : null,
+                'can_reorder' => $isPrimary,
                 'name' => $budget->display_title,
                 'icon' => $budget->display_icon,
                 'amount' => (float) $budget->amount,
@@ -94,6 +107,7 @@ class BudgetStatus extends Widget
                 'percentage' => min(100, $percentage),
                 'raw_percentage' => $percentage,
                 'period' => ucfirst($budget->period),
+                'is_shared' => (bool) $budget->is_shared,
                 'color' => $budget->label ? $budget->label->color : '#FFD07D',
                 'status_color' => $percentage >= $criticalThreshold
                     ? 'red'
@@ -103,6 +117,7 @@ class BudgetStatus extends Widget
 
         return [
             'budgets' => $budgetStates,
+            'canManageBudgets' => $isPrimary,
             'monthLabel' => $this->formatSelectedMonth('F Y'),
             'contentHeight' => DashboardWidgetHeights::STANDARD_CHART,
         ];

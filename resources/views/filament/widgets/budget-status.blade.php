@@ -18,53 +18,71 @@
         <x-slot name="heading">Budget Performance ({{ $monthLabel ?? now()->format('F Y') }})</x-slot>
 
         @if (empty($budgets))
+            @php
+                $emptyDescription = ($canManageBudgets ?? true)
+                    ? 'Create a budget to track spending against a limit.'
+                    : 'Ask the Primary user to assign a budget for you.';
+            @endphp
             <div
                 class="fi-wi-budget-status-empty flex flex-1 items-center justify-center"
                 style="min-height: {{ $contentHeight }}"
             >
                 <x-empty-state-panel
                     heading="No budgets yet"
-                    description="Create a budget to track spending against a limit."
+                    :description="$emptyDescription"
                     icon="heroicon-o-banknotes"
                     icon-color="gray"
                     class="fi-wi-chart-empty-panel"
                 >
-                    <x-slot name="actions">
-                        <x-filament::button
-                            :href="\App\Filament\Resources\Budgets\BudgetResource::getUrl('create')"
-                            tag="a"
-                            color="primary"
-                            icon="heroicon-m-plus"
-                        >
-                            New budget
-                        </x-filament::button>
-                    </x-slot>
+                    @if ($canManageBudgets ?? true)
+                        <x-slot name="actions">
+                            <x-filament::button
+                                :href="\App\Filament\Resources\Budgets\BudgetResource::getUrl('create')"
+                                tag="a"
+                                color="primary"
+                                icon="heroicon-m-plus"
+                            >
+                                New budget
+                            </x-filament::button>
+                        </x-slot>
+                    @endif
                 </x-empty-state-panel>
             </div>
         @else
             <div
-                wire:sort="reorderBudgets"
+                @if ($canManageBudgets ?? true)
+                    wire:sort="reorderBudgets"
+                @endif
                 class="custom-scrollbar mt-3 flex flex-1 flex-col gap-6 overflow-y-auto pr-2"
                 style="min-height: {{ $contentHeight }}; max-height: {{ $contentHeight }}"
             >
                 @foreach ($budgets as $budget)
                     <div
                         wire:key="budget-status-{{ $budget['id'] }}"
-                        wire:sort:item="{{ $budget['id'] }}"
+                        @if ($budget['can_reorder'] ?? false)
+                            wire:sort:item="{{ $budget['id'] }}"
+                        @endif
                         class="-mx-1 flex items-center gap-2 rounded-xl p-4 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60"
                     >
-                        <button
-                            type="button"
-                            wire:sort:handle
-                            class="flex size-6 shrink-0 cursor-grab items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 active:cursor-grabbing dark:hover:bg-slate-600 dark:hover:text-gray-200"
-                        >
-                            <x-filament::icon icon="heroicon-m-bars-3" class="size-4" />
-                        </button>
+                        @if ($budget['can_reorder'] ?? false)
+                            <button
+                                type="button"
+                                wire:sort:handle
+                                class="flex size-6 shrink-0 cursor-grab items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 active:cursor-grabbing dark:hover:bg-slate-600 dark:hover:text-gray-200"
+                            >
+                                <x-filament::icon icon="heroicon-m-bars-3" class="size-4" />
+                            </button>
+                        @endif
 
-                        <a
-                            wire:navigate
-                            wire:sort:ignore
-                            href="{{ $budget['edit_url'] }}"
+                        @php
+                            $budgetTag = filled($budget['edit_url'] ?? null) ? 'a' : 'div';
+                        @endphp
+                        <{{ $budgetTag }}
+                            @if (filled($budget['edit_url'] ?? null))
+                                wire:navigate
+                                wire:sort:ignore
+                                href="{{ $budget['edit_url'] }}"
+                            @endif
                             class="focus-visible:ring-primary-500 flex min-w-0 flex-1 flex-col gap-2 rounded-lg focus-visible:ring-2 focus-visible:outline-none"
                         >
                             <div class="flex min-w-0 items-start justify-between gap-2 text-sm sm:items-center">
@@ -105,6 +123,9 @@
                                             >{{ $budget['name'] }}</span>
                                         </div>
                                         <span class="w-fit shrink-0 rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-400 dark:bg-gray-800 dark:text-gray-500">{{ ucfirst($budget['period']) }}</span>
+                                        @if ($budget['is_shared'] ?? false)
+                                            <span class="w-fit shrink-0 rounded-md bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-600 dark:bg-primary-400/10 dark:text-primary-400">Shared</span>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="flex shrink-0 flex-col items-end gap-0.5 text-right whitespace-nowrap sm:flex-row sm:items-baseline sm:gap-1">
@@ -153,7 +174,7 @@
                                     {{ MoneyDisplay::withPrefix(max(0, $budget['amount'] - $budget['spent'])) }} remaining
                                 </span>
                             </div>
-                        </a>
+                        </{{ $budgetTag }}>
                     </div>
                 @endforeach
             </div>

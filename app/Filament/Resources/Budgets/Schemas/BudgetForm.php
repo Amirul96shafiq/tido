@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Budgets\Schemas;
 
+use App\Enums\HouseholdRole;
 use App\Enums\LabelType;
 use App\Filament\Forms\Components\IconPicker;
 use App\Filament\Forms\Components\NotesRichEditor;
 use App\Models\Budget;
+use App\Models\FamilyMember;
 use App\Models\Label;
+use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Slider;
 use Filament\Forms\Components\TextInput;
@@ -117,6 +120,27 @@ class BudgetForm
                                         self::syncAppearanceFromLabel($state, $get, $set);
                                     })
                                     ->helperText('Leave empty for an overall spending cap across all labels. Selecting a Label fills empty Title and Icon.'),
+
+                                Select::make('family_member_id')
+                                    ->label('Assigned to')
+                                    ->options(fn (): array => FamilyMember::query()
+                                        ->orderBy('name')
+                                        ->get(['id', 'name', 'display_name'])
+                                        ->mapWithKeys(fn (FamilyMember $familyMember): array => [
+                                            $familyMember->getKey() => filled($familyMember->display_name)
+                                                ? (string) $familyMember->display_name
+                                                : (string) $familyMember->name,
+                                        ])
+                                        ->all())
+                                    ->placeholder(fn (): string => self::primaryUsername())
+                                    ->searchable()
+                                    ->nullable()
+                                    ->helperText('Who this budget belongs to. Leave empty for the Primary user.'),
+
+                                Toggle::make('is_shared')
+                                    ->label('Shared with household')
+                                    ->default(false)
+                                    ->helperText('When shared, everyone’s spending counts toward this budget. When personal, only the assignee’s spending counts.'),
 
                                 Toggle::make('is_active')
                                     ->label('Active budget')
@@ -350,5 +374,25 @@ class BudgetForm
         $icon = Label::query()->whereKey($labelId)->value('icon');
 
         return filled($icon) ? (string) $icon : null;
+    }
+
+    protected static function primaryUsername(): string
+    {
+        $primaryUser = User::query()
+            ->where(function ($query): void {
+                $query
+                    ->where('household_role', HouseholdRole::Primary->value)
+                    ->orWhereNull('household_role');
+            })
+            ->orderBy('id')
+            ->first(['name', 'display_name']);
+
+        if (! $primaryUser instanceof User) {
+            return 'Primary';
+        }
+
+        return filled($primaryUser->display_name)
+            ? (string) $primaryUser->display_name
+            : (string) $primaryUser->name;
     }
 }
