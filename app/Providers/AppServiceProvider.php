@@ -93,6 +93,7 @@ class AppServiceProvider extends ServiceProvider
                 ->defaultDateDisplayFormat(fn (): string => UserDateDisplay::dateFormat())
                 ->defaultDateTimeDisplayFormat(fn (): string => UserDateDisplay::dateTimeFormat())
                 ->deferFilters(false)
+                ->deferColumnManager(false)
                 ->filtersFormMaxHeight('min(40vh, 20rem)')
                 ->columnManagerMaxHeight('min(40vh, 20rem)')
                 ->modifyUngroupedRecordActionsUsing(fn (Action $action) => $action

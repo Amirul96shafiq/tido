@@ -15,7 +15,7 @@ beforeEach(function (): void {
     $this->actingAs($this->admin);
 });
 
-test('table filters apply live without deferred apply action', function () {
+test('table filters and column manager apply live without deferred apply action', function () {
     $pending = Expense::factory()->create(['status' => 'pending']);
     $parsed = Expense::factory()->create(['status' => 'parsed']);
 
@@ -24,18 +24,22 @@ test('table filters apply live without deferred apply action', function () {
         ->assertSeeHtml('wire:poll.10s.visible')
         ->assertCanSeeTableRecords([$pending, $parsed]);
 
-    expect($component->instance()->getTable()->hasDeferredFilters())->toBeFalse();
+    expect($component->instance()->getTable()->hasDeferredFilters())->toBeFalse()
+        ->and($component->instance()->getTable()->hasDeferredColumnManager())->toBeFalse();
 
     $html = $component->html();
 
     expect($html)
         ->toContain('resetTableFiltersForm')
+        ->toContain('resetTableColumnManager')
         ->toContain('aria-label="Reset"')
         ->toContain('fi-ta-filters-dropdown')
         ->toContain('fi-ta-col-manager-dropdown')
         ->toContain('max-height: min(40vh, 20rem)')
         ->toContain('fi-scrollable')
+        ->toContain('isLive: true')
         ->not->toContain(__('filament-tables::table.filters.actions.apply.label'))
+        ->not->toContain(__('filament-tables::table.column_manager.actions.apply.label'))
         ->not->toContain('fi-ta-filters-heading');
 
     expect($component->instance()->getTable()->getFiltersFormMaxHeight())->toBe('min(40vh, 20rem)')
