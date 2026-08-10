@@ -523,32 +523,111 @@ class BackupService
             throw new RuntimeException('Unable to open backup archive.');
         }
 
-        $payloadFilename = null;
+        try {
+            $sqliteEntry = null;
+            $sqlEntries = [];
 
-        for ($index = 0; $index < $zip->numFiles; $index++) {
-            $name = $zip->getNameIndex($index);
+            for ($index = 0; $index < $zip->numFiles; $index++) {
+                $name = $zip->getNameIndex($index);
 
-            if (! is_string($name)) {
-                continue;
+                if (! is_string($name) || $name === '') {
+                    continue;
+                }
+
+                if ($this->isNativeSqlitePayloadEntry($name)) {
+                    $sqliteEntry = $name;
+
+                    continue;
+                }
+
+                if ($this->isSpatieSqlPayloadEntry($name)) {
+                    $sqlEntries[] = $name;
+                }
             }
 
-            if (str_ends_with($name, '.sql') || str_ends_with($name, '.sqlite')) {
-                $payloadFilename = $name;
-
-                break;
+            if ($sqliteEntry !== null) {
+                return $this->writePayloadEntryToControlledPath(
+                    $zip,
+                    $sqliteEntry,
+                    $tempDirectory,
+                    'database.sqlite',
+                );
             }
-        }
 
-        if ($payloadFilename === null) {
-            $zip->close();
+            if (count($sqlEntries) === 1) {
+                return $this->writePayloadEntryToControlledPath(
+                    $zip,
+                    $sqlEntries[0],
+                    $tempDirectory,
+                    'database.sql',
+                );
+            }
+
+            if (count($sqlEntries) > 1) {
+                throw new RuntimeException('Multiple database dumps found in backup archive.');
+            }
 
             throw new RuntimeException('No database dump found in backup archive.');
+        } finally {
+            $zip->close();
+        }
+    }
+
+    protected function isNativeSqlitePayloadEntry(string $name): bool
+    {
+        return $name === 'database.sqlite';
+    }
+
+    protected function isSpatieSqlPayloadEntry(string $name): bool
+    {
+        if (! str_starts_with($name, 'db-dumps/')) {
+            return false;
         }
 
-        $zip->extractTo($tempDirectory, [$payloadFilename]);
-        $zip->close();
+        if (str_contains($name, '\\') || str_contains($name, "\0")) {
+            return false;
+        }
 
-        return $tempDirectory.'/'.$payloadFilename;
+        $basename = substr($name, strlen('db-dumps/'));
+
+        if ($basename === '' || str_contains($basename, '/')) {
+            return false;
+        }
+
+        return (bool) preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]*\.sql$/', $basename);
+    }
+
+    protected function writePayloadEntryToControlledPath(
+        ZipArchive $zip,
+        string $entryName,
+        string $tempDirectory,
+        string $controlledBasename,
+    ): string {
+        $contents = $zip->getFromName($entryName);
+
+        if ($contents === false) {
+            throw new RuntimeException('Unable to read database dump from backup archive.');
+        }
+
+        $resolvedTempDirectory = realpath($tempDirectory);
+
+        if ($resolvedTempDirectory === false) {
+            throw new RuntimeException('Unable to resolve backup restore directory.');
+        }
+
+        $destinationPath = $resolvedTempDirectory.DIRECTORY_SEPARATOR.$controlledBasename;
+        File::put($destinationPath, $contents);
+
+        $resolvedDestination = realpath($destinationPath);
+
+        if ($resolvedDestination === false
+            || ! str_starts_with($resolvedDestination, $resolvedTempDirectory.DIRECTORY_SEPARATOR)
+            || basename($resolvedDestination) !== $controlledBasename
+        ) {
+            throw new RuntimeException('Database dump extraction path is invalid.');
+        }
+
+        return $resolvedDestination;
     }
 
     protected function importSqlDump(string $sqlPath): void
