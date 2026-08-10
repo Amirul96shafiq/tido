@@ -31,6 +31,10 @@ Guest restore accepts the uploaded ZIP only after the zero-user authorization ga
 
 The client-supplied filename is not a filesystem location. Path-like, reserved, or overwrite-oriented names must never be passed to `move()`, `Storage`, `File`, or the restore service. The original filename may be used for upload metadata and validation only.
 
+## Database payload entries
+
+`BackupService` restores the database only from allowlisted ZIP entries: exact `database.sqlite` (native SQLite backups) or a single `db-dumps/{safe}.sql` Spatie dump. Extraction never uses the archive entry name as a destination path; bytes are written to a server-controlled `database.sqlite` or `database.sql` under the restore temp directory, then path-checked before import.
+
 ## Safe manual verification
 
 Reset Data and Delete Account remove expense records and their stored receipt files, so do not perform the zero-user guest-restore test against a local database that contains valuable data. Use a disposable local sandbox with its own SQLite database and `storage/app` directories.
@@ -54,6 +58,7 @@ A copied `database.sqlite` file alone is not a complete rollback because it rest
 4. Cover new backup/restore paths with Pest; fake storage / avoid real Spatie runs in unit tests where possible.
 5. Nav: Backups live under Tools (bottom nav group), not Finances, Settings, or Integrations.
 6. Keep backup recency on `updated_at`; `created_at` describes when the catalog row was first created and is not the table’s Edited At value.
+7. Do not broaden database ZIP payload selection beyond the allowlisted entry names above; never pass archive entry path components into filesystem destinations.
 
 ## Related
 
