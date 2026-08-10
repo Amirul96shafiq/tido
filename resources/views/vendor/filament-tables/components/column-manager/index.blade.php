@@ -19,12 +19,14 @@
             })"
     class="fi-ta-col-manager"
 >
-    <x-filament-tables::column-manager.content
-        :columns="$columns"
-        :has-reorderable-columns="$hasReorderableColumns"
-        :has-toggleable-columns="$hasToggleableColumns"
-        :reorder-animation-duration="$reorderAnimationDuration"
-    />
+    <div class="fi-ta-col-manager-body">
+        <x-filament-tables::column-manager.content
+            :columns="$columns"
+            :has-reorderable-columns="$hasReorderableColumns"
+            :has-toggleable-columns="$hasToggleableColumns"
+            :reorder-animation-duration="$reorderAnimationDuration"
+        />
+    </div>
 
     <div class="fi-ta-col-manager-actions-ctn">
         <x-filament::button
