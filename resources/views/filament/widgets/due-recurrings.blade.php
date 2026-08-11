@@ -13,11 +13,7 @@
 >
     <x-filament::section>
         <x-slot name="heading">
-            Due this month
-        </x-slot>
-
-        <x-slot name="description">
-            Open recurring reminders for the current household scope.
+            Due Recurrings
         </x-slot>
 
         <x-slot name="headerEnd">
