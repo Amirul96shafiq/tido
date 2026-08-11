@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\LabelType;
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Resources\Budgets\Pages\CreateBudget;
 use App\Filament\Resources\Budgets\Pages\EditBudget;
 use App\Filament\Resources\Expenses\Pages\CreateExpense;
@@ -369,4 +370,90 @@ test('budget edit page saves a draft when the form is dirty', function () {
 
     expect($draft)->not->toBeNull()
         ->and((float) $draft->payload['amount'])->toBe(500.0);
+});
+
+test('edit profile does not keep a recoverable draft when form is unchanged', function () {
+    Livewire::test(EditProfile::class)
+        ->call('saveDraft');
+
+    expect(
+        ContentDraft::query()
+            ->where('user_id', $this->user->id)
+            ->where('key', 'profile-edit')
+            ->exists()
+    )->toBeFalse();
+});
+
+test('edit profile saves a draft when the form is dirty', function () {
+    Livewire::test(EditProfile::class)
+        ->set('data.display_name', 'Updated Display Draft')
+        ->call('saveDraft');
+
+    $draft = ContentDraft::query()
+        ->where('user_id', $this->user->id)
+        ->where('key', 'profile-edit')
+        ->first();
+
+    expect($draft)->not->toBeNull()
+        ->and($draft->payload['display_name'])->toBe('Updated Display Draft');
+});
+
+test('edit profile draft excludes password fields', function () {
+    Livewire::test(EditProfile::class)
+        ->set('data.change_password', true)
+        ->set('data.currentPassword', 'secret-password')
+        ->set('data.password', 'new-password-123')
+        ->set('data.passwordConfirmation', 'new-password-123')
+        ->set('data.display_name', 'Draft With Password Change')
+        ->call('saveDraft');
+
+    $draft = ContentDraft::query()
+        ->where('user_id', $this->user->id)
+        ->where('key', 'profile-edit')
+        ->first();
+
+    expect($draft)->not->toBeNull()
+        ->and($draft->payload['display_name'])->toBe('Draft With Password Change')
+        ->and($draft->payload)->not->toHaveKey('password')
+        ->and($draft->payload)->not->toHaveKey('passwordConfirmation')
+        ->and($draft->payload)->not->toHaveKey('currentPassword')
+        ->and($draft->payload)->not->toHaveKey('change_password');
+});
+
+test('edit profile offers draft recovery and restore fills the form', function () {
+    ContentDraft::factory()->create([
+        'user_id' => $this->user->id,
+        'key' => 'profile-edit',
+        'payload' => [
+            'display_name' => 'From Draft',
+        ],
+    ]);
+
+    Livewire::test(EditProfile::class)
+        ->assertNotified('Unsaved draft found')
+        ->dispatch('restore-content-draft')
+        ->assertSet('data.display_name', 'From Draft')
+        ->assertNotified('Draft restored');
+});
+
+test('successful profile save clears the draft', function () {
+    ContentDraft::factory()->create([
+        'user_id' => $this->user->id,
+        'key' => 'profile-edit',
+        'payload' => [
+            'display_name' => 'Stale Draft',
+        ],
+    ]);
+
+    Livewire::test(EditProfile::class)
+        ->set('data.display_name', 'Saved Name')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(
+        ContentDraft::query()
+            ->where('user_id', $this->user->id)
+            ->where('key', 'profile-edit')
+            ->exists()
+    )->toBeFalse();
 });

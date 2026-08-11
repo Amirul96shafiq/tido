@@ -18,7 +18,7 @@ Auto-save form drafts to the database and offer crash recovery on remount. Patte
 | Table / model | `content_drafts` / `App\Models\ContentDraft` |
 | Trait | `App\Filament\Concerns\RecoversContentDraft` |
 | Poller UI | `resources/views/filament/hooks/content-draft-poller.blade.php` |
-| Hook registration | `AdminPanelProvider` → `PanelsRenderHook::PAGE_END` (scoped to opt-in pages) |
+| Hook registration | Embedded by `HasStickyBlurFormActions` when the page implements `saveDraft()` |
 | Tests | `tests/Feature/ContentDraftRecoveryTest.php` |
 
 ## Current opt-in pages
@@ -31,6 +31,7 @@ Auto-save form drafts to the database and offer crash recovery on remount. Patte
 | `EditLabel` | `label-edit-{id}` |
 | `CreateBudget` | `budget-create` |
 | `EditBudget` | `budget-edit-{id}` |
+| `EditProfile` | `profile-edit` |
 
 ## Opt in a new Create / Edit page
 
@@ -60,7 +61,7 @@ class EditThing extends EditRecord
 }
 ```
 
-2. Register the page classes in the `PAGE_END` render-hook `scopes` array in `AdminPanelProvider` (same list as Expenses / Labels / Budgets).
+2. Ensure the page uses `HasStickyBlurFormActions` (do not override `getFormContentComponent()` unless you also embed the draft poller).
 
 3. Override when needed:
    - `contentDraftExcludedFields()` — skip non-recoverable fields (uploads, secrets).
@@ -75,7 +76,7 @@ class EditThing extends EditRecord
 
 ## UI
 
-The poller badge sits at the **right side of the sticky bottom form action row**, opposite the Save / Cancel CTAs. It shows a pulsing amber dot + “Draft saved at …” after the first successful `saveDraft`, with a bottom entrance transition. It is non-interactive (`pointer-events-none`).
+The poller badge sits at the **right side of the sticky bottom form action row**, opposite the Save / Back CTAs. It shows a pulsing amber dot + “Draft saved at …” after the first successful `saveDraft`, with a bottom entrance transition. It is non-interactive (`pointer-events-none`).
 
 ## Notes / rich editor fields
 
@@ -83,5 +84,5 @@ When a draft includes a `NotesRichEditor` field, Livewire payload state is TipTa
 
 ## Out of scope
 
-- Custom Filament pages without Create/Edit record (`ReceiptUploadPage`, Evolution API, profile) — opt in separately if needed.
+- Custom Filament pages without form drafts yet (`ReceiptUploadPage`, Evolution API) — opt in separately if needed.
 - Client-only `localStorage` drafts — this feature is DB-backed so recovery works across devices/sessions for the same user.

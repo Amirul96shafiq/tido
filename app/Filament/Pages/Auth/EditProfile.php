@@ -8,6 +8,7 @@ use App\Enums\UserDateFormat;
 use App\Enums\UserLocale;
 use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
+use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Forms\Components\DateOfBirthPicker;
 use App\Models\User;
 use App\Notifications\VerifyEmailChange;
@@ -29,12 +30,9 @@ use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification as FilamentNotification;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\EmbeddedTable;
 use Filament\Schemas\Components\Flex;
-use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -63,6 +61,7 @@ class EditProfile extends BaseEditProfile implements HasTable
     use HasStickyBlurFormActions;
     use InteractsWithTable;
     use PrependsHomeBreadcrumb;
+    use RecoversContentDraft;
 
     private const RESET_CONFIRMATION_PHRASE = 'CONFIRM RESET DATA';
 
@@ -109,29 +108,35 @@ class EditProfile extends BaseEditProfile implements HasTable
         return $items;
     }
 
-    public function getFormContentComponent(): Component
+    public function sectionNavAriaLabel(): string
     {
-        return Group::make([
-            Group::make([
-                View::make('filament.schemas.components.section-nav')
-                    ->viewData(fn (): array => [
-                        'sections' => static::sectionNavItems(),
-                        'ariaLabel' => 'Profile sections',
-                    ]),
-            ])->extraAttributes([
-                'class' => 'tido-sticky-marker tido-sticky-marker--top',
-            ]),
-            Form::make([EmbeddedSchema::make('form')])
-                ->id('form')
-                ->livewireSubmitHandler($this->getStickyBlurFormLivewireSubmitHandler()),
-            Group::make([
-                $this->getFormActionsContentComponent(),
-            ])->extraAttributes([
-                'class' => 'tido-sticky-marker tido-sticky-marker--bottom',
-            ]),
-        ])->extraAttributes([
-            'class' => 'tido-sticky-scope',
-        ]);
+        return 'Profile sections';
+    }
+
+    protected function contentDraftKey(): string
+    {
+        return 'profile-edit';
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function contentDraftExcludedFields(): array
+    {
+        return [
+            'image_path',
+            'avatar_url',
+            'password',
+            'passwordConfirmation',
+            'currentPassword',
+            'change_password',
+            'enable_reset_data',
+            'reset_confirmation_phrase',
+            'reset_confirmation_password',
+            'enable_delete_account',
+            'delete_confirmation_phrase',
+            'delete_confirmation_password',
+        ];
     }
 
     /**

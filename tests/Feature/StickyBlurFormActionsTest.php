@@ -85,6 +85,15 @@ test('draft saved indicator shares the expense sticky action row', function () {
         ->assertSee('fi-content-draft-poller', false);
 });
 
+test('draft saved indicator shares the profile sticky action row', function () {
+    $this->actingAs($this->admin);
+
+    Livewire::test(EditProfile::class)
+        ->assertSuccessful()
+        ->assertSee('tido-sticky-form-actions-row', false)
+        ->assertSee('fi-content-draft-poller', false);
+});
+
 test('create label still submits with sticky blur form actions', function () {
     $this->actingAs($this->admin);
 

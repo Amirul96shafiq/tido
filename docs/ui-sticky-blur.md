@@ -95,7 +95,7 @@ Do **not** use Filament’s `stickyFormActions()` — that applies an opaque fix
 | `CreateExpense` / `EditExpense` | Resource CTAs |
 | `CreateLabel` / `EditLabel` | Resource CTAs |
 | `CreateBudget` / `EditBudget` | Resource CTAs |
-| `Auth/EditProfile` | Top section tabs + Save / Cancel / Danger Zone CTAs — see [`ui-section-nav.md`](ui-section-nav.md) for the sticky tab menu |
+| `Auth/EditProfile` | Top section tabs + Save / Back + draft badge + Danger Zone CTAs — see [`ui-section-nav.md`](ui-section-nav.md) for the sticky tab menu |
 
 ### Opt in a new Create / Edit page
 
