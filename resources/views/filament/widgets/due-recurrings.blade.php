@@ -1,6 +1,8 @@
 @php
+    /** @var bool $canManageRecurrings */
     /** @var string $contentHeight */
     /** @var list<array<string, mixed>> $items */
+    /** @var string $manageUrl */
     /** @var string $totalAmount */
     /** @var int $totalCount */
 @endphp
@@ -24,15 +26,17 @@
                 <span class="text-sm font-semibold text-gray-950 dark:text-white">
                     {{ $totalAmount }}
                 </span>
-                <x-filament::button
-                    tag="a"
-                    size="sm"
-                    color="primary"
-                    icon="heroicon-m-arrow-right"
-                    :href="$manageUrl"
-                >
-                    Manage
-                </x-filament::button>
+                @if ($canManageRecurrings)
+                    <x-filament::button
+                        tag="a"
+                        size="sm"
+                        color="primary"
+                        icon="heroicon-m-arrow-right"
+                        :href="$manageUrl"
+                    >
+                        Manage
+                    </x-filament::button>
+                @endif
             </div>
         </x-slot>
 
@@ -48,42 +52,112 @@
                 />
             </div>
         @else
-            <ul
+            <div
+                @if ($canManageRecurrings)
+                    wire:sort="reorderRecurrings"
+                @endif
                 class="custom-scrollbar mt-3 flex flex-1 flex-col gap-1 overflow-y-auto pr-2"
                 style="min-height: {{ $contentHeight }}; max-height: {{ $contentHeight }}"
             >
                 @foreach ($items as $item)
-                    <li
+                    <div
                         wire:key="due-recurrings-{{ $item['id'] }}"
-                        class="-mx-1 flex flex-col gap-2 rounded-xl px-4 py-3 transition-colors duration-200 hover:bg-gray-100 sm:flex-row sm:items-center sm:justify-between dark:hover:bg-slate-700/60"
+                        @if ($item['can_reorder'] ?? false)
+                            wire:sort:item="{{ $item['recurring_id'] }}"
+                        @endif
+                        class="-mx-1 flex items-center gap-2 rounded-xl px-3 py-2.5 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60"
                     >
-                        <div class="min-w-0 flex-1">
-                            <div class="flex flex-wrap items-center gap-2">
-                                <a
-                                    @if ($item['editUrl'])
-                                        href="{{ $item['editUrl'] }}"
-                                    @endif
-                                    class="truncate font-medium text-gray-950 dark:text-white"
-                                >
-                                    {{ $item['title'] }}
-                                </a>
-                                <span @class([
-                                    'fi-badge flex items-center justify-center gap-x-1 rounded-md text-xs font-medium ring-1 ring-inset px-1.5 py-0.5',
-                                    'bg-warning-50 text-warning-700 ring-warning-600/20 dark:bg-warning-400/10 dark:text-warning-400' => $item['status'] === 'due',
-                                    'bg-danger-50 text-danger-700 ring-danger-600/20 dark:bg-danger-400/10 dark:text-danger-400' => $item['status'] === 'overdue',
-                                ])>
-                                    {{ $item['statusLabel'] }}
-                                </span>
-                            </div>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                {{ $item['type'] }} · {{ $item['amount'] }} · due {{ $item['dueOn'] }}
-                                @if ($item['progress'] !== null)
-                                    · {{ $item['progress'] }}% of goal
-                                @endif
-                            </p>
-                        </div>
+                        @if ($item['can_reorder'] ?? false)
+                            <button
+                                type="button"
+                                wire:sort:handle
+                                class="flex size-6 shrink-0 cursor-grab items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 active:cursor-grabbing dark:hover:bg-slate-600 dark:hover:text-gray-200"
+                            >
+                                <x-filament::icon icon="heroicon-m-bars-3" class="size-4" />
+                            </button>
+                        @endif
 
-                        <div class="flex gap-2">
+                        @php
+                            $itemTag = filled($item['edit_url'] ?? null) ? 'a' : 'div';
+                            $hasGoal = $item['goalTarget'] !== null && $item['goalTarget'] > 0;
+                            $progress = (float) ($item['progress'] ?? 0);
+                        @endphp
+
+                        <{{ $itemTag }}
+                            @if (filled($item['edit_url'] ?? null))
+                                wire:navigate
+                                wire:sort:ignore
+                                href="{{ $item['edit_url'] }}"
+                            @endif
+                            class="focus-visible:ring-primary-500 flex min-w-0 flex-1 items-center gap-2 rounded-lg text-sm focus-visible:ring-2 focus-visible:outline-none"
+                        >
+                            <div
+                                x-data="{ overflowing: false }"
+                                x-init="
+                                    const measure = () => {
+                                        const marqueeText = $refs.marqueeText;
+
+                                        if (!marqueeText) {
+                                            overflowing = false;
+                                            return;
+                                        }
+
+                                        $el.style.setProperty(
+                                            '--tido-marquee-clip',
+                                            $el.clientWidth + 'px',
+                                        );
+                                        overflowing = marqueeText.scrollWidth > $el.clientWidth;
+                                    };
+                                    $nextTick(measure);
+                                    new ResizeObserver(() => measure()).observe($el);
+                                "
+                                class="tido-text-marquee-clip relative min-w-0 flex-1 overflow-hidden"
+                            >
+                                <span
+                                    x-ref="marqueeText"
+                                    class="inline-block font-semibold whitespace-nowrap text-gray-800 dark:text-gray-200"
+                                    :class="{ 'tido-text-marquee': overflowing }"
+                                >{{ $item['title'] }}</span>
+                            </div>
+
+                            <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-600 dark:text-slate-100">
+                                {{ $item['cadence'] }}
+                            </span>
+
+                            @if ($item['is_shared'] ?? false)
+                                <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-400/25 dark:text-primary-300">
+                                    Shared
+                                </span>
+                            @endif
+
+                            @if ($item['status'] === 'overdue')
+                                <span class="shrink-0 text-xs font-semibold whitespace-nowrap text-red-500">
+                                    Overdue · due {{ $item['dueOn'] }}
+                                </span>
+                            @else
+                                <span class="shrink-0 text-xs whitespace-nowrap text-gray-400 dark:text-gray-500">
+                                    Due {{ $item['dueOn'] }}
+                                </span>
+                            @endif
+
+                            @if ($item['type'] !== '')
+                                <span class="hidden shrink-0 text-xs whitespace-nowrap text-gray-400 sm:inline dark:text-gray-500">
+                                    {{ $item['type'] }}
+                                </span>
+                            @endif
+
+                            @if ($hasGoal)
+                                <span class="hidden shrink-0 text-xs whitespace-nowrap text-gray-400 md:inline dark:text-gray-500">
+                                    {{ number_format($progress, 0) }}% goal
+                                </span>
+                            @endif
+
+                            <span class="shrink-0 font-bold whitespace-nowrap text-gray-700 dark:text-gray-300">
+                                {{ $item['amount'] }}
+                            </span>
+                        </{{ $itemTag }}>
+
+                        <div wire:sort:ignore class="shrink-0">
                             <x-filament::button
                                 size="sm"
                                 color="gray"
@@ -93,9 +167,9 @@
                                 Skip
                             </x-filament::button>
                         </div>
-                    </li>
+                    </div>
                 @endforeach
-            </ul>
+            </div>
         @endif
     </x-filament::section>
 </x-filament-widgets::widget>
