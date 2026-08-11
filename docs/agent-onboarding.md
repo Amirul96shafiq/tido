@@ -55,7 +55,7 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 16. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
 17. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
 18. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
-19. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md`
+19. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md` (includes JS date pickers + `DateOfBirthPicker`)
 20. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
 21. Resource edit audit (latest editor, username display, table recency): `docs/resource-edit-audit.md`
 22. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
@@ -152,7 +152,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 19. Profile Active Sessions (embedded table, revoke): see `docs/active-sessions.md`
 20. Household access / family login / expense ACL: see `docs/household-access.md`
 21. Sticky section tabs + smooth scroll: see `docs/ui-section-nav.md`
-22. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas
+22. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas (date fields use global JS pickers / `DateOfBirthPicker`; do not reintroduce masked DOB text inputs)
 23. Custom Blade toggles: use `get_component_color_classes(ToggleComponent::class, …)` and Profile `inlineLabel` markup — see `docs/ui-custom-toggles.md`
 
 ### Integrations

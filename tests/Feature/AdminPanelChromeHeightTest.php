@@ -373,6 +373,10 @@ test('nested dropdown panels are not clipped by the parent dropdown overflow rul
         ->toContain('overflow-y: hidden !important;')
         ->toContain('.fi-ta-filters-dropdown .fi-ta-filters-body,')
         ->toContain('.fi-ta-col-manager-dropdown .fi-ta-col-manager-body {')
+        ->toContain('.fi-fixed-positioning-context .fi-fo-date-time-picker-panel')
+        ->toContain('z-index: 40;')
+        ->toContain('.tido-date-picker-month-panel')
+        ->not->toContain('.fi-ta-filters-body:has(')
         ->not->toContain(".fi-dropdown-panel {\n    max-height: 60vh !important;")
         ->not->toContain(".fi-dropdown-panel {\n    max-height: min(40vh, 20rem) !important;")
         ->not->toContain(".fi-dropdown-panel {\n    overflow-y: auto !important;");

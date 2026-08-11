@@ -8,6 +8,7 @@ use App\Enums\UserDateFormat;
 use App\Enums\UserLocale;
 use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
+use App\Filament\Forms\Components\DateOfBirthPicker;
 use App\Models\User;
 use App\Notifications\VerifyEmailChange;
 use App\Services\AccountDangerZoneService;
@@ -17,12 +18,9 @@ use App\Support\EmailChangeVerification;
 use App\Support\FilamentAuthLogout;
 use App\Support\HouseholdAccess;
 use App\Support\PhoneNumber;
-use Carbon\Carbon;
-use Carbon\CarbonInterface;
 use Filament\Actions\Action;
 use Filament\Auth\Notifications\NoticeOfEmailChangeRequest;
 use Filament\Auth\Pages\EditProfile as BaseEditProfile;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
@@ -316,129 +314,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                                         }
                                     })
                                     ->dehydrateStateUsing(fn (?string $state): ?string => PhoneNumber::normalize($state)),
-                                TextInput::make('date_of_birth')
-                                    ->label('Date of Birth')
-                                    ->mask('99/99/9999')
-                                    ->placeholder('DD/MM/YYYY')
-                                    ->formatStateUsing(function (mixed $state): ?string {
-                                        if (blank($state)) {
-                                            return null;
-                                        }
-
-                                        if ($state instanceof CarbonInterface) {
-                                            return $state->format('d/m/Y');
-                                        }
-
-                                        if (! is_string($state)) {
-                                            return null;
-                                        }
-
-                                        if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $state) === 1) {
-                                            return $state;
-                                        }
-
-                                        try {
-                                            return Carbon::parse($state)
-                                                ->timezone((string) config('app.timezone'))
-                                                ->format('d/m/Y');
-                                        } catch (\Throwable) {
-                                            return $state;
-                                        }
-                                    })
-                                    ->dehydrateStateUsing(function (?string $state): ?string {
-                                        if (blank($state)) {
-                                            return null;
-                                        }
-
-                                        if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $state) !== 1) {
-                                            return null;
-                                        }
-
-                                        try {
-                                            $date = Carbon::createFromFormat('!d/m/Y', $state);
-                                        } catch (\Throwable) {
-                                            return null;
-                                        }
-
-                                        if ($date === false || $date->format('d/m/Y') !== $state) {
-                                            return null;
-                                        }
-
-                                        return $date->format('Y-m-d');
-                                    })
-                                    ->rule(fn (): \Closure => function (string $attribute, mixed $value, \Closure $fail): void {
-                                        if (blank($value)) {
-                                            return;
-                                        }
-
-                                        if (! is_string($value) || preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $value) !== 1) {
-                                            $fail('Enter a valid date as DD/MM/YYYY.');
-
-                                            return;
-                                        }
-
-                                        try {
-                                            $date = Carbon::createFromFormat('!d/m/Y', $value);
-                                        } catch (\Throwable) {
-                                            $fail('Enter a valid date as DD/MM/YYYY.');
-
-                                            return;
-                                        }
-
-                                        if ($date === false || $date->format('d/m/Y') !== $value) {
-                                            $fail('Enter a valid date as DD/MM/YYYY.');
-
-                                            return;
-                                        }
-
-                                        if ($date->isFuture()) {
-                                            $fail('Date of birth cannot be in the future.');
-                                        }
-                                    })
-                                    ->suffixAction(
-                                        Action::make('pickDateOfBirth')
-                                            ->icon(Heroicon::CalendarDays)
-                                            ->tooltip('Open calendar')
-                                            ->modalWidth('sm')
-                                            ->modalHeading('Date of Birth')
-                                            ->modalSubmitActionLabel('Select')
-                                            ->fillForm(function (Get $get): array {
-                                                $current = $get('date_of_birth');
-                                                $picked = null;
-
-                                                if (is_string($current) && preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $current) === 1) {
-                                                    try {
-                                                        $date = Carbon::createFromFormat('!d/m/Y', $current);
-
-                                                        if ($date !== false && $date->format('d/m/Y') === $current) {
-                                                            $picked = $date->format('Y-m-d');
-                                                        }
-                                                    } catch (\Throwable) {
-                                                        $picked = null;
-                                                    }
-                                                }
-
-                                                return ['picked' => $picked];
-                                            })
-                                            ->schema([
-                                                DatePicker::make('picked')
-                                                    ->hiddenLabel()
-                                                    ->native(false)
-                                                    ->displayFormat('d/m/Y')
-                                                    ->maxDate(now())
-                                                    ->required(),
-                                            ])
-                                            ->action(function (array $data, Set $set): void {
-                                                if (blank($data['picked'] ?? null)) {
-                                                    return;
-                                                }
-
-                                                $set(
-                                                    'date_of_birth',
-                                                    Carbon::parse((string) $data['picked'])->format('d/m/Y'),
-                                                );
-                                            }),
-                                    ),
+                                DateOfBirthPicker::make(),
                             ]),
                     ]),
             ]);

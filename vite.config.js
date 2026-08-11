@@ -55,6 +55,7 @@ export default defineConfig({
                 'resources/js/notification-swipe-dismiss.js',
                 'resources/js/file-upload-editor-overlay.js',
                 'resources/js/unsupported-record-checkbox.js',
+                'resources/js/date-picker-month-select.js',
             ],
             refresh: true,
         }),

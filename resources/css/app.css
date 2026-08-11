@@ -4101,6 +4101,96 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     overflow-y: hidden !important;
 }
 
+/*
+ * JS DatePicker panels are position:absolute by default. Inside table filters
+ * (.fi-fixed-positioning-context) date-picker-month-select.js pins them to
+ * position:fixed on open so the calendar escapes scroll clips without making
+ * the filter card overflow:visible (which spilled Until / later fields).
+ */
+.fi-fixed-positioning-context .fi-fo-date-time-picker-panel {
+    z-index: 40;
+}
+
+/*
+ * Date picker month control: hide the native <select> popup and show a
+ * Filament-styled dropdown list (same classes as Select option panels).
+ */
+.fi-fo-date-time-picker-month-select.tido-date-picker-month-select-native {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+    pointer-events: none !important;
+}
+
+.tido-date-picker-month {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    align-items: center;
+}
+
+.tido-date-picker-month-trigger {
+    display: inline-flex;
+    max-width: 100%;
+    min-width: 0;
+    cursor: pointer;
+    align-items: center;
+    gap: 0.25rem;
+    border: none;
+    background: transparent;
+    padding: 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    color: inherit;
+}
+
+.tido-date-picker-month-trigger-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tido-date-picker-month-trigger-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--color-gray-400, #99a1af);
+}
+
+.dark .tido-date-picker-month-trigger-icon {
+    color: var(--color-gray-500, #6a7282);
+}
+
+.tido-date-picker-month-open .tido-date-picker-month-trigger-icon {
+    transform: rotate(180deg);
+}
+
+.tido-date-picker-month-panel {
+    position: absolute;
+    inset-inline-start: 0;
+    top: calc(100% + 0.35rem);
+    z-index: 50;
+    min-width: 9.5rem;
+    max-height: min(16rem, 50vh);
+    overflow-y: auto;
+}
+
+.tido-date-picker-month-panel .fi-dropdown-list-item.fi-selected {
+    color: var(--primary-600, var(--color-primary-600));
+}
+
+.dark .tido-date-picker-month-panel .fi-dropdown-list-item.fi-selected {
+    color: var(--primary-400, var(--color-primary-400));
+}
+
 /* Keep nested Select option lists compact and independently scrollable. */
 .fi-select-input-ctn > .fi-dropdown-panel.fi-scrollable {
     max-height: min(60vh, 15rem) !important;

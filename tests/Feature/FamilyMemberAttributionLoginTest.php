@@ -202,7 +202,7 @@ test('family member profile edit syncs shared fields back to family member resou
     Livewire::test(EditProfile::class)
         ->set('data.display_name', 'Alongg')
         ->set('data.name', 'Nor Ezrieana Updated')
-        ->set('data.date_of_birth', '12/12/1990')
+        ->set('data.date_of_birth', '1990-12-12')
         ->call('save')
         ->assertHasNoErrors();
 
