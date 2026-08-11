@@ -83,8 +83,8 @@
                         <template x-if="usdOnTop">
                             <div class="flex flex-col gap-1.5">
                                 <label class="sr-only" for="currency-converter-usd">USD amount</label>
-                                <div class="fi-wi-current-currency-surface flex items-stretch overflow-hidden rounded-lg bg-gray-50 ring-1 ring-gray-950/10 dark:bg-white/5 dark:ring-white/10">
-                                    <input
+                                <x-filament::input.wrapper suffix="USD">
+                                    <x-filament::input
                                         id="currency-converter-usd"
                                         type="number"
                                         inputmode="decimal"
@@ -92,15 +92,11 @@
                                         step="any"
                                         x-model="usd"
                                         x-on:input="syncFromUsd()"
-                                        class="min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none focus:ring-0 dark:text-white"
                                     />
-                                    <span class="flex items-center border-l border-gray-950/10 px-3 text-xs font-medium text-gray-500 dark:border-white/10 dark:text-gray-400">
-                                        USD
-                                    </span>
-                                </div>
+                                </x-filament::input.wrapper>
                                 <label class="sr-only" for="currency-converter-myr">MYR amount</label>
-                                <div class="fi-wi-current-currency-surface flex items-stretch overflow-hidden rounded-lg bg-gray-50 ring-1 ring-gray-950/10 dark:bg-white/5 dark:ring-white/10">
-                                    <input
+                                <x-filament::input.wrapper suffix="MYR">
+                                    <x-filament::input
                                         id="currency-converter-myr"
                                         type="number"
                                         inputmode="decimal"
@@ -108,20 +104,16 @@
                                         step="any"
                                         x-model="myr"
                                         x-on:input="syncFromMyr()"
-                                        class="min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none focus:ring-0 dark:text-white"
                                     />
-                                    <span class="flex items-center border-l border-gray-950/10 px-3 text-xs font-medium text-gray-500 dark:border-white/10 dark:text-gray-400">
-                                        MYR
-                                    </span>
-                                </div>
+                                </x-filament::input.wrapper>
                             </div>
                         </template>
 
                         <template x-if="! usdOnTop">
                             <div class="flex flex-col gap-1.5">
                                 <label class="sr-only" for="currency-converter-myr">MYR amount</label>
-                                <div class="fi-wi-current-currency-surface flex items-stretch overflow-hidden rounded-lg bg-gray-50 ring-1 ring-gray-950/10 dark:bg-white/5 dark:ring-white/10">
-                                    <input
+                                <x-filament::input.wrapper suffix="MYR">
+                                    <x-filament::input
                                         id="currency-converter-myr"
                                         type="number"
                                         inputmode="decimal"
@@ -129,15 +121,11 @@
                                         step="any"
                                         x-model="myr"
                                         x-on:input="syncFromMyr()"
-                                        class="min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none focus:ring-0 dark:text-white"
                                     />
-                                    <span class="flex items-center border-l border-gray-950/10 px-3 text-xs font-medium text-gray-500 dark:border-white/10 dark:text-gray-400">
-                                        MYR
-                                    </span>
-                                </div>
+                                </x-filament::input.wrapper>
                                 <label class="sr-only" for="currency-converter-usd">USD amount</label>
-                                <div class="fi-wi-current-currency-surface flex items-stretch overflow-hidden rounded-lg bg-gray-50 ring-1 ring-gray-950/10 dark:bg-white/5 dark:ring-white/10">
-                                    <input
+                                <x-filament::input.wrapper suffix="USD">
+                                    <x-filament::input
                                         id="currency-converter-usd"
                                         type="number"
                                         inputmode="decimal"
@@ -145,12 +133,8 @@
                                         step="any"
                                         x-model="usd"
                                         x-on:input="syncFromUsd()"
-                                        class="min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none focus:ring-0 dark:text-white"
                                     />
-                                    <span class="flex items-center border-l border-gray-950/10 px-3 text-xs font-medium text-gray-500 dark:border-white/10 dark:text-gray-400">
-                                        USD
-                                    </span>
-                                </div>
+                                </x-filament::input.wrapper>
                             </div>
                         </template>
 

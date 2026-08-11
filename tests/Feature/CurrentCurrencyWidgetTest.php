@@ -92,6 +92,8 @@ test('currency widget renders the current usd to myr rate with provider context'
     $html = Livewire::test(CurrentCurrency::class)->html();
 
     expect(substr_count($html, 'fi-wi-current-currency-surface'))->toBeGreaterThanOrEqual(3)
+        ->and(substr_count($html, 'fi-input-wrp'))->toBeGreaterThanOrEqual(4)
+        ->and(preg_match_all('/\bfi-input\b/', $html))->toBeGreaterThanOrEqual(4)
         ->and(Http::recorded())->toHaveCount(count($sentAfterPrime));
 });
 

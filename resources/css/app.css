@@ -3983,9 +3983,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /*
- * Currency converter / range chips use neutral rings that the global theme remaps
- * to a 1px border only while not hovered. Keep that border locked so hover/focus
- * does not drop the border and make the boxes grow.
+ * Currency range chips use neutral rings that the global theme remaps to a 1px
+ * border only while not hovered. Keep that border locked so hover/focus does
+ * not drop the border and make the boxes grow. Converter fields use native
+ * Filament input wrappers (.fi-input-wrp) and inherit the global border token.
  */
 .tido-dashboard-page #currency-rate .fi-wi-current-currency-surface,
 .tido-dashboard-page #currency-rate .fi-wi-current-currency-surface:hover,
@@ -4109,7 +4110,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 /*
  * Neutral Filament surfaces use the panel chrome token for a border-only edge.
  * Keep the line at 1px without adding a box shadow or changing the component's
- * radius, spacing, or interactive focus treatment.
+ * radius or spacing. Inputs keep that 1px geometry on hover/focus — Filament's
+ * default focus-within:ring-2 must not expand the wrapper (includes currency
+ * USD/MYR) — while hover/focus still use the primary border color.
  */
 .fi-section:not(.fi-danger-zone-section > .fi-section),
 .fi-ta-ctn,
@@ -4118,7 +4121,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 .fi-dropdown-panel,
 .fi-modal-window,
 .fi-no-database-filters-panel,
-.fi-input-wrp:not(.fi-invalid):not(:focus-within),
+.fi-input-wrp:not(.fi-invalid):not(:hover):not(:focus):not(:focus-within),
 .fi-fo-repeater-item:not(:focus-within),
 .fi-fo-builder-item:not(:focus-within),
 .fi-fo-file-upload .filepond--root:not(:focus-within) {
@@ -4128,6 +4131,23 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     --tw-ring-color: transparent !important;
     --tw-ring-shadow: 0 0 0 0 transparent !important;
     box-shadow: none !important;
+}
+
+.fi-input-wrp:not(.fi-invalid):not(.fi-disabled):hover,
+.fi-input-wrp:not(.fi-invalid):not(.fi-disabled):focus,
+.fi-input-wrp:not(.fi-invalid):not(.fi-disabled):focus-within {
+    border-style: solid !important;
+    border-width: 1px !important;
+    border-color: var(--primary-600) !important;
+    --tw-ring-color: transparent !important;
+    --tw-ring-shadow: 0 0 0 0 transparent !important;
+    box-shadow: none !important;
+}
+
+.dark .fi-input-wrp:not(.fi-invalid):not(.fi-disabled):hover,
+.dark .fi-input-wrp:not(.fi-invalid):not(.fi-disabled):focus,
+.dark .fi-input-wrp:not(.fi-invalid):not(.fi-disabled):focus-within {
+    border-color: var(--primary-500) !important;
 }
 
 /* Keep neutral section, table, modal, and widget dividers on the same line. */
