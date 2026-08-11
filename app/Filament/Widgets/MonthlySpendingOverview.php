@@ -74,7 +74,7 @@ class MonthlySpendingOverview extends BaseWidget
             $description .= sprintf(' (%s%.1f%%)', $difference >= 0 ? '+' : '-', abs($percent));
         }
 
-        $description .= ' vs '.$this->previousMonthLabel();
+        $description .= ' total spent vs '.$this->previousMonthLabel();
 
         $descriptionIcon = $difference >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down';
         $descriptionColor = $difference >= 0 ? 'danger' : 'success';

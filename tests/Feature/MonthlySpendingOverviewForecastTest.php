@@ -228,6 +228,7 @@ test('receipts processed stat shows selected month title and month over month co
     Livewire::test(MonthlySpendingOverview::class)
         ->assertSuccessful()
         ->assertSee('Receipts Processed (August 2026)')
+        ->assertSee('RM 40.00 (+80.0%) total spent vs July 2026')
         ->assertSee('2 (+200.0%) receipts processed vs July 2026')
         ->assertDontSee('pending parsing');
 });
