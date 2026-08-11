@@ -364,4 +364,3 @@ if (document.readyState === 'loading') {
 } else {
     bootDatePickerPanelPins();
 }
-
