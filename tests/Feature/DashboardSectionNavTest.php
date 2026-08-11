@@ -194,3 +194,12 @@ test('dashboard currency card fills the shared overview row', function () {
         ->toContain('.fi-wi-currency-rate-sparkline')
         ->toContain('.fi-wi-current-currency-surface');
 });
+
+test('dashboard stats overview distributes four cards to match currency row height', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.tido-dashboard-page .fi-wi-stats-overview > .fi-sc.fi-grid')
+        ->toContain('grid-auto-rows: minmax(0, 1fr)')
+        ->toContain('.tido-dashboard-page .fi-wi-stats-overview-stat[id]');
+});

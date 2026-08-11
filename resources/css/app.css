@@ -3976,6 +3976,59 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     flex-direction: column;
 }
 
+/*
+ * Dashboard stats overview: the four stat cards share a row with USD to MYR.
+ * Currency uses .fi-wi-widget > .fi-section directly; stats overview nests its
+ * section inside Filament schema grid wrappers, so stretch must be applied
+ * through that chain and the inner 2x2 grid must distribute row height evenly.
+ */
+.tido-dashboard-page .fi-wi-stats-overview {
+    height: 100%;
+}
+
+.tido-dashboard-page .fi-wi-stats-overview > .fi-sc.fi-grid {
+    height: 100%;
+    min-height: 100%;
+    align-items: stretch;
+}
+
+.tido-dashboard-page .fi-wi-stats-overview > .fi-sc.fi-grid > .fi-grid-col,
+.tido-dashboard-page .fi-wi-stats-overview .fi-grid-ctn,
+.tido-dashboard-page .fi-wi-stats-overview .fi-sc-section,
+.tido-dashboard-page .fi-section:has(.fi-wi-stats-overview-stat[id]) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+}
+
+.tido-dashboard-page .fi-section:has(.fi-wi-stats-overview-stat[id]) > .fi-section-content-ctn,
+.tido-dashboard-page
+    .fi-section:has(.fi-wi-stats-overview-stat[id])
+    > .fi-section-content-ctn
+    > .fi-section-content.fi-grid {
+    display: grid;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    align-content: stretch;
+    grid-auto-rows: minmax(0, 1fr);
+}
+
+.tido-dashboard-page
+    .fi-section:has(.fi-wi-stats-overview-stat[id])
+    .fi-grid-col:has(.fi-wi-stats-overview-stat[id]) {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.tido-dashboard-page .fi-wi-stats-overview-stat[id] {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
 .tido-dashboard-page #currency-rate .fi-wi-currency-rate-sparkline {
     position: absolute;
     inset-inline: 0;

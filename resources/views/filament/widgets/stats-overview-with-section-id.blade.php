@@ -22,6 +22,7 @@
             ->merge($widgetAttributes, escape: false)
             ->class([
                 'fi-wi-stats-overview',
+                'h-full',
             ])
     "
 >
