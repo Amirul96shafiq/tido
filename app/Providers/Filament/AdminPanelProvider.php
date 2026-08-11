@@ -111,6 +111,10 @@ class AdminPanelProvider extends PanelProvider
                     'unsupported-record-checkbox',
                     Vite::asset('resources/js/unsupported-record-checkbox.js'),
                 )->module(),
+                Js::make(
+                    'date-picker-month-select',
+                    Vite::asset('resources/js/date-picker-month-select.js'),
+                )->module(),
             ])
             ->renderHook(
                 PanelsRenderHook::PAGE_HEADER_ACTIONS_BEFORE,
