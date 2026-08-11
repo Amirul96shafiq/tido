@@ -109,6 +109,53 @@ Examples: `feature/content-draft-recovery`, `fix/draft-recovery-poll-interval`.
 
 One coherent change set per branch. Follow-ups after merge get a new branch from `main`, not a long-lived feature branch.
 
+## Stacked pull requests (merge one-by-one)
+
+Use when a **follow-up branch includes every commit from an earlier branch** (e.g. `feature/finance-mini-widgets-changes` built on `feature/receipts-processed-month-comparison`). Both PRs must not target `main` at the same time without a merge plan — merging the larger PR first brings in the smaller PR’s commits and GitHub will mark the smaller PR as merged too ([PR #98](https://github.com/Amirul96shafiq/tido/pull/98) + [#99](https://github.com/Amirul96shafiq/tido/pull/99)).
+
+### Recommended flow
+
+1. **Open the smaller PR first** — base branch `main`, head = focused branch (one coherent change).
+
+```bash
+git push -u origin feature/receipts-processed-month-comparison
+# gh pr create --base main --head feature/receipts-processed-month-comparison
+```
+
+2. **Open the dependent PR** — same base `main`, head = branch that contains the first branch’s commits plus follow-ups.
+
+3. **Merge the smaller PR only.** Wait until it is on `main` and CI is green.
+
+4. **Rebase the dependent branch onto updated `main`** so the second PR diff shows only the new commits:
+
+```bash
+git checkout feature/finance-mini-widgets-changes
+git fetch origin
+git rebase origin/main
+git push --force-with-lease
+```
+
+5. **Merge the second PR.** Its diff should now exclude commits already on `main`.
+
+6. **Delete both feature branches** after merge (see [Daily loop](#daily-loop)).
+
+### Alternative: stack base branch on GitHub
+
+- PR A: `feature/small-change` → `main`
+- PR B: `feature/small-change-plus-more` → `feature/small-change` (not `main`)
+
+Merge PR A, then change PR B’s base to `main` (or rebase locally as above) and merge PR B.
+
+### When to skip stacking
+
+- Prefer **one PR** when the follow-up is tiny or both changes must ship together.
+- After the first PR merges, a **new branch from `main`** is fine for unrelated follow-ups — no stack required.
+
+### What not to do (stacked PRs)
+
+- Do not merge both stacked PRs at once — the larger one subsumes the smaller.
+- Do not force-push `main`, `staging`, or `production`; `--force-with-lease` is only for your own feature branch during rebase.
+
 ## Commit Message Format
 
 When auto-generating or writing commit messages, use this recommended baseline format:
@@ -165,7 +212,7 @@ There is no long-lived `develop` branch. Full Git Flow (`develop` / `release/*`)
 
 - Code features directly on `main`
 - Use one long-lived branch for unrelated work
-- Branch a new feature off an unfinished feature branch
+- Branch unrelated work off an unfinished feature branch (stacked PRs for one feature line are OK — see [Stacked pull requests](#stacked-pull-requests-merge-one-by-one))
 - Leave merged feature branches hanging forever
 - Commit day-to-day work on `staging` or `production`
 - Force-push `main`, `staging`, or `production`
