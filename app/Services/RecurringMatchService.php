@@ -24,6 +24,88 @@ class RecurringMatchService
             return RecurringOccurrence::query()->where('expense_id', $expense->id)->first();
         }
 
+        $best = $this->findMatchForExpense($expense);
+
+        if ($best === null) {
+            return null;
+        }
+
+        return $this->completeOccurrence($best, $expense);
+    }
+
+    /**
+     * Rematch open occurrences against already-parsed/reviewed expenses (oldest first).
+     *
+     * @return array{
+     *     scanned: int,
+     *     matched: int,
+     *     matches: list<array{
+     *         expense_id: int,
+     *         merchant_name: ?string,
+     *         occurrence_id: int,
+     *         recurring_id: int,
+     *         recurring_title: string,
+     *         due_on: string,
+     *         actual_amount: ?string
+     *     }>
+     * }
+     */
+    public function matchParsedExpenses(bool $dryRun = false): array
+    {
+        $matches = [];
+        $scanned = 0;
+
+        Expense::query()
+            ->whereIn('status', ['parsed', 'reviewed'])
+            ->orderBy('date_time')
+            ->orderBy('id')
+            ->cursor()
+            ->each(function (Expense $expense) use (&$matches, &$scanned, $dryRun): void {
+                $scanned++;
+
+                if (RecurringOccurrence::query()->where('expense_id', $expense->id)->exists()) {
+                    return;
+                }
+
+                $best = $this->findMatchForExpense($expense);
+
+                if ($best === null) {
+                    return;
+                }
+
+                $recurring = $best->recurring;
+                $title = $recurring instanceof Recurring ? $recurring->title : 'Recurring';
+
+                $matches[] = [
+                    'expense_id' => (int) $expense->id,
+                    'merchant_name' => $expense->merchant_name,
+                    'occurrence_id' => (int) $best->id,
+                    'recurring_id' => (int) $best->recurring_id,
+                    'recurring_title' => $title,
+                    'due_on' => $best->due_on->toDateString(),
+                    'actual_amount' => $expense->total_amount !== null
+                        ? (string) $expense->total_amount
+                        : null,
+                ];
+
+                if (! $dryRun) {
+                    $this->completeOccurrence($best, $expense);
+                }
+            });
+
+        return [
+            'scanned' => $scanned,
+            'matched' => count($matches),
+            'matches' => $matches,
+        ];
+    }
+
+    public function findMatchForExpense(Expense $expense): ?RecurringOccurrence
+    {
+        if (! in_array($expense->status, ['parsed', 'reviewed'], true)) {
+            return null;
+        }
+
         $expenseDate = $expense->date_time?->copy()->startOfDay() ?? now()->startOfDay();
         $windowStart = $expenseDate->copy()->subDays(self::DUE_WINDOW_DAYS);
         $windowEnd = $expenseDate->copy()->addDays(self::DUE_WINDOW_DAYS);
@@ -88,11 +170,7 @@ class RecurringMatchService
             }
         }
 
-        if ($best === null) {
-            return null;
-        }
-
-        return $this->completeOccurrence($best, $expense);
+        return $best;
     }
 
     public function completeOccurrence(RecurringOccurrence $occurrence, Expense $expense): RecurringOccurrence

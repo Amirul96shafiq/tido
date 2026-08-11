@@ -35,6 +35,9 @@ Same shape as budgets:
 |---------|----------|
 | `php artisan recurring:generate-occurrences` | Daily 00:15 |
 | `php artisan recurring:send-reminders` | Daily 08:00 |
+| `php artisan recurring:match-expenses` | Manual (backfill) |
+
+Use `recurring:match-expenses` after seeding recurrings (or importing historical receipts) so already-`parsed`/`reviewed` expenses can complete open occurrences. Pass `--dry-run` to preview matches without writing.
 
 ## Related
 

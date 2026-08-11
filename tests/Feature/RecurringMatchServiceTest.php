@@ -152,3 +152,82 @@ test('skips occurrence and decrements instalments', function () {
     expect($occurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Skipped)
         ->and($recurring->fresh()->instalment_remaining)->toBe(1);
 });
+
+test('matchParsedExpenses completes open dues from existing receipts', function () {
+    $gprop = Recurring::factory()->create([
+        'title' => 'GPROP Monthly Bills',
+        'merchant_aliases' => ['GPROP'],
+    ]);
+    $cursor = Recurring::factory()->create([
+        'title' => 'Cursor',
+        'merchant_aliases' => ['Cursor', 'Anysphere'],
+    ]);
+    $tnb = Recurring::factory()->create([
+        'title' => 'TNB Electricity',
+        'merchant_aliases' => ['Tenaga', 'myTNB', 'TNB'],
+    ]);
+
+    $gpropOccurrence = RecurringOccurrence::factory()->create([
+        'recurring_id' => $gprop->id,
+        'due_on' => '2026-08-05',
+        'status' => RecurringOccurrenceStatus::Overdue,
+    ]);
+    $cursorOccurrence = RecurringOccurrence::factory()->create([
+        'recurring_id' => $cursor->id,
+        'due_on' => '2026-08-08',
+        'status' => RecurringOccurrenceStatus::Overdue,
+    ]);
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $tnb->id,
+        'due_on' => '2026-08-05',
+        'status' => RecurringOccurrenceStatus::Overdue,
+    ]);
+
+    Expense::factory()->create([
+        'merchant_name' => 'GPROP Monthly Bills',
+        'total_amount' => 199.14,
+        'date_time' => '2026-08-05 20:53:20',
+        'status' => 'reviewed',
+        'family_member_id' => null,
+    ]);
+    Expense::factory()->create([
+        'merchant_name' => 'Anysphere, Inc.',
+        'total_amount' => 84.79,
+        'date_time' => '2026-08-08 00:00:00',
+        'status' => 'parsed',
+        'family_member_id' => null,
+    ]);
+
+    $result = app(RecurringMatchService::class)->matchParsedExpenses();
+
+    expect($result['matched'])->toBe(2)
+        ->and($gpropOccurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Completed)
+        ->and((float) $gpropOccurrence->fresh()->actual_amount)->toBe(199.14)
+        ->and($cursorOccurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Completed)
+        ->and((float) $cursorOccurrence->fresh()->actual_amount)->toBe(84.79);
+});
+
+test('matchParsedExpenses dry run does not write', function () {
+    $recurring = Recurring::factory()->create([
+        'merchant_aliases' => ['PTPTN'],
+    ]);
+
+    $occurrence = RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'due_on' => '2026-08-05',
+        'status' => RecurringOccurrenceStatus::Due,
+    ]);
+
+    Expense::factory()->create([
+        'merchant_name' => 'PTPTN',
+        'total_amount' => 50,
+        'date_time' => '2026-08-05 20:47:31',
+        'status' => 'reviewed',
+    ]);
+
+    $result = app(RecurringMatchService::class)->matchParsedExpenses(dryRun: true);
+
+    expect($result['matched'])->toBe(1)
+        ->and($occurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Due)
+        ->and($occurrence->fresh()->expense_id)->toBeNull();
+});
