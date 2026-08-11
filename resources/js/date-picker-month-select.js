@@ -224,3 +224,144 @@ if (document.readyState === 'loading') {
 } else {
     boot();
 }
+
+/**
+ * Pin JS date-picker calendars to position:fixed inside filter overflow contexts
+ * (same idea as Select + .fi-fixed-positioning-context). Keeps filter overflow
+ * hidden so later fields stay inside the white card.
+ *
+ * Anchor to the trigger button — never re-measure the panel's own rect after a
+ * prior fixed pin (that double-counts Alpine left/top as absolute offsets).
+ */
+function clearFixedPin(panel) {
+    panel.style.removeProperty('position');
+    panel.style.removeProperty('left');
+    panel.style.removeProperty('top');
+    panel.style.removeProperty('width');
+    panel.dataset.tidoFixedPinned = '0';
+}
+
+function pinDatePickerPanelFixed(panel) {
+    if (! (panel instanceof HTMLElement)) {
+        return;
+    }
+
+    if (! panel.closest('.fi-fixed-positioning-context')) {
+        return;
+    }
+
+    if (getComputedStyle(panel).display === 'none') {
+        if (panel.dataset.tidoFixedPinned === '1') {
+            clearFixedPin(panel);
+        }
+
+        return;
+    }
+
+    const trigger = panel
+        .closest('.fi-fo-date-time-picker')
+        ?.querySelector('.fi-fo-date-time-picker-trigger');
+
+    if (! (trigger instanceof HTMLElement)) {
+        return;
+    }
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const gap = 8;
+    let top = triggerRect.bottom + gap;
+    const estimatedHeight = panel.offsetHeight || 280;
+    const viewportBottom = window.innerHeight - 8;
+
+    if (top + estimatedHeight > viewportBottom) {
+        top = Math.max(8, triggerRect.top - gap - estimatedHeight);
+    }
+
+    panel.style.setProperty('position', 'fixed', 'important');
+    panel.style.setProperty('left', `${Math.round(triggerRect.left)}px`, 'important');
+    panel.style.setProperty('top', `${Math.round(top)}px`, 'important');
+    panel.dataset.tidoFixedPinned = '1';
+}
+
+function watchDatePickerPanelPin(panel) {
+    if (! (panel instanceof HTMLElement) || panel.dataset.tidoFixedWatch === '1') {
+        return;
+    }
+
+    panel.dataset.tidoFixedWatch = '1';
+
+    let quiet = false;
+
+    const schedulePin = () => {
+        if (quiet) {
+            return;
+        }
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                quiet = true;
+                pinDatePickerPanelFixed(panel);
+                requestAnimationFrame(() => {
+                    quiet = false;
+                });
+            });
+        });
+    };
+
+    new MutationObserver(schedulePin).observe(panel, {
+        attributes: true,
+        attributeFilter: ['style', 'class'],
+    });
+
+    schedulePin();
+}
+
+function scanDatePickerPanelPins(root = document) {
+    if (! root || typeof root.querySelectorAll !== 'function') {
+        return;
+    }
+
+    root.querySelectorAll('.fi-fo-date-time-picker-panel').forEach((panel) => {
+        watchDatePickerPanelPin(panel);
+    });
+}
+
+const datePickerPinObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+            if (node instanceof Element) {
+                scanDatePickerPanelPins(node);
+            }
+        });
+    });
+});
+
+function bootDatePickerPanelPins() {
+    scanDatePickerPanelPins(document);
+    datePickerPinObserver.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+    });
+    document.addEventListener('scroll', (event) => {
+        const target = event.target;
+
+        if (
+            ! (target instanceof Element) ||
+            ! target.closest?.('.fi-ta-filters-body, .fi-ta-filters-dropdown')
+        ) {
+            return;
+        }
+
+        document
+            .querySelectorAll(
+                '.fi-fixed-positioning-context .fi-fo-date-time-picker-panel[data-tido-fixed-pinned="1"]',
+            )
+            .forEach((panel) => pinDatePickerPanelFixed(panel));
+    }, true);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootDatePickerPanelPins);
+} else {
+    bootDatePickerPanelPins();
+}
+

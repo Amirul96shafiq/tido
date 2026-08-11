@@ -57,14 +57,16 @@ test('backups date filters render the javascript date picker', function (): void
         ->not->toContain('type="date"');
 });
 
-test('filter dropdown css lets an open date picker panel escape overflow clipping', function (): void {
+test('filter dropdown css keeps overflow hidden and pins date picker panels fixed', function (): void {
     $css = (string) file_get_contents(resource_path('css/app.css'));
+    $js = (string) file_get_contents(resource_path('js/date-picker-month-select.js'));
 
     expect($css)
-        ->toContain(
-            '.fi-dropdown-panel.fi-scrollable[style*="display: block"]:has(',
-        )
-        ->toContain('.fi-fo-date-time-picker-panel[style*="display: block"]')
-        ->toContain('.fi-ta-filters-dropdown .fi-fo-date-time-picker-panel')
-        ->toContain('z-index: 40;');
+        ->toContain('.fi-fixed-positioning-context .fi-fo-date-time-picker-panel')
+        ->toContain('z-index: 40;')
+        ->not->toContain('.fi-ta-filters-body:has(');
+
+    expect($js)
+        ->toContain('pinDatePickerPanelFixed')
+        ->toContain("setProperty('position', 'fixed', 'important')");
 });

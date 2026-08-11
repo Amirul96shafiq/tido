@@ -10,7 +10,8 @@ test('date picker month select script builds a filament-styled month dropdown', 
         ->toContain('tido-date-picker-month')
         ->toContain('fi-dropdown-panel')
         ->toContain('fi-dropdown-list-item')
-        ->toContain('focusedMonth');
+        ->toContain('focusedMonth')
+        ->toContain('pinDatePickerPanelFixed');
 });
 
 test('date picker month select styles hide the native select popup', function (): void {
