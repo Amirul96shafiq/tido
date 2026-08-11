@@ -11,6 +11,7 @@ use App\Filament\Widgets\CurrentCurrency;
 use App\Filament\Widgets\DueRecurrings;
 use App\Filament\Widgets\MonthlyTrend;
 use App\Filament\Widgets\SpendingByLabel;
+use App\Models\Expense;
 use App\Models\FamilyMember;
 use App\Models\Recurring;
 use App\Models\RecurringOccurrence;
@@ -67,7 +68,80 @@ test('due widget header total sums expected amounts', function () {
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSee('2 Recurring Dues')
-        ->assertSee('RM 150.50');
+        ->assertSee('RM 150.50 / RM 150.50');
+});
+
+test('due widget shows completed occurrences at reduced opacity with completed status', function () {
+    Expense::unsetEventDispatcher();
+
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $open = Recurring::factory()->create(['title' => 'TIME Internet']);
+    $paid = Recurring::factory()->create(['title' => 'Netflix']);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $open->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+        'expected_amount' => 102.80,
+    ]);
+
+    $completedAt = now()->subHours(2);
+    $expense = Expense::factory()->create([
+        'date_time' => $completedAt,
+        'total_amount' => 55.00,
+    ]);
+
+    RecurringOccurrence::factory()->completed($expense)->create([
+        'recurring_id' => $paid->id,
+        'due_on' => now()->toDateString(),
+        'expected_amount' => 55.00,
+        'actual_amount' => 55.00,
+    ]);
+
+    Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertSee('1 Recurring Due')
+        ->assertSee('RM 102.80 / RM 157.80')
+        ->assertSee('TIME Internet')
+        ->assertSee('Netflix')
+        ->assertSee('Completed · '.$completedAt->format('d M Y H:i'))
+        ->assertSee('opacity-50', false)
+        ->assertSee('Skip')
+        ->assertSee('disabled', false)
+        ->assertSeeInOrder([
+            'TIME Internet',
+            'Netflix',
+        ]);
+});
+
+test('due widget hides completed occurrences from previous months', function () {
+    Expense::unsetEventDispatcher();
+
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $recurring = Recurring::factory()->create(['title' => 'Old Paid Bill']);
+
+    $occurrence = RecurringOccurrence::factory()->completed()->create([
+        'recurring_id' => $recurring->id,
+        'due_on' => now()->subMonth()->toDateString(),
+        'expected_amount' => 40.00,
+        'actual_amount' => 40.00,
+    ]);
+
+    $occurrence->forceFill([
+        'created_at' => now()->subMonth(),
+        'updated_at' => now()->subMonth(),
+    ])->saveQuietly();
+
+    Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertSee('0 Recurring Dues')
+        ->assertDontSee('Old Paid Bill');
 });
 
 test('family member sees own and shared due items only', function () {

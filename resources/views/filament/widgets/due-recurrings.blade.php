@@ -3,6 +3,7 @@
     /** @var string $contentHeight */
     /** @var list<array<string, mixed>> $items */
     /** @var string $manageUrl */
+    /** @var string $openAmount */
     /** @var string $totalAmount */
     /** @var int $totalCount */
 @endphp
@@ -24,7 +25,7 @@
         <x-slot name="afterHeader">
             <div class="flex items-center gap-3">
                 <span class="text-sm font-semibold text-gray-950 dark:text-white">
-                    {{ $totalAmount }}
+                    {{ $openAmount }} / {{ $totalAmount }}
                 </span>
                 @if ($canManageRecurrings)
                     <x-filament::button
@@ -65,7 +66,10 @@
                         @if ($item['can_reorder'] ?? false)
                             wire:sort:item="{{ $item['recurring_id'] }}"
                         @endif
-                        class="-mx-1 flex items-center gap-3 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60"
+                        @class([
+                            '-mx-1 flex items-center gap-3 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60',
+                            'opacity-50' => $item['is_completed'] ?? false,
+                        ])
                     >
                         @if ($item['can_reorder'] ?? false)
                             <button
@@ -75,12 +79,15 @@
                             >
                                 <x-filament::icon icon="heroicon-m-bars-3" class="size-4" />
                             </button>
+                        @elseif ($canManageRecurrings)
+                            <div class="size-6 shrink-0" aria-hidden="true"></div>
                         @endif
 
                         @php
                             $itemTag = filled($item['edit_url'] ?? null) ? 'a' : 'div';
                             $hasGoal = $item['goalTarget'] !== null && $item['goalTarget'] > 0;
                             $progress = (float) ($item['progress'] ?? 0);
+                            $isCompleted = (bool) ($item['is_completed'] ?? false);
                         @endphp
 
                         <{{ $itemTag }}
@@ -135,7 +142,9 @@
                                 </div>
 
                                 <div class="flex min-w-0 flex-wrap items-center gap-x-1.5 text-xs text-gray-400 dark:text-gray-500">
-                                    @if ($item['status'] === 'overdue')
+                                    @if ($isCompleted)
+                                        <span>Completed · {{ $item['completedAt'] }}</span>
+                                    @elseif ($item['status'] === 'overdue')
                                         <span class="font-semibold text-red-500">
                                             Overdue · {{ $item['dueOn'] }}
                                         </span>
@@ -162,14 +171,24 @@
                         </{{ $itemTag }}>
 
                         <div wire:sort:ignore class="shrink-0">
-                            <x-filament::button
-                                size="sm"
-                                color="gray"
-                                wire:click="skipOccurrence({{ $item['id'] }})"
-                                wire:confirm="Skip this occurrence?"
-                            >
-                                Skip
-                            </x-filament::button>
+                            @if ($isCompleted)
+                                <x-filament::button
+                                    size="sm"
+                                    color="gray"
+                                    disabled
+                                >
+                                    Skip
+                                </x-filament::button>
+                            @else
+                                <x-filament::button
+                                    size="sm"
+                                    color="gray"
+                                    wire:click="skipOccurrence({{ $item['id'] }})"
+                                    wire:confirm="Skip this occurrence?"
+                                >
+                                    Skip
+                                </x-filament::button>
+                            @endif
                         </div>
                     </div>
                 @endforeach

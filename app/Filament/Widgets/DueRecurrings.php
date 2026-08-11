@@ -124,6 +124,7 @@ class DueRecurrings extends Widget
      *     contentHeight: string,
      *     items: list<array<string, mixed>>,
      *     manageUrl: string,
+     *     openAmount: string,
      *     totalAmount: string,
      *     totalCount: int
      * }
@@ -134,11 +135,25 @@ class DueRecurrings extends Widget
         $isPrimary = HouseholdAccess::isPrimary();
         $query = $this->visibleOccurrenceQuery($user instanceof User ? $user : null);
 
-        $totalCount = (clone $query)->count();
-        $totalAmount = MoneyDisplay::withPrefix((clone $query)->sum('expected_amount'));
+        $openQuery = (clone $query)->whereIn('status', [
+            RecurringOccurrenceStatus::Due,
+            RecurringOccurrenceStatus::Overdue,
+        ]);
+        $completedQuery = (clone $query)->where('status', RecurringOccurrenceStatus::Completed);
+
+        $totalCount = (clone $openQuery)->count();
+        $openAmountValue = (float) (clone $openQuery)->sum('expected_amount');
+        $completedAmountValue = (float) (clone $completedQuery)->sum(DB::raw('COALESCE(actual_amount, expected_amount)'));
+        $totalAmountValue = $openAmountValue + $completedAmountValue;
+
+        $openAmount = MoneyDisplay::withPrefix($openAmountValue);
+        $totalAmount = MoneyDisplay::withPrefix($totalAmountValue);
 
         $items = (clone $query)
-            ->with(['recurring.label'])
+            ->with(['recurring.label', 'expense'])
+            ->orderByRaw('CASE WHEN status = ? THEN 1 ELSE 0 END', [
+                RecurringOccurrenceStatus::Completed->value,
+            ])
             ->orderBy(
                 Recurring::query()
                     ->select('sort_order')
@@ -157,11 +172,17 @@ class DueRecurrings extends Widget
                 $goalTarget = $recurring?->goal_target_amount !== null
                     ? (float) $recurring->goal_target_amount
                     : null;
+                $isCompleted = $occurrence->status === RecurringOccurrenceStatus::Completed;
+                $displayAmount = $isCompleted
+                    ? ($occurrence->actual_amount ?? $occurrence->expected_amount)
+                    : $occurrence->expected_amount;
+                $completedAt = $occurrence->expense?->date_time ?? $occurrence->updated_at;
 
                 return [
                     'id' => $occurrence->id,
                     'recurring_id' => $recurring?->id,
-                    'can_reorder' => $isPrimary && $recurring !== null,
+                    'can_reorder' => $isPrimary && $recurring !== null && ! $isCompleted,
+                    'is_completed' => $isCompleted,
                     'edit_url' => $isPrimary && $recurring !== null
                         ? RecurringResource::getUrl('edit', ['record' => $recurring])
                         : null,
@@ -171,8 +192,9 @@ class DueRecurrings extends Widget
                     'status' => $occurrence->status->value,
                     'statusLabel' => $occurrence->status->label(),
                     'dueOn' => $occurrence->due_on->format('d M Y'),
-                    'amount' => $occurrence->expected_amount !== null
-                        ? MoneyDisplay::withPrefix($occurrence->expected_amount)
+                    'completedAt' => $completedAt?->format('d M Y H:i'),
+                    'amount' => $displayAmount !== null
+                        ? MoneyDisplay::withPrefix($displayAmount)
                         : 'Variable',
                     'type' => $recurring?->type->label() ?? '',
                     'cadence' => $this->cadenceLabel($recurring),
@@ -189,6 +211,7 @@ class DueRecurrings extends Widget
             'contentHeight' => DashboardWidgetHeights::TREND_CHART,
             'items' => $items,
             'manageUrl' => RecurringResource::getUrl('index'),
+            'openAmount' => $openAmount,
             'totalAmount' => $totalAmount,
             'totalCount' => $totalCount,
         ];
@@ -200,6 +223,10 @@ class DueRecurrings extends Widget
     private function sortableRecurringIds(): array
     {
         return $this->visibleOccurrenceQuery()
+            ->whereIn('status', [
+                RecurringOccurrenceStatus::Due,
+                RecurringOccurrenceStatus::Overdue,
+            ])
             ->orderBy(
                 Recurring::query()
                     ->select('sort_order')
@@ -243,14 +270,22 @@ class DueRecurrings extends Widget
     private function visibleOccurrenceQuery(?User $user = null): Builder
     {
         $user ??= Auth::user() instanceof User ? Auth::user() : null;
+        $monthStart = now()->copy()->startOfMonth();
 
         return RecurringOccurrence::query()
-            ->open()
             ->visibleTo($user)
             ->whereHas('recurring', fn ($query) => $query->active())
-            ->whereIn('status', [
-                RecurringOccurrenceStatus::Due,
-                RecurringOccurrenceStatus::Overdue,
-            ]);
+            ->where(function (Builder $query) use ($monthStart): void {
+                $query
+                    ->whereIn('status', [
+                        RecurringOccurrenceStatus::Due,
+                        RecurringOccurrenceStatus::Overdue,
+                    ])
+                    ->orWhere(function (Builder $completed) use ($monthStart): void {
+                        $completed
+                            ->where('status', RecurringOccurrenceStatus::Completed)
+                            ->where('updated_at', '>=', $monthStart);
+                    });
+            });
     }
 }
