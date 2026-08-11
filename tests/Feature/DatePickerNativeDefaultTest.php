@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\UserDateFormat;
+use App\Filament\Forms\Components\DateOfBirthPicker;
 use App\Filament\Resources\Backups\Pages\ListBackups;
 use App\Helpers\UserDateDisplay;
 use App\Models\User;
@@ -10,6 +11,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\TimePicker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -30,6 +32,16 @@ test('date time pickers default to format-aware placeholders', function (): void
     expect(DatePicker::make('from')->getPlaceholder())->toBe('dd/mm/yyyy')
         ->and(DateTimePicker::make('published_at')->getPlaceholder())->toBe('dd/mm/yyyy HH:mm')
         ->and(TimePicker::make('alarm_at')->getPlaceholder())->toBe('HH:mm');
+});
+
+test('date of birth picker is a non-native date field capped at today', function (): void {
+    $field = DateOfBirthPicker::make();
+
+    expect($field->getLabel())->toBe('Date of Birth')
+        ->and($field->isNative())->toBeFalse()
+        ->and($field->getPlaceholder())->toBe('dd/mm/yyyy')
+        ->and($field->getMaxDate())->not->toBeNull()
+        ->and(Carbon::parse((string) $field->getMaxDate())->isSameDay(now()))->toBeTrue();
 });
 
 test('date placeholders follow the preferred date format', function (string $format, string $expected): void {

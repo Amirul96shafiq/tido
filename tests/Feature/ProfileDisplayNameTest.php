@@ -67,7 +67,7 @@ test('updating profile saves date of birth', function () {
     $this->actingAs($user);
 
     Livewire::test(EditProfile::class)
-        ->set('data.date_of_birth', '15/05/1990')
+        ->set('data.date_of_birth', '1990-05-15')
         ->call('save')
         ->assertHasNoErrors();
 
@@ -84,7 +84,7 @@ test('updating date of birth triggers database notification', function () {
     $this->actingAs($user);
 
     Livewire::test(EditProfile::class)
-        ->set('data.date_of_birth', '15/05/1990')
+        ->set('data.date_of_birth', '1990-05-15')
         ->call('save')
         ->assertHasNoErrors();
 

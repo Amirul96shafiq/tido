@@ -52,7 +52,7 @@ test('user can create a family member on the allowlist', function () {
             'display_name' => 'Sib',
             'phone' => '+60116330785',
             'relationship' => 'sibling',
-            'date_of_birth' => '15/05/1990',
+            'date_of_birth' => '1990-05-15',
             'allowlist_enabled' => true,
         ])
         ->call('create')
@@ -137,7 +137,7 @@ test('edit form preserves date of birth across asia kuala lumpur timezone serial
 
     Livewire::test(EditFamilyMember::class, ['record' => $member->getRouteKey()])
         ->assertFormSet([
-            'date_of_birth' => '11/11/1988',
+            'date_of_birth' => '1988-11-11',
         ]);
 
     $member->refresh();
