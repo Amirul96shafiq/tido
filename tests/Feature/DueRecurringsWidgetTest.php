@@ -28,12 +28,43 @@ test('due widget shows open occurrences for primary', function () {
         'recurring_id' => $recurring->id,
         'status' => RecurringOccurrenceStatus::Due,
         'due_on' => now()->toDateString(),
+        'expected_amount' => 89.90,
     ]);
 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
+        ->assertSee('1 Recurring Due')
+        ->assertSee('RM 89.90')
+        ->assertSee('Manage')
         ->assertSee('TIME Internet')
         ->assertSee(RecurringOccurrenceStatus::Due->label());
+});
+
+test('due widget header total sums expected amounts', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $first = Recurring::factory()->create();
+    $second = Recurring::factory()->create();
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $first->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+        'expected_amount' => 100.00,
+    ]);
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $second->id,
+        'status' => RecurringOccurrenceStatus::Overdue,
+        'due_on' => now()->subDay()->toDateString(),
+        'expected_amount' => 50.50,
+    ]);
+
+    Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertSee('2 Recurring Dues')
+        ->assertSee('RM 150.50');
 });
 
 test('family member sees own and shared due items only', function () {

@@ -1,5 +1,7 @@
 @php
     /** @var list<array<string, mixed>> $items */
+    /** @var string $totalAmount */
+    /** @var int $totalCount */
 @endphp
 
 <x-filament-widgets::widget
@@ -13,18 +15,24 @@
 >
     <x-filament::section>
         <x-slot name="heading">
-            Due Recurrings
+            {{ $totalCount }} Recurring {{ $totalCount === 1 ? 'Due' : 'Dues' }}
         </x-slot>
 
-        <x-slot name="headerEnd">
-            <x-filament::button
-                tag="a"
-                size="sm"
-                color="gray"
-                :href="$manageUrl"
-            >
-                Manage
-            </x-filament::button>
+        <x-slot name="afterHeader">
+            <div class="flex items-center gap-3">
+                <span class="text-sm font-semibold text-gray-950 dark:text-white">
+                    {{ $totalAmount }}
+                </span>
+                <x-filament::button
+                    tag="a"
+                    size="sm"
+                    color="primary"
+                    icon="heroicon-m-arrow-right"
+                    :href="$manageUrl"
+                >
+                    Manage
+                </x-filament::button>
+            </div>
         </x-slot>
 
         @if (count($items) === 0)

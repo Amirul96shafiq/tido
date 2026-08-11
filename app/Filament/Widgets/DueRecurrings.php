@@ -76,13 +76,22 @@ class DueRecurrings extends Widget
     }
 
     /**
-     * @return array{items: list<array<string, mixed>>, manageUrl: string}
+     * @return array{
+     *     items: list<array<string, mixed>>,
+     *     manageUrl: string,
+     *     totalAmount: string,
+     *     totalCount: int
+     * }
      */
     protected function getViewData(): array
     {
         $user = Auth::user();
+        $query = $this->visibleOccurrenceQuery($user instanceof User ? $user : null);
 
-        $items = $this->visibleOccurrenceQuery($user instanceof User ? $user : null)
+        $totalCount = (clone $query)->count();
+        $totalAmount = MoneyDisplay::withPrefix((clone $query)->sum('expected_amount'));
+
+        $items = (clone $query)
             ->with(['recurring.label'])
             ->orderByRaw("CASE status WHEN 'overdue' THEN 0 WHEN 'due' THEN 1 ELSE 2 END")
             ->orderBy('due_on')
@@ -113,6 +122,8 @@ class DueRecurrings extends Widget
         return [
             'items' => $items,
             'manageUrl' => RecurringResource::getUrl('index'),
+            'totalAmount' => $totalAmount,
+            'totalCount' => $totalCount,
         ];
     }
 
