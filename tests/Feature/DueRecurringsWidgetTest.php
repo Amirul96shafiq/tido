@@ -251,7 +251,6 @@ test('due recurrings widget uses payment-card two-zone layout', function () {
         ->assertSee('flex min-w-0 flex-1 flex-col gap-1', false)
         ->assertSee('flex min-w-0 flex-1 items-center justify-between gap-4', false)
         ->assertDontSee('color-mix(in srgb', false)
-        ->assertDontSee('animate-ping', false)
         ->assertDontSee('bg-warning-100 text-warning-700 dark:bg-warning-400/25 dark:text-warning-300', false)
         ->assertDontSee('bg-danger-100 text-danger-700 dark:bg-danger-400/25 dark:text-danger-300', false);
 });
@@ -284,9 +283,59 @@ test('due recurrings widget shows overdue status on secondary meta line', functi
             'RM 199.14',
             'Skip',
         ])
-        ->assertDontSee('animate-ping', false)
         ->assertDontSee('Overdue · due ', false)
         ->assertDontSee('bg-danger-100 text-danger-700 dark:bg-danger-400/25 dark:text-danger-300', false);
+});
+
+test('due recurrings title flash is red when open dues exist', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $recurring = Recurring::factory()->create(['title' => 'TIME Internet']);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+        'expected_amount' => 89.90,
+    ]);
+
+    Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertSee('1 Recurring Due')
+        ->assertSee('animate-ping', false)
+        ->assertSee('bg-red-500', false)
+        ->assertDontSee('bg-gray-400 dark:bg-gray-500', false);
+});
+
+test('due recurrings title flash is gray when no open dues', function () {
+    Expense::unsetEventDispatcher();
+
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $recurring = Recurring::factory()->create(['title' => 'Paid Netflix']);
+    $expense = Expense::factory()->create([
+        'date_time' => now()->subHour(),
+        'total_amount' => 55.00,
+    ]);
+
+    RecurringOccurrence::factory()->completed($expense)->create([
+        'recurring_id' => $recurring->id,
+        'due_on' => now()->toDateString(),
+        'expected_amount' => 55.00,
+        'actual_amount' => 55.00,
+    ]);
+
+    Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertSee('0 Recurring Dues')
+        ->assertSee('Paid Netflix')
+        ->assertSee('animate-ping', false)
+        ->assertSee('bg-gray-400 dark:bg-gray-500', false)
+        ->assertDontSee('bg-red-500', false);
 });
 
 test('due recurrings widget renders items in recurring sort order', function () {

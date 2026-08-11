@@ -125,6 +125,7 @@ class DueRecurrings extends Widget
      *     items: list<array<string, mixed>>,
      *     manageUrl: string,
      *     openAmount: string,
+     *     titleIndicator: 'alert'|'calm',
      *     totalAmount: string,
      *     totalCount: int
      * }
@@ -142,6 +143,7 @@ class DueRecurrings extends Widget
         $completedQuery = (clone $query)->where('status', RecurringOccurrenceStatus::Completed);
 
         $totalCount = (clone $openQuery)->count();
+        $titleIndicator = $totalCount > 0 ? 'alert' : 'calm';
         $openAmountValue = (float) (clone $openQuery)->sum('expected_amount');
         $completedAmountValue = (float) (clone $completedQuery)->sum(DB::raw('COALESCE(actual_amount, expected_amount)'));
         $totalAmountValue = $openAmountValue + $completedAmountValue;
@@ -212,6 +214,7 @@ class DueRecurrings extends Widget
             'items' => $items,
             'manageUrl' => RecurringResource::getUrl('index'),
             'openAmount' => $openAmount,
+            'titleIndicator' => $titleIndicator,
             'totalAmount' => $totalAmount,
             'totalCount' => $totalCount,
         ];
