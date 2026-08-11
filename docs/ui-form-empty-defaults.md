@@ -12,6 +12,17 @@ Empty Create/Edit fields should never look like a blank void. Use Filament **pla
 
 Do **not** use restore-on-empty for fields where a placeholder string would pollute real data (merchant name, label name, budget amount). Prefer `placeholder()` there.
 
+## Date / date-time fields
+
+Date, date-time, and time pickers default to Filament’s **JS** picker (`native(false)`) with format-aware placeholders from [`UserDateDisplay`](../app/Helpers/UserDateDisplay.php) (`dd/mm/yyyy`, `dd/mm/yyyy HH:mm`, `HH:mm`). That is configured once in [`AppServiceProvider`](../app/Providers/AppServiceProvider.php) — do **not** re-add `->native(false)` or hard-coded date placeholders on each field unless overriding on purpose.
+
+| Field | Component | Notes |
+|-------|-----------|--------|
+| Generic date / date-time / time | `DatePicker` / `DateTimePicker` / `TimePicker` | Global defaults apply |
+| Date of birth (Profile, Family Members) | [`DateOfBirthPicker`](../app/Filament/Forms/Components/DateOfBirthPicker.php) | Shared field; `maxDate(now())`; same themed calendar |
+
+Table filter date ranges (Expenses, Backups, notifications) use the same defaults. Inside filter dropdowns, calendars are pinned fixed via `resources/js/date-picker-month-select.js` so they escape scroll clips without spilling later fields.
+
 ## Money fields (MYR)
 
 - Optional / secondary amounts that may start at zero: `->myr()->default(0.00)` (e.g. tax, discount, rounding).
@@ -44,9 +55,11 @@ When adding or extending `app/Filament/Resources/{Plural}/Schemas/{Singular}Form
 | Budget | `period`, `year` | Default | `monthly`, current year |
 | Label | `name`, `slug` | Placeholder | `Label name`, `label-slug` |
 | Payment Method | `name`, `slug`, `aliases` | Placeholder | `Payment method name`, `payment-method-slug`, `Add alias (e.g. grabpay)` |
+| Profile / Family Member | `date_of_birth` | Placeholder (global) | `dd/mm/yyyy` (via `DateOfBirthPicker` / `UserDateDisplay`) |
 
 ## References
 
-- Forms: `ExpenseForm`, `BudgetForm`, `LabelForm`, `PaymentMethodForm` under `app/Filament/Resources/*/Schemas/`
-- Tests: `tests/Feature/ExpenseFormReceiptImageTest.php`, `BudgetFormTest.php`, `LabelFormTest.php`, `PaymentMethodFormTest.php`
+- Forms: `ExpenseForm`, `BudgetForm`, `LabelForm`, `PaymentMethodForm`, `FamilyMemberForm` under `app/Filament/Resources/*/Schemas/`; Profile DOB on `EditProfile`
+- Shared DOB: `app/Filament/Forms/Components/DateOfBirthPicker.php`
+- Tests: `tests/Feature/ExpenseFormReceiptImageTest.php`, `BudgetFormTest.php`, `LabelFormTest.php`, `PaymentMethodFormTest.php`, `DatePickerNativeDefaultTest.php`
 - Filament docs: field `placeholder()` vs `default()` (Boost `search-docs`)

@@ -11,8 +11,11 @@ How tido registers Filament panel JS/CSS with Vite, and when `npm run build` is 
 | `@vite(...)` / Blade | `resources/css/app.css` (render hook in [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php)) | Vite HMR when `public/hot` exists; otherwise the production manifest |
 | `Vite::asset(...)` | Extra panel scripts in `AdminPanelProvider` `->assets()` (`Js::make(...)`) | Same: `public/hot` **or** [`public/build/manifest.json`](../public/build/manifest.json) |
 
-Panel scripts (swipe dismiss, sticky blur veil, Tippy mobile disable, marquees, upload handlers, etc.) use **`Vite::asset()`**. They must be listed in [`vite.config.js`](../vite.config.js) `input` **and** registered in `AdminPanelProvider`.
+Panel scripts (swipe dismiss, sticky blur veil, Tippy mobile disable, marquees, upload handlers, date-picker month select / filter calendar pin, etc.) use **`Vite::asset()`**. They must be listed in [`vite.config.js`](../vite.config.js) `input` **and** registered in `AdminPanelProvider`.
 
+| Script | Role |
+|--------|------|
+| `resources/js/date-picker-month-select.js` | Themed month menu for JS date pickers; pins calendars `position:fixed` inside table filter overflow contexts |
 ## Scripts (keep separate)
 
 | Command | Role |
