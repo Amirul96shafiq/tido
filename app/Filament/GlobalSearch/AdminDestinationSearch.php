@@ -86,6 +86,13 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Dashboard'],
             ],
             [
+                'title' => 'Due Recurrings',
+                'keywords' => ['recurring', 'recurrings', 'due', 'bills', 'subscriptions', 'reminders', 'dashboard'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#due-recurrings',
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
                 'title' => 'Monthly Spending Trend',
                 'keywords' => ['trend', 'monthly', 'chart', 'dashboard', 'spending'],
                 'group' => 'Sections',
@@ -104,13 +111,6 @@ final class AdminDestinationSearch
                 'keywords' => ['budget', 'budgets', 'performance', 'dashboard'],
                 'group' => 'Sections',
                 'url' => $dashboardUrl.'#budget-status',
-                'details' => ['Page' => 'Dashboard'],
-            ],
-            [
-                'title' => 'Due Recurrings',
-                'keywords' => ['recurring', 'recurrings', 'due', 'bills', 'subscriptions', 'reminders', 'dashboard'],
-                'group' => 'Sections',
-                'url' => $dashboardUrl.'#due-recurrings',
                 'details' => ['Page' => 'Dashboard'],
             ],
             [

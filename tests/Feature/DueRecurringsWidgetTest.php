@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 use App\Enums\HouseholdRole;
 use App\Enums\RecurringOccurrenceStatus;
+use App\Filament\Widgets\CurrentCurrency;
 use App\Filament\Widgets\DueRecurrings;
+use App\Filament\Widgets\MonthlyTrend;
+use App\Filament\Widgets\SpendingByLabel;
 use App\Models\FamilyMember;
 use App\Models\Recurring;
 use App\Models\RecurringOccurrence;
@@ -30,7 +33,7 @@ test('due widget shows open occurrences for primary', function () {
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSee('TIME Internet')
-        ->assertSee('Due this month');
+        ->assertSee(RecurringOccurrenceStatus::Due->label());
 });
 
 test('family member sees own and shared due items only', function () {
@@ -61,4 +64,11 @@ test('family member sees own and shared due items only', function () {
         ->assertSee('Along Loan')
         ->assertSee('Shared Bill')
         ->assertDontSee('Primary Only');
+});
+
+test('due recurrings widget sorts after overview currency and before analytics charts', function () {
+    expect(DueRecurrings::getSort())->toBe(3)
+        ->and(CurrentCurrency::getSort())->toBe(2)
+        ->and(MonthlyTrend::getSort())->toBe(4)
+        ->and(SpendingByLabel::getSort())->toBe(5);
 });
