@@ -36,6 +36,7 @@ test('table filters and column manager apply live without deferred apply action'
         ->toContain('fi-ta-filters-dropdown')
         ->toContain('fi-ta-filters-body')
         ->toContain('fi-ta-filters-actions-ctn')
+        ->toContain('fi-fixed-positioning-context')
         ->toContain('fi-ta-col-manager-dropdown')
         ->toContain('fi-ta-col-manager-body')
         ->toContain('fi-ta-col-manager-actions-ctn')

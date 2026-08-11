@@ -9,7 +9,11 @@
     $resetLabel = __('filament-tables::table.filters.actions.reset.label');
 @endphp
 
-<div {{ $attributes->class(['fi-ta-filters']) }}>
+{{--
+    fi-fixed-positioning-context: Filament Select uses position:fixed so option
+    panels escape .fi-ta-filters-body overflow scrolling (nested dropdowns).
+--}}
+<div {{ $attributes->class(['fi-ta-filters', 'fi-fixed-positioning-context']) }}>
     <div class="fi-ta-filters-body">
         {{ $form }}
     </div>
