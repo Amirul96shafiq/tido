@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Filament\Livewire;
 
 use App\Enums\NotificationResource;
-use App\Enums\UserDateFormat;
 use App\Helpers\UserDateDisplay;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -116,11 +115,11 @@ class DatabaseNotifications extends BaseDatabaseNotifications
                 DatePicker::make('from')
                     ->label('From')
                     ->native(false)
-                    ->placeholder(fn (): string => $this->dateFilterPlaceholder()),
+                    ->placeholder(fn (): string => UserDateDisplay::datePlaceholder()),
                 DatePicker::make('until')
                     ->label('Until')
                     ->native(false)
-                    ->placeholder(fn (): string => $this->dateFilterPlaceholder()),
+                    ->placeholder(fn (): string => UserDateDisplay::datePlaceholder()),
                 Select::make('status')
                     ->label('Status')
                     ->options([
@@ -131,16 +130,6 @@ class DatabaseNotifications extends BaseDatabaseNotifications
                     ->native(false)
                     ->placeholder('All'),
             ]);
-    }
-
-    protected function dateFilterPlaceholder(): string
-    {
-        return match (UserDateDisplay::dateFormat()) {
-            UserDateFormat::DmySlash->value => 'dd/mm/yyyy',
-            UserDateFormat::DmyLong->value => 'dd M yyyy',
-            UserDateFormat::Iso->value => 'yyyy-mm-dd',
-            default => UserDateDisplay::dateFormat(),
-        };
     }
 
     protected function getFilteredNotificationsQuery(): Builder|Relation

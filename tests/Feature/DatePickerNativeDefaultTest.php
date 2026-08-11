@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Enums\UserDateFormat;
 use App\Filament\Resources\Backups\Pages\ListBackups;
+use App\Helpers\UserDateDisplay;
 use App\Models\User;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
@@ -13,7 +15,9 @@ use Livewire\Livewire;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->create([
+        'date_format' => UserDateFormat::DmySlash->value,
+    ]));
 });
 
 test('date time pickers default to the javascript picker', function (): void {
@@ -21,6 +25,25 @@ test('date time pickers default to the javascript picker', function (): void {
         ->and(DateTimePicker::make('published_at')->isNative())->toBeFalse()
         ->and(TimePicker::make('alarm_at')->isNative())->toBeFalse();
 });
+
+test('date time pickers default to format-aware placeholders', function (): void {
+    expect(DatePicker::make('from')->getPlaceholder())->toBe('dd/mm/yyyy')
+        ->and(DateTimePicker::make('published_at')->getPlaceholder())->toBe('dd/mm/yyyy HH:mm')
+        ->and(TimePicker::make('alarm_at')->getPlaceholder())->toBe('HH:mm');
+});
+
+test('date placeholders follow the preferred date format', function (string $format, string $expected): void {
+    $this->actingAs(User::factory()->create([
+        'date_format' => $format,
+    ]));
+
+    expect(UserDateDisplay::datePlaceholder())->toBe($expected)
+        ->and(DatePicker::make('from')->getPlaceholder())->toBe($expected);
+})->with([
+    'dmy slash' => [UserDateFormat::DmySlash->value, 'dd/mm/yyyy'],
+    'dmy long' => [UserDateFormat::DmyLong->value, 'dd M yyyy'],
+    'iso' => [UserDateFormat::Iso->value, 'yyyy-mm-dd'],
+]);
 
 test('backups date filters render the javascript date picker', function (): void {
     $html = Livewire::test(ListBackups::class)
@@ -30,6 +53,7 @@ test('backups date filters render the javascript date picker', function (): void
     expect($html)
         ->toContain('dateTimePickerFormComponent')
         ->toContain('fi-fo-date-time-picker-display-text-input')
+        ->toContain('placeholder="dd/mm/yyyy"')
         ->not->toContain('type="date"');
 });
 

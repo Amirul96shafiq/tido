@@ -119,7 +119,11 @@ class AppServiceProvider extends ServiceProvider
             $component
                 ->native(false)
                 ->defaultDateDisplayFormat(fn (): string => UserDateDisplay::dateFormat())
-                ->defaultDateTimeDisplayFormat(fn (): string => UserDateDisplay::dateTimeFormat());
+                ->defaultDateTimeDisplayFormat(fn (): string => UserDateDisplay::dateTimeFormat())
+                ->placeholder(fn (DateTimePicker $component): string => UserDateDisplay::pickerPlaceholder(
+                    $component->hasDate(),
+                    $component->hasTime(),
+                ));
         });
     }
 
