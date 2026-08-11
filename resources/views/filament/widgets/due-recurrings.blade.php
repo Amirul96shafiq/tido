@@ -67,7 +67,7 @@
             >
                 <x-empty-state-panel
                     heading="No recurring due"
-                    description="Active reminders appear here when an occurrence is due or overdue."
+                    description="Active reminders appear here when an occurrence is due, overdue, or upcoming this month."
                     icon="heroicon-o-arrow-path"
                 />
             </div>
@@ -167,6 +167,8 @@
                                         <span class="font-semibold text-red-500">
                                             Overdue · {{ $item['dueOn'] }}
                                         </span>
+                                    @elseif ($item['status'] === 'upcoming')
+                                        <span>Upcoming · {{ $item['dueOn'] }}</span>
                                     @else
                                         <span>Due {{ $item['dueOn'] }}</span>
                                     @endif

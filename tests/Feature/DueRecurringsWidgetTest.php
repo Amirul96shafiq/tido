@@ -176,6 +176,52 @@ test('family member sees own and shared due items only', function () {
         ->assertDontSee('wire:sort="reorderRecurrings"', false);
 });
 
+test('family member sees current-month upcoming occurrences', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create();
+    $this->actingAs($member->loginUser);
+
+    $own = Recurring::factory()->forFamilyMember($member)->create(['title' => 'Celcom Mobile']);
+    $dueOn = now()->copy()->addDays(12)->startOfDay();
+
+    if ($dueOn->month !== now()->month) {
+        $dueOn = now()->copy()->endOfMonth()->startOfDay();
+    }
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $own->id,
+        'status' => RecurringOccurrenceStatus::Upcoming,
+        'due_on' => $dueOn->toDateString(),
+        'expected_amount' => 338.55,
+    ]);
+
+    Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertSee('1 Recurring Due')
+        ->assertSee('Celcom Mobile')
+        ->assertSee('Upcoming · '.$dueOn->format('d M Y'))
+        ->assertSee('RM 338.55');
+});
+
+test('due widget hides upcoming occurrences from future months', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $recurring = Recurring::factory()->create(['title' => 'Next Month Bill']);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Upcoming,
+        'due_on' => now()->copy()->addMonthNoOverflow()->startOfMonth()->addDays(10)->toDateString(),
+        'expected_amount' => 99.00,
+    ]);
+
+    Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertSee('0 Recurring Dues')
+        ->assertDontSee('Next Month Bill');
+});
+
 test('due recurrings widget sorts after overview currency and before analytics charts', function () {
     expect(DueRecurrings::getSort())->toBe(3)
         ->and(CurrentCurrency::getSort())->toBe(2)

@@ -136,14 +136,19 @@ class DueRecurrings extends Widget
         $isPrimary = HouseholdAccess::isPrimary();
         $query = $this->visibleOccurrenceQuery($user instanceof User ? $user : null);
 
+        $actionableQuery = (clone $query)->whereIn('status', [
+            RecurringOccurrenceStatus::Due,
+            RecurringOccurrenceStatus::Overdue,
+        ]);
         $openQuery = (clone $query)->whereIn('status', [
             RecurringOccurrenceStatus::Due,
             RecurringOccurrenceStatus::Overdue,
+            RecurringOccurrenceStatus::Upcoming,
         ]);
         $completedQuery = (clone $query)->where('status', RecurringOccurrenceStatus::Completed);
 
         $totalCount = (clone $openQuery)->count();
-        $titleIndicator = $totalCount > 0 ? 'alert' : 'calm';
+        $titleIndicator = (clone $actionableQuery)->count() > 0 ? 'alert' : 'calm';
         $openAmountValue = (float) (clone $openQuery)->sum('expected_amount');
         $completedAmountValue = (float) (clone $completedQuery)->sum(DB::raw('COALESCE(actual_amount, expected_amount)'));
         $totalAmountValue = $openAmountValue + $completedAmountValue;
@@ -229,6 +234,7 @@ class DueRecurrings extends Widget
             ->whereIn('status', [
                 RecurringOccurrenceStatus::Due,
                 RecurringOccurrenceStatus::Overdue,
+                RecurringOccurrenceStatus::Upcoming,
             ])
             ->orderBy(
                 Recurring::query()
@@ -274,16 +280,23 @@ class DueRecurrings extends Widget
     {
         $user ??= Auth::user() instanceof User ? Auth::user() : null;
         $monthStart = now()->copy()->startOfMonth();
+        $monthEnd = now()->copy()->endOfMonth();
 
         return RecurringOccurrence::query()
             ->visibleTo($user)
             ->whereHas('recurring', fn ($query) => $query->active())
-            ->where(function (Builder $query) use ($monthStart): void {
+            ->where(function (Builder $query) use ($monthStart, $monthEnd): void {
                 $query
                     ->whereIn('status', [
                         RecurringOccurrenceStatus::Due,
                         RecurringOccurrenceStatus::Overdue,
                     ])
+                    ->orWhere(function (Builder $upcoming) use ($monthStart, $monthEnd): void {
+                        $upcoming
+                            ->where('status', RecurringOccurrenceStatus::Upcoming)
+                            ->whereDate('due_on', '>=', $monthStart->toDateString())
+                            ->whereDate('due_on', '<=', $monthEnd->toDateString());
+                    })
                     ->orWhere(function (Builder $completed) use ($monthStart): void {
                         $completed
                             ->where('status', RecurringOccurrenceStatus::Completed)
