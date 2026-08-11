@@ -92,6 +92,47 @@ test('spending forecast shows large exceed percent without capping at one hundre
         ->assertDontSee('Projected to EXCEED budget (100%)');
 });
 
+test('monthly spending overview stat descriptions use single-line marquee markup', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-11 12:00:00', 'Asia/Kuala_Lumpur'));
+
+    Expense::unsetEventDispatcher();
+
+    Expense::factory()->create([
+        'date_time' => Carbon::parse('2026-07-10 10:00:00', 'Asia/Kuala_Lumpur'),
+        'subtotal' => 50.00,
+        'total_tax' => 0,
+        'total_amount' => 50.00,
+        'status' => 'reviewed',
+        'source' => 'manual',
+        'receipt_hash' => hash('sha256', 'overview-marquee-july'),
+        'invoice_number' => 'INV-MARQUEE-JULY',
+    ]);
+
+    Expense::factory()->create([
+        'date_time' => Carbon::parse('2026-08-10 10:00:00', 'Asia/Kuala_Lumpur'),
+        'subtotal' => 120.00,
+        'total_tax' => 7.20,
+        'total_amount' => 127.20,
+        'status' => 'reviewed',
+        'source' => 'manual',
+        'receipt_hash' => hash('sha256', 'overview-marquee-august'),
+        'invoice_number' => 'INV-MARQUEE-AUG',
+    ]);
+
+    Expense::setEventDispatcher(app('events'));
+
+    $html = Livewire::test(MonthlySpendingOverview::class)
+        ->assertSuccessful()
+        ->html();
+
+    expect(substr_count($html, 'tido-text-marquee-clip'))->toBeGreaterThanOrEqual(4)
+        ->and(substr_count($html, 'x-ref="marqueeSegment"'))->toBeGreaterThanOrEqual(4)
+        ->and($html)->toContain('wire:ignore')
+        ->and($html)->toContain('tido-text-marquee-track')
+        ->and($html)->toContain('whitespace-nowrap')
+        ->and($html)->toContain('const marqueeSegment = $refs.marqueeSegment;');
+});
+
 test('monthly spending overview renders a native sparkline for every stat', function () {
     Carbon::setTestNow(Carbon::parse('2026-07-21 12:00:00', 'Asia/Kuala_Lumpur'));
 

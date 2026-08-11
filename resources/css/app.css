@@ -3673,9 +3673,22 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     animation: tido-text-marquee 8s linear infinite;
 }
 
+.tido-text-marquee-track {
+    @apply inline-flex w-max shrink-0 gap-8;
+    will-change: transform;
+}
+
+.tido-text-marquee-segment {
+    @apply shrink-0;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .tido-text-marquee {
         animation: none;
+    }
+
+    .tido-text-marquee-track {
+        transform: none !important;
     }
 }
 
