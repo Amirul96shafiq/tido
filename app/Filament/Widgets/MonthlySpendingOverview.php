@@ -89,7 +89,7 @@ class MonthlySpendingOverview extends BaseWidget
             $receiptsDescription .= sprintf(' (%s%.1f%%)', $receiptsDifference >= 0 ? '+' : '-', abs($receiptsPercent));
         }
 
-        $receiptsDescription .= ' vs '.$this->previousMonthLabel();
+        $receiptsDescription .= ' receipts processed vs '.$this->previousMonthLabel();
         $receiptsDescriptionIcon = $receiptsDifference >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down';
         $receiptsDescriptionColor = $receiptsDifference >= 0 ? 'success' : 'warning';
 
