@@ -15,6 +15,7 @@ use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
+use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Filament\Widgets\CurrentCurrency;
 use App\Filament\Widgets\MonthlySpendingOverview;
 use App\Support\HouseholdAccess;
@@ -106,6 +107,13 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Dashboard'],
             ],
             [
+                'title' => 'Due Recurrings',
+                'keywords' => ['recurring', 'recurrings', 'due', 'bills', 'subscriptions', 'reminders', 'dashboard'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#due-recurrings',
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
                 'title' => 'Top Merchants',
                 'keywords' => ['merchant', 'merchants', 'top', 'dashboard', 'chart'],
                 'group' => 'Sections',
@@ -150,6 +158,12 @@ final class AdminDestinationSearch
                 'keywords' => ['budget', 'budgets', 'finances', 'spending', 'limits'],
                 'group' => 'Pages',
                 'url' => BudgetResource::getUrl('index'),
+            ],
+            [
+                'title' => 'Recurrings',
+                'keywords' => ['recurring', 'recurrings', 'bills', 'subscriptions', 'finances', 'tabung'],
+                'group' => 'Pages',
+                'url' => RecurringResource::getUrl('index'),
             ],
             [
                 'title' => 'Labels',
@@ -313,6 +327,7 @@ final class AdminDestinationSearch
                 'Labels',
                 'Payment Methods',
                 'Budgets',
+                'Recurrings',
                 'Backups',
                 'Evolution API',
                 'Service Status',

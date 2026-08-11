@@ -1,0 +1,151 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources\Recurrings\Tables;
+
+use App\Enums\HouseholdRole;
+use App\Enums\RecurringFrequency;
+use App\Enums\RecurringType;
+use App\Filament\Support\RecordActionsGroup;
+use App\Models\FamilyMember;
+use App\Models\Recurring;
+use App\Models\User;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Table;
+
+class RecurringsTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->defaultSort('sort_order')
+            ->columns([
+                TextColumn::make('title')
+                    ->searchable()
+                    ->sortable()
+                    ->limit(28)
+                    ->tooltip(function (TextColumn $column, ?string $state): ?string {
+                        if (blank($state) || mb_strlen((string) $state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+
+                        return (string) $state;
+                    }),
+                TextColumn::make('type')
+                    ->badge()
+                    ->formatStateUsing(fn (RecurringType|string $state): string => $state instanceof RecurringType
+                        ? $state->label()
+                        : RecurringType::from($state)->label())
+                    ->sortable(),
+                TextColumn::make('label.name')
+                    ->label('Label')
+                    ->placeholder('—')
+                    ->toggleable(),
+                TextColumn::make('familyMember.name')
+                    ->label('Assigned to')
+                    ->formatStateUsing(function (?string $state, Recurring $record): string {
+                        if ($record->family_member_id === null) {
+                            return self::primaryUsername();
+                        }
+
+                        $member = $record->familyMember;
+
+                        if (! $member instanceof FamilyMember) {
+                            return 'Family member';
+                        }
+
+                        return filled($member->display_name)
+                            ? (string) $member->display_name
+                            : (string) $member->name;
+                    })
+                    ->toggleable(),
+                IconColumn::make('is_shared')
+                    ->label('Shared')
+                    ->boolean()
+                    ->toggleable(),
+                TextColumn::make('expected_amount')
+                    ->myr()
+                    ->placeholder('Variable')
+                    ->sortable(),
+                TextColumn::make('cadence')
+                    ->label('Cadence')
+                    ->state(function (Recurring $record): string {
+                        if ($record->frequency === RecurringFrequency::Once) {
+                            return 'Once';
+                        }
+
+                        $months = (int) ($record->interval_months ?? 1);
+
+                        return match ($months) {
+                            1 => 'Monthly',
+                            3 => 'Quarterly',
+                            6 => 'Every 6 months',
+                            12 => 'Yearly',
+                            default => "Every {$months} months",
+                        };
+                    }),
+                TextColumn::make('next_due_on')
+                    ->label('Next due')
+                    ->date()
+                    ->sortable(),
+                ToggleColumn::make('is_active')
+                    ->label('Active'),
+                TextColumn::make('updated_at')
+                    ->label('Edited At')
+                    ->since()
+                    ->dateTimeTooltip()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('editedBy.name')
+                    ->label('Edited By')
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                SelectFilter::make('type')
+                    ->options(RecurringType::options()),
+                TernaryFilter::make('is_active')
+                    ->label('Active'),
+                TernaryFilter::make('is_shared')
+                    ->label('Shared'),
+            ])
+            ->recordActions([
+                ViewAction::make()->slideOver(),
+                RecordActionsGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ]),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    private static function primaryUsername(): string
+    {
+        $primary = User::query()
+            ->where('household_role', HouseholdRole::Primary)
+            ->orderBy('id')
+            ->first();
+
+        if ($primary === null) {
+            return 'Primary';
+        }
+
+        return filled($primary->display_name)
+            ? (string) $primary->display_name
+            : (string) $primary->name;
+    }
+}

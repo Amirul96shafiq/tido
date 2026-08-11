@@ -16,7 +16,7 @@ Read this skill before changing receipt ingestion, AI parsing, categories (label
 
 This skill covers the **Finances** module. Home also has Training / Health / Task dashboard shells (coming soon) — module tabs and how to add views: `docs/dashboard-views.md`. Do not invent non-Finances domain models here.
 
-## Domain model (7 models)
+## Domain model (9 Finances-facing models)
 
 | Model | Role |
 |-------|------|
@@ -25,6 +25,8 @@ This skill covers the **Finances** module. Home also has Training / Health / Tas
 | `Label` | Expense category (`LabelType` enum); system-seeded + user-created |
 | `PaymentMethod` | Payment rail (Settings CRUD); system-seeded + user-created; aliases for OCR/WhatsApp |
 | `Budget` | Cap per label/period (daily…yearly); threshold alerts |
+| `Recurring` | Reminder template: type, cadence, ownership, merchant aliases, optional goal |
+| `RecurringOccurrence` | Period instance: due/overdue/completed; links `expense_id` when paid |
 | `FamilyMember` | Household contact: WhatsApp allowlist + optional panel login; expenses attributed via `family_member_id` |
 | `User` | Filament admin; `household_role` primary \| family_member; locale/timezone/notification prefs |
 
@@ -75,6 +77,7 @@ Attribution: `family_member_id` null = Primary; set from WhatsApp sender (`Expen
 | WhatsApp LID mapping | `App\Support\WhatsAppLid` |
 | WhatsApp out | `App\Services\WhatsAppNotificationService` |
 | Budget breach | `App\Services\BudgetAlertService` |
+| Recurring generate/match/remind | `App\Services\RecurringOccurrenceGenerator`, `RecurringMatchService`, `RecurringReminderService` |
 | Forecast widget | `App\Services\SpendingForecastService` |
 | Matcher | `App\Services\LabelMatcher`, `App\Services\PaymentMethodMatcher` |
 | Family login sync | `App\Services\FamilyMemberLoginService` + `FamilyMemberObserver` |
@@ -83,8 +86,9 @@ Attribution: `family_member_id` null = Primary; set from WhatsApp sender (`Expen
 
 ## Filament map
 
-- Resources: Upload Receipts, Expenses, Budgets (Finances); Labels, Payment Methods, Family Members (Settings); Evolution API (Integrations); Backups, Service Status (Tools) — models `Label`, `PaymentMethod`, `FamilyMember`, `Backup`
-- Primary-only: Budgets, Labels, Payment Methods, Family Members, Evolution, Backups (`RequiresPrimaryHouseholdAccess`); Service Status is household-readable with primary-only manual probes
+- Resources: Upload Receipts, Expenses, Budgets, Recurrings (Finances); Labels, Payment Methods, Family Members (Settings); Evolution API (Integrations); Backups, Service Status (Tools) — models `Label`, `PaymentMethod`, `FamilyMember`, `Backup`, `Recurring`
+- Primary-only: Budgets, Recurrings, Labels, Payment Methods, Family Members, Evolution, Backups (`RequiresPrimaryHouseholdAccess`); Service Status is household-readable with primary-only manual probes
+- Recurrings docs: `docs/recurrings.md`
 - View records: always `ViewAction::make()->slideOver()` — never dedicated View pages; use the disabled form schema (no custom `infolist()` / `*Infolist.php`)
 - Upload UI: `ReceiptUploadPage` → creates pending expenses (stamps `family_member_id` for family users)
 - Dashboard: Finances widgets use `DashboardMonthAnalytics` / month + spender filters; Training / Health / Task are coming-soon shells — `docs/dashboard-views.md`

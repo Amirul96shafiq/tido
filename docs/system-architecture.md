@@ -116,6 +116,10 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 ### 5.4. Duplicate Fraud Detection
 * Observer generates composite hash: `hash('sha256', $invoice_number . $date_time . $exact_total)`. Database `UNIQUE` constraint prevents insertion.
 
+### 5.5. Recurrings (reminder-first)
+* Templates (`Recurring`) and period instances (`RecurringOccurrence`) track bills, subscriptions, instalments, and transfers without auto-creating expenses.
+* Daily generation/reminders; after expense `parsed`/`reviewed`, merchant-alias matching completes open occurrences. See `docs/recurrings.md`.
+
 ---
 
 ## 6. Security & Prompt Architecture Critique

@@ -100,6 +100,7 @@ class Dashboard extends BaseDashboard
             ['label' => 'Monthly Spending Trend', 'id' => 'monthly-trend'],
             ['label' => 'Spending by Label', 'id' => 'spending-by-label'],
             ['label' => 'Budget Performance', 'id' => 'budget-status'],
+            ['label' => 'Due Recurrings', 'id' => 'due-recurrings'],
             ['label' => 'Top Merchants', 'id' => 'top-merchants'],
             ['label' => 'Spending by Payment Method', 'id' => 'spending-by-payment-method'],
             ['label' => 'Receipts by Upload Source', 'id' => 'receipts-by-source'],

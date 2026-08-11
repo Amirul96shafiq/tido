@@ -30,7 +30,7 @@ Single-tenant hub with **household roles**: one **Primary** user owns settings; 
 Primary-only surfaces use `RequiresPrimaryHouseholdAccess` (`canAccess` + hide nav):
 
 - Settings: Labels, Payment Methods, Family Members
-- Finances: Budgets
+- Finances: Budgets, Recurrings
 - Integrations: Evolution API
 - Tools: Backups
 - Profile: household / WhatsApp allowlist sections that are primary-only
@@ -52,6 +52,12 @@ Budgets are **Primary-managed** (CRUD stays primary-only). Each budget has:
 **Alerts:** Primary always receives WhatsApp/Filament alerts when enabled on the budget. If the budget is assigned to a Family Member, that member’s WhatsApp number is also notified; their linked login user receives Filament alerts only when login is enabled and `notify_budget_alerts` is on.
 
 Existing budgets migrated with `is_shared = true` (household pool). New budgets default to personal (`is_shared = false`) assigned to Primary.
+
+## Recurrings (owner + share)
+
+Recurring templates are **Primary-managed** (CRUD stays primary-only). Ownership fields match budgets (`family_member_id`, `is_shared`). Full behaviour: [recurrings.md](recurrings.md).
+
+**Visibility (Home Due Recurrings):** Primary sees all open due/overdue occurrences. Family members see occurrences for templates they own **or** `is_shared = true` (Skip allowed; Recurrings nav still hidden).
 
 ## Family Member model
 
