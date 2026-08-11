@@ -79,6 +79,20 @@ class MonthlySpendingOverview extends BaseWidget
         $descriptionIcon = $difference >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down';
         $descriptionColor = $difference >= 0 ? 'danger' : 'success';
 
+        $thisMonthReceipts = $summary['processed_count'];
+        $lastMonthReceipts = $summary['previous_processed_count'];
+        $receiptsDifference = $thisMonthReceipts - $lastMonthReceipts;
+        $receiptsDescription = (string) abs($receiptsDifference);
+
+        if ($lastMonthReceipts > 0) {
+            $receiptsPercent = ($receiptsDifference / $lastMonthReceipts) * 100;
+            $receiptsDescription .= sprintf(' (%s%.1f%%)', $receiptsDifference >= 0 ? '+' : '-', abs($receiptsPercent));
+        }
+
+        $receiptsDescription .= ' vs '.$this->previousMonthLabel();
+        $receiptsDescriptionIcon = $receiptsDifference >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down';
+        $receiptsDescriptionColor = $receiptsDifference >= 0 ? 'success' : 'warning';
+
         $stats = [
             Stat::make('Total Spent ('.$monthLabel.')', MoneyDisplay::withPrefix($thisMonthTotal))
                 ->description($description)
@@ -94,10 +108,10 @@ class MonthlySpendingOverview extends BaseWidget
                 ->chart($taxChart)
                 ->extraAttributes(['id' => self::SECTION_SST_TAX_PAID]),
 
-            Stat::make('Receipts Processed', (string) $summary['processed_count'])
-                ->description($summary['pending_count'].' pending parsing')
-                ->descriptionIcon('heroicon-m-document-text')
-                ->color($summary['pending_count'] > 0 ? 'warning' : 'success')
+            Stat::make('Receipts Processed ('.$monthLabel.')', (string) $thisMonthReceipts)
+                ->description($receiptsDescription)
+                ->descriptionIcon($receiptsDescriptionIcon)
+                ->color($receiptsDescriptionColor)
                 ->chart($receiptsChart)
                 ->extraAttributes(['id' => self::SECTION_RECEIPTS_PROCESSED]),
         ];

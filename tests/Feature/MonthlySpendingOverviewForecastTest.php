@@ -141,3 +141,52 @@ test('monthly spending overview uses half-width desktop and a responsive two-col
         'md' => 2,
     ]);
 });
+
+test('receipts processed stat shows selected month title and month over month comparison', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-11 12:00:00', 'Asia/Kuala_Lumpur'));
+
+    Expense::unsetEventDispatcher();
+
+    Expense::factory()->create([
+        'date_time' => Carbon::parse('2026-07-10 10:00:00', 'Asia/Kuala_Lumpur'),
+        'subtotal' => 50.00,
+        'total_tax' => 0,
+        'total_amount' => 50.00,
+        'status' => 'reviewed',
+        'source' => 'manual',
+        'receipt_hash' => hash('sha256', 'receipts-overview-july'),
+        'invoice_number' => 'INV-RECEIPTS-JULY',
+    ]);
+
+    foreach (['001', '002', '003'] as $suffix) {
+        Expense::factory()->create([
+            'date_time' => Carbon::parse('2026-08-10 10:00:00', 'Asia/Kuala_Lumpur'),
+            'subtotal' => 30.00,
+            'total_tax' => 0,
+            'total_amount' => 30.00,
+            'status' => 'reviewed',
+            'source' => 'manual',
+            'receipt_hash' => hash('sha256', 'receipts-overview-august-'.$suffix),
+            'invoice_number' => 'INV-RECEIPTS-AUG-'.$suffix,
+        ]);
+    }
+
+    Expense::factory()->create([
+        'date_time' => Carbon::parse('2026-08-12 10:00:00', 'Asia/Kuala_Lumpur'),
+        'subtotal' => 20.00,
+        'total_tax' => 0,
+        'total_amount' => 20.00,
+        'status' => 'pending',
+        'source' => 'manual',
+        'receipt_hash' => hash('sha256', 'receipts-overview-pending'),
+        'invoice_number' => 'INV-RECEIPTS-PENDING',
+    ]);
+
+    Expense::setEventDispatcher(app('events'));
+
+    Livewire::test(MonthlySpendingOverview::class)
+        ->assertSuccessful()
+        ->assertSee('Receipts Processed (August 2026)')
+        ->assertSee('2 (+200.0%) vs July 2026')
+        ->assertDontSee('pending parsing');
+});
