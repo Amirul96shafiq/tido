@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\HouseholdRole;
 use App\Enums\RecurringOccurrenceStatus;
+use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\CurrentCurrency;
 use App\Filament\Widgets\DueRecurrings;
 use App\Filament\Widgets\MonthlyTrend;
@@ -102,4 +103,31 @@ test('due recurrings widget sorts after overview currency and before analytics c
         ->and(CurrentCurrency::getSort())->toBe(2)
         ->and(MonthlyTrend::getSort())->toBe(4)
         ->and(SpendingByLabel::getSort())->toBe(5);
+});
+
+test('due recurrings list height matches monthly spending trend chart', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $recurring = Recurring::factory()->create();
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+    ]);
+
+    $height = DashboardWidgetHeights::TREND_CHART;
+
+    Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertSee('max-height: '.$height, false)
+        ->assertSee('min-height: '.$height, false)
+        ->assertSee('custom-scrollbar mt-3', false)
+        ->assertSee('pr-2', false)
+        ->assertSee('-mx-1 flex flex-col gap-2 rounded-xl px-4 py-3', false);
+
+    expect((new ReflectionClass(MonthlyTrend::class))->getDefaultProperties()['maxHeight'])
+        ->toBe($height);
 });

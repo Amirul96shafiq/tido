@@ -1,4 +1,5 @@
 @php
+    /** @var string $contentHeight */
     /** @var list<array<string, mixed>> $items */
     /** @var string $totalAmount */
     /** @var int $totalCount */
@@ -36,15 +37,26 @@
         </x-slot>
 
         @if (count($items) === 0)
-            <x-empty-state-panel
-                heading="No recurring due"
-                description="Active reminders appear here when an occurrence is due or overdue."
-                icon="heroicon-o-arrow-path"
-            />
+            <div
+                class="fi-wi-due-recurrings-empty flex flex-1 items-center justify-center"
+                style="min-height: {{ $contentHeight }}"
+            >
+                <x-empty-state-panel
+                    heading="No recurring due"
+                    description="Active reminders appear here when an occurrence is due or overdue."
+                    icon="heroicon-o-arrow-path"
+                />
+            </div>
         @else
-            <ul class="divide-y divide-gray-200 dark:divide-white/10">
+            <ul
+                class="custom-scrollbar mt-3 flex flex-1 flex-col gap-1 overflow-y-auto pr-2"
+                style="min-height: {{ $contentHeight }}; max-height: {{ $contentHeight }}"
+            >
                 @foreach ($items as $item)
-                    <li wire:key="due-recurrings-{{ $item['id'] }}" class="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <li
+                        wire:key="due-recurrings-{{ $item['id'] }}"
+                        class="-mx-1 flex flex-col gap-2 rounded-xl px-4 py-3 transition-colors duration-200 hover:bg-gray-100 sm:flex-row sm:items-center sm:justify-between dark:hover:bg-slate-700/60"
+                    >
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2">
                                 <a

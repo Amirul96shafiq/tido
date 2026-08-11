@@ -6,6 +6,7 @@ namespace App\Filament\Widgets;
 
 use App\Enums\RecurringOccurrenceStatus;
 use App\Filament\Resources\Recurrings\RecurringResource;
+use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Helpers\MoneyDisplay;
 use App\Models\Expense;
@@ -77,6 +78,7 @@ class DueRecurrings extends Widget
 
     /**
      * @return array{
+     *     contentHeight: string,
      *     items: list<array<string, mixed>>,
      *     manageUrl: string,
      *     totalAmount: string,
@@ -120,6 +122,7 @@ class DueRecurrings extends Widget
             ->all();
 
         return [
+            'contentHeight' => DashboardWidgetHeights::TREND_CHART,
             'items' => $items,
             'manageUrl' => RecurringResource::getUrl('index'),
             'totalAmount' => $totalAmount,
