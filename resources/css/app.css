@@ -4101,6 +4101,32 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     overflow-y: hidden !important;
 }
 
+/*
+ * JS DatePicker panels use position:absolute (Select uses fixed inside
+ * .fi-fixed-positioning-context). While a calendar is open, relax the filter
+ * scroll clips so the panel can paint outside the dropdown card.
+ */
+.fi-dropdown.fi-ta-filters-dropdown
+    > .fi-dropdown-panel.fi-scrollable[style*="display: block"]:has(
+        .fi-fo-date-time-picker-panel[style*="display: block"]
+    ),
+.fi-ta-filters-dropdown
+    .fi-ta-filters:has(
+        .fi-fo-date-time-picker-panel[style*="display: block"]
+    ),
+.fi-ta-filters-dropdown
+    .fi-ta-filters-body:has(
+        .fi-fo-date-time-picker-panel[style*="display: block"]
+    ) {
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+}
+
+.fi-ta-filters-dropdown .fi-fo-date-time-picker-panel {
+    z-index: 40;
+}
+
 /* Keep nested Select option lists compact and independently scrollable. */
 .fi-select-input-ctn > .fi-dropdown-panel.fi-scrollable {
     max-height: min(60vh, 15rem) !important;

@@ -117,6 +117,7 @@ class AppServiceProvider extends ServiceProvider
 
         DateTimePicker::configureUsing(function (DateTimePicker $component): void {
             $component
+                ->native(false)
                 ->defaultDateDisplayFormat(fn (): string => UserDateDisplay::dateFormat())
                 ->defaultDateTimeDisplayFormat(fn (): string => UserDateDisplay::dateTimeFormat());
         });
