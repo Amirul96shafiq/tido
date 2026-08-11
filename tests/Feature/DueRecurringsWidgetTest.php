@@ -130,13 +130,13 @@ test('due recurrings list height matches monthly spending trend chart', function
         ->assertSee('min-height: '.$height, false)
         ->assertSee('custom-scrollbar mt-3', false)
         ->assertSee('pr-2', false)
-        ->assertSee('-mx-1 flex items-center gap-2 rounded-xl px-3 py-2.5', false);
+        ->assertSee('-mx-1 flex items-center gap-3 rounded-xl px-3 py-3', false);
 
     expect((new ReflectionClass(MonthlyTrend::class))->getDefaultProperties()['maxHeight'])
         ->toBe($height);
 });
 
-test('due recurrings widget uses single-line row layout', function () {
+test('due recurrings widget uses payment-card two-zone layout', function () {
     $this->actingAs(User::factory()->create([
         'household_role' => HouseholdRole::Primary,
     ]));
@@ -174,14 +174,15 @@ test('due recurrings widget uses single-line row layout', function () {
         ->assertSee('wire:sort:handle', false)
         ->assertSee('x-ref="marqueeText"', false)
         ->assertSee('tido-text-marquee-clip', false)
-        ->assertSee('flex min-w-0 flex-1 items-center gap-2', false)
+        ->assertSee('flex min-w-0 flex-1 flex-col gap-1', false)
+        ->assertSee('flex min-w-0 flex-1 items-center justify-between gap-4', false)
         ->assertDontSee('color-mix(in srgb', false)
         ->assertDontSee('animate-ping', false)
         ->assertDontSee('bg-warning-100 text-warning-700 dark:bg-warning-400/25 dark:text-warning-300', false)
         ->assertDontSee('bg-danger-100 text-danger-700 dark:bg-danger-400/25 dark:text-danger-300', false);
 });
 
-test('due recurrings widget shows overdue status inline without status pill', function () {
+test('due recurrings widget shows overdue status on secondary meta line', function () {
     $this->actingAs(User::factory()->create([
         'household_role' => HouseholdRole::Primary,
     ]));
@@ -204,12 +205,13 @@ test('due recurrings widget shows overdue status inline without status pill', fu
         ->assertSeeInOrder([
             'GPROP Monthly Bills',
             'Monthly',
-            'Overdue · due '.$dueOn->format('d M Y'),
+            'Overdue · '.$dueOn->format('d M Y'),
             'Variable bill',
             'RM 199.14',
             'Skip',
         ])
         ->assertDontSee('animate-ping', false)
+        ->assertDontSee('Overdue · due ', false)
         ->assertDontSee('bg-danger-100 text-danger-700 dark:bg-danger-400/25 dark:text-danger-300', false);
 });
 

@@ -65,7 +65,7 @@
                         @if ($item['can_reorder'] ?? false)
                             wire:sort:item="{{ $item['recurring_id'] }}"
                         @endif
-                        class="-mx-1 flex items-center gap-2 rounded-xl px-3 py-2.5 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60"
+                        class="-mx-1 flex items-center gap-3 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60"
                     >
                         @if ($item['can_reorder'] ?? false)
                             <button
@@ -89,70 +89,74 @@
                                 wire:sort:ignore
                                 href="{{ $item['edit_url'] }}"
                             @endif
-                            class="focus-visible:ring-primary-500 flex min-w-0 flex-1 items-center gap-2 rounded-lg text-sm focus-visible:ring-2 focus-visible:outline-none"
+                            class="focus-visible:ring-primary-500 flex min-w-0 flex-1 items-center justify-between gap-4 rounded-lg focus-visible:ring-2 focus-visible:outline-none"
                         >
-                            <div
-                                x-data="{ overflowing: false }"
-                                x-init="
-                                    const measure = () => {
-                                        const marqueeText = $refs.marqueeText;
+                            {{-- Left: identity + secondary meta (bills-timeline / payment-card pattern) --}}
+                            <div class="flex min-w-0 flex-1 flex-col gap-1">
+                                <div class="flex min-w-0 items-center gap-2">
+                                    <div
+                                        x-data="{ overflowing: false }"
+                                        x-init="
+                                            const measure = () => {
+                                                const marqueeText = $refs.marqueeText;
 
-                                        if (!marqueeText) {
-                                            overflowing = false;
-                                            return;
-                                        }
+                                                if (!marqueeText) {
+                                                    overflowing = false;
+                                                    return;
+                                                }
 
-                                        $el.style.setProperty(
-                                            '--tido-marquee-clip',
-                                            $el.clientWidth + 'px',
-                                        );
-                                        overflowing = marqueeText.scrollWidth > $el.clientWidth;
-                                    };
-                                    $nextTick(measure);
-                                    new ResizeObserver(() => measure()).observe($el);
-                                "
-                                class="tido-text-marquee-clip relative min-w-0 flex-1 overflow-hidden"
-                            >
-                                <span
-                                    x-ref="marqueeText"
-                                    class="inline-block font-semibold whitespace-nowrap text-gray-800 dark:text-gray-200"
-                                    :class="{ 'tido-text-marquee': overflowing }"
-                                >{{ $item['title'] }}</span>
+                                                $el.style.setProperty(
+                                                    '--tido-marquee-clip',
+                                                    $el.clientWidth + 'px',
+                                                );
+                                                overflowing = marqueeText.scrollWidth > $el.clientWidth;
+                                            };
+                                            $nextTick(measure);
+                                            new ResizeObserver(() => measure()).observe($el);
+                                        "
+                                        class="tido-text-marquee-clip relative min-w-0 max-w-full overflow-hidden sm:max-w-[14rem] md:max-w-[18rem]"
+                                    >
+                                        <span
+                                            x-ref="marqueeText"
+                                            class="inline-block text-sm font-semibold whitespace-nowrap text-gray-800 dark:text-gray-200"
+                                            :class="{ 'tido-text-marquee': overflowing }"
+                                        >{{ $item['title'] }}</span>
+                                    </div>
+
+                                    <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-slate-600 dark:text-slate-100">
+                                        {{ $item['cadence'] }}
+                                    </span>
+
+                                    @if ($item['is_shared'] ?? false)
+                                        <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-primary-100 px-2 py-0.5 text-[11px] font-medium text-primary-700 dark:bg-primary-400/25 dark:text-primary-300">
+                                            Shared
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <div class="flex min-w-0 flex-wrap items-center gap-x-1.5 text-xs text-gray-400 dark:text-gray-500">
+                                    @if ($item['status'] === 'overdue')
+                                        <span class="font-semibold text-red-500">
+                                            Overdue · {{ $item['dueOn'] }}
+                                        </span>
+                                    @else
+                                        <span>Due {{ $item['dueOn'] }}</span>
+                                    @endif
+
+                                    @if ($item['type'] !== '')
+                                        <span aria-hidden="true">·</span>
+                                        <span>{{ $item['type'] }}</span>
+                                    @endif
+
+                                    @if ($hasGoal)
+                                        <span aria-hidden="true">·</span>
+                                        <span>{{ number_format($progress, 0) }}% of goal</span>
+                                    @endif
+                                </div>
                             </div>
 
-                            <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-600 dark:text-slate-100">
-                                {{ $item['cadence'] }}
-                            </span>
-
-                            @if ($item['is_shared'] ?? false)
-                                <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-400/25 dark:text-primary-300">
-                                    Shared
-                                </span>
-                            @endif
-
-                            @if ($item['status'] === 'overdue')
-                                <span class="shrink-0 text-xs font-semibold whitespace-nowrap text-red-500">
-                                    Overdue · due {{ $item['dueOn'] }}
-                                </span>
-                            @else
-                                <span class="shrink-0 text-xs whitespace-nowrap text-gray-400 dark:text-gray-500">
-                                    Due {{ $item['dueOn'] }}
-                                </span>
-                            @endif
-
-                            @if ($item['type'] !== '')
-                                <span class="hidden shrink-0 text-xs whitespace-nowrap text-gray-400 sm:inline dark:text-gray-500">
-                                    {{ $item['type'] }}
-                                </span>
-                            @endif
-
-                            @if ($hasGoal)
-                                <span class="hidden shrink-0 text-xs whitespace-nowrap text-gray-400 md:inline dark:text-gray-500">
-                                    {{ number_format($progress, 0) }}% goal
-                                </span>
-                            @endif
-
-                            <span class="shrink-0 font-bold whitespace-nowrap text-gray-700 dark:text-gray-300">
+                            {{-- Right: amount is the primary decision signal --}}
+                            <span class="shrink-0 text-sm font-bold whitespace-nowrap text-gray-700 tabular-nums dark:text-gray-300">
                                 {{ $item['amount'] }}
                             </span>
                         </{{ $itemTag }}>
