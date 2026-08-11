@@ -78,6 +78,7 @@ test('summary aggregates respect month bounds and processed status filter', func
     expect($summary['current_tax'])->toBe(6.0);
     expect($summary['pending_count'])->toBe(1);
     expect($summary['processed_count'])->toBe(1);
+    expect($summary['previous_processed_count'])->toBe(1);
 });
 
 test('trend returns six buckets ending at selected month', function () {

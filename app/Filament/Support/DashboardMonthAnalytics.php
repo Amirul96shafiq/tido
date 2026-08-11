@@ -86,6 +86,7 @@ final class DashboardMonthAnalytics
      *     current_tax: float,
      *     pending_count: int,
      *     processed_count: int,
+     *     previous_processed_count: int,
      * }
      */
     public function summary(): array
@@ -107,12 +108,14 @@ final class DashboardMonthAnalytics
                     'SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN total_amount ELSE 0 END) as current_total,
                     SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN total_amount ELSE 0 END) as previous_total,
                     SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN total_tax ELSE 0 END) as current_tax,
-                    SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN 1 ELSE 0 END) as processed_count',
+                    SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN 1 ELSE 0 END) as processed_count,
+                    SUM(CASE WHEN date_time BETWEEN ? AND ? AND status IN (?, ?) THEN 1 ELSE 0 END) as previous_processed_count',
                     [
                         $start, $end, 'parsed', 'reviewed',
                         $previousStart, $previousEnd, 'parsed', 'reviewed',
                         $start, $end, 'parsed', 'reviewed',
                         $start, $end, 'parsed', 'reviewed',
+                        $previousStart, $previousEnd, 'parsed', 'reviewed',
                     ],
                 )
                 ->first();
@@ -123,6 +126,7 @@ final class DashboardMonthAnalytics
                 'current_tax' => (float) ($row->current_tax ?? 0),
                 'pending_count' => (int) $pendingCount,
                 'processed_count' => (int) ($row->processed_count ?? 0),
+                'previous_processed_count' => (int) ($row->previous_processed_count ?? 0),
             ];
         });
     }
