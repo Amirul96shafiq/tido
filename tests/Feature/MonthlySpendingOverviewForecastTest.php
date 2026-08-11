@@ -127,10 +127,10 @@ test('monthly spending overview stat descriptions use single-line marquee markup
 
     expect(substr_count($html, 'tido-text-marquee-clip'))->toBeGreaterThanOrEqual(4)
         ->and(substr_count($html, 'x-ref="marqueeSegment"'))->toBeGreaterThanOrEqual(4)
-        ->and($html)->toContain('wire:ignore')
+        ->and(substr_count($html, 'wire:ignore'))->toBeGreaterThanOrEqual(4)
         ->and($html)->toContain('tido-text-marquee-track')
         ->and($html)->toContain('whitespace-nowrap')
-        ->and($html)->toContain('const marqueeSegment = $refs.marqueeSegment;');
+        ->and($html)->toContain('x-ref="marqueeTrack"');
 });
 
 test('monthly spending overview renders a native sparkline for every stat', function () {

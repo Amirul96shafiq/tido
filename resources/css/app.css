@@ -3682,8 +3682,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply shrink-0;
 }
 
-/* Hide the duplicate segment until the clip is actually overflowing. */
-.tido-text-marquee-clip:not(.is-overflowing) .tido-text-marquee-segment + .tido-text-marquee-segment {
+/* Hide the duplicate segment until the track is actually overflowing. */
+.tido-text-marquee-track:not(.is-overflowing) .tido-text-marquee-segment + .tido-text-marquee-segment {
     display: none;
 }
 
