@@ -24,5 +24,9 @@
         />
     </x-slot>
 
-    <div class="tido-dashboard-filters-dropdown-panel">{!! $this->getSchema('filtersForm')->toHtml() !!}</div>
+    {{--
+        fi-fixed-positioning-context: Filament Select uses position:fixed so option
+        panels escape the scrollable Filters dropdown (same pattern as table filters).
+    --}}
+    <div class="tido-dashboard-filters-dropdown-panel fi-fixed-positioning-context">{!! $this->getSchema('filtersForm')->toHtml() !!}</div>
 </x-filament::dropdown>
