@@ -62,7 +62,7 @@ class RecurringReminderService
             : 'variable';
         $dueOn = $occurrence->due_on->format('d M Y');
 
-        $heading = $isOverdue ? 'Recurring overdue' : 'Recurring due';
+        $heading = $isOverdue ? 'Recurring payment overdue' : 'Recurring payment due';
         $body = sprintf(
             '%s · %s · due %s',
             $recurring->title,

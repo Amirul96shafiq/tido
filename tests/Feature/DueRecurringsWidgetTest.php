@@ -37,7 +37,7 @@ test('due widget shows open occurrences for primary', function () {
 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
-        ->assertSee('1 Recurring Due')
+        ->assertSee('1 Recurring Payment Due')
         ->assertSee('RM 89.90')
         ->assertSee('Manage')
         ->assertSee('TIME Internet')
@@ -67,7 +67,7 @@ test('due widget header total sums expected amounts', function () {
 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
-        ->assertSee('2 Recurring Dues')
+        ->assertSee('2 Recurring PaymentDues')
         ->assertSee('RM 150.50 / RM 150.50');
 });
 
@@ -103,7 +103,7 @@ test('due widget shows completed occurrences at reduced opacity with completed s
 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
-        ->assertSee('1 Recurring Due')
+        ->assertSee('1 Recurring Payment Due')
         ->assertSee('RM 102.80 / RM 157.80')
         ->assertSee('TIME Internet')
         ->assertSee('Netflix')
@@ -140,7 +140,7 @@ test('due widget hides completed occurrences from previous months', function () 
 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
-        ->assertSee('0 Recurring Dues')
+        ->assertSee('0 Recurring Payment Dues')
         ->assertDontSee('Old Paid Bill');
 });
 
@@ -196,7 +196,7 @@ test('family member sees current-month upcoming occurrences', function () {
 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
-        ->assertSee('1 Recurring Due')
+        ->assertSee('1 Recurring Payment Due')
         ->assertSee('Celcom Mobile')
         ->assertSee('Upcoming · '.$dueOn->format('d M Y'))
         ->assertSee('RM 338.55');
@@ -218,7 +218,7 @@ test('due widget hides upcoming occurrences from future months', function () {
 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
-        ->assertSee('0 Recurring Dues')
+        ->assertSee('0 Recurring Payment Dues')
         ->assertDontSee('Next Month Bill');
 });
 
@@ -349,7 +349,7 @@ test('due recurrings title flash is red when open dues exist', function () {
 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
-        ->assertSee('1 Recurring Due')
+        ->assertSee('1 Recurring Payment Due')
         ->assertSee('animate-ping', false)
         ->assertSee('bg-red-500', false)
         ->assertDontSee('bg-gray-400 dark:bg-gray-500', false);
@@ -377,7 +377,7 @@ test('due recurrings title flash is gray when no open dues', function () {
 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
-        ->assertSee('0 Recurring Dues')
+        ->assertSee('0 Recurring Payment Dues')
         ->assertSee('Paid Netflix')
         ->assertSee('animate-ping', false)
         ->assertSee('bg-gray-400 dark:bg-gray-500', false)

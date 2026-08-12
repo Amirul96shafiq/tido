@@ -37,7 +37,7 @@
                         ])
                     ></span>
                 </span>
-                {{ $totalCount }} Recurring {{ $totalCount === 1 ? 'Due' : 'Dues' }}
+                {{ $totalCount }} Recurring Payment {{ $totalCount === 1 ? 'Due' : 'Dues' }}
             </span>
         </x-slot>
 
@@ -66,7 +66,7 @@
                 style="min-height: {{ $contentHeight }}"
             >
                 <x-empty-state-panel
-                    heading="No recurring due"
+                    heading="No recurring payments due"
                     description="Active reminders appear here when an occurrence is due, overdue, or upcoming this month."
                     icon="heroicon-o-arrow-path"
                 />
