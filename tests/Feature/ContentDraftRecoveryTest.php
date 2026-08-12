@@ -10,10 +10,13 @@ use App\Filament\Resources\Expenses\Pages\CreateExpense;
 use App\Filament\Resources\Expenses\Pages\EditExpense;
 use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Filament\Resources\Labels\Pages\EditLabel;
+use App\Filament\Resources\Recurrings\Pages\CreateRecurring;
+use App\Filament\Resources\Recurrings\Pages\EditRecurring;
 use App\Models\Budget;
 use App\Models\ContentDraft;
 use App\Models\Expense;
 use App\Models\Label;
+use App\Models\Recurring;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -370,6 +373,44 @@ test('budget edit page saves a draft when the form is dirty', function () {
 
     expect($draft)->not->toBeNull()
         ->and((float) $draft->payload['amount'])->toBe(500.0);
+});
+
+test('recurring create saveDraft persists dirty form payload', function () {
+    Livewire::test(CreateRecurring::class)
+        ->fillForm([
+            'title' => 'Draft Recurring',
+            'expected_amount' => 42.00,
+        ])
+        ->call('saveDraft');
+
+    $draft = ContentDraft::query()
+        ->where('user_id', $this->user->id)
+        ->where('key', 'recurring-create')
+        ->first();
+
+    expect($draft)->not->toBeNull()
+        ->and($draft->payload['title'])->toBe('Draft Recurring')
+        ->and((float) $draft->payload['expected_amount'])->toBe(42.0);
+});
+
+test('recurring edit page saves a draft when the form is dirty', function () {
+    $recurring = Recurring::factory()->create([
+        'title' => 'Original Recurring',
+    ]);
+
+    Livewire::test(EditRecurring::class, ['record' => $recurring->getRouteKey()])
+        ->fillForm([
+            'title' => 'Updated Recurring Draft',
+        ])
+        ->call('saveDraft');
+
+    $draft = ContentDraft::query()
+        ->where('user_id', $this->user->id)
+        ->where('key', 'recurring-edit-'.$recurring->getKey())
+        ->first();
+
+    expect($draft)->not->toBeNull()
+        ->and($draft->payload['title'])->toBe('Updated Recurring Draft');
 });
 
 test('edit profile does not keep a recoverable draft when form is unchanged', function () {

@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Models\Expense;
 use App\Services\BudgetAlertService;
+use App\Services\RecurringMatchService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -60,5 +61,6 @@ class SendDeferredWhatsAppBudgetAlertJob implements ShouldQueue
         }
 
         $budgetAlerts->checkAlertsForExpense($expense);
+        app(RecurringMatchService::class)->matchExpense($expense);
     }
 }

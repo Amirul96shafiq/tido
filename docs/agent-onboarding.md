@@ -19,7 +19,7 @@ Activate the relevant skill when the task matches your domain.
 | **Health** | Coming soon |
 | **Task** | Coming soon |
 
-**Finances** (shipped today) uses **Malaysian Ringgit (MYR)** for canonical reporting. It ingests receipt **images**, WhatsApp **PDF documents**, and WhatsApp **text manual expenses**, detects printed source currency with a **local Ollama** model, converts foreign receipt amounts using a date-specific exchange-rate provider, categorizes line items as **Labels** (model: `Label`), tracks **Budgets**, and surfaces analytics. Sidebar nav group **Finances** (Upload Receipts, Expenses, Budgets) is the CRUD surface for that module — distinct from the dashboard view tabs.
+**Finances** (shipped today) uses **Malaysian Ringgit (MYR)** for canonical reporting. It ingests receipt **images**, WhatsApp **PDF documents**, and WhatsApp **text manual expenses**, detects printed source currency with a **local Ollama** model, converts foreign receipt amounts using a date-specific exchange-rate provider, categorizes line items as **Labels** (model: `Label`), tracks **Budgets** and **Recurrings**, and surfaces analytics. Sidebar nav group **Finances** (Upload Receipts, Expenses, Budgets, Recurrings) is the CRUD surface for that module — distinct from the dashboard view tabs.
 
 Primary Finances ingestion paths:
 
@@ -70,15 +70,15 @@ Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage)
 
 ```
 app/
-  Models/           Expense, ExpenseItem, Label, PaymentMethod, Budget, FamilyMember, User, ContentDraft, Backup, ServiceHealthSample; Concerns/TracksResourceEdits.php
+  Models/           Expense, ExpenseItem, Label, PaymentMethod, Budget, Recurring, RecurringOccurrence, FamilyMember, User, ContentDraft, Backup, ServiceHealthSample; Concerns/TracksResourceEdits.php
   Filament/         Resources (Schemas/Tables/Pages), Pages, Widgets, Concerns, Support, Livewire
-  Services/         Ollama, Currency exchange/conversion, WhatsApp, PdfPageInspector, PdfPageRenderer, ReceiptDocumentPreparer, BudgetAlert, SpendingForecast, FamilyMemberLoginService, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
+  Services/         Ollama, Currency exchange/conversion, WhatsApp, PdfPageInspector, PdfPageRenderer, ReceiptDocumentPreparer, BudgetAlert, RecurringOccurrenceGenerator, RecurringMatchService, RecurringReminderService, SpendingForecast, FamilyMemberLoginService, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
   Jobs/             ExtractReceiptDataJob, ProcessWhatsAppMediaJob, ProcessManualWhatsAppExpenseJob, ParseManualWhatsAppExpenseJob, …
   Observers/        ExpenseObserver, FamilyMemberObserver
   Policies/         ExpensePolicy (household mutate ACL)
   Prompts/          ReceiptExtractionPrompt, PdfReceiptPagePrompt, PdfReceiptMergePrompt, ManualExpenseLabelPrompt
   Support/          HouseholdAccess, DashboardSpenderScope, ExpenseSenderAttribution, ManualWhatsAppExpenseParser, WhatsAppLid, WhatsAppMessage, …
-  Enums/            HouseholdRole, LabelType, UserLocale, UserDateFormat, MonitoredService, ServiceHealthStatus
+  Enums/            HouseholdRole, LabelType, RecurringType, RecurringFrequency, RecurringOccurrenceStatus, UserLocale, UserDateFormat, MonitoredService, ServiceHealthStatus
   Http/Controllers/ Api webhooks, BackupDownload, GuestRestoreBackup
 routes/
   web.php           / → /admin, changelog JSON, backup download / guest restore
@@ -112,7 +112,9 @@ docs/               architecture + integration setup + this file
 | Auth | Filament session; household roles (`HouseholdRole`); no Spatie Permission; no tenancy |
 | Panel | `AdminPanelProvider` only — path `admin`; family members get limited Finances access |
 
-Relationships: Expense `hasMany` ExpenseItems; Expense `belongsTo` FamilyMember (optional); ExpenseItem `belongsTo` Label; Budget `belongsTo` Label; Budget `belongsTo` FamilyMember (optional owner; `null` = Primary); Budget `is_shared` spending pool; FamilyMember `hasMany` Budgets; FamilyMember `hasOne` login User.
+Relationships: Expense `hasMany` ExpenseItems; Expense `belongsTo` FamilyMember (optional); ExpenseItem `belongsTo` Label; Budget `belongsTo` Label; Budget `belongsTo` FamilyMember (optional owner; `null` = Primary); Budget `is_shared` spending pool; Recurring `hasMany` RecurringOccurrence; Recurring ownership mirrors Budget (`family_member_id`, `is_shared`); RecurringOccurrence `belongsTo` Expense when completed; FamilyMember `hasMany` Budgets; FamilyMember `hasOne` login User.
+
+Recurrings (reminder-first bills/subscriptions/transfers): [recurrings.md](recurrings.md).
 
 ## 5. How to implement features
 
@@ -138,7 +140,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 5. Filter and Column Manager triggers also get Tippy tooltips globally via `filtersTriggerAction` / `columnManagerTriggerAction` in `AppServiceProvider`
 6. List-page “New …” CTAs use a plus Heroicon panel-wide (`AppServiceProvider` → `CreateAction::configureUsing` → `->icon(Heroicon::Plus)`); new List pages only need `CreateAction::make()`
 7. Edit pages: use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the title ends with the singular model label (see the Filament conventions surfaced by the active agent)
-8. Nav groups: Finances (Upload Receipts, Expenses, Budgets) / Settings (Labels, Payment Methods, Family Members) / Integrations (Evolution API) / Tools (Backups, Service Status) — Tools last. Home dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md` (not sidebar groups)
+8. Nav groups: Finances (Upload Receipts, Expenses, Budgets, Recurrings) / Settings (Labels, Payment Methods, Family Members) / Integrations (Evolution API) / Tools (Backups, Service Status) — Tools last. Home dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md` (not sidebar groups)
 9. Breadcrumbs use Filament native defaults plus `App\Filament\Concerns\PrependsHomeBreadcrumb` (Home → resource → page). Do not disable panel-wide or add a custom “Go back to table” header. New pages must use the trait; Create/Edit pages also register in the `PAGE_END` draft-poller scopes.
 10. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
 11. Resource tables use `updated_at` for **Edited At** (`->since()->dateTimeTooltip()` with relative time + full datetime on hover), default newest-first ordering, and **Edited By** for the latest authenticated editor (`display_name` → `name` fallback). See `docs/resource-edit-audit.md`.

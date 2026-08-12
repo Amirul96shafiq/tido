@@ -31,6 +31,8 @@ Auto-save form drafts to the database and offer crash recovery on remount. Patte
 | `EditLabel` | `label-edit-{id}` |
 | `CreateBudget` | `budget-create` |
 | `EditBudget` | `budget-edit-{id}` |
+| `CreateRecurring` | `recurring-create` |
+| `EditRecurring` | `recurring-edit-{id}` |
 | `EditProfile` | `profile-edit` |
 
 ## Opt in a new Create / Edit page

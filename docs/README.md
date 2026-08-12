@@ -30,6 +30,7 @@
 | [service-status.md](service-status.md) | Agents + humans | Tools Service Status page, health probes, uptime history |
 | [active-sessions.md](active-sessions.md) | Agents + humans | Profile Active Sessions list, revoke, user-agent parsing |
 | [household-access.md](household-access.md) | Agents + humans | Household roles, receipt attribution, family WhatsApp login, expense ACL |
+| [recurrings.md](recurrings.md) | Agents + humans | Reminder-first recurring bills/subscriptions/transfers |
 | [git-workflow.md](git-workflow.md) | Agents + humans | Feature/fix branches → PR → main; staging/production promotion |
 
 ## Agent assets (outside `docs/`)

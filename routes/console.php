@@ -19,3 +19,11 @@ Schedule::command('currency:refresh-rates')
 Schedule::command('backup:clean')->daily()->at('03:00');
 Schedule::command('backup:run')->daily()->at('02:00');
 Schedule::command('health:prune')->daily()->at('04:00');
+Schedule::command('recurring:generate-occurrences')
+    ->dailyAt('00:15')
+    ->timezone(config('app.timezone'))
+    ->withoutOverlapping();
+Schedule::command('recurring:send-reminders')
+    ->dailyAt('08:00')
+    ->timezone(config('app.timezone'))
+    ->withoutOverlapping();

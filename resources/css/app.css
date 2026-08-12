@@ -2789,6 +2789,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 .fi-profile-page .fi-sc-section[id],
 .fi-expense-form-page .fi-sc-section[id],
 .fi-budget-form-page .fi-sc-section[id],
+.fi-recurring-form-page .fi-sc-section[id],
 .fi-label-form-page .fi-sc-section[id],
 .fi-payment-method-form-page .fi-sc-section[id],
 .fi-family-member-form-page .fi-sc-section[id] {
@@ -3060,6 +3061,18 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
         order: 2;
     }
 
+    .fi-recurring-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-recurring-sidebar-sticky) {
+        order: 1;
+    }
+
+    .fi-recurring-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-recurring-main-column) {
+        order: 2;
+    }
+
     .fi-expense-form-page
         .fi-sc-form
         .fi-grid-col:has(.fi-expense-sidebar-sticky) {
@@ -3215,6 +3228,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     /* overflow-x-clip on .fi-layout breaks position: sticky for descendants */
     .fi-layout:has(.fi-profile-page),
     .fi-layout:has(.fi-budget-form-page),
+    .fi-layout:has(.fi-recurring-form-page),
     .fi-layout:has(.fi-expense-form-page),
     .fi-layout:has(.fi-label-form-page),
     .fi-layout:has(.fi-payment-method-form-page),
@@ -3229,6 +3243,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     .fi-budget-form-page
         .fi-sc-form
         .fi-grid-col:has(.fi-budget-sidebar-sticky),
+    .fi-recurring-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-recurring-sidebar-sticky),
     .fi-expense-form-page
         .fi-sc-form
         .fi-grid-col:has(.fi-expense-sidebar-sticky),
@@ -3253,6 +3270,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     .fi-budget-form-page
         .fi-sc-form
         .fi-grid-col:has(.fi-budget-sidebar-sticky),
+    .fi-recurring-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-recurring-sidebar-sticky),
     .fi-expense-form-page
         .fi-sc-form
         .fi-grid-col:has(.fi-expense-sidebar-sticky),

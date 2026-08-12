@@ -32,6 +32,7 @@ test('dashboard section nav lists all widgets as anchor tabs', function () {
         ->assertSee('SST Tax Paid')
         ->assertSee('Receipts Processed')
         ->assertSee('USD to MYR')
+        ->assertSee('Due Recurrings')
         ->assertSee('Monthly Spending Trend')
         ->assertSee('Spending by Label')
         ->assertSee('Budget Performance')
@@ -44,6 +45,7 @@ test('dashboard section nav lists all widgets as anchor tabs', function () {
         ->assertSee('#'.MonthlySpendingOverview::SECTION_SST_TAX_PAID, false)
         ->assertSee('#'.MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED, false)
         ->assertSee('#'.CurrentCurrency::SECTION_CURRENCY_RATE, false)
+        ->assertSee('#due-recurrings', false)
         ->assertSee('#monthly-trend', false)
         ->assertSee('#spending-by-label', false)
         ->assertSee('#budget-status', false)
@@ -62,6 +64,7 @@ test('dashboard section nav items match widgetNavItems helper for current month'
         ['label' => 'SST Tax Paid', 'id' => MonthlySpendingOverview::SECTION_SST_TAX_PAID],
         ['label' => 'Receipts Processed', 'id' => MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED],
         ['label' => 'USD to MYR', 'id' => CurrentCurrency::SECTION_CURRENCY_RATE],
+        ['label' => 'Due Recurrings', 'id' => 'due-recurrings'],
         ['label' => 'Monthly Spending Trend', 'id' => 'monthly-trend'],
         ['label' => 'Spending by Label', 'id' => 'spending-by-label'],
         ['label' => 'Budget Performance', 'id' => 'budget-status'],
@@ -134,9 +137,19 @@ test('dashboard widgets expose section anchor ids', function () {
         ->toContain('id="'.MonthlySpendingOverview::SECTION_SST_TAX_PAID.'"')
         ->toContain('id="'.MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED.'"')
         ->toContain('id="'.CurrentCurrency::SECTION_CURRENCY_RATE.'"')
-        ->toContain('id="monthly-trend"')
-        ->toContain('id="recent-receipts"')
+        ->toContain('id="due-recurrings"')
         ->not->toContain('id="overview"');
+});
+
+test('due recurrings widget renders after currency overview', function () {
+    $html = (string) Livewire::test(Dashboard::class)->html();
+
+    $currencyPos = strpos($html, 'id="'.CurrentCurrency::SECTION_CURRENCY_RATE.'"');
+    $duePos = strpos($html, 'id="due-recurrings"');
+
+    expect($currencyPos)->not->toBeFalse()
+        ->and($duePos)->not->toBeFalse()
+        ->and($currencyPos)->toBeLessThan($duePos);
 });
 
 test('dashboard sticky toolbar uses three-quarter quarter grid layout', function () {

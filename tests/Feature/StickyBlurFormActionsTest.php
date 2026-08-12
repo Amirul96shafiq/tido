@@ -13,10 +13,13 @@ use App\Filament\Resources\FamilyMembers\Pages\CreateFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\EditFamilyMember;
 use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Filament\Resources\Labels\Pages\EditLabel;
+use App\Filament\Resources\Recurrings\Pages\CreateRecurring;
+use App\Filament\Resources\Recurrings\Pages\EditRecurring;
 use App\Models\Budget;
 use App\Models\Expense;
 use App\Models\FamilyMember;
 use App\Models\Label;
+use App\Models\Recurring;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -43,6 +46,8 @@ function stickyBlurFormActionPages(): array
         'edit label' => [EditLabel::class, []],
         'create budget' => [CreateBudget::class, []],
         'edit budget' => [EditBudget::class, []],
+        'create recurring' => [CreateRecurring::class, []],
+        'edit recurring' => [EditRecurring::class, []],
         'create family member' => [CreateFamilyMember::class, []],
         'edit family member' => [EditFamilyMember::class, []],
         'edit profile' => [EditProfile::class, []],
@@ -62,6 +67,10 @@ test('create edit and profile pages use sticky blur form action markers', functi
 
     if ($pageClass === EditBudget::class) {
         $params['record'] = Budget::factory()->create()->getRouteKey();
+    }
+
+    if ($pageClass === EditRecurring::class) {
+        $params['record'] = Recurring::factory()->create()->getRouteKey();
     }
 
     if ($pageClass === EditFamilyMember::class) {
@@ -123,6 +132,8 @@ test('sticky blur form actions trait is wired on resource and profile pages', fu
         EditLabel::class,
         CreateBudget::class,
         EditBudget::class,
+        CreateRecurring::class,
+        EditRecurring::class,
         EditProfile::class,
     ];
 

@@ -8,6 +8,7 @@ use App\Jobs\ExtractReceiptDataJob;
 use App\Models\Expense;
 use App\Services\BudgetAlertService;
 use App\Services\ReceiptManualReviewNotifier;
+use App\Services\RecurringMatchService;
 
 class ExpenseObserver
 {
@@ -48,6 +49,8 @@ class ExpenseObserver
             if (! $deferForWhatsAppParsed) {
                 app(BudgetAlertService::class)->checkAlertsForExpense($expense);
             }
+
+            app(RecurringMatchService::class)->matchExpense($expense);
         }
 
         if ($expense->status === 'requires_manual_review') {

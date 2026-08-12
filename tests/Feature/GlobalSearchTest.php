@@ -11,6 +11,7 @@ use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
+use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Filament\Widgets\CurrentCurrency;
 use App\Models\Backup;
 use App\Models\Budget;
@@ -215,6 +216,7 @@ test('only configured resources are globally searchable', function () {
         FamilyMemberResource::class,
         LabelResource::class,
         PaymentMethodResource::class,
+        RecurringResource::class,
     ]);
 });
 

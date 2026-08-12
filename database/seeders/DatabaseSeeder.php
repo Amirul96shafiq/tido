@@ -36,6 +36,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             WhatsAppAllowlistFromEnvSeeder::class,
             FamilyMemberLoginTestSeeder::class,
+            RecurringSeeder::class,
         ]);
 
         Budget::factory(5)->create();
