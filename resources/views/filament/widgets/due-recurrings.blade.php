@@ -43,9 +43,10 @@
 
         <x-slot name="afterHeader">
             <div class="flex items-center gap-3">
-                <span class="text-sm font-semibold text-gray-950 dark:text-white">
-                    {{ $openAmount }} / {{ $totalAmount }}
-                </span>
+                <div class="flex shrink-0 flex-col items-end gap-0.5 text-right text-sm whitespace-nowrap sm:flex-row sm:items-baseline sm:gap-1">
+                    <span class="font-bold text-gray-700 dark:text-gray-300">{{ $openAmount }}</span>
+                    <span class="text-xs font-normal text-gray-400 dark:text-gray-500">/ {{ $totalAmount }}</span>
+                </div>
                 @if ($canManageRecurrings)
                     <x-filament::button
                         tag="a"

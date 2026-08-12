@@ -69,7 +69,8 @@ test('due widget header total sums expected amounts', function () {
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSee('2 Recurring Payment Dues')
-        ->assertSee('RM 150.50 / RM 150.50');
+        ->assertSee('RM 150.50')
+        ->assertSee('/ RM 150.50');
 });
 
 test('due widget shows completed occurrences at reduced opacity with completed status', function () {
@@ -105,7 +106,8 @@ test('due widget shows completed occurrences at reduced opacity with completed s
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSee('1 Recurring Payment Due')
-        ->assertSee('RM 102.80 / RM 157.80')
+        ->assertSee('RM 102.80')
+        ->assertSee('/ RM 157.80')
         ->assertSee('TIME Internet')
         ->assertSee('Netflix')
         ->assertSee('Completed · '.$completedAt->format('d M Y H:i'))
@@ -249,7 +251,7 @@ test('due recurrings list height matches monthly spending trend chart', function
         ->assertOk()
         ->assertSee('max-height: '.$height, false)
         ->assertSee('min-height: '.$height, false)
-        ->assertSee('custom-scrollbar mt-3', false)
+        ->assertSee('custom-scrollbar flex flex-1 flex-col gap-1', false)
         ->assertSee('pr-2', false)
         ->assertSee('-mx-1 flex items-center gap-3 rounded-xl px-3 py-3', false);
 
