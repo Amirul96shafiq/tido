@@ -68,6 +68,10 @@ class EditRecurring extends EditRecord
                     $record->next_due_on = $data['next_due_on'];
                     $record->save();
 
+                    $generator = app(RecurringOccurrenceGenerator::class);
+                    $generator->discardOpenOccurrencesBeforeNextDue($record->fresh());
+                    $generator->generateFor($record->fresh());
+
                     Notification::make()
                         ->title('Next due date updated')
                         ->success()

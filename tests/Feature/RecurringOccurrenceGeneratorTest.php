@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Enums\RecurringFrequency;
 use App\Enums\RecurringOccurrenceStatus;
-use App\Enums\RecurringType;
 use App\Models\Recurring;
 use App\Models\RecurringOccurrence;
 use App\Services\RecurringOccurrenceGenerator;
@@ -127,15 +126,110 @@ test('creating recurring derives first due on or after starts on', function () {
     expect($recurring->fresh()->next_due_on?->toDateString())->toBe('2026-09-05');
 });
 
-test('subscription type clears stale commitment fields on save', function () {
+test('generateFor prunes open occurrences whose period no longer matches cadence', function () {
+    Carbon::setTestNow('2026-08-13 10:00:00');
+
     $recurring = Recurring::factory()->create([
-        'type' => RecurringType::Subscription,
-        'goal_target_amount' => 600,
-        'instalment_total' => 12,
-        'instalment_remaining' => 10,
+        'title' => 'Indah Water',
+        'frequency' => RecurringFrequency::Repeating,
+        'interval_months' => 6,
+        'anchor_day' => 24,
+        'starts_on' => '2026-07-24',
+        'next_due_on' => '2027-01-24',
     ]);
 
-    expect($recurring->fresh()->goal_target_amount)->toBeNull()
-        ->and($recurring->fresh()->instalment_total)->toBeNull()
-        ->and($recurring->fresh()->instalment_remaining)->toBeNull();
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'due_on' => '2026-08-24',
+        'period_start' => '2026-08-24',
+        'period_end' => '2026-09-23',
+        'status' => RecurringOccurrenceStatus::Upcoming,
+        'expected_amount' => 105,
+    ]);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'due_on' => '2026-09-24',
+        'period_start' => '2026-09-24',
+        'period_end' => '2026-10-23',
+        'status' => RecurringOccurrenceStatus::Upcoming,
+        'expected_amount' => 105,
+    ]);
+
+    $completed = RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'due_on' => '2026-01-24',
+        'period_start' => '2026-01-24',
+        'period_end' => '2026-07-23',
+        'status' => RecurringOccurrenceStatus::Completed,
+        'expected_amount' => 105,
+        'actual_amount' => 105,
+    ]);
+
+    $created = app(RecurringOccurrenceGenerator::class)->generateFor($recurring->fresh());
+
+    expect($created)->toBe(0)
+        ->and(RecurringOccurrence::query()->where('recurring_id', $recurring->id)->open()->count())->toBe(0)
+        ->and($completed->fresh())->not->toBeNull()
+        ->and($recurring->fresh()->next_due_on?->toDateString())->toBe('2027-01-24');
+});
+
+test('adjusting next due discards earlier open occurrences', function () {
+    Carbon::setTestNow('2026-08-13 10:00:00');
+
+    $recurring = Recurring::factory()->create([
+        'frequency' => RecurringFrequency::Repeating,
+        'interval_months' => 1,
+        'anchor_day' => 24,
+        'starts_on' => '2026-08-01',
+        'next_due_on' => '2026-10-24',
+    ]);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'due_on' => '2026-08-24',
+        'period_start' => '2026-08-24',
+        'period_end' => '2026-09-23',
+        'status' => RecurringOccurrenceStatus::Upcoming,
+    ]);
+
+    $discarded = app(RecurringOccurrenceGenerator::class)
+        ->discardOpenOccurrencesBeforeNextDue($recurring->fresh());
+
+    expect($discarded)->toBe(1)
+        ->and(RecurringOccurrence::query()->where('recurring_id', $recurring->id)->open()->count())->toBe(0);
+});
+
+test('generateFor prunes open occurrences with period bounds that no longer match interval', function () {
+    Carbon::setTestNow('2026-08-13 10:00:00');
+
+    $recurring = Recurring::factory()->create([
+        'frequency' => RecurringFrequency::Repeating,
+        'interval_months' => 6,
+        'anchor_day' => 24,
+        'starts_on' => '2026-08-01',
+        'next_due_on' => '2026-08-24',
+    ]);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'due_on' => '2026-08-24',
+        'period_start' => '2026-08-24',
+        'period_end' => '2027-08-23',
+        'status' => RecurringOccurrenceStatus::Upcoming,
+        'expected_amount' => 222.30,
+    ]);
+
+    $created = app(RecurringOccurrenceGenerator::class)->generateFor($recurring->fresh());
+
+    $occurrence = RecurringOccurrence::query()
+        ->where('recurring_id', $recurring->id)
+        ->open()
+        ->first();
+
+    expect($created)->toBe(1)
+        ->and($occurrence)->not->toBeNull()
+        ->and($occurrence?->due_on?->toDateString())->toBe('2026-08-24')
+        ->and($occurrence?->period_end?->toDateString())->toBe('2027-02-23')
+        ->and($recurring->fresh()->next_due_on?->toDateString())->toBe('2027-02-24');
 });

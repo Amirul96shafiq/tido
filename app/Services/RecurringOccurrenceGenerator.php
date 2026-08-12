@@ -43,6 +43,8 @@ class RecurringOccurrenceGenerator
         $created = 0;
         $horizon = $reference->copy()->addDays(45);
 
+        $this->pruneStaleOpenOccurrences($recurring);
+
         while ($recurring->canGenerateMoreOccurrences($reference) && $recurring->next_due_on !== null) {
             $dueOn = $recurring->next_due_on->copy()->startOfDay();
 
@@ -134,6 +136,55 @@ class RecurringOccurrenceGenerator
         $reference ??= now()->startOfDay();
 
         return $this->resolveStatusForDueOn($dueOn, $reference);
+    }
+
+    /**
+     * Drop open occurrences whose period no longer matches the recurring cadence.
+     * Completed and skipped history is preserved.
+     */
+    public function pruneStaleOpenOccurrences(Recurring $recurring): int
+    {
+        if ($recurring->frequency === RecurringFrequency::Once) {
+            return 0;
+        }
+
+        $deleted = 0;
+
+        $open = RecurringOccurrence::query()
+            ->where('recurring_id', $recurring->id)
+            ->open()
+            ->get();
+
+        foreach ($open as $occurrence) {
+            [$periodStart, $periodEnd] = $recurring->periodBoundsForDueOn($occurrence->due_on);
+
+            if (
+                $occurrence->period_start?->toDateString() !== $periodStart->toDateString()
+                || $occurrence->period_end?->toDateString() !== $periodEnd->toDateString()
+            ) {
+                $occurrence->delete();
+                $deleted++;
+            }
+        }
+
+        return $deleted;
+    }
+
+    /**
+     * When next_due_on is moved forward, discard earlier open rows so the dues
+     * widget does not keep showing superseded dates.
+     */
+    public function discardOpenOccurrencesBeforeNextDue(Recurring $recurring): int
+    {
+        if ($recurring->next_due_on === null) {
+            return 0;
+        }
+
+        return RecurringOccurrence::query()
+            ->where('recurring_id', $recurring->id)
+            ->open()
+            ->whereDate('due_on', '<', $recurring->next_due_on->toDateString())
+            ->delete();
     }
 
     private function resolveStatusForDueOn(Carbon $dueOn, Carbon $reference): RecurringOccurrenceStatus
