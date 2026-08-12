@@ -76,7 +76,7 @@
                 @if ($canManageRecurrings)
                     wire:sort="reorderRecurrings"
                 @endif
-                class="custom-scrollbar mt-3 flex flex-1 flex-col gap-1 overflow-y-auto pr-2"
+                class="custom-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto pr-2"
                 style="min-height: {{ $contentHeight }}; max-height: {{ $contentHeight }}"
             >
                 @foreach ($items as $item)
