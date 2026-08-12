@@ -220,7 +220,7 @@ If Evolution is down, use **Sign in with email & password** (primary user only).
 | Script | Purpose |
 |--------|---------|
 | `npm run dev:full` | tido only (default daily work) |
-| `npm run evolution` | Start Evolution from `EVOLUTION_PATH` (default `../evolution-api`) |
+| `npm run evolution` | Start Evolution from `EVOLUTION_PATH` (default `../evolution-api`). Kills leftover Evolution Node processes first and uses `npm run start` (no `tsx watch`) so one WhatsApp socket stays alive. |
 | `npm run dev:whatsapp` | tido + Evolution together (opt-in) |
 
 ---
@@ -238,5 +238,6 @@ If Evolution is down, use **Sign in with email & password** (primary user only).
 | PDF is rejected as unreadable or password-protected | Resend an unencrypted PDF; password-protected and unreadable PDFs are not supported |
 | PDF remains pending or ends in manual review | Confirm `PDFINFO_BINARY`, `PDFTOCAIRO_BINARY`, and `PDFTOPPM_BINARY` point to working Poppler executables, then restart the queue worker |
 | LID sender is ignored | Open the WhatsApp LID section and link the pending LID to the correct allowlisted contact |
+| Evolution log repeats `CONNECTED TO WHATSAPP` with `conflict` / `replaced` | Two Evolution Node processes share the same linked device. Stop `dev:all`, then start it once — `npm run evolution` now kills leftover processes before connecting. |
 
 Production later: run tido + Evolution as separate managed services on a Linux VPS, not `concurrently` on a desktop.

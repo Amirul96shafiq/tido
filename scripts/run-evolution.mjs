@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -29,8 +29,83 @@ if (!fs.existsSync(packageJson)) {
 
 const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
+function killPidTree(pid) {
+    if (!Number.isInteger(pid) || pid <= 0) {
+        return;
+    }
+
+    try {
+        if (process.platform === 'win32') {
+            execFileSync('taskkill.exe', ['/PID', String(pid), '/T', '/F'], {
+                stdio: 'ignore',
+                windowsHide: true,
+            });
+        } else {
+            process.kill(pid, 'SIGTERM');
+        }
+    } catch {
+        // already gone
+    }
+}
+
+function windowsPidsMatching(needle) {
+    const script = [
+        `$needle = ${JSON.stringify(needle.toLowerCase())}`,
+        'Get-CimInstance Win32_Process | Where-Object {',
+        '  $_.CommandLine -and ($_.Name -eq "node.exe" -or $_.Name -eq "tsx.exe") -and',
+        '  $_.CommandLine.ToLower().Contains($needle)',
+        '} | Select-Object -ExpandProperty ProcessId',
+    ].join('; ');
+
+    try {
+        const out = execFileSync('powershell.exe', ['-NoProfile', '-Command', script], {
+            encoding: 'utf8',
+            timeout: 20000,
+            windowsHide: true,
+        });
+
+        return out
+            .split(/\r?\n/)
+            .map((line) => Number(line.trim()))
+            .filter((pid) => Number.isInteger(pid) && pid > 0);
+    } catch {
+        return [];
+    }
+}
+
+function killStaleEvolutionProcesses() {
+    if (process.platform !== 'win32') {
+        return [];
+    }
+
+    const needles = new Set([
+        evolutionPath,
+        evolutionPath.replaceAll('\\', '/'),
+        evolutionPath.replaceAll('/', '\\'),
+    ]);
+
+    const pids = new Set();
+
+    for (const needle of needles) {
+        for (const pid of windowsPidsMatching(needle)) {
+            if (pid !== process.pid && pid !== process.ppid) {
+                pids.add(pid);
+            }
+        }
+    }
+
+    for (const pid of pids) {
+        console.log(`Stopping stale Evolution process ${pid}`);
+        killPidTree(pid);
+    }
+
+    return [...pids];
+}
+
 console.log(`Starting Evolution API from ${evolutionPath}`);
-console.log('Using: npm run dev:server (fallback: start:prod if you change this script)');
+console.log('Using: npm run start (tsx, no watch — avoids leftover WhatsApp sockets)');
+
+killStaleEvolutionProcesses();
 
 // WhatsApp Linked Devices label comes from Baileys DeviceProps:
 //   browser[0] (CLIENT) = os string shown to the user
@@ -46,7 +121,7 @@ const sessionPhoneName = process.env.CONFIG_SESSION_PHONE_NAME?.trim() || 'Deskt
 
 console.log(`Linked device identity: browser=["${sessionPhoneClient}", "${sessionPhoneName}", …]`);
 
-const child = spawn(npmCmd, ['run', 'dev:server'], {
+const child = spawn(npmCmd, ['run', 'start'], {
     cwd: evolutionPath,
     stdio: 'inherit',
     shell: process.platform === 'win32',
@@ -72,6 +147,10 @@ child.on('exit', (code, signal) => {
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
     process.on(signal, () => {
-        child.kill(signal);
+        if (child.pid) {
+            killPidTree(child.pid);
+        } else {
+            child.kill(signal);
+        }
     });
 }
