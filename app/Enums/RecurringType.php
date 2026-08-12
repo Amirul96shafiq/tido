@@ -23,6 +23,17 @@ enum RecurringType: string
         };
     }
 
+    public function description(): string
+    {
+        return match ($this) {
+            self::FixedBill => 'Same or similar amount each cycle.',
+            self::VariableBill => 'Amount changes between cycles.',
+            self::Subscription => 'Recurring product or service.',
+            self::DebtInstalment => 'Fixed number of repayments.',
+            self::TransferInvestment => 'Savings or investment contribution.',
+        };
+    }
+
     /**
      * @return array<string, string>
      */
@@ -35,5 +46,19 @@ enum RecurringType: string
         }
 
         return $options;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function descriptions(): array
+    {
+        $descriptions = [];
+
+        foreach (self::cases() as $case) {
+            $descriptions[$case->value] = $case->description();
+        }
+
+        return $descriptions;
     }
 }

@@ -36,7 +36,7 @@ test('family member cannot access recurring resource', function () {
 });
 
 test('primary can create recurring from form', function () {
-    $this->actingAs(User::factory()->create([
+    $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create([
         'household_role' => HouseholdRole::Primary,
     ]));
 
@@ -53,16 +53,23 @@ test('primary can create recurring from form', function () {
             'interval_months' => 1,
             'anchor_day' => 8,
             'starts_on' => now()->toDateString(),
+            'end_rule' => 'ongoing',
+            'responsibility' => 'primary',
             'merchant_aliases' => ['Cursor', 'Anysphere'],
             'notify_filament' => true,
             'notify_whatsapp' => true,
             'is_active' => true,
-            'is_shared' => false,
         ])
         ->call('create')
         ->assertHasNoFormErrors();
 
-    expect(Recurring::query()->where('title', 'Cursor Pro')->exists())->toBeTrue();
+    $recurring = Recurring::query()->where('title', 'Cursor Pro')->first();
+
+    expect($recurring)->not->toBeNull()
+        ->and($recurring->frequency)->toBe(RecurringFrequency::Repeating)
+        ->and($recurring->interval_months)->toBe(1)
+        ->and($recurring->family_member_id)->toBeNull()
+        ->and($recurring->is_shared)->toBeFalse();
 });
 
 test('list page renders for primary', function () {

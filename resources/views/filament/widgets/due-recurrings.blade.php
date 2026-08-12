@@ -164,7 +164,7 @@
                                             $nextTick(measure);
                                             new ResizeObserver(() => measure()).observe($el);
                                         "
-                                        class="tido-text-marquee-clip relative min-w-0 max-w-full overflow-hidden sm:max-w-[14rem] md:max-w-[18rem]"
+                                        class="tido-text-marquee-clip relative min-w-0 max-w-full overflow-hidden sm:max-w-56 md:max-w-[18rem]"
                                     >
                                         <span
                                             x-ref="marqueeText"

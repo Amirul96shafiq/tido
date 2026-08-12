@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Recurrings\Pages;
 
-use App\Enums\RecurringFrequency;
 use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Filament\Resources\Recurrings\Schemas\RecurringForm;
 use App\Services\RecurringOccurrenceGenerator;
+use App\Support\RecurringFormNormalizer;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateRecurring extends CreateRecord
@@ -50,39 +50,13 @@ class CreateRecurring extends CreateRecord
         return 'Recurring sections';
     }
 
-    protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        return $this->normalizeCadenceData($data);
-    }
-
     /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    private function normalizeCadenceData(array $data): array
+    protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $preset = $data['cadence_preset'] ?? null;
-
-        if ($preset === 'once') {
-            $data['frequency'] = RecurringFrequency::Once->value;
-            $data['interval_months'] = null;
-        } elseif (! isset($data['frequency'])) {
-            $data['frequency'] = RecurringFrequency::Repeating->value;
-        }
-
-        if (($data['frequency'] ?? null) === RecurringFrequency::Repeating->value
-            && empty($data['interval_months'])) {
-            $data['interval_months'] = match ($preset) {
-                'quarterly' => 3,
-                'semiannual' => 6,
-                'yearly' => 12,
-                default => 1,
-            };
-        }
-
-        unset($data['cadence_preset']);
-
-        return $data;
+        return RecurringFormNormalizer::normalize($data);
     }
 
     protected function afterCreate(): void

@@ -292,29 +292,61 @@ class Recurring extends Model
 
     public function resolveInitialDueOn(?CarbonInterface $reference = null): ?Carbon
     {
-        $reference = Carbon::parse($reference ?? $this->starts_on ?? now())->startOfDay();
+        $start = Carbon::parse($reference ?? $this->starts_on ?? now())->startOfDay();
 
         if ($this->frequency === RecurringFrequency::Once) {
-            return $this->applyAnchorDay($reference);
+            return $start;
         }
 
-        return $this->applyAnchorDay($reference);
+        $day = $this->anchor_day;
+
+        if ($day === null || $day < 1) {
+            return $start;
+        }
+
+        $dueDay = min(28, max(1, (int) $day));
+        $candidate = $start->copy()->day(min($dueDay, $start->daysInMonth))->startOfDay();
+
+        if ($candidate->lt($start)) {
+            $months = max(1, (int) ($this->interval_months ?? 1));
+            $candidate = $start->copy()->addMonthsNoOverflow($months);
+            $candidate->day(min($dueDay, $candidate->daysInMonth));
+        }
+
+        return $candidate->startOfDay();
     }
 
     public function normalizeCommitmentFields(): void
     {
         if ($this->frequency === RecurringFrequency::Once) {
             $this->interval_months = null;
+        } else {
+            if ($this->interval_months === null || $this->interval_months < 1) {
+                $this->interval_months = 1;
+            }
+
+            if ($this->interval_months > 24) {
+                $this->interval_months = 24;
+            }
+        }
+
+        $type = $this->type instanceof RecurringType
+            ? $this->type
+            : RecurringType::tryFrom((string) $this->type);
+
+        if ($type === null || ! in_array($type, [
+            RecurringType::DebtInstalment,
+            RecurringType::TransferInvestment,
+        ], true)) {
+            $this->goal_target_amount = null;
+            $this->instalment_total = null;
+            $this->instalment_remaining = null;
 
             return;
         }
 
-        if ($this->interval_months === null || $this->interval_months < 1) {
-            $this->interval_months = 1;
-        }
-
-        if ($this->interval_months > 24) {
-            $this->interval_months = 24;
+        if ($type === RecurringType::DebtInstalment) {
+            $this->goal_target_amount = null;
         }
 
         if (

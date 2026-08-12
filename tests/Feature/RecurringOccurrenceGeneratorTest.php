@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\RecurringFrequency;
 use App\Enums\RecurringOccurrenceStatus;
+use App\Enums\RecurringType;
 use App\Models\Recurring;
 use App\Models\RecurringOccurrence;
 use App\Services\RecurringOccurrenceGenerator;
@@ -88,4 +89,53 @@ test('refreshStatuses marks overdue occurrences', function () {
 
     expect($updated)->toBeGreaterThan(0)
         ->and($occurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Overdue);
+});
+
+test('initial due date never precedes starts on when due day has passed', function () {
+    $recurring = Recurring::factory()->make([
+        'frequency' => RecurringFrequency::Repeating,
+        'interval_months' => 1,
+        'anchor_day' => 5,
+        'starts_on' => '2026-08-20',
+        'next_due_on' => null,
+    ]);
+
+    expect($recurring->resolveInitialDueOn()?->toDateString())->toBe('2026-09-05');
+});
+
+test('initial due date uses due day in start month when still ahead', function () {
+    $recurring = Recurring::factory()->make([
+        'frequency' => RecurringFrequency::Repeating,
+        'interval_months' => 1,
+        'anchor_day' => 25,
+        'starts_on' => '2026-08-20',
+        'next_due_on' => null,
+    ]);
+
+    expect($recurring->resolveInitialDueOn()?->toDateString())->toBe('2026-08-25');
+});
+
+test('creating recurring derives first due on or after starts on', function () {
+    $recurring = Recurring::factory()->create([
+        'frequency' => RecurringFrequency::Repeating,
+        'interval_months' => 1,
+        'anchor_day' => 5,
+        'starts_on' => '2026-08-20',
+        'next_due_on' => null,
+    ]);
+
+    expect($recurring->fresh()->next_due_on?->toDateString())->toBe('2026-09-05');
+});
+
+test('subscription type clears stale commitment fields on save', function () {
+    $recurring = Recurring::factory()->create([
+        'type' => RecurringType::Subscription,
+        'goal_target_amount' => 600,
+        'instalment_total' => 12,
+        'instalment_remaining' => 10,
+    ]);
+
+    expect($recurring->fresh()->goal_target_amount)->toBeNull()
+        ->and($recurring->fresh()->instalment_total)->toBeNull()
+        ->and($recurring->fresh()->instalment_remaining)->toBeNull();
 });
