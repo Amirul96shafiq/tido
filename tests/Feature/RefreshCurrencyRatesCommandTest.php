@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Filament\Widgets\CurrentCurrency;
 use App\Services\Currency\ExchangeRateService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -24,6 +25,7 @@ beforeEach(function (): void {
 });
 
 test('currency refresh rates command primes latest and series caches', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00', 'Asia/Kuala_Lumpur'));
     Http::preventStrayRequests();
     Http::fake([
         'https://currencyapi.test/v3/latest*' => Http::response([
@@ -51,6 +53,48 @@ test('currency refresh rates command primes latest and series caches', function 
         ->and($service->cachedSeries('USD', 'MYR', CurrentCurrency::SERIES_DAYS))->not->toBeEmpty();
 
     Http::assertSentCount(1 + 7);
+
+    Carbon::setTestNow();
+});
+
+test('currency refresh rates reuses sparkline last-good on same-day re-run', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00', 'Asia/Kuala_Lumpur'));
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/latest*' => Http::response([
+            'meta' => ['last_updated_at' => '2026-08-08T10:15:00Z'],
+            'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.25]],
+        ]),
+        'https://currencyapi.test/v3/historical*' => Http::response([
+            'meta' => ['last_updated_at' => '2026-08-07T23:59:59Z'],
+            'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.20]],
+        ]),
+    ]);
+
+    Artisan::call('currency:refresh-rates', [
+        '--base' => 'USD',
+        '--target' => 'MYR',
+        '--days' => CurrentCurrency::SERIES_DAYS,
+    ]);
+
+    $sentAfterCold = count(Http::recorded());
+
+    expect($sentAfterCold)->toBe(1 + 7);
+
+    $exitCode = Artisan::call('currency:refresh-rates', [
+        '--base' => 'USD',
+        '--target' => 'MYR',
+        '--days' => CurrentCurrency::SERIES_DAYS,
+    ]);
+
+    expect($exitCode)->toBe(0)
+        ->and(count(Http::recorded()) - $sentAfterCold)->toBe(1)
+        ->and(app(ExchangeRateService::class)->cachedSeries('USD', 'MYR', CurrentCurrency::SERIES_DAYS))
+        ->toHaveCount(7);
+
+    Http::assertSent(fn ($request): bool => str_contains($request->url(), '/v3/latest'));
+
+    Carbon::setTestNow();
 });
 
 test('currency refresh rates is scheduled daily at midnight in the app timezone', function () {

@@ -350,6 +350,146 @@ test('exchange rate service cached reads never hit the provider', function () {
     Carbon::setTestNow();
 });
 
+test('exchange rate service warm next-day refresh fetches only latest and yesterday', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00', 'Asia/Kuala_Lumpur'));
+    config([
+        'services.currencyapi.series_max_points' => 7,
+        'services.currencyapi.series_cache_ttl' => 604800,
+    ]);
+    Cache::flush();
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/latest*' => Http::response([
+            'meta' => ['last_updated_at' => '2026-08-08T10:15:00Z'],
+            'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.55]],
+        ]),
+        'https://currencyapi.test/v3/historical*' => function ($request) {
+            parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
+            $date = (string) ($query['date'] ?? '');
+
+            return Http::response([
+                'meta' => ['last_updated_at' => $date.'T23:59:59Z'],
+                'data' => ['MYR' => ['code' => 'MYR', 'value' => $date === '2026-08-08' ? 4.60 : 4.50]],
+            ]);
+        },
+    ]);
+
+    $service = new ExchangeRateService(new CurrencyApiExchangeRateProvider);
+    $service->refreshDashboardRates('USD', 'MYR', 30);
+    $sentAfterCold = count(Http::recorded());
+
+    expect($sentAfterCold)->toBe(1 + 7);
+
+    Carbon::setTestNow(Carbon::parse('2026-08-09 12:00:00', 'Asia/Kuala_Lumpur'));
+    $result = $service->refreshDashboardRates('USD', 'MYR', 30);
+
+    expect(count(Http::recorded()) - $sentAfterCold)->toBe(2)
+        ->and($result['latest']['rate'])->toBe(4.55)
+        ->and($result['series'])->toHaveCount(7)
+        ->and($result['series'][array_key_last($result['series'])]['date'])->toBe('2026-08-08')
+        ->and($result['series'][array_key_last($result['series'])]['rate'])->toBe(4.60);
+
+    Http::assertSent(fn ($request): bool => str_contains($request->url(), '/v3/latest'));
+    Http::assertSent(fn ($request): bool => str_contains($request->url(), 'date=2026-08-08'));
+
+    Carbon::setTestNow();
+});
+
+test('exchange rate service rebuilds series when last-good span collapses', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00', 'Asia/Kuala_Lumpur'));
+    config([
+        'services.currencyapi.series_max_points' => 7,
+        'services.currencyapi.series_cache_ttl' => 604800,
+    ]);
+    Cache::flush();
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/latest*' => Http::response([
+            'meta' => ['last_updated_at' => '2026-08-08T10:15:00Z'],
+            'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.55]],
+        ]),
+        'https://currencyapi.test/v3/historical*' => Http::response([
+            'meta' => ['last_updated_at' => '2026-08-07T23:59:59Z'],
+            'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.50]],
+        ]),
+    ]);
+
+    $collapsed = [];
+    for ($offset = 7; $offset >= 1; $offset--) {
+        $collapsed[] = [
+            'date' => now()->startOfDay()->subDays($offset)->toDateString(),
+            'rate' => 4.40 + ($offset * 0.01),
+        ];
+    }
+
+    $seriesKey = implode(':', [
+        'currency-rate',
+        'currencyapi',
+        'USD',
+        'MYR',
+        'series',
+        '30',
+        '7',
+    ]);
+    Cache::put($seriesKey.':last-good', $collapsed, now()->addDay());
+
+    $service = new ExchangeRateService(new CurrencyApiExchangeRateProvider);
+    $result = $service->refreshDashboardRates('USD', 'MYR', 30);
+
+    expect($result['series'])->toHaveCount(7)
+        ->and($result['series'][0]['date'])->toBe('2026-07-09')
+        ->and($result['series'][array_key_last($result['series'])]['date'])->toBe('2026-08-07');
+
+    Http::assertSentCount(1 + 7);
+
+    Carbon::setTestNow();
+});
+
+test('exchange rate service avoids historical dates that are still the UTC current day', function () {
+    // 01:00 MYT on Aug 13 => UTC is still Aug 12; API max historical date is Aug 11.
+    Carbon::setTestNow(Carbon::parse('2026-08-13 01:00:00', 'Asia/Kuala_Lumpur'));
+    config([
+        'services.currencyapi.series_max_points' => 7,
+        'services.currencyapi.series_cache_ttl' => 604800,
+    ]);
+    Cache::flush();
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://currencyapi.test/v3/latest*' => Http::response([
+            'meta' => ['last_updated_at' => '2026-08-12T17:00:00Z'],
+            'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.55]],
+        ]),
+        'https://currencyapi.test/v3/historical*' => function ($request) {
+            parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
+            $date = (string) ($query['date'] ?? '');
+
+            if ($date >= '2026-08-12') {
+                return Http::response([
+                    'message' => 'Validation error',
+                    'errors' => ['date' => ['The date field must be a date before or equal to 2026-08-11 23:59:59.']],
+                ], 422);
+            }
+
+            return Http::response([
+                'meta' => ['last_updated_at' => $date.'T23:59:59Z'],
+                'data' => ['MYR' => ['code' => 'MYR', 'value' => 4.50]],
+            ]);
+        },
+    ]);
+
+    $service = new ExchangeRateService(new CurrencyApiExchangeRateProvider);
+    $result = $service->refreshDashboardRates('USD', 'MYR', 30);
+
+    expect($result['series'])->toHaveCount(7)
+        ->and($result['series'][array_key_last($result['series'])]['date'])->toBe('2026-08-11');
+
+    Http::assertSentCount(1 + 7);
+    Http::assertNotSent(fn ($request): bool => str_contains($request->url(), 'date=2026-08-12'));
+    Http::assertNotSent(fn ($request): bool => str_contains($request->url(), 'date=2026-08-13'));
+
+    Carbon::setTestNow();
+});
+
 test('exchange rate service routes today rates through latest instead of historical', function () {
     Carbon::setTestNow(Carbon::parse('2026-08-08 12:00:00', 'Asia/Kuala_Lumpur'));
     Cache::flush();

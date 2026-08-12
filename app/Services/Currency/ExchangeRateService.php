@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Currency;
 
+use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
@@ -80,8 +81,8 @@ final class ExchangeRateService
         string $targetCurrency,
         CarbonInterface $date,
     ): array {
-        // Historical endpoint rejects the incomplete current day (and future dates).
-        if ($date->toDateString() >= now()->toDateString()) {
+        // Historical endpoint rejects the incomplete UTC current day (and future dates).
+        if ($date->toDateString() > $this->latestCompletableHistoricalDateString()) {
             return $this->latest($baseCurrency, $targetCurrency);
         }
 
@@ -220,6 +221,9 @@ final class ExchangeRateService
     /**
      * Force-refresh dashboard latest + series via CurrencyAPI (scheduler / artisan).
      *
+     * Always refreshes latest. Reuses sparkline last-good when present so warm runs
+     * cost 0–1 historical calls instead of rebuilding every sample date.
+     *
      * @return array{
      *     latest: array{rate: float, effective_date: string, fetched_at: string, provider: string},
      *     series: list<array{date: string, rate: float}>,
@@ -234,13 +238,42 @@ final class ExchangeRateService
         $maxPoints = max(1, (int) config('services.currencyapi.series_max_points', 7));
         $latestKey = $this->latestCacheKey($baseCurrency, $targetCurrency);
         $seriesKey = $this->seriesCacheKey($baseCurrency, $targetCurrency, $days, $maxPoints);
+        $lastGoodKey = $seriesKey.':last-good';
+        $seriesTtl = max(
+            60,
+            (int) config(
+                'services.currencyapi.series_cache_ttl',
+                config('services.currencyapi.cache_ttl', 86400),
+            ),
+        );
 
         Cache::forget($latestKey);
         Cache::forget($seriesKey);
         Cache::forget($seriesKey.':unavailable');
 
         $latest = $this->latest($baseCurrency, $targetCurrency);
-        $series = $this->series($baseCurrency, $targetCurrency, $days);
+
+        $lastGood = Cache::get($lastGoodKey);
+        $series = $this->isUsableSeries($lastGood)
+            ? $this->refreshSeriesFromLastGood(
+                $baseCurrency,
+                $targetCurrency,
+                $days,
+                $maxPoints,
+                $seriesKey,
+                $seriesTtl,
+                $lastGoodKey,
+                $lastGood,
+            )
+            : $this->buildSeries(
+                $baseCurrency,
+                $targetCurrency,
+                $days,
+                $maxPoints,
+                $seriesKey,
+                $seriesTtl,
+                $lastGoodKey,
+            );
 
         return [
             'latest' => $latest,
@@ -293,31 +326,174 @@ final class ExchangeRateService
     }
 
     /**
+     * Warm sparkline refresh: reuse last-good points, fetch only the UTC tip day when missing.
+     *
+     * @param  list<array{date: string, rate: float|int|string}>  $lastGood
+     * @return list<array{date: string, rate: float}>
+     */
+    private function refreshSeriesFromLastGood(
+        string $baseCurrency,
+        string $targetCurrency,
+        int $days,
+        int $maxPoints,
+        string $cacheKey,
+        int $ttl,
+        string $lastGoodKey,
+        array $lastGood,
+    ): array {
+        $tip = $this->latestCompletableHistoricalDate();
+        $tipDate = $tip->toDateString();
+        $windowStartDate = $tip->copy()->subDays(max(0, $days - 1))->toDateString();
+
+        $pointsByDate = [];
+
+        foreach ($lastGood as $point) {
+            $pointsByDate[(string) $point['date']] = [
+                'date' => (string) $point['date'],
+                'rate' => (float) $point['rate'],
+            ];
+        }
+
+        if (! isset($pointsByDate[$tipDate])) {
+            try {
+                $rateDetails = $this->rate($baseCurrency, $targetCurrency, $tip);
+
+                if ($this->isUsableRate($rateDetails)) {
+                    $pointsByDate[$tipDate] = [
+                        'date' => $tipDate,
+                        'rate' => (float) $rateDetails['rate'],
+                    ];
+                }
+            } catch (CurrencyConversionException) {
+                // Keep prior last-good points when tip day cannot be fetched.
+            }
+        }
+
+        $series = $this->normalizeSeriesWindow(
+            array_values($pointsByDate),
+            $windowStartDate,
+            $tipDate,
+            $maxPoints,
+        );
+
+        if ($series === []) {
+            return $this->buildSeries(
+                $baseCurrency,
+                $targetCurrency,
+                $days,
+                $maxPoints,
+                $cacheKey,
+                $ttl,
+                $lastGoodKey,
+            );
+        }
+
+        if ($this->seriesSpanDays($series) < (int) floor($days / 2)) {
+            return $this->buildSeries(
+                $baseCurrency,
+                $targetCurrency,
+                $days,
+                $maxPoints,
+                $cacheKey,
+                $ttl,
+                $lastGoodKey,
+            );
+        }
+
+        Cache::put($cacheKey, $series, now()->addSeconds($ttl));
+        Cache::put($lastGoodKey, $series, now()->addSeconds(self::LAST_GOOD_TTL_SECONDS));
+
+        return $series;
+    }
+
+    /**
+     * @param  list<array{date: string, rate: float}>  $series
+     * @return list<array{date: string, rate: float}>
+     */
+    private function normalizeSeriesWindow(
+        array $series,
+        string $windowStartDate,
+        string $windowEndDate,
+        int $maxPoints,
+    ): array {
+        $filtered = array_values(array_filter(
+            $series,
+            static fn (array $point): bool => $point['date'] >= $windowStartDate
+                && $point['date'] <= $windowEndDate,
+        ));
+
+        usort(
+            $filtered,
+            static fn (array $left, array $right): int => $left['date'] <=> $right['date'],
+        );
+
+        if (count($filtered) > $maxPoints) {
+            $filtered = array_slice($filtered, -$maxPoints);
+        }
+
+        return $filtered;
+    }
+
+    /**
+     * @param  list<array{date: string, rate: float}>  $series
+     */
+    private function seriesSpanDays(array $series): int
+    {
+        if ($series === []) {
+            return 0;
+        }
+
+        if (count($series) === 1) {
+            return 1;
+        }
+
+        $first = Carbon::parse($series[0]['date'])->startOfDay();
+        $last = Carbon::parse($series[array_key_last($series)]['date'])->startOfDay();
+
+        return (int) $first->diffInDays($last) + 1;
+    }
+
+    /**
      * @return list<CarbonInterface>
      */
     private function seriesSampleDates(int $days, int $maxPoints): array
     {
-        // End at yesterday: CurrencyAPI /v3/historical returns 422 for the current day.
-        $endOffset = 1;
-        $startOffset = max($endOffset, $days);
-        $spanDays = $startOffset - $endOffset + 1;
+        // End on the latest UTC-completable day: CurrencyAPI /v3/historical rejects
+        // the incomplete UTC current day (app-local "yesterday" can still be UTC today).
+        $end = $this->latestCompletableHistoricalDate();
+        $start = $end->copy()->subDays(max(0, $days - 1));
+        $spanDays = (int) $start->diffInDays($end) + 1;
         $pointCount = min($spanDays, $maxPoints);
 
         if ($pointCount === 1) {
-            return [now()->startOfDay()->subDays($endOffset)];
+            return [$end];
         }
 
         $datesByKey = [];
 
         for ($index = 0; $index < $pointCount; $index++) {
-            $offset = (int) round(
-                $startOffset + (($endOffset - $startOffset) * $index / ($pointCount - 1)),
-            );
-            $date = now()->startOfDay()->subDays($offset);
+            $offsetFromStart = (int) round(($spanDays - 1) * $index / ($pointCount - 1));
+            $date = $start->copy()->addDays($offsetFromStart);
             $datesByKey[$date->toDateString()] = $date;
         }
 
         return array_values($datesByKey);
+    }
+
+    /**
+     * Latest calendar date CurrencyAPI accepts on /v3/historical (UTC yesterday).
+     */
+    private function latestCompletableHistoricalDate(): CarbonInterface
+    {
+        return Carbon::parse(
+            $this->latestCompletableHistoricalDateString(),
+            (string) config('app.timezone'),
+        )->startOfDay();
+    }
+
+    private function latestCompletableHistoricalDateString(): string
+    {
+        return now('UTC')->subDay()->toDateString();
     }
 
     private function latestCacheKey(string $baseCurrency, string $targetCurrency): string
