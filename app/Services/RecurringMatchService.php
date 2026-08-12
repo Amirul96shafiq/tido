@@ -215,4 +215,23 @@ class RecurringMatchService
 
         return $occurrence->fresh() ?? $occurrence;
     }
+
+    public function revertOccurrence(RecurringOccurrence $occurrence): RecurringOccurrence
+    {
+        if ($occurrence->status !== RecurringOccurrenceStatus::Skipped) {
+            return $occurrence;
+        }
+
+        $occurrence->status = app(RecurringOccurrenceGenerator::class)
+            ->statusForDueOn($occurrence->due_on->copy()->startOfDay());
+        $occurrence->save();
+
+        $recurring = $occurrence->recurring;
+
+        if ($recurring instanceof Recurring) {
+            $recurring->incrementInstalmentRemaining();
+        }
+
+        return $occurrence->fresh() ?? $occurrence;
+    }
 }

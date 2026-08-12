@@ -50,4 +50,11 @@ class RecurringOccurrenceFactory extends Factory
             'due_on' => now()->subDays(3)->toDateString(),
         ]);
     }
+
+    public function skipped(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'status' => RecurringOccurrenceStatus::Skipped,
+        ]);
+    }
 }

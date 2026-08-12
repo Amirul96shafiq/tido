@@ -64,7 +64,7 @@ class RecurringOccurrenceGenerator
                 ->exists();
 
             if (! $exists) {
-                $status = $this->statusForDueOn($dueOn, $reference);
+                $status = $this->resolveStatusForDueOn($dueOn, $reference);
 
                 RecurringOccurrence::query()->create([
                     'recurring_id' => $recurring->id,
@@ -115,7 +115,7 @@ class RecurringOccurrenceGenerator
             ->open()
             ->orderBy('id')
             ->each(function (RecurringOccurrence $occurrence) use ($reference, &$updated): void {
-                $nextStatus = $this->statusForDueOn($occurrence->due_on->copy()->startOfDay(), $reference);
+                $nextStatus = $this->resolveStatusForDueOn($occurrence->due_on->copy()->startOfDay(), $reference);
 
                 if ($occurrence->status === $nextStatus) {
                     return;
@@ -129,7 +129,14 @@ class RecurringOccurrenceGenerator
         return $updated;
     }
 
-    private function statusForDueOn(Carbon $dueOn, Carbon $reference): RecurringOccurrenceStatus
+    public function statusForDueOn(Carbon $dueOn, ?Carbon $reference = null): RecurringOccurrenceStatus
+    {
+        $reference ??= now()->startOfDay();
+
+        return $this->resolveStatusForDueOn($dueOn, $reference);
+    }
+
+    private function resolveStatusForDueOn(Carbon $dueOn, Carbon $reference): RecurringOccurrenceStatus
     {
         $due = $dueOn->toDateString();
         $today = $reference->toDateString();

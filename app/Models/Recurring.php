@@ -278,6 +278,18 @@ class Recurring extends Model
         $this->save();
     }
 
+    public function incrementInstalmentRemaining(): void
+    {
+        if ($this->instalment_remaining === null) {
+            return;
+        }
+
+        $cap = $this->instalment_total ?? $this->instalment_remaining + 1;
+
+        $this->instalment_remaining = min($cap, $this->instalment_remaining + 1);
+        $this->save();
+    }
+
     public function resolveInitialDueOn(?CarbonInterface $reference = null): ?Carbon
     {
         $reference = Carbon::parse($reference ?? $this->starts_on ?? now())->startOfDay();

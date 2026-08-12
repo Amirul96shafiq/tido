@@ -16,15 +16,22 @@ use App\Models\RecurringOccurrence;
 use App\Models\User;
 use App\Services\RecurringMatchService;
 use App\Support\HouseholdAccess;
+use Filament\Actions\Action;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Concerns\InteractsWithSchemas;
+use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Widgets\Widget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class DueRecurrings extends Widget
+class DueRecurrings extends Widget implements HasActions, HasSchemas
 {
     use HasDashboardSectionId;
+    use InteractsWithActions;
+    use InteractsWithSchemas;
 
     protected static bool $isLazy = false;
 
@@ -80,6 +87,30 @@ class DueRecurrings extends Widget
         });
     }
 
+    public function confirmSkipOccurrence(): Action
+    {
+        return Action::make('confirmSkipOccurrence')
+            ->requiresConfirmation()
+            ->modalHeading('Skip occurrence?')
+            ->modalDescription('This occurrence will be marked as skipped.')
+            ->modalSubmitActionLabel('Skip')
+            ->action(function (array $arguments): void {
+                $this->skipOccurrence((int) ($arguments['occurrenceId'] ?? 0));
+            });
+    }
+
+    public function confirmRevertOccurrence(): Action
+    {
+        return Action::make('confirmRevertOccurrence')
+            ->requiresConfirmation()
+            ->modalHeading('Revert skipped occurrence?')
+            ->modalDescription('This occurrence will return to the due list.')
+            ->modalSubmitActionLabel('Revert back')
+            ->action(function (array $arguments): void {
+                $this->revertOccurrence((int) ($arguments['occurrenceId'] ?? 0));
+            });
+    }
+
     public function skipOccurrence(int $occurrenceId): void
     {
         $occurrence = $this->visibleOccurrenceQuery()
@@ -94,6 +125,24 @@ class DueRecurrings extends Widget
 
         Notification::make()
             ->title('Occurrence skipped')
+            ->success()
+            ->send();
+    }
+
+    public function revertOccurrence(int $occurrenceId): void
+    {
+        $occurrence = $this->visibleOccurrenceQuery()
+            ->whereKey($occurrenceId)
+            ->first();
+
+        if ($occurrence === null || $occurrence->status !== RecurringOccurrenceStatus::Skipped) {
+            return;
+        }
+
+        app(RecurringMatchService::class)->revertOccurrence($occurrence);
+
+        Notification::make()
+            ->title('Occurrence restored')
             ->success()
             ->send();
     }
@@ -158,8 +207,9 @@ class DueRecurrings extends Widget
 
         $items = (clone $query)
             ->with(['recurring.label', 'expense'])
-            ->orderByRaw('CASE WHEN status = ? THEN 1 ELSE 0 END', [
+            ->orderByRaw('CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END', [
                 RecurringOccurrenceStatus::Completed->value,
+                RecurringOccurrenceStatus::Skipped->value,
             ])
             ->orderBy(
                 Recurring::query()
@@ -180,6 +230,7 @@ class DueRecurrings extends Widget
                     ? (float) $recurring->goal_target_amount
                     : null;
                 $isCompleted = $occurrence->status === RecurringOccurrenceStatus::Completed;
+                $isSkipped = $occurrence->status === RecurringOccurrenceStatus::Skipped;
                 $displayAmount = $isCompleted
                     ? ($occurrence->actual_amount ?? $occurrence->expected_amount)
                     : $occurrence->expected_amount;
@@ -188,8 +239,9 @@ class DueRecurrings extends Widget
                 return [
                     'id' => $occurrence->id,
                     'recurring_id' => $recurring?->id,
-                    'can_reorder' => $isPrimary && $recurring !== null && ! $isCompleted,
+                    'can_reorder' => $isPrimary && $recurring !== null && ! $isCompleted && ! $isSkipped,
                     'is_completed' => $isCompleted,
+                    'is_skipped' => $isSkipped,
                     'edit_url' => $isPrimary && $recurring !== null
                         ? RecurringResource::getUrl('edit', ['record' => $recurring])
                         : null,
@@ -300,6 +352,11 @@ class DueRecurrings extends Widget
                     ->orWhere(function (Builder $completed) use ($monthStart): void {
                         $completed
                             ->where('status', RecurringOccurrenceStatus::Completed)
+                            ->where('updated_at', '>=', $monthStart);
+                    })
+                    ->orWhere(function (Builder $skipped) use ($monthStart): void {
+                        $skipped
+                            ->where('status', RecurringOccurrenceStatus::Skipped)
                             ->where('updated_at', '>=', $monthStart);
                     });
             });

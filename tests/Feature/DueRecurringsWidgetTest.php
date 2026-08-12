@@ -16,6 +16,7 @@ use App\Models\FamilyMember;
 use App\Models\Recurring;
 use App\Models\RecurringOccurrence;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -67,7 +68,7 @@ test('due widget header total sums expected amounts', function () {
 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
-        ->assertSee('2 Recurring PaymentDues')
+        ->assertSee('2 Recurring Payment Dues')
         ->assertSee('RM 150.50 / RM 150.50');
 });
 
@@ -484,4 +485,85 @@ test('due recurrings widget blocks reorder for family members', function () {
 
     expect($first->fresh()->sort_order)->toBe(10)
         ->and($second->fresh()->sort_order)->toBe(20);
+});
+
+test('due widget shows skipped occurrences at reduced opacity with revert action', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $dueOn = now()->startOfDay();
+
+    $open = Recurring::factory()->create(['title' => 'TIME Internet']);
+    $skipped = Recurring::factory()->create(['title' => 'Netflix']);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $open->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => $dueOn->toDateString(),
+    ]);
+
+    RecurringOccurrence::factory()->skipped()->create([
+        'recurring_id' => $skipped->id,
+        'due_on' => $dueOn->toDateString(),
+    ]);
+
+    Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertSee('TIME Internet')
+        ->assertSee('Netflix')
+        ->assertSee('Skipped · '.$dueOn->format('d M Y'))
+        ->assertSee('opacity-50', false)
+        ->assertSee('Skipped')
+        ->assertSee('Revert Back')
+        ->assertSee('disabled', false)
+        ->assertSee("mountAction('confirmRevertOccurrence'", false)
+        ->assertDontSee('wire:confirm', false);
+});
+
+test('due widget skip requires filament confirmation modal', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $recurring = Recurring::factory()->create(['title' => 'TIME Internet']);
+    $occurrence = RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+    ]);
+
+    Livewire::test(DueRecurrings::class)
+        ->mountAction('confirmSkipOccurrence', ['occurrenceId' => $occurrence->id])
+        ->assertActionMounted('confirmSkipOccurrence')
+        ->assertMountedActionModalSee('Skip occurrence?')
+        ->assertMountedActionModalSee('This occurrence will be marked as skipped.')
+        ->callMountedAction()
+        ->assertSuccessful();
+
+    expect($occurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Skipped);
+});
+
+test('due widget revert requires filament confirmation modal', function () {
+    Carbon::setTestNow('2026-08-12 10:00:00');
+
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $recurring = Recurring::factory()->create(['title' => 'Netflix']);
+    $occurrence = RecurringOccurrence::factory()->skipped()->create([
+        'recurring_id' => $recurring->id,
+        'due_on' => now()->toDateString(),
+    ]);
+
+    Livewire::test(DueRecurrings::class)
+        ->mountAction('confirmRevertOccurrence', ['occurrenceId' => $occurrence->id])
+        ->assertActionMounted('confirmRevertOccurrence')
+        ->assertMountedActionModalSee('Revert skipped occurrence?')
+        ->assertMountedActionModalSee('This occurrence will return to the due list.')
+        ->callMountedAction()
+        ->assertSuccessful();
+
+    expect($occurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Due);
 });

@@ -153,6 +153,25 @@ test('skips occurrence and decrements instalments', function () {
         ->and($recurring->fresh()->instalment_remaining)->toBe(1);
 });
 
+test('revertOccurrence restores status and increments instalments', function () {
+    Carbon::setTestNow('2026-08-12 10:00:00');
+
+    $recurring = Recurring::factory()->create([
+        'instalment_total' => 2,
+        'instalment_remaining' => 1,
+    ]);
+
+    $occurrence = RecurringOccurrence::factory()->skipped()->create([
+        'recurring_id' => $recurring->id,
+        'due_on' => now()->toDateString(),
+    ]);
+
+    app(RecurringMatchService::class)->revertOccurrence($occurrence);
+
+    expect($occurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Due)
+        ->and($recurring->fresh()->instalment_remaining)->toBe(2);
+});
+
 test('matchParsedExpenses completes open dues from existing receipts', function () {
     $gprop = Recurring::factory()->create([
         'title' => 'GPROP Monthly Bills',

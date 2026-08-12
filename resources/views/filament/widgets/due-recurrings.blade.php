@@ -87,7 +87,7 @@
                         @endif
                         @class([
                             '-mx-1 flex items-center gap-3 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60',
-                            'opacity-50' => $item['is_completed'] ?? false,
+                            'opacity-50' => ($item['is_completed'] ?? false),
                         ])
                     >
                         @if ($item['can_reorder'] ?? false)
@@ -107,6 +107,7 @@
                             $hasGoal = $item['goalTarget'] !== null && $item['goalTarget'] > 0;
                             $progress = (float) ($item['progress'] ?? 0);
                             $isCompleted = (bool) ($item['is_completed'] ?? false);
+                            $isSkipped = (bool) ($item['is_skipped'] ?? false);
                         @endphp
 
                         <{{ $itemTag }}
@@ -115,7 +116,10 @@
                                 wire:sort:ignore
                                 href="{{ $item['edit_url'] }}"
                             @endif
-                            class="focus-visible:ring-primary-500 flex min-w-0 flex-1 items-center justify-between gap-4 rounded-lg focus-visible:ring-2 focus-visible:outline-none"
+                            @class([
+                                'focus-visible:ring-primary-500 flex min-w-0 flex-1 items-center justify-between gap-4 rounded-lg focus-visible:ring-2 focus-visible:outline-none',
+                                'opacity-50' => $isSkipped,
+                            ])
                         >
                             {{-- Left: identity + secondary meta (bills-timeline / payment-card pattern) --}}
                             <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -163,6 +167,8 @@
                                 <div class="flex min-w-0 flex-wrap items-center gap-x-1.5 text-xs text-gray-400 dark:text-gray-500">
                                     @if ($isCompleted)
                                         <span>Completed · {{ $item['completedAt'] }}</span>
+                                    @elseif ($isSkipped)
+                                        <span>Skipped · {{ $item['dueOn'] }}</span>
                                     @elseif ($item['status'] === 'overdue')
                                         <span class="font-semibold text-red-500">
                                             Overdue · {{ $item['dueOn'] }}
@@ -192,7 +198,26 @@
                         </{{ $itemTag }}>
 
                         <div wire:sort:ignore class="shrink-0">
-                            @if ($isCompleted)
+                            @if ($isSkipped)
+                                <div class="flex items-center gap-2">
+                                    <div class="opacity-50">
+                                        <x-filament::button
+                                            size="sm"
+                                            color="gray"
+                                            disabled
+                                        >
+                                            Skipped
+                                        </x-filament::button>
+                                    </div>
+                                    <x-filament::button
+                                        size="sm"
+                                        color="primary"
+                                        wire:click="mountAction('confirmRevertOccurrence', { occurrenceId: {{ $item['id'] }} })"
+                                    >
+                                        Revert Back
+                                    </x-filament::button>
+                                </div>
+                            @elseif ($isCompleted)
                                 <x-filament::button
                                     size="sm"
                                     color="gray"
@@ -204,8 +229,7 @@
                                 <x-filament::button
                                     size="sm"
                                     color="gray"
-                                    wire:click="skipOccurrence({{ $item['id'] }})"
-                                    wire:confirm="Skip this occurrence?"
+                                    wire:click="mountAction('confirmSkipOccurrence', { occurrenceId: {{ $item['id'] }} })"
                                 >
                                     Skip
                                 </x-filament::button>
@@ -216,4 +240,6 @@
             </div>
         @endif
     </x-filament::section>
+
+    <x-filament-actions::modals />
 </x-filament-widgets::widget>
