@@ -77,7 +77,7 @@
                 @if ($canManageRecurrings)
                     wire:sort="reorderRecurrings"
                 @endif
-                class="custom-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto pr-2"
+                class="custom-scrollbar grid flex-1 grid-cols-1 gap-1 overflow-y-auto pr-2 sm:grid-cols-2"
                 style="min-height: {{ $contentHeight }}; max-height: {{ $contentHeight }}"
             >
                 @foreach ($items as $item)
@@ -87,7 +87,7 @@
                             wire:sort:item="{{ $item['recurring_id'] }}"
                         @endif
                         @class([
-                            '-mx-1 flex items-center gap-3 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700/60',
+                            '-mx-1 flex min-w-0 items-center gap-2 rounded-xl px-2 py-3 transition-colors duration-200 hover:bg-gray-100 sm:gap-3 sm:px-3 dark:hover:bg-slate-700/60',
                             'opacity-50' => ($item['is_completed'] ?? false),
                         ])
                     >
@@ -137,7 +137,7 @@
                                 href="{{ $item['edit_url'] }}"
                             @endif
                             @class([
-                                'focus-visible:ring-primary-500 flex min-w-0 flex-1 items-center justify-between gap-4 rounded-lg focus-visible:ring-2 focus-visible:outline-none',
+                                'focus-visible:ring-primary-500 flex min-w-0 flex-1 items-center justify-between gap-2 rounded-lg focus-visible:ring-2 focus-visible:outline-none sm:gap-4',
                                 'opacity-50' => $isSkipped,
                             ])
                         >
@@ -164,7 +164,7 @@
                                             $nextTick(measure);
                                             new ResizeObserver(() => measure()).observe($el);
                                         "
-                                        class="tido-text-marquee-clip relative min-w-0 max-w-full overflow-hidden sm:max-w-56 md:max-w-[18rem]"
+                                        class="tido-text-marquee-clip relative min-w-0 max-w-full overflow-hidden"
                                     >
                                         <span
                                             x-ref="marqueeText"

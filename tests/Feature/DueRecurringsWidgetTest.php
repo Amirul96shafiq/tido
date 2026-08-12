@@ -252,9 +252,10 @@ test('due recurrings list height matches monthly spending trend chart', function
         ->assertOk()
         ->assertSee('max-height: '.$height, false)
         ->assertSee('min-height: '.$height, false)
-        ->assertSee('custom-scrollbar flex flex-1 flex-col gap-1', false)
+        ->assertSee('custom-scrollbar grid flex-1 grid-cols-1 gap-1', false)
+        ->assertSee('sm:grid-cols-2', false)
         ->assertSee('pr-2', false)
-        ->assertSee('-mx-1 flex items-center gap-3 rounded-xl px-3 py-3', false);
+        ->assertSee('-mx-1 flex min-w-0 items-center gap-2 rounded-xl px-2 py-3', false);
 
     expect((new ReflectionClass(MonthlyTrend::class))->getDefaultProperties()['maxHeight'])
         ->toBe($height);
@@ -299,7 +300,8 @@ test('due recurrings widget uses payment-card two-zone layout', function () {
         ->assertSee('x-ref="marqueeText"', false)
         ->assertSee('tido-text-marquee-clip', false)
         ->assertSee('flex min-w-0 flex-1 flex-col gap-1', false)
-        ->assertSee('flex min-w-0 flex-1 items-center justify-between gap-4', false)
+        ->assertSee('flex min-w-0 flex-1 items-center justify-between gap-2', false)
+        ->assertSee('sm:gap-4', false)
         ->assertSee('fi-avatar', false)
         ->assertDontSee('color-mix(in srgb', false)
         ->assertDontSee('bg-warning-100 text-warning-700 dark:bg-warning-400/25 dark:text-warning-300', false)
