@@ -3,8 +3,6 @@
     $amountLine = $amountLine ?? 'Amount unset';
     $scheduleLine = $scheduleLine ?? 'Schedule incomplete';
     $nextDueLine = $nextDueLine ?? 'Next due: —';
-    $labelLine = $labelLine ?? 'No label';
-    $ownershipLine = $ownershipLine ?? 'Primary';
     $statusLine = $statusLine ?? 'Active';
 @endphp
 
@@ -21,8 +19,6 @@
     <div class="flex flex-col gap-1 text-gray-600 dark:text-gray-300">
         <p>{{ $scheduleLine }}</p>
         <p>{{ $nextDueLine }}</p>
-        <p>{{ $labelLine }}</p>
-        <p>{{ $ownershipLine }}</p>
     </div>
 
     <p @class([

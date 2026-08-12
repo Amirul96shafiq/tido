@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace App\Support;
 
-use App\Enums\HouseholdRole;
 use App\Enums\RecurringFrequency;
 use App\Enums\RecurringType;
 use App\Helpers\MoneyDisplay;
-use App\Models\FamilyMember;
-use App\Models\Label;
 use App\Models\Recurring;
-use App\Models\User;
 use Carbon\Carbon;
 use Filament\Schemas\Components\Utilities\Get;
 
@@ -23,8 +19,6 @@ final class RecurringScheduleSummary
      *     amountLine: string,
      *     scheduleLine: string,
      *     nextDueLine: string,
-     *     labelLine: string,
-     *     ownershipLine: string,
      *     statusLine: string
      * }
      */
@@ -32,22 +26,13 @@ final class RecurringScheduleSummary
     {
         $title = filled($get('title')) ? (string) $get('title') : 'Untitled recurring';
         $type = RecurringType::tryFrom((string) ($get('type') ?? ''));
-        $amountRaw = $get('expected_amount');
-        $amountLine = self::amountLine($type, $amountRaw);
-        $scheduleLine = self::scheduleLine($get);
-        $nextDueLine = self::nextDueLine($get, $record, $operation);
-        $labelLine = self::labelLine($get('label_id'));
-        $ownershipLine = self::ownershipLine($get);
-        $statusLine = self::statusLine($get);
 
         return [
             'title' => $title,
-            'amountLine' => $amountLine,
-            'scheduleLine' => $scheduleLine,
-            'nextDueLine' => $nextDueLine,
-            'labelLine' => $labelLine,
-            'ownershipLine' => $ownershipLine,
-            'statusLine' => $statusLine,
+            'amountLine' => self::amountLine($type, $get('expected_amount')),
+            'scheduleLine' => self::scheduleLine($get),
+            'nextDueLine' => self::nextDueLine($get, $record, $operation),
+            'statusLine' => self::statusLine($get),
         ];
     }
 
@@ -159,78 +144,10 @@ final class RecurringScheduleSummary
         return $preview->resolveInitialDueOn();
     }
 
-    private static function labelLine(mixed $labelId): string
-    {
-        if (! filled($labelId)) {
-            return 'No label';
-        }
-
-        $name = Label::query()->whereKey($labelId)->value('name');
-
-        return filled($name) ? (string) $name : 'No label';
-    }
-
-    private static function ownershipLine(Get $get): string
-    {
-        $responsibility = (string) ($get('responsibility') ?? 'primary');
-        $owner = match ($responsibility) {
-            'family_member' => self::familyMemberName($get('family_member_id')),
-            'household_shared' => 'Household shared',
-            default => self::primaryUsername(),
-        };
-
-        $channels = [];
-
-        if (($get('notify_filament') ?? true) === true || ($get('notify_filament') ?? true) === 1) {
-            $channels[] = 'In-app';
-        }
-
-        if (($get('notify_whatsapp') ?? true) === true || ($get('notify_whatsapp') ?? true) === 1) {
-            $channels[] = 'WhatsApp';
-        }
-
-        $channelLine = $channels === [] ? 'No reminders' : implode(' + ', $channels);
-
-        return $owner.' · '.$channelLine;
-    }
-
     private static function statusLine(Get $get): string
     {
         $active = ($get('is_active') ?? true) === true || ($get('is_active') ?? true) === 1;
 
         return $active ? 'Active' : 'Inactive';
-    }
-
-    private static function familyMemberName(mixed $familyMemberId): string
-    {
-        if (! filled($familyMemberId)) {
-            return 'Family member unset';
-        }
-
-        $member = FamilyMember::query()->find($familyMemberId);
-
-        if (! $member instanceof FamilyMember) {
-            return 'Family member unset';
-        }
-
-        return filled($member->display_name)
-            ? (string) $member->display_name
-            : (string) $member->name;
-    }
-
-    private static function primaryUsername(): string
-    {
-        $primary = User::query()
-            ->where('household_role', HouseholdRole::Primary)
-            ->orderBy('id')
-            ->first();
-
-        if ($primary === null) {
-            return 'Primary';
-        }
-
-        return filled($primary->display_name)
-            ? (string) $primary->display_name
-            : (string) $primary->name;
     }
 }

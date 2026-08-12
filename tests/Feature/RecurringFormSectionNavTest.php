@@ -41,16 +41,22 @@ test('recurring edit page renders sticky section nav markers', function () {
         ->assertSee('fi-recurring-sidebar-sticky', false);
 });
 
-test('recurring section nav has four stable destinations', function () {
+test('recurring section nav has stable destinations', function () {
     Livewire::test(CreateRecurring::class)
         ->assertSuccessful()
+        ->assertSee('Summary')
+        ->assertSee('Ownership')
         ->assertSee('Details')
         ->assertSee('Schedule')
         ->assertSee('Expense matching')
+        ->assertSee('Status and Reminders')
         ->assertSee('Notes')
+        ->assertSee('#recurring-summary', false)
+        ->assertSee('#recurring-ownership', false)
         ->assertSee('#recurring-details', false)
         ->assertSee('#recurring-schedule', false)
         ->assertSee('#recurring-matching', false)
+        ->assertSee('#recurring-status-and-reminders', false)
         ->assertSee('#recurring-notes', false)
         ->assertDontSee('Goal &amp; instalments', false)
         ->assertDontSee('#recurring-goal', false)
@@ -59,9 +65,12 @@ test('recurring section nav has four stable destinations', function () {
 
 test('recurring section nav items match sectionNavItems helper', function () {
     expect(RecurringForm::sectionNavItems())->toBe([
+        ['label' => 'Summary', 'id' => 'recurring-summary'],
+        ['label' => 'Ownership', 'id' => 'recurring-ownership'],
         ['label' => 'Details', 'id' => 'recurring-details'],
         ['label' => 'Schedule', 'id' => 'recurring-schedule'],
         ['label' => 'Expense matching', 'id' => 'recurring-matching'],
+        ['label' => 'Status and Reminders', 'id' => 'recurring-status-and-reminders'],
         ['label' => 'Notes', 'id' => 'recurring-notes'],
     ]);
 });

@@ -52,6 +52,7 @@ class EditRecurring extends EditRecord
                 ->label('Adjust next due date')
                 ->icon(Heroicon::CalendarDays)
                 ->color('gray')
+                ->modalWidth('sm')
                 ->modalHeading('Adjust next due date')
                 ->modalDescription('Updates the next due date only. Completed occurrence history is left unchanged.')
                 ->form([
