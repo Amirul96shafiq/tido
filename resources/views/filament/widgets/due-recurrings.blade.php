@@ -103,6 +103,25 @@
                             <div class="size-6 shrink-0" aria-hidden="true"></div>
                         @endif
 
+                        <div
+                            wire:sort:ignore
+                            @class([
+                                'shrink-0',
+                                'opacity-50' => (bool) ($item['is_skipped'] ?? false),
+                            ])
+                            aria-label="{{ $item['owner_name'] }}"
+                            x-tooltip="{
+                                content: @js($item['owner_name']),
+                                theme: $store.theme,
+                            }"
+                        >
+                            <x-filament::avatar
+                                :src="$item['owner_avatar_url']"
+                                :alt="$item['owner_name']"
+                                size="sm"
+                            />
+                        </div>
+
                         @php
                             $itemTag = filled($item['edit_url'] ?? null) ? 'a' : 'div';
                             $hasGoal = $item['goalTarget'] !== null && $item['goalTarget'] > 0;

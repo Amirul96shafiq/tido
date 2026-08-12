@@ -18,6 +18,7 @@ use App\Models\RecurringOccurrence;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -299,9 +300,83 @@ test('due recurrings widget uses payment-card two-zone layout', function () {
         ->assertSee('tido-text-marquee-clip', false)
         ->assertSee('flex min-w-0 flex-1 flex-col gap-1', false)
         ->assertSee('flex min-w-0 flex-1 items-center justify-between gap-4', false)
+        ->assertSee('fi-avatar', false)
         ->assertDontSee('color-mix(in srgb', false)
         ->assertDontSee('bg-warning-100 text-warning-700 dark:bg-warning-400/25 dark:text-warning-300', false)
         ->assertDontSee('bg-danger-100 text-danger-700 dark:bg-danger-400/25 dark:text-danger-300', false);
+});
+
+test('due recurrings widget shows primary owner avatar between drag handle and content', function () {
+    Storage::fake('public');
+
+    $primary = User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+        'name' => 'Primary Account',
+        'display_name' => null,
+        'avatar_url' => 'avatars/primary-owner.png',
+    ]);
+
+    Storage::disk('public')->put('avatars/primary-owner.png', 'avatar');
+
+    $this->actingAs($primary);
+
+    $recurring = Recurring::factory()->create([
+        'title' => 'TIME Internet',
+        'family_member_id' => null,
+    ]);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+        'expected_amount' => 89.90,
+    ]);
+
+    Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertSeeHtml('src="'.e($primary->getFilamentAvatarUrl()).'"')
+        ->assertSeeHtml('alt="Primary Account"')
+        ->assertSee("content: 'Primary Account',", false)
+        ->assertSee('x-tooltip="{', false)
+        ->assertSeeInOrder([
+            'wire:sort:handle',
+            'fi-avatar',
+            'TIME Internet',
+        ], false);
+});
+
+test('due recurrings widget shows assigned family member owner avatar', function () {
+    Storage::fake('public');
+
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $member = FamilyMember::factory()->create([
+        'name' => 'Sample Spouse',
+        'display_name' => null,
+        'avatar_url' => 'avatars/spouse-owner.png',
+    ]);
+
+    Storage::disk('public')->put('avatars/spouse-owner.png', 'avatar');
+
+    $recurring = Recurring::factory()->forFamilyMember($member)->create([
+        'title' => 'Spouse Gym',
+    ]);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+        'expected_amount' => 120.00,
+    ]);
+
+    Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertSeeHtml('src="'.e($member->getFilamentAvatarUrl()).'"')
+        ->assertSeeHtml('alt="Sample Spouse"')
+        ->assertSee("content: 'Sample Spouse',", false)
+        ->assertSee('Spouse Gym');
 });
 
 test('due recurrings widget shows overdue status on secondary meta line', function () {
