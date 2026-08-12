@@ -28,7 +28,7 @@ class RecurringsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->defaultSort('sort_order')
+            ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('title')
                     ->searchable()
@@ -113,11 +113,14 @@ class RecurringsTable
             ])
             ->filters([
                 SelectFilter::make('type')
-                    ->options(RecurringType::options()),
+                    ->options(RecurringType::options())
+                    ->searchable(),
                 TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label('Active')
+                    ->searchable(),
                 TernaryFilter::make('is_shared')
-                    ->label('Shared'),
+                    ->label('Shared')
+                    ->searchable(),
             ])
             ->recordActions([
                 ViewAction::make()->slideOver(),
