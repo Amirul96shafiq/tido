@@ -47,7 +47,7 @@ test('due widget shows open occurrences for primary', function () {
         ->assertSee(RecurringOccurrenceStatus::Due->label());
 });
 
-test('due widget header total sums expected amounts', function () {
+test('due widget lists occurrence amounts without a header total', function () {
     $this->actingAs(User::factory()->create([
         'household_role' => HouseholdRole::Primary,
     ]));
@@ -71,8 +71,9 @@ test('due widget header total sums expected amounts', function () {
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSee('2 Recurring Payment Dues')
-        ->assertSee('RM 150.50')
-        ->assertSee('/ RM 150.50');
+        ->assertSee('RM 100.00')
+        ->assertSee('RM 50.50')
+        ->assertDontSee('/ RM 150.50');
 });
 
 test('due widget shows completed occurrences at reduced opacity with completed status', function () {
@@ -109,7 +110,7 @@ test('due widget shows completed occurrences at reduced opacity with completed s
         ->assertOk()
         ->assertSee('1 Recurring Payment Due')
         ->assertSee('RM 102.80')
-        ->assertSee('/ RM 157.80')
+        ->assertDontSee('/ RM 157.80')
         ->assertSee('TIME Internet')
         ->assertSee('Netflix')
         ->assertSee('Completed · '.$completedAt->format('d M Y H:i'))

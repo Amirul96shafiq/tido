@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\CurrentCurrency;
 use App\Filament\Widgets\MonthlySpendingOverview;
+use App\Filament\Widgets\RecurringMonthSnapshot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -33,7 +34,7 @@ test('dashboard section nav lists all widgets as anchor tabs', function () {
         ->assertSee('Receipts Processed')
         ->assertSee('USD to MYR')
         ->assertSee('Due Recurrings')
-        ->assertSee("This Month's Bills")
+        ->assertSee(RecurringMonthSnapshot::headingLabel())
         ->assertSee('Monthly Spending Trend')
         ->assertSee('Spending by Label')
         ->assertSee('Budget Performance')
@@ -67,7 +68,7 @@ test('dashboard section nav items match widgetNavItems helper for current month'
         ['label' => 'Receipts Processed', 'id' => MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED],
         ['label' => 'USD to MYR', 'id' => CurrentCurrency::SECTION_CURRENCY_RATE],
         ['label' => 'Due Recurrings', 'id' => 'due-recurrings'],
-        ['label' => "This Month's Bills", 'id' => 'recurring-month-snapshot'],
+        ['label' => RecurringMonthSnapshot::headingLabel(), 'id' => RecurringMonthSnapshot::dashboardSectionId()],
         ['label' => 'Monthly Spending Trend', 'id' => 'monthly-trend'],
         ['label' => 'Spending by Label', 'id' => 'spending-by-label'],
         ['label' => 'Budget Performance', 'id' => 'budget-status'],

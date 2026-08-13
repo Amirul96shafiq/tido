@@ -2,6 +2,8 @@
     /** @var int $completedCount */
     /** @var string $contentHeight */
     /** @var int $dueCount */
+    /** @var string $heading */
+    /** @var bool $isEmpty */
     /** @var ?string $nextDueOn */
     /** @var ?string $nextDueTitle */
     /** @var string $openAmount */
@@ -10,7 +12,6 @@
     /** @var int $ringTotal */
     /** @var string $totalAmount */
     /** @var int $upcomingCount */
-    /** @var bool $isEmpty */
 @endphp
 
 <x-filament-widgets::widget
@@ -23,7 +24,7 @@
     "
 >
     <x-filament::section class="h-full">
-        <x-slot name="heading">This Month's Bills</x-slot>
+        <x-slot name="heading">{{ $heading }}</x-slot>
 
         @if ($isEmpty)
             <div

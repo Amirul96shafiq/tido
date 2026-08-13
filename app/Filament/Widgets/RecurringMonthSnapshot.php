@@ -35,11 +35,17 @@ class RecurringMonthSnapshot extends Widget
         return 'recurring-month-snapshot';
     }
 
+    public static function headingLabel(): string
+    {
+        return now()->format('F Y')."'s Bills";
+    }
+
     /**
      * @return array{
      *     completedCount: int,
      *     contentHeight: string,
      *     dueCount: int,
+     *     heading: string,
      *     isEmpty: bool,
      *     nextDueOn: ?string,
      *     nextDueTitle: ?string,
@@ -90,6 +96,7 @@ class RecurringMonthSnapshot extends Widget
             'completedCount' => $completedCount,
             'contentHeight' => DashboardWidgetHeights::STANDARD_CHART,
             'dueCount' => $dueCount,
+            'heading' => self::headingLabel(),
             'isEmpty' => ! (clone $query)->exists(),
             'nextDueOn' => $nextDue?->due_on?->format('d M'),
             'nextDueTitle' => $nextDue?->recurring?->title,

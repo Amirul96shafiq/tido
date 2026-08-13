@@ -55,7 +55,7 @@ test('snapshot widget shows remaining and total amounts with status chips', func
 
     Livewire::test(RecurringMonthSnapshot::class)
         ->assertOk()
-        ->assertSee("This Month's Bills", false)
+        ->assertSee(RecurringMonthSnapshot::headingLabel())
         ->assertSee('RM 175.50')
         ->assertSee('/ RM 230.50')
         ->assertSee('Overdue 1')
@@ -143,7 +143,8 @@ test('family member snapshot hides primary-only recurrings', function () {
 });
 
 test('snapshot widget sorts beside dues and spans four xl columns', function () {
-    expect(RecurringMonthSnapshot::getSort())->toBe(4);
+    expect(RecurringMonthSnapshot::getSort())->toBe(4)
+        ->and(RecurringMonthSnapshot::headingLabel())->toBe(now()->format('F Y')."'s Bills");
 
     expect((new ReflectionClass(RecurringMonthSnapshot::class))->getDefaultProperties()['columnSpan'])
         ->toBe([

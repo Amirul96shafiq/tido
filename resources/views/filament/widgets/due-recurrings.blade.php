@@ -3,9 +3,7 @@
     /** @var string $contentHeight */
     /** @var list<array<string, mixed>> $items */
     /** @var string $manageUrl */
-    /** @var string $openAmount */
     /** @var string $titleIndicator */
-    /** @var string $totalAmount */
     /** @var int $totalCount */
 @endphp
 
@@ -41,25 +39,19 @@
             </span>
         </x-slot>
 
-        <x-slot name="afterHeader">
-            <div class="flex items-center gap-3">
-                <div class="flex shrink-0 flex-col items-end gap-0.5 text-right text-sm whitespace-nowrap sm:flex-row sm:items-baseline sm:gap-1">
-                    <span class="font-bold text-gray-700 dark:text-gray-300">{{ $openAmount }}</span>
-                    <span class="text-xs font-normal text-gray-400 dark:text-gray-500">/ {{ $totalAmount }}</span>
-                </div>
-                @if ($canManageRecurrings)
-                    <x-filament::button
-                        tag="a"
-                        size="sm"
-                        color="primary"
-                        icon="heroicon-m-arrow-right"
-                        :href="$manageUrl"
-                    >
-                        Manage
-                    </x-filament::button>
-                @endif
-            </div>
-        </x-slot>
+        @if ($canManageRecurrings)
+            <x-slot name="afterHeader">
+                <x-filament::button
+                    tag="a"
+                    size="sm"
+                    color="primary"
+                    icon="heroicon-m-arrow-right"
+                    :href="$manageUrl"
+                >
+                    Manage
+                </x-filament::button>
+            </x-slot>
+        @endif
 
         @if (count($items) === 0)
             <div

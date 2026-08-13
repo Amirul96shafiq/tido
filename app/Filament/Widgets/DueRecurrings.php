@@ -176,9 +176,7 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
      *     contentHeight: string,
      *     items: list<array<string, mixed>>,
      *     manageUrl: string,
-     *     openAmount: string,
      *     titleIndicator: 'alert'|'calm',
-     *     totalAmount: string,
      *     totalCount: int
      * }
      */
@@ -198,16 +196,9 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
             RecurringOccurrenceStatus::Overdue,
             RecurringOccurrenceStatus::Upcoming,
         ]);
-        $completedQuery = (clone $query)->where('status', RecurringOccurrenceStatus::Completed);
 
         $totalCount = (clone $openQuery)->count();
         $titleIndicator = (clone $actionableQuery)->count() > 0 ? 'alert' : 'calm';
-        $openAmountValue = (float) (clone $openQuery)->sum('expected_amount');
-        $completedAmountValue = (float) (clone $completedQuery)->sum(DB::raw('COALESCE(actual_amount, expected_amount)'));
-        $totalAmountValue = $openAmountValue + $completedAmountValue;
-
-        $openAmount = MoneyDisplay::withPrefix($openAmountValue);
-        $totalAmount = MoneyDisplay::withPrefix($totalAmountValue);
 
         $items = (clone $query)
             ->with(['recurring.label', 'recurring.familyMember', 'expense'])
@@ -279,9 +270,7 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
             'contentHeight' => DashboardWidgetHeights::STANDARD_CHART,
             'items' => $items,
             'manageUrl' => RecurringResource::getUrl('index'),
-            'openAmount' => $openAmount,
             'titleIndicator' => $titleIndicator,
-            'totalAmount' => $totalAmount,
             'totalCount' => $totalCount,
         ];
     }

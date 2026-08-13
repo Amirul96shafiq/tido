@@ -18,6 +18,7 @@ use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Filament\Widgets\CurrentCurrency;
 use App\Filament\Widgets\MonthlySpendingOverview;
+use App\Filament\Widgets\RecurringMonthSnapshot;
 use App\Support\HouseholdAccess;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResult;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResults;
@@ -93,10 +94,10 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Dashboard'],
             ],
             [
-                'title' => "This Month's Bills",
-                'keywords' => ['recurring', 'recurrings', 'bills', 'snapshot', 'progress', 'committed', 'dashboard'],
+                'title' => RecurringMonthSnapshot::headingLabel(),
+                'keywords' => ['recurring', 'recurrings', 'bills', 'snapshot', 'progress', 'committed', 'dashboard', 'this month'],
                 'group' => 'Sections',
-                'url' => $dashboardUrl.'#recurring-month-snapshot',
+                'url' => $dashboardUrl.'#'.RecurringMonthSnapshot::dashboardSectionId(),
                 'details' => ['Page' => 'Dashboard'],
             ],
             [
