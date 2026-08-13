@@ -10,6 +10,7 @@ use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\CurrentCurrency;
 use App\Filament\Widgets\DueRecurrings;
 use App\Filament\Widgets\MonthlyTrend;
+use App\Filament\Widgets\RecurringMonthSnapshot;
 use App\Filament\Widgets\SpendingByLabel;
 use App\Models\Expense;
 use App\Models\FamilyMember;
@@ -46,7 +47,7 @@ test('due widget shows open occurrences for primary', function () {
         ->assertSee(RecurringOccurrenceStatus::Due->label());
 });
 
-test('due widget header total sums expected amounts', function () {
+test('due widget lists occurrence amounts without a header total', function () {
     $this->actingAs(User::factory()->create([
         'household_role' => HouseholdRole::Primary,
     ]));
@@ -70,8 +71,9 @@ test('due widget header total sums expected amounts', function () {
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSee('2 Recurring Payment Dues')
-        ->assertSee('RM 150.50')
-        ->assertSee('/ RM 150.50');
+        ->assertSee('RM 100.00')
+        ->assertSee('RM 50.50')
+        ->assertDontSee('/ RM 150.50');
 });
 
 test('due widget shows completed occurrences at reduced opacity with completed status', function () {
@@ -108,7 +110,7 @@ test('due widget shows completed occurrences at reduced opacity with completed s
         ->assertOk()
         ->assertSee('1 Recurring Payment Due')
         ->assertSee('RM 102.80')
-        ->assertSee('/ RM 157.80')
+        ->assertDontSee('/ RM 157.80')
         ->assertSee('TIME Internet')
         ->assertSee('Netflix')
         ->assertSee('Completed · '.$completedAt->format('d M Y H:i'))
@@ -226,14 +228,15 @@ test('due widget hides upcoming occurrences from future months', function () {
         ->assertDontSee('Next Month Bill');
 });
 
-test('due recurrings widget sorts after overview currency and before analytics charts', function () {
+test('due recurrings widget sorts after overview currency and before month snapshot', function () {
     expect(DueRecurrings::getSort())->toBe(3)
         ->and(CurrentCurrency::getSort())->toBe(2)
-        ->and(MonthlyTrend::getSort())->toBe(4)
-        ->and(SpendingByLabel::getSort())->toBe(5);
+        ->and(RecurringMonthSnapshot::getSort())->toBe(4)
+        ->and(MonthlyTrend::getSort())->toBe(5)
+        ->and(SpendingByLabel::getSort())->toBe(6);
 });
 
-test('due recurrings list height matches monthly spending trend chart', function () {
+test('due recurrings list uses standard chart height and a single-column layout', function () {
     $this->actingAs(User::factory()->create([
         'household_role' => HouseholdRole::Primary,
     ]));
@@ -246,19 +249,23 @@ test('due recurrings list height matches monthly spending trend chart', function
         'due_on' => now()->toDateString(),
     ]);
 
-    $height = DashboardWidgetHeights::TREND_CHART;
+    $height = DashboardWidgetHeights::STANDARD_CHART;
 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSee('max-height: '.$height, false)
         ->assertSee('min-height: '.$height, false)
         ->assertSee('custom-scrollbar grid flex-1 grid-cols-1 gap-1', false)
-        ->assertSee('sm:grid-cols-2', false)
+        ->assertDontSee('sm:grid-cols-2', false)
+        ->assertSee('h-full', false)
         ->assertSee('pr-2', false)
         ->assertSee('-mx-1 flex min-w-0 items-center gap-2 rounded-xl px-2 py-3', false);
 
-    expect((new ReflectionClass(MonthlyTrend::class))->getDefaultProperties()['maxHeight'])
-        ->toBe($height);
+    expect((new ReflectionClass(DueRecurrings::class))->getDefaultProperties()['columnSpan'])
+        ->toBe([
+            'default' => 'full',
+            'xl' => 8,
+        ]);
 });
 
 test('due recurrings widget uses payment-card two-zone layout', function () {
@@ -618,7 +625,8 @@ test('due widget skip requires filament confirmation modal', function () {
         ->assertMountedActionModalSee('Skip occurrence?')
         ->assertMountedActionModalSee('This occurrence will be marked as skipped.')
         ->callMountedAction()
-        ->assertSuccessful();
+        ->assertSuccessful()
+        ->assertDispatched('recurring-occurrences-updated');
 
     expect($occurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Skipped);
 });
@@ -642,7 +650,8 @@ test('due widget revert requires filament confirmation modal', function () {
         ->assertMountedActionModalSee('Revert skipped occurrence?')
         ->assertMountedActionModalSee('This occurrence will return to the due list.')
         ->callMountedAction()
-        ->assertSuccessful();
+        ->assertSuccessful()
+        ->assertDispatched('recurring-occurrences-updated');
 
     expect($occurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Due);
 });

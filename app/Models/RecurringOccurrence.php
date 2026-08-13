@@ -74,6 +74,42 @@ class RecurringOccurrence extends Model
         });
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
+    public function scopeForDashboardMonth(Builder $query): Builder
+    {
+        $monthStart = now()->copy()->startOfMonth();
+        $monthEnd = now()->copy()->endOfMonth();
+
+        return $query
+            ->whereHas('recurring', fn ($recurring) => $recurring->active())
+            ->where(function (Builder $inner) use ($monthStart, $monthEnd): void {
+                $inner
+                    ->whereIn('status', [
+                        RecurringOccurrenceStatus::Due,
+                        RecurringOccurrenceStatus::Overdue,
+                    ])
+                    ->orWhere(function (Builder $upcoming) use ($monthStart, $monthEnd): void {
+                        $upcoming
+                            ->where('status', RecurringOccurrenceStatus::Upcoming)
+                            ->whereDate('due_on', '>=', $monthStart->toDateString())
+                            ->whereDate('due_on', '<=', $monthEnd->toDateString());
+                    })
+                    ->orWhere(function (Builder $completed) use ($monthStart): void {
+                        $completed
+                            ->where('status', RecurringOccurrenceStatus::Completed)
+                            ->where('updated_at', '>=', $monthStart);
+                    })
+                    ->orWhere(function (Builder $skipped) use ($monthStart): void {
+                        $skipped
+                            ->where('status', RecurringOccurrenceStatus::Skipped)
+                            ->where('updated_at', '>=', $monthStart);
+                    });
+            });
+    }
+
     public function isOpen(): bool
     {
         return $this->status->isOpen();

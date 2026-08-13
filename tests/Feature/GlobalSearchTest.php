@@ -13,6 +13,7 @@ use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Filament\Widgets\CurrentCurrency;
+use App\Filament\Widgets\RecurringMonthSnapshot;
 use App\Models\Backup;
 use App\Models\Budget;
 use App\Models\Expense;
@@ -66,6 +67,18 @@ test('destination search finds dashboard usd to myr section', function () {
 
     expect($match)->not->toBeNull()
         ->and($match->url)->toEndWith('#'.CurrentCurrency::SECTION_CURRENCY_RATE)
+        ->and($match->details)->toBe(['Page' => 'Dashboard']);
+});
+
+test('destination search finds dashboard month bills section', function () {
+    $heading = RecurringMonthSnapshot::headingLabel();
+    $results = AdminDestinationSearch::search($heading, GlobalSearchResults::make());
+    $sections = collect($results->getCategories()->get('Sections', []));
+
+    $match = $sections->first(fn ($result): bool => $result->title === $heading);
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toEndWith('#'.RecurringMonthSnapshot::dashboardSectionId())
         ->and($match->details)->toBe(['Page' => 'Dashboard']);
 });
 
