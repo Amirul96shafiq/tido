@@ -48,6 +48,7 @@ Sidebar nav group **Finances** (Upload Receipts, Expenses, Budgets) is the CRUD 
 | File | Covers |
 |------|--------|
 | [`tests/Feature/TrainingDashboardTest.php`](../tests/Feature/TrainingDashboardTest.php) | Switch to Training / Health / Task, query-string deep links, invalid view ignored |
+| [`tests/Feature/DashboardViewTabsTest.php`](../tests/Feature/DashboardViewTabsTest.php) | `viewTabs()` contract, isolated header-tab markup, active/default state, render-hook scope |
 | [`tests/Feature/DashboardGreetingTest.php`](../tests/Feature/DashboardGreetingTest.php) | Header tabs present (labels, loading targets) |
 | [`tests/Feature/DashboardSectionNavTest.php`](../tests/Feature/DashboardSectionNavTest.php) | Finances **widget** section nav only (not view tabs) |
 | [`tests/Feature/FamilyMemberAttributionLoginTest.php`](../tests/Feature/FamilyMemberAttributionLoginTest.php) | Spender scope + family login (see [`household-access.md`](household-access.md)) |

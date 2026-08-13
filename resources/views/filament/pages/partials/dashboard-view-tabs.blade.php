@@ -8,8 +8,14 @@
 
     <x-filament::tabs label="Dashboard views">
         @foreach ($tabs as $tab)
+            @php
+                $viewCall = new \Illuminate\Support\HtmlString(
+                    'setDashboardView('.\Illuminate\Support\Js::from($tab['view']).')'
+                );
+            @endphp
+
             <x-filament::tabs.item
-                wire:click="setDashboardView({{ \Illuminate\Support\Js::from($tab['view']) }})"
+                wire:click="{{ $viewCall }}"
                 :active="$activeView === $tab['view']"
                 :aria-label="$tab['label']"
                 x-tooltip="{
@@ -21,13 +27,13 @@
                     :icon="$tab['icon']"
                     class="fi-icon fi-size-md"
                     wire:loading.remove
-                    wire:target="setDashboardView({{ \Illuminate\Support\Js::from($tab['view']) }})"
+                    wire:target="{{ $viewCall }}"
                 />
 
                 <x-filament::loading-indicator
                     class="fi-icon fi-size-md"
                     wire:loading
-                    wire:target="setDashboardView({{ \Illuminate\Support\Js::from($tab['view']) }})"
+                    wire:target="{{ $viewCall }}"
                 />
             </x-filament::tabs.item>
         @endforeach
