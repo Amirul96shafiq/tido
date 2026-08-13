@@ -86,10 +86,11 @@ class BudgetStatus extends Widget
             ->orderBy('id')
             ->get();
 
+        $spentById = Budget::spentTotalsFor($budgets, $reference);
         $budgetStates = [];
 
         foreach ($budgets as $budget) {
-            $spent = $budget->spentInPeriod($reference);
+            $spent = (float) ($spentById[(int) $budget->id] ?? 0.0);
             $percentage = $budget->amount > 0 ? ($spent / $budget->amount) * 100 : 0;
             $warnThreshold = (float) $budget->alert_threshold;
             $criticalThreshold = (float) $budget->critical_threshold;

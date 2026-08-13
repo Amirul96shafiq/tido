@@ -16,6 +16,10 @@ class LogLivewireUpdates
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (! config('app.debug')) {
+            return $next($request);
+        }
+
         $startedAt = microtime(true);
 
         try {

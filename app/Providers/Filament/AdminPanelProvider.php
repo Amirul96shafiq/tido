@@ -190,8 +190,8 @@ class AdminPanelProvider extends PanelProvider
                     $dark = asset('images/bg-d-v8.webp');
                     $authLightMobile = asset('images/auth-bg-l.webp');
                     $authDarkMobile = asset('images/auth-bg-d.webp');
-                    $authLight = asset('images/auth-bg-l-v5.png');
-                    $authDark = asset('images/auth-bg-d-v5.png');
+                    $authLight = asset('images/auth-bg-l-v5.webp');
+                    $authDark = asset('images/auth-bg-d-v5.webp');
                     // Chrome-matched tint; art lives on .tido-stylized-bg with soft masks.
                     $lightTint = 'var(--color-white)';
                     $darkTint = 'var(--color-slate-800)';

@@ -66,6 +66,11 @@ class ExpenseResource extends Resource
         ];
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['paymentMethod', 'familyMember', 'editedBy']);
+    }
+
     /**
      * @return list<string>
      */

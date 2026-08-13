@@ -8,6 +8,7 @@ use App\Models\ExpenseItem;
 use App\Models\FamilyMember;
 use App\Models\Label;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
@@ -242,4 +243,76 @@ test('visible to scope shows owned or shared budgets for family members', functi
 
     expect($visibleIds)->toContain($owned->id, $shared->id)
         ->and($visibleIds)->not->toContain($hidden->id);
+});
+
+test('spent totals for batches matching spent in period', function () {
+    $label = Label::factory()->create();
+    $otherLabel = Label::factory()->create();
+    $member = FamilyMember::factory()->create();
+
+    $personal = Budget::factory()->forFamilyMember($member)->create([
+        'label_id' => $label->id,
+        'amount' => 500.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+    ]);
+
+    $shared = Budget::factory()->shared()->create([
+        'label_id' => $label->id,
+        'amount' => 500.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+    ]);
+
+    $overall = Budget::factory()->create([
+        'title' => null,
+        'label_id' => null,
+        'amount' => 1000.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+        'is_shared' => true,
+    ]);
+
+    $primaryExpense = Expense::factory()->create([
+        'date_time' => now(),
+        'status' => 'parsed',
+        'family_member_id' => null,
+    ]);
+
+    $memberExpense = Expense::factory()->create([
+        'date_time' => now(),
+        'status' => 'parsed',
+        'family_member_id' => $member->id,
+    ]);
+
+    ExpenseItem::factory()->create([
+        'expense_id' => $primaryExpense->id,
+        'label_id' => $label->id,
+        'line_total' => 40.00,
+    ]);
+
+    ExpenseItem::factory()->create([
+        'expense_id' => $memberExpense->id,
+        'label_id' => $label->id,
+        'line_total' => 60.00,
+    ]);
+
+    ExpenseItem::factory()->create([
+        'expense_id' => $primaryExpense->id,
+        'label_id' => $otherLabel->id,
+        'line_total' => 25.00,
+    ]);
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+
+    $totals = Budget::spentTotalsFor(collect([$personal, $shared, $overall]));
+
+    $queryCount = count(DB::getQueryLog());
+    DB::disableQueryLog();
+
+    expect($queryCount)->toBe(1)
+        ->and($totals[$personal->id])->toBe(60.0)
+        ->and($totals[$shared->id])->toBe(100.0)
+        ->and($totals[$overall->id])->toBe(125.0);
 });

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -157,30 +158,78 @@ class Budget extends Model
 
     public function spentInPeriod(?Carbon $reference = null): float
     {
-        $start = $this->getStartDate($reference);
-        $end = $this->getEndDate($reference);
+        $totals = self::spentTotalsFor(collect([$this]), $reference);
 
-        $query = ExpenseItem::query()
-            ->join('expenses', 'expense_items.expense_id', '=', 'expenses.id')
-            ->whereNull('expenses.deleted_at')
-            ->whereBetween('expenses.date_time', [$start, $end])
-            ->whereIn('expenses.status', ['parsed', 'reviewed'])
-            ->where('expenses.currency', Expense::CURRENCY_MYR)
-            ->whereIn('expenses.currency_conversion_status', Expense::CANONICAL_CONVERSION_STATUSES);
+        return (float) ($totals[(int) $this->getKey()] ?? 0.0);
+    }
 
-        if ($this->label_id) {
-            $query->where('expense_items.label_id', $this->label_id);
+    /**
+     * Batch spent totals for many budgets using one aggregate query per date window.
+     *
+     * @param  Collection<int, self>  $budgets
+     * @return array<int, float>
+     */
+    public static function spentTotalsFor(Collection $budgets, ?Carbon $reference = null): array
+    {
+        $reference ??= now();
+        $totals = [];
+
+        foreach ($budgets as $budget) {
+            $totals[(int) $budget->getKey()] = 0.0;
         }
 
-        if (! $this->is_shared) {
-            if ($this->family_member_id === null) {
-                $query->whereNull('expenses.family_member_id');
-            } else {
-                $query->where('expenses.family_member_id', $this->family_member_id);
+        if ($budgets->isEmpty()) {
+            return $totals;
+        }
+
+        $windows = $budgets->groupBy(
+            fn (self $budget): string => $budget->getStartDate($reference)->format('c')
+                .'|'.$budget->getEndDate($reference)->format('c'),
+        );
+
+        foreach ($windows as $windowBudgets) {
+            /** @var self $first */
+            $first = $windowBudgets->first();
+            $start = $first->getStartDate($reference);
+            $end = $first->getEndDate($reference);
+
+            $rows = ExpenseItem::query()
+                ->join('expenses', 'expense_items.expense_id', '=', 'expenses.id')
+                ->whereNull('expenses.deleted_at')
+                ->whereBetween('expenses.date_time', [$start, $end])
+                ->whereIn('expenses.status', ['parsed', 'reviewed'])
+                ->where('expenses.currency', Expense::CURRENCY_MYR)
+                ->whereIn('expenses.currency_conversion_status', Expense::CANONICAL_CONVERSION_STATUSES)
+                ->selectRaw('expense_items.label_id as label_id, expenses.family_member_id as family_member_id, SUM(expense_items.line_total) as total')
+                ->groupBy('expense_items.label_id', 'expenses.family_member_id')
+                ->get();
+
+            foreach ($windowBudgets as $budget) {
+                $totals[(int) $budget->getKey()] = (float) $rows
+                    ->filter(fn ($row): bool => self::rowAppliesToBudget($budget, $row))
+                    ->sum(fn ($row): float => (float) $row->total);
             }
         }
 
-        return (float) $query->sum('expense_items.line_total');
+        return $totals;
+    }
+
+    private static function rowAppliesToBudget(self $budget, object $row): bool
+    {
+        if ($budget->label_id !== null && (int) $row->label_id !== (int) $budget->label_id) {
+            return false;
+        }
+
+        if ($budget->is_shared) {
+            return true;
+        }
+
+        if ($budget->family_member_id === null) {
+            return $row->family_member_id === null;
+        }
+
+        return $row->family_member_id !== null
+            && (int) $row->family_member_id === (int) $budget->family_member_id;
     }
 
     public function getStartDate(?Carbon $reference = null): Carbon
