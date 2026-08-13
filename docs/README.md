@@ -18,7 +18,7 @@
 | [ui-sticky-blur.md](ui-sticky-blur.md) | Agents + humans | Sticky top/bottom bars with progressive blur veil |
 | [ui-section-nav.md](ui-section-nav.md) | Agents + humans | Shared sticky section tabs + smooth scroll / hash deep links |
 | [ui-tooltips.md](ui-tooltips.md) | Agents + humans | Filament Tippy tooltips on icon CTAs (not browser `title`) |
-| [ui-text-marquee.md](ui-text-marquee.md) | Agents + humans | Single-line overflowing text (RTL marquee) — reusable |
+| [ui-text-marquee.md](ui-text-marquee.md) | Agents + humans | Looping single-line overflowing text (`x-tido.text-marquee`) |
 | [ui-notes-rich-editor.md](ui-notes-rich-editor.md) | Agents + humans | Shared `NotesRichEditor` for `notes` fields (toolbar + height) |
 | [ui-form-empty-defaults.md](ui-form-empty-defaults.md) | Agents + humans | Placeholders vs defaults on resource Create/Edit forms |
 | [ui-custom-toggles.md](ui-custom-toggles.md) | Agents + humans | Custom Blade toggles: Filament color classes + inlineLabel layout |

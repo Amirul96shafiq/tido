@@ -88,7 +88,7 @@ Attribution: `family_member_id` null = Primary; set from WhatsApp sender (`Expen
 - View records: always `ViewAction::make()->slideOver()` — never dedicated View pages; use the disabled form schema (no custom `infolist()` / `*Infolist.php`)
 - Upload UI: `ReceiptUploadPage` → creates pending expenses (stamps `family_member_id` for family users)
 - Dashboard: Finances widgets use `DashboardMonthAnalytics` / month + spender filters; Training / Health / Task are coming-soon shells — `docs/dashboard-views.md`
-- Single-line overflowing labels: `docs/ui-text-marquee.md` (Blade + Alpine; Filament Select via `SelectValueMarquee`)
+- Single-line overflowing labels: `docs/ui-text-marquee.md` (`x-tido.text-marquee`; Filament Select via `SelectValueMarquee`)
 
 - Notes fields: `NotesRichEditor` — `docs/ui-notes-rich-editor.md` (Budget `notes`, Expense `notes`, Label `description` as Label Notes, Payment Method `notes`)
 - Form empty fields: placeholders vs defaults — `docs/ui-form-empty-defaults.md`

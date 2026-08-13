@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Support;
 
 /**
- * Shared opt-in class for Filament JS select selected-value marquee.
+ * Shared opt-in class for Filament JS select selected-value looping marquee.
  *
  * @see docs/ui-text-marquee.md
  */

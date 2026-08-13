@@ -68,21 +68,26 @@ test('budget status widget uses single-line title marquee markup', function () {
         'is_active' => true,
     ]);
 
-    Livewire::test(BudgetStatus::class)
+    $component = Livewire::test(BudgetStatus::class)
         ->assertSuccessful()
         ->assertSee('Groceries & Household')
-        ->assertSee('x-ref="marqueeText"', false)
-        ->assertSee('tido-text-marquee', false)
+        ->assertSee('x-ref="marqueeSegment"', false)
+        ->assertSee('x-ref="marqueeTrack"', false)
         ->assertSee('tido-text-marquee-clip', false)
-        ->assertSee('const marqueeText = $refs.marqueeText;', false)
-        ->assertSee('if (!marqueeText)', false)
-        ->assertSee('$nextTick(measure);', false)
-        ->assertSee('tido-text-marquee-clip relative min-w-0 flex-1 overflow-hidden', false)
+        ->assertSee('tido-text-marquee-track', false)
+        ->assertDontSee('x-ref="marqueeText"', false)
+        ->assertDontSee('const marqueeText = $refs.marqueeText;', false)
         ->assertDontSee('max-w-[9rem]', false)
         ->assertSee('flex min-w-0 items-start justify-between gap-2 text-sm sm:items-center', false)
         ->assertSee('flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2', false)
         ->assertSee('flex shrink-0 flex-col items-end gap-0.5 text-right whitespace-nowrap sm:flex-row', false)
         ->assertSee('whitespace-nowrap', false);
+
+    $html = $component->html();
+
+    expect(substr_count($html, 'tido-text-marquee-clip'))->toBe(1)
+        ->and(substr_count($html, 'tido-text-marquee-track'))->toBe(1)
+        ->and(substr_count($html, 'x-ref="marqueeSegment"'))->toBe(1);
 });
 
 test('budget status widget renders period and shared pills with contrast', function () {

@@ -136,38 +136,19 @@
                             {{-- Left: identity + secondary meta (bills-timeline / payment-card pattern) --}}
                             <div class="flex min-w-0 flex-1 flex-col gap-1">
                                 <div class="flex min-w-0 items-center gap-2">
-                                    <div
-                                        x-data="{ overflowing: false }"
-                                        x-init="
-                                            const measure = () => {
-                                                const marqueeText = $refs.marqueeText;
-
-                                                if (!marqueeText) {
-                                                    overflowing = false;
-                                                    return;
-                                                }
-
-                                                $el.style.setProperty(
-                                                    '--tido-marquee-clip',
-                                                    $el.clientWidth + 'px',
-                                                );
-                                                overflowing = marqueeText.scrollWidth > $el.clientWidth;
-                                            };
-                                            $nextTick(measure);
-                                            new ResizeObserver(() => measure()).observe($el);
-                                        "
-                                        class="tido-text-marquee-clip relative min-w-0 max-w-full overflow-hidden"
+                                    <x-tido.text-marquee
+                                        class="min-w-0 flex-1"
+                                        text-class="inline-flex items-center gap-2 whitespace-nowrap"
+                                        wire:key="due-recurrings-title-{{ $item['id'] }}"
                                     >
-                                        <span
-                                            x-ref="marqueeText"
-                                            class="inline-block text-sm font-semibold whitespace-nowrap text-gray-800 dark:text-gray-200"
-                                            :class="{ 'tido-text-marquee': overflowing }"
-                                        >{{ $item['title'] }}</span>
-                                    </div>
+                                        <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                            {{ $item['title'] }}
+                                        </span>
 
-                                    <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-slate-600 dark:text-slate-100">
-                                        {{ $item['cadence'] }}
-                                    </span>
+                                        <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-slate-600 dark:text-slate-100">
+                                            {{ $item['cadence'] }}
+                                        </span>
+                                    </x-tido.text-marquee>
 
                                     @if ($item['is_shared'] ?? false)
                                         <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-primary-100 px-2 py-0.5 text-[11px] font-medium text-primary-700 dark:bg-primary-400/25 dark:text-primary-300">
@@ -176,7 +157,11 @@
                                     @endif
                                 </div>
 
-                                <div class="flex min-w-0 flex-wrap items-center gap-x-1.5 text-xs text-gray-400 dark:text-gray-500">
+                                <x-tido.text-marquee
+                                    class="min-w-0 w-full"
+                                    text-class="inline-flex items-center gap-x-1.5 whitespace-nowrap text-xs text-gray-400 dark:text-gray-500"
+                                    wire:key="due-recurrings-meta-{{ $item['id'] }}-{{ $item['status'] }}-{{ (int) $isCompleted }}-{{ (int) $isSkipped }}"
+                                >
                                     @if ($isCompleted)
                                         <span>Completed · {{ $item['completedAt'] }}</span>
                                     @elseif ($isSkipped)
@@ -200,7 +185,7 @@
                                         <span aria-hidden="true">·</span>
                                         <span>{{ number_format($progress, 0) }}% of goal</span>
                                     @endif
-                                </div>
+                                </x-tido.text-marquee>
                             </div>
 
                             {{-- Right: amount is the primary decision signal --}}

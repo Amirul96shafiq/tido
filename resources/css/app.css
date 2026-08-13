@@ -1592,7 +1592,7 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 }
 
 .fi-account-switcher-account {
-    @apply flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors;
+    @apply flex w-full min-w-0 items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors;
 
     color: var(--color-gray-700);
 }
@@ -1655,55 +1655,6 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 
 .dark .fi-account-switcher-account-avatar-placeholder {
     color: var(--color-gray-300);
-}
-
-.tido-single-line-text {
-    transform: translateX(0);
-    transition: transform 220ms ease-out;
-}
-
-.tido-single-line-text-clip {
-    -webkit-mask-image: linear-gradient(
-        to right,
-        black 0%,
-        black calc(100% - 1.25rem),
-        transparent 100%
-    );
-    mask-image: linear-gradient(
-        to right,
-        black 0%,
-        black calc(100% - 1.25rem),
-        transparent 100%
-    );
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-}
-
-@media (hover: hover) {
-    .tido-single-line-text-clip:hover {
-        -webkit-mask-image: none;
-        mask-image: none;
-    }
-
-    .tido-single-line-text-clip:hover .tido-single-line-text {
-        transform: translateX(
-            calc(var(--tido-single-line-text-overflow, 0px) * -1)
-        );
-        transition-delay: 300ms;
-        transition-duration: 0.75s;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .tido-single-line-text {
-        transition: none;
-    }
-
-    .tido-single-line-text-clip:hover .tido-single-line-text {
-        transform: translateX(0);
-    }
 }
 
 .fi-account-switcher-account-chevron {
@@ -3677,22 +3628,6 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     }
 }
 
-@keyframes tido-text-marquee {
-    0%,
-    15% {
-        transform: translateX(0);
-    }
-
-    85%,
-    100% {
-        transform: translateX(calc(-100% + var(--tido-marquee-clip, 9rem)));
-    }
-}
-
-.tido-text-marquee {
-    animation: tido-text-marquee 8s linear infinite;
-}
-
 .tido-text-marquee-track {
     @apply inline-flex w-max shrink-0 gap-8;
     will-change: transform;
@@ -3708,17 +3643,13 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .tido-text-marquee {
-        animation: none;
-    }
-
     .tido-text-marquee-track {
         transform: none !important;
     }
 }
 
 /*
- * Filament JS select selected value — single-line clip for `.tido-text-marquee`.
+ * Filament JS select selected value — looping track inside the closed value.
  * Opt in: `.tido-select-value-marquee` (JS: select-value-marquee.js).
  * Closed value: no wrap + marquee. Dropdown options: full wording (no ellipsis).
  */
@@ -3732,7 +3663,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 .tido-select-value-marquee
     .fi-select-input-ctn-option-labels-not-wrapped
     .fi-select-input-value-ctn
-    > span {
+    .tido-text-marquee-segment {
     display: inline-block;
     flex: none;
     overflow: visible;
