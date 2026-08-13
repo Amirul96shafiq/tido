@@ -6,6 +6,13 @@
                 "artisan",
                 "boost:mcp"
             ]
+        },
+        "repowise": {
+            "command": "repowise",
+            "args": [
+                "mcp",
+                "G:/projects/tido"
+            ]
         }
     }
 }
