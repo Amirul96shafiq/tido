@@ -15,7 +15,7 @@ Pass layout classes to the component and text styling through `text-class`. The 
 
 ## Hover-pan component
 
-Use the reusable component for account names, chat titles, navigation labels, and other short labels that must remain on one line:
+Use the reusable component for chat titles, navigation labels, and other short labels that must remain on one line:
 
 1. Text stays still with a right-edge fade when not hovered.
 2. Hovering waits briefly, then pans to the hidden end of the text.
@@ -46,6 +46,7 @@ The older inline `.tido-text-marquee` CSS animation remains only for Filament JS
 |---------|------|
 | Recurring Payment Dues (title + cadence pill, description) | [`resources/views/filament/widgets/due-recurrings.blade.php`](../resources/views/filament/widgets/due-recurrings.blade.php) |
 | Budget Performance widget titles | [`resources/views/filament/widgets/budget-status.blade.php`](../resources/views/filament/widgets/budget-status.blade.php) |
+| Swap Account names | [`resources/views/filament/livewire/partials/account-switcher-account.blade.php`](../resources/views/filament/livewire/partials/account-switcher-account.blade.php) |
 | Monthly spending stats descriptions | [`resources/views/vendor/filament-widgets/stats-overview-widget/stat.blade.php`](../resources/views/vendor/filament-widgets/stats-overview-widget/stat.blade.php) |
 | Filament JS Select selected value (CSS animation helper) | Expense `currency` via [`SelectValueMarquee`](../app/Filament/Support/SelectValueMarquee.php) |
 

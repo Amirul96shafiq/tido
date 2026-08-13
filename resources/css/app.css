@@ -1592,7 +1592,7 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 }
 
 .fi-account-switcher-account {
-    @apply flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors;
+    @apply flex w-full min-w-0 items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors;
 
     color: var(--color-gray-700);
 }

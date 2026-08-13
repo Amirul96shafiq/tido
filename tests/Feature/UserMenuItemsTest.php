@@ -131,9 +131,11 @@ test('user menu places account switcher between profile details and theme select
         ->assertSee('fi-account-switcher-section', false)
         ->assertSee('Spouse', false)
         ->assertSee('fi-account-switcher-account-chevron', false)
-        ->assertSee('tido-single-line-text-clip', false)
-        ->assertSee('x-ref="singleLineText"', false)
-        ->assertDontSee('tido-text-marquee', false)
+        ->assertSee('tido-text-marquee-clip', false)
+        ->assertSee('tido-text-marquee-track', false)
+        ->assertSee('x-ref="marqueeSegment"', false)
+        ->assertDontSee('tido-single-line-text-clip', false)
+        ->assertDontSee('x-ref="singleLineText"', false)
         ->assertSee('fi-theme-switcher-btn', false)
         ->assertDontSee('fi-account-switcher-trigger', false);
 
@@ -359,6 +361,7 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->toContain('border: 1px solid var(--color-gray-100);')
         ->toContain('border-radius: var(--radius-lg, 0.5rem);')
         ->and($accountSwitcherAccountBlock)
+        ->toContain('min-w-0')
         ->toContain('rounded-md')
         ->toContain('transition-colors')
         ->and($css)

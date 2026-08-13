@@ -41,7 +41,11 @@
         @endif
     </span>
 
-    <x-tido.single-line-text class="flex-1">{{ $accountDisplayName }}</x-tido.single-line-text>
+    <x-tido.text-marquee
+        class="min-w-0 flex-1"
+        text-class="inline-block whitespace-nowrap"
+        wire:key="marquee-{{ $rowKey }}-{{ $accountDisplayName }}"
+    >{{ $accountDisplayName }}</x-tido.text-marquee>
 
     <span class="fi-account-switcher-account-chevron">
         <x-filament::icon icon="heroicon-m-chevron-right" />

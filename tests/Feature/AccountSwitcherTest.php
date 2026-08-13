@@ -30,9 +30,11 @@ test('primary user sees account switcher with login-enabled family members', fun
         ->assertSee('fi-account-switcher')
         ->assertSee('fi-account-switcher-account-chevron')
         ->assertSee("mountAction('confirmSwitchTo'", false)
-        ->assertSee('tido-single-line-text-clip')
-        ->assertSee('x-ref="singleLineText"', false)
-        ->assertDontSee('tido-text-marquee', false)
+        ->assertSee('tido-text-marquee-clip')
+        ->assertSee('tido-text-marquee-track')
+        ->assertSee('x-ref="marqueeSegment"', false)
+        ->assertDontSee('tido-single-line-text-clip', false)
+        ->assertDontSee('x-ref="singleLineText"', false)
         ->assertDontSee('Primary Account')
         ->assertDontSee('fi-account-switcher-account-active');
 });
@@ -71,6 +73,27 @@ test('account switcher refreshes a family member avatar after an update event', 
         ->dispatch('family-member-updated', familyMemberId: $member->id)
         ->assertSeeHtml('src="'.e($member->fresh()->getFilamentAvatarUrl()).'"')
         ->assertDontSeeHtml('src="'.$oldAvatarUrl.'"');
+});
+
+test('account switcher refreshes a family member name after an update event', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Sample Spouse',
+        'display_name' => 'Old Nickname',
+    ]);
+
+    $this->actingAs($primary);
+
+    $component = Livewire::test(AccountSwitcher::class)
+        ->assertSee('Old Nickname')
+        ->assertDontSee('New Nickname');
+
+    $member->update(['display_name' => 'New Nickname']);
+
+    $component
+        ->dispatch('family-member-updated', familyMemberId: $member->id)
+        ->assertSee('New Nickname')
+        ->assertDontSee('Old Nickname');
 });
 
 test('primary user sees switchable family members newest first', function () {
