@@ -45,6 +45,9 @@ test('go to bottom uses arrow down icon without amber indicator', function () {
     expect($blade)
         ->toContain('heroicon-o-arrow-down')
         ->toContain('Go to bottom')
+        ->toContain('scheduleUpdate')
+        ->toContain('window.requestAnimationFrame')
+        ->toContain("behavior: 'smooth'")
         ->not->toContain('animate-ping')
         ->not->toContain('bg-amber-500')
         ->not->toContain('bg-amber-400');

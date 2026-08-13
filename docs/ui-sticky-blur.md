@@ -38,6 +38,7 @@ Also clear layout overflow or sticky never engages:
 | `tido-sticky-marker--top` | Same as marker | Stick below topbar + top veil |
 | `tido-sticky-marker--bottom` | Same as marker | Stick above viewport bottom + bottom veil |
 | `tido-sticky-stuck` | Applied by JS on the sticky `.fi-grid-col` | Shows the blur veil |
+| `tido-is-scrolling` | Applied by JS on `html` while the page is scrolling | Drops the stronger `::after` backdrop blur until scroll idle |
 
 Do not put `position: sticky` on the marker itself — CSS targets:
 
@@ -109,8 +110,8 @@ Dashboard remains the reference for **top** sticky bars (manual `Group` + marker
 
 ## Assets (already panel-wide)
 
-- CSS: [`resources/css/app.css`](../resources/css/app.css) — sticky offsets, progressive blur/tint veil (dual `::before` / `::after` layers)
-- JS: [`resources/js/sticky-blur-veil.js`](../resources/js/sticky-blur-veil.js) — rAF scroll listener; toggles `tido-sticky-stuck`
+- CSS: [`resources/css/app.css`](../resources/css/app.css) — sticky offsets, progressive blur/tint veil (dual `::before` / `::after` layers). `backdrop-filter` applies only while `.tido-sticky-stuck`; `html.tido-is-scrolling` drops the stronger `::after` blur during native scroll
+- JS: [`resources/js/sticky-blur-veil.js`](../resources/js/sticky-blur-veil.js) — rAF scroll listener; caches pin offsets; skips no-op class toggles; toggles `tido-sticky-stuck` and `html.tido-is-scrolling`
 - Registered in [`vite.config.js`](../vite.config.js) and [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php) `->assets()` via `Vite::asset()` — see [`vite-assets.md`](vite-assets.md)
 
 No per-page JS registration is required once the hook classes are present.
@@ -119,9 +120,10 @@ No per-page JS registration is required once the hook classes are present.
 
 - **Top offset** matches tido topbar height: `calc(var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem)` (`gap-1` under the topbar).
 - **Bottom offset** uses `0.25rem` from the viewport bottom.
-- Veil is **fixed**, full width, only visible while `.tido-sticky-stuck`. Progressive dual-layer blur + slate/white tint avoids Chromium’s hard `backdrop-filter` mask cutoff.
+- Veil is **fixed**, full width, only visible while `.tido-sticky-stuck` (CSS sticky slot, ~2px). At document top the top pin is in flow so the top veil is off; at document bottom the bottom pin releases so the bottom veil is off. Progressive dual-layer blur + slate/white tint avoids Chromium’s hard `backdrop-filter` mask cutoff.
+- `backdrop-filter` is **not** applied while the veil is `opacity: 0` (unstuck). While `html.tido-is-scrolling`, the stronger `::after` blur is disabled so Chromium is not resampling two filters every frame; the tint remains. Frost returns when scroll idle (~150ms).
 - Pin children stay sharp (`z-index: 1` above the veil).
-- SPA: JS re-binds on `livewire:navigated` and after Livewire `morphed` (in-page updates such as dashboard Focus tabs).
+- SPA: JS re-binds on `livewire:navigated` and after Livewire `morphed` (in-page updates such as dashboard Focus tabs). Do **not** add GSAP ScrollSmoother / Lenis / `scroll-behavior: smooth` on `html` — those fight CSS sticky, `position: fixed` chrome, and Livewire SPA scroll.
 
 ## Checklist for a new sticky bar
 
@@ -138,3 +140,4 @@ No per-page JS registration is required once the hook classes are present.
 - Put opaque backgrounds on the pin that defeat the frosted look unless intentional.
 - Invent a second stuck-detection script — extend `sticky-blur-veil.js` if needed.
 - Use Filament `stickyFormActions()` for Create/Edit/profile CTAs — use `HasStickyBlurFormActions` instead.
+- Add GSAP ScrollSmoother, Lenis, or `scroll-behavior: smooth` on `html` to “smooth” wheel scrolling — native window scroll is required for sticky pins and `position: fixed` chrome.
