@@ -4177,6 +4177,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 .fi-ta-table > tbody > tr > td.fi-ta-cell:has(.fi-ta-actions) {
     position: sticky;
     inset-inline-end: 0;
+    /* Beat Filament last-cell pe-6 (24px) so freeze-column padding is even. */
+    padding-inline: 0.75rem;
 }
 
 .fi-ta-table > thead > tr > .fi-ta-actions-header-cell::before,
