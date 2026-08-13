@@ -65,6 +65,11 @@ test('authenticated user can load expenses list', function () {
         ->assertSuccessful();
 });
 
+test('expenses list query eager loads table relations', function () {
+    expect(array_keys(ExpenseResource::getEloquentQuery()->getEagerLoads()))
+        ->toContain('paymentMethod', 'familyMember', 'editedBy');
+});
+
 test('authenticated user can load budgets list', function () {
     $this->actingAs($this->admin)
         ->get(BudgetResource::getUrl('index'))

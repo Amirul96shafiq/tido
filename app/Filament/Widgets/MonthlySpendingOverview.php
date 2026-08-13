@@ -48,7 +48,7 @@ class MonthlySpendingOverview extends BaseWidget
 
     protected function getPollingInterval(): ?string
     {
-        return $this->isCurrentMonthSelected() ? '15s' : null;
+        return $this->isCurrentMonthSelected() ? '30s' : null;
     }
 
     protected function getStats(): array

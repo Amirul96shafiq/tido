@@ -88,7 +88,27 @@ test('auth light and dark background images exist', function () {
     expect(public_path('images/auth-bg-l.webp'))->toBeFile()
         ->and(public_path('images/auth-bg-d.webp'))->toBeFile()
         ->and(public_path('images/auth-bg-l-v5.png'))->toBeFile()
-        ->and(public_path('images/auth-bg-d-v5.png'))->toBeFile();
+        ->and(public_path('images/auth-bg-d-v5.png'))->toBeFile()
+        ->and(public_path('images/auth-bg-l-v5.webp'))->toBeFile()
+        ->and(public_path('images/auth-bg-d-v5.webp'))->toBeFile();
+});
+
+test('dark desktop auth background right edge matches slate-800', function () {
+    $image = imagecreatefromwebp(public_path('images/auth-bg-d-v5.webp'));
+
+    expect($image)->not->toBeFalse();
+
+    $rgb = imagecolorsforindex(
+        $image,
+        imagecolorat($image, imagesx($image) - 1, intdiv(imagesy($image), 2)),
+    );
+
+    imagedestroy($image);
+
+    // Filament Color::Slate 800 = oklch(0.279 0.041 260.031) ≈ rgb(29, 41, 61)
+    expect($rgb['red'])->toBeBetween(24, 34)
+        ->and($rgb['green'])->toBeBetween(36, 46)
+        ->and($rgb['blue'])->toBeBetween(56, 66);
 });
 
 test('admin panel provider injects auth background asset css variables', function () {
@@ -97,8 +117,8 @@ test('admin panel provider injects auth background asset css variables', functio
     expect($provider)
         ->toContain("asset('images/auth-bg-l.webp')")
         ->toContain("asset('images/auth-bg-d.webp')")
-        ->toContain("asset('images/auth-bg-l-v5.png')")
-        ->toContain("asset('images/auth-bg-d-v5.png')")
+        ->toContain("asset('images/auth-bg-l-v5.webp')")
+        ->toContain("asset('images/auth-bg-d-v5.webp')")
         ->toContain('--tido-auth-bg-light-mobile:')
         ->toContain('--tido-auth-bg-dark-mobile:')
         ->toContain('--tido-auth-bg-light:')

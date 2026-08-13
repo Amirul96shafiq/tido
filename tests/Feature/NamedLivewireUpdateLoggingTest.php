@@ -19,6 +19,8 @@ test('registers the logging middleware on the livewire update route', function (
 });
 
 test('logs each livewire component update with its name and actions', function () {
+    config(['app.debug' => true]);
+
     $logger = Mockery::mock(LoggerInterface::class);
 
     Log::shouldReceive('stack')
@@ -69,6 +71,35 @@ test('logs each livewire component update with its name and actions', function (
                 ], JSON_THROW_ON_ERROR),
                 'updates' => [],
                 'calls' => [],
+            ],
+        ],
+    ]);
+
+    $response = (new LogLivewireUpdates)->handle(
+        $request,
+        fn (Request $request): Response => response('ok'),
+    );
+
+    expect($response->getStatusCode())->toBe(200);
+});
+
+test('skips livewire update logging when debug is disabled', function () {
+    config(['app.debug' => false]);
+
+    Log::shouldReceive('stack')->never();
+
+    $request = Request::create('/livewire/update', 'POST', [
+        'components' => [
+            [
+                'snapshot' => json_encode([
+                    'memo' => [
+                        'name' => 'filament.pages.dashboard',
+                    ],
+                ], JSON_THROW_ON_ERROR),
+                'updates' => [],
+                'calls' => [
+                    ['method' => 'updateChartData'],
+                ],
             ],
         ],
     ]);
