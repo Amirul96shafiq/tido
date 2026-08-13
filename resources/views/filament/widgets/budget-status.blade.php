@@ -94,34 +94,11 @@
                                         <x-filament::icon :icon="$budget['icon']" class="size-3.5" />
                                     </span>
                                     <div class="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
-                                        <div
-                                            x-data="{ overflowing: false }"
-                                            x-init="
-                                                const measure = () => {
-                                                    const marqueeText = $refs.marqueeText;
-
-                                                    if (!marqueeText) {
-                                                        overflowing = false;
-                                                        return;
-                                                    }
-
-                                                    $el.style.setProperty(
-                                                        '--tido-marquee-clip',
-                                                        $el.clientWidth + 'px',
-                                                    );
-                                                    overflowing = marqueeText.scrollWidth > $el.clientWidth;
-                                                };
-                                                $nextTick(measure);
-                                                new ResizeObserver(() => measure()).observe($el);
-                                            "
-                                            class="tido-text-marquee-clip relative min-w-0 flex-1 overflow-hidden"
-                                        >
-                                            <span
-                                                x-ref="marqueeText"
-                                                class="inline-block font-semibold whitespace-nowrap text-gray-800 dark:text-gray-200"
-                                                :class="{ 'tido-text-marquee': overflowing }"
-                                            >{{ $budget['name'] }}</span>
-                                        </div>
+                                        <x-tido.text-marquee
+                                            class="min-w-0 flex-1"
+                                            text-class="inline-block font-semibold whitespace-nowrap text-gray-800 dark:text-gray-200"
+                                            wire:key="budget-status-title-{{ $budget['id'] }}"
+                                        >{{ $budget['name'] }}</x-tido.text-marquee>
                                         <div class="flex w-fit shrink-0 flex-row flex-wrap items-center gap-1.5">
                                             <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-600 dark:text-slate-100">{{ ucfirst($budget['period']) }}</span>
                                             @if ($budget['is_shared'] ?? false)
