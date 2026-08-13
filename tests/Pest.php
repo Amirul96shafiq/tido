@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\Support\DashboardMonthAnalytics;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /*
@@ -20,6 +21,13 @@ pest()->extend(TestCase::class)
 
 pest()->beforeEach(function (): void {
     DashboardMonthAnalytics::flushInstances();
+    config([
+        'services.currencyapi.api_key' => '',
+        'services.currencyapi.base_url' => 'https://currencyapi.test',
+    ]);
+    Http::fake([
+        'api.currencyapi.com/*' => Http::response(['message' => 'blocked in tests'], 401),
+    ]);
 })->in('Feature');
 
 /*

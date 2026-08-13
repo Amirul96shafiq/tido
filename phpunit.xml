@@ -28,6 +28,8 @@
         <env name="DB_URL" value=""/>
         <env name="EVOLUTION_API_KEY" value="test-evolution-api-key-0123456789abcdef0123456789abcdef"/>
         <env name="EVOLUTION_WEBHOOK_SECRET" value="test-evolution-webhook-secret-0123456789abcdef0123456789abcdef"/>
+        <env name="CURRENCY_API_KEY" value="" force="true"/>
+        <env name="CURRENCY_API_BASE_URL" value="https://currencyapi.test" force="true"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
