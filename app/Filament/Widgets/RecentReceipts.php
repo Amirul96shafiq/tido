@@ -26,7 +26,7 @@ class RecentReceipts extends BaseWidget
     use HasDashboardSectionId;
     use InteractsWithDashboardMonth;
 
-    protected static ?int $sort = 10;
+    protected static ?int $sort = 11;
 
     protected int|string|array $columnSpan = 'full';
 

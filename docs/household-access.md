@@ -57,7 +57,7 @@ Existing budgets migrated with `is_shared = true` (household pool). New budgets 
 
 Recurring templates are **Primary-managed** (CRUD stays primary-only). Ownership fields match budgets (`family_member_id`, `is_shared`). Full behaviour: [recurrings.md](recurrings.md).
 
-**Visibility (Home Due Recurrings):** Primary sees all open due/overdue occurrences. Family members see occurrences for templates they own **or** `is_shared = true` (Skip allowed; Recurrings nav still hidden).
+**Visibility (Home Due Recurrings / This Month's Bills):** Primary sees all open due/overdue occurrences. Family members see occurrences for templates they own **or** `is_shared = true` (Skip allowed on the dues list; Recurrings nav still hidden). The snapshot widget uses the same visibility.
 
 ## Family Member model
 

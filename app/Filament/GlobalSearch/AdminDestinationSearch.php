@@ -93,6 +93,13 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Dashboard'],
             ],
             [
+                'title' => "This Month's Bills",
+                'keywords' => ['recurring', 'recurrings', 'bills', 'snapshot', 'progress', 'committed', 'dashboard'],
+                'group' => 'Sections',
+                'url' => $dashboardUrl.'#recurring-month-snapshot',
+                'details' => ['Page' => 'Dashboard'],
+            ],
+            [
                 'title' => 'Monthly Spending Trend',
                 'keywords' => ['trend', 'monthly', 'chart', 'dashboard', 'spending'],
                 'group' => 'Sections',

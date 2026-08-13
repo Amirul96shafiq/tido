@@ -98,6 +98,7 @@ class Dashboard extends BaseDashboard
             ['label' => 'Receipts Processed', 'id' => MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED],
             ['label' => 'USD to MYR', 'id' => CurrentCurrency::SECTION_CURRENCY_RATE],
             ['label' => 'Due Recurrings', 'id' => 'due-recurrings'],
+            ['label' => "This Month's Bills", 'id' => 'recurring-month-snapshot'],
             ['label' => 'Monthly Spending Trend', 'id' => 'monthly-trend'],
             ['label' => 'Spending by Label', 'id' => 'spending-by-label'],
             ['label' => 'Budget Performance', 'id' => 'budget-status'],

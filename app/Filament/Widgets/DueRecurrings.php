@@ -42,7 +42,7 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
 
     protected int|string|array $columnSpan = [
         'default' => 'full',
-        'xl' => 12,
+        'xl' => 8,
     ];
 
     protected string $view = 'filament.widgets.due-recurrings';
@@ -276,7 +276,7 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
 
         return [
             'canManageRecurrings' => $isPrimary,
-            'contentHeight' => DashboardWidgetHeights::TREND_CHART,
+            'contentHeight' => DashboardWidgetHeights::STANDARD_CHART,
             'items' => $items,
             'manageUrl' => RecurringResource::getUrl('index'),
             'openAmount' => $openAmount,
@@ -340,35 +340,10 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
     private function visibleOccurrenceQuery(?User $user = null): Builder
     {
         $user ??= Auth::user() instanceof User ? Auth::user() : null;
-        $monthStart = now()->copy()->startOfMonth();
-        $monthEnd = now()->copy()->endOfMonth();
 
         return RecurringOccurrence::query()
             ->visibleTo($user)
-            ->whereHas('recurring', fn ($query) => $query->active())
-            ->where(function (Builder $query) use ($monthStart, $monthEnd): void {
-                $query
-                    ->whereIn('status', [
-                        RecurringOccurrenceStatus::Due,
-                        RecurringOccurrenceStatus::Overdue,
-                    ])
-                    ->orWhere(function (Builder $upcoming) use ($monthStart, $monthEnd): void {
-                        $upcoming
-                            ->where('status', RecurringOccurrenceStatus::Upcoming)
-                            ->whereDate('due_on', '>=', $monthStart->toDateString())
-                            ->whereDate('due_on', '<=', $monthEnd->toDateString());
-                    })
-                    ->orWhere(function (Builder $completed) use ($monthStart): void {
-                        $completed
-                            ->where('status', RecurringOccurrenceStatus::Completed)
-                            ->where('updated_at', '>=', $monthStart);
-                    })
-                    ->orWhere(function (Builder $skipped) use ($monthStart): void {
-                        $skipped
-                            ->where('status', RecurringOccurrenceStatus::Skipped)
-                            ->where('updated_at', '>=', $monthStart);
-                    });
-            });
+            ->forDashboardMonth();
     }
 
     private function resolvePrimaryUser(): ?User

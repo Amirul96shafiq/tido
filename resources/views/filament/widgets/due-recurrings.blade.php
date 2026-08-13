@@ -15,10 +15,10 @@
             ->merge([
                 'id' => $this->getDashboardSectionId(),
             ], escape: false)
-            ->class(['fi-wi-due-recurrings'])
+            ->class(['h-full', 'fi-wi-due-recurrings'])
     "
 >
-    <x-filament::section>
+    <x-filament::section class="h-full">
         <x-slot name="heading">
             <span class="inline-flex items-center gap-2">
                 <span class="relative flex size-2 shrink-0" aria-hidden="true">
@@ -77,7 +77,7 @@
                 @if ($canManageRecurrings)
                     wire:sort="reorderRecurrings"
                 @endif
-                class="custom-scrollbar grid flex-1 grid-cols-1 gap-1 overflow-y-auto pr-2 sm:grid-cols-2"
+                class="custom-scrollbar grid flex-1 grid-cols-1 gap-1 overflow-y-auto pr-2"
                 style="min-height: {{ $contentHeight }}; max-height: {{ $contentHeight }}"
             >
                 @foreach ($items as $item)

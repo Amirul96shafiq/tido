@@ -33,6 +33,7 @@ test('dashboard section nav lists all widgets as anchor tabs', function () {
         ->assertSee('Receipts Processed')
         ->assertSee('USD to MYR')
         ->assertSee('Due Recurrings')
+        ->assertSee("This Month's Bills")
         ->assertSee('Monthly Spending Trend')
         ->assertSee('Spending by Label')
         ->assertSee('Budget Performance')
@@ -46,6 +47,7 @@ test('dashboard section nav lists all widgets as anchor tabs', function () {
         ->assertSee('#'.MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED, false)
         ->assertSee('#'.CurrentCurrency::SECTION_CURRENCY_RATE, false)
         ->assertSee('#due-recurrings', false)
+        ->assertSee('#recurring-month-snapshot', false)
         ->assertSee('#monthly-trend', false)
         ->assertSee('#spending-by-label', false)
         ->assertSee('#budget-status', false)
@@ -65,6 +67,7 @@ test('dashboard section nav items match widgetNavItems helper for current month'
         ['label' => 'Receipts Processed', 'id' => MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED],
         ['label' => 'USD to MYR', 'id' => CurrentCurrency::SECTION_CURRENCY_RATE],
         ['label' => 'Due Recurrings', 'id' => 'due-recurrings'],
+        ['label' => "This Month's Bills", 'id' => 'recurring-month-snapshot'],
         ['label' => 'Monthly Spending Trend', 'id' => 'monthly-trend'],
         ['label' => 'Spending by Label', 'id' => 'spending-by-label'],
         ['label' => 'Budget Performance', 'id' => 'budget-status'],
@@ -138,6 +141,7 @@ test('dashboard widgets expose section anchor ids', function () {
         ->toContain('id="'.MonthlySpendingOverview::SECTION_RECEIPTS_PROCESSED.'"')
         ->toContain('id="'.CurrentCurrency::SECTION_CURRENCY_RATE.'"')
         ->toContain('id="due-recurrings"')
+        ->toContain('id="recurring-month-snapshot"')
         ->not->toContain('id="overview"');
 });
 
@@ -146,10 +150,13 @@ test('due recurrings widget renders after currency overview', function () {
 
     $currencyPos = strpos($html, 'id="'.CurrentCurrency::SECTION_CURRENCY_RATE.'"');
     $duePos = strpos($html, 'id="due-recurrings"');
+    $snapshotPos = strpos($html, 'id="recurring-month-snapshot"');
 
     expect($currencyPos)->not->toBeFalse()
         ->and($duePos)->not->toBeFalse()
-        ->and($currencyPos)->toBeLessThan($duePos);
+        ->and($snapshotPos)->not->toBeFalse()
+        ->and($currencyPos)->toBeLessThan($duePos)
+        ->and($duePos)->toBeLessThan($snapshotPos);
 });
 
 test('dashboard sticky toolbar uses three-quarter quarter grid layout', function () {

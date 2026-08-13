@@ -10,6 +10,7 @@ use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\CurrentCurrency;
 use App\Filament\Widgets\DueRecurrings;
 use App\Filament\Widgets\MonthlyTrend;
+use App\Filament\Widgets\RecurringMonthSnapshot;
 use App\Filament\Widgets\SpendingByLabel;
 use App\Models\Expense;
 use App\Models\FamilyMember;
@@ -226,14 +227,15 @@ test('due widget hides upcoming occurrences from future months', function () {
         ->assertDontSee('Next Month Bill');
 });
 
-test('due recurrings widget sorts after overview currency and before analytics charts', function () {
+test('due recurrings widget sorts after overview currency and before month snapshot', function () {
     expect(DueRecurrings::getSort())->toBe(3)
         ->and(CurrentCurrency::getSort())->toBe(2)
-        ->and(MonthlyTrend::getSort())->toBe(4)
-        ->and(SpendingByLabel::getSort())->toBe(5);
+        ->and(RecurringMonthSnapshot::getSort())->toBe(4)
+        ->and(MonthlyTrend::getSort())->toBe(5)
+        ->and(SpendingByLabel::getSort())->toBe(6);
 });
 
-test('due recurrings list height matches monthly spending trend chart', function () {
+test('due recurrings list uses standard chart height and a single-column layout', function () {
     $this->actingAs(User::factory()->create([
         'household_role' => HouseholdRole::Primary,
     ]));
@@ -246,19 +248,23 @@ test('due recurrings list height matches monthly spending trend chart', function
         'due_on' => now()->toDateString(),
     ]);
 
-    $height = DashboardWidgetHeights::TREND_CHART;
+    $height = DashboardWidgetHeights::STANDARD_CHART;
 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSee('max-height: '.$height, false)
         ->assertSee('min-height: '.$height, false)
         ->assertSee('custom-scrollbar grid flex-1 grid-cols-1 gap-1', false)
-        ->assertSee('sm:grid-cols-2', false)
+        ->assertDontSee('sm:grid-cols-2', false)
+        ->assertSee('h-full', false)
         ->assertSee('pr-2', false)
         ->assertSee('-mx-1 flex min-w-0 items-center gap-2 rounded-xl px-2 py-3', false);
 
-    expect((new ReflectionClass(MonthlyTrend::class))->getDefaultProperties()['maxHeight'])
-        ->toBe($height);
+    expect((new ReflectionClass(DueRecurrings::class))->getDefaultProperties()['columnSpan'])
+        ->toBe([
+            'default' => 'full',
+            'xl' => 8,
+        ]);
 });
 
 test('due recurrings widget uses payment-card two-zone layout', function () {

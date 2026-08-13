@@ -69,6 +69,17 @@ test('destination search finds dashboard usd to myr section', function () {
         ->and($match->details)->toBe(['Page' => 'Dashboard']);
 });
 
+test('destination search finds dashboard this month bills section', function () {
+    $results = AdminDestinationSearch::search("This Month's Bills", GlobalSearchResults::make());
+    $sections = collect($results->getCategories()->get('Sections', []));
+
+    $match = $sections->first(fn ($result): bool => $result->title === "This Month's Bills");
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toEndWith('#recurring-month-snapshot')
+        ->and($match->details)->toBe(['Page' => 'Dashboard']);
+});
+
 test('destination search finds dashboard daily average section', function () {
     $results = AdminDestinationSearch::search('Daily Average', GlobalSearchResults::make());
     $sections = collect($results->getCategories()->get('Sections', []));
