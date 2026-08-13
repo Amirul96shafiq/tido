@@ -10,10 +10,12 @@ use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Helpers\MoneyDisplay;
 use App\Models\RecurringOccurrence;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Filament\Widgets\Widget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class RecurringMonthSnapshot extends Widget
 {
@@ -37,7 +39,28 @@ class RecurringMonthSnapshot extends Widget
 
     public static function headingLabel(): string
     {
-        return now()->format('F Y')."'s Bills";
+        return 'Bills · '.now()->format('F Y');
+    }
+
+    public static function dueCountdownLabel(?CarbonInterface $dueOn): ?string
+    {
+        if ($dueOn === null) {
+            return null;
+        }
+
+        $days = (int) now()->startOfDay()->diffInDays($dueOn->copy()->startOfDay());
+
+        if ($days === 0) {
+            return 'Due today';
+        }
+
+        if ($days > 0) {
+            return $days.' '.Str::plural('day', $days).' left';
+        }
+
+        $overdueDays = abs($days);
+
+        return $overdueDays.' '.Str::plural('day', $overdueDays).' overdue';
     }
 
     /**
@@ -47,10 +70,12 @@ class RecurringMonthSnapshot extends Widget
      *     dueCount: int,
      *     heading: string,
      *     isEmpty: bool,
-     *     nextDueOn: ?string,
-     *     nextDueTitle: ?string,
-     *     openAmount: string,
+     *     isNextDueOverdue: bool,
+     *     nextDueDetail: ?string,
+     *     nextDueLabel: ?string,
      *     overdueCount: int,
+     *     paidAmount: string,
+     *     remainingAmount: string,
      *     ringPercent: float,
      *     ringTotal: int,
      *     totalAmount: string,
@@ -75,8 +100,8 @@ class RecurringMonthSnapshot extends Widget
             ? round(($completedCount / $ringTotal) * 100, 2)
             : 0.0;
 
-        $openAmountValue = (float) (clone $openQuery)->sum('expected_amount');
-        $completedAmountValue = (float) (clone $completedQuery)->sum(DB::raw('COALESCE(actual_amount, expected_amount)'));
+        $remainingAmountValue = (float) (clone $openQuery)->sum('expected_amount');
+        $paidAmountValue = (float) (clone $completedQuery)->sum(DB::raw('COALESCE(actual_amount, expected_amount)'));
 
         $overdueCount = (clone $query)->where('status', RecurringOccurrenceStatus::Overdue)->count();
         $dueCount = (clone $query)->where('status', RecurringOccurrenceStatus::Due)->count();
@@ -92,19 +117,42 @@ class RecurringMonthSnapshot extends Widget
             ->orderBy('id')
             ->first();
 
+        $nextDueStatus = $nextDue?->status;
+        $nextDueLabel = match ($nextDueStatus) {
+            RecurringOccurrenceStatus::Overdue => 'Overdue:',
+            RecurringOccurrenceStatus::Due, RecurringOccurrenceStatus::Upcoming => 'Upcoming Next Due:',
+            default => null,
+        };
+
+        $nextDueDetail = null;
+
+        if (
+            $nextDueLabel !== null
+            && filled($nextDue?->recurring?->title)
+            && $nextDue?->due_on instanceof CarbonInterface
+        ) {
+            $nextDueDetail = implode(' · ', array_filter([
+                $nextDue->recurring->title,
+                $nextDue->due_on->format('d M'),
+                self::dueCountdownLabel($nextDue->due_on),
+            ]));
+        }
+
         return [
             'completedCount' => $completedCount,
             'contentHeight' => DashboardWidgetHeights::STANDARD_CHART,
             'dueCount' => $dueCount,
             'heading' => self::headingLabel(),
             'isEmpty' => ! (clone $query)->exists(),
-            'nextDueOn' => $nextDue?->due_on?->format('d M'),
-            'nextDueTitle' => $nextDue?->recurring?->title,
-            'openAmount' => MoneyDisplay::withPrefix($openAmountValue),
+            'isNextDueOverdue' => $nextDueStatus === RecurringOccurrenceStatus::Overdue,
+            'nextDueDetail' => $nextDueDetail,
+            'nextDueLabel' => $nextDueLabel,
             'overdueCount' => $overdueCount,
+            'paidAmount' => MoneyDisplay::withPrefix($paidAmountValue),
+            'remainingAmount' => MoneyDisplay::withPrefix($remainingAmountValue),
             'ringPercent' => $ringPercent,
             'ringTotal' => $ringTotal,
-            'totalAmount' => MoneyDisplay::withPrefix($openAmountValue + $completedAmountValue),
+            'totalAmount' => MoneyDisplay::withPrefix($remainingAmountValue + $paidAmountValue),
             'upcomingCount' => $upcomingCount,
         ];
     }

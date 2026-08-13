@@ -11,12 +11,17 @@ use App\Models\FamilyMember;
 use App\Models\Recurring;
 use App\Models\RecurringOccurrence;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-test('snapshot widget shows remaining and total amounts with status chips', function () {
+afterEach(function () {
+    Carbon::setTestNow();
+});
+
+test('snapshot widget shows paid progress remaining and status chips', function () {
     Expense::unsetEventDispatcher();
 
     $this->actingAs(User::factory()->create([
@@ -56,17 +61,22 @@ test('snapshot widget shows remaining and total amounts with status chips', func
     Livewire::test(RecurringMonthSnapshot::class)
         ->assertOk()
         ->assertSee(RecurringMonthSnapshot::headingLabel())
-        ->assertSee('RM 175.50')
-        ->assertSee('/ RM 230.50')
+        ->assertSee('RM 55.00')
+        ->assertSee('Paid of RM 230.50')
+        ->assertSee('RM 175.50 remaining')
+        ->assertSee('Paid 1')
         ->assertSee('Overdue 1')
         ->assertSee('Due 1')
         ->assertSee('Upcoming 1')
         ->assertSee('of 4')
+        ->assertSee('bills paid', false)
         ->assertSee('bg-red-100', false)
+        ->assertSee('bg-amber-100', false)
+        ->assertSee('bg-primary-100', false)
         ->assertDontSee('Manage');
 });
 
-test('snapshot widget shows the next open due title and date', function () {
+test('snapshot widget shows the next open due title date and countdown', function () {
     $this->actingAs(User::factory()->create([
         'household_role' => HouseholdRole::Primary,
     ]));
@@ -90,8 +100,54 @@ test('snapshot widget shows the next open due title and date', function () {
 
     Livewire::test(RecurringMonthSnapshot::class)
         ->assertOk()
-        ->assertSee('TIME Internet · '.$overdueOn->format('d M'))
+        ->assertSee('Overdue:')
+        ->assertSee('TIME Internet · '.$overdueOn->format('d M').' · 3 days overdue')
+        ->assertDontSee('Upcoming Next Due:')
         ->assertDontSee('Celcom Mobile ·');
+});
+
+test('snapshot widget shows days left until the next upcoming bill', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-13 10:00:00', 'Asia/Kuala_Lumpur'));
+
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $upcoming = Recurring::factory()->create(['title' => 'TIME Internet']);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $upcoming->id,
+        'status' => RecurringOccurrenceStatus::Upcoming,
+        'due_on' => '2026-08-17',
+        'expected_amount' => 89.90,
+    ]);
+
+    Livewire::test(RecurringMonthSnapshot::class)
+        ->assertOk()
+        ->assertSee('Upcoming Next Due:')
+        ->assertSee('TIME Internet · 17 Aug · 4 days left');
+});
+
+test('snapshot widget shows due today on the next bill countdown', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-13 10:00:00', 'Asia/Kuala_Lumpur'));
+
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $due = Recurring::factory()->create(['title' => 'Celcom Mobile']);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $due->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => '2026-08-13',
+        'expected_amount' => 40.00,
+    ]);
+
+    Livewire::test(RecurringMonthSnapshot::class)
+        ->assertOk()
+        ->assertSee('Upcoming Next Due:')
+        ->assertSee('Celcom Mobile · 13 Aug · Due today');
 });
 
 test('snapshot widget shows empty state when no dashboard-month occurrences exist', function () {
@@ -103,6 +159,7 @@ test('snapshot widget shows empty state when no dashboard-month occurrences exis
         ->assertOk()
         ->assertSee('No recurring payments this month')
         ->assertDontSee('Overdue 0')
+        ->assertDontSee('Paid 0')
         ->assertDontSee('RM 0.00');
 });
 
@@ -135,8 +192,10 @@ test('family member snapshot hides primary-only recurrings', function () {
 
     Livewire::test(RecurringMonthSnapshot::class)
         ->assertOk()
-        ->assertSee('RM 125.00')
-        ->assertSee('/ RM 125.00')
+        ->assertSee('RM 0.00')
+        ->assertSee('Paid of RM 125.00')
+        ->assertSee('RM 125.00 remaining')
+        ->assertSee('Upcoming Next Due:')
         ->assertSee('Along Loan ·')
         ->assertDontSee('Primary Only')
         ->assertDontSee('RM 200.00');
@@ -144,7 +203,7 @@ test('family member snapshot hides primary-only recurrings', function () {
 
 test('snapshot widget sorts beside dues and spans four xl columns', function () {
     expect(RecurringMonthSnapshot::getSort())->toBe(4)
-        ->and(RecurringMonthSnapshot::headingLabel())->toBe(now()->format('F Y')."'s Bills");
+        ->and(RecurringMonthSnapshot::headingLabel())->toBe('Bills · '.now()->format('F Y'));
 
     expect((new ReflectionClass(RecurringMonthSnapshot::class))->getDefaultProperties()['columnSpan'])
         ->toBe([
@@ -173,4 +232,15 @@ test('snapshot widget uses standard chart height', function () {
         ->assertSee('min-height: '.$height, false)
         ->assertSee('max-height: '.$height, false)
         ->assertSee('h-full', false);
+});
+
+test('due countdown label covers today remaining and overdue days', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-13 10:00:00', 'Asia/Kuala_Lumpur'));
+
+    expect(RecurringMonthSnapshot::dueCountdownLabel(Carbon::parse('2026-08-13', 'Asia/Kuala_Lumpur')))->toBe('Due today')
+        ->and(RecurringMonthSnapshot::dueCountdownLabel(Carbon::parse('2026-08-14', 'Asia/Kuala_Lumpur')))->toBe('1 day left')
+        ->and(RecurringMonthSnapshot::dueCountdownLabel(Carbon::parse('2026-08-17', 'Asia/Kuala_Lumpur')))->toBe('4 days left')
+        ->and(RecurringMonthSnapshot::dueCountdownLabel(Carbon::parse('2026-08-12', 'Asia/Kuala_Lumpur')))->toBe('1 day overdue')
+        ->and(RecurringMonthSnapshot::dueCountdownLabel(Carbon::parse('2026-08-10', 'Asia/Kuala_Lumpur')))->toBe('3 days overdue')
+        ->and(RecurringMonthSnapshot::dueCountdownLabel(null))->toBeNull();
 });

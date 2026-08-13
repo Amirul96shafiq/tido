@@ -95,7 +95,7 @@ final class AdminDestinationSearch
             ],
             [
                 'title' => RecurringMonthSnapshot::headingLabel(),
-                'keywords' => ['recurring', 'recurrings', 'bills', 'snapshot', 'progress', 'committed', 'dashboard', 'this month'],
+                'keywords' => ['recurring', 'recurrings', 'bills', 'snapshot', 'progress', 'paid', 'remaining', 'dashboard', 'this month'],
                 'group' => 'Sections',
                 'url' => $dashboardUrl.'#'.RecurringMonthSnapshot::dashboardSectionId(),
                 'details' => ['Page' => 'Dashboard'],
