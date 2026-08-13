@@ -1,32 +1,6 @@
-# Single-line text overflow patterns
+# Single-line text marquee
 
-Use [`x-tido.single-line-text`](../resources/views/components/tido/single-line-text.blade.php) for new single-line labels. It keeps text on one line, fades the right edge while idle, and pans once toward the hidden end of the text on hover.
-
-```blade
-<x-tido.single-line-text
-    class="flex-1"
-    text-class="font-semibold text-gray-800 dark:text-gray-200"
->
-    {{ $label }}
-</x-tido.single-line-text>
-```
-
-Pass layout classes to the component and text styling through `text-class`. The component measures its own overflow with `ResizeObserver`, including after responsive layout changes and Livewire morphs.
-
-## Hover-pan component
-
-Use the reusable component for chat titles, navigation labels, and other short labels that must remain on one line:
-
-1. Text stays still with a right-edge fade when not hovered.
-2. Hovering waits briefly, then pans to the hidden end of the text.
-3. Leaving the text resets it to the beginning.
-4. Reduced-motion preferences disable the pan.
-
-Do **not** use for body copy, multi-line descriptions, or primary page headings.
-
-## Continuous marquee
-
-Use [`x-tido.text-marquee`](../resources/views/components/tido/text-marquee.blade.php) for new continuous-scrolling surfaces. It measures overflow, duplicates the slot for a seamless loop, and respects reduced motion. Prefer `x-tido.single-line-text` for hover-pan labels unless continuous motion is specifically required.
+Use [`x-tido.text-marquee`](../resources/views/components/tido/text-marquee.blade.php) for overflowing single-line labels. It stays still when the text fits, and loops continuously when it overflows.
 
 ```blade
 <x-tido.text-marquee
@@ -38,9 +12,11 @@ Use [`x-tido.text-marquee`](../resources/views/components/tido/text-marquee.blad
 </x-tido.text-marquee>
 ```
 
-The older inline `.tido-text-marquee` CSS animation remains only for Filament JS Select selected values, which Filament recreates in the DOM and cannot host a Blade component.
+Pass layout classes to the component and text styling through `text-class`. The component measures overflow with `ResizeObserver`, including after responsive layout changes and Livewire morphs. It duplicates the slot for a seamless loop and respects `prefers-reduced-motion`.
 
-**Canonical first uses:**
+Do **not** use for body copy, multi-line descriptions, or primary page headings.
+
+**Canonical uses:**
 
 | Surface | Path |
 |---------|------|
@@ -48,12 +24,12 @@ The older inline `.tido-text-marquee` CSS animation remains only for Filament JS
 | Budget Performance widget titles | [`resources/views/filament/widgets/budget-status.blade.php`](../resources/views/filament/widgets/budget-status.blade.php) |
 | Swap Account names | [`resources/views/filament/livewire/partials/account-switcher-account.blade.php`](../resources/views/filament/livewire/partials/account-switcher-account.blade.php) |
 | Monthly spending stats descriptions | [`resources/views/vendor/filament-widgets/stats-overview-widget/stat.blade.php`](../resources/views/vendor/filament-widgets/stats-overview-widget/stat.blade.php) |
-| Filament JS Select selected value (CSS animation helper) | Expense `currency` via [`SelectValueMarquee`](../app/Filament/Support/SelectValueMarquee.php) |
+| Filament JS Select selected value | Expense `currency` via [`SelectValueMarquee`](../app/Filament/Support/SelectValueMarquee.php) |
 
-**Shared CSS:** [`.tido-text-marquee`](../resources/css/app.css) / [`.tido-text-marquee-track`](../resources/css/app.css) in `resources/css/app.css`  
+**Shared CSS:** [`.tido-text-marquee-track`](../resources/css/app.css) in `resources/css/app.css`  
 **Select helper JS:** [`resources/js/select-value-marquee.js`](../resources/js/select-value-marquee.js) (panel asset)
 
-## When to use the continuous marquee
+## When to use
 
 Apply this pattern when **all** of these are true:
 
@@ -62,49 +38,21 @@ Apply this pattern when **all** of these are true:
 - Truncation with ellipsis alone is not enough — users need to read the full string without hover
 - Motion is acceptable (respect `prefers-reduced-motion`)
 
-Do **not** use for body copy, multi-line descriptions, or primary page headings.
-
-## Continuous marquee contract
-
-Blade surfaces use [`x-tido.text-marquee`](../resources/views/components/tido/text-marquee.blade.php):
+## Contract
 
 | Token | Role |
 |-------|------|
 | `.tido-text-marquee-clip` | Outer clip: `relative min-w-0 overflow-hidden` |
-| `.tido-text-marquee-track` | Inner track translated by Alpine `requestAnimationFrame` |
+| `.tido-text-marquee-track` | Inner track translated by `requestAnimationFrame` |
 | `.tido-text-marquee-segment` | Slot copy; a duplicate is hidden until overflowing |
-| `x-ref="marqueeTrack"` / `x-ref="marqueeSegment"` | Measured by the component |
+| `x-ref="marqueeTrack"` / `x-ref="marqueeSegment"` | Measured by the Blade component |
 | `whitespace-nowrap` | Required on the segment (`text-class`) |
 | `min-w-0` | Required on clip **and** flex ancestors so width can shrink |
-
-Filament JS Select still uses the CSS animation helper:
-
-| Token | Role |
-|-------|------|
-| `--tido-marquee-clip` | CSS var = clip `clientWidth` in `px` (select JS) |
-| `.tido-text-marquee` | Animation class — added **only** when overflowing |
 | `.tido-select-value-marquee` | Opt-in on Filament JS `Select` fields |
 
-Shared Select keyframes (already in `app.css`):
+Do not invent a second marquee class, keyframes set, or hover-pan component. Reuse `x-tido.text-marquee` (Blade) or `SelectValueMarquee` (Filament JS Select).
 
-```css
-@keyframes tido-text-marquee {
-    0%, 15% { transform: translateX(0); }
-    85%, 100% { transform: translateX(calc(-100% + var(--tido-marquee-clip, 9rem))); }
-}
-
-.tido-text-marquee {
-    animation: tido-text-marquee 8s linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .tido-text-marquee { animation: none; }
-}
-```
-
-Do not duplicate this CSS under a new class name. Reuse `.tido-text-marquee-track` for Blade surfaces and `.tido-text-marquee` / `--tido-marquee-clip` only for Filament JS Select.
-
-## Continuous marquee Blade
+## Blade recipe
 
 Budget Performance on mobile keeps icon + title/period on the left and spent/total stacked on the right of the same row. Period sits under the title; from `sm` up, title + period and spent + total return to inline rows. The title clip uses `flex-1 min-w-0` (no fixed `max-w-*`).
 
@@ -131,20 +79,20 @@ Budget Performance on mobile keeps icon + title/period on the left and spent/tot
 </div>
 ```
 
-### Continuous marquee checklist when applying a new Blade surface
+### Checklist when applying a new Blade surface
 
 1. Identify the text that wraps on narrow widths.
 2. Wrap it in [`x-tido.text-marquee`](../resources/views/components/tido/text-marquee.blade.php).
 3. Choose `max-w-*` for that surface (or rely on `flex-1 min-w-0` without a fixed max if the clip should fill leftover space). On dense mobile rows, put fixed meta (`shrink-0`) beside the title group — stack period under the title and spent over total so the clip is not crushed.
 4. Mark siblings that must stay visible (`badge`, amounts, icon buttons) with `shrink-0` and `whitespace-nowrap` where needed.
 5. Ensure every flex parent up to the clip has `min-w-0`.
-6. Do **not** copy a second keyframes block or inline Alpine `marqueeText` measure — use the shared component.
+6. Do **not** copy a second animation or hover-pan component.
 7. After CSS changes with Vite running, hard-refresh (HMR). New `Vite::asset()` panel JS entries need `npm run build` once — see [`vite-assets.md`](vite-assets.md).
 8. Add/extend a Pest feature test asserting `tido-text-marquee-clip`, `tido-text-marquee-track`, `x-ref="marqueeSegment"`, and `x-ref="marqueeTrack"` appear in the rendered HTML.
 
 ## Filament JS Select (selected value)
 
-Use this when a searchable / JS Filament `Select` shows a long option label that wraps inside a narrow column (e.g. `MYR (Malaysian Ringgit)`).
+Use this when a searchable / JS Filament `Select` shows a long option label that wraps inside a narrow column (e.g. `MYR (Malaysian Ringgit)`). Filament recreates the selected-value DOM, so the Blade component cannot wrap it. The panel JS helper builds the same `.tido-text-marquee-track` loop.
 
 **Do not** invent a field-specific class (`fi-currency-select`, etc.). Always opt in with the shared token.
 
@@ -175,7 +123,7 @@ Select::make('currency')
 Requirements:
 
 1. Field must be a **JS** select (`searchable()`, `multiple()`, `native(false)`, or `allowHtml()` — not a plain native `<select>`).
-2. Call `wrapOptionLabels(false)` so the **closed** selected value stays on one line (marquee handles overflow). Dropdown options still show the **full** label (no ellipsis) via shared CSS under `.tido-select-value-marquee`.
+2. Call `wrapOptionLabels(false)` so the **closed** selected value stays on one line (marquee handles overflow). Dropdown options still show the **full** label (no wrap ellipsis) via shared CSS under `.tido-select-value-marquee`.
 3. Use `SelectValueMarquee::extraAttributes()` (or `['class' => SelectValueMarquee::EXTRA_CLASS]` with `merge: true` if merging other attributes).
 4. Rebuild after CSS changes with Vite running (HMR). After adding/renaming the panel JS entry, run `npm run build` once — see [`vite-assets.md`](vite-assets.md).
 
@@ -186,46 +134,23 @@ Requirements:
 - [ ] Test asserts `tido-select-value-marquee` and `canOptionLabelsWrap() === false`
 - [ ] Do **not** duplicate select-marquee CSS/JS under a new name
 
-## Flex row recipe (with siblings)
-
-```blade
-{{-- Dense mobile: period under title; spent over total — same row as icon --}}
-<div class="flex min-w-0 items-start justify-between gap-2 sm:items-center">
-    <div class="flex min-w-0 flex-1 items-center gap-2">
-        <span class="shrink-0">{{-- icon --}}</span>
-
-        <div class="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
-            {{-- marquee clip: flex-1 min-w-0 (fill leftover) --}}
-            <span class="w-fit shrink-0 whitespace-nowrap">{{-- period — below title on mobile --}}</span>
-        </div>
-    </div>
-
-    <div class="flex shrink-0 flex-col items-end gap-0.5 whitespace-nowrap text-right sm:flex-row sm:items-baseline sm:gap-1">
-        {{-- spent (top) / total (bottom) on mobile; inline from sm --}}
-    </div>
-</div>
-```
-
-## Continuous marquee behaviour details
+## Behaviour
 
 1. Text that fits the clip stays static (duplicate segment hidden; no animation).
-2. Overflowing Blade text loops continuously via `requestAnimationFrame` on `.tido-text-marquee-track`.
-3. Overflowing Select values use the CSS keyframes: hold at start → scroll RTL → hold at end → restart, with `--tido-marquee-clip` so the last characters stop flush with the clip edge.
-4. `ResizeObserver` re-measures after Livewire morph, sidebar collapse, and viewport resize.
-5. `prefers-reduced-motion: reduce` disables animation; text remains single-line clipped.
-6. Select helper also uses `MutationObserver` because Filament recreates the selected-label DOM when the value changes.
-7. For Select marquee fields: dropdown option labels show in full (wrap allowed); only the closed selected value is single-line + marquee.
+2. Overflowing text loops continuously via `requestAnimationFrame` on `.tido-text-marquee-track`.
+3. `ResizeObserver` re-measures after Livewire morph, sidebar collapse, and viewport resize.
+4. `prefers-reduced-motion: reduce` disables animation; text remains single-line clipped.
+5. Select helper also uses `MutationObserver` because Filament recreates the selected-label DOM when the value changes.
+6. For Select marquee fields: dropdown option labels show in full (wrap allowed); only the closed selected value is single-line + marquee.
 
 ## Choosing clip width
 
 | Approach | When |
 |----------|------|
-| `flex-1 min-w-0` without fixed max | Label should take all leftover space between fixed siblings (Budget Performance) |
+| `flex-1 min-w-0` without fixed max | Label should take all leftover space between fixed siblings (Budget Performance, Swap Account) |
 | Fixed `max-w-[9rem] sm:max-w-[12rem]` | Dense widgets when you intentionally cap title width |
 | Smaller `max-w-*` | Very narrow columns (e.g. mobile list tiles) |
 | Select field width | Clip is the Filament `.fi-select-input-value-ctn` — no fixed `max-w-*` needed |
-
-Tune per surface; keep the Alpine/CSS contract identical.
 
 ## Tests
 
@@ -236,10 +161,9 @@ Tune per surface; keep the Alpine/CSS contract identical.
 ->assertSee('tido-text-marquee-track', false)
 ->assertSee('x-ref="marqueeSegment"', false)
 ->assertSee('x-ref="marqueeTrack"', false)
-->assertDontSee('x-ref="marqueeText"', false)
 ```
 
-Reference: [`tests/Feature/DueRecurringsWidgetTest.php`](../tests/Feature/DueRecurringsWidgetTest.php) → `due recurrings widget uses payment-card two-zone layout`. Also [`tests/Feature/BudgetStatusWidgetTest.php`](../tests/Feature/BudgetStatusWidgetTest.php) → `budget status widget uses single-line title marquee markup`.
+Reference: [`tests/Feature/TextMarqueeComponentTest.php`](../tests/Feature/TextMarqueeComponentTest.php), [`tests/Feature/DueRecurringsWidgetTest.php`](../tests/Feature/DueRecurringsWidgetTest.php), [`tests/Feature/BudgetStatusWidgetTest.php`](../tests/Feature/BudgetStatusWidgetTest.php), [`tests/Feature/AccountSwitcherTest.php`](../tests/Feature/AccountSwitcherTest.php).
 
 ### Filament Select
 
@@ -251,14 +175,13 @@ Reference: [`tests/Feature/DueRecurringsWidgetTest.php`](../tests/Feature/DueRec
 );
 ```
 
-Reference: [`tests/Feature/ExpenseFormReceiptImageTest.php`](../tests/Feature/ExpenseFormReceiptImageTest.php) → `expense currency select uses single-line marquee markup`.
+Reference: [`tests/Feature/ExpenseFormReceiptImageTest.php`](../tests/Feature/ExpenseFormReceiptImageTest.php) → `expense currency select uses looping text marquee markup`.
 
 ## Do not
 
-- Invent a second marquee class or keyframes set
+- Invent a second marquee class, keyframes set, or hover-pan component
 - Invent field-specific select marquee classes (e.g. `fi-currency-select`)
-- Copy the old inline Alpine `marqueeText` / `--tido-marquee-clip` block into new Blade surfaces — use `x-tido.text-marquee`
-- Animate when `scrollWidth <= clientWidth`
+- Animate when the text fits the clip
 - Drop `ResizeObserver` (Livewire/layout changes break the measure)
 - Allow the marquee text to wrap (`break-words`, multi-line)
 - Use browser `title=` as the only way to reveal truncated icon CTAs — see [ui-tooltips.md](ui-tooltips.md)

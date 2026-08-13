@@ -97,7 +97,7 @@ test('expense form uses left right sticky layout', function () {
         ]);
 });
 
-test('expense currency select uses single-line marquee markup', function () {
+test('expense currency select uses looping text marquee markup', function () {
     $expense = Expense::factory()->create([
         'image_path' => null,
     ]);
@@ -113,6 +113,11 @@ test('expense currency select uses single-line marquee markup', function () {
                 return true;
             },
         );
+
+    expect(file_get_contents(resource_path('js/select-value-marquee.js')))
+        ->toContain('tido-text-marquee-track')
+        ->toContain('tido-text-marquee-segment')
+        ->not->toContain('--tido-marquee-clip');
 });
 
 test('foreign expense form uses source currency prefixes and shows conversion context', function () {
