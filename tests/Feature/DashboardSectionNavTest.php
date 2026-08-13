@@ -8,6 +8,8 @@ use App\Filament\Widgets\MonthlySpendingOverview;
 use App\Filament\Widgets\RecurringMonthSnapshot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -223,4 +225,15 @@ test('dashboard stats overview distributes four cards to match currency row heig
         ->toContain('.tido-dashboard-page .fi-wi-stats-overview > .fi-sc.fi-grid')
         ->toContain('grid-auto-rows: minmax(0, 1fr)')
         ->toContain('.tido-dashboard-page .fi-wi-stats-overview-stat[id]');
+});
+
+test('testing environment does not use the live currencyapi host or live key', function () {
+    expect((string) config('services.currencyapi.api_key'))->not->toStartWith('cur_live_')
+        ->and((string) config('services.currencyapi.base_url'))->not->toContain('api.currencyapi.com');
+});
+
+test('dashboard render does not call the live currencyapi host', function () {
+    Livewire::test(Dashboard::class)->assertSuccessful();
+
+    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'api.currencyapi.com'));
 });
