@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\HouseholdRole;
 use App\Enums\RecurringOccurrenceStatus;
 use App\Filament\Support\DashboardWidgetHeights;
+use App\Filament\Widgets\DueRecurrings;
 use App\Filament\Widgets\RecurringMonthSnapshot;
 use App\Models\Expense;
 use App\Models\FamilyMember;
@@ -232,6 +233,51 @@ test('snapshot widget uses standard chart height', function () {
         ->assertSee('min-height: '.$height, false)
         ->assertSee('max-height: '.$height, false)
         ->assertSee('h-full', false);
+});
+
+test('snapshot widget refreshes paid remaining and next due after skip', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-13 10:00:00', 'Asia/Kuala_Lumpur'));
+
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $upcoming = Recurring::factory()->create(['title' => 'TIME Internet']);
+    $later = Recurring::factory()->create(['title' => 'Celcom Mobile']);
+
+    $occurrence = RecurringOccurrence::factory()->create([
+        'recurring_id' => $upcoming->id,
+        'status' => RecurringOccurrenceStatus::Upcoming,
+        'due_on' => '2026-08-17',
+        'expected_amount' => 199.14,
+    ]);
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $later->id,
+        'status' => RecurringOccurrenceStatus::Upcoming,
+        'due_on' => '2026-08-20',
+        'expected_amount' => 40.00,
+    ]);
+
+    $snapshot = Livewire::test(RecurringMonthSnapshot::class)
+        ->assertOk()
+        ->assertSee('Upcoming 2')
+        ->assertSee('Paid of RM 239.14')
+        ->assertSee('RM 239.14 remaining')
+        ->assertSee('TIME Internet · 17 Aug · 4 days left')
+        ->assertDontSee('Celcom Mobile ·');
+
+    Livewire::test(DueRecurrings::class)
+        ->call('skipOccurrence', $occurrence->id)
+        ->assertDispatched('recurring-occurrences-updated');
+
+    $snapshot
+        ->dispatch('recurring-occurrences-updated')
+        ->assertSee('Upcoming 1')
+        ->assertSee('Paid of RM 40.00')
+        ->assertSee('RM 40.00 remaining')
+        ->assertSee('Celcom Mobile · 20 Aug · 7 days left')
+        ->assertDontSee('TIME Internet ·')
+        ->assertDontSee('RM 239.14');
 });
 
 test('due countdown label covers today remaining and overdue days', function () {

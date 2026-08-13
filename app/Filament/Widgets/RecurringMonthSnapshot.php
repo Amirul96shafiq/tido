@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Livewire\Attributes\On;
 
 class RecurringMonthSnapshot extends Widget
 {
@@ -41,6 +42,9 @@ class RecurringMonthSnapshot extends Widget
     {
         return 'Bills · '.now()->format('F Y');
     }
+
+    #[On('recurring-occurrences-updated')]
+    public function refreshSnapshot(): void {}
 
     public static function dueCountdownLabel(?CarbonInterface $dueOn): ?string
     {

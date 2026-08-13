@@ -126,6 +126,8 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
 
         app(RecurringMatchService::class)->skipOccurrence($occurrence);
 
+        $this->dispatch('recurring-occurrences-updated');
+
         Notification::make()
             ->title('Occurrence skipped')
             ->success()
@@ -143,6 +145,8 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
         }
 
         app(RecurringMatchService::class)->revertOccurrence($occurrence);
+
+        $this->dispatch('recurring-occurrences-updated');
 
         Notification::make()
             ->title('Occurrence restored')
@@ -163,6 +167,8 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
         }
 
         app(RecurringMatchService::class)->completeOccurrence($occurrence, $expense);
+
+        $this->dispatch('recurring-occurrences-updated');
 
         Notification::make()
             ->title('Occurrence marked paid')

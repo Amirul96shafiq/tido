@@ -625,7 +625,8 @@ test('due widget skip requires filament confirmation modal', function () {
         ->assertMountedActionModalSee('Skip occurrence?')
         ->assertMountedActionModalSee('This occurrence will be marked as skipped.')
         ->callMountedAction()
-        ->assertSuccessful();
+        ->assertSuccessful()
+        ->assertDispatched('recurring-occurrences-updated');
 
     expect($occurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Skipped);
 });
@@ -649,7 +650,8 @@ test('due widget revert requires filament confirmation modal', function () {
         ->assertMountedActionModalSee('Revert skipped occurrence?')
         ->assertMountedActionModalSee('This occurrence will return to the due list.')
         ->callMountedAction()
-        ->assertSuccessful();
+        ->assertSuccessful()
+        ->assertDispatched('recurring-occurrences-updated');
 
     expect($occurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Due);
 });
