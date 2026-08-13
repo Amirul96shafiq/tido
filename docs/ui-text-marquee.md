@@ -26,16 +26,30 @@ Do **not** use for body copy, multi-line descriptions, or primary page headings.
 
 ## Continuous marquee
 
-The older `.tido-text-marquee` pattern remains available for surfaces that intentionally need continuous scrolling, such as Budget Performance and Filament JS Select values. Prefer `x-tido.single-line-text` for new single-line text unless continuous motion is specifically required.
+Use [`x-tido.text-marquee`](../resources/views/components/tido/text-marquee.blade.php) for new continuous-scrolling surfaces. It measures overflow, duplicates the slot for a seamless loop, and respects reduced motion. Prefer `x-tido.single-line-text` for hover-pan labels unless continuous motion is specifically required.
+
+```blade
+<x-tido.text-marquee
+    class="min-w-0 flex-1"
+    text-class="inline-flex items-center gap-2 whitespace-nowrap"
+>
+    <span class="font-semibold">{{ $title }}</span>
+    <span class="…pill…">{{ $cadence }}</span>
+</x-tido.text-marquee>
+```
+
+The older inline `.tido-text-marquee` CSS animation remains for Budget Performance and Filament JS Select values.
 
 **Canonical first uses:**
 
 | Surface | Path |
 |---------|------|
-| Budget Performance widget (Blade + Alpine) | [`resources/views/filament/widgets/budget-status.blade.php`](../resources/views/filament/widgets/budget-status.blade.php) |
+| Recurring Payment Dues (title + cadence pill, description) | [`resources/views/filament/widgets/due-recurrings.blade.php`](../resources/views/filament/widgets/due-recurrings.blade.php) |
+| Monthly spending stats descriptions | [`resources/views/vendor/filament-widgets/stats-overview-widget/stat.blade.php`](../resources/views/vendor/filament-widgets/stats-overview-widget/stat.blade.php) |
+| Budget Performance widget (legacy Blade + Alpine) | [`resources/views/filament/widgets/budget-status.blade.php`](../resources/views/filament/widgets/budget-status.blade.php) |
 | Filament JS Select selected value | Expense `currency` via [`SelectValueMarquee`](../app/Filament/Support/SelectValueMarquee.php) |
 
-**Shared CSS:** [`.tido-text-marquee`](../resources/css/app.css) in `resources/css/app.css`  
+**Shared CSS:** [`.tido-text-marquee`](../resources/css/app.css) / [`.tido-text-marquee-track`](../resources/css/app.css) in `resources/css/app.css`  
 **Select helper JS:** [`resources/js/select-value-marquee.js`](../resources/js/select-value-marquee.js) (panel asset)
 
 ## When to use the continuous marquee
@@ -219,7 +233,19 @@ Tune per surface; keep the Alpine/CSS contract identical.
 
 ## Tests
 
-### Blade + Alpine
+### `x-tido.text-marquee`
+
+```php
+->assertSee('tido-text-marquee-clip', false)
+->assertSee('tido-text-marquee-track', false)
+->assertSee('x-ref="marqueeSegment"', false)
+->assertSee('x-ref="marqueeTrack"', false)
+->assertDontSee('x-ref="marqueeText"', false)
+```
+
+Reference: [`tests/Feature/DueRecurringsWidgetTest.php`](../tests/Feature/DueRecurringsWidgetTest.php) → `due recurrings widget uses payment-card two-zone layout`.
+
+### Legacy Blade + Alpine
 
 ```php
 ->assertSee('tido-text-marquee-clip', false)

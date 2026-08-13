@@ -289,7 +289,7 @@ test('due recurrings widget uses payment-card two-zone layout', function () {
 
     $editUrl = RecurringResource::getUrl('edit', ['record' => $recurring]);
 
-    Livewire::test(DueRecurrings::class)
+    $component = Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSeeInOrder([
             'Netflix Family',
@@ -304,15 +304,25 @@ test('due recurrings widget uses payment-card two-zone layout', function () {
         ->assertSee('wire:navigate', false)
         ->assertSee('wire:sort="reorderRecurrings"', false)
         ->assertSee('wire:sort:handle', false)
-        ->assertSee('x-ref="marqueeText"', false)
+        ->assertSee('x-ref="marqueeSegment"', false)
+        ->assertSee('x-ref="marqueeTrack"', false)
         ->assertSee('tido-text-marquee-clip', false)
+        ->assertSee('tido-text-marquee-track', false)
         ->assertSee('flex min-w-0 flex-1 flex-col gap-1', false)
         ->assertSee('flex min-w-0 flex-1 items-center justify-between gap-2', false)
         ->assertSee('sm:gap-4', false)
         ->assertSee('fi-avatar', false)
+        ->assertDontSee('x-ref="marqueeText"', false)
+        ->assertDontSee('flex min-w-0 flex-wrap items-center gap-x-1.5', false)
         ->assertDontSee('color-mix(in srgb', false)
         ->assertDontSee('bg-warning-100 text-warning-700 dark:bg-warning-400/25 dark:text-warning-300', false)
         ->assertDontSee('bg-danger-100 text-danger-700 dark:bg-danger-400/25 dark:text-danger-300', false);
+
+    $html = $component->html();
+
+    expect(substr_count($html, 'tido-text-marquee-clip'))->toBe(2)
+        ->and(substr_count($html, 'tido-text-marquee-track'))->toBe(2)
+        ->and(substr_count($html, 'x-ref="marqueeSegment"'))->toBe(2);
 });
 
 test('due recurrings widget shows primary owner avatar between drag handle and content', function () {
