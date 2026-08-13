@@ -30,6 +30,11 @@ class RecurringsTable
         return $table
             ->defaultSort('updated_at', 'desc')
             ->columns([
+                TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->searchable(),
+
                 TextColumn::make('title')
                     ->searchable()
                     ->sortable()
@@ -41,16 +46,19 @@ class RecurringsTable
 
                         return (string) $state;
                     }),
+
                 TextColumn::make('type')
                     ->badge()
                     ->formatStateUsing(fn (RecurringType|string $state): string => $state instanceof RecurringType
                         ? $state->label()
                         : RecurringType::from($state)->label())
                     ->sortable(),
+
                 TextColumn::make('label.name')
                     ->label('Label')
                     ->placeholder('—')
                     ->toggleable(),
+                    
                 TextColumn::make('familyMember.name')
                     ->label('Assigned to')
                     ->formatStateUsing(function (?string $state, Recurring $record): string {
@@ -68,15 +76,19 @@ class RecurringsTable
                             ? (string) $member->display_name
                             : (string) $member->name;
                     })
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: false),
+
                 IconColumn::make('is_shared')
                     ->label('Shared')
                     ->boolean()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: false),
+
                 TextColumn::make('expected_amount')
                     ->myr()
                     ->placeholder('Variable')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+
                 TextColumn::make('cadence')
                     ->label('Cadence')
                     ->state(function (Recurring $record): string {
@@ -93,23 +105,29 @@ class RecurringsTable
                             12 => 'Yearly',
                             default => "Every {$months} months",
                         };
-                    }),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: false),
+
                 TextColumn::make('next_due_on')
                     ->label('Next due')
                     ->date()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+
                 ToggleColumn::make('is_active')
-                    ->label('Active'),
+                    ->label('Active')
+                    ->toggleable(isToggledHiddenByDefault: false),
+
                 TextColumn::make('updated_at')
                     ->label('Edited At')
                     ->since()
                     ->dateTimeTooltip()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
+
                 TextColumn::make('editedBy.name')
                     ->label('Edited By')
                     ->placeholder('—')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->filters([
                 SelectFilter::make('type')

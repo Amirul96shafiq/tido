@@ -55,7 +55,6 @@ class BudgetsTable
                 TextColumn::make('label.name')
                     ->label('Label')
                     ->default('Overall (All Labels)')
-                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable()
                     ->sortable()
                     ->limit(20)
@@ -65,12 +64,13 @@ class BudgetsTable
                         }
 
                         return (string) $state;
-                    }),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 IconColumn::make('display_icon')
                     ->label('Icon')
                     ->icon(fn (?string $state): ?string => $state)
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('familyMember.name')
                     ->label('Assigned to')
@@ -90,16 +90,17 @@ class BudgetsTable
                             : (string) $member->name;
                     })
                     ->sortable()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 IconColumn::make('is_shared')
                     ->label('Shared')
                     ->boolean()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('amount')
                     ->myr()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('period')
                     ->badge()
@@ -111,30 +112,34 @@ class BudgetsTable
                         'yearly' => 'danger',
                         default => 'gray',
                     })
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('quarter')
                     ->label('Quarter')
                     ->formatStateUsing(fn ($state) => $state ? 'Q'.$state : '-')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('year')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('alert_threshold')
                     ->label('Warn')
                     ->suffix('%')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('critical_threshold')
                     ->label('Critical')
                     ->suffix('%')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 ToggleColumn::make('is_active')
-                    ->label('Active'),
+                    ->label('Active')
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('editedBy.name')
                     ->label('Edited By')
@@ -148,7 +153,8 @@ class BudgetsTable
                     ->label('Edited At')
                     ->since()
                     ->dateTimeTooltip()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->defaultSort('updated_at', 'desc')
             ->filters([
