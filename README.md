@@ -139,13 +139,25 @@ Pull the vision model once — see [docs/ollama-setup.md](docs/ollama-setup.md).
 | `npm run dev:ollama` | Ollama helper — Ollama serve helper (standalone) |
 | `npm run dev:all` | All-in-one — WhatsApp stack (`dev:whatsapp`) + Ollama |
 
-**Mobile (same Wi‑Fi):**
+**LAN access (same Wi‑Fi only — not a public website):**
 
-1. Find this PC’s IPv4 (`ipconfig` → e.g. `192.168.100.6`).
-2. Set `APP_URL=http://192.168.x.x:2000` in `.env` (restart `npm run dev:full`).
-3. Optionally set `WHATSAPP_PUBLIC_APP_URL` to the same base for WhatsApp links.
-4. If the phone cannot connect, allow inbound TCP **2000** and **5173** in Windows Firewall.
-5. On the phone: open `http://192.168.x.x:2000/admin`.
+PHP still listens on port **2000**. Map port **80** → **2000** once (Administrator; persists across reboot) so the URL has no port:
+
+```bat
+netsh interface portproxy add v4tov4 listenport=80 listenaddress=0.0.0.0 connectport=2000 connectaddress=127.0.0.1
+netsh interface portproxy show all
+```
+
+If port 80 is already taken (IIS / World Wide Web Publishing), stop that service first.
+
+1. On this PC, add `127.0.0.1 tido.local` to `C:\Windows\System32\drivers\etc\hosts` (Administrator).
+2. Set `APP_URL=http://tido.local` in `.env` (restart `npm run dev:full` / `dev:all`).
+3. Set `WHATSAPP_PUBLIC_APP_URL=http://<PC-LAN-IP>` (no port) so WhatsApp links open on the phone. Find the IPv4 with `ipconfig`.
+4. Optional same-Wi‑Fi lock: Windows Firewall inbound TCP **80** and **5173** from the LAN subnet only (e.g. `192.168.100.0/24`), not Any / not WAN. Do not port-forward these on the router.
+5. On this PC: open `http://tido.local/admin`.
+6. On the phone: map `tido.local` → this PC’s LAN IPv4 (hosts or LAN DNS). If the name does not resolve (common on iOS for `.local`), open `http://<PC-LAN-IP>/admin`.
+
+Evolution webhooks on this PC stay at `http://127.0.0.1:2000/api/webhooks/whatsapp`.
 
 Default seeded login: `admin@tido.local` / `password`.
 

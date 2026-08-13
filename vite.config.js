@@ -69,6 +69,7 @@ export default defineConfig({
             origin: [
                 /^https?:\/\/localhost(:\d+)?$/,
                 /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
+                /^https?:\/\/tido\.local(:\d+)?$/,
                 /^https?:\/\/192\.168\.\d+\.\d+(:\d+)?$/,
                 /^https?:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/,
             ],
