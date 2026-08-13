@@ -16,6 +16,7 @@ final class RecordActionsGroup
     {
         return ActionGroup::make($actions)
             ->label('Actions')
-            ->tooltip('Actions');
+            ->tooltip('Actions')
+            ->dropdownTeleport();
     }
 }

@@ -4167,6 +4167,79 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 }
 
 /*
+ * Freeze the record-actions column (View + kebab CTAs) on the right edge of
+ * the inner-scrolling table so it stays visible during horizontal scroll.
+ * Use a 1px ::before edge instead of border-inline-start: collapsed table
+ * borders do not paint with position:sticky.
+ */
+.fi-ta-table > thead > tr > .fi-ta-actions-header-cell,
+.fi-ta-table > thead > tr > th.fi-ta-header-cell.fi-align-end,
+.fi-ta-table > tbody > tr > td.fi-ta-cell:has(.fi-ta-actions) {
+    position: sticky;
+    inset-inline-end: 0;
+}
+
+.fi-ta-table > thead > tr > .fi-ta-actions-header-cell::before,
+.fi-ta-table > thead > tr > th.fi-ta-header-cell.fi-align-end::before,
+.fi-ta-table > tbody > tr > td.fi-ta-cell:has(.fi-ta-actions)::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 1;
+    width: 1px;
+    pointer-events: none;
+    background-color: var(--tido-border-color);
+}
+
+.fi-ta-table > thead > tr > .fi-ta-actions-header-cell,
+.fi-ta-table > thead > tr > th.fi-ta-header-cell.fi-align-end {
+    z-index: 11;
+    background-color: var(--color-gray-50, #f9fafb);
+}
+
+.dark .fi-ta-table > thead > tr > .fi-ta-actions-header-cell,
+.dark .fi-ta-table > thead > tr > th.fi-ta-header-cell.fi-align-end {
+    background-color: color-mix(
+        in srgb,
+        white 5%,
+        var(--color-gray-900, #111827)
+    );
+}
+
+.fi-ta-table > tbody > tr > td.fi-ta-cell:has(.fi-ta-actions) {
+    z-index: 2;
+    background-color: var(--color-white, #ffffff);
+}
+
+.dark .fi-ta-table > tbody > tr > td.fi-ta-cell:has(.fi-ta-actions) {
+    background-color: var(--color-gray-900, #111827);
+}
+
+.fi-ta-table
+    > tbody
+    > tr.fi-clickable:hover
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.fi-ta-table > tbody > tr.fi-selected > td.fi-ta-cell:has(.fi-ta-actions),
+.fi-ta-table > tbody > tr.fi-striped > td.fi-ta-cell:has(.fi-ta-actions) {
+    background-color: var(--color-gray-50, #f9fafb);
+}
+
+.dark
+    .fi-ta-table
+    > tbody
+    > tr.fi-clickable:hover
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.dark .fi-ta-table > tbody > tr.fi-selected > td.fi-ta-cell:has(.fi-ta-actions),
+.dark .fi-ta-table > tbody > tr.fi-striped > td.fi-ta-cell:has(.fi-ta-actions) {
+    background-color: color-mix(
+        in srgb,
+        white 5%,
+        var(--color-gray-900, #111827)
+    );
+}
+
+/*
  * Constrain top-level scrollable dropdown menus without clipping nested
  * panels. Non-scrollable parent dropdowns must keep overflow visible so child
  * Select panels can open above the parent instead of being cut off inside it.
