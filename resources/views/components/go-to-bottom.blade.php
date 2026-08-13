@@ -2,6 +2,7 @@
     x-data="{
         visible: false,
         threshold: 50,
+        rafId: null,
         update() {
             const scrollTop = window.scrollY || document.documentElement.scrollTop;
             const viewportHeight = window.innerHeight;
@@ -9,14 +10,24 @@
 
             this.visible = scrollTop + viewportHeight < scrollHeight - this.threshold;
         },
+        scheduleUpdate() {
+            if (this.rafId !== null) {
+                return;
+            }
+
+            this.rafId = window.requestAnimationFrame(() => {
+                this.rafId = null;
+                this.update();
+            });
+        },
         goToBottom() {
             window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
         },
     }"
     x-init="
         update();
-        window.addEventListener('scroll', () => update(), { passive: true });
-        window.addEventListener('resize', () => update(), { passive: true });
+        window.addEventListener('scroll', () => scheduleUpdate(), { passive: true });
+        window.addEventListener('resize', () => scheduleUpdate(), { passive: true });
         document.addEventListener('livewire:navigated', () => update());
     "
     x-cloak

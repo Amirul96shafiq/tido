@@ -829,12 +829,11 @@ html.dark::-webkit-scrollbar-thumb:hover,
     inset: auto 0 0 0;
 }
 
-/* Long soft tint + light blur */
+/* Long soft tint. Blur is applied only while .tido-sticky-stuck so Chromium
+ * does not resample backdrop-filter on opacity:0 layers. */
 .tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker)::before {
     height: 20vh;
     background-color: color-mix(in srgb, var(--color-white) 55%, transparent);
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
 }
 
 .tido-sticky-scope
@@ -879,12 +878,10 @@ html.dark::-webkit-scrollbar-thumb:hover,
     );
 }
 
-/* Stronger blur nearer the edge */
+/* Stronger tint nearer the edge. Blur is applied only while stuck. */
 .tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker)::after {
     height: 12vh;
     background-color: color-mix(in srgb, var(--color-white) 90%, transparent);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
 }
 
 .tido-sticky-scope
@@ -943,6 +940,33 @@ html.dark::-webkit-scrollbar-thumb:hover,
     > .fi-sc
     > .fi-grid-col:has(.tido-sticky-marker).tido-sticky-stuck::after {
     opacity: 1;
+}
+
+.tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker).tido-sticky-stuck::before {
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+.tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker).tido-sticky-stuck::after {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/*
+ * While the page is scrolling, drop the stronger 8px veil blur so Chromium
+ * is not resampling two backdrop-filters every frame. Tint stays; frost
+ * returns when sticky-blur-veil.js removes html.tido-is-scrolling.
+ */
+html.tido-is-scrolling
+    .tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker).tido-sticky-stuck::after {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 .fi-simple-page .fi-sc-form {

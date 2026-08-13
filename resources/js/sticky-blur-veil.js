@@ -5,11 +5,25 @@
 const PIN_SELECTOR =
     '.tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker)';
 const STUCK_CLASS = 'tido-sticky-stuck';
+const SCROLLING_CLASS = 'tido-is-scrolling';
+const SCROLL_IDLE_MS = 150;
+
+/**
+ * @typedef {{ isBottom: boolean, expectedOffset: number }} PinMetrics
+ */
 
 /** @type {Set<Element>} */
 const tracked = new Set();
+
+/** @type {WeakMap<Element, PinMetrics>} */
+const metricsByPin = new WeakMap();
+
+/** @type {WeakMap<Element, boolean>} */
+const stuckByPin = new WeakMap();
+
 let rafId = null;
 let bindRafId = null;
+let scrollIdleTimer = null;
 let listening = false;
 
 function findPins() {
@@ -20,19 +34,44 @@ function isBottomPin(pinEl) {
     return Boolean(pinEl.querySelector('.tido-sticky-marker--bottom'));
 }
 
-function isStuck(pinEl) {
+function readMetrics(pinEl) {
+    const isBottom = isBottomPin(pinEl);
     const style = getComputedStyle(pinEl);
+    const expectedOffset = isBottom
+        ? parseFloat(style.bottom) || 0
+        : parseFloat(style.top) || 0;
+    const metrics = { isBottom, expectedOffset };
+
+    metricsByPin.set(pinEl, metrics);
+
+    return metrics;
+}
+
+function metricsFor(pinEl) {
+    return metricsByPin.get(pinEl) ?? readMetrics(pinEl);
+}
+
+function invalidateMetrics() {
+    for (const pin of tracked) {
+        metricsByPin.delete(pin);
+    }
+}
+
+function isStuck(pinEl) {
+    const metrics = metricsFor(pinEl);
     const rect = pinEl.getBoundingClientRect();
 
-    if (isBottomPin(pinEl)) {
-        const expectedBottom = parseFloat(style.bottom) || 0;
-
-        return Math.abs(window.innerHeight - rect.bottom - expectedBottom) < 2;
+    if (metrics.isBottom) {
+        return Math.abs(window.innerHeight - rect.bottom - metrics.expectedOffset) < 2;
     }
 
-    const expectedTop = parseFloat(style.top) || 0;
+    return Math.abs(rect.top - metrics.expectedOffset) < 2;
+}
 
-    return Math.abs(rect.top - expectedTop) < 2;
+function forgetPin(pin) {
+    tracked.delete(pin);
+    metricsByPin.delete(pin);
+    stuckByPin.delete(pin);
 }
 
 function updateStuck() {
@@ -40,11 +79,20 @@ function updateStuck() {
 
     for (const pin of [...tracked]) {
         if (! document.contains(pin)) {
-            tracked.delete(pin);
+            forgetPin(pin);
             continue;
         }
 
-        pin.classList.toggle(STUCK_CLASS, isStuck(pin));
+        const stuck = isStuck(pin);
+        const previous = stuckByPin.get(pin);
+        const hasClass = pin.classList.contains(STUCK_CLASS);
+
+        if (previous === stuck && hasClass === stuck) {
+            continue;
+        }
+
+        stuckByPin.set(pin, stuck);
+        pin.classList.toggle(STUCK_CLASS, stuck);
     }
 }
 
@@ -56,10 +104,39 @@ function onScrollOrResize() {
     rafId = requestAnimationFrame(updateStuck);
 }
 
+function clearScrolling() {
+    if (scrollIdleTimer !== null) {
+        window.clearTimeout(scrollIdleTimer);
+        scrollIdleTimer = null;
+    }
+
+    document.documentElement.classList.remove(SCROLLING_CLASS);
+}
+
+function onScroll() {
+    document.documentElement.classList.add(SCROLLING_CLASS);
+
+    if (scrollIdleTimer !== null) {
+        window.clearTimeout(scrollIdleTimer);
+    }
+
+    scrollIdleTimer = window.setTimeout(() => {
+        document.documentElement.classList.remove(SCROLLING_CLASS);
+        scrollIdleTimer = null;
+    }, SCROLL_IDLE_MS);
+
+    onScrollOrResize();
+}
+
+function onResize() {
+    invalidateMetrics();
+    onScrollOrResize();
+}
+
 function bind() {
     for (const pin of [...tracked]) {
         if (! document.contains(pin)) {
-            tracked.delete(pin);
+            forgetPin(pin);
         }
     }
 
@@ -72,8 +149,8 @@ function bind() {
     }
 
     if (! listening) {
-        window.addEventListener('scroll', onScrollOrResize, { passive: true });
-        window.addEventListener('resize', onScrollOrResize, { passive: true });
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onResize, { passive: true });
         listening = true;
     }
 
@@ -81,6 +158,7 @@ function bind() {
 }
 
 function init() {
+    clearScrolling();
     bind();
 }
 
