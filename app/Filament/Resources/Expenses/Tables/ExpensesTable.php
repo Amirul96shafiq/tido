@@ -59,14 +59,14 @@ class ExpensesTable
                 TextColumn::make('invoice_number')
                     ->searchable()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('date_time')
                     ->label('Buy date')
                     ->since()
                     ->dateTimeTooltip()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('total_amount')
                     ->formatStateUsing(fn (?string $state, Expense $record): string => MoneyDisplay::withCurrency(
@@ -83,14 +83,14 @@ class ExpensesTable
                     ))
                     ->tooltip(fn (Expense $record): ?string => MoneyDisplay::conversionSummary($record))
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('paymentMethod.name')
                     ->label('Payment Method')
                     ->badge()
                     ->icon(fn ($record): ?string => $record->paymentMethod?->icon)
                     ->placeholder('-')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('source')
                     ->badge()
@@ -99,7 +99,7 @@ class ExpensesTable
                         'whatsapp' => 'success',
                         default => 'gray',
                     })
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('uploaded_by')
                     ->label('Uploaded By')
@@ -114,7 +114,7 @@ class ExpensesTable
                             ? (string) $familyMember->display_name
                             : (string) $familyMember->name;
                     })
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('status')
                     ->badge()
@@ -126,7 +126,8 @@ class ExpensesTable
                         'failed' => 'danger',
                         default => 'gray',
                     })
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('editedBy.name')
                     ->label('Edited By')
@@ -141,7 +142,7 @@ class ExpensesTable
                     ->since()
                     ->dateTimeTooltip()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->defaultSort('updated_at', 'desc')
             ->poll('10s.visible')

@@ -88,14 +88,16 @@ class PaymentMethodsTable
 
                 IconColumn::make('icon')
                     ->icon(fn (?string $state): ?string => $state)
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
-                ColorColumn::make('color'),
+                ColorColumn::make('color')
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 IconColumn::make('is_system')
                     ->boolean()
                     ->label('System Lock')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('editedBy.name')
                     ->label('Edited By')
@@ -109,7 +111,8 @@ class PaymentMethodsTable
                     ->label('Edited At')
                     ->since()
                     ->dateTimeTooltip()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->defaultSort('updated_at', 'desc')
             ->filters([

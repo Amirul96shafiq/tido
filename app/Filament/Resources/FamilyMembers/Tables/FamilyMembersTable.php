@@ -16,6 +16,7 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\AvatarProviders\UiAvatarsProvider;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Support\Enums\FontFamily;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ImageColumn;
@@ -58,7 +59,6 @@ class FamilyMembersTable
                     ->label('Display Name')
                     ->searchable()
                     ->sortable()
-                    ->toggleable()
                     ->placeholder('—')
                     ->limit(24)
                     ->tooltip(function (TextColumn $column, ?string $state): ?string {
@@ -67,20 +67,40 @@ class FamilyMembersTable
                         }
 
                         return (string) $state;
-                    }),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('phone')
                     ->label('WhatsApp')
                     ->searchable()
                     ->sortable()
-                    ->fontFamily(FontFamily::Mono),
+                    ->fontFamily(FontFamily::Mono)
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('relationship')
                     ->label('Relationship')
                     ->formatStateUsing(fn (FamilyMember $record): ?string => $record->relationshipLabel())
                     ->sortable()
-                    ->toggleable()
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: false),
+
+                TextColumn::make('date_of_birth')
+                    ->label('Date of Birth')
+                    ->date()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+
+                IconColumn::make('allowlist_enabled')
+                    ->label('Contact Allowlist')
+                    ->boolean()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+
+                IconColumn::make('login_enabled')
+                    ->label('Panel Login')
+                    ->boolean()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('editedBy.name')
                     ->label('Edited By')
@@ -94,7 +114,8 @@ class FamilyMembersTable
                     ->label('Edited At')
                     ->since()
                     ->dateTimeTooltip()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->defaultSort('updated_at', 'desc')
             ->filters([
