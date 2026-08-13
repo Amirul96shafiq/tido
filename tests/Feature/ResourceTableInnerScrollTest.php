@@ -34,7 +34,8 @@ test('app.css freezes resource table record actions on the right', function () {
     expect($css)->toContain('.fi-ta-actions-header-cell')
         ->toContain(':has(.fi-ta-actions)')
         ->toContain('inset-inline-end: 0;')
-        ->toContain('::before');
+        ->toContain('::before')
+        ->toContain('z-index: 30;');
 });
 
 test('resource list pages render table containers properly', function () {

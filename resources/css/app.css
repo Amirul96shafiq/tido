@@ -4218,6 +4218,15 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 
 .fi-ta-table
     > tbody
+    > tr
+    > td.fi-ta-cell:has(.fi-ta-actions):has(
+        .fi-dropdown-panel[style*="display: block"]
+    ) {
+    z-index: 30;
+}
+
+.fi-ta-table
+    > tbody
     > tr.fi-clickable:hover
     > td.fi-ta-cell:has(.fi-ta-actions),
 .fi-ta-table > tbody > tr.fi-selected > td.fi-ta-cell:has(.fi-ta-actions),
