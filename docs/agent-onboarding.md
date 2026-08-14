@@ -55,14 +55,15 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 16. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
 17. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
 18. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
-19. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md` (includes JS date pickers + `DateOfBirthPicker`)
-20. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
-21. Resource edit audit (latest editor, username display, table recency): `docs/resource-edit-audit.md`
-22. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
-23. Service Status (health probes, uptime UI): `docs/service-status.md`
-24. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
-25. Household access (attribution, family login, expense ACL): `docs/household-access.md`
-26. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+19. Field character limits (`current/max` counters): `docs/ui-field-character-limits.md`
+20. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md` (includes JS date pickers + `DateOfBirthPicker`)
+21. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
+22. Resource edit audit (latest editor, username display, table recency): `docs/resource-edit-audit.md`
+23. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
+24. Service Status (health probes, uptime UI): `docs/service-status.md`
+25. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
+26. Household access (attribution, family login, expense ACL): `docs/household-access.md`
+27. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 

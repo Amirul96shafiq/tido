@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Services\ReceiptParseNormalizer;
+use App\Support\FieldCharacterLimits;
 use Carbon\Carbon;
 
 test('toMoney rejects none null and non numeric strings', function () {
@@ -223,6 +224,34 @@ test('normalize accepts legacy suggested_category key for label', function () {
     ]);
 
     expect($normalized['items'][0]['label'])->toBe('Food & Dining');
+});
+
+test('normalize truncates merchant name and line item descriptions to character limits', function () {
+    $normalizer = new ReceiptParseNormalizer;
+
+    $merchant = str_repeat('M', FieldCharacterLimits::MERCHANT_NAME + 20);
+    $description = str_repeat('D', FieldCharacterLimits::LINE_ITEM_DESCRIPTION + 20);
+
+    $normalized = $normalizer->normalize([
+        'merchant_name' => $merchant,
+        'date_time' => '2026-07-14 21:07:20',
+        'subtotal' => 1,
+        'total_tax' => 0,
+        'discount_total' => 0,
+        'rounding_amount' => 0,
+        'total_amount' => 1,
+        'currency' => 'MYR',
+        'items' => [[
+            'description' => $description,
+            'quantity' => 1,
+            'unit_price' => 1,
+            'line_total' => 1,
+            'label' => 'Food & Dining',
+        ]],
+    ]);
+
+    expect($normalized['merchant_name'])->toBe(str_repeat('M', FieldCharacterLimits::MERCHANT_NAME))
+        ->and($normalized['items'][0]['description'])->toBe(str_repeat('D', FieldCharacterLimits::LINE_ITEM_DESCRIPTION));
 });
 
 test('normalize only accepts explicit three-letter currency evidence', function () {

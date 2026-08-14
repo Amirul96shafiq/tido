@@ -6,6 +6,7 @@ namespace App\Filament\Resources\PaymentMethods\Schemas;
 
 use App\Filament\Forms\Components\IconPicker;
 use App\Filament\Forms\Components\NotesRichEditor;
+use App\Support\FieldCharacterLimits;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
@@ -51,6 +52,7 @@ class PaymentMethodForm
                             ->schema([
                                 TextInput::make('name')
                                     ->required()
+                                    ->characterLimit(FieldCharacterLimits::PAYMENT_METHOD_NAME)
                                     ->placeholder('Payment method name')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn ($state, callable $set) => $set('slug', Str::slug($state ?? ''))),
@@ -75,6 +77,7 @@ class PaymentMethodForm
                             ->id('payment-method-notes')
                             ->schema([
                                 NotesRichEditor::make('notes')
+                                    ->label('Payment Method Notes')
                                     ->hiddenLabel()
                                     ->columnSpanFull(),
                             ]),

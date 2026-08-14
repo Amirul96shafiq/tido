@@ -132,7 +132,10 @@ final class ManualWhatsAppExpenseParser
         }
 
         return [
-            'description' => $description,
+            'description' => FieldCharacterLimits::truncate(
+                $description,
+                FieldCharacterLimits::LINE_ITEM_DESCRIPTION,
+            ),
             'quantity' => (float) $matches[2],
             'line_total' => (float) $matches[3],
         ];
@@ -154,14 +157,20 @@ final class ManualWhatsAppExpenseParser
 
             if ($paymentMethod !== null) {
                 return [
-                    'merchant_name' => trim($parts[1]),
+                    'merchant_name' => FieldCharacterLimits::truncate(
+                        trim($parts[1]),
+                        FieldCharacterLimits::MERCHANT_NAME,
+                    ),
                     'payment_method' => $paymentMethod,
                 ];
             }
         }
 
         return [
-            'merchant_name' => $raw,
+            'merchant_name' => FieldCharacterLimits::truncate(
+                $raw,
+                FieldCharacterLimits::MERCHANT_NAME,
+            ),
             'payment_method' => $defaultCash,
         ];
     }

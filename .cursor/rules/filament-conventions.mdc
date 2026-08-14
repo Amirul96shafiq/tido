@@ -49,6 +49,10 @@ Multi-section Create/Edit resource pages and custom content pages with **2+ in-p
 
 Any form field backed by a `notes` (or note-like HTML) column must use `App\Filament\Forms\Components\NotesRichEditor`, not `Textarea` or a one-off `RichEditor`. Shared toolbar + `.fi-notes-rich-editor` height live in that component / `app.css`. See `docs/ui-notes-rich-editor.md`.
 
+## Field character limits
+
+Identity and notes text fields use `TextInput::characterLimit()` / the `NotesRichEditor` default (`App\Support\FieldCharacterLimits`) with a live `{current}/{max}` counter. Do not hand-roll `maxLength()` plus a one-off hint. See `docs/ui-field-character-limits.md`.
+
 ## Form empty placeholders / defaults
 
 When adding or extending a resource `*Form.php`, give empty Create/Edit fields a clear empty state: `placeholder()` for UI hints (not saved), `default()` for real starting values, and restore-on-blur only when an empty value breaks UX. See `docs/ui-form-empty-defaults.md`.

@@ -20,6 +20,7 @@
 | [ui-tooltips.md](ui-tooltips.md) | Agents + humans | Filament Tippy tooltips on icon CTAs (not browser `title`) |
 | [ui-text-marquee.md](ui-text-marquee.md) | Agents + humans | Looping single-line overflowing text (`x-tido.text-marquee`) |
 | [ui-notes-rich-editor.md](ui-notes-rich-editor.md) | Agents + humans | Shared `NotesRichEditor` for `notes` fields (toolbar + height) |
+| [ui-field-character-limits.md](ui-field-character-limits.md) | Agents + humans | Text field max length + live `current/max` counters |
 | [ui-form-empty-defaults.md](ui-form-empty-defaults.md) | Agents + humans | Placeholders vs defaults on resource Create/Edit forms |
 | [ui-custom-toggles.md](ui-custom-toggles.md) | Agents + humans | Custom Blade toggles: Filament color classes + inlineLabel layout |
 | [ui-dark-theme.md](ui-dark-theme.md) | Agents + humans | Dark mode Slate surfaces, borders without elevation shadows, tooltips, scrollbars, solid CTA text |

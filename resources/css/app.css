@@ -3097,6 +3097,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     min-height: 10rem;
 }
 
+.fi-character-count {
+    font-variant-numeric: tabular-nums;
+}
+
 /*
  * Filament forces `.filepond--drop-label { opacity-100! height-auto! }`, which
  * blocks FilePond's fade-out AND keeps a real measured height. With

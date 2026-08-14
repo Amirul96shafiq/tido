@@ -6,6 +6,7 @@ namespace Database\Factories;
 
 use App\Models\Expense;
 use App\Models\PaymentMethod;
+use App\Support\FieldCharacterLimits;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -24,7 +25,10 @@ class ExpenseFactory extends Factory
         $dateTime = $this->faker->dateTimeThisYear();
 
         return [
-            'merchant_name' => $this->faker->company(),
+            'merchant_name' => FieldCharacterLimits::truncate(
+                $this->faker->company(),
+                FieldCharacterLimits::MERCHANT_NAME,
+            ),
             'invoice_number' => $invoiceNum,
             'receipt_hash' => hash('sha256', $invoiceNum.$dateTime->format('Y-m-d H:i:s').$total),
             'date_time' => $dateTime,

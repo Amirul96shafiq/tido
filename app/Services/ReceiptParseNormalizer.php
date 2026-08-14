@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Support\FieldCharacterLimits;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 
@@ -27,7 +28,10 @@ class ReceiptParseNormalizer
      */
     public function normalize(array $parsed): array
     {
-        $merchantName = trim((string) ($parsed['merchant_name'] ?? ''));
+        $merchantName = FieldCharacterLimits::truncate(
+            trim((string) ($parsed['merchant_name'] ?? '')),
+            FieldCharacterLimits::MERCHANT_NAME,
+        );
         if ($merchantName === '') {
             $merchantName = 'Unknown Merchant';
         }
@@ -61,6 +65,11 @@ class ReceiptParseNormalizer
                 if ($description === '') {
                     $description = 'Line Item';
                 }
+
+                $description = FieldCharacterLimits::truncate(
+                    $description,
+                    FieldCharacterLimits::LINE_ITEM_DESCRIPTION,
+                );
 
                 $labelName = $item['label'] ?? $item['suggested_category'] ?? null;
                 if (is_string($labelName)) {

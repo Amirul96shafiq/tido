@@ -6,6 +6,7 @@ namespace Database\Factories;
 
 use App\Enums\HouseholdRole;
 use App\Models\User;
+use App\Support\FieldCharacterLimits;
 use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -29,8 +30,10 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'display_name' => fake()->optional()->firstName(),
+            'name' => FieldCharacterLimits::truncate(fake()->name(), FieldCharacterLimits::USER_NAME),
+            'display_name' => fake()->optional()->passthrough(
+                FieldCharacterLimits::truncate(fake()->firstName(), FieldCharacterLimits::DISPLAY_NAME),
+            ),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),

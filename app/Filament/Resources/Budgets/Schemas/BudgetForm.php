@@ -12,6 +12,7 @@ use App\Models\Budget;
 use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\User;
+use App\Support\FieldCharacterLimits;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Slider;
 use Filament\Forms\Components\TextInput;
@@ -201,6 +202,7 @@ class BudgetForm
                             ->id('budget-notes')
                             ->schema([
                                 NotesRichEditor::make('notes')
+                                    ->label('Budget Notes')
                                     ->hiddenLabel()
                                     ->columnSpanFull(),
                             ]),
@@ -243,10 +245,12 @@ class BudgetForm
 
                                 TextInput::make('title')
                                     ->label('Title')
-                                    ->maxLength(255)
+                                    ->characterLimit(
+                                        FieldCharacterLimits::BUDGET_TITLE,
+                                        'Auto-fills from the Label when empty. Clear to use the Label name at display time.',
+                                    )
                                     ->live(onBlur: true)
-                                    ->placeholder('e.g. Pet Supplies — Monthly')
-                                    ->helperText('Auto-fills from the Label when empty. Clear to use the Label name at display time.'),
+                                    ->placeholder('e.g. Pet Supplies — Monthly'),
                             ]),
                     ]),
             ]);

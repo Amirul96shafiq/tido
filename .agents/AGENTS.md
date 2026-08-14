@@ -39,14 +39,15 @@ No multi-tenancy package. One Filament panel with **household roles** (`primary`
 10. Sticky section tabs + smooth scroll — `docs/ui-section-nav.md`
 11. Single-line text marquee (reusable) — `docs/ui-text-marquee.md`
 12. Notes rich editor (`notes` fields) — `docs/ui-notes-rich-editor.md`
-13. Resource form empty placeholders / defaults — `docs/ui-form-empty-defaults.md`
-14. Custom Blade toggles (Filament color classes + Profile inlineLabel) — `docs/ui-custom-toggles.md`
-15. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`
-16. Service Status / health probes — `docs/service-status.md`
-17. Profile Active Sessions — `docs/active-sessions.md`
-18. Household access / family login / attribution — `docs/household-access.md`
-19. WhatsApp text manual expenses — `docs/whatsapp-manual-expense.md`
-20. WhatsApp bot commands / keywords — `docs/whatsapp-bot-commands.md`
+13. Field character limits (`current/max` counters) — `docs/ui-field-character-limits.md`
+14. Resource form empty placeholders / defaults — `docs/ui-form-empty-defaults.md`
+15. Custom Blade toggles (Filament color classes + Profile inlineLabel) — `docs/ui-custom-toggles.md`
+16. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`
+17. Service Status / health probes — `docs/service-status.md`
+18. Profile Active Sessions — `docs/active-sessions.md`
+19. Household access / family login / attribution — `docs/household-access.md`
+20. WhatsApp text manual expenses — `docs/whatsapp-manual-expense.md`
+21. WhatsApp bot commands / keywords — `docs/whatsapp-bot-commands.md`
 
 ### Do not
 
@@ -148,6 +149,10 @@ Multi-section Create/Edit resource pages and custom content pages with **2+ in-p
 ### Notes fields (rich editor)
 
 Any form field backed by a `notes` (or note-like HTML) column must use `App\Filament\Forms\Components\NotesRichEditor`, not `Textarea` or a one-off `RichEditor`. Shared toolbar + `.fi-notes-rich-editor` height live in that component / `app.css`. See `docs/ui-notes-rich-editor.md`.
+
+### Field character limits
+
+Identity and notes text fields use `TextInput::characterLimit()` / the `NotesRichEditor` default (`App\Support\FieldCharacterLimits`) with a live `{current}/{max}` counter. Do not hand-roll `maxLength()` plus a one-off hint. See `docs/ui-field-character-limits.md`.
 
 ### Form empty placeholders / defaults
 

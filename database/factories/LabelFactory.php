@@ -6,6 +6,7 @@ namespace Database\Factories;
 
 use App\Enums\LabelType;
 use App\Models\Label;
+use App\Support\FieldCharacterLimits;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -18,7 +19,7 @@ class LabelFactory extends Factory
 
     public function definition(): array
     {
-        $name = $this->faker->unique()->words(2, true);
+        $name = FieldCharacterLimits::truncate($this->faker->unique()->words(2, true), FieldCharacterLimits::LABEL_NAME);
 
         return [
             'type' => LabelType::Finance,
@@ -26,7 +27,9 @@ class LabelFactory extends Factory
             'slug' => Str::slug($name),
             'icon' => 'heroicon-o-briefcase',
             'color' => $this->faker->safeHexColor(),
-            'description' => $this->faker->optional()->sentence(),
+            'description' => $this->faker->optional()->passthrough(
+                FieldCharacterLimits::truncate($this->faker->sentence(), FieldCharacterLimits::NOTES),
+            ),
             'is_system' => false,
         ];
     }

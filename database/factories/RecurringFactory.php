@@ -9,6 +9,7 @@ use App\Enums\RecurringType;
 use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\Recurring;
+use App\Support\FieldCharacterLimits;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -23,7 +24,7 @@ class RecurringFactory extends Factory
         $title = $this->faker->words(2, true);
 
         return [
-            'title' => ucfirst($title),
+            'title' => FieldCharacterLimits::truncate(ucfirst($title), FieldCharacterLimits::RECURRING_TITLE),
             'notes' => null,
             'type' => RecurringType::Subscription,
             'label_id' => Label::factory(),

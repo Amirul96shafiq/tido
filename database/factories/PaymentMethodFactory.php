@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\PaymentMethod;
+use App\Support\FieldCharacterLimits;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -17,7 +18,10 @@ class PaymentMethodFactory extends Factory
 
     public function definition(): array
     {
-        $name = $this->faker->unique()->words(2, true);
+        $name = FieldCharacterLimits::truncate(
+            $this->faker->unique()->words(2, true),
+            FieldCharacterLimits::PAYMENT_METHOD_NAME,
+        );
 
         return [
             'name' => $name,

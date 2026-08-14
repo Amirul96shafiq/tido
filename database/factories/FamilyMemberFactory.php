@@ -6,6 +6,7 @@ namespace Database\Factories;
 
 use App\Enums\FamilyRelationship;
 use App\Models\FamilyMember;
+use App\Support\FieldCharacterLimits;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,8 +21,10 @@ class FamilyMemberFactory extends Factory
         $local = $this->faker->unique()->numerify('1########');
 
         return [
-            'name' => $this->faker->name(),
-            'display_name' => $this->faker->optional()->firstName(),
+            'name' => FieldCharacterLimits::truncate($this->faker->name(), FieldCharacterLimits::USER_NAME),
+            'display_name' => $this->faker->optional()->passthrough(
+                FieldCharacterLimits::truncate($this->faker->firstName(), FieldCharacterLimits::DISPLAY_NAME),
+            ),
             'phone' => '60'.$local,
             'relationship' => $this->faker->optional()->randomElement(
                 array_filter(

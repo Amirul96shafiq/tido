@@ -16,6 +16,7 @@ use App\Services\AccountDangerZoneService;
 use App\Services\ActiveSessionService;
 use App\Services\FamilyMemberLoginService;
 use App\Support\EmailChangeVerification;
+use App\Support\FieldCharacterLimits;
 use App\Support\FilamentAuthLogout;
 use App\Support\HouseholdAccess;
 use App\Support\PhoneNumber;
@@ -178,9 +179,15 @@ class EditProfile extends BaseEditProfile implements HasTable
 
     protected function getNameFormComponent(): Component
     {
-        return parent::getNameFormComponent()
+        $component = parent::getNameFormComponent()
             ->label('Full Name')
             ->placeholder('Full name');
+
+        if ($component instanceof TextInput) {
+            return FieldCharacterLimits::applyTextInput($component, FieldCharacterLimits::USER_NAME);
+        }
+
+        return $component;
     }
 
     public function form(Schema $schema): Schema
@@ -311,7 +318,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                                 $this->getNameFormComponent(),
                                 TextInput::make('display_name')
                                     ->label('Display Name')
-                                    ->maxLength(255)
+                                    ->characterLimit(FieldCharacterLimits::DISPLAY_NAME)
                                     ->placeholder('Display name'),
 
                                 TextInput::make('phone')

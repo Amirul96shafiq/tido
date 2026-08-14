@@ -61,5 +61,6 @@ When adding or extending `app/Filament/Resources/{Plural}/Schemas/{Singular}Form
 
 - Forms: `ExpenseForm`, `BudgetForm`, `LabelForm`, `PaymentMethodForm`, `FamilyMemberForm` under `app/Filament/Resources/*/Schemas/`; Profile DOB on `EditProfile`
 - Shared DOB: `app/Filament/Forms/Components/DateOfBirthPicker.php`
+- Character limits: [ui-field-character-limits.md](ui-field-character-limits.md)
 - Tests: `tests/Feature/ExpenseFormReceiptImageTest.php`, `BudgetFormTest.php`, `LabelFormTest.php`, `PaymentMethodFormTest.php`, `DatePickerNativeDefaultTest.php`
 - Filament docs: field `placeholder()` vs `default()` (Boost `search-docs`)
