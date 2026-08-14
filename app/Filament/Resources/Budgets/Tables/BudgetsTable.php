@@ -54,6 +54,8 @@ class BudgetsTable
 
                 TextColumn::make('label.name')
                     ->label('Label')
+                    ->badge()
+                    ->placeholder('None')
                     ->default('Overall (All Labels)')
                     ->searchable()
                     ->sortable()
@@ -72,24 +74,19 @@ class BudgetsTable
                     ->icon(fn (?string $state): ?string => $state)
                     ->toggleable(isToggledHiddenByDefault: false),
 
-                TextColumn::make('familyMember.name')
+                TextColumn::make('assigned_to')
                     ->label('Assigned to')
-                    ->formatStateUsing(function (?string $state, Budget $record): string {
-                        if ($record->family_member_id === null) {
-                            return self::primaryUsername();
-                        }
-
+                    ->state(function (Budget $record): string {
                         $member = $record->familyMember;
 
-                        if (! $member instanceof FamilyMember) {
-                            return 'Family member';
+                        if ($member === null) {
+                            return self::primaryUsername();
                         }
 
                         return filled($member->display_name)
                             ? (string) $member->display_name
                             : (string) $member->name;
                     })
-                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 IconColumn::make('is_shared')
@@ -117,7 +114,8 @@ class BudgetsTable
 
                 TextColumn::make('quarter')
                     ->label('Quarter')
-                    ->formatStateUsing(fn ($state) => $state ? 'Q'.$state : '-')
+                    ->formatStateUsing(fn ($state): string => 'Q'.$state)
+                    ->placeholder('—')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),
 
