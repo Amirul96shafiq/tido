@@ -91,13 +91,13 @@ final class RecurringScheduleSummary
     private static function nextDueLine(Get $get, ?Recurring $record, string $operation): string
     {
         if ($operation === 'edit' || $operation === 'view') {
-            $persisted = $record?->next_due_on;
+            $displayed = $record?->nextOpenDueOn();
 
-            if ($persisted === null) {
+            if ($displayed === null) {
                 return 'Next due: —';
             }
 
-            return 'Next due: '.$persisted->format('j M Y');
+            return 'Next due: '.$displayed->format('j M Y');
         }
 
         $preview = self::previewNextDueOn($get);

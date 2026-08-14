@@ -227,6 +227,33 @@ class Recurring extends Model
         return $this->next_due_on !== null;
     }
 
+    /**
+     * User-facing next due: earliest open occurrence, else the generation cursor.
+     */
+    public function nextOpenDueOn(): ?Carbon
+    {
+        $openDue = null;
+
+        if ($this->relationLoaded('occurrences')) {
+            $openDue = $this->occurrences
+                ->filter(static fn (RecurringOccurrence $occurrence): bool => $occurrence->status?->isOpen() ?? false)
+                ->sortBy(static fn (RecurringOccurrence $occurrence): string => $occurrence->due_on?->toDateString() ?? '')
+                ->first()?->due_on;
+        } else {
+            $openDue = $this->occurrences()
+                ->open()
+                ->orderBy('due_on')
+                ->orderBy('id')
+                ->value('due_on');
+        }
+
+        if ($openDue !== null) {
+            return Carbon::parse($openDue)->startOfDay();
+        }
+
+        return $this->next_due_on?->copy()->startOfDay();
+    }
+
     public function periodBoundsForDueOn(CarbonInterface $dueOn): array
     {
         $due = Carbon::parse($dueOn)->startOfDay();

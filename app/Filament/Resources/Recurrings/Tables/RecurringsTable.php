@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Recurrings\Tables;
 
 use App\Enums\HouseholdRole;
 use App\Enums\RecurringFrequency;
+use App\Enums\RecurringOccurrenceStatus;
 use App\Enums\RecurringType;
 use App\Filament\Support\RecordActionsGroup;
 use App\Models\FamilyMember;
@@ -22,6 +23,7 @@ use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class RecurringsTable
 {
@@ -58,7 +60,7 @@ class RecurringsTable
                     ->label('Label')
                     ->placeholder('—')
                     ->toggleable(),
-                    
+
                 TextColumn::make('familyMember.name')
                     ->label('Assigned to')
                     ->formatStateUsing(function (?string $state, Recurring $record): string {
@@ -110,8 +112,20 @@ class RecurringsTable
 
                 TextColumn::make('next_due_on')
                     ->label('Next due')
+                    ->state(fn (Recurring $record): ?string => $record->nextOpenDueOn()?->toDateString())
                     ->date()
-                    ->sortable()
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        $direction = $direction === 'desc' ? 'desc' : 'asc';
+
+                        return $query->orderByRaw(
+                            'coalesce((select min(due_on) from recurring_occurrences where recurring_occurrences.recurring_id = recurrings.id and status in (?, ?, ?)), recurrings.next_due_on) '.$direction,
+                            [
+                                RecurringOccurrenceStatus::Upcoming->value,
+                                RecurringOccurrenceStatus::Due->value,
+                                RecurringOccurrenceStatus::Overdue->value,
+                            ],
+                        );
+                    })
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 ToggleColumn::make('is_active')
