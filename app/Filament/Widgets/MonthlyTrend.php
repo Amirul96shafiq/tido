@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Concerns\RefreshesOnExpenseBroadcast;
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\HasChartEmptyState;
-use App\Filament\Widgets\Concerns\HasDashboardChartPolling;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
@@ -16,9 +16,9 @@ use Illuminate\Contracts\Support\Htmlable;
 class MonthlyTrend extends ChartWidget
 {
     use HasChartEmptyState;
-    use HasDashboardChartPolling;
     use HasDashboardSectionId;
     use InteractsWithDashboardMonth;
+    use RefreshesOnExpenseBroadcast;
 
     /**
      * @var view-string
@@ -30,6 +30,8 @@ class MonthlyTrend extends ChartWidget
     protected int|string|array $columnSpan = 'full';
 
     protected ?string $maxHeight = DashboardWidgetHeights::TREND_CHART;
+
+    protected ?string $pollingInterval = null;
 
     public static function dashboardSectionId(): string
     {
@@ -49,6 +51,11 @@ class MonthlyTrend extends ChartWidget
     public function getType(): string
     {
         return 'line';
+    }
+
+    protected function refreshFromExpenseBroadcast(): void
+    {
+        $this->updateChartData();
     }
 
     protected function getData(): array

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Concerns\RefreshesTableOnExpenseBroadcast;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Resources\Expenses\Tables\ExpensesTable;
@@ -25,6 +26,7 @@ class RecentReceipts extends BaseWidget
 {
     use HasDashboardSectionId;
     use InteractsWithDashboardMonth;
+    use RefreshesTableOnExpenseBroadcast;
 
     protected static ?int $sort = 11;
 
@@ -50,7 +52,6 @@ class RecentReceipts extends BaseWidget
             ->heading('Recent Receipts ('.$this->formatSelectedMonth('F Y').')')
             ->query($query->limit(5))
             ->defaultSort('created_at', 'desc')
-            ->poll('10s.visible')
             ->paginated(false)
             ->headerActions([
                 Action::make('viewRecentUploads')
@@ -120,6 +121,9 @@ class RecentReceipts extends BaseWidget
                         'failed' => 'danger',
                         default => 'gray',
                     })
+                    ->extraCellAttributes(fn (Expense $record): array => $record->status === 'pending'
+                        ? ['class' => 'tido-expense-status-pending']
+                        : [])
                     ->sortable(),
 
                 TextColumn::make('created_at')

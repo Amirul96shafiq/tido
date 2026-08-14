@@ -6,7 +6,7 @@ Run **tido** and **Evolution** as two separate processes on the Windows host.
 
 | Terminal | Command | Role |
 |----------|---------|------|
-| 1 | `npm run dev:full` | tido (Vite + `artisan serve` :2000 + queue) |
+| 1 | `npm run dev:full` | tido (Vite + `artisan serve` :2000 + queue + Reverb :8081) |
 | 2 | `npm run evolution` | Evolution API on `http://127.0.0.1:8080` |
 
 Optional later: `npm run dev:whatsapp` starts tido **and** Evolution in one window (Approach A). Prefer two terminals until QR pairing works.
@@ -43,7 +43,7 @@ Edit Evolution’s `.env` at minimum:
 - This is the outbound Evolution API credential only; the inbound webhook callback uses the separate `EVOLUTION_WEBHOOK_SECRET` configured in tido.
 - Database provider + connection string (Postgres/MySQL)
 - Redis URL if required
-- Server port `8080` (default)
+- Server port `8080` (default). tido Reverb uses **8081** — do not put Evolution on 8081 or Reverb on 8080. See [realtime-broadcasting.md](realtime-broadcasting.md).
 - Linked device label (optional; `npm run evolution` defaults these):
   - `CONFIG_SESSION_PHONE_CLIENT="tido App (Evolution API)"` — os string WhatsApp shows
   - `CONFIG_SESSION_PHONE_NAME=Desktop` — PlatformType for **QR** links (`Chrome` forces a “Google Chrome (…)” prefix)

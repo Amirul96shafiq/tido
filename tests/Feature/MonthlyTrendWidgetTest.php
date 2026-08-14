@@ -38,3 +38,13 @@ test('monthly trend widget renders with enriched chart data', function () {
         ->assertSee('font: { size: 10 }', false)
         ->assertSee("'Top 3 Labels'", false);
 });
+
+test('monthly trend widget listens for echo expense updates without polling', function () {
+    $component = Livewire::test(MonthlyTrend::class)
+        ->assertSuccessful()
+        ->assertDontSeeHtml('wire:poll.30s')
+        ->assertDontSeeHtml('wire:poll.5s');
+
+    expect($component->instance()->getListeners())
+        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+});

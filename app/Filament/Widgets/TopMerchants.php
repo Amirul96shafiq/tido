@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Concerns\RefreshesOnExpenseBroadcast;
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\HasChartEmptyState;
-use App\Filament\Widgets\Concerns\HasDashboardChartPolling;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
@@ -17,9 +17,9 @@ use Illuminate\Support\Str;
 class TopMerchants extends ChartWidget
 {
     use HasChartEmptyState;
-    use HasDashboardChartPolling;
     use HasDashboardSectionId;
     use InteractsWithDashboardMonth;
+    use RefreshesOnExpenseBroadcast;
 
     /**
      * @var view-string
@@ -37,6 +37,8 @@ class TopMerchants extends ChartWidget
 
     protected ?string $maxHeight = DashboardWidgetHeights::STANDARD_CHART;
 
+    protected ?string $pollingInterval = null;
+
     public static function dashboardSectionId(): string
     {
         return 'top-merchants';
@@ -50,6 +52,11 @@ class TopMerchants extends ChartWidget
     public function getType(): string
     {
         return 'bar';
+    }
+
+    protected function refreshFromExpenseBroadcast(): void
+    {
+        $this->updateChartData();
     }
 
     protected function isChartEmpty(): bool

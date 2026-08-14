@@ -43,7 +43,7 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 4. Dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md`
 5. Domain skill: activate the `tido-domain` skill surfaced by the active agent (+ its `pipeline.md` when touching OCR/webhooks) — Finances domain
 6. Framework skills surfaced by the active agent: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
-7. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/whatsapp-bot-commands.md`, `docs/whatsapp-manual-expense.md`
+7. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/realtime-broadcasting.md`, `docs/whatsapp-bot-commands.md`, `docs/whatsapp-manual-expense.md`
 8. UI empty panels: `docs/ui-empty-states.md`
 9. Modal blur / width: `docs/ui-modal-overlay.md`
 10. Vite panel assets (`Vite::asset` vs `@vite`, when to `npm run build`): `docs/vite-assets.md`
@@ -76,6 +76,7 @@ app/
   Services/         Ollama, Currency exchange/conversion, WhatsApp, PdfPageInspector, PdfPageRenderer, ReceiptDocumentPreparer, BudgetAlert, RecurringOccurrenceGenerator, RecurringMatchService, RecurringReminderService, SpendingForecast, FamilyMemberLoginService, Backup*, Health/*, ActiveSessionService, AccountDangerZone, LabelMatcher, PaymentMethodMatcher
   Jobs/             ExtractReceiptDataJob, ProcessWhatsAppMediaJob, ProcessManualWhatsAppExpenseJob, ParseManualWhatsAppExpenseJob, …
   Observers/        ExpenseObserver, FamilyMemberObserver
+  Events/           ExpenseUpdated (Reverb broadcast; id + status only)
   Policies/         ExpensePolicy (household mutate ACL)
   Prompts/          ReceiptExtractionPrompt, PdfReceiptPagePrompt, PdfReceiptMergePrompt, ManualExpenseLabelPrompt
   Support/          HouseholdAccess, DashboardSpenderScope, ExpenseSenderAttribution, ManualWhatsAppExpenseParser, WhatsAppLid, WhatsAppMessage, …
@@ -85,6 +86,7 @@ routes/
   web.php           / → /admin, changelog JSON, backup download / guest restore
   api.php           WhatsApp webhook
   console.php       schedules (backups, health:probe / health:prune)
+  channels.php      private Reverb channels (`household.expenses`, `App.Models.User.{id}`)
 database/
   migrations|factories|seeders
 docs/               architecture + integration setup + this file
@@ -215,7 +217,7 @@ php artisan test --compact --filter=YourTest
 ## 7. Common pitfalls
 
 - Calling categories “Category” in new code — use **Label** / **Labels**
-- Hitting live Ollama in Pest — use `Http::fake()`
+- Hitting live Ollama or Reverb in Pest — use `Http::fake()` / `Event::fake()`; phpunit sets `BROADCAST_CONNECTION=null`
 - Forgetting `ExpenseObserver` side effects when creating expenses in tests — use `Queue::fake()` or `unsetEventDispatcher()` when appropriate
 - Assuming multi-tenancy or Spatie roles — single household; use `HouseholdAccess` / `HouseholdRole` — see `docs/household-access.md`
 - Letting family members mutate expenses they did not upload — gate with `HouseholdAccess::canMutateExpense()` / `ExpensePolicy`
@@ -232,8 +234,8 @@ php artisan route:list --path=admin
 php artisan route:list --path=api
 php artisan test --compact
 vendor/bin/pint --dirty --format agent
-npm run dev          # or npm run dev:full / dev:all (vite + serve:2000 + queue; does not run build)
+npm run dev          # or npm run dev:full / dev:all (vite + serve:2000 + queue + reverb:8081; does not run build)
 npm run build        # once after new Vite::asset() entry paths — see docs/vite-assets.md
 ```
 
-Local stack: native Ollama (`docs/ollama-setup.md`, `OLLAMA_HOST=http://127.0.0.1:11434`) and Evolution (`docs/evolution-local-windows.md`) on the Windows host with `npm run dev:full`.
+Local stack: native Ollama (`docs/ollama-setup.md`, `OLLAMA_HOST=http://127.0.0.1:11434`), Evolution (`docs/evolution-local-windows.md`, `:8080`), and Reverb (`docs/realtime-broadcasting.md`, `:8081`) on the Windows host with `npm run dev:full`.

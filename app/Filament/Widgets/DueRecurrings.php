@@ -7,6 +7,7 @@ namespace App\Filament\Widgets;
 use App\Enums\HouseholdRole;
 use App\Enums\RecurringFrequency;
 use App\Enums\RecurringOccurrenceStatus;
+use App\Filament\Concerns\RefreshesOnExpenseBroadcast;
 use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
@@ -35,6 +36,7 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
     use HasDashboardSectionId;
     use InteractsWithActions;
     use InteractsWithSchemas;
+    use RefreshesOnExpenseBroadcast;
 
     protected static bool $isLazy = false;
 

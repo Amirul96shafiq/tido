@@ -665,3 +665,42 @@ test('due widget revert requires filament confirmation modal', function () {
 
     expect($occurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Due);
 });
+
+test('due recurrings widget listens for echo expense updates without polling', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $component = Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertDontSeeHtml('wire:poll.30s')
+        ->assertDontSeeHtml('wire:poll.5s');
+
+    expect($component->instance()->getListeners())
+        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+});
+
+test('due recurrings widget refreshes when an expense broadcast arrives', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $recurring = Recurring::factory()->create(['title' => 'TIME Internet']);
+    $occurrence = RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+        'expected_amount' => 89.90,
+    ]);
+
+    $component = Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertSee('1 Recurring Payment Due');
+
+    $occurrence->update(['status' => RecurringOccurrenceStatus::Completed]);
+
+    $component
+        ->call('refreshOnExpenseBroadcast')
+        ->assertSee('0 Recurring Payment Dues')
+        ->assertSee('TIME Internet');
+});

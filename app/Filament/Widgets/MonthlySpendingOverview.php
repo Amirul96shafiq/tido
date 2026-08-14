@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Concerns\RefreshesOnExpenseBroadcast;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
@@ -13,6 +14,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 class MonthlySpendingOverview extends BaseWidget
 {
     use InteractsWithDashboardMonth;
+    use RefreshesOnExpenseBroadcast;
 
     public const SECTION_TOTAL_SPENT = 'total-spent';
 
@@ -48,7 +50,7 @@ class MonthlySpendingOverview extends BaseWidget
 
     protected function getPollingInterval(): ?string
     {
-        return $this->isCurrentMonthSelected() ? '30s' : null;
+        return null;
     }
 
     protected function getStats(): array

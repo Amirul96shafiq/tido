@@ -29,15 +29,26 @@ test('receipt upload page lists recent expenses', function () {
 
     Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
-        ->assertSeeHtml('wire:poll.10s.visible')
+        ->assertDontSeeHtml('wire:poll.10s.visible')
         ->assertCanSeeTableRecords([$expense])
         ->assertSee('wa_receipt....jpg');
 });
 
-test('receipt upload page polls every ten seconds when no expense is pending', function () {
-    Livewire::test(ReceiptUploadPage::class)
+test('receipt upload page listens for echo expense updates without polling', function () {
+    $pending = Expense::factory()->create([
+        'status' => 'pending',
+        'source' => 'whatsapp',
+        'image_path' => null,
+    ]);
+
+    $component = Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
-        ->assertSeeHtml('wire:poll.10s.visible');
+        ->assertDontSeeHtml('wire:poll.10s.visible')
+        ->assertSeeHtml('tido-expense-status-pending')
+        ->assertCanSeeTableRecords([$pending]);
+
+    expect($component->instance()->getListeners())
+        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
 });
 
 test('filename links to file in a new tab', function () {

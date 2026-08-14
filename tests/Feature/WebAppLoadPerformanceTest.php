@@ -2,8 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Filament\Widgets\BudgetStatus;
 use App\Filament\Widgets\MonthlySpendingOverview;
 use App\Filament\Widgets\MonthlyTrend;
+use App\Filament\Widgets\ReceiptsBySource;
+use App\Filament\Widgets\SpendingByLabel;
+use App\Filament\Widgets\SpendingByPaymentMethod;
+use App\Filament\Widgets\TopMerchants;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
@@ -21,14 +26,29 @@ test('expense items and budgets have lookup indexes for dashboard queries', func
         ->and(Schema::hasIndex('budgets', 'budgets_is_active_index'))->toBeTrue();
 });
 
-test('dashboard stats and charts poll less often on the current month', function () {
+test('converted finances widgets skip polling', function () {
     $statsInterval = (new ReflectionMethod(MonthlySpendingOverview::class, 'getPollingInterval'))
         ->invoke(Livewire::test(MonthlySpendingOverview::class)->instance());
-    $chartInterval = (new ReflectionMethod(MonthlyTrend::class, 'getPollingInterval'))
+    $trendInterval = (new ReflectionMethod(MonthlyTrend::class, 'getPollingInterval'))
         ->invoke(Livewire::test(MonthlyTrend::class)->instance());
+    $labelInterval = (new ReflectionMethod(SpendingByLabel::class, 'getPollingInterval'))
+        ->invoke(Livewire::test(SpendingByLabel::class)->instance());
+    $budgetInterval = (new ReflectionMethod(BudgetStatus::class, 'getPollingInterval'))
+        ->invoke(Livewire::test(BudgetStatus::class)->instance());
+    $merchantInterval = (new ReflectionMethod(TopMerchants::class, 'getPollingInterval'))
+        ->invoke(Livewire::test(TopMerchants::class)->instance());
+    $paymentInterval = (new ReflectionMethod(SpendingByPaymentMethod::class, 'getPollingInterval'))
+        ->invoke(Livewire::test(SpendingByPaymentMethod::class)->instance());
+    $sourceInterval = (new ReflectionMethod(ReceiptsBySource::class, 'getPollingInterval'))
+        ->invoke(Livewire::test(ReceiptsBySource::class)->instance());
 
-    expect($statsInterval)->toBe('30s')
-        ->and($chartInterval)->toBe('30s');
+    expect($statsInterval)->toBeNull()
+        ->and($trendInterval)->toBeNull()
+        ->and($labelInterval)->toBeNull()
+        ->and($budgetInterval)->toBeNull()
+        ->and($merchantInterval)->toBeNull()
+        ->and($paymentInterval)->toBeNull()
+        ->and($sourceInterval)->toBeNull();
 });
 
 test('desktop auth backgrounds are served as webp', function () {

@@ -214,10 +214,13 @@ test('budget status widget ignores reorder for inactive budgets', function () {
         ->and($inactive->fresh()->sort_order)->toBe(1);
 });
 
-test('budget status widget polls for live updates', function () {
-    Livewire::test(BudgetStatus::class)
+test('budget status widget listens for echo expense updates without polling', function () {
+    $component = Livewire::test(BudgetStatus::class)
         ->assertSuccessful()
-        ->assertSeeHtml('wire:poll.30s');
+        ->assertDontSeeHtml('wire:poll.30s');
+
+    expect($component->instance()->getListeners())
+        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
 });
 
 test('budget status widget hides other members personal budgets from family users', function () {

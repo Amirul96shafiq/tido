@@ -135,10 +135,11 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 ## 7. Infrastructure, Testing & Monitoring
 
 ### 7.1. Local services & orchestration
-* **Application / DB / queues:** Windows host development runs PHP via `npm run dev:full` with SQLite (default) and a `database` queue connection. `queue:listen` handles `default`, `whatsapp`, and `receipts`.
+* **Application / DB / queues:** Windows host development runs PHP via `npm run dev:full` with SQLite (default) and a `database` queue connection. `queue:listen` handles `default`, `whatsapp`, and `receipts`. `reverb:start` serves websockets on **8081** for expense table live sync and database-notification inbox refresh (see [`realtime-broadcasting.md`](realtime-broadcasting.md)).
 * **Exchange-rate provider:** Configure `CURRENCY_API_BASE_URL`, `CURRENCY_API_KEY`, timeout/connect timeout, and cache TTL in deployment configuration. Historical lookups use the receipt date; `receipts:convert-currency --dry-run` inspects existing foreign rows without requesting rates or mutating data. A targeted legacy row whose source was previously stored incorrectly can use `receipts:convert-currency <id> --source-currency=USD --dry-run` before the approved conversion run.
 * **Ollama (OCR):** Native host process on `http://127.0.0.1:11434` with vision model `qwen2.5vl:7b` (see `docs/ollama-setup.md`).
-* **Evolution (WhatsApp):** Native host process on `http://127.0.0.1:8080` via `npm run evolution` (see `docs/evolution-local-windows.md`).
+* **Evolution (WhatsApp):** Native host process on `http://127.0.0.1:8080` via `npm run evolution` (see `docs/evolution-local-windows.md`). Do not put Reverb on 8080.
+* **Reverb (Echo):** Native host process on `http://127.0.0.1:8081`. Filament Echo refreshes List Expenses, Upload Receipts, Recent Receipts, Monthly Spending Overview, Monthly Spending Trend, Spending by Label, Budget Performance, Top Merchants, Spending by Payment Method, Receipts by Upload Source, Due Recurrings, and Recurring Month Snapshot on expense create/status change, and the database-notifications inbox on `DatabaseNotificationsSent`. Do not use Pusher Cloud.
 * **Poppler (PDF OCR):** Native Windows command-line tools `pdfinfo.exe`, `pdftotext.exe`, and `pdftocairo.exe`, configured through `PDFINFO_BINARY`, `PDFTOTEXT_BINARY`, and `PDFTOCAIRO_BINARY`; `pdfinfo` and a Poppler renderer (`pdftocairo`, with `pdftoppm` fallback through `PDFTOPPM_BINARY`) are required by the queue worker, while `pdftotext` supplies additional currency evidence when available.
 
 ### 7.2. Queue Monitoring & Error Handling
@@ -147,7 +148,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 
 ### 7.3. Automated Testing Suite
 * **Pest PHP:** Implement Pest for PSR-compliant, expressive test coverage.
-* **API Mocking:** Do not trigger actual Ollama, Evolution, or exchange-rate providers during test execution. Use Laravel's `Http::fake()` to mock expected JSON payloads from the AI and rate provider so tests run in milliseconds rather than minutes.
+* **API Mocking:** Do not trigger actual Ollama, Evolution, Reverb, or exchange-rate providers during test execution. Use Laravel's `Http::fake()` to mock expected JSON payloads from the AI and rate provider so tests run in milliseconds rather than minutes. Broadcasting tests use `BROADCAST_CONNECTION=null` and `Event::fake()`.
 * **Webhook Feature Tests:** Assert that authorized image/PDF payloads from the Evolution API correctly dispatch media jobs, non-PDF documents are ignored, linked/unlinked LIDs follow the allowlist rules, and unauthorized requests return `401 Unauthorized`.
 
 ### 7.4. Data Backup & Retention Strategy
@@ -161,6 +162,6 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 ### 7.5. Service Status (health probes)
 
 * **Filament UI:** **Tools → Service Status** — summary report + per-service 30-day uptime bars (12h pieces). See `docs/service-status.md`.
-* **Probes:** `health:probe` every 15 minutes stores samples in `service_health_samples` (App, Database, Ollama, Evolution, Queue).
+* **Probes:** `health:probe` every 15 minutes stores samples in `service_health_samples` (App, Database, Ollama, Evolution, Queue, Reverb when `BROADCAST_CONNECTION=reverb`).
 * **Retention:** `health:prune` daily; 30-day sample window matches the visible chart.
-* **Tests:** Mock Ollama/Evolution with `Http::fake()`; do not hit real services in CI.
+* **Tests:** Mock Ollama/Evolution/Reverb with `Http::fake()`; do not hit real services in CI.

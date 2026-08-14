@@ -21,8 +21,11 @@ test('table filters and column manager apply live without deferred apply action'
 
     $component = Livewire::test(ListExpenses::class)
         ->assertSuccessful()
-        ->assertSeeHtml('wire:poll.10s.visible')
+        ->assertDontSeeHtml('wire:poll.10s.visible')
         ->assertCanSeeTableRecords([$pending, $parsed]);
+
+    expect($component->instance()->getListeners())
+        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
 
     expect($component->instance()->getTable()->hasDeferredFilters())->toBeFalse()
         ->and($component->instance()->getTable()->hasDeferredColumnManager())->toBeFalse();

@@ -11,8 +11,10 @@ use App\Http\Middleware\LogLivewireUpdates;
 use App\Http\Responses\LogoutResponse;
 use App\Listeners\RegisterScheduledBackupCatalog;
 use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\FamilyMember;
 use App\Models\User;
+use App\Observers\ExpenseItemObserver;
 use App\Observers\ExpenseObserver;
 use App\Observers\FamilyMemberObserver;
 use App\Services\Currency\CurrencyApiExchangeRateProvider;
@@ -64,6 +66,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Expense::observe(ExpenseObserver::class);
+        ExpenseItem::observe(ExpenseItemObserver::class);
         FamilyMember::observe(FamilyMemberObserver::class);
 
         Event::listen(BackupWasSuccessful::class, RegisterScheduledBackupCatalog::class);

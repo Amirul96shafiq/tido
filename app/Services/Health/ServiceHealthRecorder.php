@@ -10,6 +10,7 @@ use App\Services\Health\Probes\DatabaseProbe;
 use App\Services\Health\Probes\EvolutionProbe;
 use App\Services\Health\Probes\OllamaProbe;
 use App\Services\Health\Probes\QueueProbe;
+use App\Services\Health\Probes\ReverbProbe;
 
 class ServiceHealthRecorder
 {
@@ -24,6 +25,7 @@ class ServiceHealthRecorder
         OllamaProbe $ollamaProbe,
         EvolutionProbe $evolutionProbe,
         QueueProbe $queueProbe,
+        ReverbProbe $reverbProbe,
     ) {
         $this->probes = [
             $appProbe,
@@ -31,6 +33,7 @@ class ServiceHealthRecorder
             $ollamaProbe,
             $evolutionProbe,
             $queueProbe,
+            $reverbProbe,
         ];
     }
 

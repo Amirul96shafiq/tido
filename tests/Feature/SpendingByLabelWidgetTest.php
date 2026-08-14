@@ -51,3 +51,13 @@ test('spending by label widget renders empty state', function () {
         ->assertSee('No label spending recorded for this month.')
         ->assertSee('Upload Receipts');
 });
+
+test('spending by label widget listens for echo expense updates without polling', function () {
+    $component = Livewire::test(SpendingByLabel::class)
+        ->assertSuccessful()
+        ->assertDontSeeHtml('wire:poll.30s')
+        ->assertDontSeeHtml('wire:poll.5s');
+
+    expect($component->instance()->getListeners())
+        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+});

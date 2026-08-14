@@ -291,22 +291,6 @@
                 </x-empty-state-panel>
             @endforelse
 
-            @if ($broadcastChannel = $this->getBroadcastChannel())
-                @script
-                    <script>
-                        window.addEventListener('EchoLoaded', () => {
-                            window.Echo.private(@js($broadcastChannel)).listen('.database-notifications.sent', () => {
-                                setTimeout(() => $wire.call('$refresh'), 500);
-                            });
-                        });
-
-                        if (window.Echo) {
-                            window.dispatchEvent(new CustomEvent('EchoLoaded'));
-                        }
-                    </script>
-                @endscript
-            @endif
-
             @if ($isPaginated)
                 <x-slot name="footer">
                     <div
@@ -319,6 +303,22 @@
             @endif
         @endif
     </x-filament::modal>
+
+    @if ($broadcastChannel = $this->getBroadcastChannel())
+        @script
+            <script>
+                window.addEventListener('EchoLoaded', () => {
+                    window.Echo.private(@js($broadcastChannel)).listen('.database-notifications.sent', () => {
+                        setTimeout(() => $wire.call('$refresh'), 500);
+                    });
+                });
+
+                if (window.Echo) {
+                    window.dispatchEvent(new CustomEvent('EchoLoaded'));
+                }
+            </script>
+        @endscript
+    @endif
 
     <x-filament-actions::modals />
 </div>

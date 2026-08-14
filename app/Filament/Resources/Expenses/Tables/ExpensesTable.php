@@ -126,6 +126,9 @@ class ExpensesTable
                         'failed' => 'danger',
                         default => 'gray',
                     })
+                    ->extraCellAttributes(fn (Expense $record): array => $record->status === 'pending'
+                        ? ['class' => 'tido-expense-status-pending']
+                        : [])
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),
 
@@ -145,7 +148,6 @@ class ExpensesTable
                     ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->defaultSort('updated_at', 'desc')
-            ->poll('10s.visible')
             ->filters([
                 SelectFilter::make('status')
                     ->options([

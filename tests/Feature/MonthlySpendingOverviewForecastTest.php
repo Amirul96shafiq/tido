@@ -232,3 +232,12 @@ test('receipts processed stat shows selected month title and month over month co
         ->assertSee('2 (+200.0%) receipts processed vs July 2026')
         ->assertDontSee('pending parsing');
 });
+
+test('monthly spending overview listens for echo expense updates without polling', function () {
+    $component = Livewire::test(MonthlySpendingOverview::class)
+        ->assertSuccessful()
+        ->assertDontSeeHtml('wire:poll.30s');
+
+    expect($component->instance()->getListeners())
+        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+});

@@ -1,6 +1,6 @@
 {{--
     Visible bell moved to the user menu. This trigger stays mounted so Filament's
-    modal + wire:poll keep working, and syncs unread count to the avatar badge.
+    modal + Echo refresh keep working, and syncs unread count to the avatar badge.
 --}}
 <div
     class="fi-topbar-database-notifications-trigger-sync sr-only"

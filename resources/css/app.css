@@ -2710,7 +2710,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply pointer-events-none absolute top-1.5 left-4 z-10 -translate-y-0.5 translate-x-0.5;
 }
 
-/* Keep DatabaseNotifications mounted for the slide-over + poll, but hide the topbar trigger. */
+/* Keep DatabaseNotifications mounted for the slide-over + Echo, but hide the topbar trigger. */
 .fi-topbar-end .fi-no-database > .fi-modal-trigger {
     @apply pointer-events-none absolute size-0 overflow-hidden opacity-0;
 }
@@ -3316,6 +3316,15 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     .fi-family-member-form-page
         .fi-sc-form
         .fi-grid-col:has(.fi-family-member-sidebar-sticky) {
+        top: calc(
+            var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
+                var(--tido-section-nav-height, 2.75rem) + 0.75rem
+        );
+    }
+
+    .fi-service-status-page .fi-service-status-summary-sticky {
+        position: sticky;
+        align-self: start;
         top: calc(
             var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
                 var(--tido-section-nav-height, 2.75rem) + 0.75rem
@@ -4551,4 +4560,25 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     --tw-ring-color: transparent !important;
     --tw-ring-shadow: 0 0 0 0 transparent !important;
     box-shadow: none !important;
+}
+
+@keyframes tido-pending-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.55;
+    }
+}
+
+.tido-expense-status-pending .fi-badge {
+    animation: tido-pending-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tido-expense-status-pending .fi-badge {
+        animation: none;
+    }
 }

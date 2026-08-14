@@ -6,6 +6,7 @@ namespace App\Filament\Pages;
 
 use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
+use App\Filament\Concerns\RefreshesTableOnExpenseBroadcast;
 use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Resources\Expenses\Tables\ExpensesTable;
 use App\Helpers\FilenameDisplay;
@@ -35,6 +36,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
     use InteractsWithForms;
     use InteractsWithTable;
     use PrependsHomeBreadcrumb;
+    use RefreshesTableOnExpenseBroadcast;
 
     protected static ?string $slug = 'upload-receipts';
 
@@ -140,6 +142,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
         }
 
         $this->form->fill();
+        $this->resetTable();
 
         Notification::make()
             ->title('Receipts uploaded successfully')
@@ -153,7 +156,6 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
         return $table
             ->query(Expense::query())
             ->defaultSort('created_at', 'desc')
-            ->poll('10s.visible')
             ->columns([
                 FilenameDisplay::configureTextColumn(
                     TextColumn::make('original_filename')
@@ -216,6 +218,9 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                         'failed' => 'danger',
                         default => 'gray',
                     })
+                    ->extraCellAttributes(fn (Expense $record): array => $record->status === 'pending'
+                        ? ['class' => 'tido-expense-status-pending']
+                        : [])
                     ->sortable(),
 
                 TextColumn::make('created_at')
