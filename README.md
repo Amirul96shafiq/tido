@@ -178,7 +178,7 @@ Admin nav:
 
 **Account switching:** Primary accounts with login-enabled Family Members can open **Swap Account** from the user menu to switch into a linked Family Member account. Use **Switch back** from the same menu to return to the Primary account.
 
-**WhatsApp receipt image/PDF:** Send an image or PDF from an allowlisted number (Profile or Family Members with allowlist enabled) → batched “Document received” → Ollama vision parse and printed-currency detection → historical conversion into MYR when needed → “Document parsed” with edit link. PDFs are limited to 10 MB and 3 pages by default and require Poppler (`pdfinfo` + `pdftocairo`) on the queue worker.
+**WhatsApp receipt image/PDF:** Send an image or PDF from an allowlisted number (Profile or Family Members with allowlist enabled) → batched “Document received” → Ollama vision parse and printed-currency detection → historical conversion into MYR when needed → “Document parsed” with edit link. PDFs are limited to 10 MB and 4 pages by default and require Poppler (`pdfinfo` + `pdftocairo`) on the queue worker.
 
 **WhatsApp manual expense (no receipt media):** Text format, payment tokens, and replies: [docs/whatsapp-manual-expense.md](docs/whatsapp-manual-expense.md).
 

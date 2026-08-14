@@ -169,7 +169,7 @@ final class WhatsAppMessage
                 '%s - %d pages (maximum %d)',
                 $filename,
                 (int) ($document['page_count'] ?? 0),
-                max(1, (int) config('services.documents.max_pdf_pages', 3)),
+                max(1, (int) config('services.documents.max_pdf_pages', 4)),
             ),
             'pdf_size_limit' => $filename.' - exceeds the PDF file-size limit',
             'pdf_password_protected' => $filename.' - password-protected PDFs are not supported',

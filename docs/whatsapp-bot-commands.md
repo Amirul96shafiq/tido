@@ -40,7 +40,7 @@ Manual format rules and payment tokens: [whatsapp-manual-expense.md](whatsapp-ma
 PDF receipts are accepted only as `application/pdf` documents. The default limits are:
 
 - Maximum file size: **10 MB** (`PDF_MAX_BYTES`)
-- Maximum page count: **3** (`PDF_MAX_PAGES`)
+- Maximum page count: **4** (`PDF_MAX_PAGES`)
 - PDF inspection: Poppler `pdfinfo`
 - Page rendering: Poppler `pdftocairo` to JPEG at `PDF_RENDER_DPI` (default 144), with `pdftoppm` fallback
 
