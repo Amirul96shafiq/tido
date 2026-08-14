@@ -6,9 +6,9 @@ namespace App\Filament\Resources\Recurrings\Tables;
 
 use App\Enums\HouseholdRole;
 use App\Enums\RecurringFrequency;
+use App\Enums\RecurringOccurrenceStatus;
 use App\Enums\RecurringType;
 use App\Filament\Support\RecordActionsGroup;
-use App\Models\FamilyMember;
 use App\Models\Recurring;
 use App\Models\User;
 use Filament\Actions\BulkActionGroup;
@@ -22,6 +22,7 @@ use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class RecurringsTable
 {
@@ -56,20 +57,17 @@ class RecurringsTable
 
                 TextColumn::make('label.name')
                     ->label('Label')
-                    ->placeholder('—')
+                    ->badge()
+                    ->placeholder('None')
                     ->toggleable(),
-                    
-                TextColumn::make('familyMember.name')
-                    ->label('Assigned to')
-                    ->formatStateUsing(function (?string $state, Recurring $record): string {
-                        if ($record->family_member_id === null) {
-                            return self::primaryUsername();
-                        }
 
+                TextColumn::make('assigned_to')
+                    ->label('Assigned to')
+                    ->state(function (Recurring $record): string {
                         $member = $record->familyMember;
 
-                        if (! $member instanceof FamilyMember) {
-                            return 'Family member';
+                        if ($member === null) {
+                            return self::primaryUsername();
                         }
 
                         return filled($member->display_name)
@@ -91,6 +89,7 @@ class RecurringsTable
 
                 TextColumn::make('cadence')
                     ->label('Cadence')
+                    ->badge()
                     ->state(function (Recurring $record): string {
                         if ($record->frequency === RecurringFrequency::Once) {
                             return 'Once';
@@ -110,12 +109,32 @@ class RecurringsTable
 
                 TextColumn::make('next_due_on')
                     ->label('Next due')
+                    ->state(fn (Recurring $record): ?string => $record->nextOpenDueOn()?->toDateString())
                     ->date()
-                    ->sortable()
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        $direction = $direction === 'desc' ? 'desc' : 'asc';
+
+                        return $query->orderByRaw(
+                            'coalesce((select min(due_on) from recurring_occurrences where recurring_occurrences.recurring_id = recurrings.id and status in (?, ?, ?)), recurrings.next_due_on) '.$direction,
+                            [
+                                RecurringOccurrenceStatus::Upcoming->value,
+                                RecurringOccurrenceStatus::Due->value,
+                                RecurringOccurrenceStatus::Overdue->value,
+                            ],
+                        );
+                    })
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 ToggleColumn::make('is_active')
                     ->label('Active')
+                    ->toggleable(isToggledHiddenByDefault: false),
+
+                TextColumn::make('editedBy.name')
+                    ->label('Edited By')
+                    ->formatStateUsing(fn (?string $state, Recurring $record): ?string => filled($record->editedBy?->display_name)
+                        ? (string) $record->editedBy->display_name
+                        : $state)
+                    ->placeholder('System')
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('updated_at')
@@ -123,11 +142,6 @@ class RecurringsTable
                     ->since()
                     ->dateTimeTooltip()
                     ->sortable(),
-
-                TextColumn::make('editedBy.name')
-                    ->label('Edited By')
-                    ->placeholder('—')
-                    ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->filters([
                 SelectFilter::make('type')
@@ -156,17 +170,21 @@ class RecurringsTable
 
     private static function primaryUsername(): string
     {
-        $primary = User::query()
-            ->where('household_role', HouseholdRole::Primary)
+        $primaryUser = User::query()
+            ->where(function (Builder $query): void {
+                $query
+                    ->where('household_role', HouseholdRole::Primary->value)
+                    ->orWhereNull('household_role');
+            })
             ->orderBy('id')
-            ->first();
+            ->first(['name', 'display_name']);
 
-        if ($primary === null) {
+        if (! $primaryUser instanceof User) {
             return 'Primary';
         }
 
-        return filled($primary->display_name)
-            ? (string) $primary->display_name
-            : (string) $primary->name;
+        return filled($primaryUser->display_name)
+            ? (string) $primaryUser->display_name
+            : (string) $primaryUser->name;
     }
 }

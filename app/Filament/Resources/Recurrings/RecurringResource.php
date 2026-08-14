@@ -80,7 +80,12 @@ class RecurringResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['label', 'familyMember', 'editedBy']);
+        return parent::getEloquentQuery()->with([
+            'label',
+            'familyMember',
+            'editedBy',
+            'occurrences' => fn ($query) => $query->open()->orderBy('due_on')->orderBy('id'),
+        ]);
     }
 
     public static function getGlobalSearchEloquentQuery(): Builder
