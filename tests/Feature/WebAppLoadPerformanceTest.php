@@ -26,7 +26,7 @@ test('expense items and budgets have lookup indexes for dashboard queries', func
         ->and(Schema::hasIndex('budgets', 'budgets_is_active_index'))->toBeTrue();
 });
 
-test('converted finances widgets skip polling while remaining charts still poll', function () {
+test('converted finances widgets skip polling', function () {
     $statsInterval = (new ReflectionMethod(MonthlySpendingOverview::class, 'getPollingInterval'))
         ->invoke(Livewire::test(MonthlySpendingOverview::class)->instance());
     $trendInterval = (new ReflectionMethod(MonthlyTrend::class, 'getPollingInterval'))
@@ -48,7 +48,7 @@ test('converted finances widgets skip polling while remaining charts still poll'
         ->and($budgetInterval)->toBeNull()
         ->and($merchantInterval)->toBeNull()
         ->and($paymentInterval)->toBeNull()
-        ->and($sourceInterval)->toBe('30s');
+        ->and($sourceInterval)->toBeNull();
 });
 
 test('desktop auth backgrounds are served as webp', function () {
