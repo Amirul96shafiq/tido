@@ -127,16 +127,19 @@ class RecurringsTable
                     ->label('Active')
                     ->toggleable(isToggledHiddenByDefault: false),
 
-                TextColumn::make('updated_at')
+                TextColumn::make('editedBy.name')
+                    ->label('Edited By')
+                    ->formatStateUsing(fn (?string $state, Recurring $record): ?string => filled($record->editedBy?->display_name)
+                        ? (string) $record->editedBy->display_name
+                        : $state)
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: false),
+
+                    TextColumn::make('updated_at')
                     ->label('Edited At')
                     ->since()
                     ->dateTimeTooltip()
                     ->sortable(),
-
-                TextColumn::make('editedBy.name')
-                    ->label('Edited By')
-                    ->placeholder('—')
-                    ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->filters([
                 SelectFilter::make('type')

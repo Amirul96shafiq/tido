@@ -110,5 +110,6 @@ test('list page shows primary username when assigned to primary', function () {
         ->assertSee('Assigned to')
         ->assertTableColumnStateSet('assigned_to', 'admin', $primaryRecurring)
         ->assertTableColumnStateSet('assigned_to', 'nor', $familyRecurring)
+        ->assertTableColumnFormattedStateSet('editedBy.name', 'admin', $primaryRecurring)
         ->assertDontSee('Nor Ezrieana Harun');
 });
