@@ -78,11 +78,27 @@ test('list page renders for primary', function () {
         'household_role' => HouseholdRole::Primary,
     ]));
 
-    Recurring::factory()->create(['title' => 'GPROP']);
+    $label = Label::factory()->create(['name' => 'Subscriptions']);
+    $recurring = Recurring::factory()->create([
+        'title' => 'GPROP',
+        'label_id' => $label->id,
+    ]);
 
     Livewire::test(ListRecurrings::class)
         ->assertOk()
         ->assertCanSeeTableRecords(Recurring::all())
+        ->assertTableColumnExists('type', function (TextColumn $column): bool {
+            return $column->isBadge();
+        })
+        ->assertTableColumnExists('label.name', function (TextColumn $column): bool {
+            return $column->isBadge()
+                && $column->getPlaceholder() === 'None';
+        })
+        ->assertTableColumnStateSet('label.name', 'Subscriptions', $recurring)
+        ->assertTableColumnExists('cadence', function (TextColumn $column): bool {
+            return $column->isBadge();
+        })
+        ->assertTableColumnStateSet('cadence', 'Monthly', $recurring)
         ->assertTableColumnExists('editedBy.name', function (TextColumn $column): bool {
             return $column->getPlaceholder() === 'System';
         });

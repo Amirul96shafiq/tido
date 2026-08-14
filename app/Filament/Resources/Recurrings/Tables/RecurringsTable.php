@@ -57,7 +57,8 @@ class RecurringsTable
 
                 TextColumn::make('label.name')
                     ->label('Label')
-                    ->placeholder('—')
+                    ->badge()
+                    ->placeholder('None')
                     ->toggleable(),
 
                 TextColumn::make('assigned_to')
@@ -88,6 +89,7 @@ class RecurringsTable
 
                 TextColumn::make('cadence')
                     ->label('Cadence')
+                    ->badge()
                     ->state(function (Recurring $record): string {
                         if ($record->frequency === RecurringFrequency::Once) {
                             return 'Once';
