@@ -83,3 +83,32 @@ test('list page renders for primary', function () {
         ->assertOk()
         ->assertCanSeeTableRecords(Recurring::all());
 });
+
+test('list page shows primary username when assigned to primary', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+        'name' => 'Primary Account Owner',
+        'display_name' => 'admin',
+    ]));
+
+    $member = FamilyMember::factory()->create([
+        'name' => 'Nor Ezrieana Harun',
+        'display_name' => 'nor',
+    ]);
+
+    $primaryRecurring = Recurring::factory()->create([
+        'title' => 'Primary Recurring',
+        'family_member_id' => null,
+    ]);
+
+    $familyRecurring = Recurring::factory()->forFamilyMember($member)->create([
+        'title' => 'Family Recurring',
+    ]);
+
+    Livewire::test(ListRecurrings::class)
+        ->assertOk()
+        ->assertSee('Assigned to')
+        ->assertTableColumnStateSet('assigned_to', 'admin', $primaryRecurring)
+        ->assertTableColumnStateSet('assigned_to', 'nor', $familyRecurring)
+        ->assertDontSee('Nor Ezrieana Harun');
+});

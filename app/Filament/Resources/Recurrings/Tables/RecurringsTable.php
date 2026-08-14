@@ -9,7 +9,6 @@ use App\Enums\RecurringFrequency;
 use App\Enums\RecurringOccurrenceStatus;
 use App\Enums\RecurringType;
 use App\Filament\Support\RecordActionsGroup;
-use App\Models\FamilyMember;
 use App\Models\Recurring;
 use App\Models\User;
 use Filament\Actions\BulkActionGroup;
@@ -61,17 +60,13 @@ class RecurringsTable
                     ->placeholder('—')
                     ->toggleable(),
 
-                TextColumn::make('familyMember.name')
+                TextColumn::make('assigned_to')
                     ->label('Assigned to')
-                    ->formatStateUsing(function (?string $state, Recurring $record): string {
-                        if ($record->family_member_id === null) {
-                            return self::primaryUsername();
-                        }
-
+                    ->state(function (Recurring $record): string {
                         $member = $record->familyMember;
 
-                        if (! $member instanceof FamilyMember) {
-                            return 'Family member';
+                        if ($member === null) {
+                            return self::primaryUsername();
                         }
 
                         return filled($member->display_name)
@@ -170,17 +165,21 @@ class RecurringsTable
 
     private static function primaryUsername(): string
     {
-        $primary = User::query()
-            ->where('household_role', HouseholdRole::Primary)
+        $primaryUser = User::query()
+            ->where(function (Builder $query): void {
+                $query
+                    ->where('household_role', HouseholdRole::Primary->value)
+                    ->orWhereNull('household_role');
+            })
             ->orderBy('id')
-            ->first();
+            ->first(['name', 'display_name']);
 
-        if ($primary === null) {
+        if (! $primaryUser instanceof User) {
             return 'Primary';
         }
 
-        return filled($primary->display_name)
-            ? (string) $primary->display_name
-            : (string) $primary->name;
+        return filled($primaryUser->display_name)
+            ? (string) $primaryUser->display_name
+            : (string) $primaryUser->name;
     }
 }
