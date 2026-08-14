@@ -3097,6 +3097,64 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     min-height: 10rem;
 }
 
+.fi-character-count {
+    @apply text-gray-500 dark:text-gray-400;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.65rem;
+    line-height: 1rem;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.fi-character-count.fi-character-count-at-limit,
+.fi-sc-text.fi-character-count-at-limit,
+.fi-has-character-count .fi-input-wrp-suffix:has(.fi-character-count-at-limit) .fi-input-wrp-label {
+    @apply text-danger-600 dark:text-danger-400;
+}
+
+/*
+ * TextInput: Filament inline suffix sits in the same bordered wrapper as the
+ * input (flex siblings). Keep the count muted and non-interactive so typed
+ * text cannot overlap it.
+ */
+.fi-has-character-count .fi-input-wrp-suffix.fi-inline {
+    pointer-events: none;
+    user-select: none;
+}
+
+.fi-has-character-count .fi-input-wrp-suffix .fi-input-wrp-label {
+    font-size: 0.65rem;
+    line-height: 1rem;
+    font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Notes editor: pin the count to the bottom-right inside the editor box and
+ * reserve padding so note text does not run under it.
+ */
+.fi-fo-field-content-col:has(.fi-notes-rich-editor) {
+    position: relative;
+}
+
+.fi-fo-field-content-col:has(.fi-notes-rich-editor) > :last-child:has(.fi-character-count) {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+}
+
+.fi-fo-field-content-col:has(.fi-notes-rich-editor) .fi-character-count {
+    position: absolute;
+    inset-inline-end: 0.75rem;
+    bottom: 0.5rem;
+    z-index: 1;
+}
+
+.fi-notes-rich-editor.fi-has-character-count .fi-fo-rich-editor-content {
+    padding-bottom: 1.75rem;
+}
+
 /*
  * Filament forces `.filepond--drop-label { opacity-100! height-auto! }`, which
  * blocks FilePond's fade-out AND keeps a real measured height. With

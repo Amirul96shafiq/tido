@@ -19,6 +19,7 @@ Canonical Filament field for note-like HTML columns in tido admin forms (`notes`
 |------|--------|----------|
 | `BudgetForm` | `notes` | Hidden (section **Budget Notes**) |
 | `ExpenseForm` | `notes` | **Expense Notes** |
+| `RecurringForm` | `notes` | Hidden (section **Recurring Notes**) |
 | `LabelForm` | `description` | **Label Notes** (column name kept for schema / OCR hints) |
 | `PaymentMethodForm` | `notes` | Hidden (section **Payment Method Notes**) |
 
@@ -39,6 +40,7 @@ Defaults baked into `NotesRichEditor::setUp()`:
 - **No** `attachFiles` / tables (keep notes text-focused)
 - Extra class `fi-notes-rich-editor` for shared min-height
 - Stored as **HTML** (Filament RichEditor default — do **not** call `->json()` unless migrating columns + casts)
+- Plaintext **100** character limit + `{current}/100` counter — see [ui-field-character-limits.md](ui-field-character-limits.md)
 
 ## Adding a new notes field
 
@@ -70,4 +72,5 @@ Defaults baked into `NotesRichEditor::setUp()`:
 ## Related
 
 - Draft recovery: [content-draft-recovery.md](content-draft-recovery.md)
+- Character limits: [ui-field-character-limits.md](ui-field-character-limits.md)
 - Filament conventions: `.cursor/rules/filament-conventions.mdc`

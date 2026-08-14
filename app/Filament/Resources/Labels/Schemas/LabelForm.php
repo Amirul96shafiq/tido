@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Labels\Schemas;
 use App\Enums\LabelType;
 use App\Filament\Forms\Components\IconPicker;
 use App\Filament\Forms\Components\NotesRichEditor;
+use App\Support\FieldCharacterLimits;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -61,6 +62,7 @@ class LabelForm
 
                                 TextInput::make('name')
                                     ->required()
+                                    ->characterLimit(FieldCharacterLimits::LABEL_NAME)
                                     ->placeholder('Label name')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn ($state, callable $set) => $set('slug', Str::slug($state ?? ''))),
@@ -81,6 +83,7 @@ class LabelForm
                             ->id('label-notes')
                             ->schema([
                                 NotesRichEditor::make('description')
+                                    ->label('Label Notes')
                                     ->hiddenLabel()
                                     ->columnSpanFull(),
                             ]),

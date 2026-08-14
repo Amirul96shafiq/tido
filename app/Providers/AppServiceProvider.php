@@ -17,6 +17,7 @@ use App\Observers\ExpenseObserver;
 use App\Observers\FamilyMemberObserver;
 use App\Services\Currency\CurrencyApiExchangeRateProvider;
 use App\Services\Currency\ExchangeRateProvider;
+use App\Support\FieldCharacterLimits;
 use App\View\Components\ButtonComponent;
 use BladeUI\Icons\Factory;
 use Filament\Actions\Action;
@@ -137,6 +138,10 @@ class AppServiceProvider extends ServiceProvider
 
         TextInput::macro('myr', function (): TextInput {
             return MoneyDisplay::configureTextInput($this);
+        });
+
+        TextInput::macro('characterLimit', function (int $max, string|\Closure|null $helperText = null): TextInput {
+            return FieldCharacterLimits::applyTextInput($this, $max, $helperText);
         });
     }
 }

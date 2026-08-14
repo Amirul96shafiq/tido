@@ -7,6 +7,7 @@ namespace Database\Factories;
 use App\Models\Expense;
 use App\Models\ExpenseItem;
 use App\Models\Label;
+use App\Support\FieldCharacterLimits;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -25,7 +26,10 @@ class ExpenseItemFactory extends Factory
         return [
             'expense_id' => Expense::factory(),
             'label_id' => Label::factory(),
-            'description' => $this->faker->words(3, true),
+            'description' => FieldCharacterLimits::truncate(
+                $this->faker->words(3, true),
+                FieldCharacterLimits::LINE_ITEM_DESCRIPTION,
+            ),
             'quantity' => $quantity,
             'unit_price' => $unitPrice,
             'line_total' => $lineTotal,

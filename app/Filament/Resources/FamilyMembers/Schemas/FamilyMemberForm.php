@@ -6,6 +6,7 @@ namespace App\Filament\Resources\FamilyMembers\Schemas;
 
 use App\Enums\FamilyRelationship;
 use App\Filament\Forms\Components\DateOfBirthPicker;
+use App\Support\FieldCharacterLimits;
 use App\Support\PhoneNumber;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -53,12 +54,12 @@ class FamilyMemberForm
                                 TextInput::make('name')
                                     ->label('Full Name')
                                     ->required()
-                                    ->maxLength(255)
+                                    ->characterLimit(FieldCharacterLimits::USER_NAME)
                                     ->placeholder('Full name'),
 
                                 TextInput::make('display_name')
                                     ->label('Display Name')
-                                    ->maxLength(255)
+                                    ->characterLimit(FieldCharacterLimits::DISPLAY_NAME)
                                     ->placeholder('Display name'),
 
                                 TextInput::make('phone')
@@ -94,7 +95,7 @@ class FamilyMemberForm
 
                                 TextInput::make('relationship_other')
                                     ->label('Custom relationship')
-                                    ->maxLength(255)
+                                    ->characterLimit(FieldCharacterLimits::RELATIONSHIP_OTHER)
                                     ->placeholder('Describe the relationship')
                                     ->visible(fn (Get $get): bool => $get('relationship') === FamilyRelationship::Other->value)
                                     ->required(fn (Get $get): bool => $get('relationship') === FamilyRelationship::Other->value)

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Forms\Components;
 
+use App\Support\FieldCharacterLimits;
 use Filament\Forms\Components\RichEditor;
 
 /**
  * Shared rich notes field for tido forms (Budget, Expense, future notes columns).
  *
  * @see docs/ui-notes-rich-editor.md
+ * @see docs/ui-field-character-limits.md
  */
 class NotesRichEditor extends RichEditor
 {
@@ -25,6 +27,8 @@ class NotesRichEditor extends RichEditor
                 ['bulletList', 'orderedList'],
                 ['undo', 'redo'],
             ])
-            ->extraAttributes(['class' => self::EXTRA_CLASS], merge: true);
+            ->extraAttributes(['class' => self::EXTRA_CLASS.' '.FieldCharacterLimits::FIELD_CLASS], merge: true);
+
+        FieldCharacterLimits::applyRichEditor($this, FieldCharacterLimits::NOTES);
     }
 }

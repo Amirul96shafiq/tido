@@ -10,6 +10,7 @@ use App\Enums\RecurringType;
 use App\Filament\Forms\Components\NotesRichEditor;
 use App\Models\FamilyMember;
 use App\Models\Recurring;
+use App\Support\FieldCharacterLimits;
 use App\Support\PhoneNumber;
 use App\Support\RecurringFormNormalizer;
 use App\Support\RecurringScheduleSummary;
@@ -64,7 +65,7 @@ class RecurringForm
                             ->schema([
                                 TextInput::make('title')
                                     ->required()
-                                    ->maxLength(255)
+                                    ->characterLimit(FieldCharacterLimits::RECURRING_TITLE)
                                     ->live(onBlur: true)
                                     ->placeholder('Cursor Pro'),
                                 Radio::make('type')
@@ -320,6 +321,7 @@ class RecurringForm
                             ->id('recurring-notes')
                             ->schema([
                                 NotesRichEditor::make('notes')
+                                    ->label('Recurring Notes')
                                     ->hiddenLabel()
                                     ->columnSpanFull(),
                             ]),

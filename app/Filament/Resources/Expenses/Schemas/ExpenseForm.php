@@ -15,6 +15,7 @@ use App\Models\FamilyMember;
 use App\Models\User;
 use App\Services\Currency\CurrencyConversionException;
 use App\Services\ManualExpenseCurrencyConversionService;
+use App\Support\FieldCharacterLimits;
 use App\Support\HouseholdAccess;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -112,6 +113,7 @@ class ExpenseForm
                                     ->schema([
                                         TextInput::make('merchant_name')
                                             ->required()
+                                            ->characterLimit(FieldCharacterLimits::MERCHANT_NAME)
                                             ->placeholder('Merchant name'),
 
                                         TextInput::make('invoice_number')
@@ -300,6 +302,7 @@ class ExpenseForm
                             ->id('expense-notes')
                             ->schema([
                                 NotesRichEditor::make('notes')
+                                    ->label('Expense Notes')
                                     ->hiddenLabel()
                                     ->columnSpanFull(),
                             ]),
@@ -313,6 +316,7 @@ class ExpenseForm
                                         TextInput::make('description')
                                             ->required()
                                             ->default('Item name')
+                                            ->characterLimit(FieldCharacterLimits::LINE_ITEM_DESCRIPTION)
                                             ->live(onBlur: true)
                                             ->afterStateUpdated(function (TextInput $component, mixed $state): void {
                                                 if (blank($state)) {

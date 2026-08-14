@@ -6,6 +6,7 @@ namespace Database\Factories;
 
 use App\Models\ContentDraft;
 use App\Models\User;
+use App\Support\FieldCharacterLimits;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -24,8 +25,11 @@ class ContentDraftFactory extends Factory
             'user_id' => User::factory(),
             'key' => 'expense-create',
             'payload' => [
-                'merchant_name' => $this->faker->company(),
-                'notes' => $this->faker->sentence(),
+                'merchant_name' => FieldCharacterLimits::truncate(
+                    $this->faker->company(),
+                    FieldCharacterLimits::MERCHANT_NAME,
+                ),
+                'notes' => FieldCharacterLimits::truncate($this->faker->sentence(), FieldCharacterLimits::NOTES),
             ],
         ];
     }

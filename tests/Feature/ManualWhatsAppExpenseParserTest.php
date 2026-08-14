@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\PaymentMethod;
+use App\Support\FieldCharacterLimits;
 use App\Support\ManualWhatsAppExpenseParser;
 use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -92,4 +93,20 @@ TEXT;
 
     expect($blocks)->toHaveCount(1)
         ->and($blocks[0]['payment_method']->slug)->toBe('grabpay');
+});
+
+test('parser truncates merchant name and item descriptions to character limits', function () {
+    $merchant = str_repeat('M', FieldCharacterLimits::MERCHANT_NAME + 15);
+    $description = str_repeat('D', FieldCharacterLimits::LINE_ITEM_DESCRIPTION + 15);
+
+    $text = <<<TEXT
+{$merchant};
+{$description}, 1, 2.50;
+TEXT;
+
+    $blocks = ManualWhatsAppExpenseParser::parse($text);
+
+    expect($blocks)->toHaveCount(1)
+        ->and($blocks[0]['merchant_name'])->toBe(str_repeat('M', FieldCharacterLimits::MERCHANT_NAME))
+        ->and($blocks[0]['items'][0]['description'])->toBe(str_repeat('D', FieldCharacterLimits::LINE_ITEM_DESCRIPTION));
 });

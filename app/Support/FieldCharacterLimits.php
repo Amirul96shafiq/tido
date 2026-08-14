@@ -1,0 +1,154 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Support;
+
+use Closure;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Text;
+use Filament\Schemas\JsContent;
+use Filament\Schemas\Schema;
+use Filament\Support\Enums\TextSize;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\HtmlString;
+use Illuminate\Support\Js;
+use Illuminate\Support\Str;
+
+final class FieldCharacterLimits
+{
+    public const EXTRA_CLASS = 'fi-character-count';
+
+    public const FIELD_CLASS = 'fi-has-character-count';
+
+    public const AT_LIMIT_CLASS = 'fi-character-count-at-limit';
+
+    public const USER_NAME = 25;
+
+    public const DISPLAY_NAME = 20;
+
+    public const RELATIONSHIP_OTHER = 20;
+
+    public const MERCHANT_NAME = 80;
+
+    public const NOTES = 100;
+
+    public const LINE_ITEM_DESCRIPTION = 80;
+
+    public const BUDGET_TITLE = 30;
+
+    public const RECURRING_TITLE = 30;
+
+    public const LABEL_NAME = 30;
+
+    public const PAYMENT_METHOD_NAME = 30;
+
+    public static function truncate(?string $value, int $max): string
+    {
+        $text = $value ?? '';
+
+        if ($text === '' || Str::length($text) <= $max) {
+            return $text;
+        }
+
+        return Str::substr($text, 0, $max);
+    }
+
+    public static function applyTextInput(
+        TextInput $field,
+        int $max,
+        string|Closure|null $helperText = null,
+    ): TextInput {
+        $field
+            ->maxLength($max)
+            ->extraAttributes(['class' => self::FIELD_CLASS], merge: true)
+            ->suffix(self::counterHtml($max), isInline: true);
+
+        if ($helperText !== null) {
+            $field->helperText($helperText);
+        }
+
+        return $field;
+    }
+
+    public static function applyRichEditor(RichEditor $field, int $max): RichEditor
+    {
+        return $field
+            ->maxLength($max)
+            ->belowContent(Schema::end([self::counterText($max, rich: true)]));
+    }
+
+    public static function counterText(int $max, bool $rich = false): Text
+    {
+        return Text::make(self::counterJs($max, $rich))
+            ->size(TextSize::ExtraSmall)
+            ->extraAttributes([
+                'class' => self::EXTRA_CLASS,
+                'aria-hidden' => 'true',
+                'x-bind:class' => self::atLimitClassBind($max, $rich),
+            ])
+            ->js();
+    }
+
+    public static function counterHtml(int $max, bool $rich = false): Htmlable
+    {
+        return new HtmlString(
+            '<span class="'.self::EXTRA_CLASS.'" aria-hidden="true" x-bind:class="'
+            .self::atLimitClassBind($max, $rich)
+            .'">'
+            .JsContent::make(self::counterJs($max, $rich))->toHtml()
+            .'</span>'
+        );
+    }
+
+    private static function counterJs(int $max, bool $rich): string
+    {
+        return self::lengthJs($rich)." + '/".max(0, $max)."'";
+    }
+
+    private static function atLimitJs(int $max, bool $rich): string
+    {
+        return self::lengthJs($rich).' >= '.max(0, $max);
+    }
+
+    private static function atLimitClassBind(int $max, bool $rich): string
+    {
+        return '() => eval('.Js::from(self::atLimitJs($max, $rich)).') ? '.Js::from(self::AT_LIMIT_CLASS)." : ''";
+    }
+
+    private static function lengthJs(bool $rich): string
+    {
+        if (! $rich) {
+            return "[...String(\$state ?? '')].length";
+        }
+
+        return <<<'JS'
+((s) => {
+    const walk = (node) => {
+        if (node == null) {
+            return 0;
+        }
+
+        if (typeof node === 'string') {
+            return [...node.replace(/<[^>]*>/g, '')].length;
+        }
+
+        if (Array.isArray(node)) {
+            return node.reduce((total, item) => total + walk(item), 0);
+        }
+
+        if (typeof node === 'object') {
+            const text = typeof node.text === 'string' ? [...node.text].length : 0;
+
+            return text + walk(node.content);
+        }
+
+        return 0;
+    };
+
+    return walk(s);
+})($state)
+JS;
+    }
+}
