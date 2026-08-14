@@ -25,9 +25,7 @@ test('payment method form uses notes rich editor for notes', function () {
         ->assertSchemaComponentExists(
             'notes',
             checkComponentUsing: function (NotesRichEditor $component): bool {
-                expect($component->getExtraAttributes())->toMatchArray([
-                    'class' => NotesRichEditor::EXTRA_CLASS,
-                ]);
+                expect($component->getExtraAttributes()['class'])->toContain(NotesRichEditor::EXTRA_CLASS);
 
                 return true;
             },

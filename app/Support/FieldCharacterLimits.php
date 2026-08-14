@@ -8,13 +8,18 @@ use Closure;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Text;
+use Filament\Schemas\JsContent;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\TextSize;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
 final class FieldCharacterLimits
 {
     public const EXTRA_CLASS = 'fi-character-count';
+
+    public const FIELD_CLASS = 'fi-has-character-count';
 
     public const USER_NAME = 25;
 
@@ -52,18 +57,16 @@ final class FieldCharacterLimits
         int $max,
         string|Closure|null $helperText = null,
     ): TextInput {
-        $field->maxLength($max);
+        $field
+            ->maxLength($max)
+            ->extraAttributes(['class' => self::FIELD_CLASS], merge: true)
+            ->suffix(self::counterHtml($max), isInline: true);
 
-        $counter = self::counterText($max);
-
-        if ($helperText === null) {
-            return $field->belowContent(Schema::end([$counter]));
+        if ($helperText !== null) {
+            $field->helperText($helperText);
         }
 
-        return $field->belowContent(Schema::between([
-            Text::make($helperText),
-            $counter,
-        ]));
+        return $field;
     }
 
     public static function applyRichEditor(RichEditor $field, int $max): RichEditor
@@ -79,6 +82,15 @@ final class FieldCharacterLimits
             ->size(TextSize::ExtraSmall)
             ->extraAttributes(['class' => self::EXTRA_CLASS])
             ->js();
+    }
+
+    public static function counterHtml(int $max, bool $rich = false): Htmlable
+    {
+        return new HtmlString(
+            '<span class="'.self::EXTRA_CLASS.'" aria-hidden="true">'
+            .JsContent::make(self::counterJs($max, $rich))->toHtml()
+            .'</span>'
+        );
     }
 
     private static function counterJs(int $max, bool $rich): string

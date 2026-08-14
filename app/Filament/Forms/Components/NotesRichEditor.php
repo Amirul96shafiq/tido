@@ -27,7 +27,7 @@ class NotesRichEditor extends RichEditor
                 ['bulletList', 'orderedList'],
                 ['undo', 'redo'],
             ])
-            ->extraAttributes(['class' => self::EXTRA_CLASS], merge: true);
+            ->extraAttributes(['class' => self::EXTRA_CLASS.' '.FieldCharacterLimits::FIELD_CLASS], merge: true);
 
         FieldCharacterLimits::applyRichEditor($this, FieldCharacterLimits::NOTES);
     }

@@ -23,9 +23,7 @@ test('label form uses notes rich editor for description', function () {
             'description',
             checkComponentUsing: function (NotesRichEditor $component): bool {
                 expect($component->getLabel())->toBe('Label Notes')
-                    ->and($component->getExtraAttributes())->toMatchArray([
-                        'class' => NotesRichEditor::EXTRA_CLASS,
-                    ]);
+                    ->and($component->getExtraAttributes()['class'])->toContain(NotesRichEditor::EXTRA_CLASS);
 
                 return true;
             },

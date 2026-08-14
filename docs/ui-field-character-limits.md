@@ -21,7 +21,9 @@ DB columns stay wide (`varchar` / `text`). The cap is application-level (forms +
 ## UX
 
 - Counter format: `{current}/{max}` (example `10/20`)
-- Placement: below-right of the input (`belowContent` + `Schema::end`, or `Schema::between` when helper copy must stay on the left)
+- Placement: **inside** the field, right side
+  - **TextInput**: Filament inline `suffix()` in the same bordered wrapper (flex sibling of the input, so typed text cannot overlap the count)
+  - **NotesRichEditor**: bottom-right inside the editor canvas, with extra content padding
 - **TextInput**: HTML `maxlength` hard-stop + Laravel `max` + live JS code-point count (`[...String($state ?? '')].length`)
 - **NotesRichEditor**: plaintext count (TipTap `getText()` / JSON `text` nodes), not HTML tags. Save is blocked over the limit; the editor does not hard-stop typing
 - Impersonal copy — see [ui-copy-style.md](ui-copy-style.md)
@@ -58,7 +60,7 @@ TextInput::make('title')
     );
 ```
 
-Pass helper copy as the second argument when the field already had `helperText()`. `helperText()` replaces `belowContent()` and would wipe the counter.
+Pass helper copy as the second argument when the field already had `helperText()`. The counter is an inline suffix; helper text still uses `helperText()` below the field.
 
 `NotesRichEditor::make('notes')` already applies `NOTES` (100). Do not add a second `maxLength()`. When the field uses `hiddenLabel()`, still set an explicit `->label()` (matching the section title) so the accessible name does not fall back to the column name.
 
@@ -77,8 +79,8 @@ Ingest writers that skip Filament must truncate with `FieldCharacterLimits::trun
 ### Agent checklist
 
 - [ ] Constant lives on `FieldCharacterLimits`, not a magic number in the form
-- [ ] `characterLimit()` / `NotesRichEditor` default — no one-off `belowContent` counter
-- [ ] Helper text composed via the second argument when needed
+- [ ] `characterLimit()` / `NotesRichEditor` default — no one-off counter markup
+- [ ] Helper text composed via the second argument when needed (not `helperText()` plus a second `belowContent`)
 - [ ] Hidden notes fields still set `->label()` before `hiddenLabel()`
 - [ ] Non-Filament writers truncated to the same constant
 - [ ] Factory values fit the cap

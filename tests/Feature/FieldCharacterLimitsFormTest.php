@@ -29,7 +29,13 @@ test('text fields expose character limits', function (string $page, string $fiel
         ->assertSuccessful()
         ->assertSchemaComponentExists(
             $field,
-            checkComponentUsing: fn (TextInput $component): bool => $component->getMaxLength() === $max,
+            checkComponentUsing: function (TextInput $component) use ($max): bool {
+                expect($component->getMaxLength())->toBe($max)
+                    ->and($component->isSuffixInline())->toBeTrue()
+                    ->and($component->getSuffixLabel())->not->toBeNull();
+
+                return true;
+            },
         );
 })->with([
     'profile full name' => [EditProfile::class, 'name', FieldCharacterLimits::USER_NAME],
