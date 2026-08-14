@@ -223,8 +223,8 @@ test('active sessions action column uses tighter padding', function () {
 
     expect($css)
         ->toContain('.fi-profile-page #active-sessions .fi-ta-table > thead > tr > .fi-ta-actions-header-cell')
-        ->toContain('padding-block: 0.5rem;')
-        ->toContain('padding-inline: 0.5rem 0.75rem;')
+        ->toContain('padding-block: 0.75rem;')
+        ->toContain('padding-inline: 0.75rem;')
         ->toContain('vertical-align: middle;');
 });
 
