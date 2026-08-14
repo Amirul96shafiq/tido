@@ -132,10 +132,10 @@ class RecurringsTable
                     ->formatStateUsing(fn (?string $state, Recurring $record): ?string => filled($record->editedBy?->display_name)
                         ? (string) $record->editedBy->display_name
                         : $state)
-                    ->placeholder('—')
+                    ->placeholder('System')
                     ->toggleable(isToggledHiddenByDefault: false),
 
-                    TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->label('Edited At')
                     ->since()
                     ->dateTimeTooltip()

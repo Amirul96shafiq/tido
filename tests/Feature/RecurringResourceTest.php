@@ -12,6 +12,7 @@ use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\Recurring;
 use App\Models\User;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -81,7 +82,10 @@ test('list page renders for primary', function () {
 
     Livewire::test(ListRecurrings::class)
         ->assertOk()
-        ->assertCanSeeTableRecords(Recurring::all());
+        ->assertCanSeeTableRecords(Recurring::all())
+        ->assertTableColumnExists('editedBy.name', function (TextColumn $column): bool {
+            return $column->getPlaceholder() === 'System';
+        });
 });
 
 test('list page shows primary username when assigned to primary', function () {
