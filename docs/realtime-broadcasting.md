@@ -35,6 +35,8 @@ REVERB_SCHEME=http
 
 phpunit keeps `BROADCAST_CONNECTION=null`. Tests must not start a websocket or hit live Reverb.
 
+Service Status includes a Reverb health probe when `BROADCAST_CONNECTION=reverb` (`GET /apps` on the configured host/port). A 401 still counts as operational — the process answered. See [service-status.md](service-status.md).
+
 ## How it works
 
 ### Expense tables
@@ -126,7 +128,6 @@ To attach another stats or custom widget:
 
 Planned follow-ups (not in this change):
 
-- Service Status Reverb health probe
 - Current Currency is out of scope (FX cache, not expenses)
 
 ## Tests
@@ -154,6 +155,8 @@ php artisan test --compact --filter=ReceiptsBySourceWidgetTest
 php artisan test --compact --filter=DueRecurringsWidgetTest
 php artisan test --compact --filter=RecurringMonthSnapshotWidgetTest
 php artisan test --compact --filter=WebAppLoadPerformanceTest
+php artisan test --compact --filter=ServiceHealthTest
+php artisan test --compact --filter=ServiceStatusPageTest
 ```
 
 ## LAN / phone

@@ -20,6 +20,7 @@ beforeEach(function (): void {
         'services.evolution.api_url' => 'http://evolution.test',
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.instance_name' => 'tido',
+        'broadcasting.default' => 'null',
     ]);
 
     $this->actingAs(User::factory()->create());
@@ -44,6 +45,14 @@ test('service status page renders summary banner and uptime labels', function ()
         ->assertSee('allowHTML: true', false)
         ->assertSee('data-tippy-mobile', false)
         ->assertSee('x-tooltip', false);
+});
+
+test('service status page lists reverb when broadcasting uses reverb', function (): void {
+    config(['broadcasting.default' => 'reverb']);
+
+    Livewire::test(ServiceStatusPage::class)
+        ->assertSee('Reverb')
+        ->assertSee('Ollama');
 });
 
 test('service status page run check now records samples', function (): void {

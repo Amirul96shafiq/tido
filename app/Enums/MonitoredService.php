@@ -11,6 +11,7 @@ enum MonitoredService: string
     case Ollama = 'ollama';
     case Evolution = 'evolution';
     case Queue = 'queue';
+    case Reverb = 'reverb';
 
     public function label(): string
     {
@@ -20,6 +21,7 @@ enum MonitoredService: string
             self::Ollama => 'Ollama',
             self::Evolution => 'Evolution API',
             self::Queue => 'Queue',
+            self::Reverb => 'Reverb',
         };
     }
 
@@ -31,6 +33,7 @@ enum MonitoredService: string
             self::Ollama => 30,
             self::Evolution => 40,
             self::Queue => 50,
+            self::Reverb => 60,
         };
     }
 
@@ -38,6 +41,7 @@ enum MonitoredService: string
     {
         return match ($this) {
             self::App, self::Database, self::Ollama, self::Evolution, self::Queue => true,
+            self::Reverb => (string) config('broadcasting.default') === 'reverb',
         };
     }
 

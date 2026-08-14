@@ -162,6 +162,6 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 ### 7.5. Service Status (health probes)
 
 * **Filament UI:** **Tools → Service Status** — summary report + per-service 30-day uptime bars (12h pieces). See `docs/service-status.md`.
-* **Probes:** `health:probe` every 15 minutes stores samples in `service_health_samples` (App, Database, Ollama, Evolution, Queue).
+* **Probes:** `health:probe` every 15 minutes stores samples in `service_health_samples` (App, Database, Ollama, Evolution, Queue, Reverb when `BROADCAST_CONNECTION=reverb`).
 * **Retention:** `health:prune` daily; 30-day sample window matches the visible chart.
-* **Tests:** Mock Ollama/Evolution with `Http::fake()`; do not hit real services in CI.
+* **Tests:** Mock Ollama/Evolution/Reverb with `Http::fake()`; do not hit real services in CI.

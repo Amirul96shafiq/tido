@@ -25,6 +25,7 @@ Filament **Tools → Service Status** (`/admin/service-status`) monitors critica
 | `ollama` | Ollama | Always (`GET {OLLAMA_HOST}/api/tags`) |
 | `evolution` | Evolution API | Always (`EvolutionInstanceService::connectionState()`) |
 | `queue` | Queue | Always (DB connection + failed-job threshold; Redis ping when driver is `redis`) |
+| `reverb` | Reverb | When `BROADCAST_CONNECTION=reverb` (`GET {REVERB_SCHEME}://{REVERB_HOST}:{REVERB_PORT}/apps`) |
 
 Status values: `operational`, `degraded`, `down` (UI-only `unknown` for empty history pieces).
 
@@ -73,13 +74,14 @@ Automatic polling requires an active Laravel scheduler process, such as `php art
 2. Add new probes under `app/Services/Health/Probes/` implementing `ServiceHealthProbe`; register in `ServiceHealthRecorder`.
 3. Extend `MonitoredService` enum for new keys; gate with `isConfigured()` when optional.
 4. Keep Filament page thin — aggregation/probes stay in `app/Services/Health/`.
-5. Tests: `Http::fake()` for Ollama/Evolution; never hit real services. See `tests/Feature/ServiceHealthTest.php`, `ServiceStatusPageTest.php`.
+5. Tests: `Http::fake()` for Ollama/Evolution/Reverb; never hit real services. See `tests/Feature/ServiceHealthTest.php`, `ServiceStatusPageTest.php`.
 6. Operational UI must use `ServiceHealthStatus::barColorClass()` / `iconColorClass()` (emerald), not `success` tokens.
 7. Mobile tooltips: add `data-tippy-mobile` on new status-bar segments if they need tap tooltips below `sm`.
 
 ## Related
 
 - Evolution connection UI (separate from health probes): [evolution-local-windows.md](evolution-local-windows.md)
+- Reverb runtime (port 8081): [realtime-broadcasting.md](realtime-broadcasting.md)
 - Mobile Tippy exception: [ui-tooltips.md](ui-tooltips.md)
 - Architecture monitoring overview: [system-architecture.md](system-architecture.md) §6.5
 - Backups (sibling Tools item): [backups-and-danger-zone.md](backups-and-danger-zone.md)

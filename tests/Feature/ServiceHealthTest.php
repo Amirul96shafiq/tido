@@ -6,8 +6,10 @@ use App\Enums\MonitoredService;
 use App\Enums\ServiceHealthStatus;
 use App\Models\ServiceHealthSample;
 use App\Services\Health\Probes\OllamaProbe;
+use App\Services\Health\Probes\ReverbProbe;
 use App\Services\Health\ServiceHealthAggregator;
 use App\Services\Health\ServiceHealthRecorder;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 
@@ -19,7 +21,12 @@ beforeEach(function (): void {
         'services.evolution.api_url' => 'http://evolution.test',
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.instance_name' => 'tido',
+        'broadcasting.default' => 'null',
     ]);
+});
+
+afterEach(function (): void {
+    Carbon::setTestNow();
 });
 
 test('ollama probe returns operational when tags endpoint responds', function (): void {
@@ -81,11 +88,13 @@ test('health recorder stores one sample per configured service', function (): vo
         ->and($services)->toContain(MonitoredService::Database->value)
         ->and($services)->toContain(MonitoredService::Ollama->value)
         ->and($services)->toContain(MonitoredService::Evolution->value)
-        ->and($services)->toContain(MonitoredService::Queue->value);
+        ->and($services)->toContain(MonitoredService::Queue->value)
+        ->and($services)->not->toContain(MonitoredService::Reverb->value);
 });
 
 test('aggregator groups samples into twelve hour pieces and calculates uptime', function (): void {
     $timezone = 'Asia/Kuala_Lumpur';
+    Carbon::setTestNow(Carbon::parse('2026-08-15 15:00:00', $timezone));
     $day = now($timezone)->startOfDay();
 
     ServiceHealthSample::query()->create([
@@ -135,6 +144,7 @@ test('aggregator groups samples into twelve hour pieces and calculates uptime', 
 
 test('aggregator uses latest sample for in progress piece instead of worst', function (): void {
     $timezone = 'Asia/Kuala_Lumpur';
+    Carbon::setTestNow(Carbon::parse('2026-08-15 15:00:00', $timezone));
     $now = now($timezone);
     $pieceStart = $now->copy()->startOfDay()->addHours(12);
     $pieceEnd = $pieceStart->copy()->addHours(12);
@@ -202,4 +212,66 @@ test('health prune command deletes old samples', function (): void {
         ->assertSuccessful();
 
     expect(ServiceHealthSample::query()->count())->toBe(1);
+});
+
+test('reverb probe returns operational when the http api responds', function (): void {
+    config([
+        'broadcasting.default' => 'reverb',
+        'broadcasting.connections.reverb.options.host' => 'reverb.test',
+        'broadcasting.connections.reverb.options.port' => 8081,
+        'broadcasting.connections.reverb.options.scheme' => 'http',
+    ]);
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'http://reverb.test:8081/apps' => Http::response('', 401),
+    ]);
+
+    $result = app(ReverbProbe::class)->probe();
+
+    expect($result->status)->toBe(ServiceHealthStatus::Operational)
+        ->and($result->message())->toBe('Reverb websocket is reachable.');
+});
+
+test('reverb probe returns down when the http api is unreachable', function (): void {
+    config([
+        'broadcasting.default' => 'reverb',
+        'broadcasting.connections.reverb.options.host' => 'reverb.test',
+        'broadcasting.connections.reverb.options.port' => 8081,
+        'broadcasting.connections.reverb.options.scheme' => 'http',
+    ]);
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'http://reverb.test:8081/apps' => Http::failedConnection(),
+    ]);
+
+    $result = app(ReverbProbe::class)->probe();
+
+    expect($result->status)->toBe(ServiceHealthStatus::Down)
+        ->and($result->message())->toBe('Reverb is unreachable.');
+});
+
+test('health recorder stores a reverb sample when broadcasting uses reverb', function (): void {
+    config([
+        'broadcasting.default' => 'reverb',
+        'broadcasting.connections.reverb.options.host' => 'reverb.test',
+        'broadcasting.connections.reverb.options.port' => 8081,
+        'broadcasting.connections.reverb.options.scheme' => 'http',
+    ]);
+
+    Http::fake([
+        'http://ollama.test/api/tags' => Http::response(['models' => []]),
+        'http://evolution.test/instance/connectionState/tido' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+        'http://reverb.test:8081/apps' => Http::response('', 401),
+    ]);
+
+    $samples = app(ServiceHealthRecorder::class)->recordAll();
+    $services = collect($samples)
+        ->map(static fn (ServiceHealthSample $sample): string => $sample->service->value)
+        ->all();
+
+    expect($services)->toContain(MonitoredService::Reverb->value);
 });
