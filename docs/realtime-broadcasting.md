@@ -1,6 +1,6 @@
 # Realtime broadcasting (Reverb + Echo)
 
-Live expense tables update when a receipt is uploaded or OCR status changes, without polling those tables. The Filament database-notifications inbox refreshes the same way, without a 60s poll.
+Live expense tables update when a receipt is uploaded or OCR status changes, without polling those tables. The Finances Monthly Spending Overview stats and the Filament database-notifications inbox refresh the same way, without a 30s or 60s poll.
 
 ## Why this exists
 
@@ -46,6 +46,7 @@ Expense created or status changed
   → private channel household.expenses
   → Filament EchoFactory (window.Echo)
   → ListExpenses / ReceiptUploadPage / RecentReceipts refreshExpensesTable() → resetTable()
+  → MonthlySpendingOverview refreshOnExpenseBroadcast() (current month only)
 ```
 
 Payload is `{ id, status }` only. Never broadcast `raw_ai_response`, image paths, or the Eloquent model.
@@ -81,13 +82,17 @@ Do not add `laravel-echo` or `pusher-js` npm packages for the panel. Do not impo
 
 ## Attach a later listener
 
-Shared trait: `App\Filament\Concerns\RefreshesTableOnExpenseBroadcast`.
+Shared traits:
+
+- Tables: `App\Filament\Concerns\RefreshesTableOnExpenseBroadcast` (`resetTable()`)
+- Stats / custom widgets: `App\Filament\Concerns\RefreshesOnExpenseBroadcast` (Livewire re-render; skip when a past month is selected). Chart widgets should override `refreshFromExpenseBroadcast()` to call `updateChartData()`.
 
 **Live listeners**
 
 - [`ListExpenses`](../app/Filament/Resources/Expenses/Pages/ListExpenses.php)
 - [`ReceiptUploadPage`](../app/Filament/Pages/ReceiptUploadPage.php) recent-uploads table
 - [`RecentReceipts`](../app/Filament/Widgets/RecentReceipts.php) dashboard widget
+- [`MonthlySpendingOverview`](../app/Filament/Widgets/MonthlySpendingOverview.php) Finances stats
 - [`DatabaseNotifications`](../app/Filament/Livewire/DatabaseNotifications.php) inbox (Filament `.database-notifications.sent` on `App.Models.User.{id}`)
 
 To attach another table:
@@ -97,10 +102,19 @@ To attach another table:
 3. If the class already defines `getListeners()`, merge `...$this->expenseBroadcastListeners()` instead of using the trait’s `getListeners()`
 4. Add/adjust a Pest assertion that the Echo listener key is present and `wire:poll.10s.visible` is gone
 
+To attach another stats or custom widget:
+
+1. `use RefreshesOnExpenseBroadcast` on the widget
+2. Return `null` from `getPollingInterval()` / drop `wire:poll`
+3. Chart widgets: override `refreshFromExpenseBroadcast()` to `updateChartData()`
+4. Add/adjust a Pest assertion that the Echo listener key is present and `wire:poll.30s` is gone
+
 Planned follow-ups (not in this change):
 
-- Other dashboard widget polls (charts / stats at `30s`)
+- Other dashboard widget polls (charts at `30s`: Monthly Trend, Spending by Label, Budget Status, Top Merchants, Spending by Payment Method, Receipts by Source)
+- Due Recurrings / Recurring Month Snapshot Echo refresh (OCR match while Home is open)
 - Service Status Reverb health probe
+- Current Currency is out of scope (FX cache, not expenses)
 
 ## Tests
 
@@ -117,6 +131,8 @@ php artisan test --compact --filter=UserNotificationsChannelTest
 php artisan test --compact --filter=LiveTableFiltersTest
 php artisan test --compact --filter=ReceiptUploadPageTest
 php artisan test --compact --filter=RecentReceiptsWidgetTest
+php artisan test --compact --filter=MonthlySpendingOverviewForecastTest
+php artisan test --compact --filter=WebAppLoadPerformanceTest
 ```
 
 ## LAN / phone
@@ -127,7 +143,7 @@ Phone browsers that load `/admin` also need the Reverb websocket. Allow inbound 
 
 1. Side effects stay in `ExpenseObserver` — do not dispatch `ExpenseUpdated` from Filament resources
 2. Keep the expense broadcast payload to `id` + `status`
-3. New Echo table listeners should reuse `RefreshesTableOnExpenseBroadcast`
+3. New Echo table listeners should reuse `RefreshesTableOnExpenseBroadcast`. New Echo stats/custom widget listeners should reuse `RefreshesOnExpenseBroadcast`
 4. Database inbox pings stay on Filament `DatabaseNotificationsSent` via `App\Filament\Notifications\Notification::sendToDatabase()` — do not invent a second event or pass `isEventDispatched: false` expecting it to stick
 5. Do not add Pusher Cloud or a second websocket server
 6. Do not hit live Reverb, Ollama, or Evolution in tests

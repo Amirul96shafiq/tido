@@ -21,13 +21,13 @@ test('expense items and budgets have lookup indexes for dashboard queries', func
         ->and(Schema::hasIndex('budgets', 'budgets_is_active_index'))->toBeTrue();
 });
 
-test('dashboard stats and charts poll less often on the current month', function () {
+test('dashboard stats skip polling while charts still poll on the current month', function () {
     $statsInterval = (new ReflectionMethod(MonthlySpendingOverview::class, 'getPollingInterval'))
         ->invoke(Livewire::test(MonthlySpendingOverview::class)->instance());
     $chartInterval = (new ReflectionMethod(MonthlyTrend::class, 'getPollingInterval'))
         ->invoke(Livewire::test(MonthlyTrend::class)->instance());
 
-    expect($statsInterval)->toBe('30s')
+    expect($statsInterval)->toBeNull()
         ->and($chartInterval)->toBe('30s');
 });
 
