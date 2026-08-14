@@ -84,3 +84,13 @@ test('top merchants widget renders empty state', function () {
         ->assertSee('No merchant spending recorded for this month.')
         ->assertSee('Upload Receipts');
 });
+
+test('top merchants widget listens for echo expense updates without polling', function () {
+    $component = Livewire::test(TopMerchants::class)
+        ->assertSuccessful()
+        ->assertDontSeeHtml('wire:poll.30s')
+        ->assertDontSeeHtml('wire:poll.5s');
+
+    expect($component->instance()->getListeners())
+        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+});
