@@ -64,7 +64,7 @@ return [
 
     'documents' => [
         'max_bytes' => (int) env('PDF_MAX_BYTES', 10 * 1024 * 1024),
-        'max_pdf_pages' => (int) env('PDF_MAX_PAGES', 3),
+        'max_pdf_pages' => (int) env('PDF_MAX_PAGES', 4),
         'pdfinfo_binary' => env('PDFINFO_BINARY', 'pdfinfo'),
         'pdftocairo_binary' => env('PDFTOCAIRO_BINARY', 'pdftocairo'),
         'pdftoppm_binary' => env('PDFTOPPM_BINARY', 'pdftoppm'),

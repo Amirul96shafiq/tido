@@ -80,7 +80,7 @@ Install a Windows Poppler distribution that includes the executables, then set a
 
 ```env
 PDF_MAX_BYTES=10485760
-PDF_MAX_PAGES=3
+PDF_MAX_PAGES=4
 PDF_INSPECTION_TIMEOUT=15
 PDF_RENDER_TIMEOUT=60
 PDF_TEXT_TIMEOUT=15
@@ -91,7 +91,7 @@ PDFTOPPM_BINARY=C:/path/to/poppler/Library/bin/pdftoppm.exe
 PDFTOTEXT_BINARY=C:/path/to/poppler/Library/bin/pdftotext.exe
 ```
 
-Absolute paths are recommended on Windows because queue workers may inherit a different `PATH` from the web process. The defaults accept PDFs up to 10 MB and 3 pages. Password-protected, unreadable, oversized, and over-page-limit PDFs are rejected before AI parsing; if `pdfinfo` is unavailable, the document is stored for later parsing, and page rendering falls back from `pdftocairo` to `pdftoppm` when configured.
+Absolute paths are recommended on Windows because queue workers may inherit a different `PATH` from the web process. The defaults accept PDFs up to 10 MB and 4 pages. Password-protected, unreadable, oversized, and over-page-limit PDFs are rejected before AI parsing; if `pdfinfo` is unavailable, the document is stored for later parsing, and page rendering falls back from `pdftocairo` to `pdftoppm` when configured.
 
 ---
 
@@ -128,7 +128,7 @@ While a receipt is parsing, run `nvidia-smi` on the host. You should see `ollama
 | `OLLAMA_MODEL` | `qwen2.5vl:7b` | Vision model name |
 | `OLLAMA_TIMEOUT` | `120` | HTTP timeout (seconds) |
 | `PDF_MAX_BYTES` | `10485760` | Maximum accepted PDF size in bytes |
-| `PDF_MAX_PAGES` | `3` | Maximum accepted PDF pages |
+| `PDF_MAX_PAGES` | `4` | Maximum accepted PDF pages |
 | `PDFINFO_BINARY` | `pdfinfo` | Poppler page-count executable; use an absolute Windows path when needed |
 | `PDFTOCAIRO_BINARY` | `pdftocairo` | Poppler PDF renderer; use an absolute Windows path when needed |
 | `PDFTOPPM_BINARY` | `pdftoppm` | Fallback Poppler PDF renderer when `pdftocairo` is unavailable; use an absolute Windows path when needed |

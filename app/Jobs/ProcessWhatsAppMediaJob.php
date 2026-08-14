@@ -134,7 +134,7 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
                 }
             }
 
-            $maximumPages = max(1, (int) config('services.documents.max_pdf_pages', 3));
+            $maximumPages = max(1, (int) config('services.documents.max_pdf_pages', 4));
 
             if ($pageCount > $maximumPages) {
                 $this->registerRejectedDocument(

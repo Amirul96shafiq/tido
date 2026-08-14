@@ -170,7 +170,7 @@ test('mixed PDF batch acknowledges rejected files and only dispatches accepted e
         return str_contains($request->url(), '/message/sendText/')
             && str_contains($text, 'A total of *2* file(s) received.')
             && str_contains($text, '*1* file(s) saved and queued for AI parsing.')
-            && str_contains($text, 'statement.pdf - 8 pages (maximum 3)');
+            && str_contains($text, 'statement.pdf - 8 pages (maximum 4)');
     });
 
     Queue::assertPushed(ExtractReceiptDataJob::class, fn (ExtractReceiptDataJob $job): bool => $job->expenseId === 101);

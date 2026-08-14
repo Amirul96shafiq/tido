@@ -108,7 +108,7 @@ For PDF receipts, configure the Poppler executable paths in `.env`. Queue worker
 
 ```env
 PDF_MAX_BYTES=10485760
-PDF_MAX_PAGES=3
+PDF_MAX_PAGES=4
 PDF_INSPECTION_TIMEOUT=15
 PDF_RENDER_TIMEOUT=60
 PDF_RENDER_DPI=144
@@ -117,7 +117,7 @@ PDFTOCAIRO_BINARY=C:/path/to/poppler/Library/bin/pdftocairo.exe
 PDFTOPPM_BINARY=C:/path/to/poppler/Library/bin/pdftoppm.exe
 ```
 
-Restart `npm run dev:full` after changing these values. The defaults accept PDFs up to 10 MB and 3 pages; adjust only when the queue worker has enough memory and Ollama context for the larger document.
+Restart `npm run dev:full` after changing these values. The defaults accept PDFs up to 10 MB and 4 pages; adjust only when the queue worker has enough memory and Ollama context for the larger document.
 
 Use `http://127.0.0.1:8080` — the default in `config/services.php` and `.env.example`.
 

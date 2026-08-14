@@ -23,7 +23,7 @@ beforeEach(function () {
         'services.evolution.api_url' => 'http://evolution-api.test',
         'services.evolution.instance_name' => 'tido',
         'services.documents.max_bytes' => 10 * 1024 * 1024,
-        'services.documents.max_pdf_pages' => 3,
+        'services.documents.max_pdf_pages' => 4,
     ]);
 
     Cache::flush();
@@ -194,11 +194,44 @@ test('process whatsapp media job stores an accepted PDF with document metadata',
     Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class);
 });
 
-test('process whatsapp media job rejects a PDF over three pages before creating an expense', function () {
+test('process whatsapp media job stores a four-page PDF at the page limit', function () {
     Storage::fake('local');
     Queue::fake();
     Process::preventStrayProcesses();
     Process::fake(['*' => Process::result(output: "Pages: 4\n")]);
+
+    Http::fake([
+        '*/chat/getBase64FromMediaMessage/*' => Http::response([
+            'base64' => base64_encode("%PDF-1.7\nreceipt"),
+        ]),
+    ]);
+
+    $job = new ProcessWhatsAppMediaJob(
+        '60123456789',
+        '60123456789@s.whatsapp.net',
+        'MSG-PDF-4',
+        false,
+        'pdf',
+        'application/pdf',
+        'shop receipt.pdf',
+    );
+
+    app()->call([$job, 'handle']);
+
+    $expense = Expense::sole();
+
+    expect($expense->file_page_count)->toBe(4)
+        ->and($expense->file_mime_type)->toBe('application/pdf');
+
+    Queue::assertNotPushed(ExtractReceiptDataJob::class);
+    Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class);
+});
+
+test('process whatsapp media job rejects a PDF over four pages before creating an expense', function () {
+    Storage::fake('local');
+    Queue::fake();
+    Process::preventStrayProcesses();
+    Process::fake(['*' => Process::result(output: "Pages: 5\n")]);
 
     Http::fake([
         '*/chat/getBase64FromMediaMessage/*' => Http::response([
@@ -209,7 +242,7 @@ test('process whatsapp media job rejects a PDF over three pages before creating 
     $job = new ProcessWhatsAppMediaJob(
         '60123456789',
         '60123456789@s.whatsapp.net',
-        'MSG-PDF-4',
+        'MSG-PDF-5',
         false,
         'pdf',
         'application/pdf',
@@ -226,7 +259,7 @@ test('process whatsapp media job rejects a PDF over three pages before creating 
         ->and($batch['expense_ids'])->toBe([])
         ->and($batch['documents'][0]['status'])->toBe('rejected')
         ->and($batch['documents'][0]['reason'])->toBe('pdf_page_limit')
-        ->and($batch['documents'][0]['page_count'])->toBe(4);
+        ->and($batch['documents'][0]['page_count'])->toBe(5);
 
     Queue::assertNotPushed(ExtractReceiptDataJob::class);
     Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class);

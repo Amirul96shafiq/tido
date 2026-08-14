@@ -44,7 +44,7 @@ ExtractReceiptDataJob
   → status = parsed | requires_manual_review
 ```
 
-Defaults are 10 MB (`PDF_MAX_BYTES`) and 3 pages (`PDF_MAX_PAGES`). Password-protected and unreadable PDFs are rejected before expense creation. If `pdfinfo` is unavailable during intake, the PDF may be stored with a null page count, but `pdftocairo` must still be available when the extraction job runs.
+Defaults are 10 MB (`PDF_MAX_BYTES`) and 4 pages (`PDF_MAX_PAGES`). Password-protected and unreadable PDFs are rejected before expense creation. If `pdfinfo` is unavailable during intake, the PDF may be stored with a null page count, but `pdftocairo` must still be available when the extraction job runs.
 
 ## End-to-end (WhatsApp manual text)
 
