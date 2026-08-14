@@ -13,6 +13,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\TextSize;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 
 final class FieldCharacterLimits
@@ -20,6 +21,8 @@ final class FieldCharacterLimits
     public const EXTRA_CLASS = 'fi-character-count';
 
     public const FIELD_CLASS = 'fi-has-character-count';
+
+    public const AT_LIMIT_CLASS = 'fi-character-count-at-limit';
 
     public const USER_NAME = 25;
 
@@ -80,14 +83,20 @@ final class FieldCharacterLimits
     {
         return Text::make(self::counterJs($max, $rich))
             ->size(TextSize::ExtraSmall)
-            ->extraAttributes(['class' => self::EXTRA_CLASS])
+            ->extraAttributes([
+                'class' => self::EXTRA_CLASS,
+                'aria-hidden' => 'true',
+                'x-bind:class' => self::atLimitClassBind($max, $rich),
+            ])
             ->js();
     }
 
     public static function counterHtml(int $max, bool $rich = false): Htmlable
     {
         return new HtmlString(
-            '<span class="'.self::EXTRA_CLASS.'" aria-hidden="true">'
+            '<span class="'.self::EXTRA_CLASS.'" aria-hidden="true" x-bind:class="'
+            .self::atLimitClassBind($max, $rich)
+            .'">'
             .JsContent::make(self::counterJs($max, $rich))->toHtml()
             .'</span>'
         );
@@ -95,14 +104,27 @@ final class FieldCharacterLimits
 
     private static function counterJs(int $max, bool $rich): string
     {
-        $max = max(0, $max);
+        return self::lengthJs($rich)." + '/".max(0, $max)."'";
+    }
 
+    private static function atLimitJs(int $max, bool $rich): string
+    {
+        return self::lengthJs($rich).' >= '.max(0, $max);
+    }
+
+    private static function atLimitClassBind(int $max, bool $rich): string
+    {
+        return '() => eval('.Js::from(self::atLimitJs($max, $rich)).') ? '.Js::from(self::AT_LIMIT_CLASS)." : ''";
+    }
+
+    private static function lengthJs(bool $rich): string
+    {
         if (! $rich) {
-            return "[...String(\$state ?? '')].length + '/{$max}'";
+            return "[...String(\$state ?? '')].length";
         }
 
-        return <<<JS
-((s, m) => {
+        return <<<'JS'
+((s) => {
     const walk = (node) => {
         if (node == null) {
             return 0;
@@ -125,8 +147,8 @@ final class FieldCharacterLimits
         return 0;
     };
 
-    return walk(s) + '/' + m;
-})(\$state, {$max})
+    return walk(s);
+})($state)
 JS;
     }
 }

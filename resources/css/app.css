@@ -3107,6 +3107,12 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     white-space: nowrap;
 }
 
+.fi-character-count.fi-character-count-at-limit,
+.fi-sc-text.fi-character-count-at-limit,
+.fi-has-character-count .fi-input-wrp-suffix:has(.fi-character-count-at-limit) .fi-input-wrp-label {
+    @apply text-danger-600 dark:text-danger-400;
+}
+
 /*
  * TextInput: Filament inline suffix sits in the same bordered wrapper as the
  * input (flex siblings). Keep the count muted and non-interactive so typed

@@ -21,6 +21,7 @@ DB columns stay wide (`varchar` / `text`). The cap is application-level (forms +
 ## UX
 
 - Counter format: `{current}/{max}` (example `10/20`)
+- At the cap (`80/80` and above): counter uses Filament **danger** text color
 - Placement: **inside** the field, right side
   - **TextInput**: Filament inline `suffix()` in the same bordered wrapper (flex sibling of the input, so typed text cannot overlap the count)
   - **NotesRichEditor**: bottom-right inside the editor canvas, with extra content padding
@@ -86,6 +87,7 @@ Ingest writers that skip Filament must truncate with `FieldCharacterLimits::trun
 - [ ] Factory values fit the cap
 - [ ] `getMaxLength()` + over-limit validation tests
 - [ ] Counter class stays `fi-character-count`
+- [ ] At-limit class stays `fi-character-count-at-limit` (danger color)
 
 ## Not in scope
 

@@ -14,6 +14,7 @@ use App\Models\Label;
 use App\Models\User;
 use App\Support\FieldCharacterLimits;
 use Filament\Forms\Components\TextInput;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
@@ -30,9 +31,12 @@ test('text fields expose character limits', function (string $page, string $fiel
         ->assertSchemaComponentExists(
             $field,
             checkComponentUsing: function (TextInput $component) use ($max): bool {
+                $suffix = $component->getSuffixLabel();
+                $html = $suffix instanceof Htmlable ? $suffix->toHtml() : (string) $suffix;
+
                 expect($component->getMaxLength())->toBe($max)
                     ->and($component->isSuffixInline())->toBeTrue()
-                    ->and($component->getSuffixLabel())->not->toBeNull();
+                    ->and($html)->toContain(FieldCharacterLimits::AT_LIMIT_CLASS);
 
                 return true;
             },
