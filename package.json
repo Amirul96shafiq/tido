@@ -5,11 +5,11 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "dev:full": "concurrently -n vite,php,queue,schedule -c cyan,green,yellow,white \"npm run dev\" \"php artisan serve --host=0.0.0.0 --port=2000\" \"php artisan queue:listen --queue=whatsapp,receipts,default --tries=3 --timeout=180\" \"php artisan schedule:work\"",
+        "dev:full": "node scripts/run-named.mjs tido concurrently -n vite,php,queue,schedule -c cyan,green,yellow,white \"npm run dev\" \"php artisan serve --host=0.0.0.0 --port=2000\" \"php artisan queue:listen --queue=whatsapp,receipts,default --tries=3 --timeout=180\" \"php artisan schedule:work\"",
         "dev:ollama": "node scripts/run-ollama.mjs",
         "evolution": "node scripts/run-evolution.mjs",
-        "dev:whatsapp": "concurrently -n vite,php,queue,evolution,schedule -c cyan,green,yellow,magenta,white \"npm run dev\" \"php artisan serve --host=0.0.0.0 --port=2000\" \"php artisan queue:listen --queue=whatsapp,receipts,default --tries=3 --timeout=180\" \"npm run evolution\" \"php artisan schedule:work\"",
-        "dev:all": "concurrently -n vite,php,queue,evolution,ollama,schedule -c cyan,green,yellow,magenta,blue,white \"npm run dev\" \"php artisan serve --host=0.0.0.0 --port=2000\" \"php artisan queue:listen --queue=whatsapp,receipts,default --tries=3 --timeout=180\" \"npm run evolution\" \"npm run dev:ollama\" \"php artisan schedule:work\""
+        "dev:whatsapp": "node scripts/run-named.mjs tido concurrently -n vite,php,queue,evolution,schedule -c cyan,green,yellow,magenta,white \"npm run dev\" \"php artisan serve --host=0.0.0.0 --port=2000\" \"php artisan queue:listen --queue=whatsapp,receipts,default --tries=3 --timeout=180\" \"npm run evolution\" \"php artisan schedule:work\"",
+        "dev:all": "node scripts/run-named.mjs tido concurrently -n vite,php,queue,evolution,ollama,schedule -c cyan,green,yellow,magenta,blue,white \"npm run dev\" \"php artisan serve --host=0.0.0.0 --port=2000\" \"php artisan queue:listen --queue=whatsapp,receipts,default --tries=3 --timeout=180\" \"npm run evolution\" \"npm run dev:ollama\" \"php artisan schedule:work\""
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
