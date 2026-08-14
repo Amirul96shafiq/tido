@@ -1,6 +1,6 @@
 # Realtime broadcasting (Reverb + Echo)
 
-Live expense tables update when a receipt is uploaded or OCR status changes, without polling those tables. The Finances Monthly Spending Overview stats, Monthly Spending Trend, Spending by Label, Budget Performance, Top Merchants, Spending by Payment Method, Receipts by Upload Source, and the Filament database-notifications inbox refresh the same way, without a 30s or 60s poll.
+Live expense tables update when a receipt is uploaded or OCR status changes, without polling those tables. The Finances Monthly Spending Overview stats, Monthly Spending Trend, Spending by Label, Budget Performance, Top Merchants, Spending by Payment Method, Receipts by Upload Source, Due Recurrings, Recurring Month Snapshot, and the Filament database-notifications inbox refresh the same way, without a 30s or 60s poll.
 
 ## Why this exists
 
@@ -48,7 +48,8 @@ Expense created, important field changed, deleted, or restored
   → Filament EchoFactory (window.Echo)
   → ListExpenses / ReceiptUploadPage / RecentReceipts refreshExpensesTable() → resetTable()
   → MonthlySpendingOverview / BudgetStatus refreshOnExpenseBroadcast() (current month only)
-  → MonthlyTrend / SpendingByLabel / TopMerchants / SpendingByPaymentMethod refreshFromExpenseBroadcast() → updateChartData() (current month only)
+  → MonthlyTrend / SpendingByLabel / TopMerchants / SpendingByPaymentMethod / ReceiptsBySource refreshFromExpenseBroadcast() → updateChartData() (current month only)
+  → DueRecurrings / RecurringMonthSnapshot refreshOnExpenseBroadcast() (always; widgets show the current calendar month, not the dashboard month picker)
 ```
 
 This is a refresh ping only. Payload is `{ id, status }` only. Never broadcast merchant, amounts, `raw_ai_response`, image paths, or the Eloquent model. Listeners re-query the database.
@@ -104,6 +105,9 @@ Shared traits:
 - [`BudgetStatus`](../app/Filament/Widgets/BudgetStatus.php) Budget Performance
 - [`TopMerchants`](../app/Filament/Widgets/TopMerchants.php) Finances chart (`updateChartData()`)
 - [`SpendingByPaymentMethod`](../app/Filament/Widgets/SpendingByPaymentMethod.php) Finances chart (`updateChartData()`)
+- [`ReceiptsBySource`](../app/Filament/Widgets/ReceiptsBySource.php) Finances chart (`updateChartData()`)
+- [`DueRecurrings`](../app/Filament/Widgets/DueRecurrings.php) Due Recurrings (OCR match while Home is open; skip/revert/mark-paid still dispatch `recurring-occurrences-updated`)
+- [`RecurringMonthSnapshot`](../app/Filament/Widgets/RecurringMonthSnapshot.php) Bills · month snapshot (same Echo ping; keeps `recurring-occurrences-updated` for in-page skip/revert)
 - [`DatabaseNotifications`](../app/Filament/Livewire/DatabaseNotifications.php) inbox (Filament `.database-notifications.sent` on `App.Models.User.{id}`)
 
 To attach another table:
@@ -122,7 +126,6 @@ To attach another stats or custom widget:
 
 Planned follow-ups (not in this change):
 
-- Due Recurrings / Recurring Month Snapshot Echo refresh (OCR match while Home is open)
 - Service Status Reverb health probe
 - Current Currency is out of scope (FX cache, not expenses)
 
@@ -148,6 +151,8 @@ php artisan test --compact --filter=BudgetStatusWidgetTest
 php artisan test --compact --filter=TopMerchantsWidgetTest
 php artisan test --compact --filter=SpendingByPaymentMethodWidgetTest
 php artisan test --compact --filter=ReceiptsBySourceWidgetTest
+php artisan test --compact --filter=DueRecurringsWidgetTest
+php artisan test --compact --filter=RecurringMonthSnapshotWidgetTest
 php artisan test --compact --filter=WebAppLoadPerformanceTest
 ```
 

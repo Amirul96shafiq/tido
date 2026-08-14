@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Widgets;
 
 use App\Enums\RecurringOccurrenceStatus;
+use App\Filament\Concerns\RefreshesOnExpenseBroadcast;
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Helpers\MoneyDisplay;
@@ -21,6 +22,7 @@ use Livewire\Attributes\On;
 class RecurringMonthSnapshot extends Widget
 {
     use HasDashboardSectionId;
+    use RefreshesOnExpenseBroadcast;
 
     protected static bool $isLazy = false;
 

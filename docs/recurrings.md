@@ -9,7 +9,8 @@ Reminder-first tracking for bills, subscriptions, debt instalments, and transfer
 3. `recurring:send-reminders` sends Filament + WhatsApp nudges (Primary always; assigned family member when set; shared → Primary only).
 4. User pays externally and logs an **Expense** (upload / WhatsApp / manual).
 5. After `parsed` / `reviewed`, `RecurringMatchService` matches merchant aliases + due window (±7 days) + ownership/shared, then completes the occurrence with the expense total as `actual_amount`.
-6. Budget alerts continue to run from the expense path unchanged.
+6. That expense status change also pings `ExpenseUpdated`. Due Recurrings and Recurring Month Snapshot re-query over Echo while Home is open (skip/revert/mark-paid still use the in-page `recurring-occurrences-updated` event).
+7. Budget alerts continue to run from the expense path unchanged.
 
 Expenses are never auto-created by the scheduler.
 

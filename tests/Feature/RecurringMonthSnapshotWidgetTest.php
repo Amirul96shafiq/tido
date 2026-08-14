@@ -290,3 +290,47 @@ test('due countdown label covers today remaining and overdue days', function () 
         ->and(RecurringMonthSnapshot::dueCountdownLabel(Carbon::parse('2026-08-10', 'Asia/Kuala_Lumpur')))->toBe('3 days overdue')
         ->and(RecurringMonthSnapshot::dueCountdownLabel(null))->toBeNull();
 });
+
+test('snapshot widget listens for echo expense updates without polling', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $component = Livewire::test(RecurringMonthSnapshot::class)
+        ->assertOk()
+        ->assertDontSeeHtml('wire:poll.30s')
+        ->assertDontSeeHtml('wire:poll.5s');
+
+    expect($component->instance()->getListeners())
+        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+});
+
+test('snapshot widget refreshes when an expense broadcast arrives', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $recurring = Recurring::factory()->create(['title' => 'TIME Internet']);
+    $occurrence = RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+        'expected_amount' => 89.90,
+    ]);
+
+    $component = Livewire::test(RecurringMonthSnapshot::class)
+        ->assertOk()
+        ->assertSee('Due 1')
+        ->assertSee('Paid 0');
+
+    $occurrence->update([
+        'status' => RecurringOccurrenceStatus::Completed,
+        'actual_amount' => 89.90,
+    ]);
+
+    $component
+        ->call('refreshOnExpenseBroadcast')
+        ->assertSee('Paid 1')
+        ->assertSee('Due 0')
+        ->assertSee('Paid of RM 89.90');
+});
