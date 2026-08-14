@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Filament\Widgets\MonthlySpendingOverview;
 use App\Filament\Widgets\MonthlyTrend;
+use App\Filament\Widgets\SpendingByLabel;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
@@ -21,14 +22,17 @@ test('expense items and budgets have lookup indexes for dashboard queries', func
         ->and(Schema::hasIndex('budgets', 'budgets_is_active_index'))->toBeTrue();
 });
 
-test('dashboard stats skip polling while charts still poll on the current month', function () {
+test('dashboard stats and monthly trend skip polling while other charts still poll', function () {
     $statsInterval = (new ReflectionMethod(MonthlySpendingOverview::class, 'getPollingInterval'))
         ->invoke(Livewire::test(MonthlySpendingOverview::class)->instance());
-    $chartInterval = (new ReflectionMethod(MonthlyTrend::class, 'getPollingInterval'))
+    $trendInterval = (new ReflectionMethod(MonthlyTrend::class, 'getPollingInterval'))
         ->invoke(Livewire::test(MonthlyTrend::class)->instance());
+    $labelInterval = (new ReflectionMethod(SpendingByLabel::class, 'getPollingInterval'))
+        ->invoke(Livewire::test(SpendingByLabel::class)->instance());
 
     expect($statsInterval)->toBeNull()
-        ->and($chartInterval)->toBe('30s');
+        ->and($trendInterval)->toBeNull()
+        ->and($labelInterval)->toBe('30s');
 });
 
 test('desktop auth backgrounds are served as webp', function () {
