@@ -34,6 +34,24 @@ test('date time pickers default to format-aware placeholders', function (): void
         ->and(TimePicker::make('alarm_at')->getPlaceholder())->toBe('HH:mm');
 });
 
+test('date time pickers hide seconds and use the preferred datetime format', function (): void {
+    expect(DateTimePicker::make('published_at')->hasSeconds())->toBeFalse()
+        ->and(DateTimePicker::make('published_at')->getDisplayFormat())->toBe(UserDateDisplay::dateTimeFormat())
+        ->and(DateTimePicker::make('published_at')->getDisplayFormat())->toBe('d/m/Y H:i');
+});
+
+test('date time picker display format follows the preferred date format', function (string $format, string $expected): void {
+    $this->actingAs(User::factory()->create([
+        'date_format' => $format,
+    ]));
+
+    expect(DateTimePicker::make('published_at')->getDisplayFormat())->toBe($expected);
+})->with([
+    'dmy slash' => [UserDateFormat::DmySlash->value, 'd/m/Y H:i'],
+    'dmy long' => [UserDateFormat::DmyLong->value, 'd M Y H:i'],
+    'iso' => [UserDateFormat::Iso->value, 'Y-m-d H:i'],
+]);
+
 test('date of birth picker is a non-native date field capped at today', function (): void {
     $field = DateOfBirthPicker::make();
 

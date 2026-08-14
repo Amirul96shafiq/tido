@@ -118,8 +118,10 @@ class AppServiceProvider extends ServiceProvider
         DateTimePicker::configureUsing(function (DateTimePicker $component): void {
             $component
                 ->native(false)
+                ->seconds(false)
                 ->defaultDateDisplayFormat(fn (): string => UserDateDisplay::dateFormat())
                 ->defaultDateTimeDisplayFormat(fn (): string => UserDateDisplay::dateTimeFormat())
+                ->defaultDateTimeWithSecondsDisplayFormat(fn (): string => UserDateDisplay::dateTimeFormat().':s')
                 ->placeholder(fn (DateTimePicker $component): string => UserDateDisplay::pickerPlaceholder(
                     $component->hasDate(),
                     $component->hasTime(),

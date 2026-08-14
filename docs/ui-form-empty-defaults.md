@@ -14,7 +14,7 @@ Do **not** use restore-on-empty for fields where a placeholder string would poll
 
 ## Date / date-time fields
 
-Date, date-time, and time pickers default to Filament’s **JS** picker (`native(false)`) with format-aware placeholders from [`UserDateDisplay`](../app/Helpers/UserDateDisplay.php) (`dd/mm/yyyy`, `dd/mm/yyyy HH:mm`, `HH:mm`). That is configured once in [`AppServiceProvider`](../app/Providers/AppServiceProvider.php) — do **not** re-add `->native(false)` or hard-coded date placeholders on each field unless overriding on purpose.
+Date, date-time, and time pickers default to Filament’s **JS** picker (`native(false)`, `seconds(false)`) with format-aware placeholders and display formats from [`UserDateDisplay`](../app/Helpers/UserDateDisplay.php) (`dd/mm/yyyy`, `dd/mm/yyyy HH:mm`, `HH:mm`). That is configured once in [`AppServiceProvider`](../app/Providers/AppServiceProvider.php) — do **not** re-add `->native(false)` or hard-coded date placeholders on each field unless overriding on purpose. Expense `date_time` also sets `displayFormat()` / `timezone()` from `UserDateDisplay` so it follows the Profile date format and timezone.
 
 | Field | Component | Notes |
 |-------|-----------|--------|

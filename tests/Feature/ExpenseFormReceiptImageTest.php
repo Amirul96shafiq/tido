@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Enums\UserDateFormat;
 use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Resources\Expenses\Pages\EditExpense;
 use App\Filament\Support\SelectValueMarquee;
 use App\Models\Expense;
 use App\Models\ExpenseItem;
 use App\Models\User;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -252,6 +254,34 @@ test('expense line item description and line total restore defaults when emptied
         ->set("data.expenseItems.{$itemKey}.line_total", '')
         ->assertSet("data.expenseItems.{$itemKey}.line_total", '0.00');
 });
+
+test('expense date time picker follows the profile date format and timezone', function (string $format, string $timezone, string $expectedDisplayFormat): void {
+    $this->actingAs(User::factory()->create([
+        'date_format' => $format,
+        'timezone' => $timezone,
+    ]));
+
+    $expense = Expense::factory()->create([
+        'image_path' => null,
+    ]);
+
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSchemaComponentExists(
+            'date_time',
+            checkComponentUsing: function (DateTimePicker $component) use ($expectedDisplayFormat, $timezone): bool {
+                expect($component->hasSeconds())->toBeFalse()
+                    ->and($component->getDisplayFormat())->toBe($expectedDisplayFormat)
+                    ->and($component->getTimezone())->toBe($timezone);
+
+                return true;
+            },
+        );
+})->with([
+    'dmy slash kl' => [UserDateFormat::DmySlash->value, 'Asia/Kuala_Lumpur', 'd/m/Y H:i'],
+    'dmy long auckland' => [UserDateFormat::DmyLong->value, 'Pacific/Auckland', 'd M Y H:i'],
+    'iso london' => [UserDateFormat::Iso->value, 'Europe/London', 'Y-m-d H:i'],
+]);
 
 test('expense receipt fields have placeholders for empty values', function () {
     $expense = Expense::factory()->create([

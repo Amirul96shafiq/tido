@@ -9,6 +9,7 @@ use App\Enums\LabelType;
 use App\Filament\Forms\Components\NotesRichEditor;
 use App\Filament\Support\SelectValueMarquee;
 use App\Helpers\MoneyDisplay;
+use App\Helpers\UserDateDisplay;
 use App\Models\Expense;
 use App\Models\FamilyMember;
 use App\Models\User;
@@ -112,11 +113,15 @@ class ExpenseForm
                                         TextInput::make('merchant_name')
                                             ->required()
                                             ->placeholder('Merchant name'),
+
                                         TextInput::make('invoice_number')
                                             ->placeholder('Invoice number'),
+
                                         DateTimePicker::make('date_time')
                                             ->required()
-                                            ->timezone(fn (): string => (string) config('app.timezone'))
+                                            ->seconds(false)
+                                            ->displayFormat(fn (): string => UserDateDisplay::dateTimeFormat())
+                                            ->timezone(fn (): string => UserDateDisplay::timezone())
                                             ->default(now()),
                                     ]),
 
