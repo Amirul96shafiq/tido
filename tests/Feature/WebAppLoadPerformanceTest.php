@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Filament\Widgets\BudgetStatus;
 use App\Filament\Widgets\MonthlySpendingOverview;
 use App\Filament\Widgets\MonthlyTrend;
 use App\Filament\Widgets\SpendingByLabel;
@@ -22,17 +23,20 @@ test('expense items and budgets have lookup indexes for dashboard queries', func
         ->and(Schema::hasIndex('budgets', 'budgets_is_active_index'))->toBeTrue();
 });
 
-test('dashboard stats and monthly trend skip polling while other charts still poll', function () {
+test('converted finances widgets skip polling while remaining charts still poll', function () {
     $statsInterval = (new ReflectionMethod(MonthlySpendingOverview::class, 'getPollingInterval'))
         ->invoke(Livewire::test(MonthlySpendingOverview::class)->instance());
     $trendInterval = (new ReflectionMethod(MonthlyTrend::class, 'getPollingInterval'))
         ->invoke(Livewire::test(MonthlyTrend::class)->instance());
     $labelInterval = (new ReflectionMethod(SpendingByLabel::class, 'getPollingInterval'))
         ->invoke(Livewire::test(SpendingByLabel::class)->instance());
+    $budgetInterval = (new ReflectionMethod(BudgetStatus::class, 'getPollingInterval'))
+        ->invoke(Livewire::test(BudgetStatus::class)->instance());
 
     expect($statsInterval)->toBeNull()
         ->and($trendInterval)->toBeNull()
-        ->and($labelInterval)->toBe('30s');
+        ->and($labelInterval)->toBeNull()
+        ->and($budgetInterval)->toBe('30s');
 });
 
 test('desktop auth backgrounds are served as webp', function () {
