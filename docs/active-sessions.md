@@ -80,6 +80,8 @@ public function table(Table $table): Table
 |--------|----------|
 | Revoke | Danger button, confirmation modal; shown on every row, disabled for current session; deletes the `sessions` row |
 
+The actions column has no visible header label (`recordActionsColumnLabel` is unset so Filament renders `fi-ta-empty-header-cell`). Row padding for that column is tightened in `.fi-profile-page #active-sessions`.
+
 After revoke: `resetTable()` + success notification (“Session revoked”).
 
 Use `->modifyUngroupedRecordActionsUsing(fn (Action $action): Action => $action->button())` so Revoke renders as a button (not icon-only) inside the embedded profile table.

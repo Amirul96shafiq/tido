@@ -12,11 +12,12 @@ enum UserDateFormat: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::DmySlash => '09/07/2026 (d/m/Y)',
-            self::DmyLong => '09 Jul 2026 (d M Y)',
-            self::Iso => '2026-07-09 (Y-m-d)',
-        };
+        return $this->value;
+    }
+
+    public function description(): string
+    {
+        return now()->format($this->value);
     }
 
     /**
@@ -31,5 +32,19 @@ enum UserDateFormat: string
         }
 
         return $options;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function descriptions(): array
+    {
+        $descriptions = [];
+
+        foreach (self::cases() as $case) {
+            $descriptions[$case->value] = $case->description();
+        }
+
+        return $descriptions;
     }
 }

@@ -207,6 +207,27 @@ test('active sessions uses native filament table markup', function () {
         ->toContain('fi-color-danger');
 });
 
+test('active sessions hides the actions column header label', function () {
+    insertActiveSession($this->user, 'header-session');
+
+    $html = Livewire::test(EditProfile::class)->html();
+
+    expect($html)
+        ->toContain('fi-ta-actions-header-cell')
+        ->toContain('fi-ta-empty-header-cell')
+        ->not->toMatch('/>\s*Actions\s*<\/th>/');
+});
+
+test('active sessions action column uses tighter padding', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.fi-profile-page #active-sessions .fi-ta-table > thead > tr > .fi-ta-actions-header-cell')
+        ->toContain('padding-block: 0.5rem;')
+        ->toContain('padding-inline: 0.5rem 0.75rem;')
+        ->toContain('vertical-align: middle;');
+});
+
 test('stamp created at only fills missing values', function () {
     $sessionId = 'stamp-session';
 

@@ -24,6 +24,7 @@ use Filament\Auth\Notifications\NoticeOfEmailChangeRequest;
 use Filament\Auth\Pages\EditProfile as BaseEditProfile;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -200,9 +201,12 @@ class EditProfile extends BaseEditProfile implements HasTable
                             ->schema([
                                 View::make('filament.schemas.components.theme-mode-field')
                                     ->columnSpanFull(),
+
                                 View::make('filament.schemas.components.sidebar-mode-field')
                                     ->columnSpanFull(),
+
                                 Hidden::make('stylized_background_enabled'),
+
                                 View::make('filament.schemas.components.stylized-background-field')
                                     ->viewData(fn (Get $get): array => [
                                         'enabled' => (bool) $get('stylized_background_enabled'),
@@ -244,15 +248,18 @@ class EditProfile extends BaseEditProfile implements HasTable
                                     ->searchable()
                                     ->required()
                                     ->rule(Rule::in([UserLocale::En->value])),
+
                                 Select::make('timezone')
                                     ->label('Timezone')
                                     ->options(static::timezoneOptions())
                                     ->searchable()
                                     ->required(),
-                                Select::make('date_format')
+
+                                Radio::make('date_format')
                                     ->label('Date Format')
                                     ->options(UserDateFormat::options())
-                                    ->searchable()
+                                    ->descriptions(UserDateFormat::descriptions())
+                                    ->inline()
                                     ->required(),
                             ]),
 
@@ -263,13 +270,16 @@ class EditProfile extends BaseEditProfile implements HasTable
                                     ->label('Budget Alerts')
                                     ->helperText('Receive in-app notifications when spending exceeds your budget threshold.')
                                     ->visible(fn (): bool => HouseholdAccess::isPrimary()),
+
                                 Toggle::make('notify_profile_updates')
                                     ->label('Profile Update Alerts')
                                     ->helperText('Receive in-app notifications when your profile settings change.'),
+
                                 Toggle::make('notify_evolution_api')
                                     ->label('Evolution API')
                                     ->helperText('Receive in-app notifications when Evolution API connects or disconnects.')
                                     ->visible(fn (): bool => HouseholdAccess::isPrimary()),
+
                                 Toggle::make('notify_email_digest')
                                     ->label('Email Digest')
                                     ->helperText('Coming soon — preference saved for future digest emails.'),
@@ -303,6 +313,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                                     ->label('Display Name')
                                     ->maxLength(255)
                                     ->placeholder('Display name'),
+
                                 TextInput::make('phone')
                                     ->label('WhatsApp Number')
                                     ->tel()
@@ -376,7 +387,6 @@ class EditProfile extends BaseEditProfile implements HasTable
                             ->send();
                     }),
             ])
-            ->recordActionsColumnLabel('Actions')
             ->paginated([10, 25, 50])
             ->emptyStateHeading('No active sessions found')
             ->emptyStateIcon(Heroicon::OutlinedComputerDesktop);
@@ -409,6 +419,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                         $set('reset_confirmation_phrase', null);
                         $set('reset_confirmation_password', null);
                     }),
+
                 TextInput::make('reset_confirmation_phrase')
                     ->label('Confirmation phrase')
                     ->placeholder(self::RESET_CONFIRMATION_PHRASE)
@@ -416,6 +427,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                     ->live()
                     ->visible(fn (Get $get): bool => (bool) $get('enable_reset_data'))
                     ->dehydrated(false),
+
                 TextInput::make('reset_confirmation_password')
                     ->label('Current password')
                     ->password()
@@ -423,6 +435,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                     ->live()
                     ->visible(fn (Get $get): bool => (bool) $get('enable_reset_data'))
                     ->dehydrated(false),
+
                 Toggle::make('enable_delete_account')
                     ->label('Delete account')
                     ->onColor('danger')
@@ -441,6 +454,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                         $set('delete_confirmation_phrase', null);
                         $set('delete_confirmation_password', null);
                     }),
+
                 TextInput::make('delete_confirmation_phrase')
                     ->label('Confirmation phrase')
                     ->placeholder(self::DELETE_CONFIRMATION_PHRASE)
@@ -448,6 +462,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                     ->live()
                     ->visible(fn (Get $get): bool => (bool) $get('enable_delete_account'))
                     ->dehydrated(false),
+
                 TextInput::make('delete_confirmation_password')
                     ->label('Current password')
                     ->password()

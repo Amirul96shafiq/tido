@@ -4109,6 +4109,19 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     z-index: 5;
 }
 
+.fi-profile-page #active-sessions .fi-ta-table > thead > tr > .fi-ta-actions-header-cell,
+.fi-profile-page
+    #active-sessions
+    .fi-ta-table
+    > tbody
+    > tr
+    > td.fi-ta-cell:has(.fi-ta-actions) {
+    width: 1%;
+    padding-block: 0.75rem;
+    padding-inline: 0.75rem;
+    vertical-align: middle;
+}
+
 .fi-ta-table > thead > tr {
     background-color: var(--color-gray-50, #f9fafb);
 }
