@@ -2710,7 +2710,7 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     @apply pointer-events-none absolute top-1.5 left-4 z-10 -translate-y-0.5 translate-x-0.5;
 }
 
-/* Keep DatabaseNotifications mounted for the slide-over + poll, but hide the topbar trigger. */
+/* Keep DatabaseNotifications mounted for the slide-over + Echo, but hide the topbar trigger. */
 .fi-topbar-end .fi-no-database > .fi-modal-trigger {
     @apply pointer-events-none absolute size-0 overflow-hidden opacity-0;
 }

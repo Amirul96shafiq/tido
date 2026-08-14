@@ -86,7 +86,7 @@ routes/
   web.php           / → /admin, changelog JSON, backup download / guest restore
   api.php           WhatsApp webhook
   console.php       schedules (backups, health:probe / health:prune)
-  channels.php      private Reverb channels (`household.expenses`)
+  channels.php      private Reverb channels (`household.expenses`, `App.Models.User.{id}`)
 database/
   migrations|factories|seeders
 docs/               architecture + integration setup + this file

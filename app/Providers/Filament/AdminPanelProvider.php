@@ -279,7 +279,7 @@ class AdminPanelProvider extends PanelProvider
                     HTML,
             )
             ->databaseNotifications(livewireComponent: DatabaseNotifications::class)
-            ->databaseNotificationsPolling('60s')
+            ->databaseNotificationsPolling(null)
             ->spa()
             ->globalSearchResourceOptIn()
             ->globalSearchKeyBindings(['alt+k'])

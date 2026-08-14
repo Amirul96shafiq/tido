@@ -1,12 +1,12 @@
 # Realtime broadcasting (Reverb + Echo)
 
-Live expense tables update when a receipt is uploaded or OCR status changes, without polling those tables.
+Live expense tables update when a receipt is uploaded or OCR status changes, without polling those tables. The Filament database-notifications inbox refreshes the same way, without a 60s poll.
 
 ## Why this exists
 
-Receipt parsing is asynchronous. An expense is created as `pending`, then `ExtractReceiptDataJob` (or a WhatsApp job) updates status later on the `receipts` queue. WhatsApp uploads also arrive from a webhook, not the current Livewire request.
+Receipt parsing is asynchronous. An expense is created as `pending`, then `ExtractReceiptDataJob` (or a WhatsApp job) updates status later on the `receipts` queue. WhatsApp uploads also arrive from a webhook, not the current Livewire request. Budget alerts, backup notices, and manual-review notices are stored as database notifications after those jobs finish.
 
-Expenses, Upload Receipts, and Recent Receipts used `->poll('10s.visible')` to notice those changes. Polling is replaced with Laravel Reverb (local websocket) plus Filament Echo: those tables refresh only when an expense is created or its status changes.
+Expenses, Upload Receipts, and Recent Receipts used `->poll('10s.visible')` to notice table changes. The notifications slide-over used `databaseNotificationsPolling('60s')`. Polling is replaced with Laravel Reverb (local websocket) plus Filament Echo.
 
 ## Local runtime
 
@@ -37,6 +37,8 @@ phpunit keeps `BROADCAST_CONNECTION=null`. Tests must not start a websocket or h
 
 ## How it works
 
+### Expense tables
+
 ```
 Expense created or status changed
   → ExpenseObserver
@@ -51,6 +53,23 @@ Payload is `{ id, status }` only. Never broadcast `raw_ai_response`, image paths
 Channel auth: any `User` that `canAccessPanel` the admin panel (Primary and login-enabled Family Members). Guests and users without panel access are denied.
 
 Pending rows use a CSS pulse (`.tido-expense-status-pending`) for “currently parsing”. There is no mid-OCR progress event.
+
+### Database notifications
+
+```
+Notification::make()->sendToDatabase($user)
+  → App\Filament\Notifications\Notification (always isEventDispatched: true)
+  → Filament\Notifications\Events\DatabaseNotificationsSent (queued)
+  → private channel App.Models.User.{id}
+  → Echo .database-notifications.sent
+  → DatabaseNotifications $refresh (500ms)
+```
+
+This is a refresh ping only. The event payload is empty. Never broadcast title, body, or notification data. The inbox still reads from the `notifications` table. This is not Filament flash toast broadcasting (`->broadcast()`).
+
+Channel auth: the signed-in `User` may subscribe only to their own `App.Models.User.{id}` channel. Guests and other users’ channels are denied.
+
+`databaseNotificationsPolling` is `null`. There is no poll fallback. Queue + Reverb must be running (`npm run dev:full` already starts both). The Echo listener stays mounted when the inbox is empty so the first notification can refresh the empty state.
 
 ## Filament Echo (no extra npm Echo package)
 
@@ -69,6 +88,7 @@ Shared trait: `App\Filament\Concerns\RefreshesTableOnExpenseBroadcast`.
 - [`ListExpenses`](../app/Filament/Resources/Expenses/Pages/ListExpenses.php)
 - [`ReceiptUploadPage`](../app/Filament/Pages/ReceiptUploadPage.php) recent-uploads table
 - [`RecentReceipts`](../app/Filament/Widgets/RecentReceipts.php) dashboard widget
+- [`DatabaseNotifications`](../app/Filament/Livewire/DatabaseNotifications.php) inbox (Filament `.database-notifications.sent` on `App.Models.User.{id}`)
 
 To attach another table:
 
@@ -80,18 +100,20 @@ To attach another table:
 Planned follow-ups (not in this change):
 
 - Other dashboard widget polls (charts / stats at `30s`)
-- Database notifications `60s` poll → Echo (the notifications Blade already listens for `.database-notifications.sent` once Echo exists)
 - Service Status Reverb health probe
 
 ## Tests
 
 - `Event::fake([ExpenseUpdated::class])` so Eloquent observers still run
+- `Event::fake([DatabaseNotificationsSent::class])` for inbox ping dispatch (partial fakes must not swallow the other event)
 - Channel tests via `POST /broadcasting/auth` with `postJson`, switching the test to the `pusher` driver so channel callbacks actually run (`null`/`log` skip auth). Never start Reverb.
 - `BROADCAST_CONNECTION=null` in phpunit — never boot Reverb in CI
 
 ```bash
 php artisan test --compact --filter=ExpenseUpdatedBroadcastTest
 php artisan test --compact --filter=HouseholdExpensesChannelTest
+php artisan test --compact --filter=DatabaseNotificationsBroadcastTest
+php artisan test --compact --filter=UserNotificationsChannelTest
 php artisan test --compact --filter=LiveTableFiltersTest
 php artisan test --compact --filter=ReceiptUploadPageTest
 php artisan test --compact --filter=RecentReceiptsWidgetTest
@@ -104,7 +126,8 @@ Phone browsers that load `/admin` also need the Reverb websocket. Allow inbound 
 ## Agent rules
 
 1. Side effects stay in `ExpenseObserver` — do not dispatch `ExpenseUpdated` from Filament resources
-2. Keep the broadcast payload to `id` + `status`
+2. Keep the expense broadcast payload to `id` + `status`
 3. New Echo table listeners should reuse `RefreshesTableOnExpenseBroadcast`
-4. Do not add Pusher Cloud or a second websocket server
-5. Do not hit live Reverb, Ollama, or Evolution in tests
+4. Database inbox pings stay on Filament `DatabaseNotificationsSent` via `App\Filament\Notifications\Notification::sendToDatabase()` — do not invent a second event or pass `isEventDispatched: false` expecting it to stick
+5. Do not add Pusher Cloud or a second websocket server
+6. Do not hit live Reverb, Ollama, or Evolution in tests
