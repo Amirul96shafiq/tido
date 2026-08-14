@@ -1,6 +1,6 @@
 # Realtime broadcasting (Reverb + Echo)
 
-Live expense tables update when a receipt is uploaded or OCR status changes, without polling those tables. The Finances Monthly Spending Overview stats, Monthly Spending Trend chart, Spending by Label chart, and the Filament database-notifications inbox refresh the same way, without a 30s or 60s poll.
+Live expense tables update when a receipt is uploaded or OCR status changes, without polling those tables. The Finances Monthly Spending Overview stats, Monthly Spending Trend, Spending by Label, Budget Performance, and the Filament database-notifications inbox refresh the same way, without a 30s or 60s poll.
 
 ## Why this exists
 
@@ -47,7 +47,7 @@ Expense created, important field changed, deleted, or restored
   → private channel household.expenses
   → Filament EchoFactory (window.Echo)
   → ListExpenses / ReceiptUploadPage / RecentReceipts refreshExpensesTable() → resetTable()
-  → MonthlySpendingOverview refreshOnExpenseBroadcast() (current month only)
+  → MonthlySpendingOverview / BudgetStatus refreshOnExpenseBroadcast() (current month only)
   → MonthlyTrend / SpendingByLabel refreshFromExpenseBroadcast() → updateChartData() (current month only)
 ```
 
@@ -101,6 +101,7 @@ Shared traits:
 - [`MonthlySpendingOverview`](../app/Filament/Widgets/MonthlySpendingOverview.php) Finances stats
 - [`MonthlyTrend`](../app/Filament/Widgets/MonthlyTrend.php) Finances chart (`updateChartData()`)
 - [`SpendingByLabel`](../app/Filament/Widgets/SpendingByLabel.php) Finances chart (`updateChartData()`)
+- [`BudgetStatus`](../app/Filament/Widgets/BudgetStatus.php) Budget Performance
 - [`DatabaseNotifications`](../app/Filament/Livewire/DatabaseNotifications.php) inbox (Filament `.database-notifications.sent` on `App.Models.User.{id}`)
 
 To attach another table:
@@ -119,7 +120,7 @@ To attach another stats or custom widget:
 
 Planned follow-ups (not in this change):
 
-- Other dashboard widget polls (charts at `30s`: Budget Status, Top Merchants, Spending by Payment Method, Receipts by Source)
+- Other dashboard widget polls (charts at `30s`: Top Merchants, Spending by Payment Method, Receipts by Source)
 - Due Recurrings / Recurring Month Snapshot Echo refresh (OCR match while Home is open)
 - Service Status Reverb health probe
 - Current Currency is out of scope (FX cache, not expenses)
@@ -142,6 +143,7 @@ php artisan test --compact --filter=RecentReceiptsWidgetTest
 php artisan test --compact --filter=MonthlySpendingOverviewForecastTest
 php artisan test --compact --filter=MonthlyTrendWidgetTest
 php artisan test --compact --filter=SpendingByLabelWidgetTest
+php artisan test --compact --filter=BudgetStatusWidgetTest
 php artisan test --compact --filter=WebAppLoadPerformanceTest
 ```
 

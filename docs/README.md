@@ -10,7 +10,7 @@
 | [dashboard-views.md](dashboard-views.md) | Agents + humans | Modular Home dashboard (Finances / Training / Health / Task) |
 | [ollama-setup.md](ollama-setup.md) | Ops | Native host Ollama / qwen2.5vl:7b (no Docker) |
 | [evolution-local-windows.md](evolution-local-windows.md) | Ops | WhatsApp Evolution instance, webhook, PDF media, and LID allowlist (Windows host) |
-| [realtime-broadcasting.md](realtime-broadcasting.md) | Ops + agents | Reverb + Filament Echo for expense tables, Monthly Spending Overview, Monthly Spending Trend, Spending by Label, and database notifications (port 8081) |
+| [realtime-broadcasting.md](realtime-broadcasting.md) | Ops + agents | Reverb + Filament Echo for expense tables, Finances stats/charts, Budget Performance, and database notifications (port 8081) |
 | [whatsapp-manual-expense.md](whatsapp-manual-expense.md) | Humans + agents | Text-only WhatsApp manual expense format and pipeline |
 | [whatsapp-bot-commands.md](whatsapp-bot-commands.md) | Humans + agents | WhatsApp media handling, command / keyword reference, and auto-replies |
 | [ui-empty-states.md](ui-empty-states.md) | Agents + humans | Illustrated empty panels (email-change expiry pattern) |

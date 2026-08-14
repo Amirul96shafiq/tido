@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Concerns\RefreshesOnExpenseBroadcast;
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Support\DashboardWidgetHeights;
-use App\Filament\Widgets\Concerns\HasDashboardChartPolling;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Models\Budget;
@@ -19,9 +19,9 @@ use Illuminate\Support\Facades\DB;
 
 class BudgetStatus extends Widget
 {
-    use HasDashboardChartPolling;
     use HasDashboardSectionId;
     use InteractsWithDashboardMonth;
+    use RefreshesOnExpenseBroadcast;
 
     protected static ?int $sort = 7;
 
@@ -35,6 +35,11 @@ class BudgetStatus extends Widget
     public static function dashboardSectionId(): string
     {
         return 'budget-status';
+    }
+
+    protected function getPollingInterval(): ?string
+    {
+        return null;
     }
 
     public function reorderBudgets(int|string $id, int $position): void
