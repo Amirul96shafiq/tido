@@ -40,8 +40,9 @@ phpunit keeps `BROADCAST_CONNECTION=null`. Tests must not start a websocket or h
 ### Expense tables
 
 ```
-Expense created or status changed
-  → ExpenseObserver
+Expense created, important field changed, deleted, or restored
+  (ExpenseItem label / amount / quantity also pings the parent)
+  → ExpenseObserver / ExpenseItemObserver
   → App\Events\ExpenseUpdated (queued on default)
   → private channel household.expenses
   → Filament EchoFactory (window.Echo)
@@ -50,7 +51,11 @@ Expense created or status changed
   → MonthlyTrend refreshFromExpenseBroadcast() → updateChartData() (current month only)
 ```
 
-Payload is `{ id, status }` only. Never broadcast `raw_ai_response`, image paths, or the Eloquent model.
+This is a refresh ping only. Payload is `{ id, status }` only. Never broadcast merchant, amounts, `raw_ai_response`, image paths, or the Eloquent model. Listeners re-query the database.
+
+Important expense fields: `merchant_name`, `original_filename`, `status`, money columns (`subtotal`, `total_tax`, `total_amount`, `discount_total`, `rounding_amount`), `payment_method_id`, `source`, `family_member_id`, `image_path`, `date_time`. Notes, invoice number, WhatsApp ids, conversion audit columns, and `edited_by` alone do not ping.
+
+Important item fields: `label_id`, `line_total`, `quantity`, `unit_price`, `expense_id`. Description / serial / warranty do not ping.
 
 Channel auth: any `User` that `canAccessPanel` the admin panel (Primary and login-enabled Family Members). Guests and users without panel access are denied.
 
@@ -144,8 +149,8 @@ Phone browsers that load `/admin` also need the Reverb websocket. Allow inbound 
 
 ## Agent rules
 
-1. Side effects stay in `ExpenseObserver` — do not dispatch `ExpenseUpdated` from Filament resources
-2. Keep the expense broadcast payload to `id` + `status`
+1. Side effects stay in `ExpenseObserver` / `ExpenseItemObserver` — do not dispatch `ExpenseUpdated` from Filament resources
+2. Keep the expense broadcast payload to `id` + `status`. Ping on create, important field changes, delete/restore, and item label/amount changes — not notes or AI payload.
 3. New Echo table listeners should reuse `RefreshesTableOnExpenseBroadcast`. New Echo stats/custom widget listeners should reuse `RefreshesOnExpenseBroadcast`
 4. Database inbox pings stay on Filament `DatabaseNotificationsSent` via `App\Filament\Notifications\Notification::sendToDatabase()` — do not invent a second event or pass `isEventDispatched: false` expecting it to stick
 5. Do not add Pusher Cloud or a second websocket server

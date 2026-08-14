@@ -13,6 +13,25 @@ use App\Services\RecurringMatchService;
 
 class ExpenseObserver
 {
+    /**
+     * @var list<string>
+     */
+    private const SYNC_ATTRIBUTES = [
+        'merchant_name',
+        'original_filename',
+        'status',
+        'subtotal',
+        'total_tax',
+        'total_amount',
+        'discount_total',
+        'rounding_amount',
+        'payment_method_id',
+        'source',
+        'family_member_id',
+        'image_path',
+        'date_time',
+    ];
+
     public function creating(Expense $expense): void
     {
         if (empty($expense->receipt_hash)) {
@@ -29,7 +48,7 @@ class ExpenseObserver
 
     public function created(Expense $expense): void
     {
-        ExpenseUpdated::dispatch($expense->id, (string) $expense->status);
+        $this->broadcastExpense($expense);
 
         // WhatsApp receipts wait for the batched "Document received" ack before OCR starts.
         if ($expense->status === 'pending' && $expense->source !== 'whatsapp') {
@@ -39,11 +58,13 @@ class ExpenseObserver
 
     public function updated(Expense $expense): void
     {
+        if ($expense->wasChanged(self::SYNC_ATTRIBUTES)) {
+            $this->broadcastExpense($expense);
+        }
+
         if (! $expense->wasChanged('status')) {
             return;
         }
-
-        ExpenseUpdated::dispatch($expense->id, (string) $expense->status);
 
         if (in_array($expense->status, ['parsed', 'reviewed'], true)) {
             // WhatsApp "parsed" alerts run after document parsed/needs-review replies
@@ -61,5 +82,20 @@ class ExpenseObserver
         if ($expense->status === 'requires_manual_review') {
             app(ReceiptManualReviewNotifier::class)->notify($expense);
         }
+    }
+
+    public function deleted(Expense $expense): void
+    {
+        $this->broadcastExpense($expense);
+    }
+
+    public function restored(Expense $expense): void
+    {
+        $this->broadcastExpense($expense);
+    }
+
+    private function broadcastExpense(Expense $expense): void
+    {
+        ExpenseUpdated::dispatch($expense->id, (string) $expense->status);
     }
 }
