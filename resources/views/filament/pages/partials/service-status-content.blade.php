@@ -19,7 +19,7 @@
 @endphp
 
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
-    <x-filament::section class="h-full" id="service-summary-report">
+    <x-filament::section class="fi-service-status-summary-sticky" id="service-summary-report">
         <x-slot name="heading">{{ $this->summaryReportHeading() }}</x-slot>
 
         <div class="flex flex-col gap-5">
@@ -100,7 +100,7 @@
         </style>
     </x-filament::section>
 
-    <x-filament::section class="h-full" id="service-system-status">
+    <x-filament::section id="service-system-status">
         <x-slot name="heading">{{ $this->systemStatusHeading() }}</x-slot>
 
         <div class="divide-y divide-gray-200 dark:divide-white/10">

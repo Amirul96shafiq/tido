@@ -3321,6 +3321,15 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
                 var(--tido-section-nav-height, 2.75rem) + 0.75rem
         );
     }
+
+    .fi-service-status-page .fi-service-status-summary-sticky {
+        position: sticky;
+        align-self: start;
+        top: calc(
+            var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
+                var(--tido-section-nav-height, 2.75rem) + 0.75rem
+        );
+    }
 }
 
 /* Light danger tint + ring (extraAttributes land on .fi-sc-section). */

@@ -35,7 +35,7 @@ Two-column page (stacks on small screens):
 
 | Column | Content |
 |--------|---------|
-| Left (40%) | **Summary report (date)** — Evolution “Link device”-style status card, monitored/operational/degraded/down counts |
+| Left (40%) | **Summary report (date)** — Evolution “Link device”-style status card, monitored/operational/degraded/down counts. On `lg+`, the card is content-height (`align-self: start`) and sticky below the section tabs while System status scrolls. |
 | Right (60%) | **System status (date)** — per-service current status, uptime %, 30-day barcode (60 × 12h pieces) |
 
 Section titles use dashboard widget date format: `Summary report (24 Jun 2026 – 23 Jul 2026)` — no separate description line.
