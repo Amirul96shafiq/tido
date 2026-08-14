@@ -41,7 +41,7 @@ test('recent receipts widget shows upload table columns', function () {
     Livewire::test(RecentReceipts::class)
         ->assertSuccessful()
         ->assertSeeHtml('fi-wi-recent-receipts')
-        ->assertSeeHtml('wire:poll.10s.visible')
+        ->assertDontSeeHtml('wire:poll.10s.visible')
         ->assertCanSeeTableRecords([$expense])
         ->assertSee('dashboard_....jpg')
         ->assertSee('Widget Merchant')
@@ -52,14 +52,22 @@ test('recent receipts widget shows upload table columns', function () {
         ->assertCanRenderTableColumn('created_at');
 });
 
-test('recent receipts widget polls every ten seconds for historical months', function () {
-    Livewire::test(RecentReceipts::class, [
-        'pageFilters' => [
-            'month' => now()->subMonth()->format('Y-m'),
-        ],
-    ])
+test('recent receipts widget listens for echo expense updates without polling', function () {
+    $pending = Expense::factory()->create([
+        'status' => 'pending',
+        'source' => 'whatsapp',
+        'image_path' => null,
+        'date_time' => now(),
+    ]);
+
+    $component = Livewire::test(RecentReceipts::class)
         ->assertSuccessful()
-        ->assertSeeHtml('wire:poll.10s.visible');
+        ->assertDontSeeHtml('wire:poll.10s.visible')
+        ->assertSeeHtml('tido-expense-status-pending')
+        ->assertCanSeeTableRecords([$pending]);
+
+    expect($component->instance()->getListeners())
+        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
 });
 
 test('recent receipts widget shows a primary link to recent uploads without table controls', function () {
@@ -284,7 +292,12 @@ test('family member sees the recent receipts edit action disabled for unsupporte
 
     $this->actingAs($familyUser);
 
-    Livewire::test(RecentReceipts::class)
+    Livewire::test(RecentReceipts::class, [
+        'pageFilters' => [
+            'month' => now()->format('Y-m'),
+            'spender' => DashboardSpenderScope::ALL,
+        ],
+    ])
         ->assertSuccessful()
         ->assertActionVisible(TestAction::make('edit')->table($ownExpense))
         ->assertActionEnabled(TestAction::make('edit')->table($ownExpense))

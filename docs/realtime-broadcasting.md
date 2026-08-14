@@ -1,12 +1,12 @@
 # Realtime broadcasting (Reverb + Echo)
 
-Live Expenses table updates when a receipt is uploaded or OCR status changes, without polling that table.
+Live expense tables update when a receipt is uploaded or OCR status changes, without polling those tables.
 
 ## Why this exists
 
 Receipt parsing is asynchronous. An expense is created as `pending`, then `ExtractReceiptDataJob` (or a WhatsApp job) updates status later on the `receipts` queue. WhatsApp uploads also arrive from a webhook, not the current Livewire request.
 
-The Expenses list used `->poll('10s.visible')` to notice those changes. Polling is replaced with Laravel Reverb (local websocket) plus Filament Echo: the table refreshes only when an expense is created or its status changes.
+Expenses, Upload Receipts, and Recent Receipts used `->poll('10s.visible')` to notice those changes. Polling is replaced with Laravel Reverb (local websocket) plus Filament Echo: those tables refresh only when an expense is created or its status changes.
 
 ## Local runtime
 
@@ -43,7 +43,7 @@ Expense created or status changed
   → App\Events\ExpenseUpdated (queued on default)
   → private channel household.expenses
   → Filament EchoFactory (window.Echo)
-  → ListExpenses refreshExpensesTable() → resetTable()
+  → ListExpenses / ReceiptUploadPage / RecentReceipts refreshExpensesTable() → resetTable()
 ```
 
 Payload is `{ id, status }` only. Never broadcast `raw_ai_response`, image paths, or the Eloquent model.
@@ -64,9 +64,13 @@ Do not add `laravel-echo` or `pusher-js` npm packages for the panel. Do not impo
 
 Shared trait: `App\Filament\Concerns\RefreshesTableOnExpenseBroadcast`.
 
-**This change** uses it on List Expenses only.
+**Live listeners**
 
-Follow-up pages/widgets that already poll for expense processing:
+- [`ListExpenses`](../app/Filament/Resources/Expenses/Pages/ListExpenses.php)
+- [`ReceiptUploadPage`](../app/Filament/Pages/ReceiptUploadPage.php) recent-uploads table
+- [`RecentReceipts`](../app/Filament/Widgets/RecentReceipts.php) dashboard widget
+
+To attach another table:
 
 1. `use RefreshesTableOnExpenseBroadcast` on the Livewire class that owns the table
 2. Remove `->poll('10s.visible')` from that table
@@ -75,8 +79,7 @@ Follow-up pages/widgets that already poll for expense processing:
 
 Planned follow-ups (not in this change):
 
-- [`ReceiptUploadPage`](../app/Filament/Pages/ReceiptUploadPage.php) recent-uploads table
-- [`RecentReceipts`](../app/Filament/Widgets/RecentReceipts.php) and other dashboard widget polls
+- Other dashboard widget polls (charts / stats at `30s`)
 - Database notifications `60s` poll → Echo (the notifications Blade already listens for `.database-notifications.sent` once Echo exists)
 - Service Status Reverb health probe
 
@@ -90,6 +93,8 @@ Planned follow-ups (not in this change):
 php artisan test --compact --filter=ExpenseUpdatedBroadcastTest
 php artisan test --compact --filter=HouseholdExpensesChannelTest
 php artisan test --compact --filter=LiveTableFiltersTest
+php artisan test --compact --filter=ReceiptUploadPageTest
+php artisan test --compact --filter=RecentReceiptsWidgetTest
 ```
 
 ## LAN / phone
