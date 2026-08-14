@@ -1,6 +1,6 @@
 # Realtime broadcasting (Reverb + Echo)
 
-Live expense tables update when a receipt is uploaded or OCR status changes, without polling those tables. The Finances Monthly Spending Overview stats, Monthly Spending Trend, Spending by Label, Budget Performance, Top Merchants, and the Filament database-notifications inbox refresh the same way, without a 30s or 60s poll.
+Live expense tables update when a receipt is uploaded or OCR status changes, without polling those tables. The Finances Monthly Spending Overview stats, Monthly Spending Trend, Spending by Label, Budget Performance, Top Merchants, Spending by Payment Method, and the Filament database-notifications inbox refresh the same way, without a 30s or 60s poll.
 
 ## Why this exists
 
@@ -48,7 +48,7 @@ Expense created, important field changed, deleted, or restored
   → Filament EchoFactory (window.Echo)
   → ListExpenses / ReceiptUploadPage / RecentReceipts refreshExpensesTable() → resetTable()
   → MonthlySpendingOverview / BudgetStatus refreshOnExpenseBroadcast() (current month only)
-  → MonthlyTrend / SpendingByLabel / TopMerchants refreshFromExpenseBroadcast() → updateChartData() (current month only)
+  → MonthlyTrend / SpendingByLabel / TopMerchants / SpendingByPaymentMethod refreshFromExpenseBroadcast() → updateChartData() (current month only)
 ```
 
 This is a refresh ping only. Payload is `{ id, status }` only. Never broadcast merchant, amounts, `raw_ai_response`, image paths, or the Eloquent model. Listeners re-query the database.
@@ -103,6 +103,7 @@ Shared traits:
 - [`SpendingByLabel`](../app/Filament/Widgets/SpendingByLabel.php) Finances chart (`updateChartData()`)
 - [`BudgetStatus`](../app/Filament/Widgets/BudgetStatus.php) Budget Performance
 - [`TopMerchants`](../app/Filament/Widgets/TopMerchants.php) Finances chart (`updateChartData()`)
+- [`SpendingByPaymentMethod`](../app/Filament/Widgets/SpendingByPaymentMethod.php) Finances chart (`updateChartData()`)
 - [`DatabaseNotifications`](../app/Filament/Livewire/DatabaseNotifications.php) inbox (Filament `.database-notifications.sent` on `App.Models.User.{id}`)
 
 To attach another table:
@@ -121,7 +122,7 @@ To attach another stats or custom widget:
 
 Planned follow-ups (not in this change):
 
-- Other dashboard widget polls (charts at `30s`: Spending by Payment Method, Receipts by Source)
+- Other dashboard widget polls (charts at `30s`: Receipts by Source)
 - Due Recurrings / Recurring Month Snapshot Echo refresh (OCR match while Home is open)
 - Service Status Reverb health probe
 - Current Currency is out of scope (FX cache, not expenses)
@@ -146,6 +147,7 @@ php artisan test --compact --filter=MonthlyTrendWidgetTest
 php artisan test --compact --filter=SpendingByLabelWidgetTest
 php artisan test --compact --filter=BudgetStatusWidgetTest
 php artisan test --compact --filter=TopMerchantsWidgetTest
+php artisan test --compact --filter=SpendingByPaymentMethodWidgetTest
 php artisan test --compact --filter=WebAppLoadPerformanceTest
 ```
 

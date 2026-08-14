@@ -35,13 +35,17 @@ test('spending by payment method widget renders with axis labels', function () {
         ->assertSuccessful()
         ->assertSee('borderRadius', false)
         ->assertSee('Cash (1)')
-        ->assertSeeHtml('wire:poll.30s');
+        ->assertDontSeeHtml('wire:poll.30s');
 });
 
-test('spending by payment method widget polls for live updates', function () {
-    Livewire::test(SpendingByPaymentMethod::class)
+test('spending by payment method widget listens for echo expense updates without polling', function () {
+    $component = Livewire::test(SpendingByPaymentMethod::class)
         ->assertSuccessful()
-        ->assertSeeHtml('wire:poll.30s="updateChartData"');
+        ->assertDontSeeHtml('wire:poll.30s')
+        ->assertDontSeeHtml('wire:poll.5s');
+
+    expect($component->instance()->getListeners())
+        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
 });
 
 test('spending by payment method widget renders empty state', function () {

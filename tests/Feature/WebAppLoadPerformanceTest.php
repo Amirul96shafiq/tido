@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Filament\Widgets\BudgetStatus;
 use App\Filament\Widgets\MonthlySpendingOverview;
 use App\Filament\Widgets\MonthlyTrend;
+use App\Filament\Widgets\ReceiptsBySource;
 use App\Filament\Widgets\SpendingByLabel;
 use App\Filament\Widgets\SpendingByPaymentMethod;
 use App\Filament\Widgets\TopMerchants;
@@ -38,13 +39,16 @@ test('converted finances widgets skip polling while remaining charts still poll'
         ->invoke(Livewire::test(TopMerchants::class)->instance());
     $paymentInterval = (new ReflectionMethod(SpendingByPaymentMethod::class, 'getPollingInterval'))
         ->invoke(Livewire::test(SpendingByPaymentMethod::class)->instance());
+    $sourceInterval = (new ReflectionMethod(ReceiptsBySource::class, 'getPollingInterval'))
+        ->invoke(Livewire::test(ReceiptsBySource::class)->instance());
 
     expect($statsInterval)->toBeNull()
         ->and($trendInterval)->toBeNull()
         ->and($labelInterval)->toBeNull()
         ->and($budgetInterval)->toBeNull()
         ->and($merchantInterval)->toBeNull()
-        ->and($paymentInterval)->toBe('30s');
+        ->and($paymentInterval)->toBeNull()
+        ->and($sourceInterval)->toBe('30s');
 });
 
 test('desktop auth backgrounds are served as webp', function () {
