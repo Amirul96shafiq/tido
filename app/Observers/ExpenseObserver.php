@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
+use App\Events\ExpenseUpdated;
 use App\Jobs\ExtractReceiptDataJob;
 use App\Models\Expense;
 use App\Services\BudgetAlertService;
@@ -28,6 +29,8 @@ class ExpenseObserver
 
     public function created(Expense $expense): void
     {
+        ExpenseUpdated::dispatch($expense->id, (string) $expense->status);
+
         // WhatsApp receipts wait for the batched "Document received" ack before OCR starts.
         if ($expense->status === 'pending' && $expense->source !== 'whatsapp') {
             ExtractReceiptDataJob::dispatch($expense->id);
@@ -39,6 +42,8 @@ class ExpenseObserver
         if (! $expense->wasChanged('status')) {
             return;
         }
+
+        ExpenseUpdated::dispatch($expense->id, (string) $expense->status);
 
         if (in_array($expense->status, ['parsed', 'reviewed'], true)) {
             // WhatsApp "parsed" alerts run after document parsed/needs-review replies

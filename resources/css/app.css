@@ -4552,3 +4552,24 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     --tw-ring-shadow: 0 0 0 0 transparent !important;
     box-shadow: none !important;
 }
+
+@keyframes tido-pending-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.55;
+    }
+}
+
+.tido-expense-status-pending .fi-badge {
+    animation: tido-pending-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tido-expense-status-pending .fi-badge {
+        animation: none;
+    }
+}

@@ -63,6 +63,7 @@
 | OCR             | Ollama (`qwen2.5vl:7b`, native host)                      |
 | Exchange rates  | CurrencyAPI historical rates with cached receipt-date lookups |
 | WhatsApp        | Evolution API (native host)                               |
+| Realtime        | Laravel Reverb + Filament Echo (`:8081`; not Evolution `:8080`) |
 | Backups / audit | Spatie Laravel Backup, Spatie Activity Log, resource edit audit |
 | Tests           | Pest v3                                                   |
 | Dev env         | Windows host PHP (`npm run dev:full`)                     |
@@ -133,7 +134,7 @@ Pull the vision model once — see [docs/ollama-setup.md](docs/ollama-setup.md).
 |---------|-------------------|
 | `npm run build` | Build assets — Vite production build |
 | `npm run dev` | Vite only — Vite HMR (Hot Module Replacement) |
-| `npm run dev:full` | tido only — Vite + `artisan serve` :2000 + queue |
+| `npm run dev:full` | tido only — Vite + `artisan serve` :2000 + queue + Reverb :8081 |
 | `npm run evolution` | Evolution — Evolution API :8080 (standalone) |
 | `npm run dev:whatsapp` | tido + Evolution — tido (`dev:full`) + Evolution |
 | `npm run dev:ollama` | Ollama helper — Ollama serve helper (standalone) |
@@ -153,7 +154,7 @@ If port 80 is already taken (IIS / World Wide Web Publishing), stop that service
 1. On this PC, add `127.0.0.1 tido.local` to `C:\Windows\System32\drivers\etc\hosts` (Administrator).
 2. Set `APP_URL=http://tido.local` in `.env` (restart `npm run dev:full` / `dev:all`).
 3. Set `WHATSAPP_PUBLIC_APP_URL=http://<PC-LAN-IP>` (no port) so WhatsApp links open on the phone. Find the IPv4 with `ipconfig`.
-4. Optional same-Wi‑Fi lock: Windows Firewall inbound TCP **80** and **5173** from the LAN subnet only (e.g. `192.168.100.0/24`), not Any / not WAN. Do not port-forward these on the router.
+4. Optional same-Wi‑Fi lock: Windows Firewall inbound TCP **80**, **5173**, and **8081** (Reverb) from the LAN subnet only (e.g. `192.168.100.0/24`), not Any / not WAN. Do not port-forward these on the router.
 5. On this PC: open `http://tido.local/admin`.
 6. On the phone: map `tido.local` → this PC’s LAN IPv4 (hosts or LAN DNS). If the name does not resolve (common on iOS for `.local`), open `http://<PC-LAN-IP>/admin`.
 
@@ -163,7 +164,7 @@ Default seeded login: `admin@tido.local` / `password`.
 
 Outside `local`, allow Horizon dashboard access by adding emails to the `viewHorizon` gate in [`app/Providers/HorizonServiceProvider.php`](app/Providers/HorizonServiceProvider.php) (the allowlist starts empty).
 
-Setup guides: [Ollama](docs/ollama-setup.md) · [Evolution API](docs/evolution-local-windows.md).
+Setup guides: [Ollama](docs/ollama-setup.md) · [Evolution API](docs/evolution-local-windows.md) · [Reverb / Echo](docs/realtime-broadcasting.md).
 
 ## Usage
 

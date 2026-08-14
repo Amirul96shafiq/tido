@@ -8,7 +8,7 @@ Run Ollama on the Windows host so tido can parse receipt images and rendered PDF
 |---------|-------------|------|
 | Ollama | Windows installer (background service) | Vision API on `http://127.0.0.1:11434` |
 | Poppler | Windows command-line tools | `pdfinfo` page inspection + `pdftotext` currency text extraction + `pdftocairo` PDF-to-JPEG rendering |
-| tido | `npm run dev:full` | Vite + `artisan serve` + queue worker |
+| tido | `npm run dev:full` | Vite + `artisan serve` + queue worker + Reverb :8081 |
 
 Upload → pending `Expense` → `ExtractReceiptDataJob` → `OllamaService` → `POST /api/generate` → status `parsed`.
 
