@@ -8,10 +8,11 @@ test('admin panel provider does not load outfit from google fonts cdn', function
     expect($provider)
         ->toContain("->font('Outfit')")
         ->not->toContain('fonts.googleapis.com')
-        ->and(public_path('fonts/outfit.woff2'))->toBeFile()
+        ->and(resource_path('fonts/outfit.woff2'))->toBeFile()
         ->and((string) file_get_contents(resource_path('css/outfit-font.css')))
         ->toContain("font-family: 'Outfit'")
-        ->toContain('/fonts/outfit.woff2');
+        ->toContain('../fonts/outfit.woff2')
+        ->not->toContain("url('/fonts/outfit.woff2')");
 });
 
 test('admin panel light and dark background images exist', function () {
