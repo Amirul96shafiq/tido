@@ -37,3 +37,4 @@ Thumbs.db
 # RepoWise local trial index (do not commit)
 /.repowise/
 .mcp.json
+/start-tido.bat
