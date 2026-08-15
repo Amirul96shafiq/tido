@@ -173,10 +173,17 @@ return [
         ],
 
         /*
-         * Guest restore upload limits (auth page when no users exist).
+         * Restore archive limits. Compressed guest-upload size is enforced on the HTTP
+         * Form Request; uncompressed ZIP limits are enforced in BackupService before
+         * any database or application-file writes.
          */
         'restore' => [
             'max_upload_kilobytes' => (int) env('BACKUP_RESTORE_MAX_UPLOAD_KILOBYTES', 51200),
+            'max_entries' => (int) env('BACKUP_RESTORE_MAX_ENTRIES', 5000),
+            'max_uncompressed_bytes' => (int) env('BACKUP_RESTORE_MAX_UNCOMPRESSED_BYTES', 209715200),
+            'max_entry_bytes' => (int) env('BACKUP_RESTORE_MAX_ENTRY_BYTES', 52428800),
+            'max_compression_ratio' => (float) env('BACKUP_RESTORE_MAX_COMPRESSION_RATIO', 100),
+            'max_duration_seconds' => (int) env('BACKUP_RESTORE_MAX_DURATION_SECONDS', 60),
         ],
 
         /*

@@ -35,6 +35,21 @@ The client-supplied filename is not a filesystem location. Path-like, reserved, 
 
 `BackupService` restores the database only from allowlisted ZIP entries: exact `database.sqlite` (native SQLite backups) or a single `db-dumps/{safe}.sql` Spatie dump. Extraction never uses the archive entry name as a destination path; bytes are written to a server-controlled `database.sqlite` or `database.sql` under the restore temp directory, then path-checked before import.
 
+## Restore ZIP resource limits
+
+`BackupService::restoreFromZipPath` inspects the ZIP central directory (`ZipArchive::statIndex`) before any database payload extraction, database import, or application-file write. Guest compressed upload size remains `backup.backup.restore.max_upload_kilobytes` on `GuestRestoreBackupRequest`. Uncompressed limits apply to every restore path (guest upload and catalog restore):
+
+| Config key (`backup.backup.restore`) | Default | Env |
+| --- | --- | --- |
+| `max_upload_kilobytes` | 51200 (50 MiB) | `BACKUP_RESTORE_MAX_UPLOAD_KILOBYTES` |
+| `max_entries` | 5000 | `BACKUP_RESTORE_MAX_ENTRIES` |
+| `max_uncompressed_bytes` | 209715200 (200 MiB) | `BACKUP_RESTORE_MAX_UNCOMPRESSED_BYTES` |
+| `max_entry_bytes` | 52428800 (50 MiB) | `BACKUP_RESTORE_MAX_ENTRY_BYTES` |
+| `max_compression_ratio` | 100 | `BACKUP_RESTORE_MAX_COMPRESSION_RATIO` |
+| `max_duration_seconds` | 60 | `BACKUP_RESTORE_MAX_DURATION_SECONDS` |
+
+Every central-directory entry counts toward those limits, including extra Spatie source paths that are not restored. Application-file writes remain `files/public/` → disk `public` and `files/private/` → disk `local`, and only `jpg`, `jpeg`, `png`, `gif`, `webp`, and `pdf` extensions are written. Archives that exceed a limit fail closed with a generic error before payload directories or storage writes.
+
 ## Safe manual verification
 
 Reset Data and Delete Account remove expense records and their stored receipt files, so do not perform the zero-user guest-restore test against a local database that contains valuable data. Use a disposable local sandbox with its own SQLite database and `storage/app` directories.
@@ -59,6 +74,7 @@ A copied `database.sqlite` file alone is not a complete rollback because it rest
 5. Nav: Backups live under Tools (bottom nav group), not Finances, Settings, or Integrations.
 6. Keep backup recency on `updated_at`; `created_at` describes when the catalog row was first created and is not the table’s Edited At value.
 7. Do not broaden database ZIP payload selection beyond the allowlisted entry names above; never pass archive entry path components into filesystem destinations.
+8. Inspect restore ZIP central-directory limits before any database or application-file write; do not extract first and cap afterwards.
 
 ## Related
 
