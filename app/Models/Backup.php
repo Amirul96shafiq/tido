@@ -28,6 +28,8 @@ class Backup extends Model
         'size_bytes',
         'created_by',
         'restore_token_hash',
+        'content_sha256',
+        'manifest_hmac',
     ];
 
     /**

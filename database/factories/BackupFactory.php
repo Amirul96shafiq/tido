@@ -33,6 +33,8 @@ class BackupFactory extends Factory
             'size_bytes' => fake()->numberBetween(1024, 5_000_000),
             'created_by' => User::factory(),
             'restore_token_hash' => null,
+            'content_sha256' => null,
+            'manifest_hmac' => null,
         ];
     }
 

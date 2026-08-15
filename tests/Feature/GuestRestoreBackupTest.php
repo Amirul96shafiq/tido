@@ -178,9 +178,9 @@ test('guest restore stages valid uploads under a server-controlled path', functi
             ->with('valid-restore-token')
             ->andReturn($backup);
 
-        $mock->shouldReceive('restoreFromZipPath')
+        $mock->shouldReceive('restoreGuestUpload')
             ->once()
-            ->withArgs(function (string $path): bool {
+            ->withArgs(function (Backup $record, string $path, string $token) use ($backup): bool {
                 $restoreRoot = realpath(storage_path('app/backup-restore'));
                 $stagingDirectory = realpath(dirname($path));
 
@@ -195,13 +195,11 @@ test('guest restore stages valid uploads under a server-controlled path', functi
                     $stagingDirectory = strtolower($stagingDirectory);
                 }
 
-                return basename($path) === 'backup.zip'
+                return $record->is($backup)
+                    && $token === 'valid-restore-token'
+                    && basename($path) === 'backup.zip'
                     && str_starts_with($stagingDirectory, $restoreRoot);
             });
-
-        $mock->shouldReceive('consumeRestoreToken')
-            ->once()
-            ->withArgs(fn (Backup $record): bool => $record->is($backup));
     });
 
     $response = $this->postJson(route('restore-backup'), [

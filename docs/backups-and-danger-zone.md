@@ -6,8 +6,9 @@ Cataloged ZIP backups, restore tokens, guest restore, and profile account deleti
 
 | Layer | Path |
 |-------|------|
-| Model | `app/Models/Backup.php` (`backups` table; includes `restore_token_hash` and `edited_by`) |
+| Model | `app/Models/Backup.php` (`backups` table; includes `restore_token_hash`, `content_sha256`, `manifest_hmac`, and `edited_by`) |
 | Service | `app/Services/BackupService.php` |
+| Manifest MAC | `app/Support/BackupManifest.php` |
 | Notifications | `app/Services/BackupNotificationService.php` |
 | Account wipe + final backup | `app/Services/AccountDangerZoneService.php` |
 | Filament resource | `app/Filament/Resources/Backups/` |
@@ -50,6 +51,20 @@ The client-supplied filename is not a filesystem location. Path-like, reserved, 
 
 Every central-directory entry counts toward those limits, including extra Spatie source paths that are not restored. Application-file writes remain `files/public/` → disk `public` and `files/private/` → disk `local`, and only `jpg`, `jpeg`, `png`, `gif`, `webp`, and `pdf` extensions are written. Archives that exceed a limit fail closed with a generic error before payload directories or storage writes.
 
+## Restore integrity and one-time use
+
+Guest and catalog restore bind the archive to the catalog row before any database or application-file write. After a ZIP is fully assembled, `BackupService` hashes restoreable entries (`database.sqlite` or `db-dumps/{safe}.sql`, plus `files/public|private` with the restore extensions), excluding `RESTORE_TOKEN.txt`, `MANIFEST.json`, and `MANIFEST.hmac`. It embeds `MANIFEST.json` and `MANIFEST.hmac` (HMAC-SHA256 over the canonical JSON using `APP_KEY`) and stores `content_sha256` and `manifest_hmac` on the catalog row.
+
+Restore then:
+
+1. Acquires an exclusive file-cache lock (`backup-restore`) so only one restore runs at a time. The file store is used so the lock survives a SQLite file replace.
+2. Re-checks the restore token (guest path) and verifies the ZIP content hash against the catalog. When `manifest_hmac` is present, the embedded MAC must match.
+3. Legacy rows with a null hash are backfilled from the on-disk catalog file when it exists; otherwise restore fails closed.
+4. Snapshots the live SQLite file (when file-backed) and any application files the ZIP would overwrite.
+5. Imports and restores files. On success, the guest token is consumed. On failure, the snapshot is restored and the token is left in place.
+
+`issueRestoreToken` re-embeds the token and re-seals the manifest; content identity does not change because the token file is excluded from the hash.
+
 ## Safe manual verification
 
 Reset Data and Delete Account remove expense records and their stored receipt files, so do not perform the zero-user guest-restore test against a local database that contains valuable data. Use a disposable local sandbox with its own SQLite database and `storage/app` directories.
@@ -75,6 +90,7 @@ A copied `database.sqlite` file alone is not a complete rollback because it rest
 6. Keep backup recency on `updated_at`; `created_at` describes when the catalog row was first created and is not the table’s Edited At value.
 7. Do not broaden database ZIP payload selection beyond the allowlisted entry names above; never pass archive entry path components into filesystem destinations.
 8. Inspect restore ZIP central-directory limits before any database or application-file write; do not extract first and cap afterwards.
+9. Verify catalog content hash and manifest MAC before restore writes; hold the exclusive restore lock; snapshot and roll back on failure; consume the guest token only after a successful import.
 
 ## Related
 

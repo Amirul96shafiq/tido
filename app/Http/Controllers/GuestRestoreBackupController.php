@@ -65,8 +65,7 @@ class GuestRestoreBackupController extends Controller
                 throw new RuntimeException('Invalid restore path.');
             }
 
-            $backupService->restoreFromZipPath($resolvedZipPath);
-            $backupService->consumeRestoreToken($backup);
+            $backupService->restoreGuestUpload($backup, $resolvedZipPath, $plainToken);
 
             return response()->json([
                 'success' => true,
