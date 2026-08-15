@@ -220,7 +220,7 @@ php artisan test --compact --filter=YourTest
 - Hitting live Ollama or Reverb in Pest — use `Http::fake()` / `Event::fake()`; phpunit sets `BROADCAST_CONNECTION=null`
 - Forgetting `ExpenseObserver` side effects when creating expenses in tests — use `Queue::fake()` or `unsetEventDispatcher()` when appropriate
 - Assuming multi-tenancy or Spatie roles — single household; use `HouseholdAccess` / `HouseholdRole` — see `docs/household-access.md`
-- Letting family members mutate expenses they did not upload — gate with `HouseholdAccess::canMutateExpense()` / `ExpensePolicy`
+- Letting family members mutate expenses, budgets, or recurrings they do not own — gate with `HouseholdAccess::canMutateExpense()` / `canMutateBudget()` / `canMutateRecurring()` and the matching policies
 - Editing architecture (new ingestion channel, schema) without checking `docs/system-architecture.md`
 - Horizon `viewHorizon` gate empty allowlist — configure before relying on `/horizon` in prod
 - Using browser `title=` on icon CTAs instead of Filament Tippy — see `docs/ui-tooltips.md`

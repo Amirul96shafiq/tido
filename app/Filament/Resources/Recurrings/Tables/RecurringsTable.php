@@ -8,9 +8,11 @@ use App\Enums\HouseholdRole;
 use App\Enums\RecurringFrequency;
 use App\Enums\RecurringOccurrenceStatus;
 use App\Enums\RecurringType;
+use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Filament\Support\RecordActionsGroup;
 use App\Models\Recurring;
 use App\Models\User;
+use App\Support\HouseholdAccess;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -127,6 +129,7 @@ class RecurringsTable
 
                 ToggleColumn::make('is_active')
                     ->label('Active')
+                    ->disabled(fn (Recurring $record): bool => ! HouseholdAccess::canMutateRecurring($record))
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('editedBy.name')
@@ -154,16 +157,30 @@ class RecurringsTable
                     ->label('Shared')
                     ->searchable(),
             ])
+            ->checkIfRecordIsSelectableUsing(
+                fn (Recurring $record): bool => HouseholdAccess::canMutateRecurring($record),
+            )
+            ->recordClasses(fn (Recurring $record): array => HouseholdAccess::canMutateRecurring($record)
+                ? []
+                : ['fi-ta-record-with-content-prefix', 'tido-ta-record-unsupported'])
+            ->recordUrl(fn (Recurring $record): ?string => RecurringResource::canEdit($record)
+                ? RecurringResource::getUrl('edit', ['record' => $record])
+                : null)
             ->recordActions([
                 ViewAction::make()->slideOver(),
                 RecordActionsGroup::make([
-                    EditAction::make(),
-                    DeleteAction::make(),
+                    EditAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (Recurring $record): string => HouseholdAccess::assignedOwnerAuthorizationMessage($record->familyMember)),
+                    DeleteAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (Recurring $record): string => HouseholdAccess::assignedOwnerAuthorizationMessage($record->familyMember)),
                 ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete'),
                 ]),
             ]);
     }

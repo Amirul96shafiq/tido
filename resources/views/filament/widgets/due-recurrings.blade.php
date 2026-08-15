@@ -1,5 +1,6 @@
 @php
     /** @var bool $canManageRecurrings */
+    /** @var bool $canReorderRecurrings */
     /** @var string $contentHeight */
     /** @var list<array<string, mixed>> $items */
     /** @var string $manageUrl */
@@ -66,7 +67,7 @@
             </div>
         @else
             <div
-                @if ($canManageRecurrings)
+                @if ($canReorderRecurrings ?? false)
                     wire:sort="reorderRecurrings"
                 @endif
                 class="custom-scrollbar grid grid-cols-1 gap-1 overflow-y-auto pr-2"
@@ -91,7 +92,7 @@
                             >
                                 <x-filament::icon icon="heroicon-m-bars-3" class="size-4" />
                             </button>
-                        @elseif ($canManageRecurrings)
+                        @elseif ($canReorderRecurrings ?? false)
                             <div class="size-6 shrink-0" aria-hidden="true"></div>
                         @endif
 

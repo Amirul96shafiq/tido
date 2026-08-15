@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Budgets\Pages;
 
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
@@ -16,7 +18,8 @@ class ListBudgets extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->authorizationTooltip(),
         ];
     }
 }

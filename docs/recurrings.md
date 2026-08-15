@@ -4,7 +4,7 @@ Reminder-first tracking for bills, subscriptions, debt instalments, and transfer
 
 ## Flow
 
-1. Primary creates a **Recurring** template (Finances → Recurrings).
+1. Primary creates a **Recurring** template (Finances → Recurrings). Assigned family members can later edit their own templates; they cannot create new ones.
 2. `recurring:generate-occurrences` creates period **occurrences** and refreshes due/overdue.
 3. `recurring:send-reminders` sends Filament + WhatsApp nudges (Primary always; assigned family member when set; shared → Primary only).
 4. User pays externally and logs an **Expense** (upload / WhatsApp / manual).
@@ -22,6 +22,8 @@ Same shape as budgets:
 |-------|---------|
 | `family_member_id` | `null` = Primary; set = that Family Member |
 | `is_shared` | Household can see/complete; expense attribution still owns Overall burn |
+
+Family members list every template and may edit only assigned ones (`family_member_id` match). Create stays Primary-only. Home Due Recurrings still scopes to owned or shared templates.
 
 ## Cadence
 

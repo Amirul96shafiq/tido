@@ -334,8 +334,6 @@ final class AdminDestinationSearch
                 'Family Members',
                 'Labels',
                 'Payment Methods',
-                'Budgets',
-                'Recurrings',
                 'Backups',
                 'Evolution API',
                 'Service Status',

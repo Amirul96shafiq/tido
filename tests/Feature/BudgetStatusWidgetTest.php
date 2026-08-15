@@ -27,6 +27,19 @@ test('budget status widget renders empty state', function () {
         ->assertSee('New budget');
 });
 
+test('budget status empty state shows disabled new budget for family members', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create();
+
+    $this->actingAs($member->loginUser);
+
+    Livewire::test(BudgetStatus::class)
+        ->assertSuccessful()
+        ->assertSee('New budget')
+        ->assertSee('Create a budget to track spending against a limit.')
+        ->assertSee('disabled', false)
+        ->assertDontSee(BudgetResource::getUrl('create'), false);
+});
+
 test('budget status widget renders active budgets', function () {
     $label = Label::factory()->create(['name' => 'Groceries']);
 
@@ -250,7 +263,7 @@ test('budget status widget hides other members personal budgets from family user
         ->assertSee('My Cap')
         ->assertSee('Shared Cap')
         ->assertDontSee('Hidden Cap')
-        ->assertDontSee(BudgetResource::getUrl('edit', [
+        ->assertSee(BudgetResource::getUrl('edit', [
             'record' => Budget::query()->where('title', 'My Cap')->first(),
         ]), false)
         ->assertDontSee('wire:sort="reorderBudgets"', false);

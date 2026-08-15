@@ -248,7 +248,7 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
                     'can_reorder' => $isPrimary && $recurring !== null && ! $isCompleted && ! $isSkipped,
                     'is_completed' => $isCompleted,
                     'is_skipped' => $isSkipped,
-                    'edit_url' => $isPrimary && $recurring !== null
+                    'edit_url' => $recurring !== null && HouseholdAccess::canMutateRecurring($recurring)
                         ? RecurringResource::getUrl('edit', ['record' => $recurring])
                         : null,
                     'title' => $recurring?->title ?? 'Recurring',
@@ -274,7 +274,8 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
             ->all();
 
         return [
-            'canManageRecurrings' => $isPrimary,
+            'canManageRecurrings' => true,
+            'canReorderRecurrings' => $isPrimary,
             'contentHeight' => DashboardWidgetHeights::STANDARD_CHART,
             'items' => $items,
             'manageUrl' => RecurringResource::getUrl('index'),

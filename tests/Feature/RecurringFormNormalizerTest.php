@@ -85,3 +85,20 @@ test('hydrateVirtualFields infers controllers from record shape', function () {
         ->and($data['responsibility'])->toBe('household_shared')
         ->and($data['tracking_mode'])->toBe('target_amount');
 });
+
+test('preserveOwnership restores assignee and shared from the record', function () {
+    $record = new Recurring([
+        'family_member_id' => 4,
+        'is_shared' => false,
+    ]);
+
+    $data = RecurringFormNormalizer::preserveOwnership([
+        'responsibility' => 'household_shared',
+        'family_member_id' => 9,
+        'is_shared' => true,
+    ], $record);
+
+    expect($data['family_member_id'])->toBe(4)
+        ->and($data['is_shared'])->toBeFalse()
+        ->and($data['responsibility'])->toBe('family_member');
+});

@@ -23,7 +23,7 @@ Preparing a single-tenant MYR expense app for eventual **public release**. Find 
 
 ## tido threat model
 
-**Single-tenant household:** One panel; Primary has full `/admin`. Login-enabled Family Members get limited Finances access and may mutate only their attributed expenses (`family_member_id`). No Spatie roles/tenancy. See `docs/household-access.md`. Flag missing `RequiresPrimaryHouseholdAccess` / `HouseholdAccess::canMutateExpense()` on new settings or expense mutate paths.
+**Single-tenant household:** One panel; Primary has full `/admin`. Login-enabled Family Members get limited Finances access and may mutate only their attributed expenses, assigned budgets, and assigned recurrings (`family_member_id`). No Spatie roles/tenancy. See `docs/household-access.md`. Flag missing `RequiresPrimaryHouseholdAccess` on new settings pages, and missing `HouseholdAccess::canMutateExpense()` / `canMutateBudget()` / `canMutateRecurring()` on mutate paths.
 
 **Public exposure surfaces:**
 

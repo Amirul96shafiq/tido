@@ -61,6 +61,18 @@ final class RecurringFormNormalizer
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
+    public static function preserveOwnership(array $data, Recurring $record): array
+    {
+        $data['family_member_id'] = $record->family_member_id;
+        $data['is_shared'] = $record->is_shared;
+        $data['responsibility'] = self::responsibilityFromData([
+            'family_member_id' => $record->family_member_id,
+            'is_shared' => $record->is_shared,
+        ]);
+
+        return $data;
+    }
+
     /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>

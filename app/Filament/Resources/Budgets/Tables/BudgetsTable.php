@@ -10,6 +10,7 @@ use App\Filament\Support\RecordActionsGroup;
 use App\Models\Budget;
 use App\Models\FamilyMember;
 use App\Models\User;
+use App\Support\HouseholdAccess;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -137,6 +138,7 @@ class BudgetsTable
 
                 ToggleColumn::make('is_active')
                     ->label('Active')
+                    ->disabled(fn (Budget $record): bool => ! HouseholdAccess::canMutateBudget($record))
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('editedBy.name')
@@ -209,18 +211,32 @@ class BudgetsTable
                     ])
                     ->searchable(),
             ])
+            ->checkIfRecordIsSelectableUsing(
+                fn (Budget $record): bool => HouseholdAccess::canMutateBudget($record),
+            )
+            ->recordClasses(fn (Budget $record): array => HouseholdAccess::canMutateBudget($record)
+                ? []
+                : ['fi-ta-record-with-content-prefix', 'tido-ta-record-unsupported'])
+            ->recordUrl(fn (Budget $record): ?string => BudgetResource::canEdit($record)
+                ? BudgetResource::getUrl('edit', ['record' => $record])
+                : null)
             ->recordActions([
                 ViewAction::make()
                     ->slideOver()
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
                 RecordActionsGroup::make([
-                    EditAction::make(),
-                    DeleteAction::make(),
+                    EditAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (Budget $record): string => HouseholdAccess::assignedOwnerAuthorizationMessage($record->familyMember)),
+                    DeleteAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (Budget $record): string => HouseholdAccess::assignedOwnerAuthorizationMessage($record->familyMember)),
                 ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete'),
                 ]),
             ])
             ->emptyStateHeading('No budgets yet')
@@ -231,6 +247,8 @@ class BudgetsTable
                     ->label('New budget')
                     ->icon(Heroicon::Plus)
                     ->url(BudgetResource::getUrl('create'))
+                    ->authorize('create')
+                    ->authorizationTooltip()
                     ->button(),
             ]);
     }

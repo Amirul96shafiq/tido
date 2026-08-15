@@ -27,12 +27,15 @@ test('primary can open recurring index', function () {
         ->assertOk();
 });
 
-test('family member cannot access recurring resource', function () {
+test('family member can open recurring index but not create', function () {
     $member = FamilyMember::factory()->loginEnabled()->create();
 
     $this->actingAs($member->loginUser);
 
     $this->get(RecurringResource::getUrl('index'))
+        ->assertOk();
+
+    $this->get(RecurringResource::getUrl('create'))
         ->assertRedirect(route('filament.admin.auth.forbidden'));
 });
 
