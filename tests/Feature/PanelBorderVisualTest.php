@@ -4,6 +4,27 @@ declare(strict_types=1);
 
 use Illuminate\Support\Str;
 
+test('disabled inputs keep a 1px chrome border on hover and active', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+    $disabledBlock = Str::between(
+        $css,
+        '.fi-input-wrp.fi-disabled:not(.fi-invalid),',
+        '/* Keep neutral section, table, modal, and widget dividers on the same line. */',
+    );
+
+    expect($disabledBlock)
+        ->not->toBeEmpty()
+        ->toContain(':hover,')
+        ->toContain(':active,')
+        ->toContain(':focus,')
+        ->toContain(':focus-within {')
+        ->toContain('border-width: 1px !important;')
+        ->toContain('border-color: var(--tido-border-color) !important;')
+        ->toContain('--tw-ring-shadow: 0 0 0 0 transparent !important;')
+        ->not->toContain('var(--primary-600)')
+        ->not->toContain('var(--primary-500)');
+});
+
 test('panel surfaces share the chrome border token', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
@@ -18,6 +39,11 @@ test('panel surfaces share the chrome border token', function () {
         ->toContain('.fi-input-wrp:not(.fi-invalid):not(.fi-disabled):hover,')
         ->toContain('.fi-input-wrp:not(.fi-invalid):not(.fi-disabled):focus,')
         ->toContain('.fi-input-wrp:not(.fi-invalid):not(.fi-disabled):focus-within {')
+        ->toContain('.fi-input-wrp.fi-disabled:not(.fi-invalid),')
+        ->toContain('.fi-input-wrp.fi-disabled:not(.fi-invalid):hover,')
+        ->toContain('.fi-input-wrp.fi-disabled:not(.fi-invalid):active,')
+        ->toContain('.fi-input-wrp.fi-disabled:not(.fi-invalid):focus,')
+        ->toContain('.fi-input-wrp.fi-disabled:not(.fi-invalid):focus-within {')
         ->toContain('border-color: var(--primary-600) !important;')
         ->toContain('border-color: var(--primary-500) !important;')
         ->toContain('.fi-sidebar {')

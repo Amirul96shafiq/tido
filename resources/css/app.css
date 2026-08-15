@@ -4412,7 +4412,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
  * Keep the line at 1px without adding a box shadow or changing the component's
  * radius or spacing. Inputs keep that 1px geometry on hover/focus — Filament's
  * default focus-within:ring-2 must not expand the wrapper (includes currency
- * USD/MYR) — while hover/focus still use the primary border color.
+ * USD/MYR) — while hover/focus still use the primary border color. Disabled
+ * (non-editable) inputs keep the chrome 1px border on hover/active/focus so
+ * the box does not grow.
  */
 .fi-section:not(.fi-danger-zone-section > .fi-section),
 .fi-ta-ctn,
@@ -4448,6 +4450,19 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
 .dark .fi-input-wrp:not(.fi-invalid):not(.fi-disabled):focus,
 .dark .fi-input-wrp:not(.fi-invalid):not(.fi-disabled):focus-within {
     border-color: var(--primary-500) !important;
+}
+
+.fi-input-wrp.fi-disabled:not(.fi-invalid),
+.fi-input-wrp.fi-disabled:not(.fi-invalid):hover,
+.fi-input-wrp.fi-disabled:not(.fi-invalid):active,
+.fi-input-wrp.fi-disabled:not(.fi-invalid):focus,
+.fi-input-wrp.fi-disabled:not(.fi-invalid):focus-within {
+    border-style: solid !important;
+    border-width: 1px !important;
+    border-color: var(--tido-border-color) !important;
+    --tw-ring-color: transparent !important;
+    --tw-ring-shadow: 0 0 0 0 transparent !important;
+    box-shadow: none !important;
 }
 
 /* Keep neutral section, table, modal, and widget dividers on the same line. */
