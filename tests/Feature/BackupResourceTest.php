@@ -9,10 +9,12 @@ use App\Models\Backup;
 use App\Models\User;
 use App\Services\BackupService;
 use Filament\Actions\Testing\TestAction;
+use Filament\Support\Facades\FilamentView;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -44,6 +46,8 @@ test('create backup header action registers a manual backup', function () {
             ->once()
             ->with(BackupType::Manual, $this->admin)
             ->andReturn($backup);
+        $mock->shouldReceive('temporaryDownloadUrl')
+            ->andReturn('http://127.0.0.1/backups/signed-download');
     });
 
     Livewire::test(ListBackups::class)
@@ -87,6 +91,8 @@ test('delete backup action removes catalog entry via service', function () {
         $mock->shouldReceive('delete')
             ->once()
             ->withArgs(fn (Backup $record): bool => $record->is($backup));
+        $mock->shouldReceive('temporaryDownloadUrl')
+            ->andReturn('http://127.0.0.1/backups/signed-download');
     });
 
     Livewire::test(ListBackups::class)
@@ -103,6 +109,8 @@ test('restore backup action logs user out to login', function () {
         $mock->shouldReceive('restore')
             ->once()
             ->withArgs(fn (Backup $record): bool => $record->is($backup));
+        $mock->shouldReceive('temporaryDownloadUrl')
+            ->andReturn('http://127.0.0.1/backups/signed-download');
     });
 
     Livewire::test(ListBackups::class)
@@ -117,7 +125,9 @@ test('restore backup action logs user out to login', function () {
     $this->assertGuest();
 });
 
-test('backups table has download action', function () {
+test('backups table download uses a temporary signed url', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-15 21:00:00'));
+
     $backup = Backup::factory()->create([
         'disk' => 'local',
         'path' => 'laravel-backup/tido-app-local-2026-07-14-101010-manual.zip',
@@ -126,8 +136,25 @@ test('backups table has download action', function () {
 
     Storage::disk('local')->put($backup->path, 'zip-contents');
 
+    $downloadAction = TestAction::make('download')->table($backup);
+    $expectedUrl = URL::temporarySignedRoute(
+        'backups.download',
+        now()->addMinutes(10),
+        ['backup' => $backup],
+    );
+
     Livewire::test(ListBackups::class)
-        ->assertActionExists(TestAction::make('download')->table($backup));
+        ->assertActionExists($downloadAction)
+        ->assertActionHasUrl($downloadAction, $expectedUrl)
+        ->assertActionShouldNotOpenUrlInNewTab($downloadAction);
+
+    expect(FilamentView::hasSpaMode($expectedUrl))->toBeFalse();
+
+    $html = Livewire::test(ListBackups::class)->html();
+    $escapedUrl = preg_quote($expectedUrl, '/');
+
+    expect($html)->toContain('/backups/'.$backup->getKey().'/download')
+        ->and($html)->not->toMatch('/href="'.$escapedUrl.'"[^>]*\swire:navigate/');
 });
 
 test('backups table can filter by edited date', function () {

@@ -60,10 +60,11 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 21. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
 22. Resource edit audit (latest editor, username display, table recency): `docs/resource-edit-audit.md`
 23. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
-24. Service Status (health probes, uptime UI): `docs/service-status.md`
-25. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
-26. Household access (attribution, family login, expense ACL): `docs/household-access.md`
-27. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+24. Local sandbox (port 2001) for backup/wipe browser tests: `docs/sandbox-testing.md`
+25. Service Status (health probes, uptime UI): `docs/service-status.md`
+26. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
+27. Household access (attribution, family login, expense ACL): `docs/household-access.md`
+28. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 

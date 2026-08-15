@@ -15,7 +15,7 @@ Cataloged ZIP backups, restore tokens, guest restore, and profile account deleti
 | Profile Danger Zone | `app/Filament/Pages/Auth/EditProfile.php` |
 | Guest restore UI | `resources/views/components/restore-backup-modal.blade.php` |
 | Guest restore API | `app/Http/Controllers/GuestRestoreBackupController.php` |
-| Authenticated download | `app/Http/Controllers/BackupDownloadController.php` |
+| Authenticated download | `app/Http/Controllers/BackupDownloadController.php` (`GET /backups/{backup}/download`, signed) |
 | Scheduled catalog hook | `app/Listeners/RegisterScheduledBackupCatalog.php` (`BackupWasSuccessful`) |
 
 ## Concepts
@@ -25,6 +25,7 @@ Cataloged ZIP backups, restore tokens, guest restore, and profile account deleti
 - **Restore token:** Plain token is shown once (email / UI); only `restore_token_hash` is stored. Required for restore / guest restore.
 - **Guest restore:** When no users exist (post Danger Zone wipe), auth menu exposes Restore Backup → Alpine modal → `GuestRestoreBackupRequest` validation → `BackupService` restore.
 - **Danger Zone (Edit Profile):** Creates a final backup, returns the restore token to the user, then deletes account data. Single-tenant — wiping the only user leaves the app in guest-restore mode.
+- **Download:** Tools → Backups Download and Danger Zone both use `BackupService::temporaryDownloadUrl()` (`URL::temporarySignedRoute` to `backups.download`, 10 minutes). The browser hits the signed GET route and streams from disk. Do not return the ZIP from a Livewire/Filament `->action()`; Livewire buffers the whole file and large archives exhaust PHP memory. The download URL is listed in Filament `spaUrlExceptions` so panel SPA mode does not `wire:navigate` into the ZIP bytes.
 
 ## Guest restore upload boundary
 
@@ -67,9 +68,11 @@ Restore then:
 
 ## Safe manual verification
 
-Reset Data and Delete Account remove expense records and their stored receipt files, so do not perform the zero-user guest-restore test against a local database that contains valuable data. Use a disposable local sandbox with its own SQLite database and `storage/app` directories.
+Reset Data and Delete Account remove expense records and their stored receipt files, so do not perform the zero-user guest-restore test against a local database that contains valuable data. Use the disposable sandbox on port **2001** (`docs/sandbox-testing.md`): its own `.env.sandbox`, `database/sandbox.sqlite`, and `storage/sandbox/`. Never run that flow on `http://tido.local` or port 2000.
 
-The recommended browser flow is:
+`APP_STORAGE_PATH` is applied in `bootstrap/app.php` via `Application::afterLoadingEnvironment()` so `.env.sandbox` is loaded before `config/filesystems.php` evaluates `storage_path()`. Applying it immediately after `Application::configure()->create()` is too early: `env('APP_STORAGE_PATH')` is empty, disks stay on live `storage/app`, and a sandbox backup can embed live receipts and prior backup ZIPs.
+
+The recommended browser flow (sandbox only) is:
 
 1. Create one synthetic expense and receipt image in the sandbox.
 2. Create and download a complete backup from **Backups**.
@@ -94,6 +97,7 @@ A copied `database.sqlite` file alone is not a complete rollback because it rest
 
 ## Related
 
+- Isolated backup/wipe runtime: [sandbox-testing.md](sandbox-testing.md)
 - Spatie schedule / disks: `config/backup.php`, `docs/system-architecture.md` §7.4
 - Modal blur: [ui-modal-overlay.md](ui-modal-overlay.md)
 - Impersonal copy: [ui-copy-style.md](ui-copy-style.md)

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Spatie\Backup\BackupDestination\BackupDestination;
@@ -596,6 +597,15 @@ class BackupService
         }
 
         return Storage::disk($backup->disk)->download($backup->path, $backup->filename);
+    }
+
+    public function temporaryDownloadUrl(Backup $backup): string
+    {
+        return URL::temporarySignedRoute(
+            'backups.download',
+            now()->addMinutes(10),
+            ['backup' => $backup],
+        );
     }
 
     protected function shouldUseNativeDatabaseBackup(): bool

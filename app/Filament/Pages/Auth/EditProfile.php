@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Notifications\VerifyEmailChange;
 use App\Services\AccountDangerZoneService;
 use App\Services\ActiveSessionService;
+use App\Services\BackupService;
 use App\Services\FamilyMemberLoginService;
 use App\Support\EmailChangeVerification;
 use App\Support\FieldCharacterLimits;
@@ -51,7 +52,6 @@ use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -572,7 +572,7 @@ class EditProfile extends BaseEditProfile implements HasTable
             ->modalHeading('Delete account')
             ->modalDescription('This permanently deletes all data and user account. You will be signed out.')
             ->modalSubmitActionLabel('Delete account')
-            ->action(function (AccountDangerZoneService $accountDangerZoneService): void {
+            ->action(function (AccountDangerZoneService $accountDangerZoneService, BackupService $backupService): void {
                 if (! $this->isDeleteAccountReady() || ! $this->isDangerZonePasswordValid('delete_confirmation_password')) {
                     FilamentNotification::make()
                         ->title('Unable to delete account')
@@ -584,11 +584,7 @@ class EditProfile extends BaseEditProfile implements HasTable
 
                 $backup = $accountDangerZoneService->deleteAccount($this->getDangerZoneUser());
 
-                $downloadUrl = URL::temporarySignedRoute(
-                    'backups.download',
-                    now()->addMinutes(10),
-                    ['backup' => $backup],
-                );
+                $downloadUrl = $backupService->temporaryDownloadUrl($backup);
 
                 $this->js('window.open('.Js::from($downloadUrl).', "_blank")');
 

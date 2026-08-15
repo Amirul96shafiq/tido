@@ -43,7 +43,7 @@ return [
             'root' => storage_path('app/public'),
             // Relative so FilePond/browser fetch stay same-origin when APP_URL
             // is a LAN IP but the app is opened via localhost (or vice versa).
-            'url' => '/storage',
+            'url' => env('FILESYSTEM_PUBLIC_URL', '/storage'),
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

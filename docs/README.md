@@ -29,6 +29,7 @@
 | [content-draft-recovery.md](content-draft-recovery.md) | Agents + humans | Auto-save drafts + crash recovery on Filament Create/Edit |
 | [resource-edit-audit.md](resource-edit-audit.md) | Agents + humans | Resource Edited By / Edited At attribution and table recency |
 | [backups-and-danger-zone.md](backups-and-danger-zone.md) | Agents + humans | Backup catalog, restore tokens, guest restore, profile Danger Zone |
+| [sandbox-testing.md](sandbox-testing.md) | Agents + humans | Port 2001 disposable sandbox for backup / wipe / guest restore (not live-like :2000) |
 | [service-status.md](service-status.md) | Agents + humans | Tools Service Status page, health probes, uptime history |
 | [active-sessions.md](active-sessions.md) | Agents + humans | Profile Active Sessions list, revoke, user-agent parsing |
 | [household-access.md](household-access.md) | Agents + humans | Household roles, receipt attribution, family WhatsApp login, expense ACL |
