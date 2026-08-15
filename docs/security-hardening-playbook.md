@@ -12,7 +12,7 @@ Do not:
 
 - make application changes directly on `main`;
 - create a second backup or restore path outside `BackupService` and `AccountDangerZoneService`;
-- weaken `HouseholdAccess`, `ExpensePolicy`, or Primary-only gates to simplify a security test;
+- weaken `HouseholdAccess`, `ExpensePolicy`, `BudgetPolicy`, `RecurringPolicy`, or Primary-only gates to simplify a security test;
 - add a dependency or update a lockfile without explicit user approval;
 - expose a real secret, restore token, session identifier, raw receipt, full webhook payload, or unredacted upstream response in code, tests, docs, or logs;
 - mark a finding verified because a request returned `2xx`, a file was uploaded, a job was dispatched, or a UI control was hidden;
@@ -67,7 +67,7 @@ Prefer the existing Laravel boundary:
 | Security surface | Preferred implementation boundary |
 |------------------|------------------------------------|
 | Authentication/session | Filament auth page, session config, middleware, password/OTP service |
-| Household authorization | `HouseholdAccess`, `ExpensePolicy`, `RequiresPrimaryHouseholdAccess` |
+| Household authorization | `HouseholdAccess`, `ExpensePolicy`, `BudgetPolicy`, `RecurringPolicy`, `RequiresPrimaryHouseholdAccess` |
 | Webhook | Route middleware/Form Request/DTO, verifier service, queued job, idempotency store |
 | Guest restore | `GuestRestoreBackupRequest`, `GuestRestoreBackupController`, `BackupService` |
 | Backup | `BackupService`, `config/backup.php`, storage disk and retention configuration |

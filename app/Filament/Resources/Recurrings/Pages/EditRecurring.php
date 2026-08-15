@@ -12,6 +12,7 @@ use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Filament\Resources\Recurrings\Schemas\RecurringForm;
 use App\Models\Recurring;
 use App\Services\RecurringOccurrenceGenerator;
+use App\Support\HouseholdAccess;
 use App\Support\RecurringFormNormalizer;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -62,6 +63,7 @@ class EditRecurring extends EditRecord
                         ->required()
                         ->default(fn (): ?string => $this->getRecord()->next_due_on?->toDateString()),
                 ])
+                ->authorize('update')
                 ->action(function (array $data): void {
                     /** @var Recurring $record */
                     $record = $this->getRecord();
@@ -120,6 +122,10 @@ class EditRecurring extends EditRecord
 
         // Preserve persisted next_due_on unless the Adjust action changed it.
         unset($data['next_due_on']);
+
+        if (HouseholdAccess::isFamilyMember()) {
+            $data = RecurringFormNormalizer::preserveOwnership($data, $record);
+        }
 
         return RecurringFormNormalizer::normalize($data, $record);
     }

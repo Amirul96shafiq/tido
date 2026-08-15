@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Recurrings;
 
-use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Resources\Recurrings\Pages\CreateRecurring;
 use App\Filament\Resources\Recurrings\Pages\EditRecurring;
 use App\Filament\Resources\Recurrings\Pages\ListRecurrings;
@@ -20,8 +19,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class RecurringResource extends Resource
 {
-    use RequiresPrimaryHouseholdAccess;
-
     protected static ?string $model = Recurring::class;
 
     protected static ?string $recordTitleAttribute = 'title';
@@ -106,5 +103,17 @@ class RecurringResource extends Resource
                 : 'Variable',
             'Active' => $record->is_active ? 'Yes' : 'No',
         ];
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        if (static::canEdit($record)) {
+            return static::getUrl('edit', ['record' => $record]);
+        }
+
+        return static::getUrl('index', [
+            'tableAction' => 'view',
+            'tableActionRecord' => $record->getRouteKey(),
+        ]);
     }
 }

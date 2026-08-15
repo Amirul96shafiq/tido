@@ -102,7 +102,7 @@ class BudgetStatus extends Widget
 
             $budgetStates[] = [
                 'id' => $budget->id,
-                'edit_url' => $isPrimary
+                'edit_url' => HouseholdAccess::canMutateBudget($budget)
                     ? BudgetResource::getUrl('edit', ['record' => $budget])
                     : null,
                 'can_reorder' => $isPrimary,
@@ -123,7 +123,9 @@ class BudgetStatus extends Widget
 
         return [
             'budgets' => $budgetStates,
-            'canManageBudgets' => $isPrimary,
+            'canCreateBudgets' => $isPrimary,
+            'canReorderBudgets' => $isPrimary,
+            'createDeniedMessage' => HouseholdAccess::createDeniedMessage(),
             'monthLabel' => $this->formatSelectedMonth('F Y'),
             'contentHeight' => DashboardWidgetHeights::STANDARD_CHART,
         ];

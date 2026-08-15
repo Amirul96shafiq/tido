@@ -93,10 +93,10 @@ test('family member can open edit page for own expense only', function () {
         ->assertSuccessful();
 
     Livewire::test(EditExpense::class, ['record' => $fixtures['primary']->getRouteKey()])
-        ->assertForbidden();
+        ->assertRedirect(route('filament.admin.auth.forbidden'));
 
     Livewire::test(EditExpense::class, ['record' => $fixtures['otherOwned']->getRouteKey()])
-        ->assertForbidden();
+        ->assertRedirect(route('filament.admin.auth.forbidden'));
 });
 
 test('primary user can open edit page for any expense', function () {

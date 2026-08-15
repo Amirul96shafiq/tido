@@ -13,6 +13,7 @@ use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\User;
 use App\Support\FieldCharacterLimits;
+use App\Support\HouseholdAccess;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Slider;
 use Filament\Forms\Components\TextInput;
@@ -136,11 +137,15 @@ class BudgetForm
                                     ->placeholder(fn (): string => self::primaryUsername())
                                     ->searchable()
                                     ->nullable()
+                                    ->disabled(fn (): bool => HouseholdAccess::isFamilyMember())
+                                    ->dehydrated(fn (): bool => ! HouseholdAccess::isFamilyMember())
                                     ->helperText('Who this budget belongs to. Leave empty for the Primary user.'),
 
                                 Toggle::make('is_shared')
                                     ->label('Shared with household')
                                     ->default(false)
+                                    ->disabled(fn (): bool => HouseholdAccess::isFamilyMember())
+                                    ->dehydrated(fn (): bool => ! HouseholdAccess::isFamilyMember())
                                     ->helperText('When shared, everyone’s spending counts toward this budget. When personal, only the assignee’s spending counts.'),
 
                                 Toggle::make('is_active')

@@ -10,6 +10,8 @@ use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Resources\Budgets\Schemas\BudgetForm;
+use App\Models\Budget;
+use App\Support\HouseholdAccess;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
@@ -56,5 +58,23 @@ class EditBudget extends EditRecord
     public function sectionNavAriaLabel(): string
     {
         return 'Budget sections';
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if (! HouseholdAccess::isFamilyMember()) {
+            return $data;
+        }
+
+        /** @var Budget $record */
+        $record = $this->getRecord();
+        $data['family_member_id'] = $record->family_member_id;
+        $data['is_shared'] = $record->is_shared;
+
+        return $data;
     }
 }

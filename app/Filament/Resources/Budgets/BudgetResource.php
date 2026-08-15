@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Budgets;
 
-use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Resources\Budgets\Pages\CreateBudget;
 use App\Filament\Resources\Budgets\Pages\EditBudget;
 use App\Filament\Resources\Budgets\Pages\ListBudgets;
@@ -20,8 +19,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class BudgetResource extends Resource
 {
-    use RequiresPrimaryHouseholdAccess;
-
     protected static ?string $model = Budget::class;
 
     protected static ?string $recordTitleAttribute = 'global_search_title';
@@ -95,5 +92,17 @@ class BudgetResource extends Resource
             'Period' => ucfirst((string) $record->period),
             'Active' => $record->is_active ? 'Yes' : 'No',
         ];
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        if (static::canEdit($record)) {
+            return static::getUrl('edit', ['record' => $record]);
+        }
+
+        return static::getUrl('index', [
+            'tableAction' => 'view',
+            'tableActionRecord' => $record->getRouteKey(),
+        ]);
     }
 }

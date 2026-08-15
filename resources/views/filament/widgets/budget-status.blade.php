@@ -18,24 +18,19 @@
         <x-slot name="heading">Budget Performance ({{ $monthLabel ?? now()->format('F Y') }})</x-slot>
 
         @if (empty($budgets))
-            @php
-                $emptyDescription = ($canManageBudgets ?? true)
-                    ? 'Create a budget to track spending against a limit.'
-                    : 'Ask the Primary user to assign a budget for you.';
-            @endphp
             <div
                 class="fi-wi-budget-status-empty flex flex-1 items-center justify-center"
                 style="min-height: {{ $contentHeight }}"
             >
                 <x-empty-state-panel
                     heading="No budgets yet"
-                    :description="$emptyDescription"
+                    description="Create a budget to track spending against a limit."
                     icon="heroicon-o-banknotes"
                     icon-color="gray"
                     class="fi-wi-chart-empty-panel"
                 >
-                    @if ($canManageBudgets ?? true)
-                        <x-slot name="actions">
+                    <x-slot name="actions">
+                        @if ($canCreateBudgets ?? true)
                             <x-filament::button
                                 :href="\App\Filament\Resources\Budgets\BudgetResource::getUrl('create')"
                                 tag="a"
@@ -44,13 +39,29 @@
                             >
                                 New budget
                             </x-filament::button>
-                        </x-slot>
-                    @endif
+                        @else
+                            <span
+                                class="inline-flex"
+                                x-tooltip="{
+                                    content: @js($createDeniedMessage ?? 'Only Primary able to use this CTA button.'),
+                                    theme: $store.theme,
+                                }"
+                            >
+                                <x-filament::button
+                                    disabled
+                                    color="primary"
+                                    icon="heroicon-m-plus"
+                                >
+                                    New budget
+                                </x-filament::button>
+                            </span>
+                        @endif
+                    </x-slot>
                 </x-empty-state-panel>
             </div>
         @else
             <div
-                @if ($canManageBudgets ?? true)
+                @if ($canReorderBudgets ?? false)
                     wire:sort="reorderBudgets"
                 @endif
                 class="custom-scrollbar mt-3 flex flex-1 flex-col gap-6 overflow-y-auto pr-2"

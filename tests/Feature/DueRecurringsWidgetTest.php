@@ -178,7 +178,8 @@ test('family member sees own and shared due items only', function () {
         ->assertSee('Along Loan')
         ->assertSee('Shared Bill')
         ->assertDontSee('Primary Only')
-        ->assertDontSee('Manage')
+        ->assertSee('Manage')
+        ->assertSee(RecurringResource::getUrl('edit', ['record' => $own]), false)
         ->assertDontSee('wire:sort="reorderRecurrings"', false);
 });
 

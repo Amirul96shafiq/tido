@@ -38,7 +38,7 @@ Sources: `manual` | `whatsapp`
 
 Scopes: `processed()` = parsed|reviewed; `inPeriod($start, $end)` on `date_time`.
 
-Attribution: `family_member_id` null = Primary; set from WhatsApp sender (`ExpenseSenderAttribution`) or acting family-member user. Mutate ACL: `HouseholdAccess::canMutateExpense()` / `ExpensePolicy`.
+Attribution: `family_member_id` null = Primary; set from WhatsApp sender (`ExpenseSenderAttribution`) or acting family-member user. Mutate ACL: `HouseholdAccess::canMutateExpense()` / `ExpensePolicy`. Budget/Recurring mutate ACL: `canMutateBudget()` / `canMutateRecurring()`.
 
 ## Labels (not categories)
 
@@ -78,13 +78,14 @@ Attribution: `family_member_id` null = Primary; set from WhatsApp sender (`Expen
 | Forecast widget | `App\Services\SpendingForecastService` |
 | Matcher | `App\Services\LabelMatcher`, `App\Services\PaymentMethodMatcher` |
 | Family login sync | `App\Services\FamilyMemberLoginService` + `FamilyMemberObserver` |
-| Household ACL | `App\Support\HouseholdAccess`, `App\Policies\ExpensePolicy` |
+| Household ACL | `App\Support\HouseholdAccess`, `App\Policies\ExpensePolicy`, `BudgetPolicy`, `RecurringPolicy` |
 | Attribution / spender | `App\Support\ExpenseSenderAttribution`, `App\Support\DashboardSpenderScope` |
 
 ## Filament map
 
-- Resources: Upload Receipts, Expenses, Budgets (Finances); Labels, Payment Methods, Family Members (Settings); Evolution API (Integrations); Backups, Service Status (Tools) — models `Label`, `PaymentMethod`, `FamilyMember`, `Backup`
-- Primary-only: Budgets, Labels, Payment Methods, Family Members, Evolution, Backups (`RequiresPrimaryHouseholdAccess`); Service Status is household-readable with primary-only manual probes
+- Resources: Upload Receipts, Expenses, Budgets, Recurrings (Finances); Labels, Payment Methods, Family Members (Settings); Evolution API (Integrations); Backups, Service Status (Tools) — models `Label`, `PaymentMethod`, `FamilyMember`, `Backup`, `Recurring`
+- Primary-only: Labels, Payment Methods, Family Members, Evolution, Backups (`RequiresPrimaryHouseholdAccess`); Service Status is household-readable with primary-only manual probes
+- Family Finances ACL: Expenses, Budgets, and Recurrings are listable; mutate assigned records only; create for Budgets/Recurrings stays primary-only (visible disabled CTA)
 - View records: always `ViewAction::make()->slideOver()` — never dedicated View pages; use the disabled form schema (no custom `infolist()` / `*Infolist.php`)
 - Upload UI: `ReceiptUploadPage` → creates pending expenses (stamps `family_member_id` for family users)
 - Dashboard: Finances widgets use `DashboardMonthAnalytics` / month + spender filters; Training / Health / Task are coming-soon shells — `docs/dashboard-views.md`
@@ -108,4 +109,4 @@ Attribution: `family_member_id` null = Primary; set from WhatsApp sender (`Expen
 4. Do not reintroduce “Category” naming for expense tags
 5. Architecture conflicts → warn using `docs/system-architecture.md`
 6. New Settings/Tools/Integrations pages: gate with `RequiresPrimaryHouseholdAccess`
-7. Expense mutate paths: respect `HouseholdAccess::canMutateExpense()`
+7. Expense/Budget/Recurring mutate paths: respect `HouseholdAccess::canMutateExpense()` / `canMutateBudget()` / `canMutateRecurring()`

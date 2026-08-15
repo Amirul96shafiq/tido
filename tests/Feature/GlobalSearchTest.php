@@ -104,6 +104,28 @@ test('destination search finds profile account and security section', function (
         ->and($match->details)->toBe(['Page' => 'Profile']);
 });
 
+test('destination search finds budgets and recurrings for family members', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'phone' => '60118887777',
+    ]);
+    $user = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    $this->actingAs($user);
+
+    $budgetResults = AdminDestinationSearch::search('Budgets', GlobalSearchResults::make());
+    $budgetPages = collect($budgetResults->getCategories()->get('Pages', []));
+    $budgetMatch = $budgetPages->first(fn ($result): bool => $result->title === 'Budgets');
+
+    $recurringResults = AdminDestinationSearch::search('Recurrings', GlobalSearchResults::make());
+    $recurringPages = collect($recurringResults->getCategories()->get('Pages', []));
+    $recurringMatch = $recurringPages->first(fn ($result): bool => $result->title === 'Recurrings');
+
+    expect($budgetMatch)->not->toBeNull()
+        ->and($budgetMatch->url)->toBe(BudgetResource::getUrl('index'))
+        ->and($recurringMatch)->not->toBeNull()
+        ->and($recurringMatch->url)->toBe(RecurringResource::getUrl('index'));
+});
+
 test('destination search hides account and security for family members', function () {
     $member = FamilyMember::factory()->loginEnabled()->create([
         'phone' => '60118887777',

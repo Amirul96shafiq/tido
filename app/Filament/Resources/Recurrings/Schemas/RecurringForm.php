@@ -11,6 +11,7 @@ use App\Filament\Forms\Components\NotesRichEditor;
 use App\Models\FamilyMember;
 use App\Models\Recurring;
 use App\Support\FieldCharacterLimits;
+use App\Support\HouseholdAccess;
 use App\Support\PhoneNumber;
 use App\Support\RecurringFormNormalizer;
 use App\Support\RecurringScheduleSummary;
@@ -378,6 +379,8 @@ class RecurringForm
                                             default => 'primary',
                                         });
                                     })
+                                    ->disabled(fn (): bool => HouseholdAccess::isFamilyMember())
+                                    ->dehydrated(fn (): bool => ! HouseholdAccess::isFamilyMember())
                                     ->required(),
                                 Select::make('family_member_id')
                                     ->label('Family member')
@@ -386,7 +389,9 @@ class RecurringForm
                                     ->live()
                                     ->nullable()
                                     ->required(fn (Get $get): bool => $get('responsibility') === 'family_member')
-                                    ->visible(fn (Get $get): bool => $get('responsibility') === 'family_member'),
+                                    ->visible(fn (Get $get): bool => $get('responsibility') === 'family_member')
+                                    ->disabled(fn (): bool => HouseholdAccess::isFamilyMember())
+                                    ->dehydrated(fn (): bool => ! HouseholdAccess::isFamilyMember()),
                                 Hidden::make('is_shared')
                                     ->default(false)
                                     ->dehydrated(),

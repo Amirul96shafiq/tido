@@ -14,11 +14,13 @@ Single-tenant hub with **household roles**: one **Primary** user owns settings; 
 | Login sync | `app/Services/FamilyMemberLoginService.php` + `app/Observers/FamilyMemberObserver.php` |
 | Primary-only gate | `app/Filament/Concerns/RequiresPrimaryHouseholdAccess.php` |
 | Expense mutate ACL | `app/Policies/ExpensePolicy.php` → `HouseholdAccess::canMutateExpense()` |
+| Budget mutate ACL | `app/Policies/BudgetPolicy.php` → `HouseholdAccess::canMutateBudget()` |
+| Recurring mutate ACL | `app/Policies/RecurringPolicy.php` → `HouseholdAccess::canMutateRecurring()` |
 | Resource edit audit | `app/Models/Concerns/TracksResourceEdits.php` → `edited_by` on supported resource tables |
 | Account switching | `app/Filament/Livewire/AccountSwitcher.php` + `resources/views/filament/livewire/account-switcher.blade.php` |
 | Family Member CRUD | `app/Filament/Resources/FamilyMembers/` (Settings; primary only) |
 | Local test seed | `database/seeders/FamilyMemberLoginTestSeeder.php` (local/testing only) |
-| Tests | `tests/Feature/FamilyMemberAttributionLoginTest.php`, `tests/Feature/ExpenseFamilyMemberOwnershipTest.php` |
+| Tests | `tests/Feature/FamilyMemberAttributionLoginTest.php`, `tests/Feature/ExpenseFamilyMemberOwnershipTest.php`, `tests/Feature/BudgetFamilyMemberOwnershipTest.php`, `tests/Feature/RecurringFamilyMemberOwnershipTest.php` |
 
 ## Roles
 
@@ -30,24 +32,29 @@ Single-tenant hub with **household roles**: one **Primary** user owns settings; 
 Primary-only surfaces use `RequiresPrimaryHouseholdAccess` (`canAccess` + hide nav):
 
 - Settings: Labels, Payment Methods, Family Members
-- Finances: Budgets, Recurrings
 - Integrations: Evolution API
 - Tools: Backups
 - Profile: household / WhatsApp allowlist sections that are primary-only
-- Global search destinations filtered for non-primary users
+- Global search destinations filtered for non-primary users (Budgets and Recurrings stay visible)
 
-Family members **can** use: Home (Finance dashboard), Upload Receipts, Expenses, Service Status (read-only), Profile (own account), WhatsApp OTP login.
+Family members **can** use: Home (Finance dashboard), Upload Receipts, Expenses, Budgets, Recurrings, Service Status (read-only), Profile (own account), WhatsApp OTP login.
 
 ## Budgets (owner + share)
 
-Budgets are **Primary-managed** (CRUD stays primary-only). Each budget has:
+Each budget has:
 
 | Field | Meaning |
 |-------|---------|
 | `family_member_id` | Owner. `null` = Primary; non-null = that Family Member |
 | `is_shared` | Spending pool. `false` = only the owner’s expenses count; `true` = all household expenses count |
 
-**Visibility (Home Budget Performance):** Primary sees all active budgets. Family members see budgets they own **or** budgets with `is_shared = true` (read-only progress; no edit/reorder; Budgets nav still hidden).
+**List / View:** Family members see every household budget (same as Expenses). View slide-over stays available for records they cannot edit.
+
+**Mutate:** Family members may edit, delete, or toggle `is_active` only when `family_member_id` matches their linked member. Shared-but-not-owned is view-only. Assignment (`family_member_id`, `is_shared`) is locked on family edit. Primary may mutate any.
+
+**Create:** Primary only. Family members still see New Budget; the control is disabled with `Only {primaryUsername} able to use this CTA button.` Direct create URLs stay forbidden.
+
+**Visibility (Home Budget Performance):** Primary sees all active budgets. Family members see budgets they own **or** budgets with `is_shared = true`. Assigned rows link to edit. Reorder stays primary-only.
 
 **Alerts:** Primary always receives WhatsApp/Filament alerts when enabled on the budget. If the budget is assigned to a Family Member, that member’s WhatsApp number is also notified; their linked login user receives Filament alerts only when login is enabled and `notify_budget_alerts` is on.
 
@@ -55,9 +62,11 @@ Existing budgets migrated with `is_shared = true` (household pool). New budgets 
 
 ## Recurrings (owner + share)
 
-Recurring templates are **Primary-managed** (CRUD stays primary-only). Ownership fields match budgets (`family_member_id`, `is_shared`). Full behaviour: [recurrings.md](recurrings.md).
+Ownership fields match budgets (`family_member_id`, `is_shared`). Full behaviour: [recurrings.md](recurrings.md).
 
-**Visibility (Home Due Recurrings / month bills snapshot):** Primary sees all open due/overdue occurrences. Family members see occurrences for templates they own **or** `is_shared = true` (Skip allowed on the dues list; Recurrings nav still hidden). The snapshot widget uses the same visibility.
+**List / View / Mutate / Create:** Same ACL as budgets — family members list every template, edit only assigned ones, and cannot create (New Recurring stays visible but disabled).
+
+**Visibility (Home Due Recurrings / month bills snapshot):** Primary sees all open due/overdue occurrences. Family members see occurrences for templates they own **or** `is_shared = true` (Skip allowed on the dues list). Assigned rows link to edit. Manage opens the Recurrings list. Reorder stays primary-only.
 
 ## Family Member model
 
@@ -148,11 +157,11 @@ Account rows use `display_name`, falling back to `name`, and display the current
 
 1. Gate new Settings / Tools / Integrations pages with `RequiresPrimaryHouseholdAccess` (or explicit `HouseholdAccess::isPrimary()`).
 2. Attribute new WhatsApp image/PDF/text and upload expense creates via `ExpenseSenderAttribution` or the acting user’s `family_member_id`.
-3. Expense mutate UI must respect `HouseholdAccess::canMutateExpense()` / `ExpensePolicy` — do not hide View for family members.
+3. Expense, Budget, and Recurring mutate UI must respect `HouseholdAccess::canMutateExpense()` / `canMutateBudget()` / `canMutateRecurring()` and the matching policies — do not hide View for family members. Create stays primary-only (visible disabled CTA).
 4. Do not invent Spatie roles/tenancy — household role is a column + helpers only.
 5. Tests: `FamilyMember::factory()->loginEnabled()`, `Http::fake` / `Queue::fake` for OTP/WhatsApp.
 6. Treat a WhatsApp LID as unresolved until `WhatsAppLid` maps it to an allowlisted contact; never use the raw LID as a phone number.
-7. Keep resource edit attribution separate from household spender attribution; use `TracksResourceEdits` for supported model changes and `HouseholdAccess` / `ExpensePolicy` for authorization.
+7. Keep resource edit attribution separate from household spender attribution; use `TracksResourceEdits` for supported model changes and `HouseholdAccess` / resource policies for authorization.
 
 ## Related
 
