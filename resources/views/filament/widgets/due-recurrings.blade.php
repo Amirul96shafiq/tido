@@ -13,10 +13,10 @@
             ->merge([
                 'id' => $this->getDashboardSectionId(),
             ], escape: false)
-            ->class(['h-full', 'fi-wi-due-recurrings'])
+            ->class(['fi-wi-due-recurrings'])
     "
 >
-    <x-filament::section class="h-full">
+    <x-filament::section>
         <x-slot name="heading">
             <span class="inline-flex items-center gap-2">
                 <span class="relative flex size-2 shrink-0" aria-hidden="true">
@@ -69,8 +69,8 @@
                 @if ($canManageRecurrings)
                     wire:sort="reorderRecurrings"
                 @endif
-                class="custom-scrollbar grid flex-1 grid-cols-1 gap-1 overflow-y-auto pr-2"
-                style="min-height: {{ $contentHeight }}; max-height: {{ $contentHeight }}"
+                class="custom-scrollbar grid grid-cols-1 gap-1 overflow-y-auto pr-2"
+                style="max-height: {{ $contentHeight }}"
             >
                 @foreach ($items as $item)
                     <div
@@ -79,7 +79,7 @@
                             wire:sort:item="{{ $item['recurring_id'] }}"
                         @endif
                         @class([
-                            '-mx-1 flex min-w-0 items-center gap-2 rounded-xl px-2 py-3 transition-colors duration-200 hover:bg-gray-100 sm:gap-3 sm:px-3 dark:hover:bg-slate-700/60',
+                            '-mx-1 flex min-w-0 items-center gap-2 rounded-xl px-2 py-1.5 transition-colors duration-200 hover:bg-gray-100 sm:gap-3 sm:px-3 dark:hover:bg-slate-700/60',
                             'opacity-50' => ($item['is_completed'] ?? false),
                         ])
                     >
@@ -134,14 +134,14 @@
                             ])
                         >
                             {{-- Left: identity + secondary meta (bills-timeline / payment-card pattern) --}}
-                            <div class="flex min-w-0 flex-1 flex-col gap-1">
+                            <div class="flex min-w-0 flex-1 flex-col gap-0.5">
                                 <div class="flex min-w-0 items-center gap-2">
                                     <x-tido.text-marquee
                                         class="min-w-0 flex-1"
-                                        text-class="inline-flex items-center gap-2 whitespace-nowrap"
+                                        text-class="inline-flex items-center gap-2 leading-5 whitespace-nowrap"
                                         wire:key="due-recurrings-title-{{ $item['id'] }}"
                                     >
-                                        <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                        <span class="text-sm leading-5 font-semibold text-gray-800 dark:text-gray-200">
                                             {{ $item['title'] }}
                                         </span>
 
@@ -159,7 +159,7 @@
 
                                 <x-tido.text-marquee
                                     class="min-w-0 w-full"
-                                    text-class="inline-flex items-center gap-x-1.5 whitespace-nowrap text-xs text-gray-400 dark:text-gray-500"
+                                    text-class="inline-flex items-center gap-x-1.5 whitespace-nowrap text-xs leading-4 text-gray-400 dark:text-gray-500"
                                     wire:key="due-recurrings-meta-{{ $item['id'] }}-{{ $item['status'] }}-{{ (int) $isCompleted }}-{{ (int) $isSkipped }}"
                                 >
                                     @if ($isCompleted)

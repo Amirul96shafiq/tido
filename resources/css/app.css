@@ -3993,6 +3993,28 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     min-height: 0;
 }
 
+/*
+ * Due Recurrings hugs a short list instead of stretching to the Bills snapshot.
+ * Widgets sit in .fi-grid-col, so target that column — not a direct grid child.
+ * Populated lists keep max-height only; empty state still uses STANDARD_CHART.
+ */
+.tido-dashboard-page .fi-grid-col:has(.fi-wi-due-recurrings) {
+    align-self: start;
+    height: auto;
+}
+
+.tido-dashboard-page .fi-wi-due-recurrings,
+.tido-dashboard-page .fi-wi-due-recurrings > .fi-section,
+.tido-dashboard-page .fi-wi-due-recurrings > .fi-section > .fi-section-content-ctn,
+.tido-dashboard-page .fi-wi-due-recurrings
+    > .fi-section
+    > .fi-section-content-ctn
+    > .fi-section-content {
+    flex: 0 1 auto;
+    min-height: 0;
+    height: auto;
+}
+
 /* Keep the currency card filled to the height of the four-card overview column. */
 .tido-dashboard-page #currency-rate.fi-wi-current-currency,
 .tido-dashboard-page #currency-rate.fi-wi-current-currency > .fi-section,

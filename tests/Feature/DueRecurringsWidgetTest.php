@@ -254,12 +254,18 @@ test('due recurrings list uses standard chart height and a single-column layout'
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSee('max-height: '.$height, false)
-        ->assertSee('min-height: '.$height, false)
-        ->assertSee('custom-scrollbar grid flex-1 grid-cols-1 gap-1', false)
+        ->assertDontSee('min-height: '.$height, false)
+        ->assertSee('custom-scrollbar grid grid-cols-1 gap-1', false)
         ->assertDontSee('sm:grid-cols-2', false)
-        ->assertSee('h-full', false)
+        ->assertDontSee('custom-scrollbar grid flex-1 grid-cols-1', false)
         ->assertSee('pr-2', false)
-        ->assertSee('-mx-1 flex min-w-0 items-center gap-2 rounded-xl px-2 py-3', false);
+        ->assertSee('-mx-1 flex min-w-0 items-center gap-2 rounded-xl px-2 py-1.5', false);
+
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.tido-dashboard-page .fi-grid-col:has(.fi-wi-due-recurrings)')
+        ->toContain('align-self: start;');
 
     expect((new ReflectionClass(DueRecurrings::class))->getDefaultProperties()['columnSpan'])
         ->toBe([
@@ -308,7 +314,9 @@ test('due recurrings widget uses payment-card two-zone layout', function () {
         ->assertSee('x-ref="marqueeTrack"', false)
         ->assertSee('tido-text-marquee-clip', false)
         ->assertSee('tido-text-marquee-track', false)
-        ->assertSee('flex min-w-0 flex-1 flex-col gap-1', false)
+        ->assertSee('flex min-w-0 flex-1 flex-col gap-0.5', false)
+        ->assertSee('leading-5', false)
+        ->assertSee('text-xs leading-4', false)
         ->assertSee('flex min-w-0 flex-1 items-center justify-between gap-2', false)
         ->assertSee('sm:gap-4', false)
         ->assertSee('fi-avatar', false)
