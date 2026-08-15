@@ -21,7 +21,16 @@ use ZipArchive;
 
 class BackupService
 {
+    private const RESTORE_LIMITS_EXCEEDED_MESSAGE = 'Backup archive exceeds restore limits.';
+
+    /**
+     * @var list<string>
+     */
+    private const RESTORE_APPLICATION_FILE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'];
+
     private static bool $skipScheduledCatalogRegistration = false;
+
+    private ?float $restoreStartedAt = null;
 
     public static function skipScheduledCatalogRegistration(): void
     {
@@ -122,23 +131,31 @@ class BackupService
             throw new RuntimeException('Backup archive was not found.');
         }
 
-        $payloadPath = $this->extractBackupPayloadFromZip($zipPath);
+        $this->restoreStartedAt = microtime(true);
 
         try {
-            if (str_ends_with($payloadPath, '.sql')) {
-                $this->importSqlDump($payloadPath);
-            } elseif (str_ends_with($payloadPath, '.sqlite')) {
-                $this->importSqliteFile($payloadPath);
-            } else {
-                throw new RuntimeException('Unsupported backup payload format.');
-            }
+            $this->inspectZipResourceLimits($zipPath);
 
-            $this->restoreApplicationFilesFromZip($zipPath);
-            $this->flushCaches();
-        } finally {
-            if (File::isDirectory(dirname($payloadPath))) {
-                File::deleteDirectory(dirname($payloadPath));
+            $payloadPath = $this->extractBackupPayloadFromZip($zipPath);
+
+            try {
+                if (str_ends_with($payloadPath, '.sql')) {
+                    $this->importSqlDump($payloadPath);
+                } elseif (str_ends_with($payloadPath, '.sqlite')) {
+                    $this->importSqliteFile($payloadPath);
+                } else {
+                    throw new RuntimeException('Unsupported backup payload format.');
+                }
+
+                $this->restoreApplicationFilesFromZip($zipPath);
+                $this->flushCaches();
+            } finally {
+                if (File::isDirectory(dirname($payloadPath))) {
+                    File::deleteDirectory(dirname($payloadPath));
+                }
             }
+        } finally {
+            $this->restoreStartedAt = null;
         }
     }
 
@@ -427,6 +444,8 @@ class BackupService
 
         try {
             for ($index = 0; $index < $zip->numFiles; $index++) {
+                $this->assertRestoreDurationNotExceeded();
+
                 $name = $zip->getNameIndex($index);
 
                 if (! is_string($name) || str_ends_with($name, '/')) {
@@ -449,6 +468,12 @@ class BackupService
                 }
 
                 if (str_contains($relativePath, '..') || str_starts_with($relativePath, '/') || str_contains($relativePath, '\\')) {
+                    continue;
+                }
+
+                $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
+
+                if (! in_array($extension, self::RESTORE_APPLICATION_FILE_EXTENSIONS, true)) {
                     continue;
                 }
 
@@ -509,6 +534,79 @@ class BackupService
         return (string) config('backup.backup.name', 'laravel-backup');
     }
 
+    protected function inspectZipResourceLimits(string $zipPath): void
+    {
+        $this->assertRestoreDurationNotExceeded();
+
+        $compressedBytes = File::size($zipPath);
+
+        if (! is_int($compressedBytes) || $compressedBytes < 0) {
+            throw new RuntimeException(self::RESTORE_LIMITS_EXCEEDED_MESSAGE);
+        }
+
+        $maxEntries = (int) config('backup.backup.restore.max_entries', 5000);
+        $maxUncompressedBytes = (int) config('backup.backup.restore.max_uncompressed_bytes', 209715200);
+        $maxEntryBytes = (int) config('backup.backup.restore.max_entry_bytes', 52428800);
+        $maxCompressionRatio = (float) config('backup.backup.restore.max_compression_ratio', 100);
+
+        $zip = new ZipArchive;
+
+        if ($zip->open($zipPath) !== true) {
+            throw new RuntimeException('Unable to open backup archive.');
+        }
+
+        try {
+            $entryCount = $zip->numFiles;
+
+            if ($entryCount > $maxEntries) {
+                throw new RuntimeException(self::RESTORE_LIMITS_EXCEEDED_MESSAGE);
+            }
+
+            $totalUncompressedBytes = 0;
+
+            for ($index = 0; $index < $entryCount; $index++) {
+                $this->assertRestoreDurationNotExceeded();
+
+                $stat = $zip->statIndex($index);
+
+                if ($stat === false) {
+                    throw new RuntimeException(self::RESTORE_LIMITS_EXCEEDED_MESSAGE);
+                }
+
+                $entryBytes = (int) ($stat['size'] ?? 0);
+
+                if ($entryBytes < 0 || $entryBytes > $maxEntryBytes) {
+                    throw new RuntimeException(self::RESTORE_LIMITS_EXCEEDED_MESSAGE);
+                }
+
+                $totalUncompressedBytes += $entryBytes;
+
+                if ($totalUncompressedBytes > $maxUncompressedBytes) {
+                    throw new RuntimeException(self::RESTORE_LIMITS_EXCEEDED_MESSAGE);
+                }
+            }
+
+            if ($compressedBytes > 0 && ($totalUncompressedBytes / $compressedBytes) > $maxCompressionRatio) {
+                throw new RuntimeException(self::RESTORE_LIMITS_EXCEEDED_MESSAGE);
+            }
+        } finally {
+            $zip->close();
+        }
+    }
+
+    protected function assertRestoreDurationNotExceeded(): void
+    {
+        if ($this->restoreStartedAt === null) {
+            return;
+        }
+
+        $maxDurationSeconds = (int) config('backup.backup.restore.max_duration_seconds', 60);
+
+        if ((microtime(true) - $this->restoreStartedAt) >= $maxDurationSeconds) {
+            throw new RuntimeException(self::RESTORE_LIMITS_EXCEEDED_MESSAGE);
+        }
+    }
+
     protected function extractBackupPayloadFromZip(string $zipPath): string
     {
         $tempDirectory = storage_path('app/backup-restore/'.uniqid('payload_', true));
@@ -528,6 +626,8 @@ class BackupService
             $sqlEntries = [];
 
             for ($index = 0; $index < $zip->numFiles; $index++) {
+                $this->assertRestoreDurationNotExceeded();
+
                 $name = $zip->getNameIndex($index);
 
                 if (! is_string($name) || $name === '') {
@@ -603,6 +703,8 @@ class BackupService
         string $tempDirectory,
         string $controlledBasename,
     ): string {
+        $this->assertRestoreDurationNotExceeded();
+
         $contents = $zip->getFromName($entryName);
 
         if ($contents === false) {
