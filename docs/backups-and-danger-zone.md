@@ -6,15 +6,16 @@ Cataloged ZIP backups, restore tokens, guest restore, and profile account deleti
 
 | Layer | Path |
 |-------|------|
-| Model | `app/Models/Backup.php` (`backups` table; includes `restore_token_hash` and `edited_by`) |
+| Model | `app/Models/Backup.php` (`backups` table; includes `restore_token_hash`, `content_sha256`, `manifest_hmac`, and `edited_by`) |
 | Service | `app/Services/BackupService.php` |
+| Manifest MAC | `app/Support/BackupManifest.php` |
 | Notifications | `app/Services/BackupNotificationService.php` |
 | Account wipe + final backup | `app/Services/AccountDangerZoneService.php` |
 | Filament resource | `app/Filament/Resources/Backups/` |
 | Profile Danger Zone | `app/Filament/Pages/Auth/EditProfile.php` |
 | Guest restore UI | `resources/views/components/restore-backup-modal.blade.php` |
 | Guest restore API | `app/Http/Controllers/GuestRestoreBackupController.php` |
-| Authenticated download | `app/Http/Controllers/BackupDownloadController.php` |
+| Authenticated download | `app/Http/Controllers/BackupDownloadController.php` (`GET /backups/{backup}/download`, signed) |
 | Scheduled catalog hook | `app/Listeners/RegisterScheduledBackupCatalog.php` (`BackupWasSuccessful`) |
 
 ## Concepts
@@ -24,6 +25,7 @@ Cataloged ZIP backups, restore tokens, guest restore, and profile account deleti
 - **Restore token:** Plain token is shown once (email / UI); only `restore_token_hash` is stored. Required for restore / guest restore.
 - **Guest restore:** When no users exist (post Danger Zone wipe), auth menu exposes Restore Backup → Alpine modal → `GuestRestoreBackupRequest` validation → `BackupService` restore.
 - **Danger Zone (Edit Profile):** Creates a final backup, returns the restore token to the user, then deletes account data. Single-tenant — wiping the only user leaves the app in guest-restore mode.
+- **Download:** Tools → Backups Download and Danger Zone both use `BackupService::temporaryDownloadUrl()` (`URL::temporarySignedRoute` to `backups.download`, 10 minutes). The browser hits the signed GET route and streams from disk. Do not return the ZIP from a Livewire/Filament `->action()`; Livewire buffers the whole file and large archives exhaust PHP memory. The download URL is listed in Filament `spaUrlExceptions` so panel SPA mode does not `wire:navigate` into the ZIP bytes.
 
 ## Guest restore upload boundary
 
@@ -50,11 +52,27 @@ The client-supplied filename is not a filesystem location. Path-like, reserved, 
 
 Every central-directory entry counts toward those limits, including extra Spatie source paths that are not restored. Application-file writes remain `files/public/` → disk `public` and `files/private/` → disk `local`, and only `jpg`, `jpeg`, `png`, `gif`, `webp`, and `pdf` extensions are written. Archives that exceed a limit fail closed with a generic error before payload directories or storage writes.
 
+## Restore integrity and one-time use
+
+Guest and catalog restore bind the archive to the catalog row before any database or application-file write. After a ZIP is fully assembled, `BackupService` hashes restoreable entries (`database.sqlite` or `db-dumps/{safe}.sql`, plus `files/public|private` with the restore extensions), excluding `RESTORE_TOKEN.txt`, `MANIFEST.json`, and `MANIFEST.hmac`. It embeds `MANIFEST.json` and `MANIFEST.hmac` (HMAC-SHA256 over the canonical JSON using `APP_KEY`) and stores `content_sha256` and `manifest_hmac` on the catalog row.
+
+Restore then:
+
+1. Acquires an exclusive file-cache lock (`backup-restore`) so only one restore runs at a time. The file store is used so the lock survives a SQLite file replace.
+2. Re-checks the restore token (guest path) and verifies the ZIP content hash against the catalog. When `manifest_hmac` is present, the embedded MAC must match.
+3. Legacy rows with a null hash are backfilled from the on-disk catalog file when it exists; otherwise restore fails closed.
+4. Snapshots the live SQLite file (when file-backed) and any application files the ZIP would overwrite.
+5. Imports and restores files. On success, the guest token is consumed. On failure, the snapshot is restored and the token is left in place.
+
+`issueRestoreToken` re-embeds the token and re-seals the manifest; content identity does not change because the token file is excluded from the hash.
+
 ## Safe manual verification
 
-Reset Data and Delete Account remove expense records and their stored receipt files, so do not perform the zero-user guest-restore test against a local database that contains valuable data. Use a disposable local sandbox with its own SQLite database and `storage/app` directories.
+Reset Data and Delete Account remove expense records and their stored receipt files, so do not perform the zero-user guest-restore test against a local database that contains valuable data. Use the disposable sandbox on port **2001** (`docs/sandbox-testing.md`): its own `.env.sandbox`, `database/sandbox.sqlite`, and `storage/sandbox/`. Never run that flow on `http://tido.local` or port 2000.
 
-The recommended browser flow is:
+`APP_STORAGE_PATH` is applied in `bootstrap/app.php` via `Application::afterLoadingEnvironment()` so `.env.sandbox` is loaded before `config/filesystems.php` evaluates `storage_path()`. Applying it immediately after `Application::configure()->create()` is too early: `env('APP_STORAGE_PATH')` is empty, disks stay on live `storage/app`, and a sandbox backup can embed live receipts and prior backup ZIPs.
+
+The recommended browser flow (sandbox only) is:
 
 1. Create one synthetic expense and receipt image in the sandbox.
 2. Create and download a complete backup from **Backups**.
@@ -75,9 +93,11 @@ A copied `database.sqlite` file alone is not a complete rollback because it rest
 6. Keep backup recency on `updated_at`; `created_at` describes when the catalog row was first created and is not the table’s Edited At value.
 7. Do not broaden database ZIP payload selection beyond the allowlisted entry names above; never pass archive entry path components into filesystem destinations.
 8. Inspect restore ZIP central-directory limits before any database or application-file write; do not extract first and cap afterwards.
+9. Verify catalog content hash and manifest MAC before restore writes; hold the exclusive restore lock; snapshot and roll back on failure; consume the guest token only after a successful import.
 
 ## Related
 
+- Isolated backup/wipe runtime: [sandbox-testing.md](sandbox-testing.md)
 - Spatie schedule / disks: `config/backup.php`, `docs/system-architecture.md` §7.4
 - Modal blur: [ui-modal-overlay.md](ui-modal-overlay.md)
 - Impersonal copy: [ui-copy-style.md](ui-copy-style.md)

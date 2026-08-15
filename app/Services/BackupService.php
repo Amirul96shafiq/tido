@@ -7,26 +7,26 @@ namespace App\Services;
 use App\Enums\BackupType;
 use App\Models\Backup;
 use App\Models\User;
+use App\Support\BackupManifest;
+use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Spatie\Backup\BackupDestination\BackupDestination;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 use ZipArchive;
 
 class BackupService
 {
     private const RESTORE_LIMITS_EXCEEDED_MESSAGE = 'Backup archive exceeds restore limits.';
-
-    /**
-     * @var list<string>
-     */
-    private const RESTORE_APPLICATION_FILE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'];
 
     private static bool $skipScheduledCatalogRegistration = false;
 
@@ -92,6 +92,7 @@ class BackupService
         $plainToken = $this->generateRestoreToken();
         $this->embedApplicationFilesOnDisk($diskName, $newPath);
         $this->embedRestoreTokenOnDisk($diskName, $newPath, $plainToken);
+        $identity = $this->sealBackupArchive($diskName, $newPath, $filename);
 
         return Backup::query()->create([
             'type' => BackupType::Auto,
@@ -101,6 +102,8 @@ class BackupService
             'size_bytes' => $disk->exists($newPath) ? $disk->size($newPath) : null,
             'created_by' => null,
             'restore_token_hash' => Hash::make($plainToken),
+            'content_sha256' => $identity['content_sha256'],
+            'manifest_hmac' => $identity['manifest_hmac'],
         ]);
     }
 
@@ -117,12 +120,17 @@ class BackupService
         File::put($zipPath, Storage::disk($backup->disk)->get($backup->path));
 
         try {
-            $this->restoreFromZipPath($zipPath);
+            $this->restoreBoundArchive($backup, $zipPath, null);
         } finally {
             if (File::isDirectory($tempDirectory)) {
                 File::deleteDirectory($tempDirectory);
             }
         }
+    }
+
+    public function restoreGuestUpload(Backup $backup, string $zipPath, string $plainToken): void
+    {
+        $this->restoreBoundArchive($backup, $zipPath, $plainToken);
     }
 
     public function restoreFromZipPath(string $zipPath): void
@@ -159,6 +167,346 @@ class BackupService
         }
     }
 
+    protected function restoreBoundArchive(Backup $backup, string $zipPath, ?string $plainToken): void
+    {
+        $store = Cache::store('file')->getStore();
+
+        if (! $store instanceof LockProvider) {
+            throw new RuntimeException('A restore is already in progress.');
+        }
+
+        $lock = $store->lock('backup-restore', $this->restoreLockTtlSeconds());
+
+        if (! $lock->get()) {
+            throw new RuntimeException('A restore is already in progress.');
+        }
+
+        $snapshot = null;
+
+        try {
+            $backup->refresh();
+
+            if ($plainToken !== null && ! $this->assertRestoreToken($backup, $plainToken)) {
+                throw new RuntimeException('Invalid restore token or backup.');
+            }
+
+            $this->ensureCatalogIdentity($backup);
+            $backup->refresh();
+            $this->assertArchiveMatchesCatalog($backup, $zipPath);
+
+            $snapshot = $this->createRestoreSnapshot($zipPath);
+
+            try {
+                $this->restoreFromZipPath($zipPath);
+
+                if ($plainToken !== null) {
+                    $this->consumeRestoreToken($backup);
+                }
+            } catch (Throwable $exception) {
+                $this->rollbackRestoreSnapshot($snapshot);
+
+                throw $exception;
+            }
+        } finally {
+            if ($snapshot !== null) {
+                $this->deleteRestoreSnapshot($snapshot);
+            }
+
+            $lock->release();
+        }
+    }
+
+    public function ensureCatalogIdentity(Backup $backup): void
+    {
+        if (filled($backup->content_sha256)) {
+            return;
+        }
+
+        if (! $backup->fileExists()) {
+            throw new RuntimeException('Backup archive identity could not be verified.');
+        }
+
+        $tempDirectory = storage_path('app/backup-restore/'.uniqid('identity_', true));
+        File::ensureDirectoryExists($tempDirectory);
+
+        $zipPath = $tempDirectory.'/backup.zip';
+        File::put($zipPath, Storage::disk($backup->disk)->get($backup->path));
+
+        try {
+            $identity = $this->readArchiveIdentity($zipPath);
+
+            $backup->forceFill([
+                'content_sha256' => $identity['content_sha256'],
+                'manifest_hmac' => $identity['manifest_hmac'],
+            ])->save();
+        } finally {
+            if (File::isDirectory($tempDirectory)) {
+                File::deleteDirectory($tempDirectory);
+            }
+        }
+    }
+
+    protected function assertArchiveMatchesCatalog(Backup $backup, string $zipPath): void
+    {
+        $identity = $this->readArchiveIdentity($zipPath);
+        $catalogHash = (string) $backup->content_sha256;
+
+        if ($catalogHash === '' || ! hash_equals($catalogHash, $identity['content_sha256'])) {
+            throw new RuntimeException('Backup archive identity could not be verified.');
+        }
+
+        $catalogHmac = $backup->manifest_hmac;
+
+        if (! filled($catalogHmac)) {
+            return;
+        }
+
+        if ($identity['manifest_hmac'] === null
+            || ! hash_equals((string) $catalogHmac, $identity['manifest_hmac'])
+        ) {
+            throw new RuntimeException('Backup archive identity could not be verified.');
+        }
+    }
+
+    /**
+     * @return array{content_sha256: string, manifest_hmac: ?string}
+     */
+    protected function readArchiveIdentity(string $zipPath): array
+    {
+        $zip = new ZipArchive;
+
+        if ($zip->open($zipPath) !== true) {
+            throw new RuntimeException('Unable to open backup archive.');
+        }
+
+        try {
+            $contentSha256 = BackupManifest::contentSha256($zip);
+            $json = $zip->getFromName(BackupManifest::JSON_ENTRY);
+            $hmacEntry = $zip->getFromName(BackupManifest::HMAC_ENTRY);
+
+            if ($json === false || $hmacEntry === false) {
+                return [
+                    'content_sha256' => $contentSha256,
+                    'manifest_hmac' => null,
+                ];
+            }
+
+            $normalizedHmac = strtolower(trim($hmacEntry));
+
+            if (! BackupManifest::hmacIsValid($json, $normalizedHmac)) {
+                throw new RuntimeException('Backup archive identity could not be verified.');
+            }
+
+            $manifest = BackupManifest::decode($json);
+
+            if ($manifest === null
+                || $manifest['v'] !== BackupManifest::VERSION
+                || ! hash_equals($contentSha256, $manifest['content_sha256'])
+            ) {
+                throw new RuntimeException('Backup archive identity could not be verified.');
+            }
+
+            return [
+                'content_sha256' => $contentSha256,
+                'manifest_hmac' => $normalizedHmac,
+            ];
+        } finally {
+            $zip->close();
+        }
+    }
+
+    /**
+     * @return array{content_sha256: string, manifest_hmac: string}
+     */
+    protected function sealBackupArchive(string $diskName, string $path, string $filename): array
+    {
+        $tempDirectory = storage_path('app/backup-temp/'.uniqid('seal_', true));
+        File::ensureDirectoryExists($tempDirectory);
+
+        $tempZipPath = $tempDirectory.'/backup.zip';
+        File::put($tempZipPath, Storage::disk($diskName)->get($path));
+
+        $zip = new ZipArchive;
+
+        if ($zip->open($tempZipPath) !== true) {
+            File::deleteDirectory($tempDirectory);
+
+            throw new RuntimeException('Unable to open backup archive to seal identity.');
+        }
+
+        try {
+            $contentSha256 = BackupManifest::contentSha256($zip);
+            $canonicalJson = BackupManifest::encode($filename, $contentSha256);
+            $hmac = BackupManifest::hmac($canonicalJson);
+
+            $this->replaceZipStringEntry($zip, BackupManifest::JSON_ENTRY, $canonicalJson);
+            $this->replaceZipStringEntry($zip, BackupManifest::HMAC_ENTRY, $hmac."\n");
+        } finally {
+            $zip->close();
+        }
+
+        Storage::disk($diskName)->put($path, File::get($tempZipPath));
+        File::deleteDirectory($tempDirectory);
+
+        return [
+            'content_sha256' => $contentSha256,
+            'manifest_hmac' => $hmac,
+        ];
+    }
+
+    protected function replaceZipStringEntry(ZipArchive $zip, string $name, string $contents): void
+    {
+        $existingIndex = $zip->locateName($name);
+
+        if ($existingIndex !== false) {
+            $zip->deleteIndex($existingIndex);
+        }
+
+        $zip->addFromString($name, $contents);
+    }
+
+    /**
+     * @return array{directory: string, sqlite: ?string, files: list<array{disk: string, path: string, existed: bool}>}
+     */
+    protected function createRestoreSnapshot(string $zipPath): array
+    {
+        $directory = storage_path('app/backup-restore/'.uniqid('snapshot_', true));
+        File::ensureDirectoryExists($directory);
+
+        $sqliteSnapshot = null;
+        $liveSqlitePath = $this->liveSqliteDatabasePath();
+
+        if ($liveSqlitePath !== null) {
+            $sqliteSnapshot = $directory.DIRECTORY_SEPARATOR.'database.sqlite';
+            File::copy($liveSqlitePath, $sqliteSnapshot);
+        }
+
+        $files = [];
+
+        foreach ($this->listRestorableApplicationFilesFromZip($zipPath) as $file) {
+            $existed = Storage::disk($file['disk'])->exists($file['path']);
+
+            if ($existed) {
+                $snapshotPath = $directory.DIRECTORY_SEPARATOR.$file['disk'].DIRECTORY_SEPARATOR.str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $file['path']);
+                File::ensureDirectoryExists(dirname($snapshotPath));
+                File::put($snapshotPath, Storage::disk($file['disk'])->get($file['path']));
+            }
+
+            $files[] = [
+                'disk' => $file['disk'],
+                'path' => $file['path'],
+                'existed' => $existed,
+            ];
+        }
+
+        return [
+            'directory' => $directory,
+            'sqlite' => $sqliteSnapshot,
+            'files' => $files,
+        ];
+    }
+
+    /**
+     * @param  array{directory: string, sqlite: ?string, files: list<array{disk: string, path: string, existed: bool}>}  $snapshot
+     */
+    protected function rollbackRestoreSnapshot(array $snapshot): void
+    {
+        if ($snapshot['sqlite'] !== null && File::exists($snapshot['sqlite'])) {
+            $connection = (string) config('database.default');
+            $databasePath = config("database.connections.{$connection}.database");
+
+            if (is_string($databasePath) && $databasePath !== ':memory:') {
+                DB::disconnect($connection);
+                File::copy($snapshot['sqlite'], $databasePath);
+                DB::purge($connection);
+                DB::reconnect($connection);
+            }
+        }
+
+        foreach ($snapshot['files'] as $file) {
+            $snapshotPath = $snapshot['directory'].DIRECTORY_SEPARATOR.$file['disk'].DIRECTORY_SEPARATOR.str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $file['path']);
+
+            if ($file['existed'] && File::exists($snapshotPath)) {
+                Storage::disk($file['disk'])->put($file['path'], File::get($snapshotPath));
+
+                continue;
+            }
+
+            if (! $file['existed'] && Storage::disk($file['disk'])->exists($file['path'])) {
+                Storage::disk($file['disk'])->delete($file['path']);
+            }
+        }
+    }
+
+    /**
+     * @param  array{directory: string, sqlite: ?string, files: list<array{disk: string, path: string, existed: bool}>}  $snapshot
+     */
+    protected function deleteRestoreSnapshot(array $snapshot): void
+    {
+        if (File::isDirectory($snapshot['directory'])) {
+            File::deleteDirectory($snapshot['directory']);
+        }
+    }
+
+    /**
+     * @return list<array{disk: string, path: string}>
+     */
+    protected function listRestorableApplicationFilesFromZip(string $zipPath): array
+    {
+        $zip = new ZipArchive;
+
+        if ($zip->open($zipPath) !== true) {
+            throw new RuntimeException('Unable to open backup archive.');
+        }
+
+        try {
+            $files = [];
+
+            for ($index = 0; $index < $zip->numFiles; $index++) {
+                $name = $zip->getNameIndex($index);
+
+                if (! is_string($name)) {
+                    continue;
+                }
+
+                $file = BackupManifest::isRestorableApplicationFileEntry($name);
+
+                if ($file !== null) {
+                    $files[] = $file;
+                }
+            }
+
+            return $files;
+        } finally {
+            $zip->close();
+        }
+    }
+
+    protected function liveSqliteDatabasePath(): ?string
+    {
+        $connection = (string) config('database.default');
+        $driver = config("database.connections.{$connection}.driver");
+
+        if ($driver !== 'sqlite') {
+            return null;
+        }
+
+        $database = config("database.connections.{$connection}.database");
+
+        if (! is_string($database) || $database === ':memory:' || ! is_file($database)) {
+            return null;
+        }
+
+        return $database;
+    }
+
+    protected function restoreLockTtlSeconds(): int
+    {
+        $maxDurationSeconds = (int) config('backup.backup.restore.max_duration_seconds', 60);
+
+        return max(90, $maxDurationSeconds + 30);
+    }
+
     public function generateRestoreToken(): string
     {
         return bin2hex(random_bytes(16));
@@ -183,10 +531,13 @@ class BackupService
 
         $plainToken = $this->generateRestoreToken();
         $this->embedRestoreTokenOnDisk($backup->disk, $backup->path, $plainToken);
+        $identity = $this->sealBackupArchive($backup->disk, $backup->path, $backup->filename);
 
         $backup->forceFill([
             'restore_token_hash' => Hash::make($plainToken),
             'size_bytes' => Storage::disk($backup->disk)->size($backup->path),
+            'content_sha256' => $identity['content_sha256'],
+            'manifest_hmac' => $identity['manifest_hmac'],
         ])->save();
 
         return $plainToken;
@@ -246,6 +597,15 @@ class BackupService
         }
 
         return Storage::disk($backup->disk)->download($backup->path, $backup->filename);
+    }
+
+    public function temporaryDownloadUrl(Backup $backup): string
+    {
+        return URL::temporarySignedRoute(
+            'backups.download',
+            now()->addMinutes(10),
+            ['backup' => $backup],
+        );
     }
 
     protected function shouldUseNativeDatabaseBackup(): bool
@@ -350,6 +710,7 @@ class BackupService
 
         $plainToken ??= $this->generateRestoreToken();
         $this->embedRestoreTokenOnDisk($diskName, $path, $plainToken);
+        $identity = $this->sealBackupArchive($diskName, $path, $filename);
 
         return Backup::query()->create([
             'type' => $type,
@@ -359,6 +720,8 @@ class BackupService
             'size_bytes' => $disk->size($path),
             'created_by' => $createdBy?->getKey(),
             'restore_token_hash' => Hash::make($plainToken),
+            'content_sha256' => $identity['content_sha256'],
+            'manifest_hmac' => $identity['manifest_hmac'],
         ]);
     }
 
@@ -452,28 +815,9 @@ class BackupService
                     continue;
                 }
 
-                $diskName = null;
-                $relativePath = null;
+                $file = BackupManifest::isRestorableApplicationFileEntry($name);
 
-                if (str_starts_with($name, 'files/public/')) {
-                    $diskName = 'public';
-                    $relativePath = substr($name, strlen('files/public/'));
-                } elseif (str_starts_with($name, 'files/private/')) {
-                    $diskName = 'local';
-                    $relativePath = substr($name, strlen('files/private/'));
-                }
-
-                if ($diskName === null || $relativePath === null || $relativePath === '') {
-                    continue;
-                }
-
-                if (str_contains($relativePath, '..') || str_starts_with($relativePath, '/') || str_contains($relativePath, '\\')) {
-                    continue;
-                }
-
-                $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
-
-                if (! in_array($extension, self::RESTORE_APPLICATION_FILE_EXTENSIONS, true)) {
+                if ($file === null) {
                     continue;
                 }
 
@@ -483,7 +827,7 @@ class BackupService
                     continue;
                 }
 
-                Storage::disk($diskName)->put($relativePath, $contents);
+                Storage::disk($file['disk'])->put($file['path'], $contents);
             }
         } finally {
             $zip->close();

@@ -94,7 +94,7 @@ class BackupsTable
                         ->label('Download')
                         ->icon('heroicon-o-arrow-down-tray')
                         ->color('gray')
-                        ->action(fn (Backup $record, BackupService $backupService) => $backupService->downloadResponse($record)),
+                        ->url(fn (Backup $record, BackupService $backupService): string => $backupService->temporaryDownloadUrl($record)),
                     Action::make('restore')
                         ->label('Restore')
                         ->icon('heroicon-o-arrow-path')

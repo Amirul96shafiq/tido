@@ -42,7 +42,7 @@ No multi-tenancy package. One Filament panel with **household roles** (`primary`
 13. Field character limits (`current/max` counters) — `docs/ui-field-character-limits.md`
 14. Resource form empty placeholders / defaults — `docs/ui-form-empty-defaults.md`
 15. Custom Blade toggles (Filament color classes + Profile inlineLabel) — `docs/ui-custom-toggles.md`
-16. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`
+16. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`. Destructive browser tests use the port-2001 sandbox — `docs/sandbox-testing.md`
 17. Service Status / health probes — `docs/service-status.md`
 18. Profile Active Sessions — `docs/active-sessions.md`
 19. Household access / family login / attribution — `docs/household-access.md`

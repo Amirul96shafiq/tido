@@ -42,6 +42,8 @@ beforeEach(function () {
                     'created_by' => $createdBy?->getKey(),
                 ]);
             });
+        $mock->shouldReceive('temporaryDownloadUrl')
+            ->andReturn('http://127.0.0.1/backups/signed-download');
     });
 });
 

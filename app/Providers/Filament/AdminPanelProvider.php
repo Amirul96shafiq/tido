@@ -281,6 +281,9 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications(livewireComponent: DatabaseNotifications::class)
             ->databaseNotificationsPolling(null)
             ->spa()
+            ->spaUrlExceptions([
+                '*/backups/*/download*',
+            ])
             ->globalSearchResourceOptIn()
             ->globalSearchKeyBindings(['alt+k'])
             ->globalSearchFieldKeyBindingSuffix()

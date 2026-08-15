@@ -3,6 +3,7 @@
 .env
 .env.backup
 .env.production
+.env.sandbox
 .phpactor.json
 .phpunit.result.cache
 /.fleet
@@ -18,10 +19,16 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/sandbox
 /vendor
 Homestead.json
 Homestead.yaml
 Thumbs.db
+/database/sandbox.sqlite
+/database/sandbox.sqlite-journal
+/database/sandbox.sqlite-wal
+/database/sandbox.sqlite-shm
+/public/sandbox-storage
 
 # Codex task-local plan artifacts (keep the directory, not individual plans)
 /.codex/plans/*
