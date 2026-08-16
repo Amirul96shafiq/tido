@@ -43,7 +43,7 @@ beforeEach(function () {
                     'created_by' => $createdBy?->getKey(),
                 ]);
 
-                return new CreatedBackup($backup, 'test-restore-token-0123456789abcdef');
+                return new CreatedBackup($backup, 'aabbccddeeff0011.11223344556677889900aabbccddeeff');
             });
         $mock->shouldReceive('temporaryDownloadUrl')
             ->andReturn('http://127.0.0.1/backups/signed-download');
@@ -152,7 +152,7 @@ test('delete account action downloads backup then logs out', function () {
         $mock->shouldReceive('createPreDeleteBackup')
             ->once()
             ->withArgs(fn (User $user): bool => $user->is($this->user))
-            ->andReturn(new CreatedBackup($backup, 'test-restore-token-0123456789abcdef'));
+            ->andReturn(new CreatedBackup($backup, 'aabbccddeeff0011.11223344556677889900aabbccddeeff'));
         $mock->shouldReceive('completeAccountDeletion')
             ->once()
             ->withArgs(fn (User $user): bool => $user->is($this->user));
@@ -165,11 +165,11 @@ test('delete account action downloads backup then logs out', function () {
         ->callAction(formAction('deleteAccount'))
         ->callMountedAction();
 
-    expect($component->get('pendingRestoreToken'))->toBe('test-restore-token-0123456789abcdef');
+    expect($component->get('pendingRestoreToken'))->toBe('aabbccddeeff0011.11223344556677889900aabbccddeeff');
 
     $component
-        ->assertMountedActionModalSee('Restore token shown once')
-        ->assertMountedActionModalSee('test-restore-token-0123456789abcdef')
+        ->assertMountedActionModalSee('This token is shown only once')
+        ->assertMountedActionModalSee('aabbccddeeff0011.11223344556677889900aabbccddeeff')
         ->callMountedAction()
         ->assertRedirect('/admin/login');
 

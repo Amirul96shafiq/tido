@@ -113,6 +113,8 @@
 
                         if (response.status === 403) {
                             message = data.message ?? 'Restore is unavailable.';
+                        } else if (response.status === 429) {
+                            message = data.message ?? 'Too many restore attempts. Try again later.';
                         } else if (response.status === 422 && data.errors) {
                             const firstError = Object.values(data.errors).flat()[0];
                             message = firstError ?? message;

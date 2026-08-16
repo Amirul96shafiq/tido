@@ -7,6 +7,7 @@ use App\Filament\Resources\Backups\BackupResource;
 use App\Filament\Resources\Backups\Pages\ListBackups;
 use App\Models\Backup;
 use App\Models\User;
+use App\Services\BackupNotificationService;
 use App\Services\BackupService;
 use App\Support\CreatedBackup;
 use Filament\Actions\Testing\TestAction;
@@ -46,7 +47,7 @@ test('create backup header action registers a manual backup', function () {
         $mock->shouldReceive('create')
             ->once()
             ->with(BackupType::Manual, $this->admin)
-            ->andReturn(new CreatedBackup($backup, 'test-restore-token-0123456789abcdef'));
+            ->andReturn(new CreatedBackup($backup, 'aabbccddeeff0011.11223344556677889900aabbccddeeff'));
         $mock->shouldReceive('temporaryDownloadUrl')
             ->andReturn('http://127.0.0.1/backups/signed-download');
     });
@@ -59,7 +60,24 @@ test('create backup header action registers a manual backup', function () {
 
     expect($this->admin->notifications()->count())->toBe(1);
     expect($this->admin->notifications()->first()->data['title'])->toBe('Backup created');
-    expect($this->admin->notifications()->first()->data['body'] ?? '')->not->toContain('test-restore-token-0123456789abcdef');
+    expect($this->admin->notifications()->first()->data['body'] ?? '')->not->toContain('aabbccddeeff0011.11223344556677889900aabbccddeeff');
+});
+
+test('restore token notification copies the token from a copy action', function () {
+    $token = 'aabbccddeeff0011.11223344556677889900aabbccddeeff';
+
+    app(BackupNotificationService::class)->notifyRestoreToken($token);
+
+    $payload = session('filament.notifications.0');
+    $copyAction = collect($payload['actions'] ?? [])->firstWhere('name', 'copyRestoreToken');
+
+    expect($payload['title'])->toBe('Restore token shown once')
+        ->and($payload['body'])->toContain($token)
+        ->and($copyAction)->not->toBeNull()
+        ->and($copyAction['label'])->toBe('Copy token')
+        ->and($copyAction['alpineClickHandler'])->toContain('window.navigator.clipboard.writeText')
+        ->and($copyAction['alpineClickHandler'])->toContain($token)
+        ->and($copyAction['alpineClickHandler'])->toContain('Restore token copied to clipboard');
 });
 
 test('delete backup stores database notification', function () {

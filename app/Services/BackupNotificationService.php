@@ -9,6 +9,8 @@ use App\Models\Backup;
 use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Js;
 
 class BackupNotificationService
 {
@@ -36,6 +38,13 @@ class BackupNotificationService
             ->body("Store it separately from the archive.\n\n{$restoreToken}")
             ->persistent()
             ->success()
+            ->actions([
+                Action::make('copyRestoreToken')
+                    ->label('Copy token')
+                    ->button()
+                    ->icon(Heroicon::OutlinedClipboardDocument)
+                    ->alpineClickHandler($this->copyRestoreTokenAlpineHandler($restoreToken)),
+            ])
             ->send();
     }
 
@@ -64,5 +73,14 @@ class BackupNotificationService
                     ->markAsRead(),
             ])
             ->sendToDatabase($user);
+    }
+
+    protected function copyRestoreTokenAlpineHandler(string $restoreToken): string
+    {
+        return sprintf(
+            'window.navigator.clipboard.writeText(%s); new FilamentNotification().title(%s).success().send()',
+            Js::from($restoreToken),
+            Js::from('Restore token copied to clipboard'),
+        );
     }
 }

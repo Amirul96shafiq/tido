@@ -155,7 +155,7 @@ Source of truth, tab UI, and how to add a module: [dashboard-views.md](dashboard
 * **Database Snapshots:** Utilize `spatie/laravel-backup` to run daily scheduled backups of the PostgreSQL database (and configured files), archiving them to a separate, secure local directory or secondary cloud disk.
 * **Backup catalog:** Successful backups are registered in the `backups` table (`Backup` model / `BackupService`), including scheduled runs via `RegisterScheduledBackupCatalog` on `BackupWasSuccessful`. Manage download / restore / delete from Filament **Tools → Backups**.
 * **Resource edit audit:** Supported resource tables store the latest authenticated editor in `edited_by`, display **Edited By** from the user’s username, and use `updated_at` for **Edited At** and newest-first recency. See `docs/resource-edit-audit.md`.
-* **Restore tokens:** Plain restore tokens are shown once; only `restore_token_hash` is stored. Guest restore (no users) uses the auth-menu Restore Backup modal — see `docs/backups-and-danger-zone.md`.
+* **Restore tokens:** Plain restore tokens are `{selector}.{secret}` and are shown once; the catalog stores `restore_token_lookup` plus `restore_token_hash`. Guest restore (no users) uses indexed selector lookup and the auth-menu Restore Backup modal — see `docs/backups-and-danger-zone.md`.
 * **Danger Zone:** Profile Danger Zone creates a final backup then wipes account data (`AccountDangerZoneService`).
 * **Orphaned File Cleanup:** Implement a scheduled task to purge base64-encoded image strings from temporary cache stores once the OCR pipeline completes to prevent disk bloat.
 

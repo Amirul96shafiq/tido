@@ -86,7 +86,7 @@ test('matching token and signed archive restores and consumes the token', functi
         'db-dumps/sqlite.sql' => 'SELECT 1;',
     ]);
 
-    $backup = Backup::factory()->withRestoreToken('valid-restore-token')->create([
+    $backup = Backup::factory()->withRestoreToken('aabbccddeeff0011.11223344556677889900aabbccddeeff')->create([
         'disk' => 'local',
         'path' => 'tido/sec006-success.zip',
         'filename' => $filename,
@@ -96,14 +96,15 @@ test('matching token and signed archive restores and consumes the token', functi
     ]);
 
     try {
-        postSec006GuestRestore($zipPath, 'valid-restore-token')
+        postSec006GuestRestore($zipPath, 'aabbccddeeff0011.11223344556677889900aabbccddeeff')
             ->assertSuccessful()
             ->assertJson([
                 'success' => true,
                 'message' => 'Backup restored. Please sign in.',
             ]);
 
-        expect($backup->fresh()->restore_token_hash)->toBeNull();
+        expect($backup->fresh()->restore_token_hash)->toBeNull()
+            ->and($backup->fresh()->restore_token_lookup)->toBeNull();
     } finally {
         File::deleteDirectory($directory);
     }
@@ -120,7 +121,7 @@ test('matching token with a different archive is rejected before import', functi
         'db-dumps/sqlite.sql' => 'SELECT 2;',
     ]);
 
-    $backup = Backup::factory()->withRestoreToken('valid-restore-token')->create([
+    $backup = Backup::factory()->withRestoreToken('aabbccddeeff0011.11223344556677889900aabbccddeeff')->create([
         'disk' => 'local',
         'path' => 'tido/sec006-mismatch.zip',
         'filename' => $filename,
@@ -132,7 +133,7 @@ test('matching token with a different archive is rejected before import', functi
     Storage::disk('local')->put($backup->path, File::get($genuineZipPath));
 
     try {
-        postSec006GuestRestore($attackerZipPath, 'valid-restore-token')
+        postSec006GuestRestore($attackerZipPath, 'aabbccddeeff0011.11223344556677889900aabbccddeeff')
             ->assertStatus(422)
             ->assertJson([
                 'success' => false,
@@ -140,6 +141,7 @@ test('matching token with a different archive is rejected before import', functi
             ]);
 
         expect($backup->fresh()->restore_token_hash)->not->toBeNull()
+            ->and($backup->fresh()->restore_token_lookup)->not->toBeNull()
             ->and(User::query()->exists())->toBeFalse();
     } finally {
         File::deleteDirectory($genuineDirectory);
@@ -155,7 +157,7 @@ test('forged missing or truncated hmac is rejected when the catalog stores a mac
         'db-dumps/sqlite.sql' => 'SELECT 1;',
     ]);
 
-    $backup = Backup::factory()->withRestoreToken('valid-restore-token')->create([
+    $backup = Backup::factory()->withRestoreToken('aabbccddeeff0011.11223344556677889900aabbccddeeff')->create([
         'disk' => 'local',
         'path' => 'tido/sec006-hmac.zip',
         'filename' => $filename,
@@ -179,14 +181,15 @@ test('forged missing or truncated hmac is rejected when the catalog stores a mac
     $zip->close();
 
     try {
-        postSec006GuestRestore($zipPath, 'valid-restore-token')
+        postSec006GuestRestore($zipPath, 'aabbccddeeff0011.11223344556677889900aabbccddeeff')
             ->assertStatus(422)
             ->assertJson([
                 'success' => false,
                 'message' => 'Invalid restore token or backup.',
             ]);
 
-        expect($backup->fresh()->restore_token_hash)->not->toBeNull();
+        expect($backup->fresh()->restore_token_hash)->not->toBeNull()
+            ->and($backup->fresh()->restore_token_lookup)->not->toBeNull();
     } finally {
         File::deleteDirectory($directory);
     }
@@ -200,7 +203,7 @@ test('legacy catalog rows backfill identity from the stored file and reject mism
         'db-dumps/sqlite.sql' => 'SELECT 1;',
     ]);
 
-    $backup = Backup::factory()->withRestoreToken('valid-restore-token')->create([
+    $backup = Backup::factory()->withRestoreToken('aabbccddeeff0011.11223344556677889900aabbccddeeff')->create([
         'disk' => 'local',
         'path' => 'tido/sec006-legacy.zip',
         'filename' => $filename,
@@ -216,7 +219,7 @@ test('legacy catalog rows backfill identity from the stored file and reject mism
     ]);
 
     try {
-        postSec006GuestRestore($attackerZipPath, 'valid-restore-token')
+        postSec006GuestRestore($attackerZipPath, 'aabbccddeeff0011.11223344556677889900aabbccddeeff')
             ->assertStatus(422)
             ->assertJson([
                 'success' => false,
@@ -241,7 +244,7 @@ test('legacy catalog rows without a stored file or hash fail closed', function (
         'db-dumps/sqlite.sql' => 'SELECT 1;',
     ]);
 
-    $backup = Backup::factory()->withRestoreToken('valid-restore-token')->create([
+    $backup = Backup::factory()->withRestoreToken('aabbccddeeff0011.11223344556677889900aabbccddeeff')->create([
         'disk' => 'local',
         'path' => 'tido/sec006-missing.zip',
         'filename' => $filename,
@@ -251,7 +254,7 @@ test('legacy catalog rows without a stored file or hash fail closed', function (
     ]);
 
     try {
-        postSec006GuestRestore($zipPath, 'valid-restore-token')
+        postSec006GuestRestore($zipPath, 'aabbccddeeff0011.11223344556677889900aabbccddeeff')
             ->assertStatus(422)
             ->assertJson([
                 'success' => false,
@@ -259,6 +262,7 @@ test('legacy catalog rows without a stored file or hash fail closed', function (
             ]);
 
         expect($backup->fresh()->restore_token_hash)->not->toBeNull()
+            ->and($backup->fresh()->restore_token_lookup)->not->toBeNull()
             ->and($backup->fresh()->content_sha256)->toBeNull();
     } finally {
         File::deleteDirectory($directory);
@@ -273,7 +277,7 @@ test('a second restore is rejected while the restore lock is held', function () 
         'db-dumps/sqlite.sql' => 'SELECT 1;',
     ]);
 
-    Backup::factory()->withRestoreToken('valid-restore-token')->create([
+    Backup::factory()->withRestoreToken('aabbccddeeff0011.11223344556677889900aabbccddeeff')->create([
         'disk' => 'local',
         'path' => 'tido/sec006-lock.zip',
         'filename' => $filename,
@@ -287,7 +291,7 @@ test('a second restore is rejected while the restore lock is held', function () 
     expect($lock->get())->toBeTrue();
 
     try {
-        postSec006GuestRestore($zipPath, 'valid-restore-token')
+        postSec006GuestRestore($zipPath, 'aabbccddeeff0011.11223344556677889900aabbccddeeff')
             ->assertStatus(422)
             ->assertJson([
                 'success' => false,
@@ -309,7 +313,7 @@ test('failed import rolls back application files and keeps the restore token', f
         'files/public/receipts/added.png' => 'added-bytes',
     ]);
 
-    $backup = Backup::factory()->withRestoreToken('valid-restore-token')->create([
+    $backup = Backup::factory()->withRestoreToken('aabbccddeeff0011.11223344556677889900aabbccddeeff')->create([
         'disk' => 'local',
         'path' => 'tido/sec006-rollback.zip',
         'filename' => $filename,
@@ -327,12 +331,13 @@ test('failed import rolls back application files and keeps the restore token', f
     });
 
     try {
-        expect(fn () => $service->restoreGuestUpload($backup, $zipPath, 'valid-restore-token'))
+        expect(fn () => $service->restoreGuestUpload($backup, $zipPath, 'aabbccddeeff0011.11223344556677889900aabbccddeeff'))
             ->toThrow(RuntimeException::class, 'forced import failure');
 
         expect(Storage::disk('public')->get('receipts/old.png'))->toBe('old-bytes')
             ->and(Storage::disk('public')->exists('receipts/added.png'))->toBeFalse()
-            ->and($backup->fresh()->restore_token_hash)->not->toBeNull();
+            ->and($backup->fresh()->restore_token_hash)->not->toBeNull()
+            ->and($backup->fresh()->restore_token_lookup)->not->toBeNull();
     } finally {
         File::deleteDirectory($directory);
     }

@@ -15,7 +15,7 @@ Route::get('/backups/{backup}/download', BackupDownloadController::class)
     ->name('backups.download');
 
 Route::post('/restore-backup', GuestRestoreBackupController::class)
-    ->middleware('throttle:5,1')
+    ->middleware('throttle:guest-restore')
     ->name('restore-backup');
 
 Route::get('/changelog', function () {
