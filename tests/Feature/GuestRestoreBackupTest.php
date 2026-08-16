@@ -101,10 +101,15 @@ test('login page shows restore backup menu when no users exist', function () {
         ->assertSee('data-fi-modal-id="restore-backup"', false)
         ->assertSee('id="restore-backup-file"', false)
         ->assertSee('id="restore-backup-token"', false)
+        ->assertSee('id="restore-backup-feedback"', false)
         ->assertSee('fi-fo-field', false)
+        ->assertSee('fi-fo-field-wrp-error-message', false)
         ->assertSee('fi-input-wrp', false)
         ->assertSee('fi-modal-footer-actions', false)
-        ->assertSee('Restore backup');
+        ->assertSee('Restore backup')
+        ->assertSee('this.feedbackMessage = message', false)
+        ->assertDontSee('auth-toast')
+        ->assertDontSee('x-on:auth-toast.window', false);
 });
 
 test('guest restore rejects requests when users still exist', function () {

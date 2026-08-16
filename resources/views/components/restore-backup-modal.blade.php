@@ -12,6 +12,8 @@
             showToken: false,
             token: '',
             fileName: '',
+            feedbackStatus: 'danger',
+            feedbackMessage: '',
             maxBytes: {{ $maxBytes }},
             maxMegabytes: {{ $maxMegabytes }},
             csrf: @js(csrf_token()),
@@ -27,6 +29,8 @@
                 this.showToken = false;
                 this.token = '';
                 this.fileName = '';
+                this.feedbackStatus = 'danger';
+                this.feedbackMessage = '';
 
                 const input = this.fileInput();
 
@@ -60,12 +64,12 @@
                 }
 
                 this.fileName = file.name;
+                this.feedbackMessage = '';
             },
 
             notify(status, message) {
-                window.dispatchEvent(new CustomEvent('auth-toast', {
-                    detail: { status, message },
-                }));
+                this.feedbackStatus = status;
+                this.feedbackMessage = message;
             },
 
             async submit() {
@@ -81,7 +85,7 @@
                 }
 
                 if (! this.token.trim()) {
-                    this.notify('danger', 'Enter the recovery token from your backup kit.');
+                    this.notify('danger', 'Enter the recovery token from the backup kit.');
                     return;
                 }
 
@@ -120,7 +124,6 @@
                     }
 
                     this.notify('success', data.message ?? 'Backup restored. Please sign in.');
-                    this.$dispatch('close-modal', { id: 'restore-backup' });
 
                     setTimeout(() => {
                         window.location.href = data.redirect ?? this.loginUrl;
@@ -233,8 +236,11 @@
                                 inline-suffix
                                 x-model="token"
                                 x-bind:type="showToken ? 'text' : 'password'"
+                                x-bind:aria-invalid="Boolean(feedbackMessage) && feedbackStatus !== 'success'"
+                                aria-describedby="restore-backup-feedback"
                                 autocomplete="off"
                                 placeholder="Paste the one-time recovery token"
+                                x-on:input="if (feedbackStatus !== 'success') feedbackMessage = ''"
                             />
 
                             <x-slot name="suffix">
@@ -262,6 +268,18 @@
                             </x-slot>
                         </x-filament::input.wrapper>
 
+                        <p
+                            x-show="feedbackMessage"
+                            x-cloak
+                            id="restore-backup-feedback"
+                            class="mt-2 text-sm"
+                            :class="feedbackStatus === 'success'
+                                ? 'text-success-600 dark:text-success-400'
+                                : 'fi-fo-field-wrp-error-message'"
+                            role="status"
+                            aria-live="polite"
+                            x-text="feedbackMessage"
+                        ></p>
                     </div>
                 </div>
             </form>
@@ -290,58 +308,6 @@
                 </div>
             </x-slot>
         </x-filament::modal>
-    </div>
-
-    {{-- Filament-style top-right toast host for guest auth pages --}}
-    <div
-        x-data="{
-            toasts: [],
-            push(detail) {
-                const id = Date.now() + Math.random();
-                this.toasts.push({
-                    id,
-                    status: detail.status ?? 'danger',
-                    message: detail.message ?? '',
-                });
-                setTimeout(() => {
-                    this.toasts = this.toasts.filter((toast) => toast.id !== id);
-                }, 4500);
-            },
-        }"
-        x-on:auth-toast.window="push($event.detail)"
-        class="pointer-events-none fixed inset-x-0 top-0 z-100000 flex flex-col items-end gap-3 p-4 sm:p-6"
-        style="z-index: 100000 !important"
-    >
-        <template x-for="toast in toasts" :key="toast.id">
-            <div
-                class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-xl bg-white shadow-lg ring-1 dark:bg-gray-900"
-                :class="toast.status === 'success'
-                    ? 'ring-success-600/20 dark:ring-success-400/30'
-                    : 'ring-danger-600/20 dark:ring-danger-400/30'"
-            >
-                <div class="flex gap-3 p-4">
-                    <div
-                        class="mt-0.5"
-                        :class="toast.status === 'success'
-                            ? 'text-success-600 dark:text-success-400'
-                            : 'text-danger-600 dark:text-danger-400'"
-                    >
-                        <x-heroicon-o-check-circle x-show="toast.status === 'success'" class="h-5 w-5" />
-                        <x-heroicon-o-exclamation-circle x-show="toast.status !== 'success'" class="h-5 w-5" />
-                    </div>
-                    <div class="fi-no-notification-text grid flex-1 gap-y-1">
-                        <h3
-                            class="fi-no-notification-title text-sm font-medium text-gray-950 dark:text-white"
-                            x-text="toast.status === 'success' ? 'Success' : 'Error'"
-                        ></h3>
-                        <div
-                            class="fi-no-notification-body overflow-hidden text-sm wrap-break-word text-gray-500 dark:text-gray-400"
-                            x-text="toast.message"
-                        ></div>
-                    </div>
-                </div>
-            </div>
-        </template>
     </div>
 
     <script>
