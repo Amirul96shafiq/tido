@@ -228,6 +228,7 @@ class BudgetsTable
                     EditAction::make()
                         ->authorizationTooltip()
                         ->authorizationMessage(fn (Budget $record): string => HouseholdAccess::assignedOwnerAuthorizationMessage($record->familyMember)),
+                    BudgetResource::duplicateAction(),
                     DeleteAction::make()
                         ->authorizationTooltip()
                         ->authorizationMessage(fn (Budget $record): string => HouseholdAccess::assignedOwnerAuthorizationMessage($record->familyMember)),
@@ -235,6 +236,7 @@ class BudgetsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    BudgetResource::duplicateBulkAction(),
                     DeleteBulkAction::make()
                         ->authorizeIndividualRecords('delete'),
                 ]),

@@ -43,6 +43,7 @@ class EditBudget extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            BudgetResource::duplicateAction(),
             DeleteAction::make(),
         ];
     }

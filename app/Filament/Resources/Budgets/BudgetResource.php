@@ -11,10 +11,16 @@ use App\Filament\Resources\Budgets\Schemas\BudgetForm;
 use App\Filament\Resources\Budgets\Tables\BudgetsTable;
 use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
+use App\Services\BudgetDuplicator;
+use App\Support\HouseholdAccess;
+use Filament\Actions\BulkAction;
+use Filament\Actions\ReplicateAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 class BudgetResource extends Resource
@@ -57,6 +63,52 @@ class BudgetResource extends Resource
             'create' => CreateBudget::route('/create'),
             'edit' => EditBudget::route('/{record}/edit'),
         ];
+    }
+
+    public static function duplicateAction(): ReplicateAction
+    {
+        return ReplicateAction::make()
+            ->label('Duplicate')
+            ->requiresConfirmation()
+            ->modalHeading(fn (Budget $record): string => 'Duplicate '.$record->display_title)
+            ->modalDescription('Creates a new budget with the same settings. Spending totals are calculated from expenses and are not copied.')
+            ->modalSubmitActionLabel('Duplicate')
+            ->successNotificationTitle('Budget duplicated')
+            ->excludeAttributes(BudgetDuplicator::EXCLUDED_ATTRIBUTES)
+            ->beforeReplicaSaved(function (Model $replica): void {
+                /** @var Budget $replica */
+                app(BudgetDuplicator::class)->prepareReplica($replica);
+            })
+            ->successRedirectUrl(fn (Model $replica): string => static::getUrl('edit', [
+                'record' => $replica,
+            ]))
+            ->authorizationTooltip()
+            ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage());
+    }
+
+    public static function duplicateBulkAction(): BulkAction
+    {
+        return BulkAction::make('duplicate')
+            ->label('Duplicate')
+            ->icon(Heroicon::Square2Stack)
+            ->requiresConfirmation()
+            ->modalHeading('Duplicate selected budgets')
+            ->modalDescription('Creates new budgets with the same settings. Spending totals are calculated from expenses and are not copied.')
+            ->modalSubmitActionLabel('Duplicate')
+            ->authorize('create')
+            ->authorizationTooltip()
+            ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage())
+            ->deselectRecordsAfterCompletion()
+            ->successNotificationTitle(function (Collection $records): string {
+                $count = $records->count();
+
+                return $count === 1
+                    ? '1 budget duplicated'
+                    : "{$count} budgets duplicated";
+            })
+            ->action(function (Collection $records, BudgetDuplicator $duplicator): void {
+                $duplicator->duplicateMany($records);
+            });
     }
 
     /**
