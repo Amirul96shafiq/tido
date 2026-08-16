@@ -12,6 +12,7 @@ use App\Models\PaymentMethod;
 use App\Models\User;
 use App\Services\AccountDangerZoneService;
 use App\Services\BackupService;
+use App\Support\CreatedBackup;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
 use Filament\Actions\Exceptions\ActionNotResolvableException;
@@ -36,11 +37,13 @@ beforeEach(function () {
 
     $this->mock(BackupService::class, function ($mock): void {
         $mock->shouldReceive('create')
-            ->andReturnUsing(function (BackupType $type, ?User $createdBy): Backup {
-                return Backup::factory()->create([
+            ->andReturnUsing(function (BackupType $type, ?User $createdBy): CreatedBackup {
+                $backup = Backup::factory()->create([
                     'type' => $type,
                     'created_by' => $createdBy?->getKey(),
                 ]);
+
+                return new CreatedBackup($backup, 'test-restore-token-0123456789abcdef');
             });
         $mock->shouldReceive('temporaryDownloadUrl')
             ->andReturn('http://127.0.0.1/backups/signed-download');
@@ -146,17 +149,27 @@ test('delete account action downloads backup then logs out', function () {
     Storage::disk('local')->put($backup->path, 'zip-contents');
 
     $this->mock(AccountDangerZoneService::class, function ($mock) use ($backup): void {
-        $mock->shouldReceive('deleteAccount')
+        $mock->shouldReceive('createPreDeleteBackup')
             ->once()
             ->withArgs(fn (User $user): bool => $user->is($this->user))
-            ->andReturn($backup);
+            ->andReturn(new CreatedBackup($backup, 'test-restore-token-0123456789abcdef'));
+        $mock->shouldReceive('completeAccountDeletion')
+            ->once()
+            ->withArgs(fn (User $user): bool => $user->is($this->user));
     });
 
-    Livewire::test(EditProfile::class)
+    $component = Livewire::test(EditProfile::class)
         ->set('data.enable_delete_account', true)
         ->set('data.delete_confirmation_phrase', 'CONFIRM DELETE ACCOUNT')
         ->set('data.delete_confirmation_password', 'password')
         ->callAction(formAction('deleteAccount'))
+        ->callMountedAction();
+
+    expect($component->get('pendingRestoreToken'))->toBe('test-restore-token-0123456789abcdef');
+
+    $component
+        ->assertMountedActionModalSee('Restore token shown once')
+        ->assertMountedActionModalSee('test-restore-token-0123456789abcdef')
         ->callMountedAction()
         ->assertRedirect('/admin/login');
 

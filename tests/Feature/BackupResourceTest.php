@@ -8,6 +8,7 @@ use App\Filament\Resources\Backups\Pages\ListBackups;
 use App\Models\Backup;
 use App\Models\User;
 use App\Services\BackupService;
+use App\Support\CreatedBackup;
 use Filament\Actions\Testing\TestAction;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -45,19 +46,20 @@ test('create backup header action registers a manual backup', function () {
         $mock->shouldReceive('create')
             ->once()
             ->with(BackupType::Manual, $this->admin)
-            ->andReturn($backup);
+            ->andReturn(new CreatedBackup($backup, 'test-restore-token-0123456789abcdef'));
         $mock->shouldReceive('temporaryDownloadUrl')
             ->andReturn('http://127.0.0.1/backups/signed-download');
     });
 
     Livewire::test(ListBackups::class)
         ->callAction('createBackup')
-        ->assertNotified();
+        ->assertNotified('Restore token shown once');
 
     $this->admin->refresh();
 
     expect($this->admin->notifications()->count())->toBe(1);
     expect($this->admin->notifications()->first()->data['title'])->toBe('Backup created');
+    expect($this->admin->notifications()->first()->data['body'] ?? '')->not->toContain('test-restore-token-0123456789abcdef');
 });
 
 test('delete backup stores database notification', function () {
@@ -232,11 +234,13 @@ test('backup service creates native sqlite backup without sqlite3 cli', function
         'database.connections.sqlite.database' => $databasePath,
     ]);
 
-    $backup = app(BackupService::class)->create(BackupType::Manual, $this->admin);
+    $created = app(BackupService::class)->create(BackupType::Manual, $this->admin);
+    $backup = $created->backup;
 
     expect($backup->fileExists())->toBeTrue()
         ->and(Backup::query()->whereKey($backup->getKey())->exists())->toBeTrue()
-        ->and($backup->filename)->toMatch('/^tido-app-local-\d{4}-\d{2}-\d{2}-\d{6}-manual\.zip$/');
+        ->and($backup->filename)->toMatch('/^tido-app-local-\d{4}-\d{2}-\d{2}-\d{6}-manual\.zip$/')
+        ->and($created->restoreToken)->not->toBeEmpty();
 
     File::delete($databasePath);
 })->skip(fn (): bool => ! file_exists(database_path('database.sqlite')), 'Requires file-backed sqlite database.');

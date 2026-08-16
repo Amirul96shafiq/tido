@@ -45,7 +45,7 @@ class GuestRestoreBackupRequest extends FormRequest
         return [
             'backup.required' => 'Choose a backup zip file to restore.',
             'backup.max' => "The backup file may not be greater than {$maxMegabytes} MB.",
-            'token.required' => 'Enter the restore token from your backup kit.',
+            'token.required' => 'Enter the restore token shown when the backup was created.',
         ];
     }
 

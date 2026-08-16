@@ -22,7 +22,7 @@ beforeEach(function () {
     ]);
 });
 
-test('backup restore token is embedded in zip and stored hashed', function () {
+test('backup restore token is stored hashed and omitted from the zip', function () {
     $zipPath = storage_path('app/backup-temp/token-source.zip');
     File::ensureDirectoryExists(dirname($zipPath));
 
@@ -50,10 +50,9 @@ test('backup restore token is embedded in zip and stored hashed', function () {
 
     $assertZip = new ZipArchive;
     $assertZip->open($storedZip);
-    $embedded = trim((string) $assertZip->getFromName('RESTORE_TOKEN.txt'));
-    $assertZip->close();
 
-    expect($embedded)->toBe($plainToken);
+    expect($assertZip->locateName('RESTORE_TOKEN.txt'))->toBeFalse();
+    $assertZip->close();
 
     File::delete($zipPath);
     File::delete($storedZip);
@@ -77,7 +76,7 @@ test('signed backup download works without auth and rejects unsigned urls', func
     $this->get($signedUrl)
         ->assertSuccessful();
 
-    $this->get(route('backups.download', $backup))
+    $this->getJson(route('backups.download', $backup))
         ->assertForbidden();
 });
 
@@ -169,7 +168,6 @@ test('guest restore stages valid uploads under a server-controlled path', functi
     $zip = new ZipArchive;
     $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
     $zip->addFromString('database.sqlite', 'sqlite');
-    $zip->addFromString('RESTORE_TOKEN.txt', "valid-restore-token\n");
     $zip->close();
 
     $this->mock(BackupService::class, function ($mock) use ($backup): void {

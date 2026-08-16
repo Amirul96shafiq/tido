@@ -165,7 +165,7 @@
                             Restore Backup
                         </h2>
                         <p class="text-sm text-gray-500 dark:text-gray-400">
-                            Upload your recovery zip and enter its restore token.
+                            Upload the recovery zip and enter the one-time restore token.
                         </p>
                     </div>
                 </div>
@@ -215,7 +215,7 @@
                             :type="showToken ? 'text' : 'password'"
                             autocomplete="off"
                             class="focus:ring-primary-600 dark:focus:ring-primary-500 w-full rounded-lg border-none bg-white px-3 py-2 text-sm text-gray-950 shadow-sm ring-1 ring-gray-950/10 placeholder:text-gray-400 focus:ring-2 dark:bg-white/5 dark:text-white dark:ring-white/20 dark:placeholder:text-gray-500"
-                            placeholder="Paste token from RESTORE_TOKEN.txt"
+                            placeholder="Paste the one-time restore token"
                         />
                         <button
                             type="button"
@@ -227,7 +227,7 @@
                         </button>
                     </div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">
-                        Open the zip and copy the contents of RESTORE_TOKEN.txt
+                        Store the one-time token shown when the backup was created
                     </p>
                 </div>
 

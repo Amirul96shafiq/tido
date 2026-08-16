@@ -22,9 +22,10 @@ Cataloged ZIP backups, restore tokens, guest restore, and profile account deleti
 
 - **Catalog row:** Each successful backup (manual, scheduled, or pre-delete) is recorded in `backups` with disk path metadata.
 - **Edit audit:** Backup catalog rows record the latest authenticated editor in `edited_by`. The Filament table displays **Edited By** and **Edited At** from `updated_at`, with newest catalog changes first; system-generated backup updates show `System` when no user is authenticated.
-- **Restore token:** Plain token is shown once (email / UI); only `restore_token_hash` is stored. Required for restore / guest restore.
-- **Guest restore:** When no users exist (post Danger Zone wipe), auth menu exposes Restore Backup → Alpine modal → `GuestRestoreBackupRequest` validation → `BackupService` restore.
-- **Danger Zone (Edit Profile):** Creates a final backup, returns the restore token to the user, then deletes account data. Single-tenant — wiping the only user leaves the app in guest-restore mode.
+- **Archive encryption:** Every backup ZIP is AES-256 encrypted with `BACKUP_ARCHIVE_PASSWORD` (32+ characters). Create and restore fail closed when the key is missing, weak, or a placeholder. The restore token is not the archive password.
+- **Restore token:** Plain token is shown once in a session notification (Create backup) or the Danger Zone kit modal (delete account). Only `restore_token_hash` is stored. The token is never written into the ZIP, database notifications, or logs. Required for guest restore.
+- **Guest restore:** When no users exist (post Danger Zone wipe), auth menu exposes Restore Backup → Alpine modal → `GuestRestoreBackupRequest` validation → `BackupService` restore. Upload the encrypted zip and the one-time token shown when the backup was created.
+- **Danger Zone (Edit Profile):** Creates a final backup, shows the restore token in a blocking modal with a download CTA, then deletes account data after confirm. Single-tenant — wiping the only user leaves the app in guest-restore mode.
 - **Download:** Tools → Backups Download and Danger Zone both use `BackupService::temporaryDownloadUrl()` (`URL::temporarySignedRoute` to `backups.download`, 10 minutes). The browser hits the signed GET route and streams from disk. Do not return the ZIP from a Livewire/Filament `->action()`; Livewire buffers the whole file and large archives exhaust PHP memory. The download URL is listed in Filament `spaUrlExceptions` so panel SPA mode does not `wire:navigate` into the ZIP bytes.
 
 ## Guest restore upload boundary
@@ -64,7 +65,13 @@ Restore then:
 4. Snapshots the live SQLite file (when file-backed) and any application files the ZIP would overwrite.
 5. Imports and restores files. On success, the guest token is consumed. On failure, the snapshot is restored and the token is left in place.
 
-`issueRestoreToken` re-embeds the token and re-seals the manifest; content identity does not change because the token file is excluded from the hash.
+`issueRestoreToken` updates only `restore_token_hash`. The ZIP is unchanged, so content identity stays stable. A leftover `RESTORE_TOKEN.txt` in a legacy archive is still excluded from the hash and is never treated as identity.
+
+## Archive confidentiality
+
+`BackupArchivePassword` reads only `config('backup.backup.password')`. Native create, application-file embed, manifest seal, scheduled catalog registration, and every restore ZIP open use AES-256 (`ZipArchive::EM_AES_256`). Spatie `source.files.include` is empty so scheduled dumps do not pack the project root; `RegisterScheduledBackupCatalog` still embeds `files/public|private` through `BackupService`. Explicit Spatie excludes still list `.env`, `.env.example`, `.env.sandbox`, `.git`, `debug-8f1b08.log`, `vendor`, `node_modules`, and `storage`.
+
+Set `BACKUP_ARCHIVE_PASSWORD` in each environment (`.env`, `.env.sandbox`, production). Off-host retention and key rotation are deployment concerns, not application defaults.
 
 ## Safe manual verification
 

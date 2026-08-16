@@ -34,12 +34,13 @@ class ListBackups extends ListRecords
                         return;
                     }
 
-                    $backup = $backupService->create(
+                    $created = $backupService->create(
                         BackupType::Manual,
                         $user,
                     );
 
-                    $backupNotificationService->notifyCreated($user, $backup);
+                    $backupNotificationService->notifyCreated($user, $created->backup);
+                    $backupNotificationService->notifyRestoreToken($created->restoreToken);
 
                     Notification::make()
                         ->title('Backup created')

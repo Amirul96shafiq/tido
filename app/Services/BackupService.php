@@ -7,13 +7,16 @@ namespace App\Services;
 use App\Enums\BackupType;
 use App\Models\Backup;
 use App\Models\User;
+use App\Support\BackupArchivePassword;
 use App\Support\BackupManifest;
+use App\Support\CreatedBackup;
 use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -47,8 +50,9 @@ class BackupService
         self::$skipScheduledCatalogRegistration = false;
     }
 
-    public function create(BackupType $type, ?User $createdBy = null): Backup
+    public function create(BackupType $type, ?User $createdBy = null): CreatedBackup
     {
+        BackupArchivePassword::require();
         self::skipScheduledCatalogRegistration();
 
         try {
@@ -89,12 +93,13 @@ class BackupService
             return null;
         }
 
+        BackupArchivePassword::require();
+
         $plainToken = $this->generateRestoreToken();
         $this->embedApplicationFilesOnDisk($diskName, $newPath);
-        $this->embedRestoreTokenOnDisk($diskName, $newPath, $plainToken);
         $identity = $this->sealBackupArchive($diskName, $newPath, $filename);
 
-        return Backup::query()->create([
+        $backup = Backup::query()->create([
             'type' => BackupType::Auto,
             'disk' => $diskName,
             'path' => $newPath,
@@ -105,6 +110,15 @@ class BackupService
             'content_sha256' => $identity['content_sha256'],
             'manifest_hmac' => $identity['manifest_hmac'],
         ]);
+
+        Log::info('backup.created', [
+            'backup_id' => $backup->getKey(),
+            'type' => $backup->type->value,
+            'actor_id' => null,
+            'outcome' => 'created',
+        ]);
+
+        return $backup;
     }
 
     public function restore(Backup $backup): void
@@ -202,8 +216,22 @@ class BackupService
                 if ($plainToken !== null) {
                     $this->consumeRestoreToken($backup);
                 }
+
+                Log::info('backup.restored', [
+                    'backup_id' => $backup->getKey(),
+                    'type' => $backup->type->value,
+                    'actor_id' => auth()->id(),
+                    'outcome' => 'restored',
+                ]);
             } catch (Throwable $exception) {
                 $this->rollbackRestoreSnapshot($snapshot);
+
+                Log::warning('backup.restore_failed', [
+                    'backup_id' => $backup->getKey(),
+                    'type' => $backup->type->value,
+                    'actor_id' => auth()->id(),
+                    'outcome' => 'failed',
+                ]);
 
                 throw $exception;
             }
@@ -273,11 +301,7 @@ class BackupService
      */
     protected function readArchiveIdentity(string $zipPath): array
     {
-        $zip = new ZipArchive;
-
-        if ($zip->open($zipPath) !== true) {
-            throw new RuntimeException('Unable to open backup archive.');
-        }
+        $zip = $this->openBackupZip($zipPath);
 
         try {
             $contentSha256 = BackupManifest::contentSha256($zip);
@@ -326,27 +350,24 @@ class BackupService
         $tempZipPath = $tempDirectory.'/backup.zip';
         File::put($tempZipPath, Storage::disk($diskName)->get($path));
 
-        $zip = new ZipArchive;
-
-        if ($zip->open($tempZipPath) !== true) {
-            File::deleteDirectory($tempDirectory);
-
-            throw new RuntimeException('Unable to open backup archive to seal identity.');
-        }
-
         try {
-            $contentSha256 = BackupManifest::contentSha256($zip);
-            $canonicalJson = BackupManifest::encode($filename, $contentSha256);
-            $hmac = BackupManifest::hmac($canonicalJson);
+            $zip = $this->openBackupZip($tempZipPath);
 
-            $this->replaceZipStringEntry($zip, BackupManifest::JSON_ENTRY, $canonicalJson);
-            $this->replaceZipStringEntry($zip, BackupManifest::HMAC_ENTRY, $hmac."\n");
+            try {
+                $contentSha256 = BackupManifest::contentSha256($zip);
+                $canonicalJson = BackupManifest::encode($filename, $contentSha256);
+                $hmac = BackupManifest::hmac($canonicalJson);
+
+                $this->replaceZipStringEntry($zip, BackupManifest::JSON_ENTRY, $canonicalJson);
+                $this->replaceZipStringEntry($zip, BackupManifest::HMAC_ENTRY, $hmac."\n");
+            } finally {
+                $zip->close();
+            }
+
+            Storage::disk($diskName)->put($path, File::get($tempZipPath));
         } finally {
-            $zip->close();
+            File::deleteDirectory($tempDirectory);
         }
-
-        Storage::disk($diskName)->put($path, File::get($tempZipPath));
-        File::deleteDirectory($tempDirectory);
 
         return [
             'content_sha256' => $contentSha256,
@@ -363,6 +384,7 @@ class BackupService
         }
 
         $zip->addFromString($name, $contents);
+        $this->encryptZipEntry($zip, $name);
     }
 
     /**
@@ -453,11 +475,7 @@ class BackupService
      */
     protected function listRestorableApplicationFilesFromZip(string $zipPath): array
     {
-        $zip = new ZipArchive;
-
-        if ($zip->open($zipPath) !== true) {
-            throw new RuntimeException('Unable to open backup archive.');
-        }
+        $zip = $this->openBackupZip($zipPath);
 
         try {
             $files = [];
@@ -530,14 +548,9 @@ class BackupService
         }
 
         $plainToken = $this->generateRestoreToken();
-        $this->embedRestoreTokenOnDisk($backup->disk, $backup->path, $plainToken);
-        $identity = $this->sealBackupArchive($backup->disk, $backup->path, $backup->filename);
 
         $backup->forceFill([
             'restore_token_hash' => Hash::make($plainToken),
-            'size_bytes' => Storage::disk($backup->disk)->size($backup->path),
-            'content_sha256' => $identity['content_sha256'],
-            'manifest_hmac' => $identity['manifest_hmac'],
         ])->save();
 
         return $plainToken;
@@ -596,6 +609,13 @@ class BackupService
             throw new RuntimeException('Backup file is missing from storage.');
         }
 
+        Log::info('backup.downloaded', [
+            'backup_id' => $backup->getKey(),
+            'type' => $backup->type->value,
+            'actor_id' => auth()->id(),
+            'outcome' => 'downloaded',
+        ]);
+
         return Storage::disk($backup->disk)->download($backup->path, $backup->filename);
     }
 
@@ -622,7 +642,7 @@ class BackupService
         return is_string($database) && $database !== ':memory:';
     }
 
-    protected function createSpatieBackup(BackupType $type, ?User $createdBy): Backup
+    protected function createSpatieBackup(BackupType $type, ?User $createdBy): CreatedBackup
     {
         $filename = $this->buildBackupFilename($type, $createdBy);
 
@@ -643,7 +663,7 @@ class BackupService
         return $this->storeBackupCatalogRecord($type, $createdBy, $filename);
     }
 
-    protected function createNativeDatabaseBackup(BackupType $type, ?User $createdBy): Backup
+    protected function createNativeDatabaseBackup(BackupType $type, ?User $createdBy): CreatedBackup
     {
         $connection = (string) config('database.default');
         $driver = config("database.connections.{$connection}.driver");
@@ -654,7 +674,7 @@ class BackupService
         };
     }
 
-    protected function createSqliteFileBackup(BackupType $type, ?User $createdBy, string $connection): Backup
+    protected function createSqliteFileBackup(BackupType $type, ?User $createdBy, string $connection): CreatedBackup
     {
         $databasePath = config("database.connections.{$connection}.database");
 
@@ -672,21 +692,14 @@ class BackupService
 
         $zipPath = $tempDirectory.'/'.$filename;
 
-        $zip = new ZipArchive;
-
-        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            throw new RuntimeException('Unable to create backup archive.');
-        }
-
-        $zip->addFile($databasePath, 'database.sqlite');
-        $plainToken = $this->generateRestoreToken();
-        $zip->addFromString('RESTORE_TOKEN.txt', $plainToken."\n");
+        $zip = $this->openBackupZip($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        $this->addEncryptedFile($zip, $databasePath, 'database.sqlite');
         $zip->close();
 
         Storage::disk($diskName)->put($relativePath, File::get($zipPath));
         File::deleteDirectory($tempDirectory);
 
-        return $this->storeBackupCatalogRecord($type, $createdBy, $filename, $plainToken);
+        return $this->storeBackupCatalogRecord($type, $createdBy, $filename);
     }
 
     /**
@@ -697,7 +710,7 @@ class BackupService
         ?User $createdBy,
         string $filename,
         ?string $plainToken = null,
-    ): Backup {
+    ): CreatedBackup {
         $diskName = $this->backupDiskName();
         $path = $this->backupApplicationName().'/'.$filename;
         $disk = Storage::disk($diskName);
@@ -709,10 +722,9 @@ class BackupService
         $this->embedApplicationFilesOnDisk($diskName, $path);
 
         $plainToken ??= $this->generateRestoreToken();
-        $this->embedRestoreTokenOnDisk($diskName, $path, $plainToken);
         $identity = $this->sealBackupArchive($diskName, $path, $filename);
 
-        return Backup::query()->create([
+        $backup = Backup::query()->create([
             'type' => $type,
             'disk' => $diskName,
             'path' => $path,
@@ -723,6 +735,15 @@ class BackupService
             'content_sha256' => $identity['content_sha256'],
             'manifest_hmac' => $identity['manifest_hmac'],
         ]);
+
+        Log::info('backup.created', [
+            'backup_id' => $backup->getKey(),
+            'type' => $backup->type->value,
+            'actor_id' => $createdBy?->getKey(),
+            'outcome' => 'created',
+        ]);
+
+        return new CreatedBackup($backup, $plainToken);
     }
 
     protected function embedApplicationFilesOnDisk(string $diskName, string $path): void
@@ -741,11 +762,7 @@ class BackupService
 
     protected function embedApplicationFilesInZip(string $absoluteZipPath): void
     {
-        $zip = new ZipArchive;
-
-        if ($zip->open($absoluteZipPath) !== true) {
-            throw new RuntimeException('Unable to open backup archive to embed application files.');
-        }
+        $zip = $this->openBackupZip($absoluteZipPath);
 
         for ($index = $zip->numFiles - 1; $index >= 0; $index--) {
             $name = $zip->getNameIndex($index);
@@ -780,7 +797,7 @@ class BackupService
                 continue;
             }
 
-            $zip->addFile($absolutePath, $zipPrefix.$relativePath);
+            $this->addEncryptedFile($zip, $absolutePath, $zipPrefix.$relativePath);
         }
     }
 
@@ -799,11 +816,7 @@ class BackupService
 
     protected function restoreApplicationFilesFromZip(string $zipPath): void
     {
-        $zip = new ZipArchive;
-
-        if ($zip->open($zipPath) !== true) {
-            throw new RuntimeException('Unable to open backup archive to restore application files.');
-        }
+        $zip = $this->openBackupZip($zipPath);
 
         try {
             for ($index = 0; $index < $zip->numFiles; $index++) {
@@ -834,38 +847,6 @@ class BackupService
         }
     }
 
-    protected function embedRestoreTokenOnDisk(string $diskName, string $path, string $plainToken): void
-    {
-        $tempDirectory = storage_path('app/backup-temp/'.uniqid('token_', true));
-        File::ensureDirectoryExists($tempDirectory);
-
-        $tempZipPath = $tempDirectory.'/backup.zip';
-        File::put($tempZipPath, Storage::disk($diskName)->get($path));
-
-        $this->embedRestoreTokenInZip($tempZipPath, $plainToken);
-
-        Storage::disk($diskName)->put($path, File::get($tempZipPath));
-        File::deleteDirectory($tempDirectory);
-    }
-
-    protected function embedRestoreTokenInZip(string $absoluteZipPath, string $plainToken): void
-    {
-        $zip = new ZipArchive;
-
-        if ($zip->open($absoluteZipPath) !== true) {
-            throw new RuntimeException('Unable to open backup archive to embed restore token.');
-        }
-
-        $existingIndex = $zip->locateName('RESTORE_TOKEN.txt');
-
-        if ($existingIndex !== false) {
-            $zip->deleteIndex($existingIndex);
-        }
-
-        $zip->addFromString('RESTORE_TOKEN.txt', $plainToken."\n");
-        $zip->close();
-    }
-
     protected function backupDiskName(): string
     {
         $disks = config('backup.backup.destination.disks', ['local']);
@@ -893,11 +874,7 @@ class BackupService
         $maxEntryBytes = (int) config('backup.backup.restore.max_entry_bytes', 52428800);
         $maxCompressionRatio = (float) config('backup.backup.restore.max_compression_ratio', 100);
 
-        $zip = new ZipArchive;
-
-        if ($zip->open($zipPath) !== true) {
-            throw new RuntimeException('Unable to open backup archive.');
-        }
+        $zip = $this->openBackupZip($zipPath);
 
         try {
             $entryCount = $zip->numFiles;
@@ -959,11 +936,7 @@ class BackupService
         $workingZipPath = $tempDirectory.'/backup.zip';
         File::copy($zipPath, $workingZipPath);
 
-        $zip = new ZipArchive;
-
-        if ($zip->open($workingZipPath) !== true) {
-            throw new RuntimeException('Unable to open backup archive.');
-        }
+        $zip = $this->openBackupZip($workingZipPath);
 
         try {
             $sqliteEntry = null;
@@ -1166,6 +1139,51 @@ class BackupService
         if (! $process->successful()) {
             throw new RuntimeException('MySQL restore failed: '.$process->errorOutput());
         }
+    }
+
+    protected function openBackupZip(string $path, int $flags = 0): ZipArchive
+    {
+        $password = BackupArchivePassword::require();
+
+        if (! defined('ZipArchive::EM_AES_256')) {
+            throw new RuntimeException('Backup archive encryption is unavailable.');
+        }
+
+        $zip = new ZipArchive;
+
+        if ($zip->open($path, $flags) !== true) {
+            throw new RuntimeException('Unable to open backup archive.');
+        }
+
+        $zip->setPassword($password);
+
+        return $zip;
+    }
+
+    protected function encryptZipEntry(ZipArchive $zip, string $name): void
+    {
+        $password = BackupArchivePassword::require();
+
+        if (! defined('ZipArchive::EM_AES_256')) {
+            throw new RuntimeException('Backup archive encryption is unavailable.');
+        }
+
+        $encrypted = $zip->setEncryptionName($name, ZipArchive::EM_AES_256, $password);
+
+        if ($encrypted !== true) {
+            throw new RuntimeException('Unable to encrypt backup archive entry.');
+        }
+    }
+
+    protected function addEncryptedFile(ZipArchive $zip, string $absolutePath, string $name): void
+    {
+        $contents = File::get($absolutePath);
+
+        if ($zip->addFromString($name, $contents) !== true) {
+            throw new RuntimeException('Unable to write backup archive entry.');
+        }
+
+        $this->encryptZipEntry($zip, $name);
     }
 
     protected function flushCaches(): void

@@ -10,10 +10,12 @@ use App\Filament\Concerns\HasStickyBlurFormActions;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Forms\Components\DateOfBirthPicker;
+use App\Models\Backup;
 use App\Models\User;
 use App\Notifications\VerifyEmailChange;
 use App\Services\AccountDangerZoneService;
 use App\Services\ActiveSessionService;
+use App\Services\BackupNotificationService;
 use App\Services\BackupService;
 use App\Services\FamilyMemberLoginService;
 use App\Support\EmailChangeVerification;
@@ -68,6 +70,10 @@ class EditProfile extends BaseEditProfile implements HasTable
     private const RESET_CONFIRMATION_PHRASE = 'CONFIRM RESET DATA';
 
     private const DELETE_CONFIRMATION_PHRASE = 'CONFIRM DELETE ACCOUNT';
+
+    public ?string $pendingRestoreToken = null;
+
+    public ?int $pendingDeleteBackupId = null;
 
     public function mount(): void
     {
@@ -547,7 +553,7 @@ class EditProfile extends BaseEditProfile implements HasTable
             ->modalHeading('Reset all data')
             ->modalDescription('This permanently deletes all application data. Your account will remain. You will be signed out.')
             ->modalSubmitActionLabel('Reset data')
-            ->action(function (AccountDangerZoneService $accountDangerZoneService): void {
+            ->action(function (AccountDangerZoneService $accountDangerZoneService, BackupNotificationService $backupNotificationService): void {
                 if (! $this->isResetDataReady() || ! $this->isDangerZonePasswordValid('reset_confirmation_password')) {
                     FilamentNotification::make()
                         ->title('Unable to reset data')
@@ -557,7 +563,8 @@ class EditProfile extends BaseEditProfile implements HasTable
                     return;
                 }
 
-                $accountDangerZoneService->resetData($this->getDangerZoneUser());
+                $created = $accountDangerZoneService->resetData($this->getDangerZoneUser());
+                $backupNotificationService->notifyRestoreToken($created->restoreToken);
 
                 FilamentAuthLogout::logoutToLogin($this);
             });
@@ -571,6 +578,42 @@ class EditProfile extends BaseEditProfile implements HasTable
             ->requiresConfirmation()
             ->modalHeading('Delete account')
             ->modalDescription('This permanently deletes all data and user account. You will be signed out.')
+            ->modalSubmitActionLabel('Restore kit')
+            ->action(function (AccountDangerZoneService $accountDangerZoneService): void {
+                if (! $this->isDeleteAccountReady() || ! $this->isDangerZonePasswordValid('delete_confirmation_password')) {
+                    FilamentNotification::make()
+                        ->title('Unable to delete account')
+                        ->danger()
+                        ->send();
+
+                    return;
+                }
+
+                $created = $accountDangerZoneService->createPreDeleteBackup($this->getDangerZoneUser());
+                $this->pendingRestoreToken = $created->restoreToken;
+                $this->pendingDeleteBackupId = $created->backup->getKey();
+
+                $this->replaceMountedAction('storeRestoreKitThenDelete');
+            });
+    }
+
+    public function storeRestoreKitThenDeleteAction(): Action
+    {
+        return Action::make('storeRestoreKitThenDelete')
+            ->label('Delete account')
+            ->color('danger')
+            ->modalHeading('Store the restore token')
+            ->modalDescription('Restore token shown once. Store it separately from the archive.')
+            ->fillForm(fn (): array => [
+                'restore_token' => (string) $this->pendingRestoreToken,
+            ])
+            ->form([
+                TextInput::make('restore_token')
+                    ->label('Restore token')
+                    ->readOnly()
+                    ->copyable()
+                    ->dehydrated(false),
+            ])
             ->modalSubmitActionLabel('Delete account')
             ->action(function (AccountDangerZoneService $accountDangerZoneService, BackupService $backupService): void {
                 if (! $this->isDeleteAccountReady() || ! $this->isDangerZonePasswordValid('delete_confirmation_password')) {
@@ -582,9 +625,23 @@ class EditProfile extends BaseEditProfile implements HasTable
                     return;
                 }
 
-                $backup = $accountDangerZoneService->deleteAccount($this->getDangerZoneUser());
+                $backup = Backup::query()->find($this->pendingDeleteBackupId);
+
+                if (! $backup instanceof Backup) {
+                    FilamentNotification::make()
+                        ->title('Unable to delete account')
+                        ->danger()
+                        ->send();
+
+                    return;
+                }
 
                 $downloadUrl = $backupService->temporaryDownloadUrl($backup);
+
+                $accountDangerZoneService->completeAccountDeletion($this->getDangerZoneUser());
+
+                $this->pendingRestoreToken = null;
+                $this->pendingDeleteBackupId = null;
 
                 $this->js('window.open('.Js::from($downloadUrl).', "_blank")');
 
