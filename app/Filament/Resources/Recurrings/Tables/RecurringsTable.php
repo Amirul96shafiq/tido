@@ -17,12 +17,17 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -156,6 +161,8 @@ class RecurringsTable
                 TernaryFilter::make('is_shared')
                     ->label('Shared')
                     ->searchable(),
+                TrashedFilter::make()
+                    ->searchable(),
             ])
             ->checkIfRecordIsSelectableUsing(
                 fn (Recurring $record): bool => HouseholdAccess::canMutateRecurring($record),
@@ -178,6 +185,14 @@ class RecurringsTable
                     DeleteAction::make()
                         ->authorizationTooltip()
                         ->authorizationMessage(fn (Recurring $record): string => HouseholdAccess::assignedOwnerAuthorizationMessage($record->familyMember)),
+
+                    RestoreAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (Recurring $record): string => HouseholdAccess::assignedOwnerAuthorizationMessage($record->familyMember)),
+
+                    ForceDeleteAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (Recurring $record): string => HouseholdAccess::assignedOwnerAuthorizationMessage($record->familyMember)),
                 ]),
             ])
             ->toolbarActions([
@@ -187,6 +202,11 @@ class RecurringsTable
                     DeleteBulkAction::make()
                         ->authorizeIndividualRecords('delete'),
 
+                    ForceDeleteBulkAction::make()
+                        ->authorizeIndividualRecords('forceDelete'),
+
+                    RestoreBulkAction::make()
+                        ->authorizeIndividualRecords('restore'),
                 ]),
             ]);
     }

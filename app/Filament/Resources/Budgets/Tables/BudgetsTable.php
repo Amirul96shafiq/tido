@@ -16,6 +16,10 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -23,6 +27,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class BudgetsTable
@@ -210,6 +215,9 @@ class BudgetsTable
                         '0' => 'Inactive',
                     ])
                     ->searchable(),
+
+                TrashedFilter::make()
+                    ->searchable(),
             ])
             ->checkIfRecordIsSelectableUsing(
                 fn (Budget $record): bool => HouseholdAccess::canMutateBudget($record),
@@ -232,6 +240,12 @@ class BudgetsTable
                     DeleteAction::make()
                         ->authorizationTooltip()
                         ->authorizationMessage(fn (Budget $record): string => HouseholdAccess::assignedOwnerAuthorizationMessage($record->familyMember)),
+                    RestoreAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (Budget $record): string => HouseholdAccess::assignedOwnerAuthorizationMessage($record->familyMember)),
+                    ForceDeleteAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (Budget $record): string => HouseholdAccess::assignedOwnerAuthorizationMessage($record->familyMember)),
                 ]),
             ])
             ->toolbarActions([
@@ -239,6 +253,10 @@ class BudgetsTable
                     BudgetResource::duplicateBulkAction(),
                     DeleteBulkAction::make()
                         ->authorizeIndividualRecords('delete'),
+                    ForceDeleteBulkAction::make()
+                        ->authorizeIndividualRecords('forceDelete'),
+                    RestoreBulkAction::make()
+                        ->authorizeIndividualRecords('restore'),
                 ]),
             ])
             ->emptyStateHeading('No budgets yet')

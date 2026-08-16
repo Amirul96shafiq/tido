@@ -16,6 +16,8 @@ use App\Support\HouseholdAccess;
 use App\Support\RecurringFormNormalizer;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
@@ -88,6 +90,8 @@ class EditRecurring extends EditRecord
             RecurringResource::duplicateAction(),
 
             DeleteAction::make(),
+            ForceDeleteAction::make(),
+            RestoreAction::make(),
 
         ];
     }

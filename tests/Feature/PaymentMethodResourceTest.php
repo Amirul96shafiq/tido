@@ -8,6 +8,7 @@ use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Models\PaymentMethod;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -98,4 +99,26 @@ test('payment method duplicate action is available on the edit header', function
 
     Livewire::test(EditPaymentMethod::class, ['record' => $method->getRouteKey()])
         ->assertActionVisible('replicate');
+});
+
+test('payment methods table supports deleted records filter and soft delete actions', function () {
+    $active = PaymentMethod::factory()->create(['name' => 'Active Method']);
+    $trashed = PaymentMethod::factory()->create(['name' => 'Trashed Method']);
+    $trashed->delete();
+
+    Livewire::test(ListPaymentMethods::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$active])
+        ->assertCanNotSeeTableRecords([$trashed])
+        ->assertTableFilterExists('trashed', fn ($filter): bool => $filter instanceof TrashedFilter)
+        ->filterTable('trashed', true)
+        ->assertCanSeeTableRecords([$active, $trashed])
+        ->filterTable('trashed', false)
+        ->assertCanSeeTableRecords([$trashed])
+        ->assertCanNotSeeTableRecords([$active]);
+
+    Livewire::test(EditPaymentMethod::class, ['record' => $trashed->getRouteKey()])
+        ->assertSuccessful()
+        ->assertActionExists('restore')
+        ->assertActionExists('forceDelete');
 });

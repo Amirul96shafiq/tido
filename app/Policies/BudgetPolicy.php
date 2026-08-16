@@ -45,7 +45,27 @@ class BudgetPolicy
         return HouseholdAccess::canMutateBudget($budget);
     }
 
+    public function restore(User $user, Budget $budget): bool
+    {
+        return HouseholdAccess::canMutateBudget($budget);
+    }
+
+    public function forceDelete(User $user, Budget $budget): bool
+    {
+        return HouseholdAccess::canMutateBudget($budget);
+    }
+
     public function deleteAny(User $user): bool
+    {
+        return true;
+    }
+
+    public function forceDeleteAny(User $user): bool
+    {
+        return true;
+    }
+
+    public function restoreAny(User $user): bool
     {
         return true;
     }

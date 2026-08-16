@@ -45,7 +45,27 @@ class RecurringPolicy
         return HouseholdAccess::canMutateRecurring($recurring);
     }
 
+    public function restore(User $user, Recurring $recurring): bool
+    {
+        return HouseholdAccess::canMutateRecurring($recurring);
+    }
+
+    public function forceDelete(User $user, Recurring $recurring): bool
+    {
+        return HouseholdAccess::canMutateRecurring($recurring);
+    }
+
     public function deleteAny(User $user): bool
+    {
+        return true;
+    }
+
+    public function forceDeleteAny(User $user): bool
+    {
+        return true;
+    }
+
+    public function restoreAny(User $user): bool
     {
         return true;
     }

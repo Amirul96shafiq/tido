@@ -12,7 +12,9 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\AvatarProviders\UiAvatarsProvider;
@@ -119,9 +121,6 @@ class FamilyMembersTable
             ])
             ->defaultSort('updated_at', 'desc')
             ->filters([
-                TrashedFilter::make()
-                    ->searchable(),
-
                 TernaryFilter::make('allowlist_enabled')
                     ->label('Contact Allowlist')
                     ->trueLabel('Enabled')
@@ -133,6 +132,9 @@ class FamilyMembersTable
                     ->trueLabel('Enabled')
                     ->falseLabel('Disabled')
                     ->searchable(),
+
+                TrashedFilter::make()
+                    ->searchable(),
             ])
             ->recordActions([
                 ViewAction::make()
@@ -142,6 +144,8 @@ class FamilyMembersTable
                     EditAction::make(),
                     FamilyMemberResource::duplicateAction(),
                     DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ]),
             ])
             ->toolbarActions([

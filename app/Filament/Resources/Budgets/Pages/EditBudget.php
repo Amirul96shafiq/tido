@@ -13,6 +13,8 @@ use App\Filament\Resources\Budgets\Schemas\BudgetForm;
 use App\Models\Budget;
 use App\Support\HouseholdAccess;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditBudget extends EditRecord
@@ -45,6 +47,8 @@ class EditBudget extends EditRecord
         return [
             BudgetResource::duplicateAction(),
             DeleteAction::make(),
+            ForceDeleteAction::make(),
+            RestoreAction::make(),
         ];
     }
 

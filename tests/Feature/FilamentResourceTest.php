@@ -9,6 +9,7 @@ use App\Filament\Resources\Backups\Pages\ListBackups;
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Resources\Budgets\Pages\ListBudgets;
 use App\Filament\Resources\Expenses\ExpenseResource;
+use App\Filament\Resources\Expenses\Pages\EditExpense;
 use App\Filament\Resources\Expenses\Pages\ListExpenses;
 use App\Filament\Resources\FamilyMembers\Pages\ListFamilyMembers;
 use App\Filament\Resources\Labels\LabelResource;
@@ -27,6 +28,7 @@ use App\Models\User;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\Testing\TestAction;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -70,6 +72,32 @@ test('authenticated user can load expenses list', function () {
 test('expenses list query eager loads table relations', function () {
     expect(array_keys(ExpenseResource::getEloquentQuery()->getEagerLoads()))
         ->toContain('paymentMethod', 'familyMember', 'editedBy');
+});
+
+test('expenses table supports deleted records filter and soft delete actions', function () {
+    $this->actingAs($this->admin);
+
+    Expense::unsetEventDispatcher();
+
+    $active = Expense::factory()->create(['merchant_name' => 'Active Merchant']);
+    $trashed = Expense::factory()->create(['merchant_name' => 'Trashed Merchant']);
+    $trashed->delete();
+
+    Livewire::test(ListExpenses::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$active])
+        ->assertCanNotSeeTableRecords([$trashed])
+        ->assertTableFilterExists('trashed', fn ($filter): bool => $filter instanceof TrashedFilter)
+        ->filterTable('trashed', true)
+        ->assertCanSeeTableRecords([$active, $trashed])
+        ->filterTable('trashed', false)
+        ->assertCanSeeTableRecords([$trashed])
+        ->assertCanNotSeeTableRecords([$active]);
+
+    Livewire::test(EditExpense::class, ['record' => $trashed->getRouteKey()])
+        ->assertSuccessful()
+        ->assertActionExists('restore')
+        ->assertActionExists('forceDelete');
 });
 
 test('authenticated user can load budgets list', function () {
@@ -523,5 +551,17 @@ test('authenticated user can load label create and edit forms', function () {
             'Label Notes',
             $modelLabel.' Appearance',
         ])
-        ->assertActionDoesNotExist('forceDelete');
+        ->assertActionHidden('forceDelete');
+});
+
+test('trashed label edit page exposes restore and force delete actions', function () {
+    $this->actingAs($this->admin);
+
+    $label = Label::factory()->create();
+    $label->delete();
+
+    Livewire::test(EditLabel::class, ['record' => $label->getRouteKey()])
+        ->assertSuccessful()
+        ->assertActionExists('restore')
+        ->assertActionExists('forceDelete');
 });

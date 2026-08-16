@@ -11,6 +11,7 @@ use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\Labels\Schemas\LabelForm;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 
@@ -45,6 +46,8 @@ class EditLabel extends EditRecord
             LabelResource::duplicateAction(),
             DeleteAction::make()
                 ->visible(fn () => ! (bool) $this->record->is_system),
+            ForceDeleteAction::make()
+                ->visible(fn () => ! (bool) $this->record->is_system && $this->record->trashed()),
             RestoreAction::make(),
         ];
     }
