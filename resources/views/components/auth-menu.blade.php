@@ -46,7 +46,7 @@
                     icon="heroicon-o-arrow-path"
                     tag="button"
                     x-on:click="
-                        window.showRestoreBackupModal();
+                        $dispatch('open-modal', { id: 'restore-backup' });
                         close();
                     "
                 >

@@ -65,7 +65,7 @@ Filament Tippy is **disabled** below Tailwind `sm` (`max-width: 639px`):
 
 ### High z-index custom modals
 
-Tippy defaults to `zIndex: 9999`. Custom shells that use `z-index: 99999` (restore backup) must raise Tippy above the shell:
+Tippy defaults to `zIndex: 9999`. Custom shells that use `z-index: 99999` must raise Tippy above the shell:
 
 ```blade
 x-tooltip="{
@@ -75,9 +75,7 @@ x-tooltip="{
 }"
 ```
 
-Without this, Tippy mounts and is “visible” in the DOM but renders **behind** the modal.
-
-**Reference:** [`restore-backup-modal.blade.php`](../resources/views/components/restore-backup-modal.blade.php).
+Without this, Tippy mounts and is “visible” in the DOM but renders **behind** the modal. Native `<x-filament::modal>` (changelog, guest restore) does not need this.
 
 ## Published / custom triggers already covered
 
@@ -89,7 +87,7 @@ Without this, Tippy mounts and is “visible” in the DOM but renders **behind*
 | Notifications Filter | `resources/views/filament/livewire/database-notifications.blade.php` |
 | Filament modal Close | `resources/views/vendor/filament/components/modal/index.blade.php` (`:tooltip` on icon-button) |
 | Changelog CTAs | `resources/views/components/changelog-modal.blade.php` |
-| Restore backup Close | `resources/views/components/restore-backup-modal.blade.php` |
+| Restore backup | `resources/views/components/restore-backup-modal.blade.php` (`<x-filament::modal>` + icon-button tooltips) |
 | Service Status bars | `resources/views/filament/pages/service-status.blade.php` (`data-tippy-mobile`) |
 
 When publishing more Filament views for tooltip-only tweaks, keep the override set **minimal** (only the files that differ from vendor).

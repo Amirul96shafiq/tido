@@ -24,7 +24,7 @@ Cataloged ZIP backups, restore tokens, guest restore, and profile account deleti
 - **Edit audit:** Backup catalog rows record the latest authenticated editor in `edited_by`. The Filament table displays **Edited By** and **Edited At** from `updated_at`, with newest catalog changes first; system-generated backup updates show `System` when no user is authenticated.
 - **Archive encryption:** Every backup ZIP is AES-256 encrypted with `BACKUP_ARCHIVE_PASSWORD` (32+ characters). Create and restore fail closed when the key is missing, weak, or a placeholder. The restore token is not the archive password.
 - **Restore token:** Plain token is shown once in a session notification (Create backup) or the Danger Zone kit modal (delete account). Only `restore_token_hash` is stored. The token is never written into the ZIP, database notifications, or logs. Required for guest restore.
-- **Guest restore:** When no users exist (post Danger Zone wipe), auth menu exposes Restore Backup → Alpine modal → `GuestRestoreBackupRequest` validation → `BackupService` restore. Upload the encrypted zip and the one-time token shown when the backup was created.
+- **Guest restore:** When no users exist (post Danger Zone wipe), auth menu exposes Restore Backup → Filament modal → `GuestRestoreBackupRequest` validation → `BackupService` restore. Upload the encrypted zip and the one-time token shown when the backup was created.
 - **Danger Zone (Edit Profile):** Creates a final backup, shows the restore token in a blocking modal with a download CTA, then deletes account data after confirm. Single-tenant — wiping the only user leaves the app in guest-restore mode.
 - **Download:** Tools → Backups Download and Danger Zone both use `BackupService::temporaryDownloadUrl()` (`URL::temporarySignedRoute` to `backups.download`, 10 minutes). The browser hits the signed GET route and streams from disk. Do not return the ZIP from a Livewire/Filament `->action()`; Livewire buffers the whole file and large archives exhaust PHP memory. The download URL is listed in Filament `spaUrlExceptions` so panel SPA mode does not `wire:navigate` into the ZIP bytes.
 
@@ -94,7 +94,7 @@ A copied `database.sqlite` file alone is not a complete rollback because it rest
 
 1. Do not log or commit plain restore tokens.
 2. Validate guest restore with `GuestRestoreBackupRequest`; process via `BackupService` (no ad-hoc unzip in controllers).
-3. Keep restore-backup modal tooltips Tippy-based with high `zIndex` — see [ui-tooltips.md](ui-tooltips.md).
+3. Keep restore-backup modal tooltips Filament Tippy (`x-tooltip` / `:tooltip`) — see [ui-tooltips.md](ui-tooltips.md).
 4. Cover new backup/restore paths with Pest; fake storage / avoid real Spatie runs in unit tests where possible.
 5. Nav: Backups live under Tools (bottom nav group), not Finances, Settings, or Integrations.
 6. Keep backup recency on `updated_at`; `created_at` describes when the catalog row was first created and is not the table’s Edited At value.

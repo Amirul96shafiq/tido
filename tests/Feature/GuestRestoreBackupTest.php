@@ -87,7 +87,7 @@ test('login page hides restore backup menu when users exist', function () {
         ->assertSuccessful()
         ->assertSee('Changelogs 🡥')
         ->assertDontSee('showRestoreBackupModal')
-        ->assertDontSee('open-restore-backup-modal');
+        ->assertDontSee('data-fi-modal-id="restore-backup"', false);
 });
 
 test('login page shows restore backup menu when no users exist', function () {
@@ -97,7 +97,14 @@ test('login page shows restore backup menu when no users exist', function () {
         ->assertSuccessful()
         ->assertSee('Changelogs 🡥')
         ->assertSee('Restore Backup 🡥')
-        ->assertSee('showRestoreBackupModal', false);
+        ->assertSee('showRestoreBackupModal', false)
+        ->assertSee('data-fi-modal-id="restore-backup"', false)
+        ->assertSee('id="restore-backup-file"', false)
+        ->assertSee('id="restore-backup-token"', false)
+        ->assertSee('fi-fo-field', false)
+        ->assertSee('fi-input-wrp', false)
+        ->assertSee('fi-modal-footer-actions', false)
+        ->assertSee('Restore backup');
 });
 
 test('guest restore rejects requests when users still exist', function () {
