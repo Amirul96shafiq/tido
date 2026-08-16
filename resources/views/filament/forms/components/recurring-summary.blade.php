@@ -3,7 +3,7 @@
     $amountLine = $amountLine ?? 'Amount unset';
     $scheduleLine = $scheduleLine ?? 'Schedule incomplete';
     $nextDueLine = $nextDueLine ?? 'Next due: —';
-    $statusLine = $statusLine ?? 'Active';
+    $statusLine = $statusLine ?? 'Creating';
 @endphp
 
 <div class="flex flex-col gap-3 text-sm">
@@ -24,7 +24,8 @@
     <p @class([
         'font-medium',
         'text-emerald-700 dark:text-emerald-400' => $statusLine === 'Active',
-        'text-gray-500 dark:text-gray-400' => $statusLine !== 'Active',
+        'text-primary-600 dark:text-primary-400' => $statusLine === 'Creating',
+        'text-gray-500 dark:text-gray-400' => ! in_array($statusLine, ['Active', 'Creating'], true),
     ])>
         {{ $statusLine }}
     </p>

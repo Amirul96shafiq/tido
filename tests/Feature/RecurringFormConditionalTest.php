@@ -344,3 +344,17 @@ test('switching type to subscription clears stale commitment values', function (
         ->and($fresh->instalment_total)->toBeNull()
         ->and($fresh->instalment_remaining)->toBeNull();
 });
+
+test('create summary status is creating', function () {
+    Livewire::test(CreateRecurring::class)
+        ->assertSee('Creating');
+});
+
+test('edit summary status is not creating', function () {
+    $recurring = Recurring::factory()->create([
+        'is_active' => true,
+    ]);
+
+    Livewire::test(EditRecurring::class, ['record' => $recurring->getRouteKey()])
+        ->assertDontSee('Creating');
+});
