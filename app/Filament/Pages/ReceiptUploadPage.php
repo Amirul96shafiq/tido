@@ -172,7 +172,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                 ),
 
                 TextColumn::make('merchant_name')
-                    ->label('Merchant')
+                    ->label('Merchant Name')
                     ->searchable()
                     ->sortable()
                     ->limit(20)

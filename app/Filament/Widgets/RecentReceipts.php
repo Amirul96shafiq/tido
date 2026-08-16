@@ -76,7 +76,7 @@ class RecentReceipts extends BaseWidget
                 ),
 
                 TextColumn::make('merchant_name')
-                    ->label('Merchant')
+                    ->label('Merchant Name')
                     ->sortable()
                     ->limit(20)
                     ->tooltip(function (TextColumn $column, ?string $state): ?string {
