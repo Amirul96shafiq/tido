@@ -22,7 +22,7 @@ beforeEach(function () {
     ]);
 });
 
-test('backup restore token is embedded in zip and stored hashed', function () {
+test('backup restore token is stored hashed and omitted from the zip', function () {
     $zipPath = storage_path('app/backup-temp/token-source.zip');
     File::ensureDirectoryExists(dirname($zipPath));
 
@@ -50,10 +50,9 @@ test('backup restore token is embedded in zip and stored hashed', function () {
 
     $assertZip = new ZipArchive;
     $assertZip->open($storedZip);
-    $embedded = trim((string) $assertZip->getFromName('RESTORE_TOKEN.txt'));
-    $assertZip->close();
 
-    expect($embedded)->toBe($plainToken);
+    expect($assertZip->locateName('RESTORE_TOKEN.txt'))->toBeFalse();
+    $assertZip->close();
 
     File::delete($zipPath);
     File::delete($storedZip);
@@ -77,7 +76,7 @@ test('signed backup download works without auth and rejects unsigned urls', func
     $this->get($signedUrl)
         ->assertSuccessful();
 
-    $this->get(route('backups.download', $backup))
+    $this->getJson(route('backups.download', $backup))
         ->assertForbidden();
 });
 
@@ -88,7 +87,7 @@ test('login page hides restore backup menu when users exist', function () {
         ->assertSuccessful()
         ->assertSee('Changelogs 🡥')
         ->assertDontSee('showRestoreBackupModal')
-        ->assertDontSee('open-restore-backup-modal');
+        ->assertDontSee('data-fi-modal-id="restore-backup"', false);
 });
 
 test('login page shows restore backup menu when no users exist', function () {
@@ -98,7 +97,19 @@ test('login page shows restore backup menu when no users exist', function () {
         ->assertSuccessful()
         ->assertSee('Changelogs 🡥')
         ->assertSee('Restore Backup 🡥')
-        ->assertSee('showRestoreBackupModal', false);
+        ->assertSee('showRestoreBackupModal', false)
+        ->assertSee('data-fi-modal-id="restore-backup"', false)
+        ->assertSee('id="restore-backup-file"', false)
+        ->assertSee('id="restore-backup-token"', false)
+        ->assertSee('id="restore-backup-feedback"', false)
+        ->assertSee('fi-fo-field', false)
+        ->assertSee('fi-fo-field-wrp-error-message', false)
+        ->assertSee('fi-input-wrp', false)
+        ->assertSee('fi-modal-footer-actions', false)
+        ->assertSee('Restore backup')
+        ->assertSee('this.feedbackMessage = message', false)
+        ->assertDontSee('auth-toast')
+        ->assertDontSee('x-on:auth-toast.window', false);
 });
 
 test('guest restore rejects requests when users still exist', function () {
@@ -169,7 +180,6 @@ test('guest restore stages valid uploads under a server-controlled path', functi
     $zip = new ZipArchive;
     $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
     $zip->addFromString('database.sqlite', 'sqlite');
-    $zip->addFromString('RESTORE_TOKEN.txt', "valid-restore-token\n");
     $zip->close();
 
     $this->mock(BackupService::class, function ($mock) use ($backup): void {

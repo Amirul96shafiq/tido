@@ -11,7 +11,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 
 uses(RefreshDatabase::class);
@@ -382,22 +381,19 @@ test('failed sqlite import restores the previous database file', function () {
     }
 });
 
-test('issueRestoreToken does not change content identity and embeds a signed manifest', function () {
-    $zipPath = storage_path('app/backup-temp/'.uniqid('sec006_issue_', true).'.zip');
-    File::ensureDirectoryExists(dirname($zipPath));
-
-    $zip = new ZipArchive;
-    $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
-    $zip->addFromString('database.sqlite', 'sqlite-bytes');
-    $zip->close();
+test('issueRestoreToken does not change content identity or embed a token file', function () {
+    $filename = 'tido-app-local-sec006-issue.zip';
+    [$directory, $zipPath, $contentSha256, $hmac] = createSec006SignedZip($filename, [
+        'database.sqlite' => 'sqlite-bytes',
+    ]);
 
     $backup = Backup::factory()->create([
         'disk' => 'local',
         'path' => 'tido/sec006-issue.zip',
-        'filename' => 'tido-app-local-sec006-issue.zip',
+        'filename' => $filename,
         'restore_token_hash' => null,
-        'content_sha256' => null,
-        'manifest_hmac' => null,
+        'content_sha256' => $contentSha256,
+        'manifest_hmac' => $hmac,
         'created_by' => null,
     ]);
 
@@ -406,40 +402,25 @@ test('issueRestoreToken does not change content identity and embeds a signed man
     $firstToken = app(BackupService::class)->issueRestoreToken($backup);
     $backup->refresh();
 
-    $firstHash = $backup->content_sha256;
-    $firstHmac = $backup->manifest_hmac;
-
-    expect($firstHash)->toBeString()->toHaveLength(64)
-        ->and($firstHmac)->toBeString()->toHaveLength(64)
-        ->and(Str::isMatch('/^[a-f0-9]{64}$/', $firstHash))->toBeTrue()
-        ->and(Str::isMatch('/^[a-f0-9]{64}$/', $firstHmac))->toBeTrue();
+    expect($backup->content_sha256)->toBe($contentSha256)
+        ->and($backup->manifest_hmac)->toBe($hmac);
 
     $storedZip = storage_path('app/backup-temp/'.uniqid('sec006_issued_', true).'.zip');
     File::put($storedZip, Storage::disk('local')->get($backup->path));
 
     $assertZip = new ZipArchive;
     $assertZip->open($storedZip);
-    $json = $assertZip->getFromName(BackupManifest::JSON_ENTRY);
-    $hmacEntry = $assertZip->getFromName(BackupManifest::HMAC_ENTRY);
+
+    expect($assertZip->locateName('RESTORE_TOKEN.txt'))->toBeFalse();
     $assertZip->close();
-
-    expect($json)->toBeString()
-        ->and($hmacEntry)->toBeString()
-        ->and(BackupManifest::hmacIsValid($json, trim($hmacEntry)))->toBeTrue();
-
-    $decoded = BackupManifest::decode($json);
-
-    expect($decoded)->not->toBeNull()
-        ->and($decoded['content_sha256'])->toBe($firstHash)
-        ->and($decoded['filename'])->toBe($backup->filename);
 
     app(BackupService::class)->issueRestoreToken($backup->fresh());
     $backup->refresh();
 
-    expect($backup->content_sha256)->toBe($firstHash)
-        ->and($backup->manifest_hmac)->toBe($firstHmac)
+    expect($backup->content_sha256)->toBe($contentSha256)
+        ->and($backup->manifest_hmac)->toBe($hmac)
         ->and(app(BackupService::class)->assertRestoreToken($backup, $firstToken))->toBeFalse();
 
-    File::delete($zipPath);
     File::delete($storedZip);
+    File::deleteDirectory($directory);
 });

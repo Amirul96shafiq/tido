@@ -29,6 +29,16 @@ class BackupNotificationService
             ->sendToDatabase($user);
     }
 
+    public function notifyRestoreToken(string $restoreToken): void
+    {
+        Notification::make()
+            ->title('Restore token shown once')
+            ->body("Store it separately from the archive.\n\n{$restoreToken}")
+            ->persistent()
+            ->success()
+            ->send();
+    }
+
     public function notifyRestored(User $user, Backup $backup): void
     {
         Notification::make()

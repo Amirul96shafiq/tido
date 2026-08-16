@@ -26,7 +26,6 @@ return [
                  * The list of directories and files that will be included in the backup.
                  */
                 'include' => [
-                    base_path(),
                 ],
 
                 /*
@@ -35,6 +34,11 @@ return [
                  * Directories used by the backup process will automatically be excluded.
                  */
                 'exclude' => [
+                    base_path('.env'),
+                    base_path('.env.example'),
+                    base_path('.env.sandbox'),
+                    base_path('.git'),
+                    base_path('debug-8f1b08.log'),
                     base_path('vendor'),
                     base_path('node_modules'),
                     base_path('storage'),
@@ -192,19 +196,15 @@ return [
         'temporary_directory' => storage_path('app/backup-temp'),
 
         /*
-         * The password to be used for archive encryption.
-         * Set to `null` to disable encryption.
+         * Required archive encryption password (32+ characters).
+         * Backups fail closed when this value is missing or a placeholder.
          */
         'password' => env('BACKUP_ARCHIVE_PASSWORD'),
 
         /*
-         * The encryption algorithm to be used for archive encryption.
-         * You can set it to `null` or `false` to disable encryption.
-         *
-         * When set to 'default', we'll use ZipArchive::EM_AES_256 if it is
-         * available on your system.
+         * AES-256 ZIP encryption. Do not set this to null or false.
          */
-        'encryption' => 'default',
+        'encryption' => ZipArchive::EM_AES_256,
 
         /*
          * The number of attempts, in case the backup command encounters an exception

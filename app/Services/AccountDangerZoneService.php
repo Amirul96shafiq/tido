@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\BackupType;
-use App\Models\Backup;
 use App\Models\Budget;
 use App\Models\ContentDraft;
 use App\Models\EvolutionApiConnectionLog;
@@ -13,6 +12,7 @@ use App\Models\Expense;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use App\Models\User;
+use App\Support\CreatedBackup;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\Models\Activity;
@@ -23,22 +23,32 @@ class AccountDangerZoneService
         private readonly BackupService $backupService,
     ) {}
 
-    public function resetData(User $user): void
+    public function resetData(User $user): CreatedBackup
     {
-        $this->backupService->create(BackupType::Auto, $user);
+        $created = $this->backupService->create(BackupType::Auto, $user);
 
         $this->wipeSharedAppData($user);
+
+        return $created;
     }
 
-    public function deleteAccount(User $user): Backup
+    public function createPreDeleteBackup(User $user): CreatedBackup
     {
-        $backup = $this->backupService->create(BackupType::Auto, $user);
+        return $this->backupService->create(BackupType::Auto, $user);
+    }
 
+    public function completeAccountDeletion(User $user): void
+    {
         $this->wipeSharedAppData($user);
-
         $this->deleteUserAccount($user);
+    }
 
-        return $backup;
+    public function deleteAccount(User $user): CreatedBackup
+    {
+        $created = $this->createPreDeleteBackup($user);
+        $this->completeAccountDeletion($user);
+
+        return $created;
     }
 
     public function wipeSharedAppData(User $user): void

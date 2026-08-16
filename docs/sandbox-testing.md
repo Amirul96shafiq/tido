@@ -22,7 +22,7 @@ Never run `php artisan migrate:fresh` without `--env=sandbox`. Never run `php ar
 
 ## Isolation keys
 
-`.env.sandbox` is gitignored. Copy `.env` to `.env.sandbox`, then set **only** these (keep a distinct `APP_KEY` for the life of this sandbox; restore MAC uses it):
+`.env.sandbox` is gitignored. Copy `.env` to `.env.sandbox`, then set **only** these (keep a distinct `APP_KEY` for the life of this sandbox; restore MAC uses it). Set a distinct 32+ character `BACKUP_ARCHIVE_PASSWORD` as well; do not reuse the live value and do not commit or paste it:
 
 ```env
 APP_NAME=tido-sandbox
@@ -35,6 +35,7 @@ BROADCAST_CONNECTION=log
 CACHE_STORE=file
 APP_STORAGE_PATH=storage/sandbox
 FILESYSTEM_PUBLIC_URL=/sandbox-storage
+BACKUP_ARCHIVE_PASSWORD=
 ```
 
 Adjust `DB_DATABASE` to the absolute path of `database/sandbox.sqlite` on the machine.
@@ -93,10 +94,10 @@ Panel CSS/JS come from the shared Vite build (`public/build`) or the live Vite s
 
 1. Sign in on **:2001** only.
 2. Create one synthetic expense and a tiny receipt image (for example merchant **Sandbox Mart**, RM 12.80). Confirm the receipt opens from `/sandbox-storage/...`, not `/storage/...`.
-3. Tools → Backups → Create backup. Download the ZIP (signed GET; Filament SPA mode excludes this URL). The archive should be small. If it is tens of megabytes, isolation failed — stop and re-check `storage_path()`.
-4. Peek the ZIP: `database.sqlite`, `files/public/receipts/...`, `MANIFEST.json`, `MANIFEST.hmac`, `RESTORE_TOKEN.txt`. Copy the token somewhere private. Never paste a real token into docs, tests, chat, or logs.
-5. Profile → Danger Zone → Delete account. Phrase: `CONFIRM DELETE ACCOUNT`, then the sandbox password.
-6. On the sandbox login page, open **Restore Backup**. Upload the ZIP from step 3 and enter its token. Optional SEC-003 check: set a path-like client filename such as `..\..\CON.zip` when the browser permits it.
+3. Tools → Backups → Create backup. The restore token appears once in a session notification. Store it separately from the archive. Download the ZIP (signed GET; Filament SPA mode excludes this URL). The archive should be small. If it is tens of megabytes, isolation failed — stop and re-check `storage_path()`.
+4. Peek the ZIP with the sandbox `BACKUP_ARCHIVE_PASSWORD` (7-Zip/Windows will prompt; plaintext open must fail). Expected entries: `database.sqlite`, `files/public/receipts/...`, `MANIFEST.json`, `MANIFEST.hmac`. There is no `RESTORE_TOKEN.txt` and no `.env`. Never paste a real token or archive password into docs, tests, chat, or logs.
+5. Profile → Danger Zone → Delete account. Phrase: `CONFIRM DELETE ACCOUNT`, then the sandbox password. Copy the one-time token from the **Store the restore token** confirm step, then confirm delete.
+6. On the sandbox login page, open **Restore Backup**. Upload the encrypted ZIP from step 3 and enter the token from the kit modal (not a file inside the ZIP). Optional SEC-003 check: set a path-like client filename such as `..\..\CON.zip` when the browser permits it.
 7. Sign in again. Confirm the synthetic expense returns and the receipt file opens.
 
 Guest restore rejects compressed uploads over 50 MiB (`BACKUP_RESTORE_MAX_UPLOAD_KILOBYTES`). Uncompressed / entry / ratio limits are in [backups-and-danger-zone.md](backups-and-danger-zone.md).
