@@ -16,6 +16,7 @@ use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Filament\Resources\Labels\Pages\EditLabel;
 use App\Filament\Resources\Labels\Pages\ListLabels;
 use App\Filament\Resources\PaymentMethods\Pages\ListPaymentMethods;
+use App\Helpers\FilenameDisplay;
 use App\Models\Backup;
 use App\Models\Budget;
 use App\Models\Expense;
@@ -27,6 +28,7 @@ use Filament\Actions\ActionGroup;
 use Filament\Actions\Testing\TestAction;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -339,6 +341,47 @@ test('expenses table leaves short merchant names unchanged', function () {
     $tooltip = $column->record($expense)->getTooltip($shortMerchant);
 
     expect($tooltip)->toBeNull();
+});
+
+test('expenses table filename links to file in a new tab', function () {
+    $this->actingAs($this->admin);
+
+    Storage::fake();
+
+    $path = 'receipts/expense_receipt.jpg';
+    Storage::put($path, 'fake-image-bytes');
+
+    $expense = Expense::factory()->create([
+        'original_filename' => 'expense_receipt.jpg',
+        'image_path' => $path,
+    ]);
+
+    $url = Storage::temporaryUrl($path, now()->addMinutes(30));
+
+    Livewire::test(ListExpenses::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$expense])
+        ->assertCanRenderTableColumn('original_filename')
+        ->assertSee('expense_re....jpg')
+        ->assertSeeHtml('target="_blank"')
+        ->assertSeeHtml(e($url));
+});
+
+test('expenses table shows Manual expense plain text without file link', function () {
+    $this->actingAs($this->admin);
+
+    $expense = Expense::factory()->create([
+        'original_filename' => null,
+        'image_path' => null,
+    ]);
+
+    Livewire::test(ListExpenses::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$expense])
+        ->assertSee(FilenameDisplay::MANUAL_EXPENSE_LABEL);
+
+    expect(FilenameDisplay::labelForExpense($expense))->toBe('Manual expense')
+        ->and($expense->fileUrl())->toBeNull();
 });
 
 test('expenses table shows date_time as relative time with datetime tooltip', function () {

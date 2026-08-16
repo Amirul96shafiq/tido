@@ -8,6 +8,7 @@ use App\Enums\HouseholdRole;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Support\RecordActionsGroup;
+use App\Helpers\FilenameDisplay;
 use App\Helpers\MoneyDisplay;
 use App\Models\Expense;
 use App\Models\FamilyMember;
@@ -24,6 +25,7 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
+use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -43,6 +45,20 @@ class ExpensesTable
                     ->label('ID')
                     ->sortable()
                     ->searchable(),
+
+                FilenameDisplay::configureTextColumn(
+                    TextColumn::make('original_filename')
+                        ->label('Filename')
+                        ->searchable()
+                        ->sortable()
+                        ->weight(FontWeight::Medium)
+                        ->color(fn (Expense $record): ?string => filled($record->image_path) ? 'primary' : null)
+                        ->tooltip(fn (Expense $record): ?string => filled($record->image_path) ? (string) $record->original_filename : null)
+                        ->url(
+                            fn (Expense $record): ?string => $record->fileUrl(),
+                            shouldOpenInNewTab: true,
+                        ),
+                ),
 
                 TextColumn::make('merchant_name')
                     ->searchable()
