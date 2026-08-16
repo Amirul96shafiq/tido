@@ -148,7 +148,7 @@ test('primary can duplicate a recurring from the list', function () {
         'title' => 'Tabung Haji',
         'starts_on' => now()->subMonths(6)->toDateString(),
         'next_due_on' => now()->subMonths(2)->toDateString(),
-        'instalment_remaining' => 3,
+        'prior_contributed_amount' => 300,
         'merchant_aliases' => ['Tabung', 'TH'],
     ]);
 
@@ -179,6 +179,7 @@ test('primary can duplicate a recurring from the list', function () {
     expect($source->fresh()->occurrences()->count())->toBe($sourceOccurrenceCount)
         ->and(RecurringOccurrence::query()->whereKey($sourceOccurrence->id)->exists())->toBeTrue()
         ->and($replica->starts_on?->toDateString())->toBe(now()->toDateString())
+        ->and($replica->prior_contributed_amount)->toBeNull()
         ->and($replica->instalment_remaining)->toBe($replica->instalment_total)
         ->and($replica->merchant_aliases)->toBe(['Tabung', 'TH'])
         ->and($replica->occurrences()->count())->toBeGreaterThan(0)

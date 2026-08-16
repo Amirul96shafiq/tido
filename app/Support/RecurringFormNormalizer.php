@@ -6,6 +6,7 @@ namespace App\Support;
 
 use App\Enums\RecurringFrequency;
 use App\Enums\RecurringType;
+use App\Helpers\MoneyDisplay;
 use App\Models\Recurring;
 use Carbon\Carbon;
 
@@ -20,6 +21,7 @@ final class RecurringFormNormalizer
         $data = self::normalizeCadence($data, $record);
         $data = self::normalizeEndRule($data);
         $data = self::normalizeResponsibility($data);
+        $data = self::normalizePriorContribution($data);
         $data = self::normalizeCommitmentsByType($data);
         $data = self::stripUiOnlyKeys($data);
 
@@ -46,6 +48,7 @@ final class RecurringFormNormalizer
         $data['end_rule'] = filled($data['ends_on'] ?? null) ? 'end_on_date' : 'ongoing';
         $data['responsibility'] = self::responsibilityFromData($data);
         $data['tracking_mode'] = self::trackingModeFromData($data);
+        $data = self::hydratePriorContributionFields($data);
 
         if (($data['cadence_preset'] ?? null) === 'once') {
             $data['due_date'] = $data['next_due_on']
@@ -179,6 +182,51 @@ final class RecurringFormNormalizer
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
+    private static function normalizePriorContribution(array $data): array
+    {
+        $type = RecurringType::tryFrom((string) ($data['type'] ?? ''));
+        $trackingMode = $data['tracking_mode'] ?? self::trackingModeFromData($data);
+        $isTargetAmount = $type === RecurringType::TransferInvestment
+            && $trackingMode === 'target_amount';
+
+        if (! $isTargetAmount) {
+            $data['prior_contributed_amount'] = null;
+
+            return $data;
+        }
+
+        $mode = (string) ($data['prior_contribution_mode'] ?? 'none');
+
+        if ($mode === 'none' || $mode === '') {
+            $data['prior_contributed_amount'] = null;
+
+            return $data;
+        }
+
+        if ($mode === 'count') {
+            $count = max(0, (int) ($data['prior_transfer_count'] ?? 0));
+            $expected = MoneyDisplay::parse($data['expected_amount'] ?? null) ?? 0.0;
+
+            $data['prior_contributed_amount'] = $count > 0 && $expected > 0
+                ? round($count * $expected, 2)
+                : null;
+
+            return $data;
+        }
+
+        $amount = MoneyDisplay::parse($data['prior_contributed_amount'] ?? null);
+
+        $data['prior_contributed_amount'] = $amount !== null && $amount > 0
+            ? round($amount, 2)
+            : null;
+
+        return $data;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     private static function normalizeCommitmentsByType(array $data): array
     {
         $type = RecurringType::tryFrom((string) ($data['type'] ?? ''));
@@ -188,6 +236,7 @@ final class RecurringFormNormalizer
             RecurringType::TransferInvestment,
         ], true)) {
             $data['goal_target_amount'] = null;
+            $data['prior_contributed_amount'] = null;
             $data['instalment_total'] = null;
             $data['instalment_remaining'] = null;
 
@@ -196,6 +245,7 @@ final class RecurringFormNormalizer
 
         if ($type === RecurringType::DebtInstalment) {
             $data['goal_target_amount'] = null;
+            $data['prior_contributed_amount'] = null;
 
             return $data;
         }
@@ -205,15 +255,17 @@ final class RecurringFormNormalizer
         return match ($trackingMode) {
             'target_amount' => [
                 ...$data,
-                // Keep goal; instalment counts may be derived on the model.
+                // Keep goal and prior; instalment counts are derived on the model.
             ],
             'fixed_transfers' => [
                 ...$data,
                 'goal_target_amount' => null,
+                'prior_contributed_amount' => null,
             ],
             default => [
                 ...$data,
                 'goal_target_amount' => null,
+                'prior_contributed_amount' => null,
                 'instalment_total' => null,
                 'instalment_remaining' => null,
             ],
@@ -232,7 +284,31 @@ final class RecurringFormNormalizer
             $data['responsibility'],
             $data['tracking_mode'],
             $data['due_date'],
+            $data['prior_contribution_mode'],
+            $data['prior_transfer_count'],
         );
+
+        return $data;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private static function hydratePriorContributionFields(array $data): array
+    {
+        $prior = MoneyDisplay::parse($data['prior_contributed_amount'] ?? null);
+
+        if ($prior === null || $prior <= 0) {
+            $data['prior_contribution_mode'] = 'none';
+            $data['prior_transfer_count'] = null;
+
+            return $data;
+        }
+
+        $data['prior_contribution_mode'] = 'amount';
+        $data['prior_contributed_amount'] = $prior;
+        $data['prior_transfer_count'] = null;
 
         return $data;
     }

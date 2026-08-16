@@ -32,8 +32,19 @@ final class RecurringScheduleSummary
             'amountLine' => self::amountLine($type, $get('expected_amount')),
             'scheduleLine' => self::scheduleLine($get),
             'nextDueLine' => self::nextDueLine($get, $record, $operation),
-            'statusLine' => self::statusLine($get),
+            'statusLine' => self::statusLabel($operation, $get('is_active')),
         ];
+    }
+
+    public static function statusLabel(string $operation, mixed $isActive = true): string
+    {
+        if ($operation === 'create') {
+            return 'Creating';
+        }
+
+        $active = $isActive === true || $isActive === 1;
+
+        return $active ? 'Active' : 'Inactive';
     }
 
     public static function cadenceLabel(?string $preset, ?int $intervalMonths = null): string
@@ -142,12 +153,5 @@ final class RecurringScheduleSummary
         ]);
 
         return $preview->resolveInitialDueOn();
-    }
-
-    private static function statusLine(Get $get): string
-    {
-        $active = ($get('is_active') ?? true) === true || ($get('is_active') ?? true) === 1;
-
-        return $active ? 'Active' : 'Inactive';
     }
 }

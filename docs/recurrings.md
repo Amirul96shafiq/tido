@@ -34,7 +34,9 @@ Primary may duplicate a template from the list row Actions kebab, the Edit heade
 - `frequency`: `repeating` \| `once`
 - `interval_months`: 1–24 when repeating (UI: Monthly / Quarterly / Every 6 months / Yearly / Custom / Once)
 - Finite series: `instalment_total` / `instalment_remaining` (PayLater, Tabung)
-- Optional `goal_target_amount` for Tabung-style progress (`sum(actual) / goal`)
+- Optional `goal_target_amount` for Tabung-style progress (`(prior + sum(actual)) / goal`)
+- Optional `prior_contributed_amount` on **Target amount** transfers: money already saved outside tido (UI may enter a transfer count × expected amount, but only RM is stored). Do **not** include transfers already completed in tido — those count via occurrence `actual_amount`.
+- On Target amount save, `instalment_total` is always `ceil(goal / expected)` and `instalment_remaining` is `total − completed/skipped occurrences − floor(prior / expected)`.
 
 ## Commands
 

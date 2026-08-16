@@ -17,7 +17,9 @@ class CreateRecurring extends CreateRecord
 {
     use HasStickyBlurFormActions;
     use PrependsHomeBreadcrumb;
-    use RecoversContentDraft;
+    use RecoversContentDraft {
+        afterCreate as protected clearContentDraftAfterCreate;
+    }
 
     protected static string $resource = RecurringResource::class;
 
@@ -61,6 +63,7 @@ class CreateRecurring extends CreateRecord
 
     protected function afterCreate(): void
     {
+        $this->clearContentDraftAfterCreate();
         app(RecurringOccurrenceGenerator::class)->generateFor($this->getRecord());
     }
 }

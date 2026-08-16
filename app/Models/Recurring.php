@@ -40,6 +40,7 @@ class Recurring extends Model
         'is_shared',
         'expected_amount',
         'goal_target_amount',
+        'prior_contributed_amount',
         'frequency',
         'interval_months',
         'anchor_day',
@@ -60,6 +61,7 @@ class Recurring extends Model
         'frequency' => RecurringFrequency::class,
         'expected_amount' => 'decimal:2',
         'goal_target_amount' => 'decimal:2',
+        'prior_contributed_amount' => 'decimal:2',
         'interval_months' => 'integer',
         'anchor_day' => 'integer',
         'starts_on' => 'date',
@@ -188,9 +190,12 @@ class Recurring extends Model
 
     public function goalProgressAmount(): float
     {
-        return (float) $this->occurrences()
+        $prior = (float) ($this->prior_contributed_amount ?? 0);
+        $completed = (float) $this->occurrences()
             ->where('status', RecurringOccurrenceStatus::Completed)
             ->sum('actual_amount');
+
+        return round($prior + $completed, 2);
     }
 
     public function goalProgressPercent(): ?float
@@ -366,6 +371,7 @@ class Recurring extends Model
             RecurringType::TransferInvestment,
         ], true)) {
             $this->goal_target_amount = null;
+            $this->prior_contributed_amount = null;
             $this->instalment_total = null;
             $this->instalment_remaining = null;
 
@@ -374,21 +380,44 @@ class Recurring extends Model
 
         if ($type === RecurringType::DebtInstalment) {
             $this->goal_target_amount = null;
+            $this->prior_contributed_amount = null;
         }
 
-        if (
-            $this->goal_target_amount !== null
+        $hasGoal = $this->goal_target_amount !== null
             && (float) $this->goal_target_amount > 0
             && $this->expected_amount !== null
-            && (float) $this->expected_amount > 0
-            && $this->instalment_total === null
-        ) {
+            && (float) $this->expected_amount > 0;
+
+        if ($hasGoal) {
             $this->instalment_total = (int) ceil((float) $this->goal_target_amount / (float) $this->expected_amount);
+            $this->instalment_remaining = $this->derivedInstalmentRemaining();
+
+            return;
+        }
+
+        if ($type === RecurringType::TransferInvestment) {
+            $this->prior_contributed_amount = null;
         }
 
         if ($this->instalment_total !== null && $this->instalment_remaining === null) {
             $this->instalment_remaining = $this->instalment_total;
         }
+    }
+
+    public function derivedInstalmentRemaining(): int
+    {
+        $total = (int) ($this->instalment_total ?? 0);
+        $expected = (float) ($this->expected_amount ?? 0);
+        $prior = (float) ($this->prior_contributed_amount ?? 0);
+        $priorSlots = $expected > 0 ? (int) floor($prior / $expected) : 0;
+        $consumed = (int) $this->occurrences()
+            ->whereIn('status', [
+                RecurringOccurrenceStatus::Completed,
+                RecurringOccurrenceStatus::Skipped,
+            ])
+            ->count();
+
+        return max(0, $total - $consumed - $priorSlots);
     }
 
     private function applyAnchorDay(Carbon $date): Carbon

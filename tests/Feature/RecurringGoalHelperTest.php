@@ -42,3 +42,13 @@ test('goal progress uses completed actual amounts', function () {
     expect($recurring->goalProgressAmount())->toBe(100.0)
         ->and($recurring->goalProgressPercent())->toBe(16.67);
 });
+
+test('goal progress adds prior contributed amount without extra occurrences', function () {
+    $recurring = Recurring::factory()->withGoal(500, 50)->create([
+        'prior_contributed_amount' => 150,
+    ]);
+
+    expect($recurring->goalProgressAmount())->toBe(150.0)
+        ->and($recurring->goalProgressPercent())->toBe(30.0)
+        ->and($recurring->fresh()->instalment_remaining)->toBe(7);
+});

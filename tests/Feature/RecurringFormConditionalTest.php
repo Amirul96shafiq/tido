@@ -322,6 +322,7 @@ test('switching type to subscription clears stale commitment values', function (
         'title' => 'Was Transfer',
         'instalment_total' => 12,
         'instalment_remaining' => 10,
+        'prior_contributed_amount' => 100,
     ]);
 
     Livewire::test(EditRecurring::class, ['record' => $recurring->getRouteKey()])
@@ -339,6 +340,21 @@ test('switching type to subscription clears stale commitment values', function (
 
     expect($fresh->type)->toBe(RecurringType::Subscription)
         ->and($fresh->goal_target_amount)->toBeNull()
+        ->and($fresh->prior_contributed_amount)->toBeNull()
         ->and($fresh->instalment_total)->toBeNull()
         ->and($fresh->instalment_remaining)->toBeNull();
+});
+
+test('create summary status is creating', function () {
+    Livewire::test(CreateRecurring::class)
+        ->assertSee('Creating');
+});
+
+test('edit summary status is not creating', function () {
+    $recurring = Recurring::factory()->create([
+        'is_active' => true,
+    ]);
+
+    Livewire::test(EditRecurring::class, ['record' => $recurring->getRouteKey()])
+        ->assertDontSee('Creating');
 });
