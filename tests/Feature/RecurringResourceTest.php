@@ -11,7 +11,9 @@ use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\Recurring;
+use App\Models\RecurringOccurrence;
 use App\Models\User;
+use Filament\Actions\Testing\TestAction;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -135,4 +137,71 @@ test('list page shows primary username when assigned to primary', function () {
         ->assertTableColumnStateSet('assigned_to', 'nor', $familyRecurring)
         ->assertTableColumnFormattedStateSet('editedBy.name', 'admin', $primaryRecurring)
         ->assertDontSee('Nor Ezrieana Harun');
+});
+
+test('primary can duplicate a recurring from the list', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $source = Recurring::factory()->withGoal(1200, 100)->create([
+        'title' => 'Tabung Haji',
+        'starts_on' => now()->subMonths(6)->toDateString(),
+        'next_due_on' => now()->subMonths(2)->toDateString(),
+        'instalment_remaining' => 3,
+        'merchant_aliases' => ['Tabung', 'TH'],
+    ]);
+
+    $sourceOccurrence = RecurringOccurrence::factory()->completed()->create([
+        'recurring_id' => $source->id,
+        'period_start' => now()->subMonths(3)->toDateString(),
+        'period_end' => now()->subMonths(2)->subDay()->toDateString(),
+        'due_on' => now()->subMonths(3)->toDateString(),
+        'expected_amount' => 100,
+        'actual_amount' => 100,
+    ]);
+
+    $sourceOccurrenceCount = $source->occurrences()->count();
+
+    $page = Livewire::test(ListRecurrings::class)
+        ->callAction(TestAction::make('replicate')->table($source))
+        ->assertNotified('Recurring duplicated');
+
+    $replica = Recurring::query()
+        ->where('title', 'Tabung Haji')
+        ->whereKeyNot($source->id)
+        ->first();
+
+    expect($replica)->not->toBeNull();
+
+    $page->assertRedirect(RecurringResource::getUrl('edit', ['record' => $replica]));
+
+    expect($source->fresh()->occurrences()->count())->toBe($sourceOccurrenceCount)
+        ->and(RecurringOccurrence::query()->whereKey($sourceOccurrence->id)->exists())->toBeTrue()
+        ->and($replica->starts_on?->toDateString())->toBe(now()->toDateString())
+        ->and($replica->instalment_remaining)->toBe($replica->instalment_total)
+        ->and($replica->merchant_aliases)->toBe(['Tabung', 'TH'])
+        ->and($replica->occurrences()->count())->toBeGreaterThan(0)
+        ->and($replica->sort_order)->not->toBe($source->sort_order);
+});
+
+test('primary can bulk duplicate recurrings from the list', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $first = Recurring::factory()->create(['title' => 'Netflix']);
+    $second = Recurring::factory()->create(['title' => 'Spotify']);
+
+    expect(Recurring::query()->count())->toBe(2);
+
+    Livewire::test(ListRecurrings::class)
+        ->selectTableRecords([$first->getKey(), $second->getKey()])
+        ->callAction(TestAction::make('duplicate')->table()->bulk())
+        ->assertNotified('2 recurrings duplicated')
+        ->assertNoRedirect();
+
+    expect(Recurring::query()->count())->toBe(4)
+        ->and(Recurring::query()->where('title', 'Netflix')->count())->toBe(2)
+        ->and(Recurring::query()->where('title', 'Spotify')->count())->toBe(2);
 });

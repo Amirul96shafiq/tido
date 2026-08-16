@@ -11,10 +11,16 @@ use App\Filament\Resources\Recurrings\Schemas\RecurringForm;
 use App\Filament\Resources\Recurrings\Tables\RecurringsTable;
 use App\Helpers\MoneyDisplay;
 use App\Models\Recurring;
+use App\Services\RecurringDuplicator;
+use App\Support\HouseholdAccess;
+use Filament\Actions\BulkAction;
+use Filament\Actions\ReplicateAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 class RecurringResource extends Resource
@@ -61,6 +67,56 @@ class RecurringResource extends Resource
             'create' => CreateRecurring::route('/create'),
             'edit' => EditRecurring::route('/{record}/edit'),
         ];
+    }
+
+    public static function duplicateAction(): ReplicateAction
+    {
+        return ReplicateAction::make()
+            ->label('Duplicate')
+            ->requiresConfirmation()
+            ->modalHeading(fn (Recurring $record): string => 'Duplicate '.$record->title)
+            ->modalDescription('Creates a new template from this recurring. Occurrence history is not copied.')
+            ->modalSubmitActionLabel('Duplicate')
+            ->successNotificationTitle('Recurring duplicated')
+            ->excludeAttributes(RecurringDuplicator::EXCLUDED_ATTRIBUTES)
+            ->beforeReplicaSaved(function (Model $replica): void {
+                /** @var Recurring $replica */
+                app(RecurringDuplicator::class)->prepareReplica($replica);
+            })
+            ->after(function (Model $replica): void {
+                /** @var Recurring $replica */
+                app(RecurringDuplicator::class)->afterSaved($replica);
+            })
+            ->successRedirectUrl(fn (Model $replica): string => static::getUrl('edit', [
+                'record' => $replica,
+            ]))
+            ->authorizationTooltip()
+            ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage());
+    }
+
+    public static function duplicateBulkAction(): BulkAction
+    {
+        return BulkAction::make('duplicate')
+            ->label('Duplicate')
+            ->icon(Heroicon::Square2Stack)
+            ->requiresConfirmation()
+            ->modalHeading('Duplicate selected recurrings')
+            ->modalDescription('Creates new templates from the selection. Occurrence history is not copied.')
+            ->modalSubmitActionLabel('Duplicate')
+            ->authorize('create')
+            ->authorizationTooltip()
+            ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage())
+            ->deselectRecordsAfterCompletion()
+            ->successNotificationTitle(function (Collection $records): string {
+                $count = $records->count();
+
+                return $count === 1
+                    ? '1 recurring duplicated'
+                    : "{$count} recurrings duplicated";
+            })
+            ->action(function (Collection $records, RecurringDuplicator $duplicator): void {
+                $duplicator->duplicateMany($records);
+            });
     }
 
     /**
