@@ -44,6 +44,7 @@ class EditFamilyMember extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            FamilyMemberResource::duplicateAction(),
             DeleteAction::make(),
             RestoreAction::make(),
         ];
