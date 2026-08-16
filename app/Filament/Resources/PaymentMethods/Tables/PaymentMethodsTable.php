@@ -132,12 +132,14 @@ class PaymentMethodsTable
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
                 RecordActionsGroup::make([
                     EditAction::make(),
+                    PaymentMethodResource::duplicateAction(),
                     DeleteAction::make()
                         ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false)),
                 ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    PaymentMethodResource::duplicateBulkAction(),
                     DeleteBulkAction::make()
                         ->action(function (Collection $records) {
                             $records->reject(fn ($record) => (bool) $record->is_system)->each->delete();

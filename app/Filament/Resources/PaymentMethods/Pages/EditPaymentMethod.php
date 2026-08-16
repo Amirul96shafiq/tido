@@ -53,6 +53,7 @@ class EditPaymentMethod extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            PaymentMethodResource::duplicateAction(),
             DeleteAction::make()
                 ->visible(fn () => ! (bool) $this->record->is_system),
             RestoreAction::make(),

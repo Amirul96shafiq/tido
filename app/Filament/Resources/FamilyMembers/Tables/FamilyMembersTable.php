@@ -16,9 +16,9 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\AvatarProviders\UiAvatarsProvider;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Support\Enums\FontFamily;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
@@ -140,6 +140,7 @@ class FamilyMembersTable
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
                 RecordActionsGroup::make([
                     EditAction::make(),
+                    FamilyMemberResource::duplicateAction(),
                     DeleteAction::make(),
                 ]),
             ])

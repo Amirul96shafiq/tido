@@ -139,6 +139,31 @@ test('family member sees create recurring action visible and disabled', function
         ->assertActionDisabled('create');
 });
 
+test('family member sees duplicate actions visible and disabled', function () {
+    $fixtures = recurringOwnershipFixtures();
+
+    $this->actingAs($fixtures['user']);
+
+    Livewire::test(ListRecurrings::class)
+        ->assertSuccessful()
+        ->assertActionVisible(TestAction::make('replicate')->table($fixtures['own']))
+        ->assertActionDisabled(TestAction::make('replicate')->table($fixtures['own']))
+        ->assertActionVisible(TestAction::make('duplicate')->table()->bulk())
+        ->assertActionDisabled(TestAction::make('duplicate')->table()->bulk());
+
+    Livewire::test(EditRecurring::class, ['record' => $fixtures['own']->getRouteKey()])
+        ->assertSuccessful()
+        ->assertActionVisible('replicate')
+        ->assertActionDisabled('replicate');
+
+    expect(Recurring::query()->count())->toBe(4);
+
+    Livewire::test(ListRecurrings::class)
+        ->callAction(TestAction::make('replicate')->table($fixtures['own']));
+
+    expect(Recurring::query()->count())->toBe(4);
+});
+
 test('family member cannot select non-assigned recurrings for bulk actions', function () {
     $fixtures = recurringOwnershipFixtures();
 

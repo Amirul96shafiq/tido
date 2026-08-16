@@ -143,6 +143,31 @@ test('family member sees create budget action visible and disabled', function ()
         ->assertActionDisabled('create');
 });
 
+test('family member sees duplicate actions visible and disabled', function () {
+    $fixtures = budgetOwnershipFixtures();
+
+    $this->actingAs($fixtures['user']);
+
+    Livewire::test(ListBudgets::class)
+        ->assertSuccessful()
+        ->assertActionVisible(TestAction::make('replicate')->table($fixtures['own']))
+        ->assertActionDisabled(TestAction::make('replicate')->table($fixtures['own']))
+        ->assertActionVisible(TestAction::make('duplicate')->table()->bulk())
+        ->assertActionDisabled(TestAction::make('duplicate')->table()->bulk());
+
+    Livewire::test(EditBudget::class, ['record' => $fixtures['own']->getRouteKey()])
+        ->assertSuccessful()
+        ->assertActionVisible('replicate')
+        ->assertActionDisabled('replicate');
+
+    expect(Budget::query()->count())->toBe(4);
+
+    Livewire::test(ListBudgets::class)
+        ->callAction(TestAction::make('replicate')->table($fixtures['own']));
+
+    expect(Budget::query()->count())->toBe(4);
+});
+
 test('family member cannot select non-assigned budgets for bulk actions', function () {
     $fixtures = budgetOwnershipFixtures();
 

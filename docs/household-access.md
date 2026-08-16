@@ -52,7 +52,7 @@ Each budget has:
 
 **Mutate:** Family members may edit, delete, or toggle `is_active` only when `family_member_id` matches their linked member. Shared-but-not-owned is view-only. Assignment (`family_member_id`, `is_shared`) is locked on family edit. Primary may mutate any.
 
-**Create:** Primary only. Family members still see New Budget; the control is disabled with `Only {primaryUsername} able to use this CTA button.` Direct create URLs stay forbidden.
+**Create / Duplicate:** Primary only. Family members still see New Budget and Duplicate; those controls are disabled with `Only {primaryUsername} able to use this CTA button.` Direct create URLs stay forbidden. Duplicate copies settings only (spent totals stay expense-derived).
 
 **Visibility (Home Budget Performance):** Primary sees all active budgets. Family members see budgets they own **or** budgets with `is_shared = true`. Assigned rows link to edit. Reorder stays primary-only.
 
@@ -64,7 +64,7 @@ Existing budgets migrated with `is_shared = true` (household pool). New budgets 
 
 Ownership fields match budgets (`family_member_id`, `is_shared`). Full behaviour: [recurrings.md](recurrings.md).
 
-**List / View / Mutate / Create:** Same ACL as budgets — family members list every template, edit only assigned ones, and cannot create (New Recurring stays visible but disabled).
+**List / View / Mutate / Create / Duplicate:** Same ACL as budgets — family members list every template, edit only assigned ones, and cannot create or duplicate (New Recurring and Duplicate stay visible but disabled).
 
 **Visibility (Home Due Recurrings / month bills snapshot):** Primary sees all open due/overdue occurrences. Family members see occurrences for templates they own **or** `is_shared = true` (Skip allowed on the dues list). Assigned rows link to edit. Manage opens the Recurrings list. Reorder stays primary-only.
 

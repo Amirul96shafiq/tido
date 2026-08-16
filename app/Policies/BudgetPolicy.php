@@ -30,6 +30,11 @@ class BudgetPolicy
         return HouseholdAccess::createDeniedResponse();
     }
 
+    public function replicate(User $user, Budget $budget): bool|Response
+    {
+        return $this->create($user);
+    }
+
     public function update(User $user, Budget $budget): bool
     {
         return HouseholdAccess::canMutateBudget($budget);

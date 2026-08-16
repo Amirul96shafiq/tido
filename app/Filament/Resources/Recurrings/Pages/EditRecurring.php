@@ -82,7 +82,11 @@ class EditRecurring extends EditRecord
                     $this->refreshFormData(['next_due_on']);
                     $this->fillForm();
                 }),
+
+            RecurringResource::duplicateAction(),
+
             DeleteAction::make(),
+
         ];
     }
 

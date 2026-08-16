@@ -11,10 +11,15 @@ use App\Filament\Resources\PaymentMethods\Pages\ListPaymentMethods;
 use App\Filament\Resources\PaymentMethods\Schemas\PaymentMethodForm;
 use App\Filament\Resources\PaymentMethods\Tables\PaymentMethodsTable;
 use App\Models\PaymentMethod;
+use App\Services\PaymentMethodDuplicator;
+use Filament\Actions\BulkAction;
+use Filament\Actions\ReplicateAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -66,6 +71,47 @@ class PaymentMethodResource extends Resource
             'create' => CreatePaymentMethod::route('/create'),
             'edit' => EditPaymentMethod::route('/{record}/edit'),
         ];
+    }
+
+    public static function duplicateAction(): ReplicateAction
+    {
+        return ReplicateAction::make()
+            ->label('Duplicate')
+            ->requiresConfirmation()
+            ->modalHeading(fn (PaymentMethod $record): string => 'Duplicate '.$record->name)
+            ->modalDescription('Creates a user payment method with the same appearance, aliases, and notes. Expenses are not copied.')
+            ->modalSubmitActionLabel('Duplicate')
+            ->successNotificationTitle('Payment method duplicated')
+            ->excludeAttributes(PaymentMethodDuplicator::EXCLUDED_ATTRIBUTES)
+            ->beforeReplicaSaved(function (Model $replica): void {
+                /** @var PaymentMethod $replica */
+                app(PaymentMethodDuplicator::class)->prepareReplica($replica);
+            })
+            ->successRedirectUrl(fn (Model $replica): string => static::getUrl('edit', [
+                'record' => $replica,
+            ]));
+    }
+
+    public static function duplicateBulkAction(): BulkAction
+    {
+        return BulkAction::make('duplicate')
+            ->label('Duplicate')
+            ->icon(Heroicon::Square2Stack)
+            ->requiresConfirmation()
+            ->modalHeading('Duplicate selected payment methods')
+            ->modalDescription('Creates user payment methods with the same appearance, aliases, and notes. Expenses are not copied.')
+            ->modalSubmitActionLabel('Duplicate')
+            ->deselectRecordsAfterCompletion()
+            ->successNotificationTitle(function (Collection $records): string {
+                $count = $records->count();
+
+                return $count === 1
+                    ? '1 payment method duplicated'
+                    : "{$count} payment methods duplicated";
+            })
+            ->action(function (Collection $records, PaymentMethodDuplicator $duplicator): void {
+                $duplicator->duplicateMany($records);
+            });
     }
 
     /**

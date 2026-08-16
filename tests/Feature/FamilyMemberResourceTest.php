@@ -307,3 +307,93 @@ test('evolution connect is blocked without contact allowlist', function () {
         ->call('generateQr')
         ->assertNotified('Contact allowlist required');
 });
+
+test('primary can duplicate a family member with a new WhatsApp number', function () {
+    $source = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Nur Aisyah Ahmad',
+        'display_name' => 'Aisyah',
+        'phone' => '60111111111',
+        'whatsapp_lid' => '11111111111@lid',
+        'avatar_url' => 'avatars/aisyah.jpg',
+        'allowlist_enabled' => true,
+        'relationship' => 'sibling',
+        'date_of_birth' => '1991-05-15',
+    ]);
+    $sourceLoginUser = $source->loginUser()->first();
+
+    $page = Livewire::test(ListFamilyMembers::class)
+        ->callAction(TestAction::make('duplicate')->table($source), data: [
+            'phone' => '+60122222222',
+            'allowlist_enabled' => false,
+            'login_enabled' => false,
+        ])
+        ->assertNotified('Family member duplicated');
+
+    $replica = FamilyMember::query()
+        ->where('phone', '60122222222')
+        ->first();
+
+    expect($replica)->not->toBeNull();
+
+    $page->assertRedirect(FamilyMemberResource::getUrl('edit', ['record' => $replica]));
+
+    expect($replica->name)->toBe('Nur Aisyah Ahmad (Copy)')
+        ->and($replica->display_name)->toBe('Aisyah')
+        ->and($replica->relationship?->value)->toBe('sibling')
+        ->and($replica->date_of_birth?->toDateString())->toBe('1991-05-15')
+        ->and($replica->avatar_url)->toBeNull()
+        ->and($replica->whatsapp_lid)->toBeNull()
+        ->and($replica->allowlist_enabled)->toBeFalse()
+        ->and($replica->login_enabled)->toBeFalse()
+        ->and($replica->loginUser()->exists())->toBeFalse()
+        ->and($source->fresh()->loginUser->is($sourceLoginUser))->toBeTrue();
+});
+
+test('family member duplicate can explicitly enable a new panel login', function () {
+    $source = FamilyMember::factory()->create([
+        'phone' => '60113333333',
+    ]);
+
+    Livewire::test(ListFamilyMembers::class)
+        ->callAction(TestAction::make('duplicate')->table($source), data: [
+            'phone' => '60114444444',
+            'allowlist_enabled' => true,
+            'login_enabled' => true,
+        ]);
+
+    $replica = FamilyMember::query()
+        ->where('phone', '60114444444')
+        ->first();
+
+    expect($replica)->not->toBeNull()
+        ->and($replica->login_enabled)->toBeTrue()
+        ->and($replica->loginUser)->not->toBeNull()
+        ->and($replica->loginUser->phone)->toBe('60114444444');
+});
+
+test('family member duplicate rejects existing and soft-deleted WhatsApp numbers', function () {
+    $source = FamilyMember::factory()->create([
+        'phone' => '60115555555',
+    ]);
+    $existing = FamilyMember::factory()->create([
+        'phone' => '60116666666',
+    ]);
+    $existing->delete();
+
+    Livewire::test(ListFamilyMembers::class)
+        ->callAction(TestAction::make('duplicate')->table($source), data: [
+            'phone' => '+60116666666',
+            'allowlist_enabled' => false,
+            'login_enabled' => false,
+        ])
+        ->assertHasActionErrors(['phone']);
+
+    expect(FamilyMember::withTrashed()->count())->toBe(2);
+});
+
+test('family member duplicate action is available on the edit header', function () {
+    $member = FamilyMember::factory()->create();
+
+    Livewire::test(EditFamilyMember::class, ['record' => $member->getRouteKey()])
+        ->assertActionVisible('duplicate');
+});

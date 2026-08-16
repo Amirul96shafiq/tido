@@ -172,6 +172,9 @@ class RecurringsTable
                     EditAction::make()
                         ->authorizationTooltip()
                         ->authorizationMessage(fn (Recurring $record): string => HouseholdAccess::assignedOwnerAuthorizationMessage($record->familyMember)),
+
+                    RecurringResource::duplicateAction(),
+
                     DeleteAction::make()
                         ->authorizationTooltip()
                         ->authorizationMessage(fn (Recurring $record): string => HouseholdAccess::assignedOwnerAuthorizationMessage($record->familyMember)),
@@ -179,8 +182,11 @@ class RecurringsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    RecurringResource::duplicateBulkAction(),
+
                     DeleteBulkAction::make()
                         ->authorizeIndividualRecords('delete'),
+
                 ]),
             ]);
     }
