@@ -263,7 +263,8 @@ test('trashed family member edit page exposes the restore action', function () {
 
     Livewire::test(EditFamilyMember::class, ['record' => $member->getRouteKey()])
         ->assertSuccessful()
-        ->assertActionExists('restore');
+        ->assertActionExists('restore')
+        ->assertActionExists('forceDelete');
 });
 
 test('family member form uses details plus profile photo sidebar layout', function () {

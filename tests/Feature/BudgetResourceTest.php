@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\HouseholdRole;
 use App\Filament\Resources\Budgets\BudgetResource;
+use App\Filament\Resources\Budgets\Pages\EditBudget;
 use App\Filament\Resources\Budgets\Pages\ListBudgets;
 use App\Models\Budget;
 use App\Models\FamilyMember;
@@ -11,6 +12,7 @@ use App\Models\Label;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -151,4 +153,30 @@ test('primary can bulk duplicate budgets from the list', function () {
     expect(Budget::query()->count())->toBe(4)
         ->and(Budget::query()->where('title', 'Food')->count())->toBe(2)
         ->and(Budget::query()->where('title', 'Transport')->count())->toBe(2);
+});
+
+test('budgets table supports deleted records filter and soft delete actions', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $active = Budget::factory()->create(['title' => 'Active Budget']);
+    $trashed = Budget::factory()->create(['title' => 'Trashed Budget']);
+    $trashed->delete();
+
+    Livewire::test(ListBudgets::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$active])
+        ->assertCanNotSeeTableRecords([$trashed])
+        ->assertTableFilterExists('trashed', fn ($filter): bool => $filter instanceof TrashedFilter)
+        ->filterTable('trashed', true)
+        ->assertCanSeeTableRecords([$active, $trashed])
+        ->filterTable('trashed', false)
+        ->assertCanSeeTableRecords([$trashed])
+        ->assertCanNotSeeTableRecords([$active]);
+
+    Livewire::test(EditBudget::class, ['record' => $trashed->getRouteKey()])
+        ->assertSuccessful()
+        ->assertActionExists('restore')
+        ->assertActionExists('forceDelete');
 });

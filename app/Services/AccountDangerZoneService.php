@@ -11,6 +11,7 @@ use App\Models\EvolutionApiConnectionLog;
 use App\Models\Expense;
 use App\Models\Label;
 use App\Models\PaymentMethod;
+use App\Models\Recurring;
 use App\Models\User;
 use App\Support\CreatedBackup;
 use Illuminate\Support\Facades\DB;
@@ -71,7 +72,12 @@ class AccountDangerZoneService
             function (): void {
                 $this->wipeExpenses();
             },
-            fn (): mixed => Budget::query()->delete(),
+            function (): void {
+                $this->wipeRecurrings();
+            },
+            function (): void {
+                $this->wipeBudgets();
+            },
             function (): void {
                 $this->wipeUserCreatedLabels();
             },
@@ -97,6 +103,22 @@ class AccountDangerZoneService
 
                 $expense->forceDelete();
             });
+    }
+
+    protected function wipeBudgets(): void
+    {
+        Budget::query()
+            ->withTrashed()
+            ->cursor()
+            ->each(fn (Budget $budget): mixed => $budget->forceDelete());
+    }
+
+    protected function wipeRecurrings(): void
+    {
+        Recurring::query()
+            ->withTrashed()
+            ->cursor()
+            ->each(fn (Recurring $recurring): mixed => $recurring->forceDelete());
     }
 
     protected function wipeUserCreatedLabels(): void

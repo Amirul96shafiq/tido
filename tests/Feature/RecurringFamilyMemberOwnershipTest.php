@@ -199,6 +199,23 @@ test('family member sees mutation actions disabled on non-assigned recurrings', 
         ->assertActionDisabled(TestAction::make('delete')->table($fixtures['shared']));
 });
 
+test('family member cannot restore or force delete non-assigned recurrings', function () {
+    $fixtures = recurringOwnershipFixtures();
+
+    $this->actingAs($fixtures['user']);
+
+    $fixtures['own']->delete();
+    $fixtures['primary']->delete();
+
+    Livewire::test(ListRecurrings::class)
+        ->filterTable('trashed', false)
+        ->assertSuccessful()
+        ->assertActionEnabled(TestAction::make('restore')->table($fixtures['own']))
+        ->assertActionEnabled(TestAction::make('forceDelete')->table($fixtures['own']))
+        ->assertActionDisabled(TestAction::make('restore')->table($fixtures['primary']))
+        ->assertActionDisabled(TestAction::make('forceDelete')->table($fixtures['primary']));
+});
+
 test('family member cannot follow a row edit link for non-assigned recurrings', function () {
     $fixtures = recurringOwnershipFixtures();
 

@@ -15,12 +15,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Recurring extends Model
 {
-    use HasFactory, LogsActivity, TracksResourceEdits;
+    use HasFactory, LogsActivity, SoftDeletes, TracksResourceEdits;
 
     protected $attributes = [
         'frequency' => 'repeating',

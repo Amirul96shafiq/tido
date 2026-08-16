@@ -11,6 +11,7 @@ use App\Filament\Concerns\RecoversContentDraft;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Filament\Resources\PaymentMethods\Schemas\PaymentMethodForm;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 
@@ -56,6 +57,8 @@ class EditPaymentMethod extends EditRecord
             PaymentMethodResource::duplicateAction(),
             DeleteAction::make()
                 ->visible(fn () => ! (bool) $this->record->is_system),
+            ForceDeleteAction::make()
+                ->visible(fn () => ! (bool) $this->record->is_system && $this->record->trashed()),
             RestoreAction::make(),
         ];
     }

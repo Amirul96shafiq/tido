@@ -20,7 +20,9 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
@@ -260,6 +262,12 @@ class ExpensesTable
                                 ->send();
                         }),
                     DeleteAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (Expense $record): string => self::familyMemberActionAuthorizationMessage($record)),
+                    RestoreAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (Expense $record): string => self::familyMemberActionAuthorizationMessage($record)),
+                    ForceDeleteAction::make()
                         ->authorizationTooltip()
                         ->authorizationMessage(fn (Expense $record): string => self::familyMemberActionAuthorizationMessage($record)),
                 ]),

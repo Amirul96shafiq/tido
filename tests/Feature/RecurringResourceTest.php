@@ -6,6 +6,7 @@ use App\Enums\HouseholdRole;
 use App\Enums\RecurringFrequency;
 use App\Enums\RecurringType;
 use App\Filament\Resources\Recurrings\Pages\CreateRecurring;
+use App\Filament\Resources\Recurrings\Pages\EditRecurring;
 use App\Filament\Resources\Recurrings\Pages\ListRecurrings;
 use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Models\FamilyMember;
@@ -15,6 +16,7 @@ use App\Models\RecurringOccurrence;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -205,4 +207,30 @@ test('primary can bulk duplicate recurrings from the list', function () {
     expect(Recurring::query()->count())->toBe(4)
         ->and(Recurring::query()->where('title', 'Netflix')->count())->toBe(2)
         ->and(Recurring::query()->where('title', 'Spotify')->count())->toBe(2);
+});
+
+test('recurrings table supports deleted records filter and soft delete actions', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $active = Recurring::factory()->create(['title' => 'Active Recurring']);
+    $trashed = Recurring::factory()->create(['title' => 'Trashed Recurring']);
+    $trashed->delete();
+
+    Livewire::test(ListRecurrings::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$active])
+        ->assertCanNotSeeTableRecords([$trashed])
+        ->assertTableFilterExists('trashed', fn ($filter): bool => $filter instanceof TrashedFilter)
+        ->filterTable('trashed', true)
+        ->assertCanSeeTableRecords([$active, $trashed])
+        ->filterTable('trashed', false)
+        ->assertCanSeeTableRecords([$trashed])
+        ->assertCanNotSeeTableRecords([$active]);
+
+    Livewire::test(EditRecurring::class, ['record' => $trashed->getRouteKey()])
+        ->assertSuccessful()
+        ->assertActionExists('restore')
+        ->assertActionExists('forceDelete');
 });

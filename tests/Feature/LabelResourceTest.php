@@ -9,6 +9,7 @@ use App\Filament\Resources\Labels\Pages\ListLabels;
 use App\Models\Label;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -99,4 +100,26 @@ test('label duplicate action is available on the edit header', function () {
 
     Livewire::test(EditLabel::class, ['record' => $label->getRouteKey()])
         ->assertActionVisible('replicate');
+});
+
+test('labels table supports deleted records filter and soft delete actions', function () {
+    $active = Label::factory()->create(['name' => 'Active Label']);
+    $trashed = Label::factory()->create(['name' => 'Trashed Label']);
+    $trashed->delete();
+
+    Livewire::test(ListLabels::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$active])
+        ->assertCanNotSeeTableRecords([$trashed])
+        ->assertTableFilterExists('trashed', fn ($filter): bool => $filter instanceof TrashedFilter)
+        ->filterTable('trashed', true)
+        ->assertCanSeeTableRecords([$active, $trashed])
+        ->filterTable('trashed', false)
+        ->assertCanSeeTableRecords([$trashed])
+        ->assertCanNotSeeTableRecords([$active]);
+
+    Livewire::test(EditLabel::class, ['record' => $trashed->getRouteKey()])
+        ->assertSuccessful()
+        ->assertActionExists('restore')
+        ->assertActionExists('forceDelete');
 });

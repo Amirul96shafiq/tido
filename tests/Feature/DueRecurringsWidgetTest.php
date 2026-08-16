@@ -47,6 +47,35 @@ test('due widget shows open occurrences for primary', function () {
         ->assertSee(RecurringOccurrenceStatus::Due->label());
 });
 
+test('due widget hides occurrences for soft deleted recurrings until restored', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $recurring = Recurring::factory()->create(['title' => 'Soft Deleted Bill']);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+        'expected_amount' => 42.00,
+    ]);
+
+    $recurring->delete();
+
+    Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertDontSee('Soft Deleted Bill')
+        ->assertDontSee('RM 42.00');
+
+    $recurring->restore();
+
+    Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertSee('Soft Deleted Bill')
+        ->assertSee('RM 42.00');
+});
+
 test('due widget lists occurrence amounts without a header total', function () {
     $this->actingAs(User::factory()->create([
         'household_role' => HouseholdRole::Primary,

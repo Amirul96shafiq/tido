@@ -22,6 +22,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class RecurringResource extends Resource
 {
@@ -139,6 +140,14 @@ class RecurringResource extends Resource
             'editedBy',
             'occurrences' => fn ($query) => $query->open()->orderBy('due_on')->orderBy('id'),
         ]);
+    }
+
+    public static function getRecordRouteBindingEloquentQuery(): Builder
+    {
+        return parent::getRecordRouteBindingEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 
     public static function getGlobalSearchEloquentQuery(): Builder
