@@ -578,7 +578,7 @@ class EditProfile extends BaseEditProfile implements HasTable
             ->requiresConfirmation()
             ->modalHeading('Delete account')
             ->modalDescription('This permanently deletes all data and user account. You will be signed out.')
-            ->modalSubmitActionLabel('Restore kit')
+            ->modalSubmitActionLabel('Proceed Account Deletion')
             ->action(function (AccountDangerZoneService $accountDangerZoneService): void {
                 if (! $this->isDeleteAccountReady() || ! $this->isDangerZonePasswordValid('delete_confirmation_password')) {
                     FilamentNotification::make()
@@ -602,19 +602,19 @@ class EditProfile extends BaseEditProfile implements HasTable
         return Action::make('storeRestoreKitThenDelete')
             ->label('Delete account')
             ->color('danger')
-            ->modalHeading('Store the restore token')
-            ->modalDescription('Restore token shown once. Store it separately from the archive.')
+            ->modalHeading('Save your recovery token')
+            ->modalDescription('This token is shown only once. Save / copy it somewhere safe, and use it to restore your account later.')
             ->fillForm(fn (): array => [
                 'restore_token' => (string) $this->pendingRestoreToken,
             ])
             ->form([
                 TextInput::make('restore_token')
-                    ->label('Restore token')
+                    ->label('Recovery token')
                     ->readOnly()
                     ->copyable()
                     ->dehydrated(false),
             ])
-            ->modalSubmitActionLabel('Delete account')
+            ->modalSubmitActionLabel('I have stored it, proceed download backup ZIP file')
             ->action(function (AccountDangerZoneService $accountDangerZoneService, BackupService $backupService): void {
                 if (! $this->isDeleteAccountReady() || ! $this->isDangerZonePasswordValid('delete_confirmation_password')) {
                     FilamentNotification::make()
