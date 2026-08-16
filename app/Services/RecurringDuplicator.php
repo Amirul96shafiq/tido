@@ -56,6 +56,7 @@ class RecurringDuplicator
         $replica->starts_on = now()->toDateString();
         $replica->next_due_on = null;
         $replica->sort_order = 0;
+        $replica->prior_contributed_amount = null;
 
         if ($replica->instalment_total !== null) {
             $replica->instalment_remaining = $replica->instalment_total;

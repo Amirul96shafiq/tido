@@ -8,6 +8,7 @@ use App\Enums\LabelType;
 use App\Enums\RecurringFrequency;
 use App\Enums\RecurringType;
 use App\Filament\Forms\Components\NotesRichEditor;
+use App\Helpers\MoneyDisplay;
 use App\Models\FamilyMember;
 use App\Models\Recurring;
 use App\Support\FieldCharacterLimits;
@@ -127,8 +128,41 @@ class RecurringForm
                                     ->helperText(fn (Get $get): ?string => self::goalInstalmentHelper($get))
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::syncInstalmentsFromGoal($get, $set))
-                                    ->visible(fn (Get $get): bool => $get('type') === RecurringType::TransferInvestment->value
-                                        && ($get('tracking_mode') ?? 'open_ended') === 'target_amount'),
+                                    ->visible(fn (Get $get): bool => self::showsTargetAmountFields($get)),
+                                ToggleButtons::make('prior_contribution_mode')
+                                    ->label('Already contributed')
+                                    ->options([
+                                        'none' => 'None',
+                                        'count' => 'Number of transfers',
+                                        'amount' => 'Amount',
+                                    ])
+                                    ->default('none')
+                                    ->inline()
+                                    ->live()
+                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::syncInstalmentsFromGoal($get, $set))
+                                    ->helperText('Exclude transfers already marked paid in tido so progress is not double-counted.')
+                                    ->visible(fn (Get $get): bool => self::showsTargetAmountFields($get)),
+                                TextInput::make('prior_transfer_count')
+                                    ->label('Transfers already made')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->integer()
+                                    ->nullable()
+                                    ->placeholder('0')
+                                    ->helperText(fn (Get $get): ?string => self::priorCountHelper($get))
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::syncInstalmentsFromGoal($get, $set))
+                                    ->visible(fn (Get $get): bool => self::showsTargetAmountFields($get)
+                                        && ($get('prior_contribution_mode') ?? 'none') === 'count'),
+                                TextInput::make('prior_contributed_amount')
+                                    ->label('Already contributed')
+                                    ->myr()
+                                    ->placeholder('0.00')
+                                    ->helperText(fn (Get $get): ?string => self::priorAmountHelper($get))
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::syncInstalmentsFromGoal($get, $set))
+                                    ->visible(fn (Get $get): bool => self::showsTargetAmountFields($get)
+                                        && ($get('prior_contribution_mode') ?? 'none') === 'amount'),
                                 Grid::make(2)
                                     ->schema([
                                         TextInput::make('instalment_total')
@@ -468,55 +502,95 @@ class RecurringForm
 
     private static function syncInstalmentsFromGoal(Get $get, Set $set): void
     {
-        if ($get('type') !== RecurringType::TransferInvestment->value) {
+        if (! self::showsTargetAmountFields($get)) {
             return;
         }
 
-        if (($get('tracking_mode') ?? 'open_ended') !== 'target_amount') {
-            return;
-        }
+        $targetAmount = MoneyDisplay::parse($get('goal_target_amount'));
+        $expectedAmount = MoneyDisplay::parse($get('expected_amount'));
 
-        $target = $get('goal_target_amount');
-        $expected = $get('expected_amount');
-
-        if ($target === null || $expected === null || $get('instalment_total') !== null) {
-            return;
-        }
-
-        $targetAmount = (float) str_replace(',', '', (string) $target);
-        $expectedAmount = (float) str_replace(',', '', (string) $expected);
-
-        if ($targetAmount <= 0 || $expectedAmount <= 0) {
+        if ($targetAmount === null || $expectedAmount === null || $targetAmount <= 0 || $expectedAmount <= 0) {
             return;
         }
 
         $total = (int) ceil($targetAmount / $expectedAmount);
         $set('instalment_total', $total);
 
-        if ($get('instalment_remaining') === null) {
-            $set('instalment_remaining', $total);
-        }
+        $prior = self::resolvedPriorAmount($get);
+        $priorSlots = (int) floor($prior / $expectedAmount);
+        $set('instalment_remaining', max(0, $total - $priorSlots));
     }
 
     private static function goalInstalmentHelper(Get $get): ?string
     {
-        $target = $get('goal_target_amount');
-        $expected = $get('expected_amount');
+        $targetAmount = MoneyDisplay::parse($get('goal_target_amount'));
+        $expectedAmount = MoneyDisplay::parse($get('expected_amount'));
 
-        if ($target === null || $expected === null) {
+        if ($targetAmount === null || $expectedAmount === null || $targetAmount <= 0 || $expectedAmount <= 0) {
             return 'Optional Tabung-style target. Instalment count is calculated from expected amount.';
         }
 
-        $targetAmount = (float) str_replace(',', '', (string) $target);
-        $expectedAmount = (float) str_replace(',', '', (string) $expected);
+        $prior = self::resolvedPriorAmount($get);
+        $remainingAmount = max(0, $targetAmount - $prior);
+        $remainingTransfers = (int) ceil($remainingAmount / $expectedAmount);
 
-        if ($targetAmount <= 0 || $expectedAmount <= 0) {
-            return 'Optional Tabung-style target. Instalment count is calculated from expected amount.';
+        return 'About '.$remainingTransfers.' transfers left at '
+            .MoneyDisplay::withPrefix($expectedAmount)
+            .' ('.MoneyDisplay::withPrefix($remainingAmount)
+            .' of '.MoneyDisplay::withPrefix($targetAmount).' remaining).';
+    }
+
+    private static function priorCountHelper(Get $get): ?string
+    {
+        $count = max(0, (int) ($get('prior_transfer_count') ?? 0));
+        $expectedAmount = MoneyDisplay::parse($get('expected_amount'));
+
+        if ($count <= 0 || $expectedAmount === null || $expectedAmount <= 0) {
+            return 'Converted to RM using the expected amount. Do not include transfers already paid in tido.';
         }
 
-        $total = (int) ceil($targetAmount / $expectedAmount);
+        return MoneyDisplay::withPrefix(round($count * $expectedAmount, 2))
+            .' at the expected amount. Do not include transfers already paid in tido.';
+    }
 
-        return 'About '.$total.' transfers at the expected amount.';
+    private static function priorAmountHelper(Get $get): ?string
+    {
+        $prior = MoneyDisplay::parse($get('prior_contributed_amount'));
+        $expectedAmount = MoneyDisplay::parse($get('expected_amount'));
+
+        if ($prior === null || $prior <= 0 || $expectedAmount === null || $expectedAmount <= 0) {
+            return 'Money already saved outside tido. Do not include transfers already paid in tido.';
+        }
+
+        $slots = (int) floor($prior / $expectedAmount);
+
+        return 'About '.$slots.' transfers at the expected amount. Do not include transfers already paid in tido.';
+    }
+
+    private static function resolvedPriorAmount(Get $get): float
+    {
+        $mode = (string) ($get('prior_contribution_mode') ?? 'none');
+
+        if ($mode === 'count') {
+            $count = max(0, (int) ($get('prior_transfer_count') ?? 0));
+            $expectedAmount = MoneyDisplay::parse($get('expected_amount')) ?? 0.0;
+
+            return $count > 0 && $expectedAmount > 0
+                ? round($count * $expectedAmount, 2)
+                : 0.0;
+        }
+
+        if ($mode === 'amount') {
+            return max(0.0, MoneyDisplay::parse($get('prior_contributed_amount')) ?? 0.0);
+        }
+
+        return 0.0;
+    }
+
+    private static function showsTargetAmountFields(Get $get): bool
+    {
+        return $get('type') === RecurringType::TransferInvestment->value
+            && ($get('tracking_mode') ?? 'open_ended') === 'target_amount';
     }
 
     private static function showsInstalmentFields(Get $get): bool

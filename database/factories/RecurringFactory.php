@@ -32,6 +32,7 @@ class RecurringFactory extends Factory
             'is_shared' => false,
             'expected_amount' => $this->faker->randomFloat(2, 20, 500),
             'goal_target_amount' => null,
+            'prior_contributed_amount' => null,
             'frequency' => RecurringFrequency::Repeating,
             'interval_months' => 1,
             'anchor_day' => $this->faker->numberBetween(1, 28),

@@ -78,12 +78,14 @@ test('hydrateVirtualFields infers controllers from record shape', function () {
         'family_member_id' => null,
         'goal_target_amount' => 600,
         'instalment_total' => 12,
+        'prior_contributed_amount' => 50,
     ]);
 
     expect($data['cadence_preset'])->toBe('quarterly')
         ->and($data['end_rule'])->toBe('end_on_date')
         ->and($data['responsibility'])->toBe('household_shared')
-        ->and($data['tracking_mode'])->toBe('target_amount');
+        ->and($data['tracking_mode'])->toBe('target_amount')
+        ->and($data['prior_contribution_mode'])->toBe('amount');
 });
 
 test('preserveOwnership restores assignee and shared from the record', function () {
