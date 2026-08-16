@@ -42,6 +42,7 @@ class EditLabel extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            LabelResource::duplicateAction(),
             DeleteAction::make()
                 ->visible(fn () => ! (bool) $this->record->is_system),
             RestoreAction::make(),

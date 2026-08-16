@@ -100,12 +100,14 @@ class LabelsTable
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
                 RecordActionsGroup::make([
                     EditAction::make(),
+                    LabelResource::duplicateAction(),
                     DeleteAction::make()
                         ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false)),
                 ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    LabelResource::duplicateBulkAction(),
                     DeleteBulkAction::make()
                         ->action(function (Collection $records) {
                             $records->reject(fn ($record) => (bool) $record->is_system)->each->delete();
