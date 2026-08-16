@@ -26,7 +26,9 @@ class EditRecurring extends EditRecord
     use AppendsResourceLabelToEditTitle;
     use HasStickyBlurFormActions;
     use PrependsHomeBreadcrumb;
-    use RecoversContentDraft;
+    use RecoversContentDraft {
+        afterSave as protected clearContentDraftAfterSave;
+    }
 
     protected static string $resource = RecurringResource::class;
 
@@ -136,6 +138,7 @@ class EditRecurring extends EditRecord
 
     protected function afterSave(): void
     {
+        $this->clearContentDraftAfterSave();
         app(RecurringOccurrenceGenerator::class)->generateFor($this->getRecord());
     }
 }
