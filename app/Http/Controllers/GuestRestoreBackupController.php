@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\BackupService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Throwable;
 
@@ -36,6 +37,12 @@ class GuestRestoreBackupController extends Controller
         $backup = $backupService->findBackupByRestoreToken($plainToken);
 
         if ($backup === null) {
+            Log::warning('backup.restore_failed', [
+                'backup_id' => null,
+                'outcome' => 'invalid_token',
+                'ip_hash' => hash('sha256', (string) $request->ip()),
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid restore token or backup.',

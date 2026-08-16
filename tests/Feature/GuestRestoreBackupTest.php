@@ -43,6 +43,7 @@ test('backup restore token is stored hashed and omitted from the zip', function 
     $plainToken = app(BackupService::class)->issueRestoreToken($backup);
 
     expect($backup->fresh()->restore_token_hash)->not->toBeNull()
+        ->and($backup->fresh()->restore_token_lookup)->not->toBeNull()
         ->and(app(BackupService::class)->assertRestoreToken($backup->fresh(), $plainToken))->toBeTrue();
 
     $storedZip = storage_path('app/backup-temp/token-assert.zip');
@@ -135,7 +136,7 @@ test('guest restore rejects non zip uploads', function () {
 test('guest restore rejects wrong token', function () {
     expect(User::query()->exists())->toBeFalse();
 
-    Backup::factory()->withRestoreToken('correct-token-value')->create([
+    Backup::factory()->withRestoreToken('1122334455667788.aabbccddeeff00112233445566778899')->create([
         'disk' => 'local',
         'path' => 'tido/wrong-token.zip',
         'filename' => 'wrong-token.zip',
@@ -151,7 +152,7 @@ test('guest restore rejects wrong token', function () {
     $zip->close();
 
     $response = $this->postJson(route('restore-backup'), [
-        'token' => 'incorrect-token-value',
+        'token' => '9988776655443322.ffeeddccbbaa00998877665544332211',
         'backup' => new UploadedFile($zipPath, 'wrong-token.zip', 'application/zip', null, true),
     ]);
 
@@ -167,7 +168,7 @@ test('guest restore rejects wrong token', function () {
 test('guest restore stages valid uploads under a server-controlled path', function () {
     expect(User::query()->exists())->toBeFalse();
 
-    $backup = Backup::factory()->withRestoreToken('valid-restore-token')->create([
+    $backup = Backup::factory()->withRestoreToken('aabbccddeeff0011.11223344556677889900aabbccddeeff')->create([
         'disk' => 'local',
         'path' => 'tido/valid-restore.zip',
         'filename' => 'valid-restore.zip',
@@ -185,7 +186,7 @@ test('guest restore stages valid uploads under a server-controlled path', functi
     $this->mock(BackupService::class, function ($mock) use ($backup): void {
         $mock->shouldReceive('findBackupByRestoreToken')
             ->once()
-            ->with('valid-restore-token')
+            ->with('aabbccddeeff0011.11223344556677889900aabbccddeeff')
             ->andReturn($backup);
 
         $mock->shouldReceive('restoreGuestUpload')
@@ -206,14 +207,14 @@ test('guest restore stages valid uploads under a server-controlled path', functi
                 }
 
                 return $record->is($backup)
-                    && $token === 'valid-restore-token'
+                    && $token === 'aabbccddeeff0011.11223344556677889900aabbccddeeff'
                     && basename($path) === 'backup.zip'
                     && str_starts_with($stagingDirectory, $restoreRoot);
             });
     });
 
     $response = $this->postJson(route('restore-backup'), [
-        'token' => 'valid-restore-token',
+        'token' => 'aabbccddeeff0011.11223344556677889900aabbccddeeff',
         'backup' => new UploadedFile($zipPath, '..\\..\\CON.zip', 'application/zip', null, true),
     ]);
 

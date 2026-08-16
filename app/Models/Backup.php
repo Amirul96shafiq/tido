@@ -28,6 +28,7 @@ class Backup extends Model
         'size_bytes',
         'created_by',
         'restore_token_hash',
+        'restore_token_lookup',
         'content_sha256',
         'manifest_hmac',
     ];
@@ -37,6 +38,7 @@ class Backup extends Model
      */
     protected $hidden = [
         'restore_token_hash',
+        'restore_token_lookup',
     ];
 
     /**

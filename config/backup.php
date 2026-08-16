@@ -188,6 +188,8 @@ return [
             'max_entry_bytes' => (int) env('BACKUP_RESTORE_MAX_ENTRY_BYTES', 52428800),
             'max_compression_ratio' => (float) env('BACKUP_RESTORE_MAX_COMPRESSION_RATIO', 100),
             'max_duration_seconds' => (int) env('BACKUP_RESTORE_MAX_DURATION_SECONDS', 60),
+            'per_ip_attempts_per_minute' => (int) env('BACKUP_RESTORE_PER_IP_ATTEMPTS_PER_MINUTE', 5),
+            'global_attempts_per_minute' => (int) env('BACKUP_RESTORE_GLOBAL_ATTEMPTS_PER_MINUTE', 10),
         ],
 
         /*

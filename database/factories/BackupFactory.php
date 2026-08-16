@@ -7,6 +7,7 @@ namespace Database\Factories;
 use App\Enums\BackupType;
 use App\Models\Backup;
 use App\Models\User;
+use App\Support\RestoreToken;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 
@@ -33,16 +34,29 @@ class BackupFactory extends Factory
             'size_bytes' => fake()->numberBetween(1024, 5_000_000),
             'created_by' => User::factory(),
             'restore_token_hash' => null,
+            'restore_token_lookup' => null,
             'content_sha256' => null,
             'manifest_hmac' => null,
         ];
     }
 
-    public function withRestoreToken(string $plainToken = 'test-restore-token'): static
+    public function withRestoreToken(string $plainToken = 'aabbccddeeff0011.11223344556677889900aabbccddeeff'): static
     {
-        return $this->state(fn (array $attributes): array => [
-            'restore_token_hash' => Hash::make($plainToken),
-        ]);
+        return $this->state(function (array $attributes) use ($plainToken): array {
+            $parsed = RestoreToken::parse($plainToken);
+
+            if ($parsed === null) {
+                return [
+                    'restore_token_hash' => Hash::make($plainToken),
+                    'restore_token_lookup' => null,
+                ];
+            }
+
+            return [
+                'restore_token_lookup' => $parsed['selector'],
+                'restore_token_hash' => Hash::make($plainToken),
+            ];
+        });
     }
 
     public function auto(): static

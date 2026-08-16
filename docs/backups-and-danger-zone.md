@@ -6,8 +6,9 @@ Cataloged ZIP backups, restore tokens, guest restore, and profile account deleti
 
 | Layer | Path |
 |-------|------|
-| Model | `app/Models/Backup.php` (`backups` table; includes `restore_token_hash`, `content_sha256`, `manifest_hmac`, and `edited_by`) |
+| Model | `app/Models/Backup.php` (`backups` table; includes `restore_token_hash`, `restore_token_lookup`, `content_sha256`, `manifest_hmac`, and `edited_by`) |
 | Service | `app/Services/BackupService.php` |
+| Restore token format | `app/Support/RestoreToken.php` |
 | Manifest MAC | `app/Support/BackupManifest.php` |
 | Notifications | `app/Services/BackupNotificationService.php` |
 | Account wipe + final backup | `app/Services/AccountDangerZoneService.php` |
@@ -23,14 +24,14 @@ Cataloged ZIP backups, restore tokens, guest restore, and profile account deleti
 - **Catalog row:** Each successful backup (manual, scheduled, or pre-delete) is recorded in `backups` with disk path metadata.
 - **Edit audit:** Backup catalog rows record the latest authenticated editor in `edited_by`. The Filament table displays **Edited By** and **Edited At** from `updated_at`, with newest catalog changes first; system-generated backup updates show `System` when no user is authenticated.
 - **Archive encryption:** Every backup ZIP is AES-256 encrypted with `BACKUP_ARCHIVE_PASSWORD` (32+ characters). Create and restore fail closed when the key is missing, weak, or a placeholder. The restore token is not the archive password.
-- **Restore token:** Plain token is shown once in a session notification (Create backup) or the Danger Zone kit modal (delete account). Only `restore_token_hash` is stored. The token is never written into the ZIP, database notifications, or logs. Required for guest restore.
-- **Guest restore:** When no users exist (post Danger Zone wipe), auth menu exposes Restore Backup → Filament modal → `GuestRestoreBackupRequest` validation → `BackupService` restore. Upload the encrypted zip and the one-time token shown when the backup was created. Restore errors and status messages render as small text under the recovery token field, not as toasts.
+- **Restore token:** Plain token is `{16-hex-selector}.{32-hex-secret}` (49 characters), shown once in a session notification (Create backup) or the Danger Zone kit modal (delete account). The catalog stores `restore_token_lookup` (public selector, unique index) and `restore_token_hash` (bcrypt of the full token). The token is never written into the ZIP, database notifications, or logs. Required for guest restore. Pre-change hash-only rows fail closed; re-issue a token from Backups while a user still exists.
+- **Guest restore:** When no users exist (post Danger Zone wipe), auth menu exposes Restore Backup → Filament modal → `GuestRestoreBackupRequest` validation → `BackupService` restore. Upload the encrypted zip and the one-time token shown when the backup was created. Restore errors and status messages render as small text under the recovery token field, not as toasts. `POST /restore-backup` uses the named `guest-restore` limiter: 5 attempts/minute per IP and 10/minute globally (config under `backup.backup.restore`).
 - **Danger Zone (Edit Profile):** Creates a final backup, shows the restore token in a blocking modal with a download CTA, then deletes account data after confirm. Single-tenant — wiping the only user leaves the app in guest-restore mode.
 - **Download:** Tools → Backups Download and Danger Zone both use `BackupService::temporaryDownloadUrl()` (`URL::temporarySignedRoute` to `backups.download`, 10 minutes). The browser hits the signed GET route and streams from disk. Do not return the ZIP from a Livewire/Filament `->action()`; Livewire buffers the whole file and large archives exhaust PHP memory. The download URL is listed in Filament `spaUrlExceptions` so panel SPA mode does not `wire:navigate` into the ZIP bytes.
 
 ## Guest restore upload boundary
 
-Guest restore accepts the uploaded ZIP only after the zero-user authorization gate, ZIP validation, and restore-token lookup succeed. `GuestRestoreBackupController` then creates a fresh per-request directory under `storage/app/backup-restore`, moves the upload to the server-controlled basename `backup.zip`, resolves the resulting path, verifies that it remains inside that directory, and passes the resolved path to `BackupService`.
+Guest restore accepts the uploaded ZIP only after the zero-user authorization gate, ZIP validation, and restore-token lookup succeed. Lookup parses the selector, loads at most one catalog row by `restore_token_lookup`, and verifies a single bcrypt of the full token (unknown or malformed tokens still pay one dummy bcrypt). `GuestRestoreBackupController` then creates a fresh per-request directory under `storage/app/backup-restore`, moves the upload to the server-controlled basename `backup.zip`, resolves the resulting path, verifies that it remains inside that directory, and passes the resolved path to `BackupService`. Failed token lookups log `backup.restore_failed` with `outcome: invalid_token` and an `ip_hash` — never the plain token.
 
 The client-supplied filename is not a filesystem location. Path-like, reserved, or overwrite-oriented names must never be passed to `move()`, `Storage`, `File`, or the restore service. The original filename may be used for upload metadata and validation only.
 
@@ -50,6 +51,8 @@ The client-supplied filename is not a filesystem location. Path-like, reserved, 
 | `max_entry_bytes` | 52428800 (50 MiB) | `BACKUP_RESTORE_MAX_ENTRY_BYTES` |
 | `max_compression_ratio` | 100 | `BACKUP_RESTORE_MAX_COMPRESSION_RATIO` |
 | `max_duration_seconds` | 60 | `BACKUP_RESTORE_MAX_DURATION_SECONDS` |
+| `per_ip_attempts_per_minute` | 5 | `BACKUP_RESTORE_PER_IP_ATTEMPTS_PER_MINUTE` |
+| `global_attempts_per_minute` | 10 | `BACKUP_RESTORE_GLOBAL_ATTEMPTS_PER_MINUTE` |
 
 Every central-directory entry counts toward those limits, including extra Spatie source paths that are not restored. Application-file writes remain `files/public/` → disk `public` and `files/private/` → disk `local`, and only `jpg`, `jpeg`, `png`, `gif`, `webp`, and `pdf` extensions are written. Archives that exceed a limit fail closed with a generic error before payload directories or storage writes.
 
@@ -93,7 +96,7 @@ A copied `database.sqlite` file alone is not a complete rollback because it rest
 ## Agent rules
 
 1. Do not log or commit plain restore tokens.
-2. Validate guest restore with `GuestRestoreBackupRequest`; process via `BackupService` (no ad-hoc unzip in controllers).
+2. Validate guest restore with `GuestRestoreBackupRequest`; process via `BackupService` (no ad-hoc unzip in controllers). Look up tokens by indexed selector only — never bcrypt-scan the catalog.
 3. Keep restore-backup modal tooltips Filament Tippy (`x-tooltip` / `:tooltip`) — see [ui-tooltips.md](ui-tooltips.md).
 4. Cover new backup/restore paths with Pest; fake storage / avoid real Spatie runs in unit tests where possible.
 5. Nav: Backups live under Tools (bottom nav group), not Finances, Settings, or Integrations.
@@ -101,6 +104,7 @@ A copied `database.sqlite` file alone is not a complete rollback because it rest
 7. Do not broaden database ZIP payload selection beyond the allowlisted entry names above; never pass archive entry path components into filesystem destinations.
 8. Inspect restore ZIP central-directory limits before any database or application-file write; do not extract first and cap afterwards.
 9. Verify catalog content hash and manifest MAC before restore writes; hold the exclusive restore lock; snapshot and roll back on failure; consume the guest token only after a successful import.
+10. Keep the `guest-restore` rate limiter (per-IP and global). On consume, clear both `restore_token_lookup` and `restore_token_hash`.
 
 ## Related
 

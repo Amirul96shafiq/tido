@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\BackupService;
 use App\Support\BackupArchivePassword;
 use App\Support\BackupManifest;
+use App\Support\RestoreToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Log\Events\MessageLogged;
@@ -142,8 +143,10 @@ test('native backup zip is encrypted without a restore token file', function () 
     $created = app(BackupService::class)->create(BackupType::Manual, $user);
     $backup = $created->backup;
 
-    expect($created->restoreToken)->toHaveLength(32)
+    expect($created->restoreToken)->toHaveLength(RestoreToken::PLAIN_LENGTH)
+        ->and(RestoreToken::isValidFormat($created->restoreToken))->toBeTrue()
         ->and($backup->restore_token_hash)->not->toBeNull()
+        ->and($backup->restore_token_lookup)->not->toBeNull()
         ->and($backup->fileExists())->toBeTrue();
 
     $storedZip = storage_path('app/backup-temp/'.uniqid('sec007_', true).'.zip');
@@ -194,7 +197,7 @@ test('guest restore succeeds with a catalog token and an encrypted zip', functio
         'db-dumps/sqlite.sql' => 'SELECT 1;',
     ]);
 
-    $backup = Backup::factory()->withRestoreToken('valid-restore-token')->create([
+    $backup = Backup::factory()->withRestoreToken('aabbccddeeff0011.11223344556677889900aabbccddeeff')->create([
         'disk' => 'local',
         'path' => 'tido/sec007-guest.zip',
         'filename' => $filename,
@@ -208,14 +211,14 @@ test('guest restore succeeds with a catalog token and an encrypted zip', functio
     expect($probe->locateName('RESTORE_TOKEN.txt'))->toBeFalse();
     $plaintext = $probe->getFromName('db-dumps/sqlite.sql');
     expect($plaintext === false || $plaintext === '')->toBeTrue();
-    $probe->setPassword('valid-restore-token');
+    $probe->setPassword('aabbccddeeff0011.11223344556677889900aabbccddeeff');
     $tokenAsPassword = $probe->getFromName('db-dumps/sqlite.sql');
     expect($tokenAsPassword === false || $tokenAsPassword === '')->toBeTrue();
     $probe->close();
 
     try {
         $this->postJson(route('restore-backup'), [
-            'token' => 'valid-restore-token',
+            'token' => 'aabbccddeeff0011.11223344556677889900aabbccddeeff',
             'backup' => new UploadedFile($zipPath, 'backup.zip', 'application/zip', null, true),
         ])
             ->assertSuccessful()
@@ -224,7 +227,8 @@ test('guest restore succeeds with a catalog token and an encrypted zip', functio
                 'message' => 'Backup restored. Please sign in.',
             ]);
 
-        expect($backup->fresh()->restore_token_hash)->toBeNull();
+        expect($backup->fresh()->restore_token_hash)->toBeNull()
+            ->and($backup->fresh()->restore_token_lookup)->toBeNull();
     } finally {
         File::deleteDirectory($directory);
     }

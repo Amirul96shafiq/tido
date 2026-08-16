@@ -46,7 +46,7 @@ test('create backup header action registers a manual backup', function () {
         $mock->shouldReceive('create')
             ->once()
             ->with(BackupType::Manual, $this->admin)
-            ->andReturn(new CreatedBackup($backup, 'test-restore-token-0123456789abcdef'));
+            ->andReturn(new CreatedBackup($backup, 'aabbccddeeff0011.11223344556677889900aabbccddeeff'));
         $mock->shouldReceive('temporaryDownloadUrl')
             ->andReturn('http://127.0.0.1/backups/signed-download');
     });
@@ -59,7 +59,7 @@ test('create backup header action registers a manual backup', function () {
 
     expect($this->admin->notifications()->count())->toBe(1);
     expect($this->admin->notifications()->first()->data['title'])->toBe('Backup created');
-    expect($this->admin->notifications()->first()->data['body'] ?? '')->not->toContain('test-restore-token-0123456789abcdef');
+    expect($this->admin->notifications()->first()->data['body'] ?? '')->not->toContain('aabbccddeeff0011.11223344556677889900aabbccddeeff');
 });
 
 test('delete backup stores database notification', function () {

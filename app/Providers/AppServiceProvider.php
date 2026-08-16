@@ -34,7 +34,10 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Support\View\Components\ButtonComponent as FilamentButtonComponent;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -71,6 +74,8 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(BackupWasSuccessful::class, RegisterScheduledBackupCatalog::class);
 
+        $this->configureGuestRestoreRateLimiter();
+
         Livewire::setUpdateRoute(function ($handle, $path) {
             return Route::post('/livewire/update', $handle)
                 ->middleware(['web', LogLivewireUpdates::class]);
@@ -78,6 +83,30 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureFilamentDateFormats();
         $this->configureFilamentMoneyFormatting();
+    }
+
+    protected function configureGuestRestoreRateLimiter(): void
+    {
+        RateLimiter::for('guest-restore', function (Request $request) {
+            $perIp = max(1, (int) config('backup.backup.restore.per_ip_attempts_per_minute', 5));
+            $global = max(1, (int) config('backup.backup.restore.global_attempts_per_minute', 10));
+
+            $response = function (Request $request, array $headers) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Too many restore attempts. Try again later.',
+                ], 429, $headers);
+            };
+
+            return [
+                Limit::perMinute($perIp)
+                    ->by('guest-restore:ip:'.$request->ip())
+                    ->response($response),
+                Limit::perMinute($global)
+                    ->by('guest-restore:global')
+                    ->response($response),
+            ];
+        });
     }
 
     protected function configureFilamentDateFormats(): void

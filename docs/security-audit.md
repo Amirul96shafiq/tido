@@ -55,7 +55,7 @@ This is a source/configuration audit, not a certification of a deployed environm
 | **SEC-005** | High | Verified | ZIP resource limits | [BackupService.php](../app/Services/BackupService.php):420 reads and writes every application-file entry. The compressed upload limit does not establish an uncompressed total limit, per-entry limit, entry-count limit, or compression-ratio limit. A crafted ZIP can exhaust memory, disk, CPU, or request/worker time. | Inspect the central directory before extraction. Enforce entry count, total uncompressed bytes, per-file bytes, compression ratio, allowed prefixes/extensions, and a bounded restore duration before database or file writes. |
 | **SEC-006** | High | Verified | Restore integrity and one-time use | [GuestRestoreBackupController.php](../app/Http/Controllers/GuestRestoreBackupController.php):36 finds a catalog backup by token, but the uploaded archive is not visibly bound to that catalog row by a signature, manifest, or embedded-token comparison. The token is consumed after restoration, so concurrent submissions may race. A leaked token can authorize an attacker-created database/archive. | Sign or MAC the backup manifest, verify the submitted token and archive identity before any write, use an atomic claim/lock for one-time restore, and provide rollback or staging for failed imports. |
 | **SEC-007** | High | Verified | Backup confidentiality | [BackupService.php](../app/Services/BackupService.php):300 creates a native SQLite ZIP containing the database and plaintext `RESTORE_TOKEN.txt`, then embeds application files. [config/backup.php](../config/backup.php):29 includes `base_path()` for the Spatie source and [config/backup.php](../config/backup.php):191 makes archive encryption optional. This can place database contents, source, `.env`, credentials, and recovery material in a locally stored archive. | Make encryption mandatory for every backup path, fail closed when the archive key is absent, remove plaintext tokens from archives, narrow source include/exclude rules, exclude `.env` and debug artifacts explicitly, use encrypted off-host retention, rotate keys, and audit backup download/restore events. |
-| **SEC-008** | Medium | Open | Restore-token lookup | [BackupService.php](../app/Services/BackupService.php):178 loads every catalog row with a token hash and performs a bcrypt check until one matches. The public restore endpoint has only the visible `5,1` throttle. A growing catalog or distributed requests can turn token lookup into CPU/DB denial of service. | Use a public token identifier with a keyed lookup plus a separately verified secret, add global and per-IP limits, bound catalog scan work, and monitor failed restore attempts without logging the token. |
+| **SEC-008** | Medium | Verified | Restore-token lookup | [BackupService.php](../app/Services/BackupService.php) previously loaded every catalog row with a token hash and performed a bcrypt check until one matched. The public restore endpoint had only the visible `5,1` throttle. A growing catalog or distributed requests could turn token lookup into CPU/DB denial of service. Lookup is now keyed by `restore_token_lookup` with a separately hashed full token, dual per-IP/global limits, and failed-attempt logging without the token. | Use a public token identifier with a keyed lookup plus a separately verified secret, add global and per-IP limits, bound catalog scan work, and monitor failed restore attempts without logging the token. |
 | **SEC-009** | High | Open | WhatsApp webhook trust boundary | [routes/api.php](../routes/api.php) exposes the webhook without an explicit endpoint throttle. [WhatsAppWebhookController.php](../app/Http/Controllers/Api/WhatsAppWebhookController.php):32 accepts the full body, does not enforce a strict DTO/schema or body/text/message-ID limits, and trusts caller-supplied sender fields after the dedicated webhook secret. A valid key can flood queues, spoof an allowlisted JID, create financial records, and replay messages. | Add provider signature verification or a private network/IP boundary, strict payload validation, size limits, sender/message-ID validation, per-IP/secret/sender throttles, replay protection, and message-ID idempotency before queue dispatch. |
 | **SEC-010** | Medium | Implemented | Webhook credential transport | The SEC-001 implementation rejects `?token=` and raw-token authentication before payload handling; inbound callbacks now require the dedicated `Authorization: Bearer <EVOLUTION_WEBHOOK_SECRET>` header. Any credential that may have been exposed through the former query-string path still requires rotation. | Keep header-only authentication and rotate the credential if query authentication was ever reachable; deployment rotation remains outstanding. |
 | **SEC-011** | Medium | Open | Webhook availability | [WhatsAppWebhookController.php](../app/Http/Controllers/Api/WhatsAppWebhookController.php):152 sends some WhatsApp replies synchronously before acknowledging the webhook. Slow upstream calls can hold web workers and amplify authenticated webhook traffic into availability pressure. | Queue outbound replies, return a bounded acknowledgement immediately, add queue concurrency/rate limits, and use explicit connect/total timeouts with bounded retries. |
@@ -158,7 +158,7 @@ The finding is **Verified** because the inspect-before-write invariant is fully 
 - Legacy catalog rows without a hash are backfilled from the on-disk catalog file when it exists; missing file and missing hash fail closed. `issueRestoreToken` re-seals the manifest without changing content identity.
 - Focused verification: `php artisan test --compact tests/Feature/BackupRestoreIntegrityTest.php` passed (11 tests, 89 assertions). `php artisan test --compact tests/Feature/BackupRestoreIntegrityTest.php tests/Feature/BackupZipPayloadExtractionTest.php tests/Feature/BackupZipResourceLimitsTest.php tests/Feature/BackupResourceTest.php` passed (49 tests). Guest restore filename, token, ZIP-type, and staging cases in `tests/Feature/GuestRestoreBackupTest.php` passed. `vendor/bin/pint --dirty --format agent` passed.
 - Targeted Larastan on `BackupManifest`, `GuestRestoreBackupController`, and the new lock path is clean. Three pre-existing `BackupService` diagnostics remain (`Filesystem::path()` / `File::size()` / `ZipArchive::statIndex` narrowing) and were not introduced by this item.
-- Residual risk outside this finding: SEC-007 still covers encryption, plaintext `RESTORE_TOKEN.txt`, and Spatie source include/exclude; SEC-008 still covers token-lookup DoS. SQL dump restore onto PostgreSQL/MySQL is not file-snapshotted; SQLite file-backed restore is.
+- Residual risk outside this finding: SEC-007 still covers encryption, plaintext `RESTORE_TOKEN.txt`, and Spatie source include/exclude. SQL dump restore onto PostgreSQL/MySQL is not file-snapshotted; SQLite file-backed restore is.
 
 The finding is **Verified** because archive-to-catalog binding, exclusive restore locking, one-time consume-on-success, and failed-import rollback are proven by focused source tests and do not depend on deployment/proxy configuration.
 
@@ -170,9 +170,16 @@ The finding is **Verified** because archive-to-catalog binding, exclusive restor
 - Spatie `source.files.include` is empty (database dump only). Explicit excludes still list `.env`, `.env.example`, `.env.sandbox`, `.git`, `debug-8f1b08.log`, `vendor`, `node_modules`, and `storage`. Application files continue to be embedded by `BackupService`.
 - Focused verification: `php artisan test --compact tests/Feature/BackupConfidentialityTest.php tests/Feature/GuestRestoreBackupTest.php tests/Feature/BackupRestoreIntegrityTest.php tests/Feature/BackupZipPayloadExtractionTest.php tests/Feature/BackupZipResourceLimitsTest.php tests/Feature/BackupResourceTest.php tests/Feature/ProfileDangerZoneTest.php` passed (78 tests, 347 assertions). `vendor/bin/pint --dirty --format agent` and `git diff --check` passed.
 - Sandbox `:2001` smoke: distinct `BACKUP_ARCHIVE_PASSWORD` in `.env.sandbox`; Create backup showed the one-time token in the UI; newest ZIP was ~24 KiB, contained `database.sqlite`, `files/public/receipts/...`, `MANIFEST.json`, and `MANIFEST.hmac`, had no `RESTORE_TOKEN.txt` or `.env`, and was unreadable without the archive password. Danger Zone delete showed the kit modal, wiped to zero users, and guest restore of the encrypted ZIP returned the synthetic expense. Create with a null archive password failed closed.
-- Residual risk outside this finding: off-host encrypted retention and live key rotation remain deployment notes. SEC-008 still covers token-lookup DoS.
+- Residual risk outside this finding: off-host encrypted retention and live key rotation remain deployment notes.
 
-The finding is **Verified** because new archives are unreadable without `BACKUP_ARCHIVE_PASSWORD`, contain no restore token, and do not include `.env` or source. Off-host retention and key rotation are operational, not source invariants.
+### SEC-008 verification note — 16 August 2026
+
+- Restore tokens are `{16-hex-selector}.{32-hex-secret}`. The catalog stores unique indexed `restore_token_lookup` plus bcrypt of the full token. `findBackupByRestoreToken` parses strictly, loads at most one row by selector, and verifies one bcrypt (unknown/malformed paths use a dummy hash). Hash-only legacy rows fail closed.
+- `POST /restore-backup` uses named limiter `guest-restore`: 5/minute per IP and 10/minute globally (`backup.backup.restore.per_ip_attempts_per_minute` / `global_attempts_per_minute`). Invalid 429 responses omit the token. Invalid lookups log `backup.restore_failed` with `outcome: invalid_token` and `ip_hash` only.
+- Focused verification: `php artisan test --compact tests/Feature/BackupRestoreTokenLookupTest.php tests/Feature/GuestRestoreBackupTest.php tests/Feature/BackupRestoreIntegrityTest.php tests/Feature/BackupConfidentialityTest.php tests/Feature/BackupResourceTest.php tests/Feature/ProfileDangerZoneTest.php` passed (60 tests, 350 assertions). `vendor/bin/pint --dirty --format agent` passed. Targeted Larastan on `RestoreToken`, `GuestRestoreBackupController`, `Backup`, and `BackupFactory` is clean. `BackupService` Larastan remains memory-constrained in this environment (pre-existing). `git diff --check` passed.
+- Residual risk outside this finding: SEC-009 still covers webhook trust and throttles.
+
+The finding is **Verified** because keyed O(1) lookup, dual rate limits, fail-closed legacy tokens, and token-free failure logs are proven by focused source tests and do not depend on deployment/proxy configuration.
 
 ## Suggested implementation order
 
@@ -185,24 +192,25 @@ The order reduces the chance of implementing a later control on top of an unsafe
 5. `SEC-005` — ZIP resource limits verified.
 6. `SEC-006` — archive-to-catalog binding, exclusive restore lock, and failed-import rollback verified.
 7. `SEC-007` — enforce encrypted, scoped backups.
-8. `SEC-009` — harden webhook schema, sender trust, rate limits, replay, and idempotency.
-9. `SEC-010` — source-side header-only authentication landed with SEC-001; complete rotation verification for any previously exposed query credential.
-10. `SEC-011` — make webhook replies asynchronous and bounded.
-11. `SEC-027` — make processing idempotent and external retries bounded.
-12. `SEC-012` — enforce the production session/debug baseline.
-13. `SEC-021` — enforce the production transport, header, host, and proxy baseline.
-14. `SEC-013` — reduce public changelog disclosure.
-15. `SEC-014` — remove debug/agent instrumentation.
-16. `SEC-015` — restore outbound TLS verification and author privacy.
-17. `SEC-016` — bound media retrieval and response logging.
-18. `SEC-017` — enforce manual expense integrity and input limits.
-19. `SEC-018` — bound Ollama input/output and redact AI logs.
-20. `SEC-019` — harden OTP enumeration and throttling.
-21. `SEC-020` — make password-reset responses enumeration-resistant.
-22. `SEC-026` — harden OTP persistence and add MFA/step-up authentication as required.
-23. `SEC-022` — sanitize service-status detail by role.
-24. `SEC-023` — reduce mass-assignment authority.
-25. `SEC-024` — require TLS for remote databases.
-26. `SEC-025` — configure protected Horizon monitoring access.
+8. `SEC-008` — keyed restore-token lookup and dual guest-restore limits.
+9. `SEC-009` — harden webhook schema, sender trust, rate limits, replay, and idempotency.
+10. `SEC-010` — source-side header-only authentication landed with SEC-001; complete rotation verification for any previously exposed query credential.
+11. `SEC-011` — make webhook replies asynchronous and bounded.
+12. `SEC-027` — make processing idempotent and external retries bounded.
+13. `SEC-012` — enforce the production session/debug baseline.
+14. `SEC-021` — enforce the production transport, header, host, and proxy baseline.
+15. `SEC-013` — reduce public changelog disclosure.
+16. `SEC-014` — remove debug/agent instrumentation.
+17. `SEC-015` — restore outbound TLS verification and author privacy.
+18. `SEC-016` — bound media retrieval and response logging.
+19. `SEC-017` — enforce manual expense integrity and input limits.
+20. `SEC-018` — bound Ollama input/output and redact AI logs.
+21. `SEC-019` — harden OTP enumeration and throttling.
+22. `SEC-020` — make password-reset responses enumeration-resistant.
+23. `SEC-026` — harden OTP persistence and add MFA/step-up authentication as required.
+24. `SEC-022` — sanitize service-status detail by role.
+25. `SEC-023` — reduce mass-assignment authority.
+26. `SEC-024` — require TLS for remote databases.
+27. `SEC-025` — configure protected Horizon monitoring access.
 
 The AI implementation procedure, acceptance template, and per-item verification rules are in [security-hardening-playbook.md](security-hardening-playbook.md).

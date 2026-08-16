@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Support\BackupArchivePassword;
 use App\Support\BackupManifest;
 use App\Support\CreatedBackup;
+use App\Support\RestoreToken;
 use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -106,7 +107,7 @@ class BackupService
             'filename' => $filename,
             'size_bytes' => $disk->exists($newPath) ? $disk->size($newPath) : null,
             'created_by' => null,
-            'restore_token_hash' => Hash::make($plainToken),
+            ...$this->restoreTokenAttributes($plainToken),
             'content_sha256' => $identity['content_sha256'],
             'manifest_hmac' => $identity['manifest_hmac'],
         ]);
@@ -527,7 +528,7 @@ class BackupService
 
     public function generateRestoreToken(): string
     {
-        return bin2hex(random_bytes(16));
+        return RestoreToken::generate();
     }
 
     public function assertRestoreToken(Backup $backup, string $plainToken): bool
@@ -538,7 +539,10 @@ class BackupService
 
     public function consumeRestoreToken(Backup $backup): void
     {
-        $backup->forceFill(['restore_token_hash' => null])->save();
+        $backup->forceFill([
+            'restore_token_hash' => null,
+            'restore_token_lookup' => null,
+        ])->save();
     }
 
     public function issueRestoreToken(Backup $backup): string
@@ -549,19 +553,54 @@ class BackupService
 
         $plainToken = $this->generateRestoreToken();
 
-        $backup->forceFill([
-            'restore_token_hash' => Hash::make($plainToken),
-        ])->save();
+        $backup->forceFill($this->restoreTokenAttributes($plainToken))->save();
 
         return $plainToken;
     }
 
     public function findBackupByRestoreToken(string $plainToken): ?Backup
     {
-        return Backup::query()
+        $parsed = RestoreToken::parse($plainToken);
+
+        if ($parsed === null) {
+            Hash::check($plainToken, RestoreToken::DUMMY_HASH);
+
+            return null;
+        }
+
+        $backup = Backup::query()
+            ->where('restore_token_lookup', $parsed['selector'])
             ->whereNotNull('restore_token_hash')
-            ->get()
-            ->first(fn (Backup $backup): bool => $this->assertRestoreToken($backup, $plainToken));
+            ->first();
+
+        if ($backup === null) {
+            Hash::check($plainToken, RestoreToken::DUMMY_HASH);
+
+            return null;
+        }
+
+        if (! $this->assertRestoreToken($backup, $plainToken)) {
+            return null;
+        }
+
+        return $backup;
+    }
+
+    /**
+     * @return array{restore_token_lookup: non-empty-string, restore_token_hash: string}
+     */
+    protected function restoreTokenAttributes(string $plainToken): array
+    {
+        $parsed = RestoreToken::parse($plainToken);
+
+        if ($parsed === null) {
+            throw new RuntimeException('Invalid restore token format.');
+        }
+
+        return [
+            'restore_token_lookup' => $parsed['selector'],
+            'restore_token_hash' => Hash::make($plainToken),
+        ];
     }
 
     public function delete(Backup $backup): void
@@ -731,7 +770,7 @@ class BackupService
             'filename' => $filename,
             'size_bytes' => $disk->size($path),
             'created_by' => $createdBy?->getKey(),
-            'restore_token_hash' => Hash::make($plainToken),
+            ...$this->restoreTokenAttributes($plainToken),
             'content_sha256' => $identity['content_sha256'],
             'manifest_hmac' => $identity['manifest_hmac'],
         ]);
