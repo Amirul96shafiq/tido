@@ -31,6 +31,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Slider;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
@@ -48,6 +49,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
+use Filament\Support\RawJs;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -168,24 +170,6 @@ class EditProfile extends BaseEditProfile implements HasTable
             'America/New_York' => 'United States (New York)',
             'UTC' => 'UTC',
         ];
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    protected static function recurringReminderLeadDayOptions(): array
-    {
-        $options = [
-            0 => 'Due day only',
-        ];
-
-        for ($days = 1; $days <= 14; $days++) {
-            $options[$days] = $days === 1
-                ? '1 day before'
-                : "{$days} days before";
-        }
-
-        return $options;
     }
 
     protected function getAvatarFormComponent(): Component
@@ -314,9 +298,23 @@ class EditProfile extends BaseEditProfile implements HasTable
                                     ->live()
                                     ->default(true),
 
-                                Select::make('recurring_reminder_lead_days')
+                                Slider::make('recurring_reminder_lead_days')
                                     ->label('Days Before Due')
-                                    ->options(static::recurringReminderLeadDayOptions())
+                                    ->range(minValue: 0, maxValue: 14)
+                                    ->step(1)
+                                    ->decimalPlaces(0)
+                                    ->default(7)
+                                    ->tooltips(RawJs::make(<<<'JS'
+                                                (() => {
+                                                    const days = Math.round($value);
+
+                                                    if (days === 0) {
+                                                        return 'Due day only';
+                                                    }
+
+                                                    return days === 1 ? '1 day before' : `${days} days before`;
+                                                })()
+                                                JS))
                                     ->helperText('Remind on the due day and up to this many days before. Overdue payments still remind daily.')
                                     ->required()
                                     ->visible(fn (Get $get): bool => (bool) $get('notify_recurring_reminders'))
