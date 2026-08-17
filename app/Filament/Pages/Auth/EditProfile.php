@@ -323,7 +323,10 @@ class EditProfile extends BaseEditProfile implements HasTable
                                 TimePicker::make('recurring_reminder_time')
                                     ->label('Send At')
                                     ->helperText('Local time from your Profile timezone. Reminders send once per day at or after this time. Choosing a time that is already past today waits until tomorrow.')
+                                    ->native(false)
                                     ->seconds(false)
+                                    ->hoursStep(1)
+                                    ->minutesStep(5)
                                     ->required()
                                     ->visible(fn (Get $get): bool => (bool) $get('notify_recurring_reminders'))
                                     ->dehydrated(),
