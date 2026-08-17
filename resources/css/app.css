@@ -3797,7 +3797,6 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 
 .tido-text-marquee-track {
     @apply inline-flex w-max shrink-0 gap-8;
-    will-change: transform;
 }
 
 .tido-text-marquee-segment {
@@ -3809,7 +3808,34 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     display: none;
 }
 
+/*
+ * Compositor-driven loop. JS only sets --tido-marquee-distance / duration when
+ * overflowing — no per-frame transform writes (see docs/ui-text-marquee.md).
+ */
+@keyframes tido-text-marquee-scroll {
+    from {
+        transform: translate3d(0, 0, 0);
+    }
+
+    to {
+        transform: translate3d(
+            calc(-1 * var(--tido-marquee-distance, 0px)),
+            0,
+            0
+        );
+    }
+}
+
+.tido-text-marquee-track.is-overflowing {
+    animation: tido-text-marquee-scroll var(--tido-marquee-duration, 8s) linear
+        infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+    .tido-text-marquee-track.is-overflowing {
+        animation: none;
+    }
+
     .tido-text-marquee-track {
         transform: none !important;
     }

@@ -113,7 +113,7 @@ function clearScrolling() {
     document.documentElement.classList.remove(SCROLLING_CLASS);
 }
 
-function onScroll() {
+function markScrolling() {
     document.documentElement.classList.add(SCROLLING_CLASS);
 
     if (scrollIdleTimer !== null) {
@@ -124,6 +124,26 @@ function onScroll() {
         document.documentElement.classList.remove(SCROLLING_CLASS);
         scrollIdleTimer = null;
     }, SCROLL_IDLE_MS);
+}
+
+function isPageScrollTarget(target) {
+    return target === document
+        || target === document.documentElement
+        || target === document.body
+        || target === window;
+}
+
+/**
+ * Nested scrollers (widget lists) move content under the fixed veil without
+ * firing a window scroll, so listen in the capture phase and stand the veil
+ * blur down for those too. Pin stuck-state updates still run only for page scroll.
+ */
+function onScrollCapture(event) {
+    markScrolling();
+
+    if (! isPageScrollTarget(event.target)) {
+        return;
+    }
 
     onScrollOrResize();
 }
@@ -149,7 +169,10 @@ function bind() {
     }
 
     if (! listening) {
-        window.addEventListener('scroll', onScroll, { passive: true });
+        document.addEventListener('scroll', onScrollCapture, {
+            passive: true,
+            capture: true,
+        });
         window.addEventListener('resize', onResize, { passive: true });
         listening = true;
     }

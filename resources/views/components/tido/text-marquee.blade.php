@@ -2,14 +2,15 @@
     'textClass' => 'inline-flex items-center gap-x-1 whitespace-nowrap',
 ])
 
+{{--
+    Overflow measure stays in JS; motion is CSS animation so the compositor
+    owns the scroll and the main thread is not writing transform every frame.
+--}}
 <div
     wire:ignore
     x-data="{
-        offset: 0,
         overflowing: false,
         scrollDistance: 0,
-        rafId: null,
-        lastTime: null,
         speed: 40,
         reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
         rafMeasure: null,
@@ -25,37 +26,23 @@
                 return Number.isFinite(parsed) ? parsed : 32;
             };
 
-            const tick = (time) => {
-                if (this.lastTime === null) {
-                    this.lastTime = time;
-                }
+            const applyMotion = (shouldOverflow, scrollDistance) => {
+                this.overflowing = shouldOverflow;
+                this.scrollDistance = scrollDistance;
+                track.classList.toggle('is-overflowing', shouldOverflow);
 
-                const delta = (time - this.lastTime) / 1000;
-                this.lastTime = time;
-
-                if (! this.overflowing || this.reducedMotion || this.scrollDistance <= 0) {
-                    this.rafId = null;
-                    this.lastTime = null;
+                if (shouldOverflow && ! this.reducedMotion && scrollDistance > 0) {
+                    track.style.setProperty('--tido-marquee-distance', `${scrollDistance}px`);
+                    track.style.setProperty(
+                        '--tido-marquee-duration',
+                        `${(scrollDistance / this.speed).toFixed(2)}s`,
+                    );
 
                     return;
                 }
 
-                this.offset += this.speed * delta;
-
-                if (this.offset >= this.scrollDistance) {
-                    this.offset -= this.scrollDistance;
-                }
-
-                track.style.transform = `translate3d(${-this.offset}px, 0, 0)`;
-                this.rafId = requestAnimationFrame(tick);
-            };
-
-            const ensureTicker = () => {
-                if (this.reducedMotion || this.rafId !== null) {
-                    return;
-                }
-
-                this.rafId = requestAnimationFrame(tick);
+                track.style.removeProperty('--tido-marquee-distance');
+                track.style.removeProperty('--tido-marquee-duration');
             };
 
             const measure = () => {
@@ -76,33 +63,7 @@
                 const scrollDistance = segmentWidth + gap;
                 const shouldOverflow = (segmentWidth - clipWidth) > 1;
 
-                if (Math.abs(this.scrollDistance - scrollDistance) > 1) {
-                    if (this.scrollDistance > 0 && this.offset > 0) {
-                        this.offset = this.offset % scrollDistance;
-                    } else {
-                        this.offset = 0;
-                    }
-
-                    this.scrollDistance = scrollDistance;
-                }
-
-                this.overflowing = shouldOverflow;
-                track.classList.toggle('is-overflowing', shouldOverflow);
-
-                if (shouldOverflow && ! this.reducedMotion) {
-                    ensureTicker();
-
-                    return;
-                }
-
-                this.offset = 0;
-                track.style.transform = '';
-
-                if (this.rafId !== null) {
-                    cancelAnimationFrame(this.rafId);
-                    this.rafId = null;
-                    this.lastTime = null;
-                }
+                applyMotion(shouldOverflow, scrollDistance);
             };
 
             const debouncedMeasure = () => {

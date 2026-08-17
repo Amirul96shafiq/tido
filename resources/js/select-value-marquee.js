@@ -2,6 +2,9 @@
  * Apply the looping `.tido-text-marquee-track` to Filament JS select selected labels.
  * Opt in with `.tido-select-value-marquee` (SelectValueMarquee::extraAttributes()).
  * See docs/ui-text-marquee.md.
+ *
+ * Overflow measure stays in JS; motion is CSS animation (same contract as
+ * x-tido.text-marquee) so the main thread is not writing transform every frame.
  */
 const ROOT_SELECTOR = '.tido-select-value-marquee';
 const SPEED = 40;
@@ -11,11 +14,8 @@ const states = new WeakMap();
 
 /**
  * @typedef {{
- *   offset: number,
  *   overflowing: boolean,
  *   scrollDistance: number,
- *   rafId: number|null,
- *   lastTime: number|null,
  *   reducedMotion: boolean,
  *   rafMeasure: number|null,
  * }} MarqueeState
@@ -30,11 +30,8 @@ function getState(clip) {
 
     if (! state) {
         state = {
-            offset: 0,
             overflowing: false,
             scrollDistance: 0,
-            rafId: null,
-            lastTime: null,
             reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
             rafMeasure: null,
         };
@@ -56,19 +53,29 @@ function readGap(track) {
 }
 
 /**
- * @param {MarqueeState} state
  * @param {HTMLElement} track
+ * @param {boolean} shouldOverflow
+ * @param {number} scrollDistance
+ * @param {MarqueeState} state
  * @returns {void}
  */
-function stopTicker(state, track) {
-    state.offset = 0;
-    state.lastTime = null;
-    track.style.transform = '';
+function applyMotion(track, shouldOverflow, scrollDistance, state) {
+    state.overflowing = shouldOverflow;
+    state.scrollDistance = scrollDistance;
+    track.classList.toggle('is-overflowing', shouldOverflow);
 
-    if (state.rafId !== null) {
-        cancelAnimationFrame(state.rafId);
-        state.rafId = null;
+    if (shouldOverflow && ! state.reducedMotion && scrollDistance > 0) {
+        track.style.setProperty('--tido-marquee-distance', `${scrollDistance}px`);
+        track.style.setProperty(
+            '--tido-marquee-duration',
+            `${(scrollDistance / SPEED).toFixed(2)}s`,
+        );
+
+        return;
     }
+
+    track.style.removeProperty('--tido-marquee-distance');
+    track.style.removeProperty('--tido-marquee-duration');
 }
 
 /**
@@ -94,61 +101,7 @@ function measure(clip, track, segment, state) {
     const scrollDistance = segmentWidth + gap;
     const shouldOverflow = (segmentWidth - clipWidth) > 1;
 
-    if (Math.abs(state.scrollDistance - scrollDistance) > 1) {
-        if (state.scrollDistance > 0 && state.offset > 0) {
-            state.offset = state.offset % scrollDistance;
-        } else {
-            state.offset = 0;
-        }
-
-        state.scrollDistance = scrollDistance;
-    }
-
-    state.overflowing = shouldOverflow;
-    track.classList.toggle('is-overflowing', shouldOverflow);
-
-    if (shouldOverflow && ! state.reducedMotion) {
-        if (state.rafId === null) {
-            state.rafId = requestAnimationFrame((time) => tick(clip, track, segment, state, time));
-        }
-
-        return;
-    }
-
-    stopTicker(state, track);
-}
-
-/**
- * @param {HTMLElement} clip
- * @param {HTMLElement} track
- * @param {HTMLElement} segment
- * @param {MarqueeState} state
- * @param {number} time
- * @returns {void}
- */
-function tick(clip, track, segment, state, time) {
-    if (state.lastTime === null) {
-        state.lastTime = time;
-    }
-
-    const delta = (time - state.lastTime) / 1000;
-    state.lastTime = time;
-
-    if (! state.overflowing || state.reducedMotion || state.scrollDistance <= 0 || ! track.isConnected) {
-        state.rafId = null;
-        state.lastTime = null;
-
-        return;
-    }
-
-    state.offset += SPEED * delta;
-
-    if (state.offset >= state.scrollDistance) {
-        state.offset -= state.scrollDistance;
-    }
-
-    track.style.transform = `translate3d(${-state.offset}px, 0, 0)`;
-    state.rafId = requestAnimationFrame((nextTime) => tick(clip, track, segment, state, nextTime));
+    applyMotion(track, shouldOverflow, scrollDistance, state);
 }
 
 /**
