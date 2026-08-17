@@ -68,6 +68,8 @@ Ownership fields match budgets (`family_member_id`, `is_shared`). Full behaviour
 
 **Visibility (Home Due Recurrings / month bills snapshot):** Primary sees all open due/overdue occurrences. Family members see occurrences for templates they own **or** `is_shared = true` (Skip allowed on the dues list). Assigned rows link to edit. Manage opens the Recurrings list. Reorder stays primary-only.
 
+**Reminders:** Each login user sets lead days and send time on Profile → Notifications (`notify_recurring_reminders`). Family login users only receive assigned, non-shared templates. Shared templates remind Primary only. Family Members without panel login still get WhatsApp on the Primary clock when the template has WhatsApp on and Primary’s reminder toggle is on. Details: [recurrings.md](recurrings.md).
+
 ## Family Member model
 
 `family_members` (Settings CRUD — primary only):

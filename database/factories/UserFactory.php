@@ -46,6 +46,9 @@ class UserFactory extends Factory
             'notify_profile_updates' => true,
             'notify_email_digest' => false,
             'notify_evolution_api' => true,
+            'notify_recurring_reminders' => true,
+            'recurring_reminder_lead_days' => 7,
+            'recurring_reminder_time' => '08:00:00',
             'stylized_background_enabled' => true,
         ];
     }

@@ -17,7 +17,11 @@ class RecurringSendRemindersCommand extends Command
     {
         $result = $reminders->sendDueReminders();
 
-        $this->info(sprintf('Sent %d reminder(s).', $result['reminded']));
+        $this->info(sprintf(
+            'Sent %d reminder(s) across %d user pass(es).',
+            $result['reminded'],
+            $result['users'],
+        ));
 
         return self::SUCCESS;
     }
