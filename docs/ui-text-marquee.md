@@ -12,7 +12,7 @@ Use [`x-tido.text-marquee`](../resources/views/components/tido/text-marquee.blad
 </x-tido.text-marquee>
 ```
 
-Pass layout classes to the component and text styling through `text-class`. The component measures overflow with `ResizeObserver`, including after responsive layout changes and Livewire morphs. It duplicates the slot for a seamless loop and respects `prefers-reduced-motion`.
+Pass layout classes to the component and text styling through `text-class`. The component measures overflow with `ResizeObserver`, including after responsive layout changes and Livewire morphs. Motion uses CSS `@keyframes` (`--tido-marquee-distance` / `--tido-marquee-duration`) so the compositor owns the loop — JS does not write `transform` every frame. It duplicates the slot for a seamless loop and respects `prefers-reduced-motion`.
 
 Do **not** use for body copy, multi-line descriptions, or primary page headings.
 
@@ -43,7 +43,7 @@ Apply this pattern when **all** of these are true:
 | Token | Role |
 |-------|------|
 | `.tido-text-marquee-clip` | Outer clip: `relative min-w-0 overflow-hidden` |
-| `.tido-text-marquee-track` | Inner track translated by `requestAnimationFrame` |
+| `.tido-text-marquee-track` | Inner track; CSS animation when `.is-overflowing` |
 | `.tido-text-marquee-segment` | Slot copy; a duplicate is hidden until overflowing |
 | `x-ref="marqueeTrack"` / `x-ref="marqueeSegment"` | Measured by the Blade component |
 | `whitespace-nowrap` | Required on the segment (`text-class`) |
