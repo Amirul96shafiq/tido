@@ -146,6 +146,7 @@ test('recurring reminder lead days and send time hide when toggle is off', funct
         ->set('data.notify_recurring_reminders', false)
         ->assertFormFieldIsHidden('recurring_reminder_lead_days')
         ->assertFormFieldIsHidden('recurring_reminder_time')
+        ->assertDontSee('fi-profile-notification-nested', false)
         ->call('save')
         ->assertHasNoErrors();
 

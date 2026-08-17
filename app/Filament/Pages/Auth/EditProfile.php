@@ -42,6 +42,7 @@ use Filament\Schemas\Components\EmbeddedTable;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -311,40 +312,41 @@ class EditProfile extends BaseEditProfile implements HasTable
                                             ->live()
                                             ->default(true),
 
-                                        Slider::make('recurring_reminder_lead_days')
-                                            ->label('Days Before Due')
-                                            ->range(minValue: 0, maxValue: 14)
-                                            ->step(1)
-                                            ->decimalPlaces(0)
-                                            ->default(7)
-                                            ->tooltips(RawJs::make(<<<'JS'
-                                                (() => {
-                                                    const days = Math.round($value);
+                                        Group::make([
+                                            Slider::make('recurring_reminder_lead_days')
+                                                ->label('Days Before Due')
+                                                ->range(minValue: 0, maxValue: 14)
+                                                ->step(1)
+                                                ->decimalPlaces(0)
+                                                ->default(7)
+                                                ->tooltips(RawJs::make(<<<'JS'
+                                                    (() => {
+                                                        const days = Math.round($value);
 
-                                                    if (days === 0) {
-                                                        return 'Due day only';
-                                                    }
+                                                        if (days === 0) {
+                                                            return 'Due day only';
+                                                        }
 
-                                                    return days === 1 ? '1 day before' : `${days} days before`;
-                                                })()
-                                                JS))
-                                            ->helperText('Remind on the due day and up to this many days before. Overdue payments still remind daily.')
-                                            ->required()
+                                                        return days === 1 ? '1 day before' : `${days} days before`;
+                                                    })()
+                                                    JS))
+                                                ->helperText('Remind on the due day and up to this many days before. Overdue payments still remind daily.')
+                                                ->required()
+                                                ->dehydrated(),
+
+                                            TimePicker::make('recurring_reminder_time')
+                                                ->label('Send At')
+                                                ->helperText('Local time from the Profile timezone. Reminders send once per day at or after this time. Choosing a time that is already past today waits until tomorrow.')
+                                                ->native(false)
+                                                ->seconds(false)
+                                                ->hoursStep(1)
+                                                ->minutesStep(5)
+                                                ->required()
+                                                ->dehydrated(),
+                                        ])
+                                            ->key('recurring-reminder-schedule', isInheritable: false)
                                             ->visible(fn (Get $get): bool => (bool) $get('notify_recurring_reminders'))
-                                            ->extraFieldWrapperAttributes(['class' => 'fi-profile-notification-nested'])
-                                            ->dehydrated(),
-
-                                        TimePicker::make('recurring_reminder_time')
-                                            ->label('Send At')
-                                            ->helperText('Local time from the Profile timezone. Reminders send once per day at or after this time. Choosing a time that is already past today waits until tomorrow.')
-                                            ->native(false)
-                                            ->seconds(false)
-                                            ->hoursStep(1)
-                                            ->minutesStep(5)
-                                            ->required()
-                                            ->visible(fn (Get $get): bool => (bool) $get('notify_recurring_reminders'))
-                                            ->extraFieldWrapperAttributes(['class' => 'fi-profile-notification-nested'])
-                                            ->dehydrated(),
+                                            ->extraAttributes(['class' => 'fi-profile-notification-nested']),
                                     ]),
 
                                 Fieldset::make('Account')
