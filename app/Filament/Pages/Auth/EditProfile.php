@@ -19,6 +19,7 @@ use App\Services\BackupNotificationService;
 use App\Services\BackupService;
 use App\Services\FamilyMemberLoginService;
 use App\Services\RecurringReminderService;
+use App\Support\ClipboardCopy;
 use App\Support\EmailChangeVerification;
 use App\Support\FieldCharacterLimits;
 use App\Support\FilamentAuthLogout;
@@ -815,17 +816,26 @@ class EditProfile extends BaseEditProfile implements HasTable
                 ->label('Generate Strong Password')
                 ->icon(Heroicon::OutlinedCodeBracketSquare)
                 ->color('gray')
-                ->action(function (Set $set, EditProfile $livewire): void {
+                ->action(function (Set $set): void {
                     $password = Str::password(16);
 
                     $set('password', $password);
                     $set('passwordConfirmation', $password);
 
-                    $livewire->js('window.navigator.clipboard.writeText('.Js::from($password).')');
-
                     FilamentNotification::make()
-                        ->title('Password copied to clipboard')
+                        ->title('Password generated')
                         ->success()
+                        ->persistent()
+                        ->actions([
+                            Action::make('copyGeneratedPassword')
+                                ->label('Copy password')
+                                ->button()
+                                ->icon(Heroicon::OutlinedClipboardDocument)
+                                ->alpineClickHandler(ClipboardCopy::alpineClickHandler(
+                                    $password,
+                                    'Password copied to clipboard',
+                                )),
+                        ])
                         ->send();
                 }),
         ])
