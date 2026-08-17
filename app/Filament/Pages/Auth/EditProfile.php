@@ -243,10 +243,16 @@ class EditProfile extends BaseEditProfile implements HasTable
                                     ->label('Change Password')
                                     ->live()
                                     ->dehydrated(false),
-                                $this->getGenerateStrongPasswordActionComponent(),
-                                $this->getPasswordFormComponent(),
-                                $this->getPasswordConfirmationFormComponent(),
-                                $this->getCurrentPasswordFormComponent(),
+                                Group::make([
+                                    $this->getGenerateStrongPasswordActionComponent(),
+                                    $this->getPasswordFormComponent(),
+                                    $this->getPasswordConfirmationFormComponent(),
+                                    $this->getCurrentPasswordFormComponent(),
+                                ])
+                                    ->key('change-password-fields', isInheritable: false)
+                                    ->visible(fn (Get $get): bool => (bool) $get('change_password')
+                                        || ($get('email') !== $this->getUser()->getAttributeValue('email')))
+                                    ->extraAttributes(['class' => 'fi-nested-fields']),
                             ]),
 
                         Section::make('Active Sessions')
@@ -346,7 +352,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                                         ])
                                             ->key('recurring-reminder-schedule', isInheritable: false)
                                             ->visible(fn (Get $get): bool => (bool) $get('notify_recurring_reminders'))
-                                            ->extraAttributes(['class' => 'fi-profile-notification-nested']),
+                                            ->extraAttributes(['class' => 'fi-nested-fields']),
                                     ]),
 
                                 Fieldset::make('Account')
@@ -537,21 +543,24 @@ class EditProfile extends BaseEditProfile implements HasTable
                         $set('reset_confirmation_password', null);
                     }),
 
-                TextInput::make('reset_confirmation_phrase')
-                    ->label('Confirmation phrase')
-                    ->placeholder(self::RESET_CONFIRMATION_PHRASE)
-                    ->helperText('Type exactly: '.self::RESET_CONFIRMATION_PHRASE)
-                    ->live()
-                    ->visible(fn (Get $get): bool => (bool) $get('enable_reset_data'))
-                    ->dehydrated(false),
+                Group::make([
+                    TextInput::make('reset_confirmation_phrase')
+                        ->label('Confirmation phrase')
+                        ->placeholder(self::RESET_CONFIRMATION_PHRASE)
+                        ->helperText('Type exactly: '.self::RESET_CONFIRMATION_PHRASE)
+                        ->live()
+                        ->dehydrated(false),
 
-                TextInput::make('reset_confirmation_password')
-                    ->label('Current password')
-                    ->password()
-                    ->revealable()
-                    ->live()
+                    TextInput::make('reset_confirmation_password')
+                        ->label('Current password')
+                        ->password()
+                        ->revealable()
+                        ->live()
+                        ->dehydrated(false),
+                ])
+                    ->key('reset-data-confirmation', isInheritable: false)
                     ->visible(fn (Get $get): bool => (bool) $get('enable_reset_data'))
-                    ->dehydrated(false),
+                    ->extraAttributes(['class' => 'fi-nested-fields']),
 
                 Toggle::make('enable_delete_account')
                     ->label('Delete account')
@@ -572,21 +581,24 @@ class EditProfile extends BaseEditProfile implements HasTable
                         $set('delete_confirmation_password', null);
                     }),
 
-                TextInput::make('delete_confirmation_phrase')
-                    ->label('Confirmation phrase')
-                    ->placeholder(self::DELETE_CONFIRMATION_PHRASE)
-                    ->helperText('Type exactly: '.self::DELETE_CONFIRMATION_PHRASE)
-                    ->live()
-                    ->visible(fn (Get $get): bool => (bool) $get('enable_delete_account'))
-                    ->dehydrated(false),
+                Group::make([
+                    TextInput::make('delete_confirmation_phrase')
+                        ->label('Confirmation phrase')
+                        ->placeholder(self::DELETE_CONFIRMATION_PHRASE)
+                        ->helperText('Type exactly: '.self::DELETE_CONFIRMATION_PHRASE)
+                        ->live()
+                        ->dehydrated(false),
 
-                TextInput::make('delete_confirmation_password')
-                    ->label('Current password')
-                    ->password()
-                    ->revealable()
-                    ->live()
+                    TextInput::make('delete_confirmation_password')
+                        ->label('Current password')
+                        ->password()
+                        ->revealable()
+                        ->live()
+                        ->dehydrated(false),
+                ])
+                    ->key('delete-account-confirmation', isInheritable: false)
                     ->visible(fn (Get $get): bool => (bool) $get('enable_delete_account'))
-                    ->dehydrated(false),
+                    ->extraAttributes(['class' => 'fi-nested-fields']),
             ]);
     }
 
@@ -840,7 +852,8 @@ class EditProfile extends BaseEditProfile implements HasTable
     protected function getCurrentPasswordFormComponent(): Component
     {
         return parent::getCurrentPasswordFormComponent()
-            ->visible(fn (Get $get): bool => (bool) $get('change_password') || ($get('email') !== $this->getUser()->getAttributeValue('email')));
+            ->visible(fn (Get $get): bool => (bool) $get('change_password')
+                || ($get('email') !== $this->getUser()->getAttributeValue('email')));
     }
 
     protected function handleRecordUpdate(Model $record, array $data): Model

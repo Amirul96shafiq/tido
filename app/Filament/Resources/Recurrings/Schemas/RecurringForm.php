@@ -25,6 +25,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -121,87 +122,92 @@ class RecurringForm
                                     ->inline()
                                     ->live()
                                     ->visible(fn (Get $get): bool => $get('type') === RecurringType::TransferInvestment->value),
-                                TextInput::make('goal_target_amount')
-                                    ->label('Goal target')
-                                    ->myr()
-                                    ->placeholder('0.00')
-                                    ->helperText(fn (Get $get): ?string => self::goalInstalmentHelper($get))
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::syncInstalmentsFromGoal($get, $set))
-                                    ->visible(fn (Get $get): bool => self::showsTargetAmountFields($get)),
-                                ToggleButtons::make('prior_contribution_mode')
-                                    ->label('Already contributed')
-                                    ->options([
-                                        'none' => 'None',
-                                        'count' => 'Number of transfers',
-                                        'amount' => 'Amount',
-                                    ])
-                                    ->default('none')
-                                    ->inline()
-                                    ->live()
-                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::syncInstalmentsFromGoal($get, $set))
-                                    ->helperText('Exclude transfers already marked paid in tido so progress is not double-counted.')
-                                    ->visible(fn (Get $get): bool => self::showsTargetAmountFields($get)),
-                                TextInput::make('prior_transfer_count')
-                                    ->label('Transfers already made')
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->integer()
-                                    ->nullable()
-                                    ->placeholder('0')
-                                    ->helperText(fn (Get $get): ?string => self::priorCountHelper($get))
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::syncInstalmentsFromGoal($get, $set))
-                                    ->visible(fn (Get $get): bool => self::showsTargetAmountFields($get)
-                                        && ($get('prior_contribution_mode') ?? 'none') === 'count'),
-                                TextInput::make('prior_contributed_amount')
-                                    ->label('Already contributed')
-                                    ->myr()
-                                    ->placeholder('0.00')
-                                    ->helperText(fn (Get $get): ?string => self::priorAmountHelper($get))
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::syncInstalmentsFromGoal($get, $set))
-                                    ->visible(fn (Get $get): bool => self::showsTargetAmountFields($get)
-                                        && ($get('prior_contribution_mode') ?? 'none') === 'amount'),
-                                Grid::make(2)
-                                    ->schema([
-                                        TextInput::make('instalment_total')
-                                            ->label(fn (Get $get): string => $get('type') === RecurringType::DebtInstalment->value
-                                                ? 'Total payments'
-                                                : 'Total transfers')
-                                            ->numeric()
-                                            ->minValue(1)
-                                            ->nullable()
-                                            ->required(fn (Get $get): bool => self::showsInstalmentFields($get))
-                                            ->live(onBlur: true)
-                                            ->rules([
-                                                fn (Get $get): \Closure => function (string $attribute, mixed $value, \Closure $fail) use ($get): void {
-                                                    if (! self::showsInstalmentFields($get)) {
-                                                        return;
-                                                    }
+                                Group::make([
+                                    TextInput::make('goal_target_amount')
+                                        ->label('Goal target')
+                                        ->myr()
+                                        ->placeholder('0.00')
+                                        ->helperText(fn (Get $get): ?string => self::goalInstalmentHelper($get))
+                                        ->live(onBlur: true)
+                                        ->afterStateUpdated(fn (Get $get, Set $set) => self::syncInstalmentsFromGoal($get, $set))
+                                        ->visible(fn (Get $get): bool => self::showsTargetAmountFields($get)),
+                                    ToggleButtons::make('prior_contribution_mode')
+                                        ->label('Already contributed')
+                                        ->options([
+                                            'none' => 'None',
+                                            'count' => 'Number of transfers',
+                                            'amount' => 'Amount',
+                                        ])
+                                        ->default('none')
+                                        ->inline()
+                                        ->live()
+                                        ->afterStateUpdated(fn (Get $get, Set $set) => self::syncInstalmentsFromGoal($get, $set))
+                                        ->helperText('Exclude transfers already marked paid in tido so progress is not double-counted.')
+                                        ->visible(fn (Get $get): bool => self::showsTargetAmountFields($get)),
+                                    TextInput::make('prior_transfer_count')
+                                        ->label('Transfers already made')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->integer()
+                                        ->nullable()
+                                        ->placeholder('0')
+                                        ->helperText(fn (Get $get): ?string => self::priorCountHelper($get))
+                                        ->live(onBlur: true)
+                                        ->afterStateUpdated(fn (Get $get, Set $set) => self::syncInstalmentsFromGoal($get, $set))
+                                        ->visible(fn (Get $get): bool => self::showsTargetAmountFields($get)
+                                            && ($get('prior_contribution_mode') ?? 'none') === 'count'),
+                                    TextInput::make('prior_contributed_amount')
+                                        ->label('Already contributed')
+                                        ->myr()
+                                        ->placeholder('0.00')
+                                        ->helperText(fn (Get $get): ?string => self::priorAmountHelper($get))
+                                        ->live(onBlur: true)
+                                        ->afterStateUpdated(fn (Get $get, Set $set) => self::syncInstalmentsFromGoal($get, $set))
+                                        ->visible(fn (Get $get): bool => self::showsTargetAmountFields($get)
+                                            && ($get('prior_contribution_mode') ?? 'none') === 'amount'),
+                                    Grid::make(2)
+                                        ->schema([
+                                            TextInput::make('instalment_total')
+                                                ->label(fn (Get $get): string => $get('type') === RecurringType::DebtInstalment->value
+                                                    ? 'Total payments'
+                                                    : 'Total transfers')
+                                                ->numeric()
+                                                ->minValue(1)
+                                                ->nullable()
+                                                ->required(fn (Get $get): bool => self::showsInstalmentFields($get))
+                                                ->live(onBlur: true)
+                                                ->rules([
+                                                    fn (Get $get): \Closure => function (string $attribute, mixed $value, \Closure $fail) use ($get): void {
+                                                        if (! self::showsInstalmentFields($get)) {
+                                                            return;
+                                                        }
 
-                                                    $remaining = $get('instalment_remaining');
+                                                        $remaining = $get('instalment_remaining');
 
-                                                    if ($value === null || $remaining === null) {
-                                                        return;
-                                                    }
+                                                        if ($value === null || $remaining === null) {
+                                                            return;
+                                                        }
 
-                                                    if ((int) $remaining > (int) $value) {
-                                                        $fail('Payments remaining must not exceed total payments.');
-                                                    }
-                                                },
-                                            ]),
-                                        TextInput::make('instalment_remaining')
-                                            ->label(fn (Get $get): string => $get('type') === RecurringType::DebtInstalment->value
-                                                ? 'Payments remaining'
-                                                : 'Transfers remaining')
-                                            ->numeric()
-                                            ->minValue(0)
-                                            ->nullable()
-                                            ->required(fn (Get $get): bool => self::showsInstalmentFields($get))
-                                            ->live(onBlur: true),
-                                    ])
-                                    ->visible(fn (Get $get): bool => self::showsInstalmentFields($get)),
+                                                        if ((int) $remaining > (int) $value) {
+                                                            $fail('Payments remaining must not exceed total payments.');
+                                                        }
+                                                    },
+                                                ]),
+                                            TextInput::make('instalment_remaining')
+                                                ->label(fn (Get $get): string => $get('type') === RecurringType::DebtInstalment->value
+                                                    ? 'Payments remaining'
+                                                    : 'Transfers remaining')
+                                                ->numeric()
+                                                ->minValue(0)
+                                                ->nullable()
+                                                ->required(fn (Get $get): bool => self::showsInstalmentFields($get))
+                                                ->live(onBlur: true),
+                                        ])
+                                        ->visible(fn (Get $get): bool => self::showsInstalmentFields($get)),
+                                ])
+                                    ->key('recurring-tracking-subfields', isInheritable: false)
+                                    ->visible(fn (Get $get): bool => self::showsTrackingSubfields($get))
+                                    ->extraAttributes(['class' => 'fi-nested-fields']),
                             ]),
 
                         Section::make('Recurring Schedule')
@@ -234,77 +240,85 @@ class RecurringForm
                                 Hidden::make('frequency')
                                     ->default(RecurringFrequency::Repeating->value)
                                     ->dehydrated(),
-                                DatePicker::make('due_date')
-                                    ->label('Due date')
-                                    ->native(false)
-                                    ->live()
-                                    ->required(fn (Get $get): bool => $get('cadence_preset') === 'once')
-                                    ->visible(fn (Get $get): bool => $get('cadence_preset') === 'once'),
-                                Grid::make(2)
-                                    ->schema([
-                                        DatePicker::make('starts_on')
-                                            ->label('Starts on')
-                                            ->native(false)
-                                            ->live()
-                                            ->default(now()->toDateString())
-                                            ->required(fn (Get $get): bool => $get('cadence_preset') !== 'once'),
-                                        TextInput::make('anchor_day')
-                                            ->label('Due day')
-                                            ->numeric()
-                                            ->minValue(1)
-                                            ->maxValue(28)
-                                            ->placeholder('5')
-                                            ->live(onBlur: true)
-                                            ->helperText('Day 1–28. Short months clamp to the last day.')
-                                            ->required(fn (Get $get): bool => $get('cadence_preset') !== 'once'),
-                                        ToggleButtons::make('end_rule')
-                                            ->label('End rule')
-                                            ->options([
-                                                'ongoing' => 'Ongoing',
-                                                'end_on_date' => 'End on date',
-                                            ])
-                                            ->default('ongoing')
-                                            ->inline()
-                                            ->live()
-                                            ->afterStateHydrated(function (ToggleButtons $component, ?Recurring $record, mixed $state): void {
-                                                if (filled($state)) {
-                                                    return;
-                                                }
-
-                                                $component->state(
-                                                    $record?->ends_on !== null ? 'end_on_date' : 'ongoing'
-                                                );
-                                            }),
-                                        DatePicker::make('ends_on')
-                                            ->label('Ends on')
-                                            ->native(false)
-                                            ->live()
-                                            ->nullable()
-                                            ->required(fn (Get $get): bool => $get('end_rule') === 'end_on_date')
-                                            ->visible(fn (Get $get): bool => $get('end_rule') === 'end_on_date')
-                                            ->rules([
-                                                fn (Get $get): \Closure => function (string $attribute, mixed $value, \Closure $fail) use ($get): void {
-                                                    if ($get('end_rule') !== 'end_on_date' || blank($value) || blank($get('starts_on'))) {
+                                Group::make([
+                                    DatePicker::make('due_date')
+                                        ->label('Due date')
+                                        ->native(false)
+                                        ->live()
+                                        ->required(fn (Get $get): bool => $get('cadence_preset') === 'once'),
+                                ])
+                                    ->key('recurring-once-due-date', isInheritable: false)
+                                    ->visible(fn (Get $get): bool => $get('cadence_preset') === 'once')
+                                    ->extraAttributes(['class' => 'fi-nested-fields']),
+                                Group::make([
+                                    Grid::make(2)
+                                        ->schema([
+                                            DatePicker::make('starts_on')
+                                                ->label('Starts on')
+                                                ->native(false)
+                                                ->live()
+                                                ->default(now()->toDateString())
+                                                ->required(fn (Get $get): bool => $get('cadence_preset') !== 'once'),
+                                            TextInput::make('anchor_day')
+                                                ->label('Due day')
+                                                ->numeric()
+                                                ->minValue(1)
+                                                ->maxValue(28)
+                                                ->placeholder('5')
+                                                ->live(onBlur: true)
+                                                ->helperText('Day 1–28. Short months clamp to the last day.')
+                                                ->required(fn (Get $get): bool => $get('cadence_preset') !== 'once'),
+                                            ToggleButtons::make('end_rule')
+                                                ->label('End rule')
+                                                ->options([
+                                                    'ongoing' => 'Ongoing',
+                                                    'end_on_date' => 'End on date',
+                                                ])
+                                                ->default('ongoing')
+                                                ->inline()
+                                                ->live()
+                                                ->afterStateHydrated(function (ToggleButtons $component, ?Recurring $record, mixed $state): void {
+                                                    if (filled($state)) {
                                                         return;
                                                     }
 
-                                                    if ((string) $value < (string) $get('starts_on')) {
-                                                        $fail('Ends on must be on or after the start date.');
-                                                    }
-                                                },
-                                            ]),
-                                        TextInput::make('interval_months')
-                                            ->label('Every N months')
-                                            ->numeric()
-                                            ->minValue(1)
-                                            ->maxValue(24)
-                                            ->default(1)
-                                            ->live(onBlur: true)
-                                            ->visible(fn (Get $get): bool => $get('cadence_preset') === 'custom')
-                                            ->required(fn (Get $get): bool => $get('cadence_preset') === 'custom')
-                                            ->dehydrated(),
-                                    ])
-                                    ->visible(fn (Get $get): bool => $get('cadence_preset') !== 'once'),
+                                                    $component->state(
+                                                        $record?->ends_on !== null ? 'end_on_date' : 'ongoing'
+                                                    );
+                                                }),
+                                            DatePicker::make('ends_on')
+                                                ->label('Ends on')
+                                                ->native(false)
+                                                ->live()
+                                                ->nullable()
+                                                ->required(fn (Get $get): bool => $get('end_rule') === 'end_on_date')
+                                                ->visible(fn (Get $get): bool => $get('end_rule') === 'end_on_date')
+                                                ->rules([
+                                                    fn (Get $get): \Closure => function (string $attribute, mixed $value, \Closure $fail) use ($get): void {
+                                                        if ($get('end_rule') !== 'end_on_date' || blank($value) || blank($get('starts_on'))) {
+                                                            return;
+                                                        }
+
+                                                        if ((string) $value < (string) $get('starts_on')) {
+                                                            $fail('Ends on must be on or after the start date.');
+                                                        }
+                                                    },
+                                                ]),
+                                            TextInput::make('interval_months')
+                                                ->label('Every N months')
+                                                ->numeric()
+                                                ->minValue(1)
+                                                ->maxValue(24)
+                                                ->default(1)
+                                                ->live(onBlur: true)
+                                                ->visible(fn (Get $get): bool => $get('cadence_preset') === 'custom')
+                                                ->required(fn (Get $get): bool => $get('cadence_preset') === 'custom')
+                                                ->dehydrated(),
+                                        ]),
+                                ])
+                                    ->key('recurring-repeating-schedule', isInheritable: false)
+                                    ->visible(fn (Get $get): bool => $get('cadence_preset') !== 'once')
+                                    ->extraAttributes(['class' => 'fi-nested-fields']),
                             ]),
 
                         Section::make('Expense Matching')
@@ -416,16 +430,20 @@ class RecurringForm
                                     ->disabled(fn (): bool => HouseholdAccess::isFamilyMember())
                                     ->dehydrated(fn (): bool => ! HouseholdAccess::isFamilyMember())
                                     ->required(),
-                                Select::make('family_member_id')
-                                    ->label('Family member')
-                                    ->options(fn (): array => self::assigneeOptions())
-                                    ->searchable()
-                                    ->live()
-                                    ->nullable()
-                                    ->required(fn (Get $get): bool => $get('responsibility') === 'family_member')
+                                Group::make([
+                                    Select::make('family_member_id')
+                                        ->label('Family member')
+                                        ->options(fn (): array => self::assigneeOptions())
+                                        ->searchable()
+                                        ->live()
+                                        ->nullable()
+                                        ->required(fn (Get $get): bool => $get('responsibility') === 'family_member')
+                                        ->disabled(fn (): bool => HouseholdAccess::isFamilyMember())
+                                        ->dehydrated(fn (): bool => ! HouseholdAccess::isFamilyMember()),
+                                ])
+                                    ->key('recurring-family-member-assignee', isInheritable: false)
                                     ->visible(fn (Get $get): bool => $get('responsibility') === 'family_member')
-                                    ->disabled(fn (): bool => HouseholdAccess::isFamilyMember())
-                                    ->dehydrated(fn (): bool => ! HouseholdAccess::isFamilyMember()),
+                                    ->extraAttributes(['class' => 'fi-nested-fields']),
                                 Hidden::make('is_shared')
                                     ->default(false)
                                     ->dehydrated(),
@@ -585,6 +603,12 @@ class RecurringForm
         }
 
         return 0.0;
+    }
+
+    private static function showsTrackingSubfields(Get $get): bool
+    {
+        return self::showsTargetAmountFields($get)
+            || self::showsInstalmentFields($get);
     }
 
     private static function showsTargetAmountFields(Get $get): bool

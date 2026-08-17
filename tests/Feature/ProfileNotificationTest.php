@@ -107,6 +107,22 @@ test('generate strong password fills new and confirm password fields', function 
         ->and($passwordConfirmation)->toBe($password);
 });
 
+test('change password nested fields rail shows when toggle is on', function () {
+    $user = User::factory()->create([
+        'password' => Hash::make('password'),
+        'notify_recurring_reminders' => false,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->assertDontSee('fi-nested-fields', false)
+        ->set('data.change_password', true)
+        ->assertSee('fi-nested-fields', false)
+        ->set('data.change_password', false)
+        ->assertDontSee('fi-nested-fields', false);
+});
+
 test('updating email triggers database notification', function () {
     $user = User::factory()->create([
         'name' => 'Original Name',

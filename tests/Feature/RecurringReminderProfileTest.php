@@ -142,11 +142,11 @@ test('recurring reminder lead days and send time hide when toggle is off', funct
     Livewire::test(EditProfile::class)
         ->assertFormFieldIsVisible('recurring_reminder_lead_days')
         ->assertFormFieldIsVisible('recurring_reminder_time')
-        ->assertSee('fi-profile-notification-nested', false)
+        ->assertSee('fi-nested-fields', false)
         ->set('data.notify_recurring_reminders', false)
         ->assertFormFieldIsHidden('recurring_reminder_lead_days')
         ->assertFormFieldIsHidden('recurring_reminder_time')
-        ->assertDontSee('fi-profile-notification-nested', false)
+        ->assertDontSee('fi-nested-fields', false)
         ->call('save')
         ->assertHasNoErrors();
 

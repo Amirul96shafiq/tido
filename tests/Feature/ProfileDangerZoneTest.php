@@ -31,6 +31,7 @@ beforeEach(function () {
     $this->user = User::factory()->create([
         'email' => 'danger-zone@example.com',
         'password' => Hash::make('password'),
+        'notify_recurring_reminders' => false,
     ]);
 
     $this->actingAs($this->user);
@@ -57,7 +58,9 @@ function formAction(string $name): TestAction
 
 test('reset data cta stays hidden until exact phrase and password are filled', function () {
     $component = Livewire::test(EditProfile::class)
+        ->assertDontSee('fi-nested-fields', false)
         ->set('data.enable_reset_data', true)
+        ->assertSee('fi-nested-fields', false)
         ->set('data.reset_confirmation_phrase', 'WRONG PHRASE')
         ->set('data.reset_confirmation_password', 'password')
         ->assertActionVisible(formAction('save'));
@@ -210,10 +213,12 @@ test('enabling one danger zone toggle disables the other and clears its fields',
 test('disabling reset data toggle clears confirmation fields and hides cta', function () {
     $component = Livewire::test(EditProfile::class)
         ->set('data.enable_reset_data', true)
+        ->assertSee('fi-nested-fields', false)
         ->set('data.reset_confirmation_phrase', 'CONFIRM RESET DATA')
         ->set('data.reset_confirmation_password', 'password')
         ->assertActionVisible(formAction('resetData'))
-        ->set('data.enable_reset_data', false);
+        ->set('data.enable_reset_data', false)
+        ->assertDontSee('fi-nested-fields', false);
 
     expect($component->get('data.reset_confirmation_phrase'))->toBeNull()
         ->and($component->get('data.reset_confirmation_password'))->toBeNull();
@@ -227,10 +232,12 @@ test('disabling reset data toggle clears confirmation fields and hides cta', fun
 test('disabling delete account toggle clears confirmation fields and hides cta', function () {
     $component = Livewire::test(EditProfile::class)
         ->set('data.enable_delete_account', true)
+        ->assertSee('fi-nested-fields', false)
         ->set('data.delete_confirmation_phrase', 'CONFIRM DELETE ACCOUNT')
         ->set('data.delete_confirmation_password', 'password')
         ->assertActionVisible(formAction('deleteAccount'))
-        ->set('data.enable_delete_account', false);
+        ->set('data.enable_delete_account', false)
+        ->assertDontSee('fi-nested-fields', false);
 
     expect($component->get('data.delete_confirmation_phrase'))->toBeNull()
         ->and($component->get('data.delete_confirmation_password'))->toBeNull();

@@ -238,6 +238,40 @@ test('family member responsibility requires member select', function () {
         ->assertHasFormErrors(['family_member_id']);
 });
 
+test('recurring nested fields rail shows for tracking subfields cadence and family member assignee', function () {
+    $member = FamilyMember::factory()->create();
+
+    Livewire::test(CreateRecurring::class)
+        ->assertFormFieldIsVisible('starts_on')
+        ->assertSee('fi-nested-fields', false)
+        ->fillForm(['type' => RecurringType::DebtInstalment->value])
+        ->assertFormFieldIsVisible('instalment_total')
+        ->assertSee('fi-nested-fields', false)
+        ->fillForm(['type' => RecurringType::Subscription->value])
+        ->assertFormFieldIsHidden('instalment_total')
+        ->fillForm(['type' => RecurringType::TransferInvestment->value])
+        ->assertFormFieldIsVisible('tracking_mode')
+        ->assertFormFieldIsHidden('goal_target_amount')
+        ->fillForm(['tracking_mode' => 'target_amount'])
+        ->assertFormFieldIsVisible('goal_target_amount')
+        ->assertSee('fi-nested-fields', false)
+        ->fillForm(['cadence_preset' => 'once'])
+        ->assertFormFieldIsVisible('due_date')
+        ->assertFormFieldIsHidden('starts_on')
+        ->assertSee('fi-nested-fields', false)
+        ->fillForm(['cadence_preset' => 'monthly'])
+        ->assertFormFieldIsVisible('starts_on')
+        ->assertFormFieldIsHidden('due_date')
+        ->fillForm([
+            'responsibility' => 'family_member',
+            'family_member_id' => $member->id,
+        ])
+        ->assertFormFieldIsVisible('family_member_id')
+        ->assertSee('fi-nested-fields', false)
+        ->fillForm(['responsibility' => 'primary'])
+        ->assertFormFieldIsHidden('family_member_id');
+});
+
 test('household shared clears family member', function () {
     $member = FamilyMember::factory()->create();
 

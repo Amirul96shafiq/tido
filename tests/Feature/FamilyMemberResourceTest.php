@@ -102,6 +102,15 @@ test('custom relationship is required when other is selected', function () {
         ->assertHasFormErrors(['relationship_other' => 'required']);
 });
 
+test('custom relationship sits beside relationship on one row when other is selected', function () {
+    Livewire::test(CreateFamilyMember::class)
+        ->assertFormFieldIsHidden('relationship_other')
+        ->fillForm(['relationship' => 'other'])
+        ->assertFormFieldIsVisible('relationship_other')
+        ->fillForm(['relationship' => 'sibling'])
+        ->assertFormFieldIsHidden('relationship_other');
+});
+
 test('user can upload a family member profile photo', function () {
     Storage::fake('public');
 

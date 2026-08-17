@@ -80,34 +80,38 @@ class FamilyMemberForm
                                     })
                                     ->dehydrateStateUsing(fn (?string $state): ?string => PhoneNumber::normalize($state)),
 
-                                Select::make('relationship')
-                                    ->label('Relationship')
-                                    ->options(FamilyRelationship::options())
-                                    ->searchable()
-                                    ->native(false)
-                                    ->live()
-                                    ->placeholder('Select relationship')
-                                    ->afterStateUpdated(function (Set $set, mixed $state): void {
-                                        if ($state !== FamilyRelationship::Other->value) {
-                                            $set('relationship_other', null);
-                                        }
-                                    }),
-
-                                TextInput::make('relationship_other')
-                                    ->label('Custom relationship')
-                                    ->characterLimit(FieldCharacterLimits::RELATIONSHIP_OTHER)
-                                    ->placeholder('Describe the relationship')
-                                    ->visible(fn (Get $get): bool => $get('relationship') === FamilyRelationship::Other->value)
-                                    ->required(fn (Get $get): bool => $get('relationship') === FamilyRelationship::Other->value)
-                                    ->dehydrateStateUsing(function (?string $state, Get $get): ?string {
-                                        if ($get('relationship') !== FamilyRelationship::Other->value) {
-                                            return null;
-                                        }
-
-                                        return $state;
-                                    }),
-
                                 DateOfBirthPicker::make(),
+
+                                Grid::make(2)
+                                    ->schema([
+                                        Select::make('relationship')
+                                            ->label('Relationship')
+                                            ->options(FamilyRelationship::options())
+                                            ->searchable()
+                                            ->native(false)
+                                            ->live()
+                                            ->placeholder('Select relationship')
+                                            ->afterStateUpdated(function (Set $set, mixed $state): void {
+                                                if ($state !== FamilyRelationship::Other->value) {
+                                                    $set('relationship_other', null);
+                                                }
+                                            }),
+
+                                        TextInput::make('relationship_other')
+                                            ->label('Custom relationship')
+                                            ->characterLimit(FieldCharacterLimits::RELATIONSHIP_OTHER)
+                                            ->placeholder('Describe the relationship')
+                                            ->visible(fn (Get $get): bool => $get('relationship') === FamilyRelationship::Other->value)
+                                            ->required(fn (Get $get): bool => $get('relationship') === FamilyRelationship::Other->value)
+                                            ->dehydrateStateUsing(function (?string $state, Get $get): ?string {
+                                                if ($get('relationship') !== FamilyRelationship::Other->value) {
+                                                    return null;
+                                                }
+
+                                                return $state;
+                                            }),
+                                    ])
+                                    ->columnSpanFull(),
 
                                 Toggle::make('allowlist_enabled')
                                     ->label('Include in contact allowlist')
