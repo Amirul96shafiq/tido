@@ -115,6 +115,10 @@ class AdminPanelProvider extends PanelProvider
                     'date-picker-month-select',
                     Vite::asset('resources/js/date-picker-month-select.js'),
                 )->module(),
+                Js::make(
+                    'clipboard-copy',
+                    Vite::asset('resources/js/clipboard-copy.js'),
+                )->module(),
             ])
             ->renderHook(
                 PanelsRenderHook::PAGE_HEADER_ACTIONS_BEFORE,

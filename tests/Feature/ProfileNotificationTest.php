@@ -8,6 +8,7 @@ use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Js;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -96,7 +97,7 @@ test('generate strong password fills new and confirm password fields', function 
     $component = Livewire::test(EditProfile::class)
         ->set('data.change_password', true)
         ->callAction(TestAction::make('generateStrongPassword')->schemaComponent('generateStrongPasswordActions', schema: 'form'))
-        ->assertNotified('Password copied to clipboard');
+        ->assertNotified('Password generated');
 
     $password = $component->get('data.password');
     $passwordConfirmation = $component->get('data.passwordConfirmation');
@@ -105,6 +106,29 @@ test('generate strong password fills new and confirm password fields', function 
         ->and($password)->not->toBeEmpty()
         ->and(strlen($password))->toBe(16)
         ->and($passwordConfirmation)->toBe($password);
+});
+
+test('generated password copy action copies through the clipboard helper', function () {
+    $user = User::factory()->create([
+        'password' => Hash::make('password'),
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(EditProfile::class)
+        ->set('data.change_password', true)
+        ->callAction(TestAction::make('generateStrongPassword')->schemaComponent('generateStrongPasswordActions', schema: 'form'));
+
+    $password = $component->get('data.password');
+    $payload = session('filament.notifications.0') ?? session('filament.claimed_notifications.0');
+    $copyAction = collect($payload['actions'] ?? [])->firstWhere('name', 'copyGeneratedPassword');
+
+    expect($copyAction)->not->toBeNull()
+        ->and($copyAction['label'])->toBe('Copy password')
+        ->and($copyAction['alpineClickHandler'])->toContain('window.tidoCopyToClipboard')
+        ->and($copyAction['alpineClickHandler'])->toContain(Js::from($password)->toHtml())
+        ->and($copyAction['alpineClickHandler'])->toContain('Password copied to clipboard')
+        ->and($copyAction['alpineClickHandler'])->not->toContain('navigator.clipboard');
 });
 
 test('change password nested fields rail shows when toggle is on', function () {

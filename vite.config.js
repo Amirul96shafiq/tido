@@ -56,6 +56,7 @@ export default defineConfig({
                 'resources/js/file-upload-editor-overlay.js',
                 'resources/js/unsupported-record-checkbox.js',
                 'resources/js/date-picker-month-select.js',
+                'resources/js/clipboard-copy.js',
             ],
             refresh: true,
         }),
