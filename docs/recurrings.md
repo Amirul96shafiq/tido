@@ -6,7 +6,7 @@ Reminder-first tracking for bills, subscriptions, debt instalments, and transfer
 
 1. Primary creates a **Recurring** template (Finances → Recurrings), or duplicates an existing one via the Duplicate CTA (row Actions, Edit header, or bulk toolbar). Assigned family members can later edit their own templates; they cannot create or duplicate.
 2. `recurring:generate-occurrences` creates period **occurrences** and refreshes due/overdue.
-3. `recurring:send-reminders` runs **every minute** and sends Filament + WhatsApp nudges for each opted-in login user whose Profile send time has been reached (once per local day). Channel toggles stay on the Recurring template; lead days and send time live on Profile → Notifications.
+3. `recurring:send-reminders` runs **every minute** and sends **one daily summary** (Filament and/or WhatsApp) for each opted-in login user whose Profile send time has been reached. Each summary lists every eligible due/overdue item for that recipient and channel. Channel toggles stay on the Recurring template; lead days and send time live on Profile → Notifications.
 4. User pays externally and logs an **Expense** (upload / WhatsApp / manual).
 5. After `parsed` / `reviewed`, `RecurringMatchService` matches merchant aliases + due window (±7 days) + ownership/shared, then completes the occurrence with the expense total as `actual_amount`.
 6. That expense status change also pings `ExpenseUpdated`. Due Recurrings and Recurring Month Snapshot re-query over Echo while Home is open (skip/revert/mark-paid still use the in-page `recurring-occurrences-updated` event).
@@ -48,12 +48,13 @@ Each login user (Primary and family) configures recurring reminders on **Profile
 | `recurring_reminder_lead_days` | 7 (0–14) | Profile slider: remind on the due day and up to N days before; overdue still reminds daily |
 | `recurring_reminder_time` | 08:00 | Send once per local day at or after this time (user Profile timezone). Saving a time that is already past today skips today and waits until tomorrow. |
 
-Per-template **In-app** / **WhatsApp** toggles still choose channels. Routing:
+Per-template **In-app** / **WhatsApp** toggles still choose channels. Each daily pass sends **at most one summary per channel** (one WhatsApp message and/or one Filament inbox notification). Items are ordered overdue first, then ascending due date. Inbox severity is `danger` when any listed item is overdue, otherwise `warning`. Routing:
 
-- **Primary** pass: all active templates → Primary inbox / Primary WhatsApp
-- **Family login** pass: assigned, non-shared templates only → that user’s inbox / WhatsApp
-- **No-login family** (phone on Family Member, login off): WhatsApp only, on the **Primary** clock when Primary’s toggle is on and the template has WhatsApp on
+- **Primary** pass: all active templates → Primary inbox / Primary WhatsApp summaries
+- **Family login** pass: assigned, non-shared templates only → that user’s inbox / WhatsApp summaries
+- **No-login family** (phone on Family Member, login off): one WhatsApp summary of their assigned WhatsApp-enabled items, on the **Primary** clock when Primary’s toggle is on
 - **Shared** templates: Primary only (family login pass skips shared)
+- Channel split: WhatsApp-only templates appear only in the WhatsApp summary; inbox-only templates appear only in the Filament summary
 
 ## Commands
 

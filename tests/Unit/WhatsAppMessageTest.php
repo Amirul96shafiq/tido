@@ -150,32 +150,66 @@ test('manual expense parsed includes merchant total payment method and expense e
     );
 });
 
-test('recurring reminder formats title amount due and edit url', function () {
-    $message = WhatsAppMessage::recurringReminder(
-        'http://tido.local/admin/recurrings/13/edit',
-        'Tabung Raya 2027',
-        'RM 50.00',
-        '24 Aug 2026',
+test('recurring reminder summary formats counts items and index url', function () {
+    $message = WhatsAppMessage::recurringReminderSummary(
+        'http://tido.local/admin/recurrings',
+        [
+            [
+                'title' => 'Home Financing-i',
+                'amount' => 'RM 1,327.00',
+                'due_on' => '10 Aug 2026',
+                'is_overdue' => true,
+            ],
+            [
+                'title' => 'Tabung Raya 2027',
+                'amount' => 'RM 50.00',
+                'due_on' => '24 Aug 2026',
+                'is_overdue' => false,
+            ],
+        ],
     );
 
     expect($message)->toBe(
-        "📅 *Recurring payment due*\n\n*Tabung Raya 2027*\nAmount: RM 50.00\nDue: 24 Aug 2026\n\nhttp://tido.local/admin/recurrings/13/edit\n\n— Powered by *tido*",
+        "⏰ *Recurring payment summary*\n\n*2 payments · 1 overdue*\n\n• *Home Financing-i*\n  Amount: RM 1,327.00\n  Overdue: 10 Aug 2026\n\n• *Tabung Raya 2027*\n  Amount: RM 50.00\n  Due: 24 Aug 2026\n\nView recurrings\nhttp://tido.local/admin/recurrings\n\n— Powered by *tido*",
     );
 });
 
-test('recurring reminder overdue uses clock emoji and overdue title', function () {
-    $message = WhatsAppMessage::recurringReminder(
-        'http://tido.local/admin/recurrings/9/edit',
-        'Home Financing-i',
-        'RM 1,327.00',
-        '10 Aug 2026',
-        isOverdue: true,
+test('recurring reminder summary with only overdue items uses overdue count line', function () {
+    $message = WhatsAppMessage::recurringReminderSummary(
+        'http://tido.local/admin/recurrings',
+        [
+            [
+                'title' => 'Home Financing-i',
+                'amount' => 'RM 1,327.00',
+                'due_on' => '10 Aug 2026',
+                'is_overdue' => true,
+            ],
+        ],
     );
 
     expect($message)
-        ->toContain('⏰ *Recurring payment overdue*')
-        ->toContain('*Home Financing-i*')
-        ->toContain('Amount: RM 1,327.00')
-        ->toContain('Due: 10 Aug 2026')
-        ->toContain('http://tido.local/admin/recurrings/9/edit');
+        ->toContain('⏰ *Recurring payment summary*')
+        ->toContain('*1 overdue payment*')
+        ->toContain('Overdue: 10 Aug 2026')
+        ->toContain('View recurrings')
+        ->toContain('http://tido.local/admin/recurrings');
+});
+
+test('recurring reminder summary without overdue uses calendar emoji', function () {
+    $message = WhatsAppMessage::recurringReminderSummary(
+        'http://tido.local/admin/recurrings',
+        [
+            [
+                'title' => 'Tabung Raya 2027',
+                'amount' => 'RM 50.00',
+                'due_on' => '24 Aug 2026',
+                'is_overdue' => false,
+            ],
+        ],
+    );
+
+    expect($message)
+        ->toContain('📅 *Recurring payment summary*')
+        ->toContain('*1 payment in your reminder window*')
+        ->toContain('Due: 24 Aug 2026');
 });

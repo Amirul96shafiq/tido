@@ -247,7 +247,7 @@ test('lead days zero skips future due and overdue still sends', function () {
     ]);
 
     $wa = Mockery::mock(WhatsAppNotificationService::class);
-    $wa->shouldReceive('sendMessage')->twice()->andReturn(true);
+    $wa->shouldReceive('sendMessage')->once()->andReturn(true);
     app()->instance(WhatsAppNotificationService::class, $wa);
 
     $dueToday = Recurring::factory()->create([
@@ -291,7 +291,14 @@ test('lead days zero skips future due and overdue still sends', function () {
     $result = app(RecurringReminderService::class)->sendDueReminders();
 
     expect($result['reminded'])->toBe(2)
-        ->and($user->fresh()->notifications()->count())->toBe(2);
+        ->and($user->fresh()->notifications()->count())->toBe(1);
+
+    $notification = $user->fresh()->notifications()->first();
+    expect($notification->data['title'])->toBe('Recurring payment summary')
+        ->and($notification->data['status'])->toBe('danger')
+        ->and($notification->data['body'])->toContain('Overdue')
+        ->and($notification->data['body'])->toContain('Due Today')
+        ->and($notification->data['body'])->not->toContain('Future');
 });
 
 test('primary and family at different times do not cross-send whatsapp', function () {

@@ -275,38 +275,76 @@ final class WhatsAppMessage
         return self::compose('🎉', 'Manual expense parsed', $body);
     }
 
-    public static function recurringReminder(
-        string $editUrl,
-        string $title,
-        string $amountLabel,
-        string $dueOn,
-        bool $isOverdue = false,
-    ): string {
-        $editUrl = trim($editUrl);
-        $title = trim($title);
-        $amountLabel = trim($amountLabel);
-        $dueOn = trim($dueOn);
+    /**
+     * @param  list<array{title: string, amount: string, due_on: string, is_overdue: bool}>  $items
+     */
+    public static function recurringReminderSummary(string $indexUrl, array $items): string
+    {
+        $indexUrl = trim($indexUrl);
+        $count = count($items);
+        $overdueCount = 0;
 
-        if ($title === '') {
-            $title = 'Untitled';
+        foreach ($items as $item) {
+            if (($item['is_overdue'] ?? false) === true) {
+                $overdueCount++;
+            }
         }
 
-        if ($amountLabel === '') {
-            $amountLabel = 'variable';
+        $summaryLine = match (true) {
+            $count === 0 => 'No payments in your reminder window.',
+            $overdueCount > 0 && $overdueCount === $count => sprintf(
+                '*%d overdue payment%s*',
+                $count,
+                $count === 1 ? '' : 's',
+            ),
+            $overdueCount > 0 => sprintf(
+                '*%d payment%s · %d overdue*',
+                $count,
+                $count === 1 ? '' : 's',
+                $overdueCount,
+            ),
+            default => sprintf(
+                '*%d payment%s in your reminder window*',
+                $count,
+                $count === 1 ? '' : 's',
+            ),
+        };
+
+        $blocks = [$summaryLine];
+
+        foreach ($items as $item) {
+            $title = trim((string) ($item['title'] ?? ''));
+            $amount = trim((string) ($item['amount'] ?? ''));
+            $dueOn = trim((string) ($item['due_on'] ?? ''));
+            $isOverdue = ($item['is_overdue'] ?? false) === true;
+
+            if ($title === '') {
+                $title = 'Untitled';
+            }
+
+            if ($amount === '') {
+                $amount = 'variable';
+            }
+
+            $dueLabel = $isOverdue ? 'Overdue' : 'Due';
+
+            $blocks[] = implode("\n", [
+                "• *{$title}*",
+                "  Amount: {$amount}",
+                "  {$dueLabel}: {$dueOn}",
+            ]);
         }
 
-        $body = implode("\n", array_values(array_filter([
-            "*{$title}*",
-            "Amount: {$amountLabel}",
-            "Due: {$dueOn}",
-            $editUrl !== '' ? '' : null,
-            $editUrl !== '' ? $editUrl : null,
-        ], static fn (?string $line): bool => $line !== null)));
+        if ($indexUrl !== '') {
+            $blocks[] = "View recurrings\n{$indexUrl}";
+        }
+
+        $hasOverdue = $overdueCount > 0;
 
         return self::compose(
-            $isOverdue ? '⏰' : '📅',
-            $isOverdue ? 'Recurring payment overdue' : 'Recurring payment due',
-            $body,
+            $hasOverdue ? '⏰' : '📅',
+            'Recurring payment summary',
+            implode("\n\n", $blocks),
         );
     }
 }
