@@ -74,6 +74,23 @@ test('recurring reminder helper text is present in html when the toggle is off',
         ->toContain('flex-direction:column');
 });
 
+test('email digest toggle is disabled and is not saved from profile', function () {
+    $user = User::factory()->create([
+        'notify_email_digest' => false,
+        'notify_profile_updates' => false,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->assertFormFieldDisabled('notify_email_digest')
+        ->set('data.notify_email_digest', true)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($user->fresh()->notify_email_digest)->toBeFalse();
+});
+
 test('recurring reminder lead days and send time hide when toggle is off', function () {
     $user = User::factory()->create([
         'notify_recurring_reminders' => true,

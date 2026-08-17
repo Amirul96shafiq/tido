@@ -347,6 +347,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                                 Toggle::make('notify_email_digest')
                                     ->label('Email Digest')
                                     ->helperText('Coming soon — preference saved for future digest emails.')
+                                    ->disabled()
                                     ->fieldWrapperView('profile-toggle-field-wrapper')
                                     ->extraFieldWrapperAttributes(['class' => 'fi-profile-toggle-field']),
                             ]),
