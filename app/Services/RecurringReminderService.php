@@ -71,6 +71,37 @@ class RecurringReminderService
     }
 
     /**
+     * When Profile sets a send time that is already past today, claim today's
+     * pass without sending so the next real send is tomorrow at that time.
+     * Catch-up for an unchanged schedule still works via sendDueReminders().
+     */
+    public function suppressTodayPassIfSendTimePassed(User $user, ?CarbonInterface $now = null): bool
+    {
+        if (! $user->notify_recurring_reminders) {
+            return false;
+        }
+
+        $reference = $now?->copy() ?? now();
+        $local = $reference->copy()->timezone($user->preferredTimezone());
+        $localDate = $local->toDateString();
+        $sendAt = $user->recurringReminderTimeHi();
+        $localTime = $local->format('H:i');
+
+        // Strictly past — exact current minute may still send via the scheduler.
+        if ($localTime <= $sendAt) {
+            return false;
+        }
+
+        if (! $this->passSlotAvailable($user, $localDate)) {
+            return false;
+        }
+
+        $this->claimPassSlot($user, $reference);
+
+        return true;
+    }
+
+    /**
      * @return int Number of occurrence reminders sent for this user
      */
     public function sendPassForUser(User $user, ?CarbonInterface $now = null): int

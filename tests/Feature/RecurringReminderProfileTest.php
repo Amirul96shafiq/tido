@@ -119,6 +119,51 @@ test('updating recurring reminder preferences triggers profile update notificati
         ->and($body)->toContain('Recurring reminder send time');
 });
 
+test('saving a past send time from profile skips reminders for the rest of today', function () {
+    Carbon::setTestNow('2026-08-17 13:07:00');
+    Cache::flush();
+
+    $user = User::factory()->create([
+        'phone' => '60123456789',
+        'notify_recurring_reminders' => true,
+        'timezone' => 'Asia/Kuala_Lumpur',
+        'recurring_reminder_lead_days' => 7,
+        'recurring_reminder_time' => '14:00:00',
+        'notify_profile_updates' => false,
+    ]);
+
+    $wa = Mockery::mock(WhatsAppNotificationService::class);
+    $wa->shouldNotReceive('sendMessage');
+    app()->instance(WhatsAppNotificationService::class, $wa);
+
+    $recurring = Recurring::factory()->create([
+        'notify_filament' => true,
+        'notify_whatsapp' => true,
+        'is_shared' => false,
+        'family_member_id' => null,
+    ]);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->set('data.recurring_reminder_time', '10:00')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $result = app(RecurringReminderService::class)->sendDueReminders();
+
+    expect($user->fresh()->recurringReminderTimeHi())->toBe('10:00')
+        ->and($result['reminded'])->toBe(0)
+        ->and($result['users'])->toBe(0)
+        ->and($user->fresh()->notifications()->count())->toBe(0);
+});
+
 test('reminder service skips user when toggle is off', function () {
     $user = User::factory()->create([
         'phone' => '60123456789',

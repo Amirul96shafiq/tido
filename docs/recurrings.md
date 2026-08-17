@@ -46,7 +46,7 @@ Each login user (Primary and family) configures recurring reminders on **Profile
 |------------|---------|---------|
 | `notify_recurring_reminders` | on | Master toggle for that user |
 | `recurring_reminder_lead_days` | 7 (0–14) | Remind on the due day and up to N days before; overdue still reminds daily |
-| `recurring_reminder_time` | 08:00 | Send once per local day at or after this time (user Profile timezone) |
+| `recurring_reminder_time` | 08:00 | Send once per local day at or after this time (user Profile timezone). Saving a time that is already past today skips today and waits until tomorrow. |
 
 Per-template **In-app** / **WhatsApp** toggles still choose channels. Routing:
 

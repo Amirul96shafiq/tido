@@ -18,6 +18,7 @@ use App\Services\ActiveSessionService;
 use App\Services\BackupNotificationService;
 use App\Services\BackupService;
 use App\Services\FamilyMemberLoginService;
+use App\Services\RecurringReminderService;
 use App\Support\EmailChangeVerification;
 use App\Support\FieldCharacterLimits;
 use App\Support\FilamentAuthLogout;
@@ -323,7 +324,7 @@ class EditProfile extends BaseEditProfile implements HasTable
 
                                 TimePicker::make('recurring_reminder_time')
                                     ->label('Send At')
-                                    ->helperText('Local time from your Profile timezone. Reminders send once per day at or after this time.')
+                                    ->helperText('Local time from your Profile timezone. Reminders send once per day at or after this time. Choosing a time that is already past today waits until tomorrow.')
                                     ->seconds(false)
                                     ->required()
                                     ->visible(fn (Get $get): bool => (bool) $get('notify_recurring_reminders'))
@@ -817,6 +818,15 @@ class EditProfile extends BaseEditProfile implements HasTable
 
         if ($updatedRecord instanceof User) {
             app(FamilyMemberLoginService::class)->syncFamilyMemberFromLoginUser($updatedRecord);
+
+            $scheduleChanged = $oldNotifyRecurringReminders !== (bool) $updatedRecord->notify_recurring_reminders
+                || $oldRecurringReminderTime !== $updatedRecord->recurringReminderTimeHi()
+                || $oldTimezone !== $updatedRecord->timezone;
+
+            if ($scheduleChanged) {
+                app(RecurringReminderService::class)
+                    ->suppressTodayPassIfSendTimePassed($updatedRecord);
+            }
         }
 
         $changes = [];
