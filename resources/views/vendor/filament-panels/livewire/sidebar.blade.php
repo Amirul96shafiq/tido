@@ -10,6 +10,12 @@
     {{-- format-ignore-start --}}
     <aside
         x-data="{}"
+        @if (filament()->hasTenancy())
+            x-persist="sidebar.panel-{{ filament()->getId() }}.tenant-{{ filament()->getTenant()?->getKey() }}"
+        @else
+            x-persist="sidebar.panel-{{ filament()->getId() }}"
+        @endif
+        data-sidebar-home="{{ filament()->getHomeUrl() }}"
         @if ($isSidebarCollapsibleOnDesktop || $isSidebarFullyCollapsibleOnDesktop)
             x-cloak
         @else

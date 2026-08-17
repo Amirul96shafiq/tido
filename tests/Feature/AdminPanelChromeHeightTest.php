@@ -172,7 +172,10 @@ test('collapsed sidebar collapse footer is a square matching collapsed sidebar w
         ->toContain('padding-block: 0 !important;')
         ->and($provider)
         ->toContain('class="fi-sidebar-collapse-footer"')
-        ->toContain('class="fi-sidebar-collapse-buttons');
+        ->toContain('class="fi-sidebar-collapse-buttons')
+        ->toContain('stabilizeSidebarChrome')
+        ->toContain("classList.contains('fi-sidebar-preload')")
+        ->toContain('spaNavigating');
 });
 
 test('sidebar footer owns collapse buttons and header only owns logo', function () {
@@ -202,6 +205,8 @@ test('sidebar footer owns collapse buttons and header only owns logo', function 
         ->and($logoPos)->not->toBeFalse()
         ->and($sidebar)
         ->not->toContain('fi-sidebar-collapse-btns')
+        ->toContain('x-persist="sidebar.panel-')
+        ->toContain('data-sidebar-home="')
         ->and($css)
         ->toContain('.fi-sidebar.fi-sidebar-open .fi-sidebar-header-logo-ctn')
         ->toContain('justify-content: flex-start;')
@@ -298,6 +303,13 @@ test('sidebar collapse expand transition uses shared motion tokens and logo mask
         ->toContain('--tido-sidebar-content-delay: 340ms;')
         ->toContain('html.fi-sidebar-preload .fi-sidebar-logo-full')
         ->toContain('html.fi-sidebar-preload .fi-sidebar-logo-compact')
+        ->toContain('html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak]')
+        ->toContain(
+            '.fi-sidebar.fi-sidebar-animating:not(.fi-sidebar-open) .fi-sidebar-item-btn',
+        )
+        ->toContain(
+            '.fi-sidebar.fi-sidebar-animating.fi-sidebar-open .fi-sidebar-logo-full',
+        )
         ->toContain(
             'animation: fi-collapsed-chrome-enter var(--tido-sidebar-duration)',
         )
@@ -347,6 +359,8 @@ test('collapsed sidebar nav icons share expanded icon inset via flex-start rail'
         ->and($collapsedItemBtnBlock)
         ->toContain('justify-content: flex-start;')
         ->toContain('padding-inline-start: var(--tido-sidebar-icon-pad);')
+        ->toContain('opacity: 1;')
+        ->not->toContain('opacity: 0;')
         ->not->toContain('justify-content: center;')
         ->and($collapsedGroupTriggerBlock)
         ->toContain('justify-content: flex-start;')

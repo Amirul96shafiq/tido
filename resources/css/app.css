@@ -1719,6 +1719,14 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     animation: none !important;
 }
 
+/*
+ * SPA remounts re-apply x-cloak until Alpine boots. After first paint, keep the
+ * sidebar visible the same way persisted topbar chrome (search / avatar) stays put.
+ */
+html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
+    display: flex !important;
+}
+
 .fi-sidebar-header {
     display: flex !important;
     /* Keep in sync with .fi-topbar — square when sidebar is collapsed */
@@ -1756,8 +1764,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
  * Soft-dissolve logo swap: steady-state display:none/flex stays locked for tests,
  * but opacity masking hides the clipped intermediate frame while width tweens.
  */
-.fi-sidebar.fi-sidebar-open .fi-sidebar-logo-full,
-.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-logo-compact {
+.fi-sidebar.fi-sidebar-animating.fi-sidebar-open .fi-sidebar-logo-full,
+.fi-sidebar.fi-sidebar-animating:not(.fi-sidebar-open)
+    .fi-sidebar-logo-compact {
     animation: fi-collapsed-chrome-enter var(--tido-sidebar-duration)
         var(--tido-sidebar-ease) var(--tido-sidebar-content-delay) both;
 }
@@ -2246,6 +2255,10 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     opacity: 1;
     pointer-events: auto;
     visibility: visible;
+}
+
+.fi-sidebar.fi-sidebar-animating:not(.fi-sidebar-open)
+    .fi-sidebar-group-collapsed-label {
     animation: fi-collapsed-chrome-enter var(--tido-sidebar-duration)
         var(--tido-sidebar-ease) var(--tido-sidebar-content-delay) both;
 }
@@ -2314,8 +2327,9 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     }
 }
 
-.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn,
-.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-group-dropdown-trigger-btn {
+.fi-sidebar.fi-sidebar-animating:not(.fi-sidebar-open) .fi-sidebar-item-btn,
+.fi-sidebar.fi-sidebar-animating:not(.fi-sidebar-open)
+    .fi-sidebar-group-dropdown-trigger-btn {
     animation: fi-collapsed-chrome-enter var(--tido-sidebar-duration)
         var(--tido-sidebar-ease) var(--tido-sidebar-content-delay) both;
 }
@@ -2642,7 +2656,8 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
  * Collapsed: left-aligned size-10 box (equal rail padding handles spacing).
  * Icon inset matches expanded p-2 (1rem rail + 0.5rem pad = 1.5rem).
  * Avoid margin-inline: auto — it recenters icons mid-width tween.
- * opacity: 0 until fi-collapsed-chrome-enter finishes (same delay as version icon).
+ * Steady collapsed icons stay visible. Fade from 0 only while .fi-sidebar-animating
+ * (collapse/expand), not on SPA remount.
  */
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn {
     width: 2.5rem;
@@ -2654,11 +2669,11 @@ html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
     gap: 0;
     justify-content: flex-start;
     overflow: hidden;
-    opacity: 0;
+    opacity: 1;
 }
 
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-group-dropdown-trigger-btn {
-    opacity: 0;
+    opacity: 1;
 }
 
 .fi-sidebar .fi-sidebar-item-btn > .fi-icon.fi-size-lg {

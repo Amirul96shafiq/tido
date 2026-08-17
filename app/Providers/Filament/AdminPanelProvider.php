@@ -229,6 +229,11 @@ class AdminPanelProvider extends PanelProvider
                                 var isOpenDesktop = JSON.parse(localStorage.getItem('isOpenDesktop') ?? 'true');
                                 var isOpen = JSON.parse(localStorage.getItem('isOpen') ?? 'true');
                                 var isCollapsed = isDesktop ? ! isOpenDesktop : ! isOpen;
+                                var sidebarOpenObserver = null;
+                                var sidebarOpenObservedEl = null;
+                                var lastOpen = false;
+                                var animTimer = null;
+                                var spaNavigating = false;
 
                                 document.documentElement.classList.add('fi-sidebar-preload');
 
@@ -236,27 +241,79 @@ class AdminPanelProvider extends PanelProvider
                                     document.documentElement.classList.add('fi-sidebar-is-collapsed');
                                 }
 
-                                document.addEventListener('alpine:initialized', function () {
-                                    requestAnimationFrame(function () {
-                                        document.documentElement.classList.remove(
-                                            'fi-sidebar-preload',
-                                            'fi-sidebar-is-collapsed',
-                                        );
+                                var sidebarShouldBeOpen = function () {
+                                    var desktop = window.innerWidth >= desktopBreakpoint;
+                                    var openDesktop = JSON.parse(localStorage.getItem('isOpenDesktop') ?? 'true');
+                                    var openMobile = JSON.parse(localStorage.getItem('isOpen') ?? 'true');
+
+                                    return desktop ? openDesktop : openMobile;
+                                };
+
+                                var normalizePath = function (value) {
+                                    try {
+                                        return new URL(value, window.location.href).pathname.replace(/\/+$/, '') || '/';
+                                    } catch (e) {
+                                        return '/';
+                                    }
+                                };
+
+                                var syncSidebarActive = function (sidebar) {
+                                    var currentPath = normalizePath(window.location.href);
+                                    var homePath = normalizePath(sidebar.getAttribute('data-sidebar-home') || '/');
+
+                                    sidebar.querySelectorAll('.fi-sidebar-item.fi-sidebar-item-has-url').forEach(function (item) {
+                                        var link = item.querySelector(':scope > .fi-sidebar-item-btn');
+                                        var href = link ? link.getAttribute('href') : null;
+                                        if (! href) {
+                                            item.classList.remove('fi-active');
+                                            return;
+                                        }
+                                        var hrefPath = normalizePath(href);
+                                        var isCurrent = hrefPath === homePath
+                                            ? currentPath === homePath
+                                            : currentPath === hrefPath || currentPath.indexOf(hrefPath + '/') === 0;
+                                        item.classList.toggle('fi-active', isCurrent);
                                     });
 
-                                    var sidebar = document.querySelector('.fi-main-sidebar');
-                                    if (! sidebar) {
+                                    sidebar.querySelectorAll('.fi-sidebar-group').forEach(function (group) {
+                                        group.classList.toggle(
+                                            'fi-active',
+                                            !! group.querySelector(':scope .fi-sidebar-item.fi-active'),
+                                        );
+                                    });
+                                };
+
+                                var attachSidebarOpenObserver = function (sidebar) {
+                                    if (sidebarOpenObserver && sidebarOpenObservedEl === sidebar) {
+                                        lastOpen = sidebar.classList.contains('fi-sidebar-open');
                                         return;
                                     }
 
-                                    var lastOpen = sidebar.classList.contains('fi-sidebar-open');
-                                    var animTimer = null;
+                                    if (sidebarOpenObserver) {
+                                        sidebarOpenObserver.disconnect();
+                                    }
 
-                                    new MutationObserver(function () {
+                                    sidebarOpenObservedEl = sidebar;
+                                    lastOpen = sidebar.classList.contains('fi-sidebar-open');
+                                    sidebarOpenObserver = new MutationObserver(function () {
                                         var open = sidebar.classList.contains('fi-sidebar-open');
                                         if (open === lastOpen) {
                                             return;
                                         }
+
+                                        if (spaNavigating || document.documentElement.classList.contains('fi-sidebar-preload')) {
+                                            if (sidebarShouldBeOpen() && ! open) {
+                                                lastOpen = true;
+                                                sidebar.classList.add('fi-sidebar-open');
+                                                sidebar.classList.remove('fi-sidebar-animating');
+                                                return;
+                                            }
+
+                                            lastOpen = open;
+                                            sidebar.classList.remove('fi-sidebar-animating');
+                                            return;
+                                        }
+
                                         lastOpen = open;
                                         if (! sidebar.classList.contains('fi-sidebar-animating')) {
                                             sidebar.classList.add('fi-sidebar-animating');
@@ -271,7 +328,55 @@ class AdminPanelProvider extends PanelProvider
                                             sidebar.classList.remove('fi-sidebar-animating');
                                             animTimer = null;
                                         }, duration + delay + 40);
-                                    }).observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+                                    });
+                                    sidebarOpenObserver.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+                                };
+
+                                var stabilizeSidebarChrome = function () {
+                                    var sidebar = document.querySelector('.fi-main-sidebar');
+                                    if (! sidebar) {
+                                        return;
+                                    }
+
+                                    sidebar.removeAttribute('x-cloak');
+                                    sidebar.classList.remove('fi-sidebar-animating');
+                                    if (sidebarShouldBeOpen()) {
+                                        sidebar.classList.add('fi-sidebar-open');
+                                    } else {
+                                        sidebar.classList.remove('fi-sidebar-open');
+                                    }
+                                    syncSidebarActive(sidebar);
+                                    attachSidebarOpenObserver(sidebar);
+                                };
+
+                                document.addEventListener('alpine:initialized', function () {
+                                    requestAnimationFrame(function () {
+                                        document.documentElement.classList.remove(
+                                            'fi-sidebar-preload',
+                                            'fi-sidebar-is-collapsed',
+                                        );
+                                    });
+
+                                    var sidebar = document.querySelector('.fi-main-sidebar');
+                                    if (! sidebar) {
+                                        return;
+                                    }
+
+                                    attachSidebarOpenObserver(sidebar);
+                                });
+
+                                document.addEventListener('livewire:navigating', function () {
+                                    spaNavigating = true;
+                                    document.documentElement.classList.add('fi-sidebar-preload');
+                                    stabilizeSidebarChrome();
+                                });
+
+                                document.addEventListener('livewire:navigated', function () {
+                                    stabilizeSidebarChrome();
+                                    spaNavigating = false;
+                                    requestAnimationFrame(function () {
+                                        document.documentElement.classList.remove('fi-sidebar-preload');
+                                    });
                                 });
                             } catch (e) {}
                         })();
