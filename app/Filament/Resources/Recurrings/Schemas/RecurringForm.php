@@ -331,7 +331,7 @@ class RecurringForm
                                     ->disabled(fn (Get $get): bool => ! ($get('is_active') ?? true))
                                     ->dehydrated()
                                     ->helperText(fn (Get $get): string => ($get('is_active') ?? true)
-                                        ? 'Receive in-app notifications when a recurring payment is due or overdue.'
+                                        ? 'Send in-app notifications for this recurring. Profile → Notifications sets lead days and send time.'
                                         : 'Reminders resume when the recurring is active.'),
                                 Toggle::make('notify_whatsapp')
                                     ->label('WhatsApp reminders')
@@ -348,7 +348,7 @@ class RecurringForm
                                             return 'No valid WhatsApp recipient is configured for this responsibility.';
                                         }
 
-                                        return 'Receive WhatsApp messages when a recurring payment is due or overdue.';
+                                        return 'Send WhatsApp messages for this recurring. Profile → Notifications sets lead days and send time.';
                                     }),
                             ]),
 

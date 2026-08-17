@@ -24,6 +24,6 @@ Schedule::command('recurring:generate-occurrences')
     ->timezone(config('app.timezone'))
     ->withoutOverlapping();
 Schedule::command('recurring:send-reminders')
-    ->dailyAt('08:00')
+    ->everyMinute()
     ->timezone(config('app.timezone'))
     ->withoutOverlapping();

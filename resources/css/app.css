@@ -3026,6 +3026,38 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     @apply mx-auto;
 }
 
+/*
+ * Profile inlineLabel toggles: helperText is belowContent in the content column.
+ * Filament's content-col uses an implicit CSS grid, so the helper can sit beside
+ * the shrink-wrapped switch instead of under it (and can collapse when off).
+ * Stack like Select/TimePicker helpers: control, then full-width helper.
+ */
+.fi-profile-page .fi-profile-toggle-field .fi-fo-field-content-col {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: visible;
+}
+
+.fi-profile-page .fi-profile-toggle-field .fi-fo-field-content-col > .fi-toggle {
+    flex-shrink: 0;
+    align-self: start;
+}
+
+.fi-profile-page .fi-profile-toggle-field .fi-fo-field-content-col > .fi-sc {
+    display: block;
+    min-width: 0;
+    width: 100%;
+    grid-column: 1 / -1;
+    flex-basis: 100%;
+}
+
+.fi-profile-page .fi-profile-toggle-field .fi-fo-field-content-col .fi-sc-text {
+    display: block;
+    width: 100%;
+    opacity: 1;
+}
+
 @media (max-width: 1023px) {
     /*
      * Scope to columns inside the profile form only.

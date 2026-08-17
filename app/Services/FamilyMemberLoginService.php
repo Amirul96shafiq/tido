@@ -74,6 +74,9 @@ class FamilyMemberLoginService
             'notify_profile_updates' => false,
             'notify_email_digest' => false,
             'notify_evolution_api' => false,
+            'notify_recurring_reminders' => true,
+            'recurring_reminder_lead_days' => 7,
+            'recurring_reminder_time' => '08:00:00',
         ]);
     }
 

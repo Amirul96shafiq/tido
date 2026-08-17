@@ -41,12 +41,18 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
         'notify_profile_updates',
         'notify_email_digest',
         'notify_evolution_api',
+        'notify_recurring_reminders',
+        'recurring_reminder_lead_days',
+        'recurring_reminder_time',
         'stylized_background_enabled',
     ];
 
     protected $attributes = [
         'household_role' => 'primary',
         'stylized_background_enabled' => true,
+        'notify_recurring_reminders' => true,
+        'recurring_reminder_lead_days' => 7,
+        'recurring_reminder_time' => '08:00:00',
     ];
 
     protected $hidden = [
@@ -65,8 +71,26 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
             'notify_profile_updates' => 'boolean',
             'notify_email_digest' => 'boolean',
             'notify_evolution_api' => 'boolean',
+            'notify_recurring_reminders' => 'boolean',
+            'recurring_reminder_lead_days' => 'integer',
             'stylized_background_enabled' => 'boolean',
         ];
+    }
+
+    /**
+     * Preferred send-at time as H:i (Profile timezone).
+     */
+    public function recurringReminderTimeHi(): string
+    {
+        $raw = $this->recurring_reminder_time;
+
+        if ($raw instanceof CarbonInterface) {
+            return $raw->format('H:i');
+        }
+
+        $value = is_string($raw) ? $raw : '08:00:00';
+
+        return substr($value, 0, 5);
     }
 
     public function canAccessPanel(Panel $panel): bool

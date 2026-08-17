@@ -18,6 +18,7 @@ use App\Services\ActiveSessionService;
 use App\Services\BackupNotificationService;
 use App\Services\BackupService;
 use App\Services\FamilyMemberLoginService;
+use App\Services\RecurringReminderService;
 use App\Support\EmailChangeVerification;
 use App\Support\FieldCharacterLimits;
 use App\Support\FilamentAuthLogout;
@@ -30,7 +31,9 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Slider;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification as FilamentNotification;
 use Filament\Schemas\Components\Actions;
@@ -46,6 +49,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
+use Filament\Support\RawJs;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -282,20 +286,69 @@ class EditProfile extends BaseEditProfile implements HasTable
                                 Toggle::make('notify_budget_alerts')
                                     ->label('Budget Alerts')
                                     ->helperText('Receive in-app notifications when spending exceeds your budget threshold.')
+                                    ->fieldWrapperView('profile-toggle-field-wrapper')
+                                    ->extraFieldWrapperAttributes(['class' => 'fi-profile-toggle-field'])
                                     ->visible(fn (): bool => HouseholdAccess::isPrimary()),
+
+                                Toggle::make('notify_recurring_reminders')
+                                    ->label('Recurring Reminders')
+                                    ->helperText('Receive reminders for due or overdue recurring payments. In-app vs WhatsApp is still set on each Recurring.')
+                                    ->fieldWrapperView('profile-toggle-field-wrapper')
+                                    ->extraFieldWrapperAttributes(['class' => 'fi-profile-toggle-field'])
+                                    ->live()
+                                    ->default(true),
+
+                                Slider::make('recurring_reminder_lead_days')
+                                    ->label('Days Before Due')
+                                    ->range(minValue: 0, maxValue: 14)
+                                    ->step(1)
+                                    ->decimalPlaces(0)
+                                    ->default(7)
+                                    ->tooltips(RawJs::make(<<<'JS'
+                                                (() => {
+                                                    const days = Math.round($value);
+
+                                                    if (days === 0) {
+                                                        return 'Due day only';
+                                                    }
+
+                                                    return days === 1 ? '1 day before' : `${days} days before`;
+                                                })()
+                                                JS))
+                                    ->helperText('Remind on the due day and up to this many days before. Overdue payments still remind daily.')
+                                    ->required()
+                                    ->visible(fn (Get $get): bool => (bool) $get('notify_recurring_reminders'))
+                                    ->dehydrated(),
+
+                                TimePicker::make('recurring_reminder_time')
+                                    ->label('Send At')
+                                    ->helperText('Local time from your Profile timezone. Reminders send once per day at or after this time. Choosing a time that is already past today waits until tomorrow.')
+                                    ->native(false)
+                                    ->seconds(false)
+                                    ->hoursStep(1)
+                                    ->minutesStep(5)
+                                    ->required()
+                                    ->visible(fn (Get $get): bool => (bool) $get('notify_recurring_reminders'))
+                                    ->dehydrated(),
 
                                 Toggle::make('notify_profile_updates')
                                     ->label('Profile Update Alerts')
-                                    ->helperText('Receive in-app notifications when your profile settings change.'),
+                                    ->helperText('Receive in-app notifications when your profile settings change.')
+                                    ->fieldWrapperView('profile-toggle-field-wrapper')
+                                    ->extraFieldWrapperAttributes(['class' => 'fi-profile-toggle-field']),
 
                                 Toggle::make('notify_evolution_api')
                                     ->label('Evolution API')
                                     ->helperText('Receive in-app notifications when Evolution API connects or disconnects.')
+                                    ->fieldWrapperView('profile-toggle-field-wrapper')
+                                    ->extraFieldWrapperAttributes(['class' => 'fi-profile-toggle-field'])
                                     ->visible(fn (): bool => HouseholdAccess::isPrimary()),
 
                                 Toggle::make('notify_email_digest')
                                     ->label('Email Digest')
-                                    ->helperText('Coming soon — preference saved for future digest emails.'),
+                                    ->helperText('Coming soon — preference saved for future digest emails.')
+                                    ->fieldWrapperView('profile-toggle-field-wrapper')
+                                    ->extraFieldWrapperAttributes(['class' => 'fi-profile-toggle-field']),
                             ]),
 
                         $this->getDangerZoneSection(),
@@ -754,6 +807,11 @@ class EditProfile extends BaseEditProfile implements HasTable
         $oldNotifyProfileUpdates = (bool) $record->notify_profile_updates;
         $oldNotifyEvolutionApi = (bool) $record->notify_evolution_api;
         $oldNotifyEmailDigest = (bool) $record->notify_email_digest;
+        $oldNotifyRecurringReminders = (bool) $record->notify_recurring_reminders;
+        $oldRecurringReminderLeadDays = (int) $record->recurring_reminder_lead_days;
+        $oldRecurringReminderTime = $record instanceof User
+            ? $record->recurringReminderTimeHi()
+            : '08:00';
         $oldStylizedBackgroundEnabled = (bool) $record->stylized_background_enabled;
         $passwordChanged = filled($data['password'] ?? null);
 
@@ -761,6 +819,15 @@ class EditProfile extends BaseEditProfile implements HasTable
 
         if ($updatedRecord instanceof User) {
             app(FamilyMemberLoginService::class)->syncFamilyMemberFromLoginUser($updatedRecord);
+
+            $scheduleChanged = $oldNotifyRecurringReminders !== (bool) $updatedRecord->notify_recurring_reminders
+                || $oldRecurringReminderTime !== $updatedRecord->recurringReminderTimeHi()
+                || $oldTimezone !== $updatedRecord->timezone;
+
+            if ($scheduleChanged) {
+                app(RecurringReminderService::class)
+                    ->suppressTodayPassIfSendTimePassed($updatedRecord);
+            }
         }
 
         $changes = [];
@@ -796,6 +863,18 @@ class EditProfile extends BaseEditProfile implements HasTable
         }
         if ($oldNotifyBudgetAlerts !== (bool) $updatedRecord->notify_budget_alerts) {
             $changes[] = 'Budget alerts';
+        }
+        if ($oldNotifyRecurringReminders !== (bool) $updatedRecord->notify_recurring_reminders) {
+            $changes[] = 'Recurring reminders';
+        }
+        if ($oldRecurringReminderLeadDays !== (int) $updatedRecord->recurring_reminder_lead_days) {
+            $changes[] = 'Recurring reminder lead days';
+        }
+        if (
+            $updatedRecord instanceof User
+            && $oldRecurringReminderTime !== $updatedRecord->recurringReminderTimeHi()
+        ) {
+            $changes[] = 'Recurring reminder send time';
         }
         if ($oldNotifyProfileUpdates !== (bool) $updatedRecord->notify_profile_updates) {
             $changes[] = 'Profile update alerts';

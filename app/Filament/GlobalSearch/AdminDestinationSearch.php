@@ -245,7 +245,7 @@ final class AdminDestinationSearch
             ],
             [
                 'title' => 'Notifications',
-                'keywords' => ['notifications', 'alerts', 'budget', 'digest', 'evolution'],
+                'keywords' => ['notifications', 'alerts', 'budget', 'digest', 'evolution', 'recurring', 'reminder'],
                 'group' => 'Sections',
                 'url' => $profileUrl.'#notifications',
                 'details' => ['Page' => 'Profile'],
