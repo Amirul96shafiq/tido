@@ -149,3 +149,33 @@ test('manual expense parsed includes merchant total payment method and expense e
         "🎉 *Manual expense parsed*\n\nMerchant: *myNEWS Bayu Residensi*\nTotal Amount: *RM 4.20*\nPayment Method: *Cash*\n\nGo to *expense edit*\nhttps://tido.test/admin/expenses/191/edit\n\n— Powered by *tido*",
     );
 });
+
+test('recurring reminder formats title amount due and edit url', function () {
+    $message = WhatsAppMessage::recurringReminder(
+        'http://tido.local/admin/recurrings/13/edit',
+        'Tabung Raya 2027',
+        'RM 50.00',
+        '24 Aug 2026',
+    );
+
+    expect($message)->toBe(
+        "📅 *Recurring payment due*\n\n*Tabung Raya 2027*\nAmount: RM 50.00\nDue: 24 Aug 2026\n\nhttp://tido.local/admin/recurrings/13/edit\n\n— Powered by *tido*",
+    );
+});
+
+test('recurring reminder overdue uses clock emoji and overdue title', function () {
+    $message = WhatsAppMessage::recurringReminder(
+        'http://tido.local/admin/recurrings/9/edit',
+        'Home Financing-i',
+        'RM 1,327.00',
+        '10 Aug 2026',
+        isOverdue: true,
+    );
+
+    expect($message)
+        ->toContain('⏰ *Recurring payment overdue*')
+        ->toContain('*Home Financing-i*')
+        ->toContain('Amount: RM 1,327.00')
+        ->toContain('Due: 10 Aug 2026')
+        ->toContain('http://tido.local/admin/recurrings/9/edit');
+});

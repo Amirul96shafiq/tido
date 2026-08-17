@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\RecurringOccurrenceStatus;
+use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Helpers\MoneyDisplay;
 use App\Models\FamilyMember;
 use App\Models\Recurring;
@@ -12,6 +13,7 @@ use App\Models\RecurringOccurrence;
 use App\Models\User;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppMessage;
+use App\Support\WhatsAppPublicUrl;
 use Carbon\CarbonInterface;
 use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Database\Eloquent\Builder;
@@ -156,7 +158,7 @@ class RecurringReminderService
         $dueOn = $occurrence->due_on->format('d M Y');
 
         $heading = $isOverdue ? 'Recurring payment overdue' : 'Recurring payment due';
-        $body = sprintf(
+        $filamentBody = sprintf(
             '%s · %s · due %s',
             $recurring->title,
             $amount,
@@ -171,11 +173,7 @@ class RecurringReminderService
             if ($number !== null) {
                 $this->waService->sendMessage(
                     $number,
-                    WhatsAppMessage::compose(
-                        $isOverdue ? '⏰' : '📅',
-                        $heading,
-                        $body,
-                    ),
+                    $this->whatsAppReminderMessage($recurring, $amount, $dueOn, $isOverdue),
                 );
                 $sent = true;
             }
@@ -184,7 +182,7 @@ class RecurringReminderService
         if ($recurring->notify_filament) {
             $notification = FilamentNotification::make()
                 ->title($heading)
-                ->body($body);
+                ->body($filamentBody);
 
             if ($isOverdue) {
                 $notification->danger();
@@ -252,21 +250,10 @@ class RecurringReminderService
                     ? MoneyDisplay::withPrefix($occurrence->expected_amount)
                     : 'variable';
                 $dueOn = $occurrence->due_on->format('d M Y');
-                $heading = $isOverdue ? 'Recurring payment overdue' : 'Recurring payment due';
-                $body = sprintf(
-                    '%s · %s · due %s',
-                    $recurring->title,
-                    $amount,
-                    $dueOn,
-                );
 
                 $this->waService->sendMessage(
                     $number,
-                    WhatsAppMessage::compose(
-                        $isOverdue ? '⏰' : '📅',
-                        $heading,
-                        $body,
-                    ),
+                    $this->whatsAppReminderMessage($recurring, $amount, $dueOn, $isOverdue),
                 );
 
                 $occurrence->reminded_at = now();
@@ -275,6 +262,25 @@ class RecurringReminderService
             });
 
         return $reminded;
+    }
+
+    private function whatsAppReminderMessage(
+        Recurring $recurring,
+        string $amount,
+        string $dueOn,
+        bool $isOverdue,
+    ): string {
+        $editUrl = WhatsAppPublicUrl::withRoot(
+            fn (): string => RecurringResource::getUrl('edit', ['record' => $recurring]),
+        );
+
+        return WhatsAppMessage::recurringReminder(
+            $editUrl,
+            (string) $recurring->title,
+            $amount,
+            $dueOn,
+            $isOverdue,
+        );
     }
 
     /**

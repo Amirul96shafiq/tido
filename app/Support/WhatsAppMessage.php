@@ -274,4 +274,39 @@ final class WhatsAppMessage
 
         return self::compose('🎉', 'Manual expense parsed', $body);
     }
+
+    public static function recurringReminder(
+        string $editUrl,
+        string $title,
+        string $amountLabel,
+        string $dueOn,
+        bool $isOverdue = false,
+    ): string {
+        $editUrl = trim($editUrl);
+        $title = trim($title);
+        $amountLabel = trim($amountLabel);
+        $dueOn = trim($dueOn);
+
+        if ($title === '') {
+            $title = 'Untitled';
+        }
+
+        if ($amountLabel === '') {
+            $amountLabel = 'variable';
+        }
+
+        $body = implode("\n", array_values(array_filter([
+            "*{$title}*",
+            "Amount: {$amountLabel}",
+            "Due: {$dueOn}",
+            $editUrl !== '' ? '' : null,
+            $editUrl !== '' ? $editUrl : null,
+        ], static fn (?string $line): bool => $line !== null)));
+
+        return self::compose(
+            $isOverdue ? '⏰' : '📅',
+            $isOverdue ? 'Recurring payment overdue' : 'Recurring payment due',
+            $body,
+        );
+    }
 }
