@@ -75,6 +75,9 @@ class FamilyMemberLoginService
             'notify_email_digest' => false,
             'notify_evolution_api' => false,
             'notify_recurring_reminders' => true,
+            'notify_receipt_review' => true,
+            'notify_service_status' => false,
+            'notify_backups' => false,
             'recurring_reminder_lead_days' => 7,
             'recurring_reminder_time' => '08:00:00',
         ]);

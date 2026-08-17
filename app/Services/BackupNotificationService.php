@@ -16,6 +16,10 @@ class BackupNotificationService
 {
     public function notifyCreated(User $user, Backup $backup): void
     {
+        if (! $user->notify_backups) {
+            return;
+        }
+
         Notification::make()
             ->title('Backup created')
             ->body("Database backup {$backup->filename} was saved successfully.")
@@ -50,6 +54,10 @@ class BackupNotificationService
 
     public function notifyRestored(User $user, Backup $backup): void
     {
+        if (! $user->notify_backups) {
+            return;
+        }
+
         Notification::make()
             ->title('Backup restored')
             ->body("Database was restored from {$backup->filename}. Please sign in again.")
@@ -60,6 +68,10 @@ class BackupNotificationService
 
     public function notifyDeleted(User $user, string $filename): void
     {
+        if (! $user->notify_backups) {
+            return;
+        }
+
         Notification::make()
             ->title('Backup deleted')
             ->body("Backup {$filename} was removed.")

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Health;
 
+use App\Enums\MonitoredService;
 use App\Models\ServiceHealthSample;
 use App\Services\Health\Probes\AppProbe;
 use App\Services\Health\Probes\DatabaseProbe;
@@ -26,6 +27,7 @@ class ServiceHealthRecorder
         EvolutionProbe $evolutionProbe,
         QueueProbe $queueProbe,
         ReverbProbe $reverbProbe,
+        private readonly ServiceHealthAlertService $alertService,
     ) {
         $this->probes = [
             $appProbe,
@@ -42,6 +44,7 @@ class ServiceHealthRecorder
      */
     public function recordAll(): array
     {
+        $previousByService = $this->latestSamplesByService();
         $checkedAt = now();
         $samples = [];
 
@@ -61,7 +64,31 @@ class ServiceHealthRecorder
             ]);
         }
 
+        $this->alertService->notifyTransitions($previousByService, $samples);
+
         return $samples;
+    }
+
+    /**
+     * @return array<string, ServiceHealthSample>
+     */
+    private function latestSamplesByService(): array
+    {
+        $latest = [];
+
+        foreach (MonitoredService::configured() as $service) {
+            $sample = ServiceHealthSample::query()
+                ->where('service', $service)
+                ->latest('checked_at')
+                ->latest('id')
+                ->first();
+
+            if ($sample instanceof ServiceHealthSample) {
+                $latest[$service->value] = $sample;
+            }
+        }
+
+        return $latest;
     }
 
     public function pruneOlderThanDays(int $days = 30): int
