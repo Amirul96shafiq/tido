@@ -16,7 +16,7 @@ class ReceiptManualReviewNotifier
     {
         $recipient = NotificationRecipient::forExpense($expense);
 
-        if ($recipient === null) {
+        if ($recipient === null || ! $recipient->notify_receipt_review) {
             return;
         }
 

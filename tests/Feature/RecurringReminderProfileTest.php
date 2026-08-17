@@ -39,8 +39,13 @@ test('family member can save recurring reminder preferences on profile', functio
 
     Livewire::test(EditProfile::class)
         ->assertFormFieldExists('notify_recurring_reminders')
+        ->assertFormFieldExists('notify_receipt_review')
         ->assertFormFieldExists('recurring_reminder_lead_days')
         ->assertFormFieldExists('recurring_reminder_time')
+        ->assertFormFieldIsHidden('notify_budget_alerts')
+        ->assertFormFieldIsHidden('notify_evolution_api')
+        ->assertFormFieldIsHidden('notify_service_status')
+        ->assertFormFieldIsHidden('notify_backups')
         ->set('data.notify_recurring_reminders', true)
         ->set('data.recurring_reminder_lead_days', 3)
         ->set('data.recurring_reminder_time', '07:30')
@@ -50,6 +55,9 @@ test('family member can save recurring reminder preferences on profile', functio
     $user->refresh();
 
     expect($user->notify_recurring_reminders)->toBeTrue()
+        ->and($user->notify_receipt_review)->toBeTrue()
+        ->and($user->notify_service_status)->toBeFalse()
+        ->and($user->notify_backups)->toBeFalse()
         ->and($user->recurring_reminder_lead_days)->toBe(3)
         ->and($user->recurringReminderTimeHi())->toBe('07:30');
 });
@@ -67,11 +75,43 @@ test('recurring reminder helper text is present in html when the toggle is off',
     $html = Livewire::test(EditProfile::class)->html();
 
     expect($html)
-        ->toContain('Receive reminders for due or overdue recurring payments')
+        ->toContain('Due and overdue reminders. In-app vs WhatsApp stays on each Recurring.')
         ->toContain('Coming soon — preference saved for future digest emails.')
-        ->toContain('Receive in-app notifications when spending exceeds your budget threshold.')
+        ->toContain('In-app inbox when spending exceeds a budget threshold.')
+        ->toContain('Receipt Review')
+        ->toContain('Service Status')
+        ->toContain('Backup Alerts')
+        ->toContain('fi-fieldset')
         ->toContain('fi-profile-toggle-field')
         ->toContain('flex-direction:column');
+});
+
+test('receipt review and backup alert preferences persist from profile', function () {
+    $user = User::factory()->create([
+        'notify_receipt_review' => true,
+        'notify_backups' => true,
+        'notify_service_status' => true,
+        'notify_profile_updates' => false,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->assertSchemaComponentExists('notifications-finances')
+        ->assertSchemaComponentExists('notifications-account')
+        ->assertSchemaComponentExists('notifications-tools')
+        ->assertSchemaComponentExists('notifications-coming-soon')
+        ->set('data.notify_receipt_review', false)
+        ->set('data.notify_backups', false)
+        ->set('data.notify_service_status', false)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $user->refresh();
+
+    expect($user->notify_receipt_review)->toBeFalse()
+        ->and($user->notify_backups)->toBeFalse()
+        ->and($user->notify_service_status)->toBeFalse();
 });
 
 test('email digest toggle is disabled and is not saved from profile', function () {
@@ -102,9 +142,11 @@ test('recurring reminder lead days and send time hide when toggle is off', funct
     Livewire::test(EditProfile::class)
         ->assertFormFieldIsVisible('recurring_reminder_lead_days')
         ->assertFormFieldIsVisible('recurring_reminder_time')
+        ->assertSee('fi-profile-notification-nested', false)
         ->set('data.notify_recurring_reminders', false)
         ->assertFormFieldIsHidden('recurring_reminder_lead_days')
         ->assertFormFieldIsHidden('recurring_reminder_time')
+        ->assertDontSee('fi-profile-notification-nested', false)
         ->call('save')
         ->assertHasNoErrors();
 

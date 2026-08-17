@@ -246,3 +246,23 @@ test('enabling evolution api notification reports that change only', function ()
     $notification = $user->notifications()->first();
     expect($notification->data['body'])->toBe('You updated your profile settings: Evolution API alerts.');
 });
+
+test('updating receipt review preference reports that change', function () {
+    $user = User::factory()->create([
+        'notify_receipt_review' => true,
+        'notify_profile_updates' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->set('data.notify_receipt_review', false)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $user->refresh();
+
+    expect($user->notify_receipt_review)->toBeFalse()
+        ->and($user->notifications()->count())->toBe(1)
+        ->and($user->notifications()->first()->data['body'])->toBe('You updated your profile settings: Receipt review alerts.');
+});

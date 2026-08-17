@@ -3058,6 +3058,34 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     opacity: 1;
 }
 
+.fi-profile-page #notifications .fi-profile-notification-group {
+    gap: 0.75rem;
+}
+
+.fi-profile-page
+    #notifications
+    .fi-profile-notification-group
+    + .fi-profile-notification-group {
+    margin-block-start: 1rem;
+}
+
+.fi-profile-page #notifications .fi-profile-notification-group > legend {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.fi-profile-page .fi-profile-notification-nested {
+    padding-inline-start: 1.25rem;
+    border-inline-start: 2px solid
+        color-mix(in oklab, var(--primary-500) 35%, transparent);
+}
+
+.fi-profile-page .fi-profile-notification-nested > .fi-sc {
+    gap: 0.75rem;
+}
+
 @media (max-width: 1023px) {
     /*
      * Scope to columns inside the profile form only.

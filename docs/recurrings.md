@@ -40,7 +40,7 @@ Primary may duplicate a template from the list row Actions kebab, the Edit heade
 
 ## Reminder schedule (Profile)
 
-Each login user (Primary and family) configures recurring reminders on **Profile → Notifications**:
+Each login user (Primary and family) configures recurring reminders on **Profile → Notifications → Finances**. Days Before Due and Send At sit under the Recurring Reminders toggle:
 
 | Preference | Default | Meaning |
 |------------|---------|---------|

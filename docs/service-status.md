@@ -68,6 +68,21 @@ php artisan health:prune    # drop samples older than 30 days (override: --days=
 
 Automatic polling requires an active Laravel scheduler process, such as `php artisan schedule:work`, or an external scheduler that invokes `php artisan schedule:run` every minute. `npm run dev:full` starts Vite, Laravel, and the queue listener; it does **not** start the scheduler.
 
+## Inbox alerts
+
+`ServiceHealthRecorder::recordAll()` (scheduled `health:probe` and Service Status **Run check now**) compares each service to its previous sample and may send a Filament inbox summary.
+
+| Rule | Behaviour |
+|------|-----------|
+| Recipients | Primary login users with Profile → Notifications → **Service Status** on |
+| Channel | Filament inbox only |
+| First sample | No alert (no previous status to compare) |
+| Transitions | Alert when a service becomes degraded or down, or recovers to operational |
+| Unchanged | No second alert while the status stays the same |
+| Copy | Service names and status only — no probe payload |
+
+The preference defaults on. Family login users do not receive these alerts.
+
 ## Agent rules
 
 1. Nav: **Tools** group, sort after Backups — do not move to Integrations.

@@ -80,6 +80,44 @@ test('restore token notification copies the token from a copy action', function 
         ->and($copyAction['alpineClickHandler'])->toContain('Restore token copied to clipboard');
 });
 
+test('create backup inbox alert is skipped when notify_backups is off', function () {
+    $this->admin->update(['notify_backups' => false]);
+
+    $backup = Backup::factory()->make([
+        'type' => BackupType::Manual,
+        'filename' => 'tido-app-local-2026-07-14-100413-manual.zip',
+        'created_by' => $this->admin->getKey(),
+    ]);
+
+    $this->mock(BackupService::class, function ($mock) use ($backup): void {
+        $mock->shouldReceive('create')
+            ->once()
+            ->with(BackupType::Manual, $this->admin)
+            ->andReturn(new CreatedBackup($backup, 'aabbccddeeff0011.11223344556677889900aabbccddeeff'));
+        $mock->shouldReceive('temporaryDownloadUrl')
+            ->andReturn('http://127.0.0.1/backups/signed-download');
+    });
+
+    Livewire::test(ListBackups::class)
+        ->callAction('createBackup')
+        ->assertNotified('Restore token shown once');
+
+    expect($this->admin->fresh()->notifications()->count())->toBe(0);
+});
+
+test('restore token session notification is still shown when notify_backups is off', function () {
+    $this->admin->update(['notify_backups' => false]);
+
+    $token = 'aabbccddeeff0011.11223344556677889900aabbccddeeff';
+
+    app(BackupNotificationService::class)->notifyRestoreToken($token);
+
+    $payload = session('filament.notifications.0');
+
+    expect($payload['title'])->toBe('Restore token shown once')
+        ->and($payload['body'])->toContain($token);
+});
+
 test('delete backup stores database notification', function () {
     $backup = Backup::factory()->create([
         'disk' => 'local',

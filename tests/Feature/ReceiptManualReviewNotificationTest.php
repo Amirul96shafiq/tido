@@ -106,6 +106,16 @@ test('prefers primary admin when multiple users share the sender phone', functio
         ->and($duplicate->fresh()->notifications()->count())->toBe(0);
 });
 
+test('does not notify when recipient has receipt review alerts disabled', function () {
+    $user = User::factory()->create(['notify_receipt_review' => false]);
+
+    $expense = Expense::factory()->create(['status' => 'parsed']);
+
+    $expense->update(['status' => 'requires_manual_review']);
+
+    expect($user->fresh()->notifications()->count())->toBe(0);
+});
+
 test('does not notify when status changes to a non-review status', function () {
     $user = User::factory()->create();
 

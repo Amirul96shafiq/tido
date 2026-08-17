@@ -151,6 +151,17 @@ test('destination search finds profile active sessions section', function () {
         ->and($match->details)->toBe(['Page' => 'Profile']);
 });
 
+test('destination search finds profile notifications section by receipt keyword', function () {
+    $results = AdminDestinationSearch::search('receipt', GlobalSearchResults::make());
+    $sections = collect($results->getCategories()->get('Sections', []));
+
+    $match = $sections->first(fn ($result): bool => $result->title === 'Notifications');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toEndWith('#notifications')
+        ->and($match->details)->toBe(['Page' => 'Profile']);
+});
+
 test('destination search finds evolutionapi page', function () {
     $results = AdminDestinationSearch::search('Evolution API', GlobalSearchResults::make());
     $pages = collect($results->getCategories()->get('Pages', []));
