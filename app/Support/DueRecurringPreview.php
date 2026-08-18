@@ -105,6 +105,18 @@ final class DueRecurringPreview
             'goalTarget' => $goal['goalTarget'],
         ];
 
+        $item['id'] = 'preview-'.md5(implode('|', [
+            (string) $item['title'],
+            (string) $item['type'],
+            (string) $item['amount'],
+            (string) $item['cadence'],
+            (string) $item['dueOn'],
+            (string) ($item['progress'] ?? ''),
+            $item['is_shared'] ? '1' : '0',
+            (string) $item['status'],
+            (string) $item['owner_name'],
+        ]));
+
         return [
             'hasData' => true,
             'canManageRecurrings' => true,
