@@ -4,26 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Services\Ollama\OllamaSettings;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class OllamaService
 {
-    protected string $host;
-
-    protected string $model;
-
-    protected int $timeout;
-
-    protected int $contextWindow;
-
-    public function __construct()
-    {
-        $this->host = rtrim(config('services.ollama.host'), '/');
-        $this->model = config('services.ollama.model');
-        $this->timeout = (int) config('services.ollama.timeout');
-        $this->contextWindow = (int) config('services.ollama.num_ctx');
-    }
+    public function __construct(
+        private readonly OllamaSettings $settings,
+    ) {}
 
     public function parseReceipt(string $base64Image, string $prompt): ?array
     {
@@ -36,13 +25,18 @@ class OllamaService
     public function generateJson(string $prompt, ?array $images = null): ?array
     {
         try {
+            $host = $this->settings->host();
+            $model = $this->settings->model();
+            $timeout = $this->settings->timeout();
+            $contextWindow = $this->settings->numCtx();
+
             $payload = [
-                'model' => $this->model,
+                'model' => $model,
                 'prompt' => $prompt,
                 'stream' => false,
                 'format' => 'json',
                 'options' => [
-                    'num_ctx' => $this->contextWindow,
+                    'num_ctx' => $contextWindow,
                 ],
             ];
 
@@ -50,8 +44,8 @@ class OllamaService
                 $payload['images'] = $images;
             }
 
-            $response = Http::timeout($this->timeout)
-                ->post("{$this->host}/api/generate", $payload);
+            $response = Http::timeout($timeout)
+                ->post("{$host}/api/generate", $payload);
 
             if ($response->failed()) {
                 Log::error('Ollama generate JSON HTTP request failed', [
@@ -74,12 +68,12 @@ class OllamaService
 
             if (($responseBody['done_reason'] ?? null) === 'length') {
                 Log::error('Ollama hit its token limit before finishing the JSON; context window exhausted', [
-                    'model' => $this->model,
-                    'num_ctx' => $this->contextWindow,
+                    'model' => $model,
+                    'num_ctx' => $contextWindow,
                     'prompt_eval_count' => $responseBody['prompt_eval_count'] ?? null,
                     'eval_count' => $responseBody['eval_count'] ?? null,
                     'response_chars' => strlen((string) $rawText),
-                    'hint' => 'Lower services.ollama.max_image_dimension or raise services.ollama.num_ctx.',
+                    'hint' => 'Lower max_image_dimension or raise num_ctx in Ollama settings.',
                 ]);
 
                 return null;

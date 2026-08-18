@@ -40,7 +40,9 @@ test('clipboard helper falls back to execCommand outside secure contexts', funct
     expect($script)
         ->toContain('window.tidoCopyToClipboard')
         ->toContain('navigator.clipboard.writeText')
-        ->toContain("document.execCommand('copy')");
+        ->toContain("document.execCommand('copy')")
+        ->toContain('[x-trap], .fi-modal, dialog')
+        ->toContain('selectNodeContents');
 });
 
 test('clipboard helper is registered as a panel vite asset', function () {

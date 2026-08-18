@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Services\Ollama\OllamaSettings;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
@@ -11,6 +12,10 @@ use RuntimeException;
 
 final class PdfTextExtractor
 {
+    public function __construct(
+        private readonly OllamaSettings $settings,
+    ) {}
+
     public function extract(string $pdfContents): string
     {
         $temporaryDirectory = sys_get_temp_dir().DIRECTORY_SEPARATOR.'tido_pdf_text_'.Str::uuid();
@@ -27,7 +32,7 @@ final class PdfTextExtractor
                 1,
                 (int) config('services.documents.pdf_text_timeout', 15),
             ))->run([
-                (string) config('services.documents.pdftotext_binary', 'pdftotext'),
+                (string) $this->settings->pdftotextBinary(),
                 '-layout',
                 $inputPath,
                 '-',

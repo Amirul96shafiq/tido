@@ -2,6 +2,20 @@
 
 Run Ollama on the Windows host so tido can parse receipt images and rendered PDF pages with a local vision model. This matches the host pattern used for Evolution ([evolution-local-windows.md](evolution-local-windows.md)).
 
+## Primary setup path (Filament wizard)
+
+1. Install [Ollama for Windows](https://ollama.com/download) on the same PC as tido.
+2. Open Filament → **Integrations → Ollama** → **Configure**.
+3. tido auto-detects Ollama. If no models are installed, run `ollama pull qwen2.5vl:7b` in a terminal, then **I've pulled — Recheck**. Pick the active model, auto-detect Poppler paths, run a test extraction, and **Save settings**.
+
+Saved settings live in the `ollama_settings` database table. `.env` values remain fallbacks for fresh installs, CI, and sandbox.
+
+No API key is required for a standard local Ollama install on port `11434`.
+
+The Ollama install and model pull commands below match the wizard.
+
+---
+
 ## Architecture (local)
 
 | Process | How it runs | Role |
@@ -26,7 +40,7 @@ No Docker or NVIDIA Container Toolkit required.
 
 ---
 
-## Step 1: Install Ollama
+## CLI fallback: Install Ollama
 
 1. Download and install from [https://ollama.com/download](https://ollama.com/download).
 2. Accept the default so Ollama starts as a Windows service and listens on port **11434**.
@@ -42,7 +56,7 @@ Optional: start Ollama via `npm run dev:ollama` if the service is not already ru
 
 ---
 
-## Step 2: Pull the vision model
+## Pull the vision model
 
 tido defaults to **`qwen2.5vl:7b`** for receipt OCR on an RTX 4060 (8 GB) or similar.
 
@@ -58,7 +72,7 @@ curl http://127.0.0.1:11434/api/tags
 
 ---
 
-## Step 3: Point tido at localhost
+## CLI fallback: Point tido at localhost (.env)
 
 In `.env` (see also `.env.example`):
 
@@ -76,7 +90,7 @@ After changing env values, restart `npm run dev:full` (or clear config cache if 
 
 WhatsApp PDF receipts are stored as the original PDF and rendered page-by-page before Ollama extraction. The queue worker uses Poppler’s `pdfinfo` to inspect the page count, `pdftotext` to read embedded currency evidence when available, and `pdftocairo` to render JPEG pages. Multi-page results are extracted as page-level JSON and merged before the normal expense normalization step.
 
-Install a Windows Poppler distribution that includes the executables, then set absolute paths in `.env`:
+Install a Windows Poppler distribution that includes the executables ([prebuilt Windows binaries](https://github.com/oschwartz10612/poppler-windows/releases/latest)), then set absolute paths in `.env` or in Filament → **Integrations → Ollama → Configure**:
 
 ```env
 PDF_MAX_BYTES=10485760

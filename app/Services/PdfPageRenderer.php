@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Services\Ollama\OllamaSettings;
 use Illuminate\Contracts\Process\ProcessResult;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
@@ -14,6 +15,7 @@ final class PdfPageRenderer
 {
     public function __construct(
         private readonly PdfPageInspector $pdfPageInspector,
+        private readonly OllamaSettings $settings,
     ) {}
 
     /**
@@ -44,7 +46,7 @@ final class PdfPageRenderer
                 $inputPath,
                 $outputPrefix,
             ];
-            $rendererBinary = $this->configuredBinary('pdftocairo_binary', 'pdftocairo');
+            $rendererBinary = $this->configuredPdftocairoBinary();
             $result = $this->runRenderer($rendererBinary, $renderArguments);
 
             if (
@@ -92,6 +94,15 @@ final class PdfPageRenderer
             1,
             (int) config('services.documents.pdf_render_timeout', 60),
         ))->run([$binary, ...$arguments]);
+    }
+
+    private function configuredPdftocairoBinary(): string
+    {
+        $configured = trim($this->settings->pdftocairoBinary());
+
+        return $configured === '' || str_contains($configured, '<poppler-install-folder>')
+            ? 'pdftocairo'
+            : $configured;
     }
 
     private function configuredBinary(string $key, string $default): string

@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 uses(RefreshDatabase::class);
 
 test('ollama service clean and decode json parses clean and fenced markdown', function () {
-    $service = new OllamaService;
+    $service = app(OllamaService::class);
 
     $json = '{"merchant_name": "McDonalds", "total_amount": 10.60}';
     expect($service->cleanAndDecodeJson($json))->toBe([
@@ -38,7 +38,7 @@ test('ollama vision requests reserve enough context for long receipt responses',
         '*/api/generate' => Http::response(['response' => '{}']),
     ]);
 
-    (new OllamaService)->parseReceipt('base64-image', 'receipt prompt');
+    app(OllamaService::class)->parseReceipt('base64-image', 'receipt prompt');
 
     Http::assertSent(function (Request $request): bool {
         return $request->data()['options']['num_ctx'] === 8192;

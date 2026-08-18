@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Services\Ollama\OllamaSettings;
+
 class ReceiptImagePreparer
 {
+    public function __construct(
+        private readonly OllamaSettings $settings,
+    ) {}
+
     /**
      * Encode a receipt image for the Ollama vision prompt, downscaling oversized uploads first.
      *
@@ -15,7 +21,7 @@ class ReceiptImagePreparer
      */
     public function toBase64(string $imageContents): string
     {
-        $maxDimension = (int) config('services.ollama.max_image_dimension');
+        $maxDimension = $this->settings->maxImageDimension();
 
         if ($maxDimension <= 0) {
             return base64_encode($imageContents);
