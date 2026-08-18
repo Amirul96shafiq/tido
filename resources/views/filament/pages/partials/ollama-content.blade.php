@@ -269,7 +269,7 @@
                 @endif
             </p>
         @else
-            <div class="flex flex-col gap-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 @foreach ($this->availableModels as $model)
                     <div
                         class="flex flex-col gap-3 rounded-xl border border-gray-200 px-4 py-4 dark:border-white/10"
