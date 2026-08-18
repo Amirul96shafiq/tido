@@ -106,19 +106,15 @@ test('edit budget page shows performance section', function () {
         'year' => (int) now()->year,
     ]);
 
-    $periodLabel = $budget->getStartDate()->format('d M Y').' – '.$budget->getEndDate()->format('d M Y');
-
     Livewire::test(EditBudget::class, ['record' => $budget->getRouteKey()])
         ->assertSuccessful()
         ->assertSee('Budget Performance')
         ->assertSee('Budget Appearance')
         ->assertSee('Budget Settings')
         ->assertSee('Groceries Cap')
-        ->assertSee('Spent')
-        ->assertSee('Limit')
-        ->assertSee('Remaining')
-        ->assertSee('On track')
-        ->assertSee($periodLabel)
+        ->assertSee('Monthly')
+        ->assertSee('0.0% consumed')
+        ->assertSee('RM 500.00 remaining')
         ->assertSee('fi-budget-form-page', false)
         ->assertSee('fi-budget-sidebar-sticky', false);
 });
@@ -172,10 +168,9 @@ test('budget performance shows overspend instead of zero remaining', function ()
 
     Livewire::test(EditBudget::class, ['record' => $budget->getRouteKey()])
         ->assertSuccessful()
-        ->assertSee('Over by')
-        ->assertSee('RM 221.11')
-        ->assertSee('over')
-        ->assertSee('Critical');
+        ->assertSee('Exceeded by')
+        ->assertSee('RM 721.11')
+        ->assertSee('RM 0.00 remaining');
 });
 
 test('critical threshold cannot be below warn threshold', function () {

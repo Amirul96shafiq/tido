@@ -266,14 +266,18 @@ class BudgetForm
     /**
      * @return array{
      *     hasData: bool,
-     *     periodLabel: ?string,
-     *     status: string,
-     *     statusColor: string,
-     *     spent: float,
-     *     amount: float,
-     *     remaining: float,
-     *     percentage: float,
-     *     rawPercentage: float
+     *     budget?: array{
+     *         name: string,
+     *         icon: string,
+     *         color: string,
+     *         amount: float,
+     *         spent: float,
+     *         percentage: float,
+     *         raw_percentage: float,
+     *         period: string,
+     *         is_shared: bool,
+     *         status_color: string
+     *     }
      * }
      */
     private static function performanceViewData(?Budget $record, ?Get $get = null): array
@@ -281,16 +285,10 @@ class BudgetForm
         if (! $record instanceof Budget) {
             return [
                 'hasData' => false,
-                'periodLabel' => null,
-                'status' => 'On track',
-                'statusColor' => 'emerald',
-                'spent' => 0.0,
-                'amount' => 0.0,
-                'remaining' => 0.0,
-                'percentage' => 0.0,
-                'rawPercentage' => 0.0,
             ];
         }
+
+        $record->loadMissing('label');
 
         $spent = $record->spentInPeriod();
         $recordAmount = (float) $record->amount;
@@ -299,7 +297,6 @@ class BudgetForm
             ? (float) $formAmountRaw
             : $recordAmount;
         $rawPercentage = $amount > 0 ? ($spent / $amount) * 100 : 0.0;
-        $remaining = $amount - $spent;
 
         $alertThreshold = (float) ($get !== null
             ? ($get('alert_threshold') ?? $record->alert_threshold)
@@ -314,23 +311,50 @@ class BudgetForm
             default => 'emerald',
         };
 
-        $status = match ($statusColor) {
-            'red' => 'Critical',
-            'amber' => 'Warning',
-            default => 'On track',
-        };
+        $labelId = $get !== null ? ($get('label_id') ?? $record->label_id) : $record->label_id;
+        $period = $get !== null ? ($get('period') ?? $record->period) : $record->period;
 
         return [
             'hasData' => true,
-            'periodLabel' => $record->getStartDate()->format('d M Y').' – '.$record->getEndDate()->format('d M Y'),
-            'status' => $status,
-            'statusColor' => $statusColor,
-            'spent' => $spent,
-            'amount' => $amount,
-            'remaining' => $remaining,
-            'percentage' => min(100, $rawPercentage),
-            'rawPercentage' => $rawPercentage,
+            'budget' => [
+                'name' => self::previewDisplayTitle($record, $get),
+                'icon' => self::previewDisplayIcon($record, $get),
+                'color' => self::previewColor($labelId),
+                'amount' => $amount,
+                'spent' => $spent,
+                'percentage' => min(100, $rawPercentage),
+                'raw_percentage' => $rawPercentage,
+                'period' => ucfirst((string) $period),
+                'is_shared' => (bool) ($get !== null ? ($get('is_shared') ?? $record->is_shared) : $record->is_shared),
+                'status_color' => $statusColor,
+            ],
         ];
+    }
+
+    private static function previewDisplayTitle(Budget $record, ?Get $get): string
+    {
+        $title = $get !== null ? $get('title') : $record->title;
+
+        if (filled($title)) {
+            return (string) $title;
+        }
+
+        $labelId = $get !== null ? ($get('label_id') ?? $record->label_id) : $record->label_id;
+
+        return self::previewLabelName($labelId) ?? 'Overall Budget';
+    }
+
+    private static function previewDisplayIcon(Budget $record, ?Get $get): string
+    {
+        $icon = $get !== null ? $get('icon') : $record->icon;
+
+        if (filled($icon)) {
+            return (string) $icon;
+        }
+
+        $labelId = $get !== null ? ($get('label_id') ?? $record->label_id) : $record->label_id;
+
+        return self::previewLabelIcon($labelId) ?? 'heroicon-o-banknotes';
     }
 
     private static function syncAppearanceFromLabel(mixed $labelId, Get $get, Set $set): void
