@@ -63,14 +63,15 @@ class BudgetForm
                     ])
                     ->extraAttributes(['class' => 'fi-budget-main-column'])
                     ->schema([
-
                         Section::make('Budget Performance')
                             ->id('budget-performance')
                             ->visible(fn (string $operation): bool => $operation === 'edit')
+                            ->extraAttributes(['class' => 'fi-budget-performance-section'])
                             ->schema([
                                 View::make('filament.forms.components.budget-performance')
                                     ->viewData(fn (?Budget $record, Get $get): array => self::performanceViewData($record, $get)),
                             ]),
+
                         Section::make('Limit & Period')
                             ->id('limit-period')
                             ->schema([

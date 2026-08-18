@@ -85,6 +85,16 @@ test('budget edit page renders performance section before limit and period', fun
         ->and($performancePos)->toBeLessThan($limitPeriodPos);
 });
 
+test('budget edit page renders performance section before appearance on small screens', function () {
+    $budget = Budget::factory()->create();
+
+    $html = (string) Livewire::test(EditBudget::class, ['record' => $budget->getRouteKey()])->html();
+
+    expect($html)
+        ->toContain('fi-budget-performance-section')
+        ->and(strpos($html, 'id="budget-performance"'))->toBeLessThan(strpos($html, 'id="budget-appearance"'));
+});
+
 test('budget section nav smooth scrolls on tab click', function () {
     Livewire::test(CreateBudget::class)
         ->assertSuccessful()

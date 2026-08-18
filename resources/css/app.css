@@ -3101,14 +3101,38 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
         order: 2;
     }
 
-    .fi-budget-form-page
-        .fi-sc-form
-        .fi-grid-col:has(.fi-budget-sidebar-sticky) {
-        order: 1;
+    /*
+     * Budget edit: lift Performance above Appearance on small screens only.
+     * display:contents keeps the lg two-column layout (main left, sidebar right).
+     */
+    .fi-budget-form-page .fi-sc-form > .fi-grid:has(.fi-budget-main-column) {
+        display: flex;
+        flex-direction: column;
     }
 
     .fi-budget-form-page .fi-sc-form .fi-grid-col:has(.fi-budget-main-column) {
+        display: contents;
+    }
+
+    .fi-budget-form-page .fi-sc-form .fi-budget-main-column {
+        display: contents;
+    }
+
+    .fi-budget-form-page .fi-sc-form #budget-performance {
+        order: 1;
+    }
+
+    .fi-budget-form-page
+        .fi-sc-form
+        .fi-grid-col:has(.fi-budget-sidebar-sticky) {
         order: 2;
+    }
+
+    .fi-budget-form-page
+        .fi-sc-form
+        .fi-budget-main-column
+        .fi-sc-section:not(#budget-performance) {
+        order: 3;
     }
 
     .fi-recurring-form-page
