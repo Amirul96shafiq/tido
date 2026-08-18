@@ -24,7 +24,8 @@ test('profile form labels full name and display name fields', function () {
             'name',
             checkComponentUsing: function (TextInput $component): bool {
                 expect($component->getLabel())->toBe('Full Name')
-                    ->and($component->getPlaceholder())->toBe('Full name');
+                    ->and($component->getPlaceholder())->toBe('Full name')
+                    ->and($component->isAutofocused())->toBeFalse();
 
                 return true;
             },

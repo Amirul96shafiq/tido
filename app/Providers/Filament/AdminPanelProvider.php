@@ -116,6 +116,10 @@ class AdminPanelProvider extends PanelProvider
                     Vite::asset('resources/js/date-picker-month-select.js'),
                 )->module(),
                 Js::make(
+                    'disable-select-search-autofocus',
+                    Vite::asset('resources/js/disable-select-search-autofocus.js'),
+                )->module(),
+                Js::make(
                     'clipboard-copy',
                     Vite::asset('resources/js/clipboard-copy.js'),
                 )->module(),

@@ -194,7 +194,8 @@ class EditProfile extends BaseEditProfile implements HasTable
     {
         $component = parent::getNameFormComponent()
             ->label('Full Name')
-            ->placeholder('Full name');
+            ->placeholder('Full name')
+            ->autofocus(false);
 
         if ($component instanceof TextInput) {
             return FieldCharacterLimits::applyTextInput($component, FieldCharacterLimits::USER_NAME);

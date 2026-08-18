@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Auth\ResetPassword;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
@@ -45,6 +46,30 @@ test('login page shows mode tabs and info toast', function () {
 test('reset password page shows description below heading', function () {
     Livewire::test(ResetPassword::class)
         ->assertSee('Set a new password for the account.');
+});
+
+test('forgot password email field is not autofocused', function () {
+    Livewire::test(RequestPasswordReset::class)
+        ->assertSchemaComponentExists(
+            'email',
+            checkComponentUsing: function (TextInput $component): bool {
+                expect($component->isAutofocused())->toBeFalse();
+
+                return true;
+            },
+        );
+});
+
+test('reset password email field is not autofocused', function () {
+    Livewire::test(ResetPassword::class)
+        ->assertSchemaComponentExists(
+            'email',
+            checkComponentUsing: function (TextInput $component): bool {
+                expect($component->isAutofocused())->toBeFalse();
+
+                return true;
+            },
+        );
 });
 
 test('guest auth pages show auth menu with theme switcher and changelogs', function (string $url) {
