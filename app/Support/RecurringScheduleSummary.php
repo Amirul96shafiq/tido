@@ -120,7 +120,7 @@ final class RecurringScheduleSummary
         return 'Next due: '.$preview->format('j M Y');
     }
 
-    private static function previewNextDueOn(Get $get): ?Carbon
+    public static function previewNextDueOn(Get $get): ?Carbon
     {
         $preset = (string) ($get('cadence_preset') ?? 'monthly');
 

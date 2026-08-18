@@ -46,6 +46,7 @@ test('recurring section nav has stable destinations', function () {
         ->assertSuccessful()
         ->assertSee('Summary')
         ->assertSee('Ownership')
+        ->assertSee('Recurring Payment Due Preview')
         ->assertSee('Details')
         ->assertSee('Schedule')
         ->assertSee('Expense matching')
@@ -53,6 +54,7 @@ test('recurring section nav has stable destinations', function () {
         ->assertSee('Notes')
         ->assertSee('#recurring-summary', false)
         ->assertSee('#recurring-ownership', false)
+        ->assertSee('#recurring-due-preview', false)
         ->assertSee('#recurring-details', false)
         ->assertSee('#recurring-schedule', false)
         ->assertSee('#recurring-matching', false)
@@ -67,6 +69,7 @@ test('recurring section nav items match sectionNavItems helper', function () {
     expect(RecurringForm::sectionNavItems())->toBe([
         ['label' => 'Summary', 'id' => 'recurring-summary'],
         ['label' => 'Ownership', 'id' => 'recurring-ownership'],
+        ['label' => 'Recurring Payment Due Preview', 'id' => 'recurring-due-preview'],
         ['label' => 'Details', 'id' => 'recurring-details'],
         ['label' => 'Schedule', 'id' => 'recurring-schedule'],
         ['label' => 'Expense matching', 'id' => 'recurring-matching'],
@@ -87,4 +90,23 @@ test('recurring notes uses hidden label rich editor', function () {
     Livewire::test(CreateRecurring::class)
         ->assertSuccessful()
         ->assertSee('fi-notes-rich-editor', false);
+});
+
+test('recurring edit page renders due preview section before details', function () {
+    $recurring = Recurring::factory()->create();
+
+    $html = (string) Livewire::test(EditRecurring::class, ['record' => $recurring->getRouteKey()])->html();
+
+    $previewPos = strpos($html, 'id="recurring-due-preview"');
+    $detailsPos = strpos($html, 'id="recurring-details"');
+
+    expect($previewPos)->not->toBeFalse()
+        ->and($detailsPos)->not->toBeFalse()
+        ->and($previewPos)->toBeLessThan($detailsPos);
+});
+
+test('recurring create page renders due preview section class', function () {
+    Livewire::test(CreateRecurring::class)
+        ->assertSuccessful()
+        ->assertSee('fi-recurring-due-preview-section', false);
 });
