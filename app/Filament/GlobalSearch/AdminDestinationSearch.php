@@ -7,6 +7,7 @@ namespace App\Filament\GlobalSearch;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\EvolutionApiPage;
+use App\Filament\Pages\OllamaPage;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Pages\ServiceStatusPage;
 use App\Filament\Resources\Backups\BackupResource;
@@ -34,6 +35,7 @@ final class AdminDestinationSearch
         $profileUrl = EditProfile::getUrl();
         $dashboardUrl = Dashboard::getUrl();
         $evolutionUrl = EvolutionApiPage::getUrl();
+        $ollamaUrl = OllamaPage::getUrl();
         $serviceStatusUrl = ServiceStatusPage::getUrl();
         $uploadUrl = ReceiptUploadPage::getUrl();
 
@@ -198,6 +200,12 @@ final class AdminDestinationSearch
                 'url' => BackupResource::getUrl('index'),
             ],
             [
+                'title' => 'Ollama',
+                'keywords' => ['ollama', 'ai', 'model', 'ocr', 'vision', 'integration', 'llm'],
+                'group' => 'Pages',
+                'url' => $ollamaUrl,
+            ],
+            [
                 'title' => 'Evolution API',
                 'keywords' => ['evolution', 'evolutionapi', 'whatsapp', 'integration', 'qr', 'webhook'],
                 'group' => 'Pages',
@@ -300,6 +308,20 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Evolution API'],
             ],
             [
+                'title' => 'Ollama Status',
+                'keywords' => ['ollama', 'status', 'connection', 'latency', 'ai', 'model', 'integration'],
+                'group' => 'Sections',
+                'url' => $ollamaUrl.'#ollama-status',
+                'details' => ['Page' => 'Ollama'],
+            ],
+            [
+                'title' => 'Ollama Models',
+                'keywords' => ['ollama', 'models', 'installed', 'ai', 'vision', 'llm', 'integration'],
+                'group' => 'Sections',
+                'url' => $ollamaUrl.'#ollama-models',
+                'details' => ['Page' => 'Ollama'],
+            ],
+            [
                 'title' => 'Summary report',
                 'keywords' => ['summary', 'report', 'health', 'status', 'service'],
                 'group' => 'Sections',
@@ -335,6 +357,9 @@ final class AdminDestinationSearch
                 'Labels',
                 'Payment Methods',
                 'Backups',
+                'Ollama',
+                'Ollama Status',
+                'Ollama Models',
                 'Evolution API',
                 'Service Status',
                 'Danger Zone',
