@@ -309,7 +309,7 @@ final class AdminDestinationSearch
             ],
             [
                 'title' => 'Ollama Status',
-                'keywords' => ['ollama', 'status', 'connection', 'latency', 'ai', 'model', 'integration'],
+                'keywords' => ['ollama', 'status', 'connection', 'latency', 'ai', 'model', 'integration', 'configure', 'defaults'],
                 'group' => 'Sections',
                 'url' => $ollamaUrl.'#ollama-status',
                 'details' => ['Page' => 'Ollama'],
@@ -372,6 +372,7 @@ final class AdminDestinationSearch
                 'Payment Methods',
                 'Backups',
                 'Ollama',
+                'Ollama Setup',
                 'Ollama Status',
                 'Ollama Pipeline',
                 'Ollama Activity',

@@ -131,6 +131,11 @@
 
                                     <div class="fi-ollama-config-details-list divide-y divide-gray-200 text-left text-sm dark:divide-white/10">
                                         <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                                            <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Source</dt>
+                                            <dd class="text-gray-950 dark:text-white">{{ $this->settingsSourceLabel() }}</dd>
+                                        </div>
+
+                                        <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
                                             <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Host</dt>
                                             <dd class="break-all font-mono text-gray-950 dark:text-white">{{ $this->host }}</dd>
                                         </div>
@@ -265,7 +270,7 @@
                 @if ($this->connectionStatus === 'down' || $this->connectionStatus === 'unknown')
                     Model list unavailable — Ollama is not reachable.
                 @else
-                    No models are installed. Run <code class="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs dark:bg-slate-700">ollama pull &lt;model&gt;</code> to install one.
+                    No models are installed. Run <code class="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs dark:bg-slate-700">{{ \App\Services\Ollama\OllamaSettings::recommendedPullCommand() }}</code> in a terminal, then refresh.
                 @endif
             </p>
         @else

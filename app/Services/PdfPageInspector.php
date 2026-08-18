@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Services\Ollama\OllamaSettings;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use RuntimeException;
 
 final class PdfPageInspector
 {
+    public function __construct(
+        private readonly OllamaSettings $settings,
+    ) {}
+
     public function pageCount(string $pdfContents): int
     {
         $temporaryPath = tempnam(sys_get_temp_dir(), 'tido_pdf_');
@@ -35,7 +40,7 @@ final class PdfPageInspector
             1,
             (int) config('services.documents.pdf_inspection_timeout', 15),
         ))->run([
-            (string) config('services.documents.pdfinfo_binary', 'pdfinfo'),
+            (string) $this->settings->pdfinfoBinary(),
             $pdfPath,
         ]);
 

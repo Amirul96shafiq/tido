@@ -8,11 +8,16 @@ use App\Enums\MonitoredService;
 use App\Enums\ServiceHealthStatus;
 use App\Services\Health\ServiceHealthProbe;
 use App\Services\Health\ServiceHealthResult;
+use App\Services\Ollama\OllamaSettings;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
 class OllamaProbe implements ServiceHealthProbe
 {
+    public function __construct(
+        private readonly OllamaSettings $settings,
+    ) {}
+
     public function service(): MonitoredService
     {
         return MonitoredService::Ollama;
@@ -20,7 +25,7 @@ class OllamaProbe implements ServiceHealthProbe
 
     public function probe(): ServiceHealthResult
     {
-        $host = rtrim((string) config('services.ollama.host'), '/');
+        $host = $this->settings->host();
         $startedAt = microtime(true);
 
         try {
