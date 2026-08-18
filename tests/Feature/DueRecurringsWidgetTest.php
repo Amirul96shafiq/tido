@@ -238,24 +238,58 @@ test('family member sees current-month upcoming occurrences', function () {
         ->assertSee('RM 338.55');
 });
 
-test('due widget hides upcoming occurrences from future months', function () {
+test('due widget hides upcoming occurrences from future months when the recurring already has a current-month row', function () {
     $this->actingAs(User::factory()->create([
         'household_role' => HouseholdRole::Primary,
     ]));
 
     $recurring = Recurring::factory()->create(['title' => 'Next Month Bill']);
+    $nextMonthDueOn = now()->copy()->addMonthNoOverflow()->startOfMonth()->addDays(10);
 
     RecurringOccurrence::factory()->create([
         'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+        'expected_amount' => 99.00,
+    ]);
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
         'status' => RecurringOccurrenceStatus::Upcoming,
-        'due_on' => now()->copy()->addMonthNoOverflow()->startOfMonth()->addDays(10)->toDateString(),
+        'due_on' => $nextMonthDueOn->toDateString(),
+        'period_start' => $nextMonthDueOn->toDateString(),
+        'period_end' => $nextMonthDueOn->copy()->endOfMonth()->toDateString(),
         'expected_amount' => 99.00,
     ]);
 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
-        ->assertSee('0 Recurring Payment Dues')
-        ->assertDontSee('Next Month Bill');
+        ->assertSee('1 Recurring Payment Due')
+        ->assertSee('Next Month Bill')
+        ->assertSee('Due '.now()->format('d M Y'))
+        ->assertDontSee('Upcoming · '.$nextMonthDueOn->format('d M Y'));
+});
+
+test('due widget shows the next upcoming occurrence when a recurring has no current-month row', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $recurring = Recurring::factory()->create(['title' => 'Sample Shared Due Payment 01']);
+    $nextMonthDueOn = now()->copy()->addMonthNoOverflow()->startOfMonth()->addDays(4);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Upcoming,
+        'due_on' => $nextMonthDueOn->toDateString(),
+        'expected_amount' => 1.00,
+    ]);
+
+    Livewire::test(DueRecurrings::class)
+        ->assertOk()
+        ->assertSee('1 Recurring Payment Due')
+        ->assertSee('Sample Shared Due Payment 01')
+        ->assertSee('Upcoming · '.$nextMonthDueOn->format('d M Y'))
+        ->assertSee('RM 1.00');
 });
 
 test('due recurrings widget sorts after overview currency and before month snapshot', function () {
