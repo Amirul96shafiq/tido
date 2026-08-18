@@ -201,5 +201,6 @@ test('family member cannot access ollama page', function (): void {
 
 test('ollama page is in integrations navigation group', function (): void {
     expect(OllamaPage::getNavigationGroup())->toBe('Integrations')
-        ->and(OllamaPage::getNavigationSort())->toBe(10);
+        ->and(OllamaPage::getNavigationSort())->toBe(10)
+        ->and(OllamaPage::getNavigationIcon())->toBe('icon-ollama');
 });

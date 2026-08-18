@@ -25,7 +25,7 @@ class OllamaPage extends Page
 
     protected static ?string $slug = 'ollama';
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedCpuChip;
+    protected static string|\BackedEnum|null $navigationIcon = 'icon-ollama';
 
     protected static ?string $navigationLabel = 'Ollama';
 
