@@ -64,12 +64,25 @@ test('budget section nav items match sectionNavItems helper', function () {
         ['label' => 'Budget Notes', 'id' => 'budget-notes'],
     ])->and(BudgetForm::sectionNavItems(includePerformance: true))->toBe([
         ['label' => 'Budget Appearance', 'id' => 'budget-appearance'],
+        ['label' => 'Budget Performance', 'id' => 'budget-performance'],
         ['label' => 'Limit & Period', 'id' => 'limit-period'],
         ['label' => 'Budget Settings', 'id' => 'budget-settings'],
         ['label' => 'Alert Settings', 'id' => 'alert-settings'],
         ['label' => 'Budget Notes', 'id' => 'budget-notes'],
-        ['label' => 'Budget Performance', 'id' => 'budget-performance'],
     ]);
+});
+
+test('budget edit page renders performance section before limit and period', function () {
+    $budget = Budget::factory()->create();
+
+    $html = (string) Livewire::test(EditBudget::class, ['record' => $budget->getRouteKey()])->html();
+
+    $performancePos = strpos($html, 'id="budget-performance"');
+    $limitPeriodPos = strpos($html, 'id="limit-period"');
+
+    expect($performancePos)->not->toBeFalse()
+        ->and($limitPeriodPos)->not->toBeFalse()
+        ->and($performancePos)->toBeLessThan($limitPeriodPos);
 });
 
 test('budget section nav smooth scrolls on tab click', function () {

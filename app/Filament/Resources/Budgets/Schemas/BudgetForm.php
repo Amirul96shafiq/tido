@@ -35,17 +35,19 @@ class BudgetForm
     {
         $items = [
             ['label' => 'Budget Appearance', 'id' => 'budget-appearance'],
-            ['label' => 'Limit & Period', 'id' => 'limit-period'],
-            ['label' => 'Budget Settings', 'id' => 'budget-settings'],
-            ['label' => 'Alert Settings', 'id' => 'alert-settings'],
-            ['label' => 'Budget Notes', 'id' => 'budget-notes'],
         ];
 
         if ($includePerformance) {
             $items[] = ['label' => 'Budget Performance', 'id' => 'budget-performance'];
         }
 
-        return $items;
+        return [
+            ...$items,
+            ['label' => 'Limit & Period', 'id' => 'limit-period'],
+            ['label' => 'Budget Settings', 'id' => 'budget-settings'],
+            ['label' => 'Alert Settings', 'id' => 'alert-settings'],
+            ['label' => 'Budget Notes', 'id' => 'budget-notes'],
+        ];
     }
 
     public static function configure(Schema $schema): Schema
@@ -61,6 +63,14 @@ class BudgetForm
                     ])
                     ->extraAttributes(['class' => 'fi-budget-main-column'])
                     ->schema([
+
+                        Section::make('Budget Performance')
+                            ->id('budget-performance')
+                            ->visible(fn (string $operation): bool => $operation === 'edit')
+                            ->schema([
+                                View::make('filament.forms.components.budget-performance')
+                                    ->viewData(fn (?Budget $record, Get $get): array => self::performanceViewData($record, $get)),
+                            ]),
                         Section::make('Limit & Period')
                             ->id('limit-period')
                             ->schema([
@@ -210,14 +220,6 @@ class BudgetForm
                                     ->label('Budget Notes')
                                     ->hiddenLabel()
                                     ->columnSpanFull(),
-                            ]),
-
-                        Section::make('Budget Performance')
-                            ->id('budget-performance')
-                            ->visible(fn (string $operation): bool => $operation === 'edit')
-                            ->schema([
-                                View::make('filament.forms.components.budget-performance')
-                                    ->viewData(fn (?Budget $record, Get $get): array => self::performanceViewData($record, $get)),
                             ]),
                     ]),
 
