@@ -11,6 +11,7 @@ use App\Filament\Forms\Components\NotesRichEditor;
 use App\Helpers\MoneyDisplay;
 use App\Models\FamilyMember;
 use App\Models\Recurring;
+use App\Support\DueRecurringPreview;
 use App\Support\FieldCharacterLimits;
 use App\Support\HouseholdAccess;
 use App\Support\PhoneNumber;
@@ -42,6 +43,7 @@ class RecurringForm
         return [
             ['label' => 'Summary', 'id' => 'recurring-summary'],
             ['label' => 'Ownership', 'id' => 'recurring-ownership'],
+            ['label' => 'Recurring Payment Due Preview', 'id' => 'recurring-due-preview'],
             ['label' => 'Details', 'id' => 'recurring-details'],
             ['label' => 'Schedule', 'id' => 'recurring-schedule'],
             ['label' => 'Expense matching', 'id' => 'recurring-matching'],
@@ -63,6 +65,18 @@ class RecurringForm
                     ])
                     ->extraAttributes(['class' => 'fi-recurring-main-column'])
                     ->schema([
+                        Section::make('Recurring Payment Due Preview')
+                            ->id('recurring-due-preview')
+                            ->extraAttributes(['class' => 'fi-recurring-due-preview-section'])
+                            ->schema([
+                                View::make('filament.forms.components.due-recurring-preview')
+                                    ->viewData(fn (?Recurring $record, Get $get, string $operation): array => DueRecurringPreview::forForm(
+                                        $record,
+                                        $get,
+                                        $operation,
+                                    )),
+                            ]),
+
                         Section::make('Recurring Details')
                             ->id('recurring-details')
                             ->schema([
@@ -385,6 +399,7 @@ class RecurringForm
                     ->extraAttributes(['class' => 'fi-recurring-sidebar-sticky'])
                     ->schema([
                         Section::make('Recurring Summary')
+                            ->id('recurring-summary')
                             ->schema([
                                 View::make('filament.forms.components.recurring-summary')
                                     ->viewData(fn (?Recurring $record, Get $get, string $operation): array => RecurringScheduleSummary::forForm(
@@ -395,6 +410,7 @@ class RecurringForm
                             ]),
 
                         Section::make('Recurring Ownership')
+                            ->id('recurring-ownership')
                             ->schema([
                                 Radio::make('responsibility')
                                     ->hiddenLabel()

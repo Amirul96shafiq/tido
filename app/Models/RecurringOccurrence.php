@@ -97,6 +97,52 @@ class RecurringOccurrence extends Model
                             ->whereDate('due_on', '>=', $monthStart->toDateString())
                             ->whereDate('due_on', '<=', $monthEnd->toDateString());
                     })
+                    ->orWhere(function (Builder $orphanUpcoming) use ($monthStart, $monthEnd): void {
+                        $orphanUpcoming
+                            ->where('status', RecurringOccurrenceStatus::Upcoming)
+                            ->whereDate('due_on', '>', $monthEnd->toDateString())
+                            ->where(
+                                'due_on',
+                                '=',
+                                static function ($nextOpen) use ($monthEnd): void {
+                                    $nextOpen
+                                        ->from('recurring_occurrences as next_open')
+                                        ->selectRaw('min(next_open.due_on)')
+                                        ->whereColumn('next_open.recurring_id', 'recurring_occurrences.recurring_id')
+                                        ->where('next_open.status', RecurringOccurrenceStatus::Upcoming->value)
+                                        ->whereDate('next_open.due_on', '>', $monthEnd->toDateString());
+                                },
+                            )
+                            ->whereNotExists(function ($exists) use ($monthStart, $monthEnd): void {
+                                $exists
+                                    ->selectRaw('1')
+                                    ->from('recurring_occurrences as month_siblings')
+                                    ->whereColumn('month_siblings.recurring_id', 'recurring_occurrences.recurring_id')
+                                    ->where(function ($visible) use ($monthStart, $monthEnd): void {
+                                        $visible
+                                            ->whereIn('month_siblings.status', [
+                                                RecurringOccurrenceStatus::Due->value,
+                                                RecurringOccurrenceStatus::Overdue->value,
+                                            ])
+                                            ->orWhere(function ($upcoming) use ($monthStart, $monthEnd): void {
+                                                $upcoming
+                                                    ->where('month_siblings.status', RecurringOccurrenceStatus::Upcoming->value)
+                                                    ->whereDate('month_siblings.due_on', '>=', $monthStart->toDateString())
+                                                    ->whereDate('month_siblings.due_on', '<=', $monthEnd->toDateString());
+                                            })
+                                            ->orWhere(function ($completed) use ($monthStart): void {
+                                                $completed
+                                                    ->where('month_siblings.status', RecurringOccurrenceStatus::Completed->value)
+                                                    ->where('month_siblings.updated_at', '>=', $monthStart);
+                                            })
+                                            ->orWhere(function ($skipped) use ($monthStart): void {
+                                                $skipped
+                                                    ->where('month_siblings.status', RecurringOccurrenceStatus::Skipped->value)
+                                                    ->where('month_siblings.updated_at', '>=', $monthStart);
+                                            });
+                                    });
+                            });
+                    })
                     ->orWhere(function (Builder $completed) use ($monthStart): void {
                         $completed
                             ->where('status', RecurringOccurrenceStatus::Completed)
@@ -113,5 +159,19 @@ class RecurringOccurrence extends Model
     public function isOpen(): bool
     {
         return $this->status->isOpen();
+    }
+
+    public function resolvedExpectedAmount(): mixed
+    {
+        $this->loadMissing('recurring');
+
+        $snapshot = $this->expected_amount;
+        $template = $this->recurring?->expected_amount;
+
+        if ($template !== null && ($snapshot === null || (float) $snapshot === 0.0)) {
+            return $template;
+        }
+
+        return $snapshot;
     }
 }

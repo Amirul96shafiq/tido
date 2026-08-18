@@ -4,25 +4,21 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
-use App\Enums\HouseholdRole;
-use App\Enums\RecurringFrequency;
 use App\Enums\RecurringOccurrenceStatus;
 use App\Filament\Concerns\RefreshesOnExpenseBroadcast;
 use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
-use App\Helpers\MoneyDisplay;
 use App\Models\Expense;
-use App\Models\FamilyMember;
 use App\Models\Recurring;
 use App\Models\RecurringOccurrence;
 use App\Models\User;
 use App\Services\RecurringMatchService;
+use App\Support\DueRecurringPreview;
 use App\Support\HouseholdAccess;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
-use Filament\AvatarProviders\UiAvatarsProvider;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
@@ -192,7 +188,7 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
     {
         $user = Auth::user();
         $isPrimary = HouseholdAccess::isPrimary();
-        $primaryUser = $this->resolvePrimaryUser();
+        $primaryUser = DueRecurringPreview::primaryUser();
         $query = $this->visibleOccurrenceQuery($user instanceof User ? $user : null);
 
         $actionableQuery = (clone $query)->whereIn('status', [
@@ -224,53 +220,11 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
             ->orderBy('id')
             ->limit(12)
             ->get()
-            ->map(function (RecurringOccurrence $occurrence) use ($isPrimary, $primaryUser): array {
-                $recurring = $occurrence->recurring;
-                $label = $recurring?->label;
-                $owner = $recurring !== null
-                    ? $this->recurringOwnerProfile($recurring, $primaryUser)
-                    : ['avatar_url' => app(UiAvatarsProvider::class)->get(new User(['name' => 'Primary'])), 'name' => 'Primary'];
-                $progress = $recurring?->goalProgressPercent();
-                $progressAmount = $recurring?->goalProgressAmount();
-                $goalTarget = $recurring?->goal_target_amount !== null
-                    ? (float) $recurring->goal_target_amount
-                    : null;
-                $isCompleted = $occurrence->status === RecurringOccurrenceStatus::Completed;
-                $isSkipped = $occurrence->status === RecurringOccurrenceStatus::Skipped;
-                $displayAmount = $isCompleted
-                    ? ($occurrence->actual_amount ?? $occurrence->expected_amount)
-                    : $occurrence->expected_amount;
-                $completedAt = $occurrence->expense?->date_time ?? $occurrence->updated_at;
-
-                return [
-                    'id' => $occurrence->id,
-                    'recurring_id' => $recurring?->id,
-                    'can_reorder' => $isPrimary && $recurring !== null && ! $isCompleted && ! $isSkipped,
-                    'is_completed' => $isCompleted,
-                    'is_skipped' => $isSkipped,
-                    'edit_url' => $recurring !== null && HouseholdAccess::canMutateRecurring($recurring)
-                        ? RecurringResource::getUrl('edit', ['record' => $recurring])
-                        : null,
-                    'title' => $recurring?->title ?? 'Recurring',
-                    'owner_avatar_url' => $owner['avatar_url'],
-                    'owner_name' => $owner['name'],
-                    'icon' => $label?->icon ?: 'heroicon-o-arrow-path',
-                    'color' => $label?->color ?: '#FFD07D',
-                    'status' => $occurrence->status->value,
-                    'statusLabel' => $occurrence->status->label(),
-                    'dueOn' => $occurrence->due_on->format('d M Y'),
-                    'completedAt' => $completedAt?->format('d M Y H:i'),
-                    'amount' => $displayAmount !== null
-                        ? MoneyDisplay::withPrefix($displayAmount)
-                        : 'Variable',
-                    'type' => $recurring?->type->label() ?? '',
-                    'cadence' => $this->cadenceLabel($recurring),
-                    'is_shared' => (bool) ($recurring?->is_shared ?? false),
-                    'progress' => $progress,
-                    'progressAmount' => $progressAmount,
-                    'goalTarget' => $goalTarget,
-                ];
-            })
+            ->map(fn (RecurringOccurrence $occurrence): array => DueRecurringPreview::itemFromOccurrence(
+                $occurrence,
+                $isPrimary,
+                $primaryUser,
+            ))
             ->all();
 
         return [
@@ -311,27 +265,6 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
             ->all();
     }
 
-    private function cadenceLabel(?Recurring $recurring): string
-    {
-        if ($recurring === null) {
-            return '';
-        }
-
-        if ($recurring->frequency === RecurringFrequency::Once) {
-            return 'Once';
-        }
-
-        $months = (int) ($recurring->interval_months ?? 1);
-
-        return match ($months) {
-            1 => 'Monthly',
-            3 => 'Quarterly',
-            6 => 'Every 6 months',
-            12 => 'Yearly',
-            default => "Every {$months} months",
-        };
-    }
-
     /**
      * @return Builder<RecurringOccurrence>
      */
@@ -342,59 +275,5 @@ class DueRecurrings extends Widget implements HasActions, HasSchemas
         return RecurringOccurrence::query()
             ->visibleTo($user)
             ->forDashboardMonth();
-    }
-
-    private function resolvePrimaryUser(): ?User
-    {
-        return User::query()
-            ->where(function ($query): void {
-                $query
-                    ->where('household_role', HouseholdRole::Primary->value)
-                    ->orWhereNull('household_role');
-            })
-            ->orderBy('id')
-            ->first();
-    }
-
-    /**
-     * @return array{avatar_url: string, name: string}
-     */
-    private function recurringOwnerProfile(Recurring $recurring, ?User $primaryUser): array
-    {
-        $familyMember = $recurring->familyMember;
-
-        if ($familyMember instanceof FamilyMember) {
-            return [
-                'avatar_url' => $this->avatarDisplayUrl($familyMember),
-                'name' => filled($familyMember->display_name)
-                    ? (string) $familyMember->display_name
-                    : (string) $familyMember->name,
-            ];
-        }
-
-        if ($primaryUser instanceof User) {
-            return [
-                'avatar_url' => $this->avatarDisplayUrl($primaryUser),
-                'name' => filled($primaryUser->display_name)
-                    ? (string) $primaryUser->display_name
-                    : (string) $primaryUser->name,
-            ];
-        }
-
-        return [
-            'avatar_url' => app(UiAvatarsProvider::class)->get(new User(['name' => 'Primary'])),
-            'name' => 'Primary',
-        ];
-    }
-
-    private function avatarDisplayUrl(User|FamilyMember $record): string
-    {
-        $url = $record->getFilamentAvatarUrl();
-
-        if ($url !== null) {
-            return $url;
-        }
-
-        return app(UiAvatarsProvider::class)->get($record);
     }
 }

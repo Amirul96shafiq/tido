@@ -233,3 +233,39 @@ test('generateFor prunes open occurrences with period bounds that no longer matc
         ->and($occurrence?->period_end?->toDateString())->toBe('2027-02-23')
         ->and($recurring->fresh()->next_due_on?->toDateString())->toBe('2027-02-24');
 });
+
+test('generateFor syncs the template amount onto existing open occurrences', function () {
+    Carbon::setTestNow('2026-08-18 10:00:00');
+
+    $recurring = Recurring::factory()->shared()->create([
+        'expected_amount' => 1.00,
+        'interval_months' => 1,
+        'anchor_day' => 5,
+        'starts_on' => '2026-09-05',
+        'next_due_on' => '2026-10-05',
+    ]);
+
+    $open = RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Upcoming,
+        'due_on' => '2026-09-05',
+        'period_start' => '2026-09-05',
+        'period_end' => '2026-10-04',
+        'expected_amount' => 0,
+    ]);
+
+    $completed = RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Completed,
+        'due_on' => '2026-08-05',
+        'period_start' => '2026-08-05',
+        'period_end' => '2026-09-04',
+        'expected_amount' => 0,
+        'actual_amount' => 0,
+    ]);
+
+    app(RecurringOccurrenceGenerator::class)->generateFor($recurring->fresh());
+
+    expect((float) $open->fresh()->expected_amount)->toBe(1.0)
+        ->and((float) $completed->fresh()->expected_amount)->toBe(0.0);
+});

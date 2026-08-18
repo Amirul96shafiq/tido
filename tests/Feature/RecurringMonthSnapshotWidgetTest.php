@@ -129,6 +129,31 @@ test('snapshot widget shows days left until the next upcoming bill', function ()
         ->assertSee('TIME Internet · 17 Aug · 4 days left');
 });
 
+test('snapshot widget counts the next upcoming occurrence when a recurring has no current-month row', function () {
+    $this->actingAs(User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]));
+
+    $recurring = Recurring::factory()->shared()->create([
+        'title' => 'Sample Shared Due Payment 01',
+        'expected_amount' => 1.00,
+    ]);
+    $nextMonthDueOn = now()->copy()->addMonthNoOverflow()->startOfMonth()->addDays(4);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Upcoming,
+        'due_on' => $nextMonthDueOn->toDateString(),
+        'expected_amount' => 0,
+    ]);
+
+    Livewire::test(RecurringMonthSnapshot::class)
+        ->assertOk()
+        ->assertSee('Upcoming 1')
+        ->assertSee('RM 1.00 remaining')
+        ->assertSee('Sample Shared Due Payment 01 · '.$nextMonthDueOn->format('d M'));
+});
+
 test('snapshot widget shows due today on the next bill countdown', function () {
     Carbon::setTestNow(Carbon::parse('2026-08-13 10:00:00', 'Asia/Kuala_Lumpur'));
 

@@ -4,7 +4,7 @@ Shared sticky **in-page tab menu** for long Filament pages. Jumps between anchor
 
 **Not the Home dashboard module switcher.** Finances / Training / Health / Task header icon tabs are documented in [`dashboard-views.md`](dashboard-views.md). On the Finances view, this section-nav pattern is the **widget jump strip** beside the month filter.
 
-**Consumers:** [`EditProfile`](../app/Filament/Pages/Auth/EditProfile.php) at `/admin/profile`, [`Dashboard`](../app/Filament/Pages/Dashboard.php) Finances widget jump tabs beside the month filter, [`ReceiptUploadPage`](../app/Filament/Pages/ReceiptUploadPage.php), Expense/Budget Create/Edit resource pages, [`EvolutionApiPage`](../app/Filament/Pages/EvolutionApiPage.php), [`ServiceStatusPage`](../app/Filament/Pages/ServiceStatusPage.php), and Label / Payment Method / Family Member Create/Edit resource pages.
+**Consumers:** [`EditProfile`](../app/Filament/Pages/Auth/EditProfile.php) at `/admin/profile`, [`Dashboard`](../app/Filament/Pages/Dashboard.php) Finances widget jump tabs beside the month filter, [`ReceiptUploadPage`](../app/Filament/Pages/ReceiptUploadPage.php), Expense/Budget/Recurring Create/Edit resource pages, [`EvolutionApiPage`](../app/Filament/Pages/EvolutionApiPage.php), [`ServiceStatusPage`](../app/Filament/Pages/ServiceStatusPage.php), and Label / Payment Method / Family Member Create/Edit resource pages.
 
 ## When to use
 
@@ -127,6 +127,16 @@ Home module tabs (Finances / Training / Health / Task) are **not** section nav â
 | Page class | `.fi-budget-form-page` |
 | Anchors | `->id(...)` on each `Section::make(...)` in [`BudgetForm.php`](../app/Filament/Resources/Budgets/Schemas/BudgetForm.php) |
 | Tests | [`tests/Feature/BudgetFormSectionNavTest.php`](../tests/Feature/BudgetFormSectionNavTest.php) |
+
+## Recurring Create / Edit
+
+| Layer | Path |
+|-------|------|
+| Section list | `RecurringForm::sectionNavItems()` â€” Create and Edit include the Recurring Payment Due Preview tab |
+| Sticky pin | `HasStickyBlurFormActions` + `sectionNavItems()` on page |
+| Page class | `.fi-recurring-form-page` |
+| Anchors | `->id(...)` on each `Section::make(...)` in [`RecurringForm.php`](../app/Filament/Resources/Recurrings/Schemas/RecurringForm.php) |
+| Tests | [`tests/Feature/RecurringFormSectionNavTest.php`](../tests/Feature/RecurringFormSectionNavTest.php), [`tests/Feature/RecurringDuePreviewFormTest.php`](../tests/Feature/RecurringDuePreviewFormTest.php) |
 
 ## Evolution API
 
