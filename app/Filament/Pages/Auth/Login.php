@@ -115,7 +115,6 @@ class Login extends BaseLogin
             ->tel()
             ->placeholder('0123456789 or +60123456789')
             ->autocomplete('tel')
-            ->autofocus(fn (): bool => $this->loginMode === 'phone')
             ->required(fn (): bool => $this->loginMode === 'phone')
             ->visible(fn (): bool => $this->loginMode === 'phone')
             ->rule(fn (): \Closure => function (string $attribute, mixed $value, \Closure $fail): void {
@@ -130,7 +129,6 @@ class Login extends BaseLogin
         return OneTimeCodeInput::make('otp')
             ->label('WhatsApp code')
             ->length(6)
-            ->autofocus(fn (): bool => $this->loginMode === 'otp')
             ->required(fn (): bool => $this->loginMode === 'otp')
             ->visible(fn (): bool => $this->loginMode === 'otp')
             // Filament 5.7+ uses six real digit inputs; do not paint/overlay or force transparent text.
@@ -185,7 +183,6 @@ class Login extends BaseLogin
             ->label(__('filament-panels::auth/pages/login.form.email.label'))
             ->email()
             ->autocomplete('username')
-            ->autofocus(fn (): bool => $this->loginMode === 'password')
             ->required(fn (): bool => $this->loginMode === 'password')
             ->visible(fn (): bool => $this->loginMode === 'password');
     }

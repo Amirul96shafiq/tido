@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Filament\Pages\Auth\Login;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
+use Filament\Forms\Components\OneTimeCodeInput;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
@@ -51,6 +53,46 @@ function verifyOtpButtonTag(string $html): ?array
 
 test('guest can open filament login page', function () {
     $this->get('/admin/login')->assertSuccessful();
+});
+
+test('login fields are not autofocused', function () {
+    Livewire::test(Login::class)
+        ->assertSet('loginMode', 'phone')
+        ->assertSchemaComponentExists(
+            'phone',
+            checkComponentUsing: function (TextInput $component): bool {
+                expect($component->isAutofocused())->toBeFalse();
+
+                return true;
+            },
+        );
+
+    User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    Livewire::test(Login::class)
+        ->set('data.phone', '60123456789')
+        ->call('sendOtp')
+        ->assertSet('loginMode', 'otp')
+        ->assertSchemaComponentExists(
+            'otp',
+            checkComponentUsing: function (OneTimeCodeInput $component): bool {
+                expect($component->isAutofocused())->toBeFalse();
+
+                return true;
+            },
+        );
+
+    Livewire::test(Login::class)
+        ->call('selectPasswordLoginTab')
+        ->assertSet('loginMode', 'password')
+        ->assertSchemaComponentExists(
+            'email',
+            checkComponentUsing: function (TextInput $component): bool {
+                expect($component->isAutofocused())->toBeFalse();
+
+                return true;
+            },
+        );
 });
 
 test('send otp advances to otp step and posts to evolution', function () {

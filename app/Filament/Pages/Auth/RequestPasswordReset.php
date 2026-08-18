@@ -11,6 +11,7 @@ use Filament\Auth\Pages\PasswordReset\RequestPasswordReset as BaseRequestPasswor
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\RenderHook;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
@@ -27,6 +28,12 @@ class RequestPasswordReset extends BaseRequestPasswordReset
     public function getSubheading(): string|Htmlable|null
     {
         return 'Enter the registered email address to receive a password reset link.';
+    }
+
+    protected function getEmailFormComponent(): Component
+    {
+        return parent::getEmailFormComponent()
+            ->autofocus(false);
     }
 
     public function request(): void
