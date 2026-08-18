@@ -325,10 +325,25 @@
 
         <div class="flex flex-col gap-5">
             <div class="rounded-xl border border-gray-200 px-4 py-4 dark:border-white/10">
-                <h3 class="text-sm font-semibold text-gray-950 dark:text-white">Recent receipt activity</h3>
-                <p class="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
-                    {{ $this->latestReceiptActivity }}
-                </p>
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="min-w-0">
+                        <h3 class="text-sm font-semibold text-gray-950 dark:text-white">Recent receipt activity</h3>
+                        <p class="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
+                            {{ $this->latestReceiptActivity }}
+                        </p>
+                    </div>
+
+                    <x-filament::button
+                        tag="a"
+                        size="sm"
+                        color="primary"
+                        icon="heroicon-m-plus"
+                        :href="\App\Filament\Pages\ReceiptUploadPage::getUrl()"
+                        class="shrink-0 self-center sm:self-auto"
+                    >
+                        Upload Receipts
+                    </x-filament::button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">

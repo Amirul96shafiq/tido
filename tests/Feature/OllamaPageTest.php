@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\OllamaPage;
+use App\Filament\Pages\ReceiptUploadPage;
 use App\Models\Expense;
 use App\Models\FamilyMember;
 use App\Models\User;
@@ -181,7 +182,9 @@ test('ollama page shows receipt activity stats from stored expenses', function (
         ->assertSee('Latest processed receipt updated')
         ->assertSee('PDF receipts')
         ->assertSee('Image receipts')
-        ->assertSee('Text-only receipts');
+        ->assertSee('Text-only receipts')
+        ->assertSee('Upload Receipts')
+        ->assertSee(ReceiptUploadPage::getUrl(), false);
 });
 
 test('family member cannot access ollama page', function (): void {
