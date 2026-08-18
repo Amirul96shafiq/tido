@@ -6,7 +6,7 @@
         default => 'gray',
     };
     $statusIcon = match ($this->connectionStatus) {
-        'operational' => 'heroicon-o-check-circle',
+        'operational' => 'heroicon-o-check-badge',
         'degraded' => 'heroicon-o-exclamation-triangle',
         'down' => 'heroicon-o-x-circle',
         default => 'heroicon-o-question-mark-circle',
@@ -29,15 +29,15 @@
                     <div class="flex w-full flex-col items-center text-center lg:max-w-md">
                         <div @class([
                             'relative mb-8 flex h-20 w-20 items-center justify-center rounded-full',
-                            'bg-emerald-500/10' => $this->connectionStatus === 'operational',
+                            'bg-success-500/10' => $this->connectionStatus === 'operational',
                             'bg-warning-500/10' => $this->connectionStatus === 'degraded',
                             'bg-danger-500/10' => $this->connectionStatus === 'down',
                             'bg-gray-500/10 dark:bg-slate-500/10' => $this->connectionStatus === 'unknown',
                         ])>
                             @if ($this->connectionStatus === 'operational')
                                 <span
-                                    class="pointer-events-none absolute inset-0 rounded-full border-2 border-emerald-500/30"
-                                    style="animation: ollama-status-pulse 2s infinite"
+                                    class="pointer-events-none absolute inset-0 rounded-full border-2 border-success-500/30"
+                                    style="animation: wa-connected-pulse 2s infinite"
                                 ></span>
                             @endif
 
@@ -45,7 +45,7 @@
                                 :icon="$statusIcon"
                                 @class([
                                     'relative h-10 w-10',
-                                    'text-emerald-500' => $this->connectionStatus === 'operational',
+                                    'text-success-500' => $this->connectionStatus === 'operational',
                                     'text-warning-500' => $this->connectionStatus === 'degraded',
                                     'text-danger-500' => $this->connectionStatus === 'down',
                                     'text-gray-400 dark:text-gray-500' => $this->connectionStatus === 'unknown',
@@ -179,7 +179,7 @@
             </div>
 
             <style>
-                @keyframes ollama-status-pulse {
+                @keyframes wa-connected-pulse {
                     0% {
                         transform: scale(1);
                         opacity: 1;
