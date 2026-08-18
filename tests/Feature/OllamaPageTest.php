@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\OllamaPage;
+use App\Filament\Pages\ReceiptUploadPage;
+use App\Models\Expense;
 use App\Models\FamilyMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -40,6 +42,9 @@ beforeEach(function (): void {
         'services.ollama.timeout' => 120,
         'services.ollama.num_ctx' => 8192,
         'services.ollama.max_image_dimension' => 1280,
+        'services.documents.pdfinfo_binary' => 'pdfinfo',
+        'services.documents.pdftocairo_binary' => 'pdftocairo',
+        'services.documents.pdftotext_binary' => 'pdftotext',
     ]);
 
     Http::fake([
@@ -76,7 +81,8 @@ test('ollama page marks configured model as active', function (): void {
 
 test('ollama page shows model count in status message', function (): void {
     Livewire::test(OllamaPage::class)
-        ->assertSee('1 model available');
+        ->assertSee('Your Ollama instance is connected and ready. 1 model is installed and available for receipt parsing')
+        ->assertSee('run a test extraction anytime to confirm OCR and structured output.');
 });
 
 test('ollama page shows degraded status when no models installed', function (): void {
@@ -109,6 +115,78 @@ test('ollama page shows view details cta', function (): void {
         ->assertSee('View details');
 });
 
+test('ollama page shows pipeline, models, and activity sections', function (): void {
+    Livewire::test(OllamaPage::class)
+        ->assertSee('Pipeline readiness')
+        ->assertSee('Models')
+        ->assertSee('Receipt activity')
+        ->assertSee('Current use in tido')
+        ->assertSee('Also suitable for')
+        ->assertSee('#ollama-pipeline', false)
+        ->assertSee('#ollama-models', false)
+        ->assertSee('#ollama-activity', false)
+        ->assertSee('Suitable for structured extraction workflows that need consistent JSON output.');
+});
+
+test('ollama page renders sticky section nav markers', function (): void {
+    Livewire::test(OllamaPage::class)
+        ->assertSuccessful()
+        ->assertSee('tido-sticky-scope', false)
+        ->assertSee('tido-sticky-marker--top', false)
+        ->assertSee('tido-section-nav', false);
+});
+
+test('ollama page section nav items match helper', function (): void {
+    expect(OllamaPage::sectionNavItems())->toBe([
+        ['label' => 'Status', 'id' => 'ollama-status'],
+        ['label' => 'Pipeline', 'id' => 'ollama-pipeline'],
+        ['label' => 'Models', 'id' => 'ollama-models'],
+        ['label' => 'Activity', 'id' => 'ollama-activity'],
+    ]);
+});
+
+test('ollama page section nav smooth scrolls on tab click', function (): void {
+    Livewire::test(OllamaPage::class)
+        ->assertSuccessful()
+        ->assertSee('scrollToSection', false)
+        ->assertSee("behavior: 'smooth'", false)
+        ->assertSee('onNavClick($event)', false);
+});
+
+test('ollama page shows receipt activity stats from stored expenses', function (): void {
+    Expense::withoutEvents(function (): void {
+        Expense::factory()->create([
+            'merchant_name' => 'PDF Grocer',
+            'source' => 'whatsapp',
+            'status' => 'parsed',
+            'file_mime_type' => 'application/pdf',
+        ]);
+
+        Expense::factory()->create([
+            'merchant_name' => 'Image Mart',
+            'source' => 'manual',
+            'status' => 'reviewed',
+            'file_mime_type' => 'image/jpeg',
+        ]);
+
+        Expense::factory()->create([
+            'merchant_name' => 'Text Expense',
+            'source' => 'whatsapp',
+            'status' => 'requires_manual_review',
+            'file_mime_type' => null,
+        ]);
+    });
+
+    Livewire::test(OllamaPage::class)
+        ->assertSee('Recent receipt activity')
+        ->assertSee('Latest processed receipt updated')
+        ->assertSee('PDF receipts')
+        ->assertSee('Image receipts')
+        ->assertSee('Text-only receipts')
+        ->assertSee('Upload Receipts')
+        ->assertSee(ReceiptUploadPage::getUrl(), false);
+});
+
 test('family member cannot access ollama page', function (): void {
     $familyMember = FamilyMember::factory()->loginEnabled()->create();
     $familyMemberUser = User::query()
@@ -126,5 +204,6 @@ test('family member cannot access ollama page', function (): void {
 
 test('ollama page is in integrations navigation group', function (): void {
     expect(OllamaPage::getNavigationGroup())->toBe('Integrations')
-        ->and(OllamaPage::getNavigationSort())->toBe(10);
+        ->and(OllamaPage::getNavigationSort())->toBe(10)
+        ->and(OllamaPage::getNavigationIcon())->toBe('icon-ollama');
 });
