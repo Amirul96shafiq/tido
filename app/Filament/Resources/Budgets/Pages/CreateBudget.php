@@ -40,7 +40,7 @@ class CreateBudget extends CreateRecord
      */
     public static function sectionNavItems(): array
     {
-        return BudgetForm::sectionNavItems(includePerformance: false);
+        return BudgetForm::sectionNavItems();
     }
 
     public function sectionNavAriaLabel(): string

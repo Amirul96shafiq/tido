@@ -31,18 +31,11 @@ class BudgetForm
     /**
      * @return list<array{label: string, id: string}>
      */
-    public static function sectionNavItems(bool $includePerformance = false): array
+    public static function sectionNavItems(): array
     {
-        $items = [
-            ['label' => 'Budget Appearance', 'id' => 'budget-appearance'],
-        ];
-
-        if ($includePerformance) {
-            $items[] = ['label' => 'Budget Performance', 'id' => 'budget-performance'];
-        }
-
         return [
-            ...$items,
+            ['label' => 'Budget Appearance', 'id' => 'budget-appearance'],
+            ['label' => 'Budget Performance Preview', 'id' => 'budget-performance'],
             ['label' => 'Limit & Period', 'id' => 'limit-period'],
             ['label' => 'Budget Settings', 'id' => 'budget-settings'],
             ['label' => 'Alert Settings', 'id' => 'alert-settings'],
@@ -63,9 +56,8 @@ class BudgetForm
                     ])
                     ->extraAttributes(['class' => 'fi-budget-main-column'])
                     ->schema([
-                        Section::make('Budget Performance')
+                        Section::make('Budget Performance Preview')
                             ->id('budget-performance')
-                            ->visible(fn (string $operation): bool => $operation === 'edit')
                             ->extraAttributes(['class' => 'fi-budget-performance-section'])
                             ->schema([
                                 View::make('filament.forms.components.budget-performance')
@@ -81,6 +73,7 @@ class BudgetForm
                                             ->myr()
                                             ->required()
                                             ->placeholder('0.00')
+                                            ->live(onBlur: true)
                                             ->helperText('Maximum spend allowed in MYR for this period.'),
 
                                         Select::make('period')
@@ -105,12 +98,14 @@ class BudgetForm
                                                 4 => 'Q4 (Oct - Dec)',
                                             ])
                                             ->visible(fn (Get $get): bool => $get('period') === 'quarterly')
-                                            ->required(fn (Get $get): bool => $get('period') === 'quarterly'),
+                                            ->required(fn (Get $get): bool => $get('period') === 'quarterly')
+                                            ->live(),
 
                                         TextInput::make('year')
                                             ->numeric()
                                             ->default((int) date('Y'))
                                             ->required()
+                                            ->live(onBlur: true)
                                             ->helperText('Calendar year this budget belongs to.'),
                                     ]),
                             ]),
@@ -147,6 +142,7 @@ class BudgetForm
                                         ->all())
                                     ->placeholder(fn (): string => self::primaryUsername())
                                     ->searchable()
+                                    ->live()
                                     ->nullable()
                                     ->disabled(fn (): bool => HouseholdAccess::isFamilyMember())
                                     ->dehydrated(fn (): bool => ! HouseholdAccess::isFamilyMember())
@@ -155,6 +151,7 @@ class BudgetForm
                                 Toggle::make('is_shared')
                                     ->label('Shared with household')
                                     ->default(false)
+                                    ->live()
                                     ->disabled(fn (): bool => HouseholdAccess::isFamilyMember())
                                     ->dehydrated(fn (): bool => ! HouseholdAccess::isFamilyMember())
                                     ->helperText('When shared, everyone’s spending counts toward this budget. When personal, only the assignee’s spending counts.'),
@@ -267,6 +264,8 @@ class BudgetForm
     /**
      * @return array{
      *     hasData: bool,
+     *     emptyHeading?: string,
+     *     emptyDescription?: string,
      *     budget?: array{
      *         name: string,
      *         icon: string,
@@ -283,28 +282,29 @@ class BudgetForm
      */
     private static function performanceViewData(?Budget $record, ?Get $get = null): array
     {
-        if (! $record instanceof Budget) {
-            return [
-                'hasData' => false,
-            ];
-        }
-
-        $record->loadMissing('label');
-
-        $spent = $record->spentInPeriod();
-        $recordAmount = (float) $record->amount;
         $formAmountRaw = $get !== null ? $get('amount') : null;
         $amount = filled($formAmountRaw)
             ? (float) $formAmountRaw
-            : $recordAmount;
-        $rawPercentage = $amount > 0 ? ($spent / $amount) * 100 : 0.0;
+            : (float) ($record?->amount ?? 0);
+
+        if ($amount <= 0) {
+            return [
+                'hasData' => false,
+                'emptyHeading' => 'Set a budget limit to preview',
+                'emptyDescription' => 'Enter an amount under Limit & Period to see how current spending would track against this budget.',
+            ];
+        }
+
+        $preview = self::resolvePerformancePreviewBudget($record, $get);
+        $spent = Budget::spentForPreview($preview);
+        $rawPercentage = ($spent / $amount) * 100;
 
         $alertThreshold = (float) ($get !== null
-            ? ($get('alert_threshold') ?? $record->alert_threshold)
-            : $record->alert_threshold);
+            ? ($get('alert_threshold') ?? $preview->alert_threshold)
+            : $preview->alert_threshold);
         $criticalThreshold = (float) ($get !== null
-            ? ($get('critical_threshold') ?? $record->critical_threshold)
-            : $record->critical_threshold);
+            ? ($get('critical_threshold') ?? $preview->critical_threshold)
+            : $preview->critical_threshold);
 
         $statusColor = match (true) {
             $rawPercentage >= $criticalThreshold => 'red',
@@ -312,48 +312,101 @@ class BudgetForm
             default => 'emerald',
         };
 
-        $labelId = $get !== null ? ($get('label_id') ?? $record->label_id) : $record->label_id;
-        $period = $get !== null ? ($get('period') ?? $record->period) : $record->period;
-
         return [
             'hasData' => true,
             'budget' => [
                 'name' => self::previewDisplayTitle($record, $get),
                 'icon' => self::previewDisplayIcon($record, $get),
-                'color' => self::previewColor($labelId),
+                'color' => self::previewColor($preview->label_id),
                 'amount' => $amount,
                 'spent' => $spent,
                 'percentage' => min(100, $rawPercentage),
                 'raw_percentage' => $rawPercentage,
-                'period' => ucfirst((string) $period),
-                'is_shared' => (bool) ($get !== null ? ($get('is_shared') ?? $record->is_shared) : $record->is_shared),
+                'period' => ucfirst((string) $preview->period),
+                'is_shared' => (bool) $preview->is_shared,
                 'status_color' => $statusColor,
             ],
         ];
     }
 
-    private static function previewDisplayTitle(Budget $record, ?Get $get): string
+    private static function resolvePerformancePreviewBudget(?Budget $record, ?Get $get): Budget
     {
-        $title = $get !== null ? $get('title') : $record->title;
+        $preview = $record instanceof Budget ? $record->replicate() : new Budget;
+
+        if ($get === null) {
+            $preview->loadMissing('label');
+
+            return $preview;
+        }
+
+        $amount = $get('amount');
+        if (filled($amount)) {
+            $preview->amount = $amount;
+        }
+
+        $labelId = $get('label_id');
+        $preview->label_id = filled($labelId) ? (int) $labelId : null;
+
+        $familyMemberId = $get('family_member_id');
+        $preview->family_member_id = filled($familyMemberId) ? (int) $familyMemberId : null;
+
+        $isShared = $get('is_shared');
+        if ($isShared !== null) {
+            $preview->is_shared = (bool) $isShared;
+        }
+
+        $period = $get('period');
+        if (filled($period)) {
+            $preview->period = (string) $period;
+        }
+
+        $year = $get('year');
+        if (filled($year)) {
+            $preview->year = (int) $year;
+        }
+
+        $quarter = $get('quarter');
+        if (filled($quarter)) {
+            $preview->quarter = (int) $quarter;
+        }
+
+        $alertThreshold = $get('alert_threshold');
+        if (filled($alertThreshold)) {
+            $preview->alert_threshold = (int) round((float) $alertThreshold);
+        }
+
+        $criticalThreshold = $get('critical_threshold');
+        if (filled($criticalThreshold)) {
+            $preview->critical_threshold = (int) round((float) $criticalThreshold);
+        }
+
+        $preview->loadMissing('label');
+
+        return $preview;
+    }
+
+    private static function previewDisplayTitle(?Budget $record, ?Get $get): string
+    {
+        $title = $get !== null ? $get('title') : $record?->title;
 
         if (filled($title)) {
             return (string) $title;
         }
 
-        $labelId = $get !== null ? ($get('label_id') ?? $record->label_id) : $record->label_id;
+        $labelId = $get !== null ? ($get('label_id') ?? $record?->label_id) : $record?->label_id;
 
         return self::previewLabelName($labelId) ?? 'Overall Budget';
     }
 
-    private static function previewDisplayIcon(Budget $record, ?Get $get): string
+    private static function previewDisplayIcon(?Budget $record, ?Get $get): string
     {
-        $icon = $get !== null ? $get('icon') : $record->icon;
+        $icon = $get !== null ? $get('icon') : $record?->icon;
 
         if (filled($icon)) {
             return (string) $icon;
         }
 
-        $labelId = $get !== null ? ($get('label_id') ?? $record->label_id) : $record->label_id;
+        $labelId = $get !== null ? ($get('label_id') ?? $record?->label_id) : $record?->label_id;
 
         return self::previewLabelIcon($labelId) ?? 'heroicon-o-banknotes';
     }

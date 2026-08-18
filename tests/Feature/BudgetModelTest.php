@@ -316,3 +316,28 @@ test('spent totals for batches matching spent in period', function () {
         ->and($totals[$shared->id])->toBe(100.0)
         ->and($totals[$overall->id])->toBe(125.0);
 });
+
+test('spent for preview calculates matching expenses on an unsaved budget', function () {
+    $label = Label::factory()->create();
+
+    $expense = Expense::factory()->create([
+        'date_time' => now(),
+        'status' => 'parsed',
+    ]);
+
+    ExpenseItem::factory()->create([
+        'expense_id' => $expense->id,
+        'label_id' => $label->id,
+        'line_total' => 80.00,
+    ]);
+
+    $preview = new Budget([
+        'label_id' => $label->id,
+        'amount' => 500.00,
+        'period' => 'monthly',
+        'year' => (int) now()->year,
+        'is_shared' => true,
+    ]);
+
+    expect(Budget::spentForPreview($preview))->toBe(80.0);
+});

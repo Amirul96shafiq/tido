@@ -159,9 +159,14 @@ class Budget extends Model
 
     public function spentInPeriod(?Carbon $reference = null): float
     {
-        $totals = self::spentTotalsFor(collect([$this]), $reference);
+        return self::spentForPreview($this, $reference);
+    }
 
-        return (float) ($totals[(int) $this->getKey()] ?? 0.0);
+    public static function spentForPreview(self $preview, ?Carbon $reference = null): float
+    {
+        $totals = self::spentTotalsFor(collect([$preview]), $reference);
+
+        return (float) ($totals[(int) $preview->getKey()] ?? 0.0);
     }
 
     /**

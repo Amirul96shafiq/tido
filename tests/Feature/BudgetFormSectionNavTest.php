@@ -35,15 +35,16 @@ test('budget edit page renders sticky section nav markers', function () {
         ->assertSee('tido-section-nav', false);
 });
 
-test('budget create section nav omits performance tab', function () {
+test('budget create section nav includes performance tab', function () {
     Livewire::test(CreateBudget::class)
         ->assertSuccessful()
         ->assertSee('Budget Appearance')
+        ->assertSee('Budget Performance Preview')
         ->assertSee('Limit &amp; Period', false)
         ->assertSee('Budget Settings')
         ->assertSee('Alert Settings')
         ->assertSee('Budget Notes')
-        ->assertDontSee('#budget-performance', false);
+        ->assertSee('#budget-performance', false);
 });
 
 test('budget edit section nav includes performance tab', function () {
@@ -51,20 +52,14 @@ test('budget edit section nav includes performance tab', function () {
 
     Livewire::test(EditBudget::class, ['record' => $budget->getRouteKey()])
         ->assertSuccessful()
-        ->assertSee('Budget Performance')
+        ->assertSee('Budget Performance Preview')
         ->assertSee('#budget-performance', false);
 });
 
 test('budget section nav items match sectionNavItems helper', function () {
-    expect(BudgetForm::sectionNavItems(includePerformance: false))->toBe([
+    expect(BudgetForm::sectionNavItems())->toBe([
         ['label' => 'Budget Appearance', 'id' => 'budget-appearance'],
-        ['label' => 'Limit & Period', 'id' => 'limit-period'],
-        ['label' => 'Budget Settings', 'id' => 'budget-settings'],
-        ['label' => 'Alert Settings', 'id' => 'alert-settings'],
-        ['label' => 'Budget Notes', 'id' => 'budget-notes'],
-    ])->and(BudgetForm::sectionNavItems(includePerformance: true))->toBe([
-        ['label' => 'Budget Appearance', 'id' => 'budget-appearance'],
-        ['label' => 'Budget Performance', 'id' => 'budget-performance'],
+        ['label' => 'Budget Performance Preview', 'id' => 'budget-performance'],
         ['label' => 'Limit & Period', 'id' => 'limit-period'],
         ['label' => 'Budget Settings', 'id' => 'budget-settings'],
         ['label' => 'Alert Settings', 'id' => 'alert-settings'],

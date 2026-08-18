@@ -98,6 +98,72 @@ test('budget form uses rich editor for notes', function () {
         );
 });
 
+test('create budget page shows performance empty state until amount is set', function () {
+    Livewire::test(CreateBudget::class)
+        ->assertSuccessful()
+        ->assertSee('Budget Performance Preview')
+        ->assertSee('Set a budget limit to preview')
+        ->assertSee('#budget-performance', false)
+        ->fillForm([
+            'amount' => 500.00,
+            'period' => 'monthly',
+            'year' => (int) now()->year,
+        ])
+        ->assertDontSee('Set a budget limit to preview')
+        ->assertSee('Overall Budget')
+        ->assertSee('Monthly')
+        ->assertSee('0.0% consumed')
+        ->assertSee('RM 500.00 remaining');
+});
+
+test('create budget performance uses live form amount', function () {
+    Livewire::test(CreateBudget::class)
+        ->fillForm([
+            'amount' => 250.00,
+            'period' => 'monthly',
+            'year' => (int) now()->year,
+        ])
+        ->assertSee('RM 250.00')
+        ->fillForm([
+            'amount' => 500.00,
+        ])
+        ->assertSee('RM 500.00')
+        ->assertDontSee('RM 250.00');
+});
+
+test('create budget performance previews spent from matching expenses', function () {
+    Expense::unsetEventDispatcher();
+
+    $label = Label::factory()->create(['name' => 'Groceries & Household']);
+
+    $expense = Expense::factory()->create([
+        'status' => 'reviewed',
+        'date_time' => now(),
+        'total_amount' => 120.00,
+    ]);
+
+    ExpenseItem::factory()->create([
+        'expense_id' => $expense->id,
+        'label_id' => $label->id,
+        'line_total' => 120.00,
+    ]);
+
+    Livewire::test(CreateBudget::class)
+        ->assertSee('Set a budget limit to preview')
+        ->fillForm([
+            'title' => 'Groceries Cap',
+            'label_id' => $label->id,
+            'amount' => 500.00,
+            'period' => 'monthly',
+            'year' => (int) now()->year,
+        ])
+        ->assertDontSee('Set a budget limit to preview')
+        ->assertSee('Groceries Cap')
+        ->assertSee('RM 120.00')
+        ->assertSee('RM 500.00')
+        ->assertSee('24.0% consumed');
+});
+
 test('edit budget page shows performance section', function () {
     $budget = Budget::factory()->create([
         'title' => 'Groceries Cap',
@@ -108,7 +174,7 @@ test('edit budget page shows performance section', function () {
 
     Livewire::test(EditBudget::class, ['record' => $budget->getRouteKey()])
         ->assertSuccessful()
-        ->assertSee('Budget Performance')
+        ->assertSee('Budget Performance Preview')
         ->assertSee('Budget Appearance')
         ->assertSee('Budget Settings')
         ->assertSee('Groceries Cap')

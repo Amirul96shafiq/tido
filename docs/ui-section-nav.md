@@ -122,7 +122,7 @@ Home module tabs (Finances / Training / Health / Task) are **not** section nav �
 
 | Layer | Path |
 |-------|------|
-| Section list | `BudgetForm::sectionNavItems($includePerformance)` — Create omits performance tab |
+| Section list | `BudgetForm::sectionNavItems()` — Create and Edit include the performance tab |
 | Sticky pin | `HasStickyBlurFormActions` + `sectionNavItems()` on page |
 | Page class | `.fi-budget-form-page` |
 | Anchors | `->id(...)` on each `Section::make(...)` in [`BudgetForm.php`](../app/Filament/Resources/Budgets/Schemas/BudgetForm.php) |

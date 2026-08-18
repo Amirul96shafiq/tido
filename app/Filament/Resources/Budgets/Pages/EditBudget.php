@@ -57,7 +57,7 @@ class EditBudget extends EditRecord
      */
     public static function sectionNavItems(): array
     {
-        return BudgetForm::sectionNavItems(includePerformance: true);
+        return BudgetForm::sectionNavItems();
     }
 
     public function sectionNavAriaLabel(): string
