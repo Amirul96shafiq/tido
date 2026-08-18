@@ -2790,6 +2790,7 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 }
 
 .fi-upload-receipts-page [id],
+.fi-ollama-page [id],
 .fi-evolution-api-page [id],
 .fi-service-status-page [id] {
     scroll-margin-top: calc(
@@ -3366,6 +3367,7 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     .fi-layout:has(.fi-payment-method-form-page),
     .fi-layout:has(.fi-family-member-form-page),
     .fi-layout:has(.fi-upload-receipts-page),
+    .fi-layout:has(.fi-ollama-page),
     .fi-layout:has(.fi-evolution-api-page),
     .fi-layout:has(.fi-service-status-page) {
         overflow-x: visible;
