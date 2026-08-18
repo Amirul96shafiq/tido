@@ -46,6 +46,50 @@ test('changelog and database notification slide-overs use the shared custom scro
     expect($blade)->not->toContain('custom-scrollbar');
 });
 
+test('sidebar nav uses page-scroller webkit overlay instead of chromium scrollbar-width', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $chromiumWidthBlock = Str::between(
+        $css,
+        'Database notifications pin header/footer and scroll .fi-modal-content. */',
+        '@supports not selector(::-webkit-scrollbar) {',
+    );
+
+    $firefoxBlock = Str::between(
+        $css,
+        '@supports not selector(::-webkit-scrollbar) {',
+        'html::-webkit-scrollbar,',
+    );
+
+    $webkitWidthBlock = Str::between(
+        $css,
+        'html::-webkit-scrollbar,',
+        '.fi-sidebar-nav::-webkit-scrollbar-button {',
+    );
+
+    $chromiumDarkColorBlock = Str::between(
+        $css,
+        '.fi-ta-content-ctn::-webkit-scrollbar-thumb:hover {',
+        'html.dark::-webkit-scrollbar-thumb,',
+    );
+
+    expect($chromiumWidthBlock)
+        ->toContain('scrollbar-width: thin !important;')
+        ->not->toContain('.fi-sidebar-nav')
+        ->and($firefoxBlock)
+        ->toContain('.fi-sidebar-nav {')
+        ->toContain('.dark .fi-sidebar-nav {')
+        ->toContain('scrollbar-width: thin;')
+        ->and($webkitWidthBlock)
+        ->toContain('.fi-sidebar-nav::-webkit-scrollbar,')
+        ->toContain('width: 6px !important;')
+        ->and($chromiumDarkColorBlock)
+        ->toContain('scrollbar-color: rgba(51, 65, 85, 0.5) transparent !important;')
+        ->not->toContain('.fi-sidebar-nav')
+        ->and($css)
+        ->toContain('.fi-sidebar-nav::-webkit-scrollbar-button {');
+});
+
 test('dashboard renders changelog slide-over shell', function () {
     $user = User::factory()->withWhatsAppPhone('60123456789')->create();
 

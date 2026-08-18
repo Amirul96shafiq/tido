@@ -36,13 +36,12 @@
 }
 
 /* Custom scrollbar — page chrome, reusable class, Filament panels.
- * Do NOT set scrollbar-width/scrollbar-color on the main page scroller in
- * Chromium: those standard props win and suppress ::-webkit-scrollbar-track
- * borders (needed to match the sidebar separator). Firefox gets them via
- * @supports below.
+ * Do NOT set scrollbar-width/scrollbar-color on the main page scroller or
+ * .fi-sidebar-nav in Chromium: those standard props win and suppress
+ * ::-webkit-scrollbar-* (page track border + overlay thumb). Firefox gets
+ * them via @supports below.
  * Changelog slide-over scrolls on .fi-modal-window (Filament overflow-y-auto).
  * Database notifications pin header/footer and scroll .fi-modal-content. */
-.fi-sidebar-nav,
 .custom-scrollbar,
 .fi-dropdown-panel,
 .fi-ta-filters-body,
@@ -59,7 +58,8 @@
     html,
     body,
     .fi-body,
-    .fi-main-ctn {
+    .fi-main-ctn,
+    .fi-sidebar-nav {
         scrollbar-width: thin;
         scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
     }
@@ -67,7 +67,8 @@
     html.dark,
     .dark body,
     .dark .fi-body,
-    .dark .fi-main-ctn {
+    .dark .fi-main-ctn,
+    .dark .fi-sidebar-nav {
         scrollbar-color: rgba(51, 65, 85, 0.5) transparent;
     }
 }
@@ -90,6 +91,12 @@ body::-webkit-scrollbar,
 .fi-ta-content-ctn::-webkit-scrollbar {
     width: 6px !important;
     height: 6px !important;
+}
+
+.fi-sidebar-nav::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 html::-webkit-scrollbar-track,
@@ -180,7 +187,6 @@ body::-webkit-scrollbar-thumb:hover,
     background-color: rgba(156, 163, 175, 0.5) !important;
 }
 
-.dark .fi-sidebar-nav,
 .dark .custom-scrollbar,
 .dark .fi-dropdown-panel,
 .dark .fi-ta-filters-body,
