@@ -44,6 +44,7 @@ class RecurringOccurrenceGenerator
         $horizon = $reference->copy()->addDays(45);
 
         $this->pruneStaleOpenOccurrences($recurring);
+        $this->syncOpenExpectedAmounts($recurring);
 
         while ($recurring->canGenerateMoreOccurrences($reference) && $recurring->next_due_on !== null) {
             $dueOn = $recurring->next_due_on->copy()->startOfDay();
@@ -168,6 +169,14 @@ class RecurringOccurrenceGenerator
         }
 
         return $deleted;
+    }
+
+    public function syncOpenExpectedAmounts(Recurring $recurring): int
+    {
+        return RecurringOccurrence::query()
+            ->where('recurring_id', $recurring->id)
+            ->open()
+            ->update(['expected_amount' => $recurring->expected_amount]);
     }
 
     /**

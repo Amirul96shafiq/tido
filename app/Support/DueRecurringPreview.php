@@ -148,7 +148,7 @@ final class DueRecurringPreview
         $isSkipped = $occurrence->status === RecurringOccurrenceStatus::Skipped;
         $displayAmount = $isCompleted
             ? ($occurrence->actual_amount ?? $occurrence->expected_amount)
-            : $occurrence->expected_amount;
+            : $occurrence->resolvedExpectedAmount();
         $completedAt = $occurrence->expense?->date_time ?? $occurrence->updated_at;
 
         return [

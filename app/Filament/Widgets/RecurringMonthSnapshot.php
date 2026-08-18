@@ -106,7 +106,10 @@ class RecurringMonthSnapshot extends Widget
             ? round(($completedCount / $ringTotal) * 100, 2)
             : 0.0;
 
-        $remainingAmountValue = (float) (clone $openQuery)->sum('expected_amount');
+        $remainingAmountValue = (float) (clone $openQuery)
+            ->with('recurring')
+            ->get()
+            ->sum(fn (RecurringOccurrence $occurrence): float => (float) ($occurrence->resolvedExpectedAmount() ?? 0));
         $paidAmountValue = (float) (clone $completedQuery)->sum(DB::raw('COALESCE(actual_amount, expected_amount)'));
 
         $overdueCount = (clone $query)->where('status', RecurringOccurrenceStatus::Overdue)->count();

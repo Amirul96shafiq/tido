@@ -160,4 +160,18 @@ class RecurringOccurrence extends Model
     {
         return $this->status->isOpen();
     }
+
+    public function resolvedExpectedAmount(): mixed
+    {
+        $this->loadMissing('recurring');
+
+        $snapshot = $this->expected_amount;
+        $template = $this->recurring?->expected_amount;
+
+        if ($template !== null && ($snapshot === null || (float) $snapshot === 0.0)) {
+            return $template;
+        }
+
+        return $snapshot;
+    }
 }

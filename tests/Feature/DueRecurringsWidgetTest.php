@@ -274,14 +274,17 @@ test('due widget shows the next upcoming occurrence when a recurring has no curr
         'household_role' => HouseholdRole::Primary,
     ]));
 
-    $recurring = Recurring::factory()->create(['title' => 'Sample Shared Due Payment 01']);
+    $recurring = Recurring::factory()->shared()->create([
+        'title' => 'Sample Shared Due Payment 01',
+        'expected_amount' => 1.00,
+    ]);
     $nextMonthDueOn = now()->copy()->addMonthNoOverflow()->startOfMonth()->addDays(4);
 
     RecurringOccurrence::factory()->create([
         'recurring_id' => $recurring->id,
         'status' => RecurringOccurrenceStatus::Upcoming,
         'due_on' => $nextMonthDueOn->toDateString(),
-        'expected_amount' => 1.00,
+        'expected_amount' => 0,
     ]);
 
     Livewire::test(DueRecurrings::class)
