@@ -76,33 +76,25 @@
             href="{{ $editUrl }}"
         @endif
         @class([
-            'flex min-w-0 flex-1 items-center justify-between gap-2 rounded-lg sm:gap-4',
+            'min-w-0 flex-1 rounded-lg',
             'focus-visible:ring-primary-500 focus-visible:ring-2 focus-visible:outline-none' => filled($editUrl),
             'opacity-50' => $isSkipped,
         ])
     >
-        <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-            <div class="flex min-w-0 items-center gap-2">
-                <x-tido.text-marquee
-                    class="min-w-0 flex-1"
-                    text-class="inline-flex items-center gap-2 leading-5 whitespace-nowrap"
-                    wire:key="{{ $itemKeyPrefix }}-title-{{ $item['id'] }}"
-                >
-                    <span class="text-sm leading-5 font-semibold text-gray-800 dark:text-gray-200">
-                        {{ $item['title'] }}
-                    </span>
+        <div class="flex min-w-0 w-full flex-col gap-0.5">
+            <x-tido.text-marquee
+                class="min-w-0 w-full"
+                text-class="inline-flex items-center gap-2 leading-5 whitespace-nowrap"
+                wire:key="{{ $itemKeyPrefix }}-title-{{ $item['id'] }}"
+            >
+                <span class="text-sm leading-5 font-semibold text-gray-800 dark:text-gray-200">
+                    {{ $item['title'] }}
+                </span>
 
-                    <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-slate-600 dark:text-slate-100">
-                        {{ $item['cadence'] }}
-                    </span>
-                </x-tido.text-marquee>
-
-                @if ($item['is_shared'] ?? false)
-                    <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-primary-100 px-2 py-0.5 text-[11px] font-medium text-primary-700 dark:bg-primary-400/25 dark:text-primary-300">
-                        Shared
-                    </span>
-                @endif
-            </div>
+                <span class="inline-flex w-fit shrink-0 items-center rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-slate-600 dark:text-slate-100">
+                    {{ $item['cadence'] }}
+                </span>
+            </x-tido.text-marquee>
 
             <x-tido.text-marquee
                 class="min-w-0 w-full"
@@ -134,74 +126,94 @@
                 @endif
             </x-tido.text-marquee>
         </div>
-
-        <span class="shrink-0 text-sm font-bold whitespace-nowrap text-gray-700 tabular-nums dark:text-gray-300">
-            {{ $item['amount'] }}
-        </span>
     </{{ $itemTag }}>
 
     <div
         @if ($interactive)
             wire:sort:ignore
         @endif
-        @class([
-            'shrink-0',
-            'pointer-events-none opacity-50' => ! $interactive,
-        ])
+        class="flex shrink-0 items-center gap-2 sm:gap-3"
     >
-        @if ($isSkipped)
-            <div class="flex items-center gap-2">
-                <div class="opacity-50">
-                    <x-filament::button
-                        size="sm"
-                        color="gray"
-                        disabled
-                    >
-                        Skipped
-                    </x-filament::button>
-                </div>
-                @if ($interactive)
-                    <x-filament::button
-                        size="sm"
-                        color="primary"
-                        wire:click="mountAction('confirmRevertOccurrence', { occurrenceId: {{ $item['id'] }} })"
-                    >
-                        Revert Back
-                    </x-filament::button>
-                @else
-                    <x-filament::button
-                        size="sm"
-                        color="primary"
-                        disabled
-                    >
-                        Revert Back
-                    </x-filament::button>
-                @endif
-            </div>
-        @elseif ($isCompleted)
-            <x-filament::button
-                size="sm"
-                color="gray"
-                disabled
+        @if ($item['is_shared'] ?? false)
+            <span
+                @class([
+                    'inline-flex w-fit shrink-0 items-center rounded-full bg-primary-100 px-2 py-0.5 text-[11px] leading-none font-medium text-primary-700 dark:bg-primary-400/25 dark:text-primary-300',
+                    'opacity-50' => $isSkipped,
+                ])
             >
-                Skip
-            </x-filament::button>
-        @elseif ($interactive)
-            <x-filament::button
-                size="sm"
-                color="gray"
-                wire:click="mountAction('confirmSkipOccurrence', { occurrenceId: {{ $item['id'] }} })"
-            >
-                Skip
-            </x-filament::button>
-        @else
-            <x-filament::button
-                size="sm"
-                color="gray"
-                disabled
-            >
-                Skip
-            </x-filament::button>
+                Shared
+            </span>
         @endif
+
+        <span
+            @class([
+                'shrink-0 text-sm leading-none font-bold whitespace-nowrap text-gray-700 tabular-nums dark:text-gray-300',
+                'opacity-50' => $isSkipped,
+            ])
+        >
+            {{ $item['amount'] }}
+        </span>
+
+        <div
+            @class([
+                'flex items-center',
+                'pointer-events-none opacity-50' => ! $interactive,
+            ])
+        >
+            @if ($isSkipped)
+                <div class="flex items-center gap-2">
+                    <div class="opacity-50">
+                        <x-filament::button
+                            size="sm"
+                            color="gray"
+                            disabled
+                        >
+                            Skipped
+                        </x-filament::button>
+                    </div>
+                    @if ($interactive)
+                        <x-filament::button
+                            size="sm"
+                            color="primary"
+                            wire:click="mountAction('confirmRevertOccurrence', { occurrenceId: {{ $item['id'] }} })"
+                        >
+                            Revert Back
+                        </x-filament::button>
+                    @else
+                        <x-filament::button
+                            size="sm"
+                            color="primary"
+                            disabled
+                        >
+                            Revert Back
+                        </x-filament::button>
+                    @endif
+                </div>
+            @elseif ($isCompleted)
+                <x-filament::button
+                    size="sm"
+                    color="gray"
+                    disabled
+                >
+                    Skip
+                </x-filament::button>
+            @elseif ($interactive)
+                <x-filament::button
+                    size="sm"
+                    color="gray"
+                    wire:click="mountAction('confirmSkipOccurrence', { occurrenceId: {{ $item['id'] }} })"
+                >
+                    Skip
+                </x-filament::button>
+            @else
+                <x-filament::button
+                    size="sm"
+                    color="gray"
+                    disabled
+                >
+                    Skip
+                </x-filament::button>
+            @endif
+        </div>
     </div>
 </div>

@@ -330,9 +330,9 @@ test('due recurrings widget uses payment-card two-zone layout', function () {
         ->assertSeeInOrder([
             'Netflix Family',
             'Monthly',
-            'Shared',
             'Due '.$dueOn->format('d M Y'),
             'Subscription',
+            'Shared',
             'RM 55.00',
             'Skip',
         ])
@@ -344,11 +344,12 @@ test('due recurrings widget uses payment-card two-zone layout', function () {
         ->assertSee('x-ref="marqueeTrack"', false)
         ->assertSee('tido-text-marquee-clip', false)
         ->assertSee('tido-text-marquee-track', false)
-        ->assertSee('flex min-w-0 flex-1 flex-col gap-0.5', false)
+        ->assertSee('flex min-w-0 w-full flex-col gap-0.5', false)
         ->assertSee('leading-5', false)
         ->assertSee('text-xs leading-4', false)
-        ->assertSee('flex min-w-0 flex-1 items-center justify-between gap-2', false)
-        ->assertSee('sm:gap-4', false)
+        ->assertSee('flex shrink-0 items-center gap-2 sm:gap-3', false)
+        ->assertSee('text-[11px] leading-none', false)
+        ->assertSee('text-sm leading-none font-bold', false)
         ->assertSee('fi-avatar', false)
         ->assertDontSee('x-ref="marqueeText"', false)
         ->assertDontSee('flex min-w-0 flex-wrap items-center gap-x-1.5', false)

@@ -80,8 +80,14 @@ test('create recurring due preview shows shared badge from live ownership', func
             'expected_amount' => 55.00,
             'responsibility' => 'household_shared',
         ])
-        ->assertSee('Netflix')
-        ->assertSee('Shared');
+        ->assertSeeInOrder([
+            'Netflix',
+            'Shared',
+            'RM 55.00',
+            'Skip',
+        ])
+        ->assertSee('flex shrink-0 items-center gap-2 sm:gap-3', false)
+        ->assertSee('text-[11px] leading-none', false);
 });
 
 test('edit recurring page shows due preview matching the widget row', function () {
