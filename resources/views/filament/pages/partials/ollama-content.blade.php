@@ -79,7 +79,7 @@
 
                                 <dl class="rounded-xl border border-gray-200 px-4 py-3 dark:border-slate-700">
                                     <div class="flex flex-row items-baseline justify-between gap-3">
-                                        <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Model</dt>
+                                        <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Model used</dt>
                                         <dd class="min-w-0 truncate text-right font-mono text-gray-950 dark:text-white">
                                             {{ $activeModelName }}
                                         </dd>
