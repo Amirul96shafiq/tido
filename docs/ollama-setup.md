@@ -5,7 +5,7 @@ Run Ollama on the Windows host so tido can parse receipt images and rendered PDF
 ## Primary setup path (Filament wizard)
 
 1. Install [Ollama for Windows](https://ollama.com/download) on the same PC as tido.
-2. Open Filament → **Integrations → Ollama** → **Configure**.
+2. Open Filament → **Integrations → AI Parsing Engine → Ollama (Local)** → **Configure**.
 3. tido auto-detects Ollama. If no models are installed, run `ollama pull qwen2.5vl:7b` in a terminal, then **I've pulled — Recheck**. Pick the active model, auto-detect Poppler paths, run a test extraction, and **Save settings**.
 
 Saved settings live in the `ollama_settings` database table. `.env` values remain fallbacks for fresh installs, CI, and sandbox.
@@ -90,7 +90,7 @@ After changing env values, restart `npm run dev:full` (or clear config cache if 
 
 WhatsApp PDF receipts are stored as the original PDF and rendered page-by-page before Ollama extraction. The queue worker uses Poppler’s `pdfinfo` to inspect the page count, `pdftotext` to read embedded currency evidence when available, and `pdftocairo` to render JPEG pages. Multi-page results are extracted as page-level JSON and merged before the normal expense normalization step.
 
-Install a Windows Poppler distribution that includes the executables ([prebuilt Windows binaries](https://github.com/oschwartz10612/poppler-windows/releases/latest)), then set absolute paths in `.env` or in Filament → **Integrations → Ollama → Configure**:
+Install a Windows Poppler distribution that includes the executables ([prebuilt Windows binaries](https://github.com/oschwartz10612/poppler-windows/releases/latest)), then set absolute paths in `.env` or in Filament → **Integrations → AI Parsing Engine → Ollama (Local) → Configure**:
 
 ```env
 PDF_MAX_BYTES=10485760

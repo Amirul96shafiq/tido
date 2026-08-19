@@ -7,9 +7,12 @@ namespace App\Filament\GlobalSearch;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\EvolutionApiPage;
+use App\Filament\Pages\GeminiPage;
 use App\Filament\Pages\OllamaPage;
+use App\Filament\Pages\OpenAiPage;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Pages\ServiceStatusPage;
+use App\Filament\Pages\WhatsAppOfficialApiPage;
 use App\Filament\Resources\Backups\BackupResource;
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Resources\Expenses\ExpenseResource;
@@ -36,6 +39,9 @@ final class AdminDestinationSearch
         $dashboardUrl = Dashboard::getUrl();
         $evolutionUrl = EvolutionApiPage::getUrl();
         $ollamaUrl = OllamaPage::getUrl();
+        $geminiUrl = GeminiPage::getUrl();
+        $openAiUrl = OpenAiPage::getUrl();
+        $officialApiUrl = WhatsAppOfficialApiPage::getUrl();
         $serviceStatusUrl = ServiceStatusPage::getUrl();
         $uploadUrl = ReceiptUploadPage::getUrl();
 
@@ -200,16 +206,34 @@ final class AdminDestinationSearch
                 'url' => BackupResource::getUrl('index'),
             ],
             [
-                'title' => 'Ollama',
-                'keywords' => ['ollama', 'ai', 'model', 'ocr', 'vision', 'integration', 'llm'],
+                'title' => 'Ollama (Local)',
+                'keywords' => ['ollama', 'ai', 'model', 'ocr', 'vision', 'integration', 'llm', 'local', 'parsing'],
                 'group' => 'Pages',
                 'url' => $ollamaUrl,
+            ],
+            [
+                'title' => 'Gemini',
+                'keywords' => ['gemini', 'google', 'ai', 'parsing', 'coming soon', 'integration'],
+                'group' => 'Pages',
+                'url' => $geminiUrl,
+            ],
+            [
+                'title' => 'OpenAI',
+                'keywords' => ['openai', 'gpt', 'ai', 'parsing', 'coming soon', 'integration'],
+                'group' => 'Pages',
+                'url' => $openAiUrl,
             ],
             [
                 'title' => 'Evolution API',
                 'keywords' => ['evolution', 'evolutionapi', 'whatsapp', 'integration', 'qr', 'webhook'],
                 'group' => 'Pages',
                 'url' => $evolutionUrl,
+            ],
+            [
+                'title' => 'Official API',
+                'keywords' => ['official', 'api', 'whatsapp', 'coming soon', 'integration', 'cloud'],
+                'group' => 'Pages',
+                'url' => $officialApiUrl,
             ],
             [
                 'title' => 'Service Status',
@@ -312,21 +336,21 @@ final class AdminDestinationSearch
                 'keywords' => ['ollama', 'status', 'connection', 'latency', 'ai', 'model', 'models', 'installed', 'vision', 'llm', 'integration', 'configure', 'defaults'],
                 'group' => 'Sections',
                 'url' => $ollamaUrl.'#ollama-status',
-                'details' => ['Page' => 'Ollama'],
+                'details' => ['Page' => 'Ollama (Local)'],
             ],
             [
                 'title' => 'Ollama Pipeline Readiness',
                 'keywords' => ['ollama', 'pipeline', 'readiness', 'receipt', 'pdf', 'json', 'integration'],
                 'group' => 'Sections',
                 'url' => $ollamaUrl.'#ollama-pipeline',
-                'details' => ['Page' => 'Ollama'],
+                'details' => ['Page' => 'Ollama (Local)'],
             ],
             [
                 'title' => 'Ollama Receipt & Parsing Activity',
                 'keywords' => ['ollama', 'activity', 'receipts', 'parsed', 'reviewed', 'manual review', 'pdf'],
                 'group' => 'Sections',
                 'url' => $ollamaUrl.'#ollama-activity',
-                'details' => ['Page' => 'Ollama'],
+                'details' => ['Page' => 'Ollama (Local)'],
             ],
             [
                 'title' => 'Summary report',
@@ -364,12 +388,15 @@ final class AdminDestinationSearch
                 'Labels',
                 'Payment Methods',
                 'Backups',
-                'Ollama',
+                'Ollama (Local)',
                 'Ollama Setup',
                 'Ollama Status',
                 'Ollama Pipeline Readiness',
                 'Ollama Receipt & Parsing Activity',
+                'Gemini',
+                'OpenAI',
                 'Evolution API',
+                'Official API',
                 'Service Status',
                 'Danger Zone',
                 'Account & Security',

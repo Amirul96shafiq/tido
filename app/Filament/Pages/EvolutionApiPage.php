@@ -6,11 +6,14 @@ namespace App\Filament\Pages;
 
 use App\Enums\EvolutionApiConnectionEvent;
 use App\Enums\EvolutionApiConnectMethod;
+use App\Enums\MonitoredService;
 use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
+use App\Filament\Support\IntegrationHealthBadge;
+use App\Filament\Support\IntegrationNavigation;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
 use App\Models\EvolutionApiConnectionLog;
 use App\Models\User;
@@ -51,11 +54,23 @@ class EvolutionApiPage extends Page implements HasTable
 
     protected static ?string $navigationLabel = 'Evolution API';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Integrations';
+    protected static ?string $navigationParentItem = IntegrationNavigation::WHATSAPP;
+
+    protected static string|\UnitEnum|null $navigationGroup = IntegrationNavigation::GROUP;
 
     protected static ?string $title = 'Evolution API';
 
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 10;
+
+    public static function getNavigationBadge(): ?string
+    {
+        return IntegrationHealthBadge::label(MonitoredService::Evolution);
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return IntegrationHealthBadge::color(MonitoredService::Evolution);
+    }
 
     public string $connectionStatus = 'unknown';
 
@@ -149,79 +164,92 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function refreshStatus(bool $allowConnectSideEffects = true): void
     {
-        $evolution = app(EvolutionInstanceService::class);
-        $wasOpen = $this->isConnectionOpen();
+        try {
+            $evolution = app(EvolutionInstanceService::class);
+            $wasOpen = $this->isConnectionOpen();
 
-        if (! $evolution->isConfigured()) {
-            $this->connectionStatus = 'unconfigured';
-            $this->statusMessage = 'Set EVOLUTION_API_URL, EVOLUTION_API_KEY, and EVOLUTION_WEBHOOK_SECRET in .env with distinct 32+ character values, then start Evolution.';
+            if (! $evolution->isConfigured()) {
+                $this->connectionStatus = 'unconfigured';
+                $this->statusMessage = 'Set EVOLUTION_API_URL, EVOLUTION_API_KEY, and EVOLUTION_WEBHOOK_SECRET in .env with distinct 32+ character values, then start Evolution.';
 
-            return;
-        }
-
-        $state = $evolution->connectionState();
-        $this->connectionStatus = $state['status'];
-        $this->statusMessage = $state['message'];
-
-        if ($this->isConnectionOpen()) {
-            $this->clearConnectDisplay();
-            $this->statusMessage = 'Evolution API is connected.';
-            $this->loadConnectedInstanceDetails($evolution);
-            $this->syncWebhookRegistrationStatus($evolution);
-
-            if ($this->connectedNumber !== null) {
-                $this->lastConnectedNumber = $this->connectedNumber;
+                return;
             }
 
-            if ($allowConnectSideEffects && ! $wasOpen) {
-                $this->handleSuccessfulConnect();
+            $state = $evolution->connectionState();
+            $this->connectionStatus = $state['status'];
+            $this->statusMessage = $state['message'];
+
+            if ($this->isConnectionOpen()) {
+                $this->clearConnectDisplay();
+                $this->statusMessage = 'Evolution API is connected.';
+                $this->loadConnectedInstanceDetails($evolution);
+                $this->syncWebhookRegistrationStatus($evolution);
+
+                if ($this->connectedNumber !== null) {
+                    $this->lastConnectedNumber = $this->connectedNumber;
+                }
+
+                if ($allowConnectSideEffects && ! $wasOpen) {
+                    $this->handleSuccessfulConnect();
+                }
+
+                return;
             }
 
-            return;
-        }
+            $previousNumber = $this->connectedNumber;
+            $previousProfile = $this->connectedProfileName;
+            $previousInstanceId = $this->connectedInstanceId;
 
-        $previousNumber = $this->connectedNumber;
-        $previousProfile = $this->connectedProfileName;
-        $previousInstanceId = $this->connectedInstanceId;
+            $this->clearConnectedInstanceDetails();
 
-        $this->clearConnectedInstanceDetails();
+            if ($previousNumber !== null) {
+                $this->lastConnectedNumber = $previousNumber;
+            }
 
-        if ($previousNumber !== null) {
-            $this->lastConnectedNumber = $previousNumber;
-        }
+            if ($allowConnectSideEffects && $wasOpen && $this->isConnectionClosed()) {
+                $this->welcomePingSent = false;
+                $this->webhookRegistered = false;
+                $this->pendingConnectMethod = null;
 
-        if ($allowConnectSideEffects && $wasOpen && $this->isConnectionClosed()) {
-            $this->welcomePingSent = false;
-            $this->webhookRegistered = false;
-            $this->pendingConnectMethod = null;
+                $this->logConnectionEvent(EvolutionApiConnectionEvent::Disconnected, [
+                    'status' => $this->connectionStatus,
+                    'connected_number' => $previousNumber,
+                    'profile_name' => $previousProfile,
+                    'meta' => [
+                        'source' => 'page',
+                        'instance_id' => $previousInstanceId,
+                    ],
+                ]);
+                $this->sendDisconnectedDatabaseNotification();
+            }
 
-            $this->logConnectionEvent(EvolutionApiConnectionEvent::Disconnected, [
-                'status' => $this->connectionStatus,
-                'connected_number' => $previousNumber,
-                'profile_name' => $previousProfile,
-                'meta' => [
-                    'source' => 'page',
-                    'instance_id' => $previousInstanceId,
-                ],
-            ]);
-            $this->sendDisconnectedDatabaseNotification();
-        }
+            // While a pairing code is on screen, only connectionState (above) may run.
+            // Calling /connect during entry can race Evolution's companion_hello and
+            // invalidate the code WhatsApp is validating.
+            if (strtolower($this->connectionStatus) === 'connecting' && $this->qrBase64 !== null && $this->pairingCode === null) {
+                $this->syncQrFromEvolution($allowConnectSideEffects);
+            }
 
-        // While a pairing code is on screen, only connectionState (above) may run.
-        // Calling /connect during entry can race Evolution's companion_hello and
-        // invalidate the code WhatsApp is validating.
-        if (strtolower($this->connectionStatus) === 'connecting' && $this->qrBase64 !== null && $this->pairingCode === null) {
-            $this->syncQrFromEvolution($allowConnectSideEffects);
-        }
+            // Once the on-screen code expires it is already dead, so it is safe to pull
+            // the code Evolution rotated server-side — no logout, same session/creds.
+            if (
+                strtolower($this->connectionStatus) === 'connecting'
+                && $this->pairingCode !== null
+                && $this->pairingSecondsRemaining() <= 0
+            ) {
+                $this->syncPairingCodeFromEvolution($allowConnectSideEffects);
+            }
+        } finally {
+            $wrote = IntegrationHealthBadge::syncFromLiveStatus(
+                MonitoredService::Evolution,
+                $this->connectionStatus,
+                null,
+                $this->statusMessage,
+            );
 
-        // Once the on-screen code expires it is already dead, so it is safe to pull
-        // the code Evolution rotated server-side — no logout, same session/creds.
-        if (
-            strtolower($this->connectionStatus) === 'connecting'
-            && $this->pairingCode !== null
-            && $this->pairingSecondsRemaining() <= 0
-        ) {
-            $this->syncPairingCodeFromEvolution($allowConnectSideEffects);
+            if ($wrote) {
+                $this->dispatch('refresh-sidebar');
+            }
         }
     }
 

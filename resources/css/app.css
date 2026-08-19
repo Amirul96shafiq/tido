@@ -112,8 +112,11 @@ body::-webkit-scrollbar-track,
 .fi-dropdown-panel::-webkit-scrollbar-track,
 .fi-ta-filters-body::-webkit-scrollbar-track,
 .fi-ta-col-manager-body::-webkit-scrollbar-track,
-.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-track,
-.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn::-webkit-scrollbar-track,
+.fi-modal-slide-over
+    .fi-modal-window-ctn
+    > .fi-modal-window::-webkit-scrollbar-track,
+.fi-modal:not(.fi-modal-slide-over)
+    > .fi-modal-window-ctn::-webkit-scrollbar-track,
 .fi-no-database
     .fi-modal-window-ctn
     > .fi-modal-window
@@ -160,8 +163,11 @@ body::-webkit-scrollbar-thumb,
 .fi-dropdown-panel::-webkit-scrollbar-thumb,
 .fi-ta-filters-body::-webkit-scrollbar-thumb,
 .fi-ta-col-manager-body::-webkit-scrollbar-thumb,
-.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,
-.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn::-webkit-scrollbar-thumb,
+.fi-modal-slide-over
+    .fi-modal-window-ctn
+    > .fi-modal-window::-webkit-scrollbar-thumb,
+.fi-modal:not(.fi-modal-slide-over)
+    > .fi-modal-window-ctn::-webkit-scrollbar-thumb,
 .fi-no-database
     .fi-modal-window-ctn
     > .fi-modal-window
@@ -184,7 +190,8 @@ body::-webkit-scrollbar-thumb:hover,
 .fi-modal-slide-over
     .fi-modal-window-ctn
     > .fi-modal-window::-webkit-scrollbar-thumb:hover,
-.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn::-webkit-scrollbar-thumb:hover,
+.fi-modal:not(.fi-modal-slide-over)
+    > .fi-modal-window-ctn::-webkit-scrollbar-thumb:hover,
 .fi-no-database
     .fi-modal-window-ctn
     > .fi-modal-window
@@ -1350,7 +1357,9 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
     border-radius: var(--radius-lg, 0.5rem);
     border: 1px solid transparent;
     cursor: pointer;
-    transition: background-color 150ms ease, border-color 150ms ease;
+    transition:
+        background-color 150ms ease,
+        border-color 150ms ease;
     background: transparent;
     color: var(--gray-700);
     font-size: 0.8125rem;
@@ -1536,11 +1545,7 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 }
 
 .dark .fi-account-switcher-section {
-    border-color: color-mix(
-        in srgb,
-        var(--color-slate-700) 60%,
-        transparent
-    );
+    border-color: color-mix(in srgb, var(--color-slate-700) 60%, transparent);
 }
 
 /* Compact empty state for the narrow user-menu account switcher. */
@@ -1605,11 +1610,7 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 }
 
 .dark .fi-account-switcher-expanded {
-    border-color: color-mix(
-        in srgb,
-        var(--color-slate-700) 60%,
-        transparent
-    );
+    border-color: color-mix(in srgb, var(--color-slate-700) 60%, transparent);
     background-color: var(--color-gray-900);
 }
 
@@ -1713,7 +1714,11 @@ html:not(.dark) .tido-auth-login-toast-modal-panel {
 }
 
 .dark .fi-account-switcher-account-chevron {
-    background-color: color-mix(in oklab, var(--color-slate-700) 60%, transparent);
+    background-color: color-mix(
+        in oklab,
+        var(--color-slate-700) 60%,
+        transparent
+    );
     color: var(--color-slate-300);
 }
 
@@ -2381,6 +2386,16 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
         transition: width var(--tido-sidebar-duration) var(--tido-sidebar-ease) !important;
     }
 
+    /*
+     * Clip only while the width morph runs. Idle overflow:visible lets item
+     * flyouts (portaled to .fi-sidebar, outside .fi-sidebar-nav) paint over
+     * .fi-main-ctn. overflow-x:hidden otherwise clips the submenu.
+     */
+    .fi-body-has-sidebar-collapsible-on-desktop
+        .fi-sidebar:not(.fi-sidebar-animating) {
+        overflow: visible;
+    }
+
     .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar.fi-sidebar-open {
         width: var(--sidebar-width, 18rem) !important;
     }
@@ -2631,21 +2646,142 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
 }
 
+.fi-sidebar-item.fi-sidebar-item-has-children:not(.fi-active)
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn:hover {
+    background-color: var(--gray-50);
+}
+
+.dark
+    .fi-sidebar-item.fi-sidebar-item-has-children:not(.fi-active)
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn:hover {
+    background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
+}
+
 .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
-.fi-sidebar-item.fi-active > .fi-sidebar-item-btn:hover {
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn:hover,
+.fi-sidebar-item.fi-active
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn,
+.fi-sidebar-item.fi-active
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn:hover {
     background-color: var(--gray-50);
     color: var(--primary-500);
 }
 
 .dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
-.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn:hover {
+.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn:hover,
+.dark
+    .fi-sidebar-item.fi-active
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn,
+.dark
+    .fi-sidebar-item.fi-active
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn:hover {
     background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
     color: var(--primary-400);
 }
 
 .fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-icon,
-.fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-sidebar-item-label {
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-sidebar-item-label,
+.fi-sidebar-item.fi-active
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn
+    > .fi-icon,
+.fi-sidebar-item.fi-active
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn
+    > .fi-sidebar-item-label {
     color: inherit;
+}
+
+.tido-sidebar-flyout-panel .fi-dropdown-list-item.fi-active,
+.fi-sidebar-item-flyout .fi-dropdown-list-item.fi-active {
+    background-color: var(--gray-50);
+    color: var(--primary-500);
+}
+
+.dark .tido-sidebar-flyout-panel .fi-dropdown-list-item.fi-active,
+.dark .fi-sidebar-item-flyout .fi-dropdown-list-item.fi-active {
+    background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
+    color: var(--primary-400);
+}
+
+.tido-sidebar-flyout-panel .fi-dropdown-list-item.fi-active > .fi-icon,
+.tido-sidebar-flyout-panel
+    .fi-dropdown-list-item.fi-active
+    .fi-dropdown-list-item-label,
+.fi-sidebar-item-flyout .fi-dropdown-list-item.fi-active > .fi-icon,
+.fi-sidebar-item-flyout
+    .fi-dropdown-list-item.fi-active
+    .fi-dropdown-list-item-label {
+    color: inherit;
+}
+
+@media (max-width: 1023px) {
+    .tido-sidebar-flyout-panel {
+        max-width: min(14rem, calc(100vw - 1rem)) !important;
+        z-index: 60;
+    }
+}
+
+.fi-sidebar-item-flyout {
+    width: 100%;
+}
+
+.fi-sidebar-item-flyout > .fi-dropdown-trigger {
+    width: 100%;
+}
+
+.fi-sidebar-item-flyout .fi-sidebar-item-btn {
+    width: 100%;
+    /* Buttons default to text-align: center; keep labels flush with the icon. */
+    justify-content: flex-start;
+    text-align: start;
+}
+
+.fi-sidebar-item-flyout .fi-sidebar-item-label {
+    text-align: start;
+}
+
+.fi-sidebar-item-flyout-chevron {
+    margin-inline-start: auto;
+    flex-shrink: 0;
+}
+
+/*
+ * Filament `success` is orange in tido. Remap Active integration flyout
+ * pills to emerald so they match Service Status operational, not gold CTAs.
+ */
+.tido-sidebar-flyout-panel .fi-dropdown-list-item .fi-badge.fi-color-success,
+.fi-sidebar-item-flyout .fi-dropdown-list-item .fi-badge.fi-color-success {
+    background-color: color-mix(in srgb, var(--color-emerald-500) 12%, transparent);
+    color: var(--color-emerald-700);
+    box-shadow: inset 0 0 0 1px
+        color-mix(in srgb, var(--color-emerald-500) 55%, transparent);
+}
+
+.dark .tido-sidebar-flyout-panel .fi-dropdown-list-item .fi-badge.fi-color-success,
+.dark .fi-sidebar-item-flyout .fi-dropdown-list-item .fi-badge.fi-color-success {
+    background-color: color-mix(in srgb, var(--color-emerald-500) 14%, transparent);
+    color: var(--color-emerald-400);
+    box-shadow: inset 0 0 0 1px
+        color-mix(in srgb, var(--color-emerald-400) 45%, transparent);
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-flyout-chevron {
+    display: none;
 }
 
 .fi-sidebar-item-btn {
@@ -3060,7 +3196,10 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     overflow: visible;
 }
 
-.fi-profile-page .fi-profile-toggle-field .fi-fo-field-content-col > .fi-toggle {
+.fi-profile-page
+    .fi-profile-toggle-field
+    .fi-fo-field-content-col
+    > .fi-toggle {
     flex-shrink: 0;
     align-self: start;
 }
@@ -3229,7 +3368,9 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 
 .fi-character-count.fi-character-count-at-limit,
 .fi-sc-text.fi-character-count-at-limit,
-.fi-has-character-count .fi-input-wrp-suffix:has(.fi-character-count-at-limit) .fi-input-wrp-label {
+.fi-has-character-count
+    .fi-input-wrp-suffix:has(.fi-character-count-at-limit)
+    .fi-input-wrp-label {
     @apply text-danger-600 dark:text-danger-400;
 }
 
@@ -3257,7 +3398,8 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     position: relative;
 }
 
-.fi-fo-field-content-col:has(.fi-notes-rich-editor) > :last-child:has(.fi-character-count) {
+.fi-fo-field-content-col:has(.fi-notes-rich-editor)
+    > :last-child:has(.fi-character-count) {
     height: 0;
     margin: 0;
     padding: 0;
@@ -3850,7 +3992,9 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 }
 
 /* Hide the duplicate segment until the track is actually overflowing. */
-.tido-text-marquee-track:not(.is-overflowing) .tido-text-marquee-segment + .tido-text-marquee-segment {
+.tido-text-marquee-track:not(.is-overflowing)
+    .tido-text-marquee-segment
+    + .tido-text-marquee-segment {
     display: none;
 }
 
@@ -4153,8 +4297,12 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 
 .tido-dashboard-page .fi-wi-due-recurrings,
 .tido-dashboard-page .fi-wi-due-recurrings > .fi-section,
-.tido-dashboard-page .fi-wi-due-recurrings > .fi-section > .fi-section-content-ctn,
-.tido-dashboard-page .fi-wi-due-recurrings
+.tido-dashboard-page
+    .fi-wi-due-recurrings
+    > .fi-section
+    > .fi-section-content-ctn,
+.tido-dashboard-page
+    .fi-wi-due-recurrings
     > .fi-section
     > .fi-section-content-ctn
     > .fi-section-content {
@@ -4166,8 +4314,12 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 /* Keep the currency card filled to the height of the four-card overview column. */
 .tido-dashboard-page #currency-rate.fi-wi-current-currency,
 .tido-dashboard-page #currency-rate.fi-wi-current-currency > .fi-section,
-.tido-dashboard-page #currency-rate.fi-wi-current-currency > .fi-section > .fi-section-content-ctn,
-.tido-dashboard-page #currency-rate.fi-wi-current-currency
+.tido-dashboard-page
+    #currency-rate.fi-wi-current-currency
+    > .fi-section
+    > .fi-section-content-ctn,
+.tido-dashboard-page
+    #currency-rate.fi-wi-current-currency
     > .fi-section
     > .fi-section-content-ctn
     > .fi-section-content {
@@ -4180,7 +4332,8 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     overflow: hidden;
 }
 
-.tido-dashboard-page #currency-rate.fi-wi-current-currency
+.tido-dashboard-page
+    #currency-rate.fi-wi-current-currency
     > .fi-section
     > .fi-section-content-ctn
     > .fi-section-content {
@@ -4215,7 +4368,9 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     height: 100%;
 }
 
-.tido-dashboard-page .fi-section:has(.fi-wi-stats-overview-stat[id]) > .fi-section-content-ctn,
+.tido-dashboard-page
+    .fi-section:has(.fi-wi-stats-overview-stat[id])
+    > .fi-section-content-ctn,
 .tido-dashboard-page
     .fi-section:has(.fi-wi-stats-overview-stat[id])
     > .fi-section-content-ctn
@@ -4257,11 +4412,17 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     height: 3.5rem;
 }
 
-.tido-dashboard-page #currency-rate .fi-wi-currency-rate-sparkline .fi-wi-stats-overview-stat-chart-bg-color {
+.tido-dashboard-page
+    #currency-rate
+    .fi-wi-currency-rate-sparkline
+    .fi-wi-stats-overview-stat-chart-bg-color {
     @apply text-primary-50 dark:text-primary-400/10;
 }
 
-.tido-dashboard-page #currency-rate .fi-wi-currency-rate-sparkline .fi-wi-stats-overview-stat-chart-border-color {
+.tido-dashboard-page
+    #currency-rate
+    .fi-wi-currency-rate-sparkline
+    .fi-wi-stats-overview-stat-chart-border-color {
     @apply text-primary-500 dark:text-primary-400;
 }
 
@@ -4281,11 +4442,15 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     height: 1.5rem;
 }
 
-#ollama-activity .fi-ollama-activity-sparkline .fi-wi-stats-overview-stat-chart-bg-color {
+#ollama-activity
+    .fi-ollama-activity-sparkline
+    .fi-wi-stats-overview-stat-chart-bg-color {
     @apply text-primary-50 dark:text-primary-400/10;
 }
 
-#ollama-activity .fi-ollama-activity-sparkline .fi-wi-stats-overview-stat-chart-border-color {
+#ollama-activity
+    .fi-ollama-activity-sparkline
+    .fi-wi-stats-overview-stat-chart-border-color {
     @apply text-primary-500 dark:text-primary-400;
 }
 
@@ -4328,16 +4493,16 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     @apply text-sm leading-6 text-gray-500 dark:text-gray-400;
 }
 
-.fi-modal[id='ollama-config-details'] .fi-modal-window-ctn > .fi-modal-window,
-.fi-modal[id='ollama-supported-tasks'] .fi-modal-window-ctn > .fi-modal-window {
+.fi-modal[id="ollama-config-details"] .fi-modal-window-ctn > .fi-modal-window,
+.fi-modal[id="ollama-supported-tasks"] .fi-modal-window-ctn > .fi-modal-window {
     overflow-x: hidden;
 }
 
-.fi-modal[id='ollama-config-details']
+.fi-modal[id="ollama-config-details"]
     .fi-modal-window-ctn
     > .fi-modal-window
     .fi-modal-content,
-.fi-modal[id='ollama-supported-tasks']
+.fi-modal[id="ollama-supported-tasks"]
     .fi-modal-window-ctn
     > .fi-modal-window
     .fi-modal-content {
@@ -4358,7 +4523,9 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 .tido-dashboard-page #currency-rate .fi-wi-current-currency-surface,
 .tido-dashboard-page #currency-rate .fi-wi-current-currency-surface:hover,
 .tido-dashboard-page #currency-rate .fi-wi-current-currency-surface:focus,
-.tido-dashboard-page #currency-rate .fi-wi-current-currency-surface:focus-within {
+.tido-dashboard-page
+    #currency-rate
+    .fi-wi-current-currency-surface:focus-within {
     border-style: solid !important;
     border-width: 1px !important;
     border-color: var(--tido-border-color) !important;
@@ -4367,13 +4534,22 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     box-shadow: none !important;
 }
 
-.tido-dashboard-page #currency-rate .fi-wi-current-currency-converter input[type='number'] {
+.tido-dashboard-page
+    #currency-rate
+    .fi-wi-current-currency-converter
+    input[type="number"] {
     appearance: textfield;
     -moz-appearance: textfield;
 }
 
-.tido-dashboard-page #currency-rate .fi-wi-current-currency-converter input[type='number']::-webkit-inner-spin-button,
-.tido-dashboard-page #currency-rate .fi-wi-current-currency-converter input[type='number']::-webkit-outer-spin-button {
+.tido-dashboard-page
+    #currency-rate
+    .fi-wi-current-currency-converter
+    input[type="number"]::-webkit-inner-spin-button,
+.tido-dashboard-page
+    #currency-rate
+    .fi-wi-current-currency-converter
+    input[type="number"]::-webkit-outer-spin-button {
     appearance: none;
     margin: 0;
 }
@@ -4430,7 +4606,12 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     z-index: 5;
 }
 
-.fi-profile-page #active-sessions .fi-ta-table > thead > tr > .fi-ta-actions-header-cell,
+.fi-profile-page
+    #active-sessions
+    .fi-ta-table
+    > thead
+    > tr
+    > .fi-ta-actions-header-cell,
 .fi-profile-page
     #active-sessions
     .fi-ta-table
@@ -4473,7 +4654,7 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 .fi-ta-table > thead > tr > .fi-ta-actions-header-cell::before,
 .fi-ta-table > thead > tr > th.fi-ta-header-cell.fi-align-end::before,
 .fi-ta-table > tbody > tr > td.fi-ta-cell:has(.fi-ta-actions)::before {
-    content: '';
+    content: "";
     position: absolute;
     inset-block: 0;
     inset-inline-start: 0;
@@ -4776,7 +4957,8 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 
 /* Personalize previews are illustrative surfaces, so their neutral borders and rings stay static on hover. */
 .tido-preview-static,
-.tido-preview-static :is(
+.tido-preview-static
+    :is(
         [class~="border-gray-100"],
         [class~="border-gray-200"],
         [class~="border-gray-300"],
@@ -4796,7 +4978,8 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     box-shadow: none !important;
 }
 
-.tido-preview-static :is(
+.tido-preview-static
+    :is(
         [class~="ring-gray-950/5"],
         [class~="ring-gray-950/10"],
         [class~="ring-gray-950/20"],

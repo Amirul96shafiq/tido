@@ -12,7 +12,11 @@ use Illuminate\Contracts\Support\Htmlable;
 /**
  * Prepends a Home crumb linking to the panel Dashboard.
  *
+ * Sidebar parent labels (for example WhatsApp under Integrations) are inserted
+ * as unlinked crumbs — they are not pages.
+ *
  * Example: Home > Expenses > List
+ * Example: Home > WhatsApp > Evolution API
  */
 trait PrependsHomeBreadcrumb
 {
@@ -41,8 +45,18 @@ trait PrependsHomeBreadcrumb
             return $breadcrumbs === [] ? ['Home'] : $breadcrumbs;
         }
 
-        return [
+        $crumbs = [
             Dashboard::getUrl() => 'Home',
+        ];
+
+        $parentItem = static::getNavigationParentItem();
+
+        if (is_string($parentItem) && filled($parentItem)) {
+            $crumbs[] = $parentItem;
+        }
+
+        return [
+            ...$crumbs,
             ...$breadcrumbs,
         ];
     }
