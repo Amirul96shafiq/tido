@@ -269,6 +269,47 @@ class AdminPanelProvider extends PanelProvider
                                     }
                                 };
 
+                                var pathMatches = function (href, currentPath, homePath) {
+                                    if (! href) {
+                                        return false;
+                                    }
+                                    var hrefPath = normalizePath(href);
+                                    if (hrefPath === homePath) {
+                                        return currentPath === homePath;
+                                    }
+                                    return currentPath === hrefPath || currentPath.indexOf(hrefPath + '/') === 0;
+                                };
+
+                                var syncSidebarFlyoutParents = function (sidebar, currentPath, homePath) {
+                                    sidebar.querySelectorAll('.fi-sidebar-item.fi-sidebar-item-has-children').forEach(function (item) {
+                                        var pathAttr = item.getAttribute('data-tido-child-paths') || '';
+                                        var paths = pathAttr.split(/\s+/).filter(Boolean);
+                                        var anyChildCurrent = paths.some(function (path) {
+                                            return pathMatches(path, currentPath, homePath);
+                                        });
+
+                                        var flyoutId = item.getAttribute('data-tido-flyout-id');
+                                        var links = Array.from(item.querySelectorAll('a[href]'));
+                                        if (flyoutId) {
+                                            sidebar.querySelectorAll('.tido-sidebar-flyout-panel[data-tido-flyout-id="' + flyoutId + '"] a[href]').forEach(function (link) {
+                                                links.push(link);
+                                            });
+                                        }
+                                        links.forEach(function (link) {
+                                            var isCurrent = pathMatches(link.getAttribute('href'), currentPath, homePath);
+                                            link.classList.toggle('fi-active', isCurrent);
+                                            if (isCurrent) {
+                                                link.setAttribute('aria-current', 'page');
+                                                anyChildCurrent = true;
+                                            } else {
+                                                link.removeAttribute('aria-current');
+                                            }
+                                        });
+                                        item.classList.toggle('fi-active', anyChildCurrent);
+                                        item.classList.toggle('fi-sidebar-item-has-active-child-items', anyChildCurrent);
+                                    });
+                                };
+
                                 var syncSidebarActive = function (sidebar) {
                                     var currentPath = normalizePath(window.location.href);
                                     var homePath = normalizePath(sidebar.getAttribute('data-sidebar-home') || '/');
@@ -280,12 +321,10 @@ class AdminPanelProvider extends PanelProvider
                                             item.classList.remove('fi-active');
                                             return;
                                         }
-                                        var hrefPath = normalizePath(href);
-                                        var isCurrent = hrefPath === homePath
-                                            ? currentPath === homePath
-                                            : currentPath === hrefPath || currentPath.indexOf(hrefPath + '/') === 0;
-                                        item.classList.toggle('fi-active', isCurrent);
+                                        item.classList.toggle('fi-active', pathMatches(href, currentPath, homePath));
                                     });
+
+                                    syncSidebarFlyoutParents(sidebar, currentPath, homePath);
 
                                     sidebar.querySelectorAll('.fi-sidebar-group').forEach(function (group) {
                                         group.classList.toggle(

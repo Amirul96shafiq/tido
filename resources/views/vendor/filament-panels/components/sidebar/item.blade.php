@@ -24,17 +24,43 @@
     $childFlyoutChevron = (__('filament-panels::layout.direction') === 'rtl')
         ? \Filament\Support\Icons\Heroicon::ChevronLeft
         : \Filament\Support\Icons\Heroicon::ChevronRight;
+    $flyoutId = $hasChildFlyout ? \Illuminate\Support\Str::slug(trim(strip_tags($slot->toHtml()))) : null;
+    $childPaths = '';
+    if ($hasChildFlyout) {
+        $childPaths = collect($childItems)
+            ->map(function (mixed $item): string {
+                if (! is_object($item) || ! method_exists($item, 'getUrl')) {
+                    return '';
+                }
+
+                $url = $item->getUrl();
+                if (! is_string($url) || $url === '') {
+                    return '';
+                }
+
+                $path = parse_url($url, PHP_URL_PATH);
+
+                return is_string($path) && $path !== '' ? $path : $url;
+            })
+            ->filter()
+            ->implode(' ');
+    }
 @endphp
 
 <li
     {{
-        $attributes->class([
-            'fi-sidebar-item',
-            'fi-active' => $active,
-            'fi-sidebar-item-has-active-child-items' => $activeChildItems,
-            'fi-sidebar-item-has-url' => filled($url),
-            'fi-sidebar-item-has-children' => $hasChildFlyout,
-        ])
+        $attributes
+            ->class([
+                'fi-sidebar-item',
+                'fi-active' => $active || $activeChildItems,
+                'fi-sidebar-item-has-active-child-items' => $activeChildItems,
+                'fi-sidebar-item-has-url' => filled($url),
+                'fi-sidebar-item-has-children' => $hasChildFlyout,
+            ])
+            ->merge(array_filter([
+                'data-tido-flyout-id' => $flyoutId,
+                'data-tido-child-paths' => $childPaths !== '' ? $childPaths : null,
+            ]))
     }}
 >
     @if ($hasChildFlyout)
@@ -49,6 +75,10 @@
                     }
                     panel.dataset.tidoPortaled = '1'
                     panel.classList.add('tido-sidebar-flyout-panel')
+                    const parentItem = $el.closest('.fi-sidebar-item')
+                    if (parentItem && parentItem.dataset.tidoFlyoutId) {
+                        panel.dataset.tidoFlyoutId = parentItem.dataset.tidoFlyoutId
+                    }
                     sidebar.appendChild(panel)
                     if (! panel._tidoFlyoutHoverBound) {
                         panel._tidoFlyoutHoverBound = true
@@ -127,7 +157,7 @@
                         :icon="$childItemIcon"
                         tag="a"
                         :target="$shouldChildItemOpenUrlInNewTab ? '_blank' : null"
-                        :attributes="\Filament\Support\prepare_inherited_attributes($childItemExtraAttributes)"
+                        :attributes="\Filament\Support\prepare_inherited_attributes($childItemExtraAttributes)->class(['fi-active' => $isChildActive])->merge(['aria-current' => $isChildActive ? 'page' : null])"
                     >
                         {{ $childItem->getLabel() }}
                     </x-filament::dropdown.list.item>

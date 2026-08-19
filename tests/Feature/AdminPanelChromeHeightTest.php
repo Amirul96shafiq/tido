@@ -205,7 +205,7 @@ test('sidebar footer owns collapse buttons and header only owns logo', function 
         ->and($logoPos)->not->toBeFalse()
         ->and($sidebar)
         ->not->toContain('fi-sidebar-collapse-btns')
-        ->toContain('x-persist="sidebar.panel-')
+        ->not->toContain('x-persist="sidebar.panel-')
         ->toContain('data-sidebar-home="')
         ->and($css)
         ->toContain('.fi-sidebar.fi-sidebar-open .fi-sidebar-header-logo-ctn')

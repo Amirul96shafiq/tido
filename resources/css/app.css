@@ -2658,11 +2658,11 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 
 .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
 .fi-sidebar-item.fi-active > .fi-sidebar-item-btn:hover,
-.fi-sidebar-item.fi-sidebar-item-has-active-child-items
+.fi-sidebar-item.fi-active
     > .fi-sidebar-item-flyout
     > .fi-dropdown-trigger
     > .fi-sidebar-item-btn,
-.fi-sidebar-item.fi-sidebar-item-has-active-child-items
+.fi-sidebar-item.fi-active
     > .fi-sidebar-item-flyout
     > .fi-dropdown-trigger
     > .fi-sidebar-item-btn:hover {
@@ -2673,12 +2673,12 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 .dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
 .dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn:hover,
 .dark
-    .fi-sidebar-item.fi-sidebar-item-has-active-child-items
+    .fi-sidebar-item.fi-active
     > .fi-sidebar-item-flyout
     > .fi-dropdown-trigger
     > .fi-sidebar-item-btn,
 .dark
-    .fi-sidebar-item.fi-sidebar-item-has-active-child-items
+    .fi-sidebar-item.fi-active
     > .fi-sidebar-item-flyout
     > .fi-dropdown-trigger
     > .fi-sidebar-item-btn:hover {
@@ -2688,16 +2688,39 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 
 .fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-icon,
 .fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-sidebar-item-label,
-.fi-sidebar-item.fi-sidebar-item-has-active-child-items
+.fi-sidebar-item.fi-active
     > .fi-sidebar-item-flyout
     > .fi-dropdown-trigger
     > .fi-sidebar-item-btn
     > .fi-icon,
-.fi-sidebar-item.fi-sidebar-item-has-active-child-items
+.fi-sidebar-item.fi-active
     > .fi-sidebar-item-flyout
     > .fi-dropdown-trigger
     > .fi-sidebar-item-btn
     > .fi-sidebar-item-label {
+    color: inherit;
+}
+
+.tido-sidebar-flyout-panel .fi-dropdown-list-item.fi-active,
+.fi-sidebar-item-flyout .fi-dropdown-list-item.fi-active {
+    background-color: var(--gray-50);
+    color: var(--primary-500);
+}
+
+.dark .tido-sidebar-flyout-panel .fi-dropdown-list-item.fi-active,
+.dark .fi-sidebar-item-flyout .fi-dropdown-list-item.fi-active {
+    background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
+    color: var(--primary-400);
+}
+
+.tido-sidebar-flyout-panel .fi-dropdown-list-item.fi-active > .fi-icon,
+.tido-sidebar-flyout-panel
+    .fi-dropdown-list-item.fi-active
+    .fi-dropdown-list-item-label,
+.fi-sidebar-item-flyout .fi-dropdown-list-item.fi-active > .fi-icon,
+.fi-sidebar-item-flyout
+    .fi-dropdown-list-item.fi-active
+    .fi-dropdown-list-item-label {
     color: inherit;
 }
 
