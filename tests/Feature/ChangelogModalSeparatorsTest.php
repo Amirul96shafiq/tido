@@ -35,8 +35,10 @@ test('filament slide-overs use the shared custom scrollbar theme', function () {
 
     expect($css)
         ->toContain('.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window,')
+        ->toContain('.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn,')
         ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content,')
         ->toContain('.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,')
+        ->toContain('.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn::-webkit-scrollbar,')
         ->toContain('> .fi-modal-content::-webkit-scrollbar,')
         ->toContain('.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,')
         ->toContain('> .fi-modal-content::-webkit-scrollbar-thumb,')

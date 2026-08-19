@@ -42,12 +42,14 @@
  * them via @supports below.
  * Filament slide-overs (View details, changelog, resource View) scroll on
  * .fi-modal-window (overflow-y-auto).
+ * Centered action modals (Ollama Edit setup) scroll on .fi-modal-window-ctn.
  * Database notifications pin header/footer and scroll .fi-modal-content. */
 .custom-scrollbar,
 .fi-dropdown-panel,
 .fi-ta-filters-body,
 .fi-ta-col-manager-body,
 .fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window,
+.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn,
 .fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content,
 .results-container,
 .fi-ta-content-ctn {
@@ -84,6 +86,7 @@ body::-webkit-scrollbar,
 .fi-ta-filters-body::-webkit-scrollbar,
 .fi-ta-col-manager-body::-webkit-scrollbar,
 .fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,
+.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn::-webkit-scrollbar,
 .fi-no-database
     .fi-modal-window-ctn
     > .fi-modal-window
@@ -110,6 +113,7 @@ body::-webkit-scrollbar-track,
 .fi-ta-filters-body::-webkit-scrollbar-track,
 .fi-ta-col-manager-body::-webkit-scrollbar-track,
 .fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-track,
+.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn::-webkit-scrollbar-track,
 .fi-no-database
     .fi-modal-window-ctn
     > .fi-modal-window
@@ -157,6 +161,7 @@ body::-webkit-scrollbar-thumb,
 .fi-ta-filters-body::-webkit-scrollbar-thumb,
 .fi-ta-col-manager-body::-webkit-scrollbar-thumb,
 .fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,
+.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn::-webkit-scrollbar-thumb,
 .fi-no-database
     .fi-modal-window-ctn
     > .fi-modal-window
@@ -179,6 +184,7 @@ body::-webkit-scrollbar-thumb:hover,
 .fi-modal-slide-over
     .fi-modal-window-ctn
     > .fi-modal-window::-webkit-scrollbar-thumb:hover,
+.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn::-webkit-scrollbar-thumb:hover,
 .fi-no-database
     .fi-modal-window-ctn
     > .fi-modal-window
@@ -193,6 +199,7 @@ body::-webkit-scrollbar-thumb:hover,
 .dark .fi-ta-filters-body,
 .dark .fi-ta-col-manager-body,
 .dark .fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window,
+.dark .fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn,
 .dark
     .fi-no-database
     .fi-modal-window-ctn
@@ -217,6 +224,9 @@ html.dark::-webkit-scrollbar-thumb,
     .fi-modal-window-ctn
     > .fi-modal-window::-webkit-scrollbar-thumb,
 .dark
+    .fi-modal:not(.fi-modal-slide-over)
+    > .fi-modal-window-ctn::-webkit-scrollbar-thumb,
+.dark
     .fi-no-database
     .fi-modal-window-ctn
     > .fi-modal-window
@@ -239,6 +249,9 @@ html.dark::-webkit-scrollbar-thumb:hover,
     .fi-modal-slide-over
     .fi-modal-window-ctn
     > .fi-modal-window::-webkit-scrollbar-thumb:hover,
+.dark
+    .fi-modal:not(.fi-modal-slide-over)
+    > .fi-modal-window-ctn::-webkit-scrollbar-thumb:hover,
 .dark
     .fi-no-database
     .fi-modal-window-ctn
