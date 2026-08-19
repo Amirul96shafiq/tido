@@ -617,3 +617,53 @@ test('ollama page is in integrations navigation group', function (): void {
         ->and(OllamaPage::getNavigationSort())->toBe(10)
         ->and(OllamaPage::getNavigationIcon())->toBe('icon-ollama');
 });
+
+test('header action group test connection calls recheckDetection and notifies', function (): void {
+    Http::fake([
+        'http://ollama.test/api/tags' => Http::response(fakeOllamaTagsResponse()),
+    ]);
+
+    Livewire::test(OllamaPage::class)
+        ->callAction('testConnection')
+        ->assertNotified('Connection successful');
+});
+
+test('header action group run test extraction is disabled when connection is not operational', function (): void {
+    Livewire::test(OllamaPage::class)
+        ->set('connectionStatus', 'degraded')
+        ->assertActionDisabled('runTestExtraction');
+});
+
+test('header action group run test extraction is enabled when operational', function (): void {
+    Livewire::test(OllamaPage::class)
+        ->set('connectionStatus', 'operational')
+        ->assertActionEnabled('runTestExtraction');
+});
+
+test('header action group try start ollama is disabled when already operational', function (): void {
+    Livewire::test(OllamaPage::class)
+        ->set('connectionStatus', 'operational')
+        ->assertActionDisabled('tryStartOllama');
+});
+
+test('header action group try start ollama is enabled when not operational', function (): void {
+    Livewire::test(OllamaPage::class)
+        ->set('connectionStatus', 'degraded')
+        ->assertActionEnabled('tryStartOllama');
+});
+
+test('header action group recheck poppler is disabled when all binaries are set', function (): void {
+    Livewire::test(OllamaPage::class)
+        ->set('pdfInfoBinary', 'C:\\poppler\\pdfinfo.exe')
+        ->set('pdfToCairoBinary', 'C:\\poppler\\pdftocairo.exe')
+        ->set('pdfToTextBinary', 'C:\\poppler\\pdftotext.exe')
+        ->assertActionDisabled('recheckPoppler');
+});
+
+test('header action group recheck poppler is enabled when binaries are missing', function (): void {
+    Livewire::test(OllamaPage::class)
+        ->set('pdfInfoBinary', '')
+        ->set('pdfToCairoBinary', '')
+        ->set('pdfToTextBinary', '')
+        ->assertActionEnabled('recheckPoppler');
+});

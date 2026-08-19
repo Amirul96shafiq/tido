@@ -50,6 +50,7 @@ class OllamaSetupForm
                         ->visible(fn (OllamaPage $livewire): bool => $livewire->detectionState === OllamaDetectionState::NotInstalled->value),
                     Action::make('tryStartOllama')
                         ->label('Try start Ollama')
+                        ->icon('heroicon-o-play')
                         ->visible(fn (OllamaPage $livewire): bool => $livewire->detectionState === OllamaDetectionState::InstalledStopped->value)
                         ->action(function (OllamaPage $livewire, Get $get): void {
                             $livewire->applyHostFromForm((string) $get('host'));
@@ -57,6 +58,7 @@ class OllamaSetupForm
                         }),
                     Action::make('testConnection')
                         ->label('Test connection')
+                        ->icon('heroicon-o-signal')
                         ->color('gray')
                         ->visible(fn (OllamaPage $livewire): bool => in_array($livewire->detectionState, [
                             OllamaDetectionState::RemoteUnreachable->value,
@@ -69,6 +71,7 @@ class OllamaSetupForm
                         ->label(fn (OllamaPage $livewire): string => $livewire->detectionState === OllamaDetectionState::NotInstalled->value
                             ? "I've installed — Recheck"
                             : 'Recheck')
+                        ->icon(Heroicon::OutlinedArrowPath)
                         ->color('gray')
                         ->action(function (OllamaPage $livewire, Get $get): void {
                             $livewire->recheckDetection((string) $get('host'));
@@ -92,6 +95,7 @@ class OllamaSetupForm
                 Actions::make([
                     Action::make('testConnectionFromHost')
                         ->label('Test connection')
+                        ->icon('heroicon-o-signal')
                         ->color('gray')
                         ->action(function (OllamaPage $livewire, Get $get): void {
                             $livewire->testConnection((string) $get('host'));
@@ -128,6 +132,7 @@ class OllamaSetupForm
                 Actions::make([
                     Action::make('recheckAfterModelPull')
                         ->label("I've pulled — Recheck")
+                        ->icon(Heroicon::OutlinedArrowPath)
                         ->color('gray')
                         ->action(function (OllamaPage $livewire, Get $get): void {
                             $livewire->recheckDetection((string) $get('host'));
@@ -197,6 +202,7 @@ class OllamaSetupForm
                         ->visible(fn (Get $get): bool => self::popplerBinariesMissing($get)),
                     Action::make('detectPopplerBinaries')
                         ->label('Auto-detect Poppler')
+                        ->icon('heroicon-o-document-magnifying-glass')
                         ->color('gray')
                         ->action(function (OllamaPage $livewire, Set $set): void {
                             $livewire->detectPopplerBinaries();
@@ -206,6 +212,7 @@ class OllamaSetupForm
                         }),
                     Action::make('skipPoppler')
                         ->label('Skip for now')
+                        ->icon('heroicon-o-forward')
                         ->color('gray')
                         ->visible(fn (Get $get): bool => self::popplerBinariesMissing($get))
                         ->action(fn (OllamaPage $livewire) => $livewire->skipPoppler()),

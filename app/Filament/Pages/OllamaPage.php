@@ -20,6 +20,7 @@ use App\Services\OllamaService;
 use App\Services\ReceiptImagePreparer;
 use App\Support\OllamaVisionModel;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\View as SchemaView;
@@ -171,12 +172,12 @@ class OllamaPage extends Page
     public function configureSetupAction(): Action
     {
         return Action::make('configureSetup')
-            ->label(fn (): string => $this->setupComplete ? 'Edit setup' : 'Configure')
+            ->label(fn (): string => $this->setupComplete ? 'Edit Ollama' : 'Start Configure')
             ->color('primary')
             ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
-            ->modalHeading('Setup')
+            ->modalHeading('Edit Ollama settings')
             ->modalDescription('Configure Ollama for receipt parsing and health checks.')
-            ->modalSubmitActionLabel('Save settings')
+            ->modalSubmitActionLabel('Save')
             ->modalWidth(Width::ThreeExtraLarge)
             ->fillForm(fn (): array => $this->setupFormState())
             ->schema(OllamaSetupForm::components())
@@ -192,7 +193,7 @@ class OllamaPage extends Page
                 return [
                     $runTestExtraction,
                     $action->getModalSubmitAction(),
-                    $action->getModalCancelAction(),
+                    $action->getModalCancelAction()->label('Back'),
                 ];
             })
             ->action(function (array $data, Action $action): void {
@@ -220,6 +221,43 @@ class OllamaPage extends Page
                         ->send();
                 }),
             $this->configureSetupAction(),
+            ActionGroup::make([
+                Action::make('testConnection')
+                    ->label('Test Connection')
+                    ->icon('heroicon-o-signal')
+                    ->extraAttributes(['wire:key' => 'ollama-action-test-connection'])
+                    ->action(function (): void {
+                        $this->testConnection();
+                    }),
+                Action::make('runTestExtraction')
+                    ->label('Run Test Extraction')
+                    ->icon('heroicon-o-beaker')
+                    ->extraAttributes(['wire:key' => 'ollama-action-run-test-extraction'])
+                    ->disabled(fn (): bool => $this->connectionStatus !== 'operational')
+                    ->action(function (): void {
+                        $this->runTestExtraction();
+                    }),
+                Action::make('tryStartOllama')
+                    ->label('Try Start Ollama')
+                    ->icon('heroicon-o-play')
+                    ->extraAttributes(['wire:key' => 'ollama-action-try-start'])
+                    ->disabled(fn (): bool => $this->connectionStatus === 'operational')
+                    ->action(function (): void {
+                        $this->tryStartOllama();
+                    }),
+                Action::make('recheckPoppler')
+                    ->label('Recheck Poppler')
+                    ->icon('heroicon-o-document-magnifying-glass')
+                    ->extraAttributes(['wire:key' => 'ollama-action-recheck-poppler'])
+                    ->disabled(fn (): bool => filled($this->pdfInfoBinary) && filled($this->pdfToCairoBinary) && filled($this->pdfToTextBinary))
+                    ->action(function (): void {
+                        $this->detectPopplerBinaries();
+                    }),
+            ])
+                ->label('')
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray')
+                ->button(),
         ];
     }
 
