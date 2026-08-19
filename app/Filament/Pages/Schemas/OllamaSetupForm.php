@@ -226,25 +226,25 @@ class OllamaSetupForm
             ->schema([
                 TextInput::make('timeout')
                     ->label('Timeout (seconds)')
-                    ->numeric()
+                    ->integer()
                     ->required()
                     ->minValue(30)
                     ->maxValue(600)
-                    ->rules(['integer', 'min:30', 'max:600']),
+                    ->helperText('30–600 seconds. HTTP wait for receipt extraction.'),
                 TextInput::make('num_ctx')
                     ->label('Context window')
-                    ->numeric()
+                    ->integer()
                     ->required()
                     ->minValue(2048)
                     ->maxValue(131072)
-                    ->rules(['integer', 'min:2048', 'max:131072']),
+                    ->helperText('2,048–131,072 tokens. Prompt and JSON answer budget.'),
                 TextInput::make('max_image_dimension')
                     ->label('Max image dimension')
-                    ->numeric()
+                    ->integer()
                     ->required()
                     ->minValue(512)
                     ->maxValue(4096)
-                    ->rules(['integer', 'min:512', 'max:4096']),
+                    ->helperText('512–4,096 px. Long-edge resize before OCR.'),
             ])
             ->columns(3);
     }

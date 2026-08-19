@@ -12,6 +12,7 @@ use App\Services\Ollama\OllamaSettings;
 use App\Services\Ollama\PopplerDetector;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Text;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\Http;
@@ -86,6 +87,13 @@ function stagePopplerBinariesOnPath(array $binaryNames): array
     });
 
     return $stagedPaths;
+}
+
+function ollamaAdvancedSettingHelperText(?TextInput $field): ?string
+{
+    $helper = $field?->getChildSchema(TextInput::BELOW_CONTENT_SCHEMA_KEY)?->getComponents()[0] ?? null;
+
+    return $helper instanceof Text ? $helper->getContent() : null;
 }
 
 beforeEach(function (): void {
@@ -296,6 +304,54 @@ test('ollama page shows receipt & parsing activity stats from stored expenses', 
     expect(substr_count($html, 'statsOverviewStatChart({'))->toBe(6)
         ->and(substr_count($html, '<canvas x-ref="canvas" aria-hidden="true"></canvas>'))->toBe(6);
 });
+
+test('ollama advanced settings show min max helper text', function (): void {
+    $component = Livewire::test(OllamaPage::class)
+        ->set('detectionState', 'running')
+        ->mountAction('configureSetup')
+        ->assertActionMounted('configureSetup');
+
+    $schema = $component->instance()->getSchema('mountedActionSchema0');
+    $timeout = $schema?->getComponent('timeout');
+    $numCtx = $schema?->getComponent('num_ctx');
+    $maxImageDimension = $schema?->getComponent('max_image_dimension');
+
+    expect($timeout)->toBeInstanceOf(TextInput::class)
+        ->and($timeout?->getMinValue())->toBe(30)
+        ->and($timeout?->getMaxValue())->toBe(600)
+        ->and(ollamaAdvancedSettingHelperText($timeout))->toBe('30–600 seconds. HTTP wait for receipt extraction.')
+        ->and($numCtx)->toBeInstanceOf(TextInput::class)
+        ->and($numCtx?->getMinValue())->toBe(2048)
+        ->and($numCtx?->getMaxValue())->toBe(131072)
+        ->and(ollamaAdvancedSettingHelperText($numCtx))->toBe('2,048–131,072 tokens. Prompt and JSON answer budget.')
+        ->and($maxImageDimension)->toBeInstanceOf(TextInput::class)
+        ->and($maxImageDimension?->getMinValue())->toBe(512)
+        ->and($maxImageDimension?->getMaxValue())->toBe(4096)
+        ->and(ollamaAdvancedSettingHelperText($maxImageDimension))->toBe('512–4,096 px. Long-edge resize before OCR.');
+});
+
+test('ollama advanced settings reject values outside the allowed range', function (string $field, mixed $value): void {
+    Livewire::test(OllamaPage::class)
+        ->set('detectionState', 'running')
+        ->callAction('configureSetup', [
+            'host' => 'http://ollama.test',
+            'selectedModel' => 'qwen2.5vl:7b',
+            'timeout' => 120,
+            'num_ctx' => 8192,
+            'max_image_dimension' => 1280,
+            $field => $value,
+        ])
+        ->assertHasActionErrors([$field]);
+
+    expect(OllamaSetting::singleton()->{$field})->toBeNull();
+})->with([
+    'timeout below min' => ['timeout', 29],
+    'timeout above max' => ['timeout', 601],
+    'context below min' => ['num_ctx', 2047],
+    'context above max' => ['num_ctx', 131073],
+    'image below min' => ['max_image_dimension', 511],
+    'image above max' => ['max_image_dimension', 4097],
+]);
 
 test('ollama page save settings persists to database', function (): void {
     Livewire::test(OllamaPage::class)
