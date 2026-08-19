@@ -94,29 +94,6 @@
                                         </dd>
                                     </div>
                                 </dl>
-
-                                <dl class="rounded-xl border border-gray-200 px-4 py-3 dark:border-slate-700">
-                                    <div class="flex flex-col gap-3">
-                                        <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Configuration details</dt>
-                                        <dd class="w-full min-w-0">
-                                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                                <div class="rounded-xl border border-gray-200 bg-transparent px-4 py-4 dark:border-white/10">
-                                                    <p class="text-xs font-medium uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">Latency</p>
-                                                    <p class="mt-2 text-lg font-semibold tabular-nums text-gray-950 dark:text-white">
-                                                        {{ $this->latencyMs > 0 ? $this->latencyMs.' ms' : '—' }}
-                                                    </p>
-                                                </div>
-
-                                                <div class="rounded-xl border border-gray-200 bg-transparent px-4 py-4 dark:border-white/10">
-                                                    <p class="text-xs font-medium uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">Context window</p>
-                                                    <p class="mt-2 text-lg font-semibold tabular-nums text-gray-950 dark:text-white">
-                                                        {{ number_format($this->numCtx) }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </dd>
-                                    </div>
-                                </dl>
                             </div>
 
                             <div class="mt-5">
@@ -140,98 +117,92 @@
                                         </div>
                                     </x-slot>
 
-                                    <div class="fi-ollama-config-details-list divide-y divide-gray-200 text-left text-sm dark:divide-white/10">
-                                        <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-                                            <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Source</dt>
-                                            <dd class="text-gray-950 dark:text-white">{{ $this->settingsSourceLabel() }}</dd>
-                                        </div>
+                                    <div class="fi-ollama-detail-list fi-ollama-config-details-list divide-y divide-gray-200 text-left text-sm dark:divide-white/10">
+                                        <x-tido.detail-row label="Source">
+                                            {{ $this->settingsSourceLabel() }}
+                                        </x-tido.detail-row>
 
-                                        <div class="flex flex-col gap-3 px-6 py-4">
-                                            <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-                                                <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Model</dt>
-                                                <dd class="flex min-w-0 flex-wrap items-center justify-start gap-2 sm:justify-end">
-                                                    <span class="break-all font-mono text-gray-950 dark:text-white">
-                                                        {{ $activeModelName }}
-                                                    </span>
+                                        <x-tido.detail-row label="Model" :long="false">
+                                            <span class="inline-flex min-w-0 flex-wrap items-center justify-end gap-2">
+                                                <span class="break-all font-mono">
+                                                    {{ $activeModelName }}
+                                                </span>
 
-                                                    @if (is_array($activeModel) && $activeModel['isConfigured'])
-                                                        <x-filament::badge color="primary" size="sm">
-                                                            Active
-                                                        </x-filament::badge>
-                                                    @endif
-                                                </dd>
-                                            </div>
+                                                @if (is_array($activeModel) && $activeModel['isConfigured'])
+                                                    <x-filament::badge color="primary" size="sm">
+                                                        Active
+                                                    </x-filament::badge>
+                                                @endif
+                                            </span>
+                                        </x-tido.detail-row>
 
-                                            @if (is_array($activeModel))
-                                                <p class="text-sm leading-6 text-gray-500 dark:text-gray-400">
-                                                    Suitable for structured extraction workflows that need consistent JSON output.
-                                                </p>
+                                        @if (is_array($activeModel))
+                                            <x-tido.detail-row label="Model Use case" long>
+                                                Suitable for structured extraction workflows that need consistent JSON output.
+                                            </x-tido.detail-row>
 
-                                                <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
-                                                    @if ($activeModel['family'] !== '—')
-                                                        <span>{{ $activeModel['family'] }}</span>
-                                                    @endif
-
-                                                    @if ($activeModel['parameterSize'] !== '—')
-                                                        <span>{{ $activeModel['parameterSize'] }}</span>
-                                                    @endif
-
-                                                    @if ($activeModel['quantization'] !== '—')
-                                                        <span>{{ $activeModel['quantization'] }}</span>
-                                                    @endif
-
-                                                    @if ($activeModel['contextLength'] > 0)
-                                                        <span>{{ number_format($activeModel['contextLength']) }} ctx</span>
-                                                    @endif
-
-                                                    @if ($activeModel['sizeBytes'] > 0)
-                                                        <span>{{ $this->formattedSize($activeModel['sizeBytes']) }}</span>
-                                                    @endif
-                                                </div>
+                                            @if ($activeModel['family'] !== '—')
+                                                <x-tido.detail-row label="Model Family" :long="false">
+                                                    {{ $activeModel['family'] }}
+                                                </x-tido.detail-row>
                                             @endif
-                                        </div>
 
-                                        <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-                                            <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Host</dt>
-                                            <dd class="break-all font-mono text-gray-950 dark:text-white">{{ $this->host }}</dd>
-                                        </div>
+                                            @if ($activeModel['parameterSize'] !== '—')
+                                                <x-tido.detail-row label="Model Parameter size" :long="false">
+                                                    {{ $activeModel['parameterSize'] }}
+                                                </x-tido.detail-row>
+                                            @endif
 
-                                        <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-                                            <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Latency</dt>
-                                            <dd class="font-mono text-gray-950 dark:text-white">
-                                                {{ $this->latencyMs > 0 ? $this->latencyMs.' ms' : '—' }}
-                                            </dd>
-                                        </div>
+                                            @if ($activeModel['quantization'] !== '—')
+                                                <x-tido.detail-row label="Model Quantization" :long="false">
+                                                    {{ $activeModel['quantization'] }}
+                                                </x-tido.detail-row>
+                                            @endif
 
-                                        <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-                                            <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Timeout</dt>
-                                            <dd class="text-gray-950 dark:text-white">{{ $this->timeout }} s</dd>
-                                        </div>
+                                            @if ($activeModel['contextLength'] > 0)
+                                                <x-tido.detail-row label="Model Context" :long="false">
+                                                    {{ number_format($activeModel['contextLength']) }} tokens
+                                                </x-tido.detail-row>
+                                            @endif
 
-                                        <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-                                            <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Context window</dt>
-                                            <dd class="text-gray-950 dark:text-white">{{ number_format($this->numCtx) }} tokens</dd>
-                                        </div>
+                                            @if ($activeModel['sizeBytes'] > 0)
+                                                <x-tido.detail-row label="Model Size" :long="false">
+                                                    {{ $this->formattedSize($activeModel['sizeBytes']) }}
+                                                </x-tido.detail-row>
+                                            @endif
+                                        @endif
 
-                                        <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-                                            <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Max image dimension</dt>
-                                            <dd class="text-gray-950 dark:text-white">{{ number_format($this->maxImageDimension) }} px</dd>
-                                        </div>
+                                        <x-tido.detail-row label="Host" :long="false" mono>
+                                            {{ $this->host }}
+                                        </x-tido.detail-row>
 
-                                        <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-                                            <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">PDF info binary</dt>
-                                            <dd class="break-all font-mono text-gray-950 dark:text-white">{{ $this->pdfInfoBinary ?: '—' }}</dd>
-                                        </div>
+                                        <x-tido.detail-row label="Latency" :long="false" mono>
+                                            {{ $this->latencyMs > 0 ? $this->latencyMs.' ms' : '—' }}
+                                        </x-tido.detail-row>
 
-                                        <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-                                            <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">PDF renderer binary</dt>
-                                            <dd class="break-all font-mono text-gray-950 dark:text-white">{{ $this->pdfToCairoBinary ?: '—' }}</dd>
-                                        </div>
+                                        <x-tido.detail-row label="Timeout" :long="false">
+                                            {{ $this->timeout }} s
+                                        </x-tido.detail-row>
 
-                                        <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-                                            <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">PDF text binary</dt>
-                                            <dd class="break-all font-mono text-gray-950 dark:text-white">{{ $this->pdfToTextBinary ?: '—' }}</dd>
-                                        </div>
+                                        <x-tido.detail-row label="Context window" :long="false">
+                                            {{ number_format($this->numCtx) }} tokens
+                                        </x-tido.detail-row>
+
+                                        <x-tido.detail-row label="Max image dimension" :long="false">
+                                            {{ number_format($this->maxImageDimension) }} px
+                                        </x-tido.detail-row>
+
+                                        <x-tido.detail-row label="PDF info binary" mono>
+                                            {{ $this->pdfInfoBinary ?: '—' }}
+                                        </x-tido.detail-row>
+
+                                        <x-tido.detail-row label="PDF renderer binary" mono>
+                                            {{ $this->pdfToCairoBinary ?: '—' }}
+                                        </x-tido.detail-row>
+
+                                        <x-tido.detail-row label="PDF text binary" mono>
+                                            {{ $this->pdfToTextBinary ?: '—' }}
+                                        </x-tido.detail-row>
                                     </div>
                                 </x-filament::modal>
                             </div>
@@ -286,33 +257,45 @@
                     @endforeach
                 </div>
 
-                <div class="rounded-xl border border-gray-200 px-4 py-4 dark:border-white/10">
-                    <h3 class="text-sm font-semibold text-gray-950 dark:text-white">Supported tasks</h3>
+                <div class="mt-auto flex justify-center pt-2">
+                    <x-filament::modal
+                        id="ollama-supported-tasks"
+                        width="md"
+                        slide-over
+                        sticky-header
+                        teleport="body"
+                        :close-button="true"
+                    >
+                        <x-slot name="trigger">
+                            <x-filament::button color="gray" size="sm" type="button">
+                                View details
+                            </x-filament::button>
+                        </x-slot>
 
-                    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                        @foreach ($this->supportedTaskGroups() as $group)
-                            <div
-                                class="rounded-xl border border-gray-200 bg-transparent px-4 py-4 dark:border-white/10"
-                                wire:key="ollama-supported-task-group-{{ \Illuminate\Support\Str::slug($group['heading']) }}"
-                            >
-                                <h4 class="text-sm font-semibold text-gray-950 dark:text-white">
-                                    {{ $group['heading'] }}
-                                </h4>
-
-                                <ul class="mt-3 space-y-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
-                                    @foreach ($group['items'] as $item)
-                                        <li
-                                            class="flex items-start gap-2"
-                                            wire:key="ollama-supported-task-{{ \Illuminate\Support\Str::slug($group['heading'].'-'.$item) }}"
-                                        >
-                                            <span class="mt-2 size-1.5 shrink-0 rounded-full bg-primary-500"></span>
-                                            <span>{{ $item }}</span>
-                                        </li>
-                                    @endforeach
-                                </ul>
+                        <x-slot name="header">
+                            <div>
+                                <h2 class="fi-modal-heading">Supported tasks</h2>
                             </div>
-                        @endforeach
-                    </div>
+                        </x-slot>
+
+                        <div class="fi-ollama-detail-list fi-ollama-supported-tasks-list divide-y divide-gray-200 text-left text-sm dark:divide-white/10">
+                            @foreach ($this->supportedTaskGroups() as $group)
+                                <x-tido.detail-row
+                                    :label="$group['heading']"
+                                    long
+                                    wire:key="ollama-supported-task-group-{{ \Illuminate\Support\Str::slug($group['heading']) }}"
+                                >
+                                    <div class="space-y-2 leading-6 text-gray-500 dark:text-gray-400">
+                                        @foreach ($group['items'] as $item)
+                                            <div wire:key="ollama-supported-task-{{ \Illuminate\Support\Str::slug($group['heading'].'-'.$item) }}">
+                                                {{ $item }}
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </x-tido.detail-row>
+                            @endforeach
+                        </div>
+                    </x-filament::modal>
                 </div>
             </div>
         </x-filament::section>

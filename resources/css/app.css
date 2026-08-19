@@ -4275,6 +4275,66 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     @apply text-primary-500 dark:text-primary-400;
 }
 
+.fi-ollama-detail-list {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.fi-ollama-detail-list .fi-ollama-detail-row {
+    display: grid;
+    grid-template-columns: minmax(0, 35%) minmax(0, 65%);
+    column-gap: 1rem;
+    align-items: baseline;
+    padding: 1rem 1.5rem;
+}
+
+.fi-ollama-detail-list .fi-ollama-detail-row__label {
+    @apply font-medium text-gray-500 dark:text-gray-400;
+}
+
+.fi-ollama-detail-list .fi-ollama-detail-row__value {
+    @apply min-w-0 text-gray-950 dark:text-white;
+    text-align: right;
+}
+
+.fi-ollama-detail-list .fi-ollama-detail-row__value--long {
+    text-align: left;
+}
+
+.fi-ollama-detail-list .fi-ollama-detail-section {
+    display: grid;
+    grid-template-columns: minmax(0, 35%) minmax(0, 65%);
+    column-gap: 1rem;
+    row-gap: 0.75rem;
+    padding: 1rem 1.5rem;
+}
+
+.fi-ollama-detail-list .fi-ollama-detail-section__body {
+    grid-column: 2;
+    @apply text-sm leading-6 text-gray-500 dark:text-gray-400;
+}
+
+.fi-modal[id='ollama-config-details'] .fi-modal-window-ctn > .fi-modal-window,
+.fi-modal[id='ollama-supported-tasks'] .fi-modal-window-ctn > .fi-modal-window {
+    overflow-x: hidden;
+}
+
+.fi-modal[id='ollama-config-details']
+    .fi-modal-window-ctn
+    > .fi-modal-window
+    .fi-modal-content,
+.fi-modal[id='ollama-supported-tasks']
+    .fi-modal-window-ctn
+    > .fi-modal-window
+    .fi-modal-content {
+    margin-inline: 0;
+    padding-inline: 0;
+    padding-block: 0;
+    row-gap: 0;
+    max-width: 100%;
+    text-align: start;
+}
+
 /*
  * Currency range chips use neutral rings that the global theme remaps to a 1px
  * border only while not hovered. Keep that border locked so hover/focus does
