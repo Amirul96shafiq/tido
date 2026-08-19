@@ -229,13 +229,17 @@ class OllamaPage extends Page
         }
     }
 
-    public function recheckDetection(?string $host = null): void
+    public function recheckDetection(?string $host = null, bool $notify = true): void
     {
         $this->applyHostFromForm((string) $host);
         $this->runDetection(app(OllamaDetector::class));
         $this->fetchStatus(app(OllamaTagsClient::class));
         $this->loadPipelineChecks();
         $this->syncMountedSetupForm();
+
+        if ($notify) {
+            $this->notifyDetectionResult();
+        }
     }
 
     public function tryStartOllama(): void
@@ -255,12 +259,12 @@ class OllamaPage extends Page
                 ->send();
         }
 
-        $this->recheckDetection();
+        $this->recheckDetection(notify: false);
     }
 
     public function testConnection(?string $host = null): void
     {
-        $this->recheckDetection($host);
+        $this->recheckDetection($host, notify: false);
 
         $notification = Notification::make()
             ->title($this->connectionStatus === 'operational' ? 'Connection successful' : 'Connection failed')
@@ -578,6 +582,22 @@ class OllamaPage extends Page
         $this->detectionState = $probe['state']->value;
         $this->detectionMessage = $probe['message'];
         $this->latencyMs = $probe['latencyMs'];
+    }
+
+    private function notifyDetectionResult(): void
+    {
+        $notification = Notification::make()
+            ->title('Detection refreshed')
+            ->body($this->detectionMessage);
+
+        match ($this->detectionState) {
+            OllamaDetectionState::Running->value => $notification->success(),
+            OllamaDetectionState::InstalledStopped->value,
+            OllamaDetectionState::NotInstalled->value => $notification->warning(),
+            default => $notification->danger(),
+        };
+
+        $notification->send();
     }
 
     private function detectPoppler(PopplerDetector $popplerDetector): void
