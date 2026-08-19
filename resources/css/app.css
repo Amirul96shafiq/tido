@@ -2760,6 +2760,26 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     flex-shrink: 0;
 }
 
+/*
+ * Filament `success` is orange in tido. Remap Active integration flyout
+ * pills to emerald so they match Service Status operational, not gold CTAs.
+ */
+.tido-sidebar-flyout-panel .fi-dropdown-list-item .fi-badge.fi-color-success,
+.fi-sidebar-item-flyout .fi-dropdown-list-item .fi-badge.fi-color-success {
+    background-color: color-mix(in srgb, var(--color-emerald-500) 12%, transparent);
+    color: var(--color-emerald-700);
+    box-shadow: inset 0 0 0 1px
+        color-mix(in srgb, var(--color-emerald-500) 55%, transparent);
+}
+
+.dark .tido-sidebar-flyout-panel .fi-dropdown-list-item .fi-badge.fi-color-success,
+.dark .fi-sidebar-item-flyout .fi-dropdown-list-item .fi-badge.fi-color-success {
+    background-color: color-mix(in srgb, var(--color-emerald-500) 14%, transparent);
+    color: var(--color-emerald-400);
+    box-shadow: inset 0 0 0 1px
+        color-mix(in srgb, var(--color-emerald-400) 45%, transparent);
+}
+
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-flyout-chevron {
     display: none;
 }

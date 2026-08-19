@@ -2,14 +2,19 @@
 
 declare(strict_types=1);
 
+use App\Enums\MonitoredService;
+use App\Enums\ServiceHealthStatus;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\EvolutionApiPage;
 use App\Filament\Pages\OllamaPage;
+use App\Filament\Support\IntegrationHealthBadge;
 use App\Filament\Support\IntegrationNavigation;
 use App\Models\FamilyMember;
+use App\Models\ServiceHealthSample;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -99,7 +104,7 @@ test('small sidebar flyouts clamp to the viewport', function (): void {
 
     expect($html)
         ->toContain('tidoClampSidebarFlyout')
-        ->toContain("document.body")
+        ->toContain('document.body')
         ->toContain("\$watch('\$store.sidebar.isOpen'")
         ->toContain("document.addEventListener('pointerdown'")
         ->toContain('trigger.getBoundingClientRect')
@@ -125,7 +130,104 @@ test('integration flyout parent labels are left aligned', function (): void {
     text-align: start;
 }
 CSS
-        );
+        )
+        ->and($css)->toContain('.tido-sidebar-flyout-panel .fi-dropdown-list-item .fi-badge.fi-color-success');
+});
+
+test('operational health samples show Active pills on live integration children', function (): void {
+    $this->actingAs(User::factory()->create());
+
+    ServiceHealthSample::query()->create([
+        'service' => MonitoredService::Ollama,
+        'status' => ServiceHealthStatus::Operational,
+        'checked_at' => now(),
+        'latency_ms' => 12,
+        'meta' => ['message' => 'Ollama is reachable.'],
+    ]);
+
+    ServiceHealthSample::query()->create([
+        'service' => MonitoredService::Evolution,
+        'status' => ServiceHealthStatus::Operational,
+        'checked_at' => now(),
+        'latency_ms' => 18,
+        'meta' => ['message' => 'WhatsApp session is connected.'],
+    ]);
+
+    expect(OllamaPage::getNavigationBadge())->toBe(IntegrationHealthBadge::LABEL)
+        ->and(OllamaPage::getNavigationBadgeColor())->toBe('success')
+        ->and(EvolutionApiPage::getNavigationBadge())->toBe(IntegrationHealthBadge::LABEL)
+        ->and(EvolutionApiPage::getNavigationBadgeColor())->toBe('success');
+
+    $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee(IntegrationHealthBadge::LABEL, false)
+        ->assertSee('Coming soon', false);
+});
+
+test('non-operational health samples do not show Active pills', function (ServiceHealthStatus $status): void {
+    $this->actingAs(User::factory()->create());
+
+    ServiceHealthSample::query()->create([
+        'service' => MonitoredService::Ollama,
+        'status' => $status,
+        'checked_at' => now(),
+        'latency_ms' => 40,
+        'meta' => ['message' => 'Ollama is not operational.'],
+    ]);
+
+    ServiceHealthSample::query()->create([
+        'service' => MonitoredService::Evolution,
+        'status' => $status,
+        'checked_at' => now(),
+        'latency_ms' => 40,
+        'meta' => ['message' => 'Evolution is not operational.'],
+    ]);
+
+    expect(OllamaPage::getNavigationBadge())->toBeNull()
+        ->and(OllamaPage::getNavigationBadgeColor())->toBeNull()
+        ->and(EvolutionApiPage::getNavigationBadge())->toBeNull()
+        ->and(EvolutionApiPage::getNavigationBadgeColor())->toBeNull();
+})->with([
+    ServiceHealthStatus::Down,
+    ServiceHealthStatus::Degraded,
+]);
+
+test('missing health samples do not show Active pills on live integration children', function (): void {
+    $this->actingAs(User::factory()->create());
+
+    expect(OllamaPage::getNavigationBadge())->toBeNull()
+        ->and(EvolutionApiPage::getNavigationBadge())->toBeNull();
+});
+
+test('live ollama down clears a stale Active pill', function (): void {
+    $this->actingAs(User::factory()->create());
+
+    ServiceHealthSample::query()->create([
+        'service' => MonitoredService::Ollama,
+        'status' => ServiceHealthStatus::Operational,
+        'checked_at' => now()->subMinutes(15),
+        'latency_ms' => 12,
+        'meta' => ['message' => 'Previously reachable.'],
+    ]);
+
+    config([
+        'services.ollama.host' => 'http://ollama.test',
+    ]);
+
+    Http::fake([
+        'http://ollama.test/api/tags' => Http::failedConnection(),
+    ]);
+
+    Livewire::test(OllamaPage::class)
+        ->assertSet('connectionStatus', 'down')
+        ->assertDispatched('refresh-sidebar');
+
+    expect(OllamaPage::getNavigationBadge())->toBeNull();
+
+    $this->assertDatabaseHas('service_health_samples', [
+        'service' => MonitoredService::Ollama->value,
+        'status' => ServiceHealthStatus::Down->value,
+    ]);
 });
 
 test('family members do not see integration flyout parents', function (): void {

@@ -9,11 +9,11 @@ Parents are URL-less sidebar items (`AdminPanelProvider` `navigationItems()`). C
 ```
 Integrations
   WhatsApp
-    Evolution API          live
+    Evolution API          live (Active pill when latest evolution health sample is operational)
     Official API           coming soon
   AI Parsing Engine
     Gemini                 coming soon
-    Ollama (Local)         live
+    Ollama (Local)         live (Active pill when latest ollama health sample is operational)
     OpenAI                 coming soon
 ```
 

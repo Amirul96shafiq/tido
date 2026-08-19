@@ -69,6 +69,23 @@ class ServiceHealthRecorder
         return $samples;
     }
 
+    public function recordResult(MonitoredService $service, ServiceHealthResult $result): ServiceHealthSample
+    {
+        $previousByService = $this->latestSamplesByService();
+
+        $sample = ServiceHealthSample::query()->create([
+            'service' => $service,
+            'status' => $result->status,
+            'checked_at' => now(),
+            'latency_ms' => $result->latencyMs,
+            'meta' => $result->meta,
+        ]);
+
+        $this->alertService->notifyTransitions($previousByService, [$sample]);
+
+        return $sample;
+    }
+
     /**
      * @return array<string, ServiceHealthSample>
      */

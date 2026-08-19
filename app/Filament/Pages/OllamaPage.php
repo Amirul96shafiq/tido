@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Enums\MonitoredService;
 use App\Enums\OllamaDetectionState;
 use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Pages\Schemas\OllamaSetupForm;
+use App\Filament\Support\IntegrationHealthBadge;
 use App\Filament\Support\IntegrationNavigation;
 use App\Filament\Support\OllamaActivityAnalytics;
 use App\Models\Expense;
@@ -50,6 +52,16 @@ class OllamaPage extends Page
     protected static ?string $title = 'Ollama';
 
     protected static ?int $navigationSort = 20;
+
+    public static function getNavigationBadge(): ?string
+    {
+        return IntegrationHealthBadge::label(MonitoredService::Ollama);
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return IntegrationHealthBadge::color(MonitoredService::Ollama);
+    }
 
     public string $detectionState = OllamaDetectionState::NotInstalled->value;
 
@@ -665,32 +677,50 @@ class OllamaPage extends Page
 
     private function fetchStatus(OllamaTagsClient $tagsClient): void
     {
-        $result = $tagsClient->fetch($this->host, $this->selectedModel);
-        $this->latencyMs = $result['latencyMs'];
+        try {
+            $result = $tagsClient->fetch($this->host, $this->selectedModel);
+            $this->latencyMs = $result['latencyMs'];
 
-        if (! $result['success']) {
-            $this->connectionStatus = 'down';
-            $this->statusMessage = $result['message'];
-            $this->availableModels = [];
+            if (! $result['success']) {
+                $this->connectionStatus = 'down';
+                $this->statusMessage = $result['message'];
+                $this->availableModels = [];
 
-            return;
+                return;
+            }
+
+            $this->availableModels = $result['models'];
+            $count = count($this->availableModels);
+
+            if ($count === 0) {
+                $this->connectionStatus = 'degraded';
+                $this->statusMessage = 'Ollama is reachable but no models are installed.';
+            } else {
+                $this->connectionStatus = 'operational';
+                $this->statusMessage = $count === 1
+                    ? 'Your Ollama instance is connected and ready. 1 model is installed and available for receipt parsing — run a test extraction anytime to confirm OCR and structured output.'
+                    : 'Your Ollama instance is connected and ready. '.$count.' models are installed and available for receipt parsing — run a test extraction anytime to confirm OCR and structured output.';
+            }
+
+            if ($this->detectionState === OllamaDetectionState::Running->value) {
+                $this->autoSelectModel();
+            }
+        } finally {
+            $this->syncLiveHealthBadge();
         }
+    }
 
-        $this->availableModels = $result['models'];
-        $count = count($this->availableModels);
+    private function syncLiveHealthBadge(): void
+    {
+        $wrote = IntegrationHealthBadge::syncFromLiveStatus(
+            MonitoredService::Ollama,
+            $this->connectionStatus,
+            $this->latencyMs > 0 ? $this->latencyMs : null,
+            $this->statusMessage,
+        );
 
-        if ($count === 0) {
-            $this->connectionStatus = 'degraded';
-            $this->statusMessage = 'Ollama is reachable but no models are installed.';
-        } else {
-            $this->connectionStatus = 'operational';
-            $this->statusMessage = $count === 1
-                ? 'Your Ollama instance is connected and ready. 1 model is installed and available for receipt parsing — run a test extraction anytime to confirm OCR and structured output.'
-                : 'Your Ollama instance is connected and ready. '.$count.' models are installed and available for receipt parsing — run a test extraction anytime to confirm OCR and structured output.';
-        }
-
-        if ($this->detectionState === OllamaDetectionState::Running->value) {
-            $this->autoSelectModel();
+        if ($wrote) {
+            $this->dispatch('refresh-sidebar');
         }
     }
 
