@@ -37,6 +37,10 @@ class RecurringReminderService
             ->where('notify_recurring_reminders', true)
             ->orderBy('id')
             ->each(function (User $user) use (&$reminded, &$usersProcessed, $reference): void {
+                if (! $this->isHouseholdReminderRecipient($user)) {
+                    return;
+                }
+
                 if (! $this->shouldRunPassForUser($user, $reference)) {
                     return;
                 }
@@ -55,7 +59,7 @@ class RecurringReminderService
 
     public function shouldRunPassForUser(User $user, ?CarbonInterface $now = null): bool
     {
-        if (! $user->notify_recurring_reminders) {
+        if (! $this->isHouseholdReminderRecipient($user) || ! $user->notify_recurring_reminders) {
             return false;
         }
 
@@ -80,7 +84,7 @@ class RecurringReminderService
      */
     public function suppressTodayPassIfSendTimePassed(User $user, ?CarbonInterface $now = null): bool
     {
-        if (! $user->notify_recurring_reminders) {
+        if (! $this->isHouseholdReminderRecipient($user) || ! $user->notify_recurring_reminders) {
             return false;
         }
 
@@ -118,7 +122,7 @@ class RecurringReminderService
         $entries = $this->buildEntriesForUser($user, $localDate, $leadEnd);
         $reminded = $this->dispatchSummaryForUser($user, $entries);
 
-        if ($user->isPrimary()) {
+        if ($this->isHouseholdPrimary($user)) {
             $reminded += $this->sendNoLoginFamilyWhatsAppSummaries(
                 $localDate,
                 $leadEnd,
@@ -233,7 +237,12 @@ class RecurringReminderService
 
             $owner = $recurring->familyMember;
 
-            if (! $owner instanceof FamilyMember || ! filled($owner->phone) || $owner->login_enabled) {
+            if (
+                ! $owner instanceof FamilyMember
+                || ! $owner->allowlist_enabled
+                || ! filled($owner->phone)
+                || $owner->login_enabled
+            ) {
                 continue;
             }
 
@@ -470,6 +479,28 @@ class RecurringReminderService
     }
 
     /**
+     * Recurring WhatsApp/inbox passes are for the Profile owner (user id 1)
+     * and linked family login users only — leftover factory Primaries are ignored.
+     */
+    private function isHouseholdReminderRecipient(User $user): bool
+    {
+        if ($this->isHouseholdPrimary($user)) {
+            return true;
+        }
+
+        return $user->isFamilyMember() && $user->family_member_id !== null;
+    }
+
+    private function isHouseholdPrimary(User $user): bool
+    {
+        $primary = PhoneNumber::primaryUser();
+
+        return $user->isPrimary()
+            && $primary instanceof User
+            && $primary->is($user);
+    }
+
+    /**
      * @return Builder<RecurringOccurrence>
      */
     private function occurrencesForUser(User $user, string $leadEnd): Builder
@@ -508,6 +539,7 @@ class RecurringReminderService
                     ->whereHas('familyMember', function (Builder $member): void {
                         $member
                             ->where('login_enabled', false)
+                            ->where('allowlist_enabled', true)
                             ->whereNotNull('phone');
                     });
             })

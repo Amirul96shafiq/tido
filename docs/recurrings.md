@@ -50,9 +50,9 @@ Each login user (Primary and family) configures recurring reminders on **Profile
 
 Per-template **In-app** / **WhatsApp** toggles still choose channels. Each daily pass sends **at most one summary per channel** (one WhatsApp message and/or one Filament inbox notification). Items are ordered overdue first, then ascending due date. Inbox severity is `danger` when any listed item is overdue, otherwise `warning`. Routing:
 
-- **Primary** pass: all active templates → Primary inbox / Primary WhatsApp summaries
+- **Primary** pass: the Profile owner (`users.id = 1`) only — all active templates → that inbox / WhatsApp. Extra `household_role = primary` rows are ignored. WhatsApp is sent only to the contact allowlist (Profile phone + Family Members with allowlist enabled).
 - **Family login** pass: assigned, non-shared templates only → that user’s inbox / WhatsApp summaries
-- **No-login family** (phone on Family Member, login off): one WhatsApp summary of their assigned WhatsApp-enabled items, on the **Primary** clock when Primary’s toggle is on
+- **No-login family** (allowlisted phone on Family Member, login off): one WhatsApp summary of their assigned WhatsApp-enabled items, on the **Primary** clock when Primary’s toggle is on. Non-allowlisted family numbers are not messaged.
 - **Shared** templates: Primary only (family login pass skips shared)
 - Channel split: WhatsApp-only templates appear only in the WhatsApp summary; inbox-only templates appear only in the Filament summary
 

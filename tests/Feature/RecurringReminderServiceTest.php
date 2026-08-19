@@ -363,3 +363,96 @@ test('changing send time to a past clock time skips today and waits for tomorrow
         ->and($nextDay['reminded'])->toBe(1)
         ->and($primary->fresh()->notifications()->count())->toBe(1);
 });
+
+test('extra primary users do not receive recurring whatsapp or inbox summaries', function () {
+    $owner = User::factory()->create([
+        'phone' => '601116330705',
+        'notify_recurring_reminders' => true,
+        'timezone' => 'Asia/Kuala_Lumpur',
+        'recurring_reminder_time' => '08:00:00',
+        'recurring_reminder_lead_days' => 7,
+    ]);
+    $stray = User::factory()->create([
+        'phone' => '60127121550',
+        'notify_recurring_reminders' => true,
+        'timezone' => 'Asia/Kuala_Lumpur',
+        'recurring_reminder_time' => '08:00:00',
+        'recurring_reminder_lead_days' => 7,
+    ]);
+
+    $numbers = [];
+    $wa = Mockery::mock(WhatsAppNotificationService::class);
+    $wa->shouldReceive('sendMessage')
+        ->once()
+        ->andReturnUsing(function (string $number) use (&$numbers): bool {
+            $numbers[] = $number;
+
+            return true;
+        });
+    app()->instance(WhatsAppNotificationService::class, $wa);
+
+    $recurring = Recurring::factory()->create([
+        'notify_filament' => true,
+        'notify_whatsapp' => true,
+        'is_shared' => false,
+        'family_member_id' => null,
+    ]);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+        'reminded_at' => null,
+    ]);
+
+    $result = app(RecurringReminderService::class)->sendDueReminders();
+
+    expect($result['users'])->toBe(1)
+        ->and($numbers)->toBe(['601116330705'])
+        ->and($owner->fresh()->notifications()->count())->toBe(1)
+        ->and($stray->fresh()->notifications()->count())->toBe(0);
+});
+
+test('no-login family without allowlist does not receive whatsapp summaries', function () {
+    User::factory()->create([
+        'phone' => '601116330705',
+        'notify_recurring_reminders' => true,
+        'timezone' => 'Asia/Kuala_Lumpur',
+        'recurring_reminder_time' => '08:00:00',
+        'recurring_reminder_lead_days' => 7,
+    ]);
+
+    $member = FamilyMember::factory()->notAllowlisted()->create([
+        'phone' => '60142519416',
+        'login_enabled' => false,
+    ]);
+
+    $numbers = [];
+    $wa = Mockery::mock(WhatsAppNotificationService::class);
+    $wa->shouldReceive('sendMessage')
+        ->andReturnUsing(function (string $number) use (&$numbers): bool {
+            $numbers[] = $number;
+
+            return true;
+        });
+    app()->instance(WhatsAppNotificationService::class, $wa);
+
+    $recurring = Recurring::factory()->create([
+        'notify_filament' => false,
+        'notify_whatsapp' => true,
+        'is_shared' => false,
+        'family_member_id' => $member->id,
+    ]);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+        'reminded_at' => null,
+    ]);
+
+    app(RecurringReminderService::class)->sendDueReminders();
+
+    expect($numbers)->toBe(['601116330705'])
+        ->and($numbers)->not->toContain('60142519416');
+});
