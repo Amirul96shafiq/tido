@@ -4267,6 +4267,14 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     height: 1.5rem;
 }
 
+#ollama-activity .fi-ollama-activity-sparkline .fi-wi-stats-overview-stat-chart-bg-color {
+    @apply text-primary-50 dark:text-primary-400/10;
+}
+
+#ollama-activity .fi-ollama-activity-sparkline .fi-wi-stats-overview-stat-chart-border-color {
+    @apply text-primary-500 dark:text-primary-400;
+}
+
 /*
  * Currency range chips use neutral rings that the global theme remaps to a 1px
  * border only while not hovered. Keep that border locked so hover/focus does

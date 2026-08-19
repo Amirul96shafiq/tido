@@ -364,6 +364,7 @@
                             <x-tido.stat-sparkline
                                 :chart-key="'ollama-activity-' . \Illuminate\Support\Str::slug($stat['label'])"
                                 :values="$stat['chart']"
+                                color="primary"
                                 sparkline-class="fi-ollama-activity-sparkline"
                             />
                         @endif
