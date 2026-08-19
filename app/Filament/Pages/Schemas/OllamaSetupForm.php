@@ -38,7 +38,7 @@ class OllamaSetupForm
 
     private static function detectFieldset(): Fieldset
     {
-        return Fieldset::make('Detect Ollama')
+        return Fieldset::make('01: Detect Ollama')
             ->schema([
                 View::make('filament.pages.partials.ollama-detection-status')
                     ->columnSpanFull(),
@@ -79,7 +79,7 @@ class OllamaSetupForm
 
     private static function connectionFieldset(): Fieldset
     {
-        return Fieldset::make('Ollama Connection')
+        return Fieldset::make('02: Ollama Connection')
             ->schema([
                 TextInput::make('host')
                     ->label('Host URL')
@@ -102,7 +102,7 @@ class OllamaSetupForm
 
     private static function downloadModelFieldset(): Fieldset
     {
-        return Fieldset::make('Install vision model')
+        return Fieldset::make('03: Install vision model')
             ->visible(fn (OllamaPage $livewire): bool => $livewire->showModelDownloadStep())
             ->schema([
                 TextInput::make('pull_command')
@@ -138,7 +138,7 @@ class OllamaSetupForm
 
     private static function selectModelFieldset(): Fieldset
     {
-        return Fieldset::make('Choose Ollama model')
+        return Fieldset::make('04: Choose Ollama model')
             ->visible(fn (OllamaPage $livewire): bool => $livewire->showModelSelectStep())
             ->schema([
                 Select::make('selectedModel')
@@ -150,6 +150,7 @@ class OllamaSetupForm
                     ->native(false)
                     ->searchable()
                     ->live()
+                    ->columnSpanFull()
                     ->rules(['required', 'string'])
                     ->afterStateUpdated(function (?string $state, OllamaPage $livewire): void {
                         if (filled($state)) {
@@ -162,7 +163,7 @@ class OllamaSetupForm
 
     private static function popplerFieldset(): Fieldset
     {
-        return Fieldset::make('PDF processing (optional)')
+        return Fieldset::make('05: PDF processing (optional)')
             ->visible(fn (OllamaPage $livewire): bool => $livewire->detectionState === OllamaDetectionState::Running->value)
             ->schema([
                 View::make('filament.pages.partials.ollama-poppler-guide')
@@ -206,6 +207,7 @@ class OllamaSetupForm
                     Action::make('skipPoppler')
                         ->label('Skip for now')
                         ->color('gray')
+                        ->visible(fn (Get $get): bool => self::popplerBinariesMissing($get))
                         ->action(fn (OllamaPage $livewire) => $livewire->skipPoppler()),
                 ])->columnSpanFull(),
             ])
@@ -221,30 +223,30 @@ class OllamaSetupForm
 
     private static function advancedFieldset(): Fieldset
     {
-        return Fieldset::make('Advanced settings')
+        return Fieldset::make('06: Advanced settings')
             ->visible(fn (OllamaPage $livewire): bool => $livewire->detectionState === OllamaDetectionState::Running->value)
             ->schema([
                 TextInput::make('timeout')
                     ->label('Timeout (seconds)')
-                    ->numeric()
+                    ->integer()
                     ->required()
                     ->minValue(30)
                     ->maxValue(600)
-                    ->rules(['integer', 'min:30', 'max:600']),
+                    ->helperText('30–600 seconds. HTTP wait for receipt extraction.'),
                 TextInput::make('num_ctx')
                     ->label('Context window')
-                    ->numeric()
+                    ->integer()
                     ->required()
                     ->minValue(2048)
                     ->maxValue(131072)
-                    ->rules(['integer', 'min:2048', 'max:131072']),
+                    ->helperText('2,048–131,072 tokens. Prompt and JSON answer budget.'),
                 TextInput::make('max_image_dimension')
                     ->label('Max image dimension')
-                    ->numeric()
+                    ->integer()
                     ->required()
                     ->minValue(512)
                     ->maxValue(4096)
-                    ->rules(['integer', 'min:512', 'max:4096']),
+                    ->helperText('512–4,096 px. Long-edge resize before OCR.'),
             ])
             ->columns(3);
     }
