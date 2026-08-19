@@ -121,9 +121,8 @@ class OllamaPage extends Page
     {
         return [
             ['label' => 'Status', 'id' => 'ollama-status'],
-            ['label' => 'Pipeline', 'id' => 'ollama-pipeline'],
-            ['label' => 'Models', 'id' => 'ollama-models'],
-            ['label' => 'Activity', 'id' => 'ollama-activity'],
+            ['label' => 'Pipeline Readiness', 'id' => 'ollama-pipeline'],
+            ['label' => 'Receipt & Parsing Activity', 'id' => 'ollama-activity'],
         ];
     }
 
@@ -488,6 +487,27 @@ class OllamaPage extends Page
     public function installedModelCount(): int
     {
         return count($this->availableModels);
+    }
+
+    /**
+     * @return array{name: string, family: string, parameterSize: string, quantization: string, contextLength: int, sizeBytes: int, isConfigured: bool}|null
+     */
+    public function activeModel(): ?array
+    {
+        $configured = collect($this->availableModels)->first(
+            static fn (array $model): bool => $model['isConfigured'],
+        );
+
+        if (is_array($configured)) {
+            return $configured;
+        }
+
+        $selected = collect($this->availableModels)->first(
+            fn (array $model): bool => $model['name'] === $this->selectedModel
+                || $model['name'] === $this->configuredModel,
+        );
+
+        return is_array($selected) ? $selected : null;
     }
 
     public function readyPipelineCheckCount(): int

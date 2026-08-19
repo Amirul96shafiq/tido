@@ -145,6 +145,7 @@ test('ollama setup modal shows run test extraction in footer', function (): void
 test('ollama page shows status and configured model', function (): void {
     Livewire::test(OllamaPage::class)
         ->assertSee('Operational')
+        ->assertSee('Installed models')
         ->assertSee('qwen2.5vl:7b');
 });
 
@@ -153,7 +154,9 @@ test('ollama page lists available models', function (): void {
         ->assertSee('qwen2.5vl:7b')
         ->assertSee('qwen25vl')
         ->assertSee('8.3B')
-        ->assertSee('Q4_K_M');
+        ->assertSee('Q4_K_M')
+        ->assertSee('128,000 ctx')
+        ->assertSee('6.0 GB');
 });
 
 test('ollama page marks configured model as active', function (): void {
@@ -195,20 +198,20 @@ test('ollama page refresh action re-fetches status and notifies', function (): v
 test('ollama page shows view details cta', function (): void {
     Livewire::test(OllamaPage::class)
         ->assertSee('View details')
-        ->assertSee('Using environment defaults');
+        ->assertSee('Using environment defaults')
+        ->assertSee('Suitable for structured extraction workflows that need consistent JSON output.')
+        ->assertSee('Active');
 });
 
-test('ollama page shows pipeline, models, and activity sections', function (): void {
+test('ollama page shows pipeline and activity sections', function (): void {
     Livewire::test(OllamaPage::class)
         ->assertSee('Pipeline readiness')
-        ->assertSee('Models')
-        ->assertSee('Receipt activity')
+        ->assertSee('Receipt & Parsing Activity')
         ->assertSee('Current use in tido')
         ->assertSee('Also suitable for')
         ->assertSee('#ollama-pipeline', false)
-        ->assertSee('#ollama-models', false)
         ->assertSee('#ollama-activity', false)
-        ->assertSee('Suitable for structured extraction workflows that need consistent JSON output.');
+        ->assertDontSee('#ollama-models', false);
 });
 
 test('ollama page renders sticky section nav markers', function (): void {
@@ -222,9 +225,8 @@ test('ollama page renders sticky section nav markers', function (): void {
 test('ollama page section nav items match helper', function (): void {
     expect(OllamaPage::sectionNavItems())->toBe([
         ['label' => 'Status', 'id' => 'ollama-status'],
-        ['label' => 'Pipeline', 'id' => 'ollama-pipeline'],
-        ['label' => 'Models', 'id' => 'ollama-models'],
-        ['label' => 'Activity', 'id' => 'ollama-activity'],
+        ['label' => 'Pipeline Readiness', 'id' => 'ollama-pipeline'],
+        ['label' => 'Receipt & Parsing Activity', 'id' => 'ollama-activity'],
     ]);
 });
 
@@ -236,7 +238,7 @@ test('ollama page section nav smooth scrolls on tab click', function (): void {
         ->assertSee('onNavClick($event)', false);
 });
 
-test('ollama page shows receipt activity stats from stored expenses', function (): void {
+test('ollama page shows receipt & parsing activity stats from stored expenses', function (): void {
     Expense::withoutEvents(function (): void {
         Expense::factory()->create([
             'merchant_name' => 'PDF Grocer',
@@ -261,7 +263,7 @@ test('ollama page shows receipt activity stats from stored expenses', function (
     });
 
     Livewire::test(OllamaPage::class)
-        ->assertSee('Recent receipt activity')
+        ->assertSee('Recent receipt & parsing activity')
         ->assertSee('Latest processed receipt updated')
         ->assertSee('PDF receipts')
         ->assertSee('Image receipts')
@@ -319,7 +321,6 @@ test('ollama page shows terminal pull command when no models are installed', fun
         ->set('availableModels', [])
         ->set('connectionStatus', 'degraded')
         ->set('detectionState', 'running')
-        ->assertSee(OllamaSettings::recommendedPullCommand())
         ->mountAction('configureSetup')
         ->assertActionMounted('configureSetup')
         ->assertFormFieldExists('pull_command', 'mountedActionSchema0')

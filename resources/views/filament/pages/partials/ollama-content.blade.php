@@ -17,6 +17,8 @@
         'down' => 'Down',
         default => 'Unknown',
     };
+    $activeModel = $this->activeModel();
+    $activeModelName = is_array($activeModel) ? $activeModel['name'] : '—';
 @endphp
 
 <div class="flex flex-col gap-6">
@@ -71,6 +73,15 @@
                                         <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Installed models</dt>
                                         <dd class="min-w-0 truncate text-right font-mono text-gray-950 dark:text-white">
                                             {{ number_format($this->installedModelCount()) }}
+                                        </dd>
+                                    </div>
+                                </dl>
+
+                                <dl class="rounded-xl border border-gray-200 px-4 py-3 dark:border-slate-700">
+                                    <div class="flex flex-row items-baseline justify-between gap-3">
+                                        <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Model</dt>
+                                        <dd class="min-w-0 truncate text-right font-mono text-gray-950 dark:text-white">
+                                            {{ $activeModelName }}
                                         </dd>
                                     </div>
                                 </dl>
@@ -133,6 +144,51 @@
                                         <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
                                             <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Source</dt>
                                             <dd class="text-gray-950 dark:text-white">{{ $this->settingsSourceLabel() }}</dd>
+                                        </div>
+
+                                        <div class="flex flex-col gap-3 px-6 py-4">
+                                            <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                                                <dt class="shrink-0 font-medium text-gray-500 dark:text-gray-400">Model</dt>
+                                                <dd class="flex min-w-0 flex-wrap items-center justify-start gap-2 sm:justify-end">
+                                                    <span class="break-all font-mono text-gray-950 dark:text-white">
+                                                        {{ $activeModelName }}
+                                                    </span>
+
+                                                    @if (is_array($activeModel) && $activeModel['isConfigured'])
+                                                        <x-filament::badge color="primary" size="sm">
+                                                            Active
+                                                        </x-filament::badge>
+                                                    @endif
+                                                </dd>
+                                            </div>
+
+                                            @if (is_array($activeModel))
+                                                <p class="text-sm leading-6 text-gray-500 dark:text-gray-400">
+                                                    Suitable for structured extraction workflows that need consistent JSON output.
+                                                </p>
+
+                                                <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+                                                    @if ($activeModel['family'] !== '—')
+                                                        <span>{{ $activeModel['family'] }}</span>
+                                                    @endif
+
+                                                    @if ($activeModel['parameterSize'] !== '—')
+                                                        <span>{{ $activeModel['parameterSize'] }}</span>
+                                                    @endif
+
+                                                    @if ($activeModel['quantization'] !== '—')
+                                                        <span>{{ $activeModel['quantization'] }}</span>
+                                                    @endif
+
+                                                    @if ($activeModel['contextLength'] > 0)
+                                                        <span>{{ number_format($activeModel['contextLength']) }} ctx</span>
+                                                    @endif
+
+                                                    @if ($activeModel['sizeBytes'] > 0)
+                                                        <span>{{ $this->formattedSize($activeModel['sizeBytes']) }}</span>
+                                                    @endif
+                                                </div>
+                                            @endif
                                         </div>
 
                                         <div class="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
@@ -199,7 +255,7 @@
         </x-filament::section>
 
         <x-filament::section id="ollama-pipeline" class="h-full">
-            <x-slot name="heading">Pipeline readiness</x-slot>
+            <x-slot name="heading">Pipeline Readiness</x-slot>
 
             <div class="flex h-full flex-col gap-4">
                 <div class="flex flex-col gap-4">
@@ -262,77 +318,14 @@
         </x-filament::section>
     </div>
 
-    <x-filament::section id="ollama-models">
-        <x-slot name="heading">Models</x-slot>
-
-        @if (count($this->availableModels) === 0)
-            <p class="py-4 text-sm text-gray-500 dark:text-gray-400">
-                @if ($this->connectionStatus === 'down' || $this->connectionStatus === 'unknown')
-                    Model list unavailable — Ollama is not reachable.
-                @else
-                    No models are installed. Run <code class="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs dark:bg-slate-700">{{ \App\Services\Ollama\OllamaSettings::recommendedPullCommand() }}</code> in a terminal, then refresh.
-                @endif
-            </p>
-        @else
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                @foreach ($this->availableModels as $model)
-                    <div
-                        class="flex flex-col gap-3 rounded-xl border border-gray-200 px-4 py-4 dark:border-white/10"
-                        wire:key="ollama-model-{{ $loop->index }}"
-                    >
-                        <div class="flex items-center justify-between gap-3">
-                            <span @class([
-                                'truncate font-mono text-sm font-semibold',
-                                'text-primary-600 dark:text-primary-400' => $model['isConfigured'],
-                                'text-gray-950 dark:text-white' => ! $model['isConfigured'],
-                            ])>{{ $model['name'] }}</span>
-
-                            @if ($model['isConfigured'])
-                                <x-filament::badge color="primary" size="sm">
-                                    Active
-                                </x-filament::badge>
-                            @endif
-                        </div>
-
-                        <p class="text-sm leading-6 text-gray-500 dark:text-gray-400">
-                            Suitable for structured extraction workflows that need consistent JSON output.
-                        </p>
-
-                        <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
-                            @if ($model['family'] !== '—')
-                                <span>{{ $model['family'] }}</span>
-                            @endif
-
-                            @if ($model['parameterSize'] !== '—')
-                                <span>{{ $model['parameterSize'] }}</span>
-                            @endif
-
-                            @if ($model['quantization'] !== '—')
-                                <span>{{ $model['quantization'] }}</span>
-                            @endif
-
-                            @if ($model['contextLength'] > 0)
-                                <span>{{ number_format($model['contextLength']) }} ctx</span>
-                            @endif
-
-                            @if ($model['sizeBytes'] > 0)
-                                <span>{{ $this->formattedSize($model['sizeBytes']) }}</span>
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-    </x-filament::section>
-
     <x-filament::section id="ollama-activity">
-        <x-slot name="heading">Receipt activity</x-slot>
+        <x-slot name="heading">Receipt & Parsing Activity</x-slot>
 
         <div class="flex flex-col gap-5">
             <div class="rounded-xl border border-gray-200 px-4 py-4 dark:border-white/10">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="min-w-0">
-                        <h3 class="text-sm font-semibold text-gray-950 dark:text-white">Recent receipt activity</h3>
+                        <h3 class="text-sm font-semibold text-gray-950 dark:text-white">Recent receipt & parsing activity</h3>
                         <p class="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
                             {{ $this->latestReceiptActivity }}
                         </p>
