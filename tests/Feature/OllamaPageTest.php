@@ -140,6 +140,17 @@ test('ollama page opens setup in a modal', function (): void {
         ->assertFormFieldExists('selectedModel', 'mountedActionSchema0');
 });
 
+test('ollama setup model select spans the full fieldset width', function (): void {
+    $component = Livewire::test(OllamaPage::class)
+        ->mountAction('configureSetup')
+        ->assertActionMounted('configureSetup')
+        ->assertFormFieldExists('selectedModel', 'mountedActionSchema0');
+
+    $select = $component->instance()->getSchema('mountedActionSchema0')?->getComponent('selectedModel');
+
+    expect($select?->getColumnSpan('default'))->toBe('full');
+});
+
 test('ollama setup modal shows run test extraction in footer', function (): void {
     Livewire::test(OllamaPage::class)
         ->set('detectionState', 'running')

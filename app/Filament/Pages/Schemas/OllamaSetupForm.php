@@ -150,6 +150,7 @@ class OllamaSetupForm
                     ->native(false)
                     ->searchable()
                     ->live()
+                    ->columnSpanFull()
                     ->rules(['required', 'string'])
                     ->afterStateUpdated(function (?string $state, OllamaPage $livewire): void {
                         if (filled($state)) {
