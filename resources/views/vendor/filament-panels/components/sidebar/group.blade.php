@@ -56,7 +56,8 @@
 
             @if ($sidebarCollapsible)
                 <div
-                    class="fi-sidebar-group-collapsed-label flex flex-col items-center justify-center"
+                    class="fi-sidebar-group-collapsed-label flex flex-col items-center justify-center cursor-pointer"
+                    x-on:click="$store.sidebar.toggleCollapsedGroup(label)"
                 >
                     <span
                         class="text-[9px] font-bold tracking-wider text-gray-400 uppercase dark:text-slate-500 truncate max-w-[48px] text-center"
@@ -167,7 +168,7 @@
     <ul
         @if (filled($label))
             @if ($sidebarCollapsible)
-                x-show="$store.sidebar.isOpen ? ! $store.sidebar.groupIsCollapsed(label) : ! @js($hasDropdown)"
+                x-show="$store.sidebar.isOpen ? ! $store.sidebar.groupIsCollapsed(label) : (! @js($hasDropdown) && ! $store.sidebar.groupIsCollapsed(label))"
             @else
                 x-show="! $store.sidebar.groupIsCollapsed(label)"
             @endif
