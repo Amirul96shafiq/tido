@@ -38,7 +38,7 @@ class OllamaSetupForm
 
     private static function detectFieldset(): Fieldset
     {
-        return Fieldset::make('Detect Ollama')
+        return Fieldset::make('01: Detect Ollama')
             ->schema([
                 View::make('filament.pages.partials.ollama-detection-status')
                     ->columnSpanFull(),
@@ -79,7 +79,7 @@ class OllamaSetupForm
 
     private static function connectionFieldset(): Fieldset
     {
-        return Fieldset::make('Ollama Connection')
+        return Fieldset::make('02: Ollama Connection')
             ->schema([
                 TextInput::make('host')
                     ->label('Host URL')
@@ -102,7 +102,7 @@ class OllamaSetupForm
 
     private static function downloadModelFieldset(): Fieldset
     {
-        return Fieldset::make('Install vision model')
+        return Fieldset::make('03: Install vision model')
             ->visible(fn (OllamaPage $livewire): bool => $livewire->showModelDownloadStep())
             ->schema([
                 TextInput::make('pull_command')
@@ -138,7 +138,7 @@ class OllamaSetupForm
 
     private static function selectModelFieldset(): Fieldset
     {
-        return Fieldset::make('Choose Ollama model')
+        return Fieldset::make('04: Choose Ollama model')
             ->visible(fn (OllamaPage $livewire): bool => $livewire->showModelSelectStep())
             ->schema([
                 Select::make('selectedModel')
@@ -163,7 +163,7 @@ class OllamaSetupForm
 
     private static function popplerFieldset(): Fieldset
     {
-        return Fieldset::make('PDF processing (optional)')
+        return Fieldset::make('05: PDF processing (optional)')
             ->visible(fn (OllamaPage $livewire): bool => $livewire->detectionState === OllamaDetectionState::Running->value)
             ->schema([
                 View::make('filament.pages.partials.ollama-poppler-guide')
@@ -222,7 +222,7 @@ class OllamaSetupForm
 
     private static function advancedFieldset(): Fieldset
     {
-        return Fieldset::make('Advanced settings')
+        return Fieldset::make('06: Advanced settings')
             ->visible(fn (OllamaPage $livewire): bool => $livewire->detectionState === OllamaDetectionState::Running->value)
             ->schema([
                 TextInput::make('timeout')
