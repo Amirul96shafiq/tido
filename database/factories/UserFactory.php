@@ -14,6 +14,9 @@ use Illuminate\Support\Str;
 
 /**
  * @extends Factory<User>
+ *
+ * Isolated Pest tests only. Never persist factory users into the live SQLite
+ * database: default phones look like real MY WhatsApp numbers.
  */
 class UserFactory extends Factory
 {

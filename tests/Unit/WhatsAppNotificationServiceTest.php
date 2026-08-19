@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Models\User;
 use App\Services\WhatsAppNotificationService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
-uses(TestCase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function () {
     config([
@@ -57,6 +59,8 @@ test('isWhatsAppNumber returns null when check request fails', function () {
 });
 
 test('sendMessageResult classifies not on whatsapp failures', function () {
+    User::factory()->create(['phone' => '60123456789']);
+
     Http::fake([
         '*/message/sendText/*' => Http::response([
             'error' => ['message' => 'The number does not exist on WhatsApp'],
@@ -72,6 +76,8 @@ test('sendMessageResult classifies not on whatsapp failures', function () {
 });
 
 test('sendMessageResult succeeds for accepted sendText', function () {
+    User::factory()->create(['phone' => '60123456789']);
+
     Http::fake([
         '*/message/sendText/*' => Http::response(['status' => 'PENDING'], 201),
     ]);
@@ -81,4 +87,20 @@ test('sendMessageResult succeeds for accepted sendText', function () {
 
     expect($result->ok)->toBeTrue()
         ->and($result->reason)->toBe('ok');
+});
+
+test('sendMessageResult does not call evolution for numbers outside the contact allowlist', function () {
+    User::factory()->create(['phone' => '601116330705']);
+
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'PENDING'], 201),
+    ]);
+
+    $result = app(WhatsAppNotificationService::class)
+        ->sendMessageResult('60127121550', 'Recurring payment summary');
+
+    expect($result->ok)->toBeFalse()
+        ->and($result->reason)->toBe('not_allowlisted');
+
+    Http::assertNothingSent();
 });

@@ -35,6 +35,19 @@ class WhatsAppNotificationService
     public function sendMessageResult(string $number, string $text): WhatsAppSendResult
     {
         try {
+            if (! PhoneNumber::isAllowedWhatsAppSender($number)) {
+                $normalized = PhoneNumber::normalize(explode('@', $number, 2)[0]) ?? $number;
+
+                Log::warning('WhatsAppNotificationService blocked non-allowlisted recipient', [
+                    'number' => $normalized,
+                ]);
+
+                return WhatsAppSendResult::failure(
+                    reason: 'not_allowlisted',
+                    detail: 'Recipient is not on the contact allowlist.',
+                );
+            }
+
             $number = $this->normalizeNumber($number);
 
             $response = $this->client()
