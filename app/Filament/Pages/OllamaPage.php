@@ -540,18 +540,18 @@ class OllamaPage extends Page
             [
                 'heading' => 'Current use in tido',
                 'items' => [
-                    'Receipt image extraction',
-                    'PDF receipt page extraction and merge',
-                    'Manual WhatsApp expense label suggestions',
+                    '- Receipt image extraction',
+                    '- PDF receipt page extraction and merge',
+                    '- Manual WhatsApp expense label suggestions',
                 ],
             ],
             [
                 'heading' => 'Also suitable for',
                 'items' => [
-                    'Invoice OCR and document capture',
-                    'Delivery order and packing slip extraction',
-                    'Serial number and warranty note capture',
-                    'Local document summarisation workflows',
+                    '- Invoice OCR and document capture',
+                    '- Delivery order and packing slip extraction',
+                    '- Serial number and warranty note capture',
+                    '- Local document summarisation workflows',
                 ],
             ],
         ];

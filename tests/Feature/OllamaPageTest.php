@@ -155,7 +155,7 @@ test('ollama page lists available models', function (): void {
         ->assertSee('qwen25vl')
         ->assertSee('8.3B')
         ->assertSee('Q4_K_M')
-        ->assertSee('128,000 ctx')
+        ->assertSee('128,000 tokens')
         ->assertSee('6.0 GB');
 });
 
@@ -199,16 +199,34 @@ test('ollama page shows view details cta', function (): void {
     Livewire::test(OllamaPage::class)
         ->assertSee('View details')
         ->assertSee('Using environment defaults')
+        ->assertSee('Model Use case')
+        ->assertSee('Model Family')
+        ->assertSee('Model Parameter size')
+        ->assertSee('Model Quantization')
+        ->assertSee('Model Context')
+        ->assertSee('Model Size')
         ->assertSee('Suitable for structured extraction workflows that need consistent JSON output.')
-        ->assertSee('Active');
+        ->assertSee('Active')
+        ->assertSee('fi-ollama-detail-row', false);
+});
+
+test('ollama page shows supported tasks slide-over cta', function (): void {
+    Livewire::test(OllamaPage::class)
+        ->assertSee('Supported tasks')
+        ->assertSee('id="ollama-supported-tasks"', false)
+        ->assertSee('slide-over', false)
+        ->assertSee('fi-ollama-supported-tasks-list divide-y', false)
+        ->assertSee('fi-ollama-detail-row__value--long', false)
+        ->assertSee('Current use in tido')
+        ->assertSee('Also suitable for')
+        ->assertSee('Receipt image extraction')
+        ->assertSee('Local document summarisation workflows');
 });
 
 test('ollama page shows pipeline and activity sections', function (): void {
     Livewire::test(OllamaPage::class)
-        ->assertSee('Pipeline readiness')
+        ->assertSee('Pipeline Readiness')
         ->assertSee('Receipt & Parsing Activity')
-        ->assertSee('Current use in tido')
-        ->assertSee('Also suitable for')
         ->assertSee('#ollama-pipeline', false)
         ->assertSee('#ollama-activity', false)
         ->assertDontSee('#ollama-models', false);
