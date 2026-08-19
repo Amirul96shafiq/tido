@@ -68,6 +68,19 @@ test('ollama marks the ai parsing engine parent and flyout child as active', fun
         ->and(substr_count($html, 'fi-sidebar-item fi-active fi-sidebar-item-has-active-child-items'))->toBe(1);
 });
 
+test('small sidebar flyouts close sibling integration menus', function (): void {
+    $this->actingAs(User::factory()->create());
+
+    $html = $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->getContent();
+
+    expect($html)
+        ->toContain('tido-sidebar-flyout-exclusive')
+        ->toContain("window.matchMedia('(min-width: 1024px)').matches")
+        ->and(substr_count($html, 'tido-sidebar-flyout-exclusive.window'))->toBe(2);
+});
+
 test('integration flyout parent labels are left aligned', function (): void {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 

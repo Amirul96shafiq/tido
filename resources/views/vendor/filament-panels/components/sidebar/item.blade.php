@@ -102,6 +102,27 @@
                     $el._hideT = setTimeout(() => close($event), 180)
                 }
             "
+            x-on:mousedown="
+                if (! window.matchMedia('(min-width: 1024px)').matches) {
+                    window.dispatchEvent(new CustomEvent('tido-sidebar-flyout-exclusive', { detail: { source: $el } }))
+                }
+            "
+            x-on:keyup.enter="
+                if (! window.matchMedia('(min-width: 1024px)').matches) {
+                    window.dispatchEvent(new CustomEvent('tido-sidebar-flyout-exclusive', { detail: { source: $el } }))
+                }
+            "
+            x-on:keyup.space="
+                if (! window.matchMedia('(min-width: 1024px)').matches) {
+                    window.dispatchEvent(new CustomEvent('tido-sidebar-flyout-exclusive', { detail: { source: $el } }))
+                }
+            "
+            x-on:tido-sidebar-flyout-exclusive.window="
+                if ($event.detail.source === $el || window.matchMedia('(min-width: 1024px)').matches) {
+                    return
+                }
+                close($event)
+            "
             class="fi-sidebar-item-flyout"
         >
             <x-slot name="trigger">
