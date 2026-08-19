@@ -30,6 +30,7 @@ use Filament\Schemas\Components\View as SchemaView;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontFamily;
 use Filament\Support\Enums\Width;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -524,7 +525,7 @@ class EvolutionApiPage extends Page implements HasTable
         return [
             Action::make('refreshStatus')
                 ->label('Refresh status')
-                ->color('gray')
+                ->icon(Heroicon::OutlinedArrowPath)
                 ->action('refreshStatus'),
             Action::make('cancelConnecting')
                 ->label('Cancel connecting')

@@ -172,7 +172,8 @@ class OllamaPage extends Page
     {
         return Action::make('configureSetup')
             ->label(fn (): string => $this->setupComplete ? 'Edit setup' : 'Configure')
-            ->color('gray')
+            ->color('primary')
+            ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
             ->modalHeading('Setup')
             ->modalDescription('Configure Ollama for receipt parsing and health checks.')
             ->modalSubmitActionLabel('Save settings')
@@ -205,7 +206,7 @@ class OllamaPage extends Page
     {
         return [
             Action::make('refresh')
-                ->label('Refresh')
+                ->label('Refresh status')
                 ->icon(Heroicon::OutlinedArrowPath)
                 ->action(function (): void {
                     $this->runDetection(app(OllamaDetector::class));
