@@ -18,7 +18,7 @@ beforeEach(function (): void {
 });
 
 /**
- * @return array<string, array{0: class-string, 1: string, 2: string, 3: int, 4: string}>
+ * @return array<string, array{0: class-string, 1: string, 2: string, 3: int, 4: string, 5: string}>
  */
 dataset('comingSoonIntegrationPages', [
     'official api' => [
@@ -27,6 +27,7 @@ dataset('comingSoonIntegrationPages', [
         'Official API',
         20,
         'The WhatsApp Official API is not available as a messaging integration yet.',
+        'icon-meta',
     ],
     'gemini' => [
         GeminiPage::class,
@@ -34,6 +35,7 @@ dataset('comingSoonIntegrationPages', [
         'Gemini',
         10,
         'Google Gemini is not available as a parsing engine yet.',
+        'icon-gemini',
     ],
     'openai' => [
         OpenAiPage::class,
@@ -41,14 +43,16 @@ dataset('comingSoonIntegrationPages', [
         'OpenAI',
         30,
         'OpenAI is not available as a parsing engine yet.',
+        'icon-openai',
     ],
 ]);
 
-test('coming soon integration pages render for the primary household', function (string $page, string $parent, string $label, int $sort, string $description): void {
+test('coming soon integration pages render for the primary household', function (string $page, string $parent, string $label, int $sort, string $description, string $icon): void {
     expect($page::getNavigationGroup())->toBe(IntegrationNavigation::GROUP)
         ->and($page::getNavigationParentItem())->toBe($parent)
         ->and($page::getNavigationLabel())->toBe($label)
         ->and($page::getNavigationSort())->toBe($sort)
+        ->and($page::getNavigationIcon())->toBe($icon)
         ->and($page::getNavigationBadge())->toBe('Coming soon')
         ->and($page::canAccess())->toBeTrue();
 
@@ -58,7 +62,7 @@ test('coming soon integration pages render for the primary household', function 
         ->assertSee($description, false);
 })->with('comingSoonIntegrationPages');
 
-test('family members cannot access coming soon integration pages', function (string $page, string $_parent, string $_label, int $_sort, string $_description): void {
+test('family members cannot access coming soon integration pages', function (string $page, string $_parent, string $_label, int $_sort, string $_description, string $_icon): void {
     $familyMember = FamilyMember::factory()->loginEnabled()->create();
     $familyMemberUser = User::query()
         ->where('family_member_id', $familyMember->getKey())

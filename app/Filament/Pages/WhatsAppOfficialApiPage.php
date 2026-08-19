@@ -9,7 +9,6 @@ use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Pages\Concerns\RendersComingSoonIntegration;
 use App\Filament\Support\IntegrationNavigation;
 use Filament\Pages\Page;
-use Filament\Support\Icons\Heroicon;
 
 class WhatsAppOfficialApiPage extends Page
 {
@@ -19,7 +18,7 @@ class WhatsAppOfficialApiPage extends Page
 
     protected static ?string $slug = 'whatsapp-official-api';
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedCloud;
+    protected static string|\BackedEnum|null $navigationIcon = 'icon-meta';
 
     protected static ?string $navigationLabel = 'Official API';
 
@@ -39,7 +38,7 @@ class WhatsAppOfficialApiPage extends Page
         return [
             'id' => 'whatsapp-official-api-overview',
             'heading' => 'Official API',
-            'icon' => 'heroicon-o-cloud',
+            'icon' => 'icon-meta',
             'description' => 'The WhatsApp Official API is not available as a messaging integration yet.',
         ];
     }

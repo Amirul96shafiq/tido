@@ -16,7 +16,7 @@ uses(RefreshDatabase::class);
 test('primary household sees integration flyout parents in the sidebar', function (): void {
     $this->actingAs(User::factory()->create());
 
-    $this->get(Dashboard::getUrl())
+    $html = $this->get(Dashboard::getUrl())
         ->assertSuccessful()
         ->assertSee(IntegrationNavigation::WHATSAPP, false)
         ->assertSee(IntegrationNavigation::AI_PARSING_ENGINE, false)
@@ -24,7 +24,14 @@ test('primary household sees integration flyout parents in the sidebar', functio
         ->assertSee('fi-sidebar-item-flyout', false)
         ->assertSee('fi-sidebar-item-has-children', false)
         ->assertSee('data-tido-child-paths', false)
-        ->assertSee('/admin/evolution-api', false);
+        ->assertSee('/admin/evolution-api', false)
+        ->getContent();
+
+    expect($html)
+        ->toContain('M13.601 2.326A7.85')
+        ->toContain('M6.897 4c1.915')
+        ->toContain('M20.616 10.835')
+        ->toContain('M9.205 8.658v-2.26');
 });
 
 test('evolution api marks the whatsapp parent and flyout child as active', function (): void {

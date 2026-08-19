@@ -9,7 +9,6 @@ use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Pages\Concerns\RendersComingSoonIntegration;
 use App\Filament\Support\IntegrationNavigation;
 use Filament\Pages\Page;
-use Filament\Support\Icons\Heroicon;
 
 class GeminiPage extends Page
 {
@@ -19,7 +18,7 @@ class GeminiPage extends Page
 
     protected static ?string $slug = 'gemini';
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedSparkles;
+    protected static string|\BackedEnum|null $navigationIcon = 'icon-gemini';
 
     protected static ?string $navigationLabel = 'Gemini';
 
@@ -39,7 +38,7 @@ class GeminiPage extends Page
         return [
             'id' => 'gemini-overview',
             'heading' => 'Gemini',
-            'icon' => 'heroicon-o-sparkles',
+            'icon' => 'icon-gemini',
             'description' => 'Google Gemini is not available as a parsing engine yet.',
         ];
     }

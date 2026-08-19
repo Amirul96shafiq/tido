@@ -586,7 +586,7 @@ class AdminPanelProvider extends PanelProvider
             ->navigationItems([
                 NavigationItem::make(IntegrationNavigation::WHATSAPP)
                     ->group(IntegrationNavigation::GROUP)
-                    ->icon(Heroicon::OutlinedChatBubbleLeftRight)
+                    ->icon('icon-whatsapp')
                     ->sort(10)
                     ->visible(fn (): bool => HouseholdAccess::canManageHouseholdSettings()),
                 NavigationItem::make(IntegrationNavigation::AI_PARSING_ENGINE)

@@ -9,7 +9,6 @@ use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Pages\Concerns\RendersComingSoonIntegration;
 use App\Filament\Support\IntegrationNavigation;
 use Filament\Pages\Page;
-use Filament\Support\Icons\Heroicon;
 
 class OpenAiPage extends Page
 {
@@ -19,7 +18,7 @@ class OpenAiPage extends Page
 
     protected static ?string $slug = 'openai';
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedCube;
+    protected static string|\BackedEnum|null $navigationIcon = 'icon-openai';
 
     protected static ?string $navigationLabel = 'OpenAI';
 
@@ -39,7 +38,7 @@ class OpenAiPage extends Page
         return [
             'id' => 'openai-overview',
             'heading' => 'OpenAI',
-            'icon' => 'heroicon-o-cube',
+            'icon' => 'icon-openai',
             'description' => 'OpenAI is not available as a parsing engine yet.',
         ];
     }
