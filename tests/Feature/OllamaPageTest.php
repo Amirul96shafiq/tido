@@ -12,6 +12,7 @@ use App\Services\Ollama\OllamaSettings;
 use App\Services\Ollama\PopplerDetector;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\Http;
@@ -193,6 +194,24 @@ test('ollama page refresh action re-fetches status and notifies', function (): v
         ->assertActionVisible('refresh')
         ->callAction('refresh')
         ->assertNotified('Status refreshed');
+});
+
+test('ollama setup recheck detection notifies the result', function (): void {
+    Livewire::test(OllamaPage::class)
+        ->call('recheckDetection', 'http://ollama.test')
+        ->assertNotified(
+            Notification::make()
+                ->title('Detection refreshed')
+                ->body('Ollama is connected.')
+                ->success(),
+        );
+});
+
+test('ollama setup test connection does not emit a detection toast', function (): void {
+    Livewire::test(OllamaPage::class)
+        ->call('testConnection', 'http://ollama.test')
+        ->assertNotified('Connection successful')
+        ->assertNotNotified('Detection refreshed');
 });
 
 test('ollama page shows view details cta', function (): void {
