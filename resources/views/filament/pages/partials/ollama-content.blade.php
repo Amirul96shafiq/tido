@@ -347,7 +347,7 @@
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 @foreach ($this->activityStats as $stat)
                     <div
-                        class="rounded-xl border border-gray-200 px-4 py-4 dark:border-white/10"
+                        class="fi-ollama-activity-stat-card relative overflow-hidden rounded-xl border border-gray-200 px-4 py-4 pb-10 dark:border-white/10"
                         wire:key="ollama-activity-stat-{{ \Illuminate\Support\Str::slug($stat['label']) }}"
                     >
                         <p class="text-xs font-medium uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
@@ -359,6 +359,14 @@
                         <p class="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
                             {{ $stat['description'] }}
                         </p>
+
+                        @if (! empty($stat['chart']))
+                            <x-tido.stat-sparkline
+                                :chart-key="'ollama-activity-' . \Illuminate\Support\Str::slug($stat['label'])"
+                                :values="$stat['chart']"
+                                sparkline-class="fi-ollama-activity-sparkline"
+                            />
+                        @endif
                     </div>
                 @endforeach
             </div>

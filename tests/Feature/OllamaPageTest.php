@@ -263,13 +263,20 @@ test('ollama page shows receipt & parsing activity stats from stored expenses', 
     });
 
     Livewire::test(OllamaPage::class)
-        ->assertSee('Recent receipt & parsing activity')
+        ->assertSee('Recent receipt & parsing activity', false)
         ->assertSee('Latest processed receipt updated')
         ->assertSee('PDF receipts')
         ->assertSee('Image receipts')
         ->assertSee('Text-only receipts')
         ->assertSee('Upload Receipts')
         ->assertSee(ReceiptUploadPage::getUrl(), false);
+
+    $html = Livewire::test(OllamaPage::class)
+        ->assertSuccessful()
+        ->html();
+
+    expect(substr_count($html, 'statsOverviewStatChart({'))->toBe(6)
+        ->and(substr_count($html, '<canvas x-ref="canvas" aria-hidden="true"></canvas>'))->toBe(6);
 });
 
 test('ollama page save settings persists to database', function (): void {

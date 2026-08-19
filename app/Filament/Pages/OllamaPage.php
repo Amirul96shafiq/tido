@@ -9,6 +9,7 @@ use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Pages\Schemas\OllamaSetupForm;
+use App\Filament\Support\OllamaActivityAnalytics;
 use App\Models\Expense;
 use App\Prompts\ReceiptExtractionPrompt;
 use App\Services\Ollama\OllamaDetector;
@@ -98,7 +99,7 @@ class OllamaPage extends Page
     public array $pipelineChecks = [];
 
     /**
-     * @var list<array{label: string, value: string, description: string}>
+     * @var list<array{label: string, value: string, description: string, chart: list<float>}>
      */
     public array $activityStats = [];
 
@@ -780,21 +781,26 @@ class OllamaPage extends Page
             ->pluck('total', 'status')
             ->all();
 
+        $trend = OllamaActivityAnalytics::make()->trend(6);
+
         $this->activityStats = [
             [
                 'label' => 'Parsed',
                 'value' => number_format((int) ($statusCounts['parsed'] ?? 0)),
                 'description' => 'Receipts stored with extracted fields.',
+                'chart' => $trend['parsed'],
             ],
             [
                 'label' => 'Reviewed',
                 'value' => number_format((int) ($statusCounts['reviewed'] ?? 0)),
                 'description' => 'Receipts confirmed after review.',
+                'chart' => $trend['reviewed'],
             ],
             [
                 'label' => 'Manual review',
                 'value' => number_format((int) ($statusCounts['requires_manual_review'] ?? 0)),
                 'description' => 'Receipts waiting for manual checks.',
+                'chart' => $trend['manual_review'],
             ],
             [
                 'label' => 'PDF receipts',
@@ -804,6 +810,7 @@ class OllamaPage extends Page
                         ->count(),
                 ),
                 'description' => 'Stored documents routed through PDF extraction.',
+                'chart' => $trend['pdf'],
             ],
             [
                 'label' => 'Image receipts',
@@ -813,6 +820,7 @@ class OllamaPage extends Page
                         ->count(),
                 ),
                 'description' => 'Stored images routed through vision extraction.',
+                'chart' => $trend['image'],
             ],
             [
                 'label' => 'Text-only receipts',
@@ -826,6 +834,7 @@ class OllamaPage extends Page
                         ->count(),
                 ),
                 'description' => 'Receipts stored without an uploaded file.',
+                'chart' => $trend['text_only'],
             ],
         ];
 
