@@ -68,6 +68,26 @@ test('ollama marks the ai parsing engine parent and flyout child as active', fun
         ->and(substr_count($html, 'fi-sidebar-item fi-active fi-sidebar-item-has-active-child-items'))->toBe(1);
 });
 
+test('integration flyout parent labels are left aligned', function (): void {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain(
+            <<<'CSS'
+.fi-sidebar-item-flyout .fi-sidebar-item-btn {
+    width: 100%;
+    /* Buttons default to text-align: center; keep labels flush with the icon. */
+    justify-content: flex-start;
+    text-align: start;
+}
+
+.fi-sidebar-item-flyout .fi-sidebar-item-label {
+    text-align: start;
+}
+CSS
+        );
+});
+
 test('family members do not see integration flyout parents', function (): void {
     $familyMember = FamilyMember::factory()->loginEnabled()->create();
     $familyMemberUser = User::query()

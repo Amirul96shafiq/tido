@@ -2734,6 +2734,13 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 
 .fi-sidebar-item-flyout .fi-sidebar-item-btn {
     width: 100%;
+    /* Buttons default to text-align: center; keep labels flush with the icon. */
+    justify-content: flex-start;
+    text-align: start;
+}
+
+.fi-sidebar-item-flyout .fi-sidebar-item-label {
+    text-align: start;
 }
 
 .fi-sidebar-item-flyout-chevron {
