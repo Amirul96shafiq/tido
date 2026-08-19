@@ -30,20 +30,27 @@ test('changelog slide-over css fixes content bleed like database notifications',
         ->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window .fi-modal-content');
 });
 
-test('changelog and database notification slide-overs use the shared custom scrollbar theme', function () {
+test('filament slide-overs use the shared custom scrollbar theme', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
     expect($css)
-        ->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window,')
+        ->toContain('.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window,')
         ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content,')
-        ->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,')
+        ->toContain('.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,')
         ->toContain('> .fi-modal-content::-webkit-scrollbar,')
-        ->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,')
-        ->toContain('> .fi-modal-content::-webkit-scrollbar-thumb,');
+        ->toContain('.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,')
+        ->toContain('> .fi-modal-content::-webkit-scrollbar-thumb,')
+        ->not->toContain(".fi-modal[id='ollama-config-details'] .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar")
+        ->not->toContain(".fi-modal[id='ollama-supported-tasks'] .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar")
+        ->not->toContain('.fi-modal.fi-evolution-api-details .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar');
 
-    $blade = (string) file_get_contents(resource_path('views/components/changelog-modal.blade.php'));
+    $changelog = (string) file_get_contents(resource_path('views/components/changelog-modal.blade.php'));
+    $ollama = (string) file_get_contents(resource_path('views/filament/pages/partials/ollama-content.blade.php'));
+    $evolution = (string) file_get_contents(resource_path('views/filament/pages/partials/evolution-api-content.blade.php'));
 
-    expect($blade)->not->toContain('custom-scrollbar');
+    expect($changelog)->not->toContain('custom-scrollbar')
+        ->and($ollama)->not->toContain('custom-scrollbar')
+        ->and($evolution)->not->toContain('custom-scrollbar');
 });
 
 test('sidebar nav uses page-scroller webkit overlay instead of chromium scrollbar-width', function () {

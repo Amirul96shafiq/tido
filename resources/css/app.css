@@ -40,13 +40,14 @@
  * .fi-sidebar-nav in Chromium: those standard props win and suppress
  * ::-webkit-scrollbar-* (page track border + overlay thumb). Firefox gets
  * them via @supports below.
- * Changelog slide-over scrolls on .fi-modal-window (Filament overflow-y-auto).
+ * Filament slide-overs (View details, changelog, resource View) scroll on
+ * .fi-modal-window (overflow-y-auto).
  * Database notifications pin header/footer and scroll .fi-modal-content. */
 .custom-scrollbar,
 .fi-dropdown-panel,
 .fi-ta-filters-body,
 .fi-ta-col-manager-body,
-.fi-changelog .fi-modal-window-ctn > .fi-modal-window,
+.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window,
 .fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content,
 .results-container,
 .fi-ta-content-ctn {
@@ -82,7 +83,7 @@ body::-webkit-scrollbar,
 .fi-dropdown-panel::-webkit-scrollbar,
 .fi-ta-filters-body::-webkit-scrollbar,
 .fi-ta-col-manager-body::-webkit-scrollbar,
-.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,
+.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,
 .fi-no-database
     .fi-modal-window-ctn
     > .fi-modal-window
@@ -108,7 +109,7 @@ body::-webkit-scrollbar-track,
 .fi-dropdown-panel::-webkit-scrollbar-track,
 .fi-ta-filters-body::-webkit-scrollbar-track,
 .fi-ta-col-manager-body::-webkit-scrollbar-track,
-.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-track,
+.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-track,
 .fi-no-database
     .fi-modal-window-ctn
     > .fi-modal-window
@@ -155,7 +156,7 @@ body::-webkit-scrollbar-thumb,
 .fi-dropdown-panel::-webkit-scrollbar-thumb,
 .fi-ta-filters-body::-webkit-scrollbar-thumb,
 .fi-ta-col-manager-body::-webkit-scrollbar-thumb,
-.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,
+.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,
 .fi-no-database
     .fi-modal-window-ctn
     > .fi-modal-window
@@ -175,7 +176,7 @@ body::-webkit-scrollbar-thumb:hover,
 .fi-dropdown-panel::-webkit-scrollbar-thumb:hover,
 .fi-ta-filters-body::-webkit-scrollbar-thumb:hover,
 .fi-ta-col-manager-body::-webkit-scrollbar-thumb:hover,
-.fi-changelog
+.fi-modal-slide-over
     .fi-modal-window-ctn
     > .fi-modal-window::-webkit-scrollbar-thumb:hover,
 .fi-no-database
@@ -191,7 +192,7 @@ body::-webkit-scrollbar-thumb:hover,
 .dark .fi-dropdown-panel,
 .dark .fi-ta-filters-body,
 .dark .fi-ta-col-manager-body,
-.dark .fi-changelog .fi-modal-window-ctn > .fi-modal-window,
+.dark .fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window,
 .dark
     .fi-no-database
     .fi-modal-window-ctn
@@ -212,7 +213,7 @@ html.dark::-webkit-scrollbar-thumb,
 .dark .fi-ta-filters-body::-webkit-scrollbar-thumb,
 .dark .fi-ta-col-manager-body::-webkit-scrollbar-thumb,
 .dark
-    .fi-changelog
+    .fi-modal-slide-over
     .fi-modal-window-ctn
     > .fi-modal-window::-webkit-scrollbar-thumb,
 .dark
@@ -235,7 +236,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
 .dark .fi-ta-filters-body::-webkit-scrollbar-thumb:hover,
 .dark .fi-ta-col-manager-body::-webkit-scrollbar-thumb:hover,
 .dark
-    .fi-changelog
+    .fi-modal-slide-over
     .fi-modal-window-ctn
     > .fi-modal-window::-webkit-scrollbar-thumb:hover,
 .dark
