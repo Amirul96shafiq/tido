@@ -11,6 +11,7 @@ use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
+use App\Filament\Support\IntegrationNavigation;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
 use App\Models\EvolutionApiConnectionLog;
 use App\Models\User;
@@ -51,11 +52,13 @@ class EvolutionApiPage extends Page implements HasTable
 
     protected static ?string $navigationLabel = 'Evolution API';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Integrations';
+    protected static ?string $navigationParentItem = IntegrationNavigation::WHATSAPP;
+
+    protected static string|\UnitEnum|null $navigationGroup = IntegrationNavigation::GROUP;
 
     protected static ?string $title = 'Evolution API';
 
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 10;
 
     public string $connectionStatus = 'unknown';
 

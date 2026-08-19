@@ -84,6 +84,8 @@ test('evolution api page uses evolution-api slug', function () {
     expect(EvolutionApiPage::getSlug())->toBe('evolution-api')
         ->and(EvolutionApiPage::getNavigationLabel())->toBe('Evolution API')
         ->and(EvolutionApiPage::getNavigationGroup())->toBe('Integrations')
+        ->and(EvolutionApiPage::getNavigationParentItem())->toBe('WhatsApp')
+        ->and(EvolutionApiPage::getNavigationSort())->toBe(10)
         ->and(EvolutionApiPage::getNavigationIcon())->toBe('icon-evolution-api')
         ->and(EvolutionApiPage::getUrl())->toContain('/evolution-api');
 });

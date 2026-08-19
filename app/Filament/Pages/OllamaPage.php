@@ -9,6 +9,7 @@ use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Pages\Schemas\OllamaSetupForm;
+use App\Filament\Support\IntegrationNavigation;
 use App\Filament\Support\OllamaActivityAnalytics;
 use App\Models\Expense;
 use App\Prompts\ReceiptExtractionPrompt;
@@ -40,13 +41,15 @@ class OllamaPage extends Page
 
     protected static string|\BackedEnum|null $navigationIcon = 'icon-ollama';
 
-    protected static ?string $navigationLabel = 'Ollama';
+    protected static ?string $navigationLabel = 'Ollama (Local)';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Integrations';
+    protected static ?string $navigationParentItem = IntegrationNavigation::AI_PARSING_ENGINE;
+
+    protected static string|\UnitEnum|null $navigationGroup = IntegrationNavigation::GROUP;
 
     protected static ?string $title = 'Ollama';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 20;
 
     public string $detectionState = OllamaDetectionState::NotInstalled->value;
 

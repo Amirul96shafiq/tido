@@ -2381,6 +2381,16 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
         transition: width var(--tido-sidebar-duration) var(--tido-sidebar-ease) !important;
     }
 
+    /*
+     * Clip only while the width morph runs. Idle overflow:visible lets item
+     * flyouts (portaled to .fi-sidebar, outside .fi-sidebar-nav) paint over
+     * .fi-main-ctn. overflow-x:hidden otherwise clips the submenu.
+     */
+    .fi-body-has-sidebar-collapsible-on-desktop
+        .fi-sidebar:not(.fi-sidebar-animating) {
+        overflow: visible;
+    }
+
     .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar.fi-sidebar-open {
         width: var(--sidebar-width, 18rem) !important;
     }
@@ -2631,21 +2641,85 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
 }
 
+.fi-sidebar-item.fi-sidebar-item-has-children:not(.fi-active)
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn:hover {
+    background-color: var(--gray-50);
+}
+
+.dark
+    .fi-sidebar-item.fi-sidebar-item-has-children:not(.fi-active)
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn:hover {
+    background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
+}
+
 .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
-.fi-sidebar-item.fi-active > .fi-sidebar-item-btn:hover {
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn:hover,
+.fi-sidebar-item.fi-sidebar-item-has-active-child-items
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn,
+.fi-sidebar-item.fi-sidebar-item-has-active-child-items
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn:hover {
     background-color: var(--gray-50);
     color: var(--primary-500);
 }
 
 .dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
-.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn:hover {
+.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn:hover,
+.dark
+    .fi-sidebar-item.fi-sidebar-item-has-active-child-items
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn,
+.dark
+    .fi-sidebar-item.fi-sidebar-item-has-active-child-items
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn:hover {
     background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
     color: var(--primary-400);
 }
 
 .fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-icon,
-.fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-sidebar-item-label {
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-sidebar-item-label,
+.fi-sidebar-item.fi-sidebar-item-has-active-child-items
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn
+    > .fi-icon,
+.fi-sidebar-item.fi-sidebar-item-has-active-child-items
+    > .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger
+    > .fi-sidebar-item-btn
+    > .fi-sidebar-item-label {
     color: inherit;
+}
+
+.fi-sidebar-item-flyout {
+    width: 100%;
+}
+
+.fi-sidebar-item-flyout > .fi-dropdown-trigger {
+    width: 100%;
+}
+
+.fi-sidebar-item-flyout .fi-sidebar-item-btn {
+    width: 100%;
+}
+
+.fi-sidebar-item-flyout-chevron {
+    margin-inline-start: auto;
+    flex-shrink: 0;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-flyout-chevron {
+    display: none;
 }
 
 .fi-sidebar-item-btn {

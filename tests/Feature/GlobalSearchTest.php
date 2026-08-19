@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Filament\GlobalSearch\AdminDestinationSearch;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\EvolutionApiPage;
+use App\Filament\Pages\GeminiPage;
+use App\Filament\Pages\OllamaPage;
 use App\Filament\Resources\Backups\BackupResource;
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Resources\Expenses\ExpenseResource;
@@ -170,6 +172,26 @@ test('destination search finds evolutionapi page', function () {
 
     expect($match)->not->toBeNull()
         ->and($match->url)->toBe(EvolutionApiPage::getUrl());
+});
+
+test('destination search finds ollama local page', function () {
+    $results = AdminDestinationSearch::search('Ollama', GlobalSearchResults::make());
+    $pages = collect($results->getCategories()->get('Pages', []));
+
+    $match = $pages->first(fn ($result): bool => $result->title === 'Ollama (Local)');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toBe(OllamaPage::getUrl());
+});
+
+test('destination search finds gemini coming soon page', function () {
+    $results = AdminDestinationSearch::search('Gemini', GlobalSearchResults::make());
+    $pages = collect($results->getCategories()->get('Pages', []));
+
+    $match = $pages->first(fn ($result): bool => $result->title === 'Gemini');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toBe(GeminiPage::getUrl());
 });
 
 test('destination search finds expenses list page', function () {

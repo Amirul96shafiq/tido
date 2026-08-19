@@ -1,15 +1,34 @@
 # Integration Pages — Agent Reference
 
-Canonical structure and conventions for all pages under the **Integrations** sidebar nav group (`navigationGroup: 'Integrations'`). Derived from the two shipped integrations — Ollama and Evolution API — so future integrations replicate the same shape, patterns, and UI voice.
+Canonical structure and conventions for all pages under the **Integrations** sidebar nav group (`navigationGroup: 'Integrations'`). Derived from the two shipped integrations — Ollama and Evolution API — so future **full** integrations replicate the same shape, patterns, and UI voice.
 
-Shipped pages:
+## Navigation tree
 
-| Page | Slug | Sort |
-|------|------|------|
-| `OllamaPage` | `ollama` | 10 |
-| `EvolutionApiPage` | `evolution-api` | 20 |
+Parents are URL-less sidebar items (`AdminPanelProvider` `navigationItems()`). Children use `$navigationParentItem` in the same group. Hover (desktop) / tap (viewport `< lg`) opens a flyout from the published sidebar item — children are **not** inlined under the parent.
 
-Next integration should use sort `30`, and so on in steps of 10.
+```
+Integrations
+  WhatsApp
+    Evolution API          live
+    Official API           coming soon
+  AI Parsing Engine
+    Gemini                 coming soon
+    Ollama (Local)         live
+    OpenAI                 coming soon
+```
+
+Constants live in `App\Filament\Support\IntegrationNavigation`. Parent visibility matches `HouseholdAccess::canManageHouseholdSettings()`.
+
+Coming-soon children are thin pages (`PrependsHomeBreadcrumb` + `RequiresPrimaryHouseholdAccess` + `RendersComingSoonIntegration`). They do **not** follow the full checklist below (no setup wizard, settings class, or ops guide) until the integration ships. Runtime parsing remains Ollama; WhatsApp transport remains Evolution API until an exclusive-switch feature exists.
+
+Live pages:
+
+| Page | Parent | Slug | Sort |
+|------|--------|------|------|
+| `EvolutionApiPage` | WhatsApp | `evolution-api` | 10 |
+| `OllamaPage` | AI Parsing Engine | `ollama` | 20 |
+
+Placeholder pages: `WhatsAppOfficialApiPage` (sort 20), `GeminiPage` (sort 10), `OpenAiPage` (sort 30).
 
 ---
 
@@ -30,8 +49,9 @@ class <Service>Page extends Page implements /* HasTable if a log table is presen
 Navigation constants (set as class-level attributes or protected statics):
 
 ```php
-protected static ?string $navigationGroup = 'Integrations';
-protected static ?int $navigationSort = 30; // next multiple of 10
+protected static ?string $navigationGroup = IntegrationNavigation::GROUP;
+protected static ?string $navigationParentItem = IntegrationNavigation::AI_PARSING_ENGINE; // or WHATSAPP
+protected static ?int $navigationSort = 30; // next multiple of 10 within the parent
 protected static ?string $slug = 'my-service';
 protected static ?string $navigationIcon = 'icon-my-service';
 protected static ?string $navigationLabel = 'My Service';
@@ -346,7 +366,9 @@ See `docs/ui-section-nav.md` for the full `HasSectionNav` contract and scroll be
 
 ## 15. Adding a new integration — checklist
 
-When scaffolding a new integration page, complete every item before opening a PR:
+Coming-soon placeholders only need a page class, nav parent/sort/badge, the shared coming-soon partial, destination search, and Pest access tests.
+
+When scaffolding a **full** integration page, complete every item before opening a PR:
 
 - [ ] `app/Filament/Pages/<Service>Page.php` — class with traits, nav registration, all required methods
 - [ ] `app/Filament/Pages/Schemas/<Service>SetupForm.php` — fieldset wizard

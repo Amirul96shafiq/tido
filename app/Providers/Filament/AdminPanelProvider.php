@@ -18,8 +18,10 @@ use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Expenses\Pages\CreateExpense;
 use App\Filament\Resources\Expenses\Pages\EditExpense;
+use App\Filament\Support\IntegrationNavigation;
 use App\Http\Middleware\SetUserPreferences;
 use App\Support\FilamentAuthLogout;
+use App\Support\HouseholdAccess;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResults;
 use Filament\Actions\Action;
@@ -28,12 +30,14 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Assets\Js;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentIcon;
+use Filament\Support\Icons\Heroicon;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -537,8 +541,20 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 NavigationGroup::make('Finances'),
                 NavigationGroup::make('Settings'),
-                NavigationGroup::make('Integrations'),
+                NavigationGroup::make(IntegrationNavigation::GROUP),
                 NavigationGroup::make('Tools'),
+            ])
+            ->navigationItems([
+                NavigationItem::make(IntegrationNavigation::WHATSAPP)
+                    ->group(IntegrationNavigation::GROUP)
+                    ->icon(Heroicon::OutlinedChatBubbleLeftRight)
+                    ->sort(10)
+                    ->visible(fn (): bool => HouseholdAccess::canManageHouseholdSettings()),
+                NavigationItem::make(IntegrationNavigation::AI_PARSING_ENGINE)
+                    ->group(IntegrationNavigation::GROUP)
+                    ->icon(Heroicon::OutlinedCpuChip)
+                    ->sort(20)
+                    ->visible(fn (): bool => HouseholdAccess::canManageHouseholdSettings()),
             ])
             ->routes(function (): void {
                 Route::name('auth.')->group(function (): void {

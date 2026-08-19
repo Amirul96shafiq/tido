@@ -58,7 +58,7 @@ app/Filament/Resources/{Plural}/
 
 ## Navigation groups
 
-Finances (Upload Receipts, Expenses, Budgets) · Settings (Labels, Payment Methods, Family Members) · Integrations (Evolution API) · Tools (Backups, Service Status) — Tools last
+Finances (Upload Receipts, Expenses, Budgets) · Settings (Labels, Payment Methods, Family Members) · Integrations (WhatsApp, AI Parsing Engine) · Tools (Backups, Service Status) — Tools last
 
 ## Global search
 
