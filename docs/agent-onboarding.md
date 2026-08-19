@@ -65,6 +65,7 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 26. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
 27. Household access (attribution, family login, expense ACL): `docs/household-access.md`
 28. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+29. Integration pages (Ollama / Evolution API page structure, conventions, new-integration checklist): `docs/integration-pages.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 
@@ -168,6 +169,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 3. Webhooks: authenticate `Authorization: Bearer <EVOLUTION_WEBHOOK_SECRET>` before payload handling, then resolve phone or linked WhatsApp LID → validate → queue; keep the inbound secret distinct from outbound `EVOLUTION_API_KEY`
 4. Foreign receipt conversion uses the configured `CURRENCY_API_*` provider with the receipt date, bounded timeout/retry, and a cached source/target/date lookup; never revalue an already converted expense automatically
 5. Never call real Ollama, Evolution, or exchange-rate providers in tests
+6. Integration page structure (class anatomy, section layout, setup wizard, status conventions, new-integration checklist): `docs/integration-pages.md`
 
 ### After code changes
 
