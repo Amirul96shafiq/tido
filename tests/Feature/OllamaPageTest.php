@@ -450,10 +450,17 @@ test('ollama setup modal shows a poppler guide when pdf binaries are empty', fun
         withActions: true,
         withHidden: true,
     );
+    $skip = $schema?->getComponent(
+        fn (mixed $component): bool => $component instanceof Action && $component->getName() === 'skipPoppler',
+        withActions: true,
+        withHidden: true,
+    );
 
     expect($download)->not->toBeNull()
         ->and($download?->isHidden())->toBeFalse()
-        ->and($download instanceof Action ? $download->getUrl() : null)->toBe(PopplerDetector::WINDOWS_DOWNLOAD_URL);
+        ->and($download instanceof Action ? $download->getUrl() : null)->toBe(PopplerDetector::WINDOWS_DOWNLOAD_URL)
+        ->and($skip)->not->toBeNull()
+        ->and($skip?->isHidden())->toBeFalse();
 });
 
 test('ollama setup auto-detect notifies when poppler is missing', function (): void {
@@ -498,11 +505,37 @@ test('ollama setup modal hides the empty poppler guide when pdf binaries are set
         withActions: true,
         withHidden: true,
     );
+    $skip = $schema?->getComponent(
+        fn (mixed $component): bool => $component instanceof Action && $component->getName() === 'skipPoppler',
+        withActions: true,
+        withHidden: true,
+    );
 
     expect($emptyGuide)->not->toBeNull()
         ->and($emptyGuide?->isHidden())->toBeTrue()
         ->and($download)->not->toBeNull()
-        ->and($download?->isHidden())->toBeTrue();
+        ->and($download?->isHidden())->toBeTrue()
+        ->and($skip)->not->toBeNull()
+        ->and($skip?->isHidden())->toBeTrue();
+});
+
+test('ollama setup modal hides skip poppler when any pdf binary is set', function (): void {
+    $component = Livewire::test(OllamaPage::class)
+        ->set('pdfInfoBinary', 'C:\\poppler\\pdfinfo.exe')
+        ->set('pdfToCairoBinary', '')
+        ->set('pdfToTextBinary', '')
+        ->set('detectionState', 'running')
+        ->mountAction('configureSetup')
+        ->assertActionMounted('configureSetup');
+
+    $skip = $component->instance()->getSchema('mountedActionSchema0')?->getComponent(
+        fn (mixed $component): bool => $component instanceof Action && $component->getName() === 'skipPoppler',
+        withActions: true,
+        withHidden: true,
+    );
+
+    expect($skip)->not->toBeNull()
+        ->and($skip?->isHidden())->toBeTrue();
 });
 
 test('ollama pull command copy action uses the clipboard helper', function (): void {

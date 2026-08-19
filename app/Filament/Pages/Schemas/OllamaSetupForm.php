@@ -207,6 +207,7 @@ class OllamaSetupForm
                     Action::make('skipPoppler')
                         ->label('Skip for now')
                         ->color('gray')
+                        ->visible(fn (Get $get): bool => self::popplerBinariesMissing($get))
                         ->action(fn (OllamaPage $livewire) => $livewire->skipPoppler()),
                 ])->columnSpanFull(),
             ])
