@@ -8,7 +8,7 @@ final class IntegrationNavigation
 {
     public const GROUP = 'Integrations';
 
-    public const WHATSAPP = 'WhatsApp';
+    public const WHATSAPP = 'WhatsApp Channel';
 
     public const AI_PARSING_ENGINE = 'AI Parsing Engine';
 }
