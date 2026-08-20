@@ -40,33 +40,34 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 1. This file
 2. Active agent workflow: root `AGENTS.md` + `.codex/CODEX_WORKFLOW.md` (Codex), `.cursorrules` (Cursor), or `.agents/AGENTS.md` (Antigravity)
 3. `docs/system-architecture.md` — product blueprint (note: some version numbers are outdated; trust Laravel 12 / PG 17 / stack in `AGENTS.md`)
-4. Dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md`
-5. Domain skill: activate the `tido-domain` skill surfaced by the active agent (+ its `pipeline.md` when touching OCR/webhooks) — Finances domain
-6. Framework skills surfaced by the active agent: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
-7. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/realtime-broadcasting.md`, `docs/whatsapp-bot-commands.md`, `docs/whatsapp-manual-expense.md`
-8. UI empty panels: `docs/ui-empty-states.md`
-9. Modal blur / width: `docs/ui-modal-overlay.md`
-10. Vite panel assets (`Vite::asset` vs `@vite`, when to `npm run build`): `docs/vite-assets.md`
-11. Sticky top/bottom bars + blur veil: `docs/ui-sticky-blur.md`
-12. Sticky section tabs + smooth scroll: `docs/ui-section-nav.md` (Finances widget jump tabs — not dashboard view tabs)
-13. Icon CTA tooltips (Filament Tippy, not browser `title`): `docs/ui-tooltips.md`
-14. Single-line text marquee (overflow RTL scroll): `docs/ui-text-marquee.md`
-15. Dark theme (Slate surfaces / 1px borders without elevation shadows / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
-16. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
-17. UI text headings (Title Case: `Text Heading`, never `Text heading`): `docs/ui-text-heading.md`
-18. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
-19. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
-20. Field character limits (`current/max` counters): `docs/ui-field-character-limits.md`
-21. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md` (includes JS date pickers + `DateOfBirthPicker`)
-22. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
-23. Resource edit audit (latest editor, username display, table recency): `docs/resource-edit-audit.md`
-24. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
-25. Local sandbox (port 2001) for backup/wipe browser tests: `docs/sandbox-testing.md`
-26. Service Status (health probes, uptime UI): `docs/service-status.md`
-27. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
-28. Household access (attribution, family login, expense ACL): `docs/household-access.md`
-29. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
-30. Integration pages (Ollama / Evolution API page structure, conventions, new-integration checklist): `docs/integration-pages.md`
+4. Future SaaS only (do not implement yet): `docs/saas-prd.md` — household isolation between signups; live contract remains single-tenant until architecture is updated
+5. Dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md`
+6. Domain skill: activate the `tido-domain` skill surfaced by the active agent (+ its `pipeline.md` when touching OCR/webhooks) — Finances domain
+7. Framework skills surfaced by the active agent: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
+8. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/realtime-broadcasting.md`, `docs/whatsapp-bot-commands.md`, `docs/whatsapp-manual-expense.md`
+9. UI empty panels: `docs/ui-empty-states.md`
+10. Modal blur / width: `docs/ui-modal-overlay.md`
+11. Vite panel assets (`Vite::asset` vs `@vite`, when to `npm run build`): `docs/vite-assets.md`
+12. Sticky top/bottom bars + blur veil: `docs/ui-sticky-blur.md`
+13. Sticky section tabs + smooth scroll: `docs/ui-section-nav.md` (Finances widget jump tabs — not dashboard view tabs)
+14. Icon CTA tooltips (Filament Tippy, not browser `title`): `docs/ui-tooltips.md`
+15. Single-line text marquee (overflow RTL scroll): `docs/ui-text-marquee.md`
+16. Dark theme (Slate surfaces / 1px borders without elevation shadows / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
+17. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
+18. UI text headings (Title Case: `Text Heading`, never `Text heading`): `docs/ui-text-heading.md`
+19. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
+20. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
+21. Field character limits (`current/max` counters): `docs/ui-field-character-limits.md`
+22. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md` (includes JS date pickers + `DateOfBirthPicker`)
+23. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
+24. Resource edit audit (latest editor, username display, table recency): `docs/resource-edit-audit.md`
+25. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
+26. Local sandbox (port 2001) for backup/wipe browser tests: `docs/sandbox-testing.md`
+27. Service Status (health probes, uptime UI): `docs/service-status.md`
+28. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
+29. Household access (attribution, family login, expense ACL): `docs/household-access.md`
+30. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+31. Integration pages (Ollama / Evolution API page structure, conventions, new-integration checklist): `docs/integration-pages.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 

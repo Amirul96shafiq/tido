@@ -7,6 +7,8 @@
 ## Quick Summary
 This document defines the architectural blueprint for **tido**, a localized single-tenant personal hub. The **Finances** module is a highly automated expense tracking system: ingest, parse, and analyze financial receipts with zero manual data entry. Planned dashboard modules (**Training**, **Health**, **Task**) are placeholders today — see [dashboard-views.md](dashboard-views.md). The stack utilizes Laravel for robust API and queue management, FilamentPHP v5 for rapid dashboard generation, and localized AI models (Ollama) for zero-cost, private OCR data extraction.
 
+**Live contract:** one household per install — no public registration, no Free/Pro plans, no multi-household tenancy. A future SaaS product (many households on one deploy, Free/Pro TBD) is described only in [saas-prd.md](saas-prd.md). Do **not** implement tenancy, Register, or billing until this architecture document is explicitly updated for that phase.
+
 ---
 
 ## 1. Core Technology Stack

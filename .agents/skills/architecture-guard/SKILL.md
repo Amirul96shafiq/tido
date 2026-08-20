@@ -78,6 +78,7 @@ Never put Ollama or budget alerts inside Filament Resource classes.
 - New top-level `app/` folders (requires approval)
 - New dependencies (requires approval)
 - Multi-user isolation or tenancy
+- Public registration, Free/Pro billing, or `household_id` / `owner_user_id` scoping — **HALT** unless `docs/system-architecture.md` has been updated for the tenancy phase; `docs/saas-prd.md` is future intent only and does not authorize implementation
 - Calling categories "Category" in code
 - Dedicated Filament View pages (slide-over only)
 - Hitting live Ollama/Evolution in tests
