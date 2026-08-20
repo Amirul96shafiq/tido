@@ -27,6 +27,7 @@
 | [ui-custom-toggles.md](ui-custom-toggles.md) | Agents + humans | Custom Blade toggles: Filament color classes + inlineLabel layout |
 | [ui-dark-theme.md](ui-dark-theme.md) | Agents + humans | Dark mode Slate surfaces, borders without elevation shadows, tooltips, scrollbars, solid CTA text |
 | [ui-copy-style.md](ui-copy-style.md) | Agents + humans | Impersonal UI voice (no we/you); auth and panel copy |
+| [ui-text-heading.md](ui-text-heading.md) | Agents + humans | Heading capitalization: Title Case (`Text Heading`, not `Text heading`) |
 | [content-draft-recovery.md](content-draft-recovery.md) | Agents + humans | Auto-save drafts + crash recovery on Filament Create/Edit |
 | [resource-edit-audit.md](resource-edit-audit.md) | Agents + humans | Resource Edited By / Edited At attribution and table recency |
 | [backups-and-danger-zone.md](backups-and-danger-zone.md) | Agents + humans | Backup catalog, restore tokens, guest restore, profile Danger Zone |

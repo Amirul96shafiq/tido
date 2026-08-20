@@ -24,10 +24,10 @@ test('evolution api page renders sticky section nav markers', function () {
 test('evolution api section nav lists anchor tabs', function () {
     Livewire::test(EvolutionApiPage::class)
         ->assertSuccessful()
-        ->assertSee('Link device')
+        ->assertSee('Link Device')
         ->assertSee('Connection')
         ->assertSee('WhatsApp LID')
-        ->assertSee('Connection history')
+        ->assertSee('Connection History')
         ->assertSee('#evolution-link-device', false)
         ->assertSee('#evolution-connection', false)
         ->assertSee('#evolution-whatsapp-lid', false)
@@ -36,10 +36,10 @@ test('evolution api section nav lists anchor tabs', function () {
 
 test('evolution api section nav items match sectionNavItems helper', function () {
     expect(EvolutionApiPage::sectionNavItems())->toBe([
-        ['label' => 'Link device', 'id' => 'evolution-link-device'],
+        ['label' => 'Link Device', 'id' => 'evolution-link-device'],
         ['label' => 'Connection', 'id' => 'evolution-connection'],
         ['label' => 'WhatsApp LID', 'id' => 'evolution-whatsapp-lid'],
-        ['label' => 'Connection history', 'id' => 'evolution-connection-history'],
+        ['label' => 'Connection History', 'id' => 'evolution-connection-history'],
     ]);
 });
 

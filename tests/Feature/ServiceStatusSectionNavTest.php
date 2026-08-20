@@ -24,16 +24,16 @@ test('service status page renders sticky section nav markers', function () {
 test('service status section nav lists anchor tabs', function () {
     Livewire::test(ServiceStatusPage::class)
         ->assertSuccessful()
-        ->assertSee('Summary report')
-        ->assertSee('System status')
+        ->assertSee('Summary Report')
+        ->assertSee('Status')
         ->assertSee('#service-summary-report', false)
-        ->assertSee('#service-system-status', false);
+        ->assertSee('#service-status', false);
 });
 
 test('service status section nav items match sectionNavItems helper', function () {
     expect(ServiceStatusPage::sectionNavItems())->toBe([
-        ['label' => 'Summary report', 'id' => 'service-summary-report'],
-        ['label' => 'System status', 'id' => 'service-system-status'],
+        ['label' => 'Summary Report', 'id' => 'service-summary-report'],
+        ['label' => 'Status', 'id' => 'service-status'],
     ]);
 });
 

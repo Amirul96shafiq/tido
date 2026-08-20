@@ -311,7 +311,7 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Evolution API'],
             ],
             [
-                'title' => 'Link device',
+                'title' => 'Link Device',
                 'keywords' => ['link', 'device', 'qr', 'pairing', 'code', 'whatsapp'],
                 'group' => 'Sections',
                 'url' => $evolutionUrl.'#evolution-link-device',
@@ -325,7 +325,7 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Evolution API'],
             ],
             [
-                'title' => 'Connection history',
+                'title' => 'Connection History',
                 'keywords' => ['connection', 'history', 'log', 'events', 'evolution'],
                 'group' => 'Sections',
                 'url' => $evolutionUrl.'#evolution-connection-history',
@@ -353,17 +353,17 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Ollama (Local)'],
             ],
             [
-                'title' => 'Summary report',
+                'title' => 'Summary Report',
                 'keywords' => ['summary', 'report', 'health', 'status', 'service'],
                 'group' => 'Sections',
                 'url' => $serviceStatusUrl.'#service-summary-report',
                 'details' => ['Page' => 'Service Status'],
             ],
             [
-                'title' => 'System status',
+                'title' => 'Status',
                 'keywords' => ['system', 'status', 'services', 'health', 'monitoring'],
                 'group' => 'Sections',
-                'url' => $serviceStatusUrl.'#service-system-status',
+                'url' => $serviceStatusUrl.'#service-status',
                 'details' => ['Page' => 'Service Status'],
             ],
             [

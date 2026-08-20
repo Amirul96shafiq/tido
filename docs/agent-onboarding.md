@@ -53,19 +53,20 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 14. Single-line text marquee (overflow RTL scroll): `docs/ui-text-marquee.md`
 15. Dark theme (Slate surfaces / 1px borders without elevation shadows / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
 16. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
-17. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
-18. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
-19. Field character limits (`current/max` counters): `docs/ui-field-character-limits.md`
-20. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md` (includes JS date pickers + `DateOfBirthPicker`)
-21. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
-22. Resource edit audit (latest editor, username display, table recency): `docs/resource-edit-audit.md`
-23. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
-24. Local sandbox (port 2001) for backup/wipe browser tests: `docs/sandbox-testing.md`
-25. Service Status (health probes, uptime UI): `docs/service-status.md`
-26. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
-27. Household access (attribution, family login, expense ACL): `docs/household-access.md`
-28. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
-29. Integration pages (Ollama / Evolution API page structure, conventions, new-integration checklist): `docs/integration-pages.md`
+17. UI text headings (Title Case: `Text Heading`, never `Text heading`): `docs/ui-text-heading.md`
+18. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
+19. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
+20. Field character limits (`current/max` counters): `docs/ui-field-character-limits.md`
+21. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md` (includes JS date pickers + `DateOfBirthPicker`)
+22. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
+23. Resource edit audit (latest editor, username display, table recency): `docs/resource-edit-audit.md`
+24. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
+25. Local sandbox (port 2001) for backup/wipe browser tests: `docs/sandbox-testing.md`
+26. Service Status (health probes, uptime UI): `docs/service-status.md`
+27. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
+28. Household access (attribution, family login, expense ACL): `docs/household-access.md`
+29. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+30. Integration pages (Ollama / Evolution API page structure, conventions, new-integration checklist): `docs/integration-pages.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 
@@ -153,14 +154,15 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 13. Custom Alpine / Blade icon CTAs: use `x-tooltip` + `theme: $store.theme` (never bare `title=`). High-z custom shells at `z-index: 99999` must set Tippy `zIndex: 100000` — see `docs/ui-tooltips.md`. Native `<x-filament::modal>` (changelog, guest restore) does not.
 14. Dark theme surfaces: Slate with slate-800 chrome — see `docs/ui-dark-theme.md` (do not reintroduce Zinc / `#333` tooltips, white text on solid gold CTAs, or elevation drop shadows as panel borders)
 15. UI copy: impersonal voice — no *we* / *you* / *your* in headings, descriptions, notifications; see `docs/ui-copy-style.md`
-16. Resource edit audit (`edited_by`, **Edited By**, **Edited At**): see `docs/resource-edit-audit.md`
-17. Backups / Danger Zone / guest restore: see `docs/backups-and-danger-zone.md` — do not invent a second restore path
-18. Service Status / health probes: see `docs/service-status.md`
-19. Profile Active Sessions (embedded table, revoke): see `docs/active-sessions.md`
-20. Household access / family login / expense ACL: see `docs/household-access.md`
-21. Sticky section tabs + smooth scroll: see `docs/ui-section-nav.md`
-22. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas (date fields use global JS pickers / `DateOfBirthPicker`; do not reintroduce masked DOB text inputs)
-23. Custom Blade toggles: use `get_component_color_classes(ToggleComponent::class, …)` and Profile `inlineLabel` markup — see `docs/ui-custom-toggles.md`
+16. UI text headings: Title Case every word (`Text Heading`, not `Text heading` or `text heading`); see `docs/ui-text-heading.md`
+17. Resource edit audit (`edited_by`, **Edited By**, **Edited At**): see `docs/resource-edit-audit.md`
+18. Backups / Danger Zone / guest restore: see `docs/backups-and-danger-zone.md` — do not invent a second restore path
+19. Service Status / health probes: see `docs/service-status.md`
+20. Profile Active Sessions (embedded table, revoke): see `docs/active-sessions.md`
+21. Household access / family login / expense ACL: see `docs/household-access.md`
+22. Sticky section tabs + smooth scroll: see `docs/ui-section-nav.md`
+23. Resource form empty fields: placeholders vs defaults — see `docs/ui-form-empty-defaults.md` when adding or extending `*Form.php` schemas (date fields use JS pickers / `DateOfBirthPicker`; do not reintroduce masked DOB text inputs)
+24. Custom Blade toggles: use `get_component_color_classes(ToggleComponent::class, …)` and Profile `inlineLabel` markup — see `docs/ui-custom-toggles.md`
 
 ### Integrations
 

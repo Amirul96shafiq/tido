@@ -63,7 +63,7 @@
     </x-filament::section>
 
     <x-filament::section class="order-1 lg:order-2" id="evolution-link-device">
-        <x-slot name="heading">Link device</x-slot>
+        <x-slot name="heading">Link Device</x-slot>
 
         <div
             @if ($this->getPollingInterval())
@@ -450,7 +450,7 @@
 </x-filament::section>
 
 <x-filament::section class="mt-6" id="evolution-connection-history">
-    <x-slot name="heading">Connection history</x-slot>
+    <x-slot name="heading">Connection History</x-slot>
 
     {{ $this->table }}
 </x-filament::section>

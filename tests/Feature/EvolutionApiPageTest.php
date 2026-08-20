@@ -111,7 +111,7 @@ test('evolution api page loads for authenticated user', function () {
         ->assertActionDisabled('sendPing')
         ->assertSee('Not connected')
         ->assertSee('Connect')
-        ->assertSee('Connection history')
+        ->assertSee('Connection History')
         ->assertSee('No connection events yet');
 });
 
@@ -1095,7 +1095,7 @@ test('connection history section lists previous logs', function () {
     ]);
 
     $component = Livewire::test(EvolutionApiPage::class)
-        ->assertSee('Connection history')
+        ->assertSee('Connection History')
         ->assertSee('Connected via')
         ->assertSee('QR code')
         ->assertSee('pairing code')

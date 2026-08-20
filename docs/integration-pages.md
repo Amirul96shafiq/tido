@@ -136,7 +136,7 @@ Top two sections sit in a two-column grid on `xl` screens; bottom sections span 
 </div>
 ```
 
-Some integrations swap the column order (Evolution API puts the interactive "Link device" panel on the right and the read-only connection info on the left). Either ordering is acceptable; keep the section IDs consistent with `sectionNavItems()`.
+Some integrations swap the column order (Evolution API puts the interactive "Link Device" panel on the right and the read-only connection info on the left). Either ordering is acceptable; keep the section IDs consistent with `sectionNavItems()`.
 
 ### Mandatory section IDs and their contents
 
@@ -358,7 +358,7 @@ public function sectionNavItems(): array
 }
 ```
 
-Use the same naming conventions as Ollama (`Status`, `Pipeline Readiness`, `Receipt & Parsing Activity`) and Evolution API (`Link device`, `Connection`, `WhatsApp LID`, `Connection history`). Label the nav items for the human-readable concern, not the technical component.
+Use the same naming conventions as Ollama (`Status`, `Pipeline Readiness`, `Receipt & Parsing Activity`) and Evolution API (`Link Device`, `Connection`, `WhatsApp LID`, `Connection History`). Label the nav items for the human-readable concern, not the technical component.
 
 See `docs/ui-section-nav.md` for the full `HasSectionNav` contract and scroll behaviour.
 

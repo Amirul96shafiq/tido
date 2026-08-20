@@ -155,8 +155,8 @@ Home module tabs (Finances / Training / Health / Task) are **not** section nav �
 | Section list | `ServiceStatusPage::sectionNavItems()` |
 | Sticky pin + content scope | `ServiceStatusPage::content()` — `wrapInSectionNavScope()` + content partial |
 | Page class | `.fi-service-status-page` |
-| Anchors | `#service-summary-report`, `#service-system-status` in [`service-status-content.blade.php`](../resources/views/filament/pages/partials/service-status-content.blade.php) |
-| Summary sticky | `.fi-service-status-summary-sticky` — content-height card sticks below the section tabs on `lg+` while System status scrolls (`resources/css/app.css`) |
+| Anchors | `#service-summary-report`, `#service-status` in [`service-status-content.blade.php`](../resources/views/filament/pages/partials/service-status-content.blade.php) |
+| Summary sticky | `.fi-service-status-summary-sticky` — content-height card sticks below the section tabs on `lg+` while Status scrolls (`resources/css/app.css`) |
 | Tests | [`tests/Feature/ServiceStatusSectionNavTest.php`](../tests/Feature/ServiceStatusSectionNavTest.php) |
 
 ## Label Create / Edit

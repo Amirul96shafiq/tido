@@ -61,7 +61,7 @@ return $table
 ### CTA rules
 
 - **Include** a CTA when the next step is elsewhere (create URL, upload page, etc.).
-- **Omit** when create/upload/connect already lives on the same page above the table (e.g. Upload Receipts form, WhatsApp Link device).
+- **Omit** when create/upload/connect already lives on the same page above the table (e.g. Upload Receipts form, WhatsApp Link Device).
 - Prefer one primary button with a **plus prefix icon** (`Heroicon::Plus` / `heroicon-m-plus`); content-sized (`w-auto` via shared CSS), not full-card width.
 - Do **not** use `emptyState(view(...))` unless native actions cannot express the CTA.
 
@@ -127,7 +127,7 @@ Do not invent a second empty layout for tables.
 | Backups list | `app/Filament/Resources/Backups/Tables/BackupsTable.php` |
 | Recent Receipts (dashboard) | `app/Filament/Widgets/RecentReceipts.php` |
 | Upload Receipts page table | `app/Filament/Pages/ReceiptUploadPage.php` |
-| Evolution API connection history | `app/Filament/Pages/EvolutionApiPage.php` |
+| Evolution API connection History | `app/Filament/Pages/EvolutionApiPage.php` |
 
 ## Agent checklist
 

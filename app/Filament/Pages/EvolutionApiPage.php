@@ -133,10 +133,10 @@ class EvolutionApiPage extends Page implements HasTable
     public static function sectionNavItems(): array
     {
         return [
-            ['label' => 'Link device', 'id' => 'evolution-link-device'],
+            ['label' => 'Link Device', 'id' => 'evolution-link-device'],
             ['label' => 'Connection', 'id' => 'evolution-connection'],
             ['label' => 'WhatsApp LID', 'id' => 'evolution-whatsapp-lid'],
-            ['label' => 'Connection history', 'id' => 'evolution-connection-history'],
+            ['label' => 'Connection History', 'id' => 'evolution-connection-history'],
         ];
     }
 

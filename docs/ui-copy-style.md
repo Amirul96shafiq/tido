@@ -33,7 +33,7 @@ Instructional text under headings (forms, OTP steps, password reset) must follow
 
 | Element | Guidance |
 |---------|----------|
-| **Heading** | Short label or statement; no second person |
+| **Heading** | Short label or statement; no second person; **Title Case every word** (`Text Heading`, not `Text heading`) — see [ui-text-heading.md](ui-text-heading.md) |
 | **Description** | One sentence; states purpose or next step without *you* / *we* |
 | **CTA / button** | Imperative is fine when it names the action (*Send email*, *Verify code & sign in*) — not *Submit your form* |
 | **Notifications** | Same neutral voice as descriptions |
@@ -58,12 +58,14 @@ Stock Filament translation strings under `vendor/` are not the source of truth f
 ## Agent checklist
 
 1. New or edited UI copy: scan for *we*, *you*, *your*, *our*, *let's* — rewrite before shipping
-2. Descriptions sit under headings with tight spacing (see auth CSS in `resources/css/app.css` — `.fi-simple-header-subheading`)
-3. Match tone: calm, specific, one clear next action (see [ui-empty-states.md](ui-empty-states.md) for layout)
-4. Add or update Pest `assertSee` when copy is part of tested behaviour
+2. Headings use Title Case (`Text Heading`) — see [ui-text-heading.md](ui-text-heading.md)
+3. Descriptions sit under headings with tight spacing (see auth CSS in `resources/css/app.css` — `.fi-simple-header-subheading`)
+4. Match tone: calm, specific, one clear next action (see [ui-empty-states.md](ui-empty-states.md) for layout)
+5. Add or update Pest `assertSee` when copy is part of tested behaviour
 
 ## Related
 
+- [ui-text-heading.md](ui-text-heading.md) — heading capitalization (Title Case)
 - [agent-onboarding.md](agent-onboarding.md) — Filament UI section
 - [ui-empty-states.md](ui-empty-states.md) — empty panel layout
 - [ui-dark-theme.md](ui-dark-theme.md) — dark mode surfaces

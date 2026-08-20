@@ -55,8 +55,8 @@ class ServiceStatusPage extends Page
     public static function sectionNavItems(): array
     {
         return [
-            ['label' => 'Summary report', 'id' => 'service-summary-report'],
-            ['label' => 'System status', 'id' => 'service-system-status'],
+            ['label' => 'Summary Report', 'id' => 'service-summary-report'],
+            ['label' => 'Status', 'id' => 'service-status'],
         ];
     }
 
@@ -129,12 +129,12 @@ class ServiceStatusPage extends Page
 
     public function summaryReportHeading(): string
     {
-        return 'Summary report ('.$this->periodDateRange().')';
+        return 'Summary Report ('.$this->periodDateRange().')';
     }
 
     public function systemStatusHeading(): string
     {
-        return 'System status ('.$this->periodDateRange().')';
+        return 'Status ('.$this->periodDateRange().')';
     }
 
     /**

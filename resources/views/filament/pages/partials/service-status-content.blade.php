@@ -100,7 +100,7 @@
         </style>
     </x-filament::section>
 
-    <x-filament::section id="service-system-status">
+    <x-filament::section id="service-status">
         <x-slot name="heading">{{ $this->systemStatusHeading() }}</x-slot>
 
         <div class="divide-y divide-gray-200 dark:divide-white/10">

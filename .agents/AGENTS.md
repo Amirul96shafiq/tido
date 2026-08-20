@@ -42,12 +42,13 @@ No multi-tenancy package. One Filament panel with **household roles** (`primary`
 13. Field character limits (`current/max` counters) — `docs/ui-field-character-limits.md`
 14. Resource form empty placeholders / defaults — `docs/ui-form-empty-defaults.md`
 15. Custom Blade toggles (Filament color classes + Profile inlineLabel) — `docs/ui-custom-toggles.md`
-16. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`. Destructive browser tests use the port-2001 sandbox — `docs/sandbox-testing.md`
-17. Service Status / health probes — `docs/service-status.md`
-18. Profile Active Sessions — `docs/active-sessions.md`
-19. Household access / family login / attribution — `docs/household-access.md`
-20. WhatsApp text manual expenses — `docs/whatsapp-manual-expense.md`
-21. WhatsApp bot commands / keywords — `docs/whatsapp-bot-commands.md`
+16. UI text headings (Title Case: `Text Heading`, not `Text heading`) — `docs/ui-text-heading.md`
+17. Backups / Danger Zone / guest restore — `docs/backups-and-danger-zone.md`. Destructive browser tests use the port-2001 sandbox — `docs/sandbox-testing.md`
+18. Service Status / health probes — `docs/service-status.md`
+19. Profile Active Sessions — `docs/active-sessions.md`
+20. Household access / family login / attribution — `docs/household-access.md`
+21. WhatsApp text manual expenses — `docs/whatsapp-manual-expense.md`
+22. WhatsApp bot commands / keywords — `docs/whatsapp-bot-commands.md`
 
 ### Do not
 
@@ -162,6 +163,10 @@ When adding or extending a resource `*Form.php`, give empty Create/Edit fields a
 
 Prefer native `Toggle::make()`. When a custom Alpine toggle is required (e.g. Filament `$store.sidebar` / localStorage), build on/off classes with `get_component_color_classes(ToggleComponent::class, 'primary'|'gray')` — never only `fi-color-primary`. On Edit Profile, mirror `fi-fo-field-has-inline-label` markup. See `docs/ui-custom-toggles.md`.
 
+### Text headings (Title Case)
+
+User-visible headings capitalize every word: **Text Heading**, never `Text heading` or `text heading`. See `docs/ui-text-heading.md`. Descriptions and helper text stay sentence case.
+
 ### Edit page title
 
 Every `EditRecord` page must use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the heading ends with the singular model label (e.g. `Edit Overall Budget · Monthly 2026 Budget`). The record-title segment is highlighted with primary color (`text-primary-600 dark:text-primary-400`). Does not apply to Create pages, List pages, or `EditProfile`.
@@ -222,6 +227,7 @@ Resource::getUrl('index', [
 - Visible text labels on ungrouped table record actions (icons only)
 - Raw `->dateTime()` alone on `created_at` resource columns — use `since()` + `dateTimeTooltip()`
 - Browser-native `title=` tooltips on icon CTAs
+- Sentence-case or lowercase headings (`Text heading`, `text heading`) — use Title Case (`Text Heading`) — `docs/ui-text-heading.md`
 
 ---
 

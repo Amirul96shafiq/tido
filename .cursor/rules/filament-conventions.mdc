@@ -61,6 +61,10 @@ When adding or extending a resource `*Form.php`, give empty Create/Edit fields a
 
 Prefer native `Toggle::make()`. When a custom Alpine toggle is required (e.g. Filament `$store.sidebar` / localStorage), build on/off classes with `get_component_color_classes(ToggleComponent::class, 'primary'|'gray')` — never only `fi-color-primary`. On Edit Profile, mirror `fi-fo-field-has-inline-label` markup. See `docs/ui-custom-toggles.md`.
 
+## Text headings (Title Case)
+
+User-visible headings capitalize every word: **Text Heading**, never `Text heading` or `text heading`. See `docs/ui-text-heading.md`. Descriptions and helper text stay sentence case.
+
 ## Edit page title
 
 Every `EditRecord` page must use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the heading ends with the singular model label (e.g. `Edit Overall Budget · Monthly 2026 Budget`, `Edit Food & Dining Label`, `Edit Starbucks Expense`). The record-title segment is highlighted with primary color (`text-primary-600 dark:text-primary-400`). Does not apply to Create pages, List pages, or `EditProfile`.
@@ -121,3 +125,4 @@ Resource::getUrl('index', [
 - Visible text labels on ungrouped table record actions (icons only; Filament Tippy tooltips + a11y labels remain — see `docs/ui-tooltips.md`)
 - Raw `->dateTime()` alone on `created_at` resource columns — use `since()` + `dateTimeTooltip()` instead
 - Browser-native `title=` tooltips on icon CTAs — use `->tooltip()` / `x-tooltip` instead
+- Sentence-case or lowercase headings (`Text heading`, `text heading`) — use Title Case (`Text Heading`) — see `docs/ui-text-heading.md`

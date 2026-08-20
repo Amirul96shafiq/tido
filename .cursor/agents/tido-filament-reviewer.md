@@ -52,6 +52,7 @@ app/Filament/Resources/{Plural}/
 - Empty states: `docs/ui-empty-states.md`
 - Dark theme: Slate surfaces — `docs/ui-dark-theme.md`
 - Copy: impersonal voice — no we/you/your — `docs/ui-copy-style.md`
+- Headings: Title Case every word (`Text Heading`, not `Text heading`) — `docs/ui-text-heading.md`
 - Sticky blur: `docs/ui-sticky-blur.md`
 - Form placeholders vs defaults: `docs/ui-form-empty-defaults.md`
 - Custom toggles: `get_component_color_classes(ToggleComponent::class, …)` — `docs/ui-custom-toggles.md`
@@ -71,6 +72,7 @@ Finances (Upload Receipts, Expenses, Budgets) · Settings (Labels, Payment Metho
 - Visible text labels on icon-only row actions
 - Raw `->dateTime()` alone on timestamp columns
 - Zinc/`#333` dark surfaces or white text on solid gold CTAs
+- Sentence-case or lowercase headings — `docs/ui-text-heading.md`
 
 ## Output format
 

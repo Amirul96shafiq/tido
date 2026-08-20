@@ -35,8 +35,8 @@ test('service status page renders summary banner and uptime labels', function ()
     ]);
 
     Livewire::test(ServiceStatusPage::class)
-        ->assertSee('Summary report (', false)
-        ->assertSee('System status (', false)
+        ->assertSee('Summary Report (', false)
+        ->assertSee('Status (', false)
         ->assertDontSee('Last 30 days', false)
         ->assertSee('Monitored services')
         ->assertSee('Ollama')
@@ -96,7 +96,7 @@ test('family member can navigate to and view service status', function (): void 
         ->assertSee('Service Status');
 
     Livewire::test(ServiceStatusPage::class)
-        ->assertSee('Summary report')
-        ->assertSee('System status')
+        ->assertSee('Summary Report')
+        ->assertSee('Status')
         ->assertActionHidden('runCheck');
 });
