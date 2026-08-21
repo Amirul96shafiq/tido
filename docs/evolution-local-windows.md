@@ -169,6 +169,14 @@ curl -X POST http://127.0.0.1:8080/webhook/set/tido \
 
 Evolution sends the registered `Authorization: Bearer ${EVOLUTION_WEBHOOK_SECRET}` header to tido. The webhook does not accept the raw secret, the outbound `EVOLUTION_API_KEY`, or a `?token=` query parameter.
 
+Inbound trust boundary (SEC-009):
+
+- **Source IP:** `EVOLUTION_WEBHOOK_ALLOWED_IPS` (default `127.0.0.1,::1`). Empty list rejects all callbacks (403). When Evolution reaches tido through a reverse proxy, list Evolution’s true source IP (trusted proxies are a separate deployment concern).
+- **Body size:** oversized payloads return 413 before JSON work.
+- **Throttles:** per-IP and global limits on the route; per-allowlisted-sender limit after household allowlist resolution. Exceeding any limit returns a generic 429.
+- **Schema:** `messages.upsert` requires a message ID, a phone (`@s.whatsapp.net` / `@c.us`) or LID (`@lid`) JID, and bounded text. Group/broadcast JIDs are rejected.
+- **Replay:** the same `key.id` returns `{ "status": "duplicate" }` without re-dispatching jobs or sending another reply.
+
 Only Profile WhatsApp numbers plus Family Members with allowlist enabled are allowlisted for bot replies. Self-chat (“Message yourself”) is supported when the JID matches an allowlisted number. Family members with **login enabled** can sign in to `/admin` via WhatsApp OTP on their own number (limited Finances access).
 
 **Local testing without a second WhatsApp:** set `WHATSAPP_LOGIN_DEV_OTP=123456` and `WHATSAPP_LOGIN_DEV_PHONES=60111222333` in `.env` (local/testing only). `DatabaseSeeder` seeds **Sample Spouse** on that number — send OTP on login, then enter the dev code (no Evolution send).

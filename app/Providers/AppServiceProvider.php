@@ -75,6 +75,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(BackupWasSuccessful::class, RegisterScheduledBackupCatalog::class);
 
         $this->configureGuestRestoreRateLimiter();
+        $this->configureWhatsAppWebhookRateLimiter();
 
         Livewire::setUpdateRoute(function ($handle, $path) {
             return Route::post('/livewire/update', $handle)
@@ -104,6 +105,29 @@ class AppServiceProvider extends ServiceProvider
                     ->response($response),
                 Limit::perMinute($global)
                     ->by('guest-restore:global')
+                    ->response($response),
+            ];
+        });
+    }
+
+    protected function configureWhatsAppWebhookRateLimiter(): void
+    {
+        RateLimiter::for('whatsapp-webhook', function (Request $request) {
+            $perIp = max(1, (int) config('services.evolution.webhook_per_ip_attempts_per_minute', 60));
+            $global = max(1, (int) config('services.evolution.webhook_global_attempts_per_minute', 60));
+
+            $response = function (Request $request, array $headers) {
+                return response()->json([
+                    'error' => 'Too many requests. Try again later.',
+                ], 429, $headers);
+            };
+
+            return [
+                Limit::perMinute($perIp)
+                    ->by('whatsapp-webhook:ip:'.$request->ip())
+                    ->response($response),
+                Limit::perMinute($global)
+                    ->by('whatsapp-webhook:global')
                     ->response($response),
             ];
         });

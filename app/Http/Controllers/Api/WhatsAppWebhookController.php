@@ -5,51 +5,55 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\WhatsAppWebhookRequest;
 use App\Jobs\ProcessManualWhatsAppExpenseJob;
 use App\Jobs\ProcessWhatsAppMediaJob;
 use App\Services\WhatsAppNotificationService;
-use App\Support\EvolutionCredential;
 use App\Support\ManualWhatsAppExpenseParser;
 use App\Support\PhoneNumber;
+use App\Support\WhatsAppJid;
 use App\Support\WhatsAppLid;
 use App\Support\WhatsAppMessage;
 use App\Support\WhatsAppSpendingCommandParser;
 use App\Support\WhatsAppSpendingReplyBuilder;
+use App\Support\WhatsAppWebhookIdempotency;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 
 class WhatsAppWebhookController extends Controller
 {
-    public function handle(Request $request, WhatsAppNotificationService $waService): JsonResponse
+    public function handle(WhatsAppWebhookRequest $request, WhatsAppNotificationService $waService): JsonResponse
     {
-        $authorization = $request->header('Authorization');
-        $apiKey = trim((string) config('services.evolution.api_key'));
-        $webhookSecret = trim((string) config('services.evolution.webhook_secret'));
+        // Bearer auth is enforced in WhatsAppWebhookRequest::authorize() before schema validation.
+        $validated = $request->validated();
+        $event = (string) ($validated['event'] ?? '');
 
-        if (! EvolutionCredential::areDistinct($apiKey, $webhookSecret)
-            || ! hash_equals('Bearer '.$webhookSecret, (string) $authorization)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+        Log::info('WhatsApp Webhook received', ['event' => $event !== '' ? $event : 'unknown']);
 
-        $payload = $request->all();
-        Log::info('WhatsApp Webhook received', ['event' => $payload['event'] ?? 'unknown']);
-
-        if (($payload['event'] ?? '') !== 'messages.upsert') {
+        if ($event !== 'messages.upsert') {
             return response()->json(['status' => 'ignored_event']);
         }
 
-        $data = $payload['data'] ?? [];
-        $message = $data['message'] ?? [];
-        $key = $data['key'] ?? [];
+        /** @var array<string, mixed> $data */
+        $data = $validated['data'] ?? [];
+        /** @var array<string, mixed> $message */
+        $message = is_array($data['message'] ?? null) ? $data['message'] : [];
+        /** @var array<string, mixed> $key */
+        $key = is_array($data['key'] ?? null) ? $data['key'] : [];
 
         $senderJid = (string) ($key['remoteJid'] ?? '');
+        $messageId = (string) ($key['id'] ?? '');
 
-        if ($senderJid === '') {
-            return response()->json(['error' => 'No sender JID found'], 400);
+        if ($senderJid === '' || $messageId === '') {
+            return response()->json(['error' => 'Invalid payload'], 422);
         }
 
-        $senderPhone = PhoneNumber::resolveAllowlistedSenderPhone($senderJid);
+        if (! WhatsAppWebhookIdempotency::claim($messageId)) {
+            return response()->json(['status' => 'duplicate']);
+        }
+
+        $senderPhone = WhatsAppJid::resolveAllowlistedSenderPhone($senderJid);
 
         if ($senderPhone === null) {
             if (WhatsAppLid::isLidIdentifier($senderJid)) {
@@ -66,13 +70,17 @@ class WhatsAppWebhookController extends Controller
             return response()->json(['status' => 'ignored_sender']);
         }
 
+        if ($this->senderThrottleExceeded($senderPhone)) {
+            return response()->json(['error' => 'Too many requests. Try again later.'], 429);
+        }
+
         // Self-chat ("Message yourself") often arrives as fromMe=true with remoteJid = your number.
         // Allowlisted senders are processed either way; strangers never reach here.
 
-        $messageType = $data['messageType'] ?? '';
+        $messageType = (string) ($data['messageType'] ?? '');
 
         if ($messageType === 'imageMessage') {
-            $image = $message['imageMessage'] ?? [];
+            $image = is_array($message['imageMessage'] ?? null) ? $message['imageMessage'] : [];
 
             return $this->handleMediaMessage(
                 $data,
@@ -83,7 +91,7 @@ class WhatsAppWebhookController extends Controller
         }
 
         if ($messageType === 'documentMessage') {
-            $document = $message['documentMessage'] ?? [];
+            $document = is_array($message['documentMessage'] ?? null) ? $message['documentMessage'] : [];
             $mimeType = strtolower(trim((string) ($document['mimetype'] ?? '')));
 
             if ($mimeType !== 'application/pdf') {
@@ -106,9 +114,12 @@ class WhatsAppWebhookController extends Controller
         }
 
         if ($messageType === 'conversation' || $messageType === 'extendedTextMessage') {
-            $text = $message['conversation'] ?? ($message['extendedTextMessage']['text'] ?? '');
+            $text = $message['conversation']
+                ?? (is_array($message['extendedTextMessage'] ?? null)
+                    ? ($message['extendedTextMessage']['text'] ?? '')
+                    : '');
 
-            return $this->handleTextMessage($text, $senderPhone, $waService);
+            return $this->handleTextMessage((string) $text, $senderPhone, $waService);
         }
 
         return response()->json(['status' => 'ignored_type']);
@@ -124,6 +135,20 @@ class WhatsAppWebhookController extends Controller
         return PhoneNumber::isAllowedWhatsAppSender($senderNumber);
     }
 
+    protected function senderThrottleExceeded(string $senderPhone): bool
+    {
+        $max = max(1, (int) config('services.evolution.webhook_per_sender_attempts_per_minute', 20));
+        $key = 'whatsapp-webhook:sender:'.$senderPhone;
+
+        if (RateLimiter::tooManyAttempts($key, $max)) {
+            return true;
+        }
+
+        RateLimiter::hit($key, 60);
+
+        return false;
+    }
+
     /**
      * @param  array<string, mixed>  $data
      */
@@ -134,8 +159,8 @@ class WhatsAppWebhookController extends Controller
         string $mimeType,
         ?string $originalFilename = null,
     ): JsonResponse {
-        $key = $data['key'] ?? [];
-        $messageId = (string) ($key['id'] ?? uniqid());
+        $key = is_array($data['key'] ?? null) ? $data['key'] : [];
+        $messageId = (string) ($key['id'] ?? '');
         $remoteJid = (string) ($key['remoteJid'] ?? '');
         $fromMe = (bool) ($key['fromMe'] ?? false);
 

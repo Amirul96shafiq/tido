@@ -90,8 +90,12 @@ Unique on `receipt_hash`. Factories should set a unique hash.
 
 ## WhatsApp webhook
 
-- Route: `POST /api/webhooks/whatsapp` (`routes/api.php`)
+- Route: `POST /api/webhooks/whatsapp` (`routes/api.php`) with body-size, IP-allowlist, and `throttle:whatsapp-webhook` middleware
 - Auth: `Authorization: Bearer {services.evolution.webhook_secret}`; this inbound credential must be distinct from the outbound `services.evolution.api_key`
+- Source: `services.evolution.webhook_allowed_ips` (default loopback; empty = 403)
+- Schema: strict `messages.upsert` Form Request (message ID, phone/`@lid` JID domains only, bounded text); invalid → 422
+- Idempotency: `Cache::add` on `key.id` before allowlist side effects / dispatch; replays → `{status: duplicate}`
+- Throttles: per-IP + global on the route; per-allowlisted-sender after resolution
 - Event: `messages.upsert`
 - Sender allowlist: Profile `users.phone` + Family Members with `allowlist_enabled` (normalized); others → `ignored_sender` (no reply)
 - Panel login: Family Members with `login_enabled` get a linked `User` and may OTP-login — see `docs/household-access.md`

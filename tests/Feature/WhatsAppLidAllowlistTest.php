@@ -8,7 +8,9 @@ use App\Support\PhoneNumber;
 use App\Support\WhatsAppLid;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\RateLimiter;
 
 uses(RefreshDatabase::class);
 
@@ -16,7 +18,12 @@ beforeEach(function () {
     config([
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.webhook_secret' => 'test-evolution-webhook-secret-0123456789abcdef0123456789abcdef',
+        'services.evolution.webhook_allowed_ips' => '127.0.0.1,::1',
     ]);
+
+    Cache::flush();
+    RateLimiter::clear('whatsapp-webhook:ip:127.0.0.1');
+    RateLimiter::clear('whatsapp-webhook:global');
 
     User::factory()->create([
         'phone' => '60123456789',

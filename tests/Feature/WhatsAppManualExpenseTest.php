@@ -21,6 +21,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\RateLimiter;
 
 uses(RefreshDatabase::class);
 
@@ -32,6 +33,7 @@ beforeEach(function () {
         'services.evolution.webhook_secret' => 'test-evolution-webhook-secret-0123456789abcdef0123456789abcdef',
         'services.evolution.api_url' => 'http://evolution-api.test',
         'services.evolution.instance_name' => 'tido',
+        'services.evolution.webhook_allowed_ips' => '127.0.0.1,::1',
         'services.evolution.document_received_debounce_seconds' => 3,
         'services.ollama.host' => 'http://ollama.test',
         'services.ollama.model' => 'test-model',
@@ -41,6 +43,8 @@ beforeEach(function () {
     User::factory()->create(['phone' => '60123456789']);
 
     Cache::flush();
+    RateLimiter::clear('whatsapp-webhook:ip:127.0.0.1');
+    RateLimiter::clear('whatsapp-webhook:global');
 });
 
 test('whatsapp webhook dispatches process job for manual expense text', function () {

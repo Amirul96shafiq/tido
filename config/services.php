@@ -80,6 +80,16 @@ return [
         'api_key' => env('EVOLUTION_API_KEY'),
         'webhook_secret' => env('EVOLUTION_WEBHOOK_SECRET'),
         'instance_name' => env('EVOLUTION_INSTANCE_NAME', 'tido'),
+        // Comma-separated exact IPs allowed to POST the WhatsApp webhook. Empty = fail-closed (403).
+        // Default loopback matches Evolution on the same host. Behind a proxy, list Evolution's true source IP.
+        'webhook_allowed_ips' => env('EVOLUTION_WEBHOOK_ALLOWED_IPS', '127.0.0.1,::1'),
+        'webhook_max_body_bytes' => (int) env('EVOLUTION_WEBHOOK_MAX_BODY_BYTES', 262144),
+        'webhook_max_text_chars' => (int) env('EVOLUTION_WEBHOOK_MAX_TEXT_CHARS', 8192),
+        'webhook_message_id_max' => (int) env('EVOLUTION_WEBHOOK_MESSAGE_ID_MAX', 128),
+        'webhook_per_ip_attempts_per_minute' => (int) env('EVOLUTION_WEBHOOK_PER_IP_ATTEMPTS_PER_MINUTE', 60),
+        'webhook_global_attempts_per_minute' => (int) env('EVOLUTION_WEBHOOK_GLOBAL_ATTEMPTS_PER_MINUTE', 60),
+        'webhook_per_sender_attempts_per_minute' => (int) env('EVOLUTION_WEBHOOK_PER_SENDER_ATTEMPTS_PER_MINUTE', 20),
+        'webhook_idempotency_ttl_seconds' => (int) env('EVOLUTION_WEBHOOK_IDEMPOTENCY_TTL_SECONDS', 604800),
         // Legacy install-only: copied into Profile / Family Members by DatabaseSeeder when empty.
         // Bot allowlist and outbound alerts now use users.phone + family_members.
         'personal_number' => env('PERSONAL_WHATSAPP_NUMBER'),
