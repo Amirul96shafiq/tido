@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureWhatsAppWebhookBodySize;
+use App\Http\Middleware\EnsureWhatsAppWebhookSource;
 use App\Http\Middleware\SetUserPreferences;
 use App\Support\ApplicationStoragePath;
 use Illuminate\Foundation\Application;
@@ -22,6 +24,11 @@ $app = Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: [
             'api/*',
+        ]);
+
+        $middleware->alias([
+            'whatsapp-webhook-body' => EnsureWhatsAppWebhookBodySize::class,
+            'whatsapp-webhook-source' => EnsureWhatsAppWebhookSource::class,
         ]);
 
         $middleware->web(append: [
