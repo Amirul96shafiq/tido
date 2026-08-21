@@ -44,6 +44,24 @@ function seedDatabaseNotifications(User $user): void
         ->warning()
         ->sendToDatabase($user);
 
+    Notification::make()
+        ->title('Recurring payment summary')
+        ->body('2 payments due this week.')
+        ->warning()
+        ->sendToDatabase($user);
+
+    Notification::make()
+        ->title('Backup created')
+        ->body('Database backup was saved successfully.')
+        ->success()
+        ->sendToDatabase($user);
+
+    Notification::make()
+        ->title('Service Status down')
+        ->body('Ollama is unreachable.')
+        ->danger()
+        ->sendToDatabase($user);
+
     $user->notifications()
         ->where('data->title', 'WhatsApp Connected')
         ->update(['read_at' => now()]);
@@ -143,6 +161,19 @@ test('can close filters panel', function () {
         ->assertDontSee('fi-no-database-filters-panel', false);
 });
 
+test('notification resource options list includes all domains in order', function () {
+    expect(NotificationResource::options())->toBe([
+        'profile' => 'Profile',
+        'expenses' => 'Expenses',
+        'whatsapp' => 'WhatsApp',
+        'evolution-api' => 'Evolution API',
+        'budgets' => 'Budgets',
+        'recurrings' => 'Recurrings',
+        'backups' => 'Backups',
+        'service-status' => 'Service Status',
+    ]);
+});
+
 test('can filter by resource', function () {
     seedDatabaseNotifications($this->user);
 
@@ -151,7 +182,44 @@ test('can filter by resource', function () {
         ->assertSee('Receipt requires manual review')
         ->assertDontSee('Profile Settings Updated')
         ->assertDontSee('WhatsApp Connected')
-        ->assertDontSee('Budget Alert: Food');
+        ->assertDontSee('Budget Alert: Food')
+        ->assertDontSee('Recurring payment summary')
+        ->assertDontSee('Backup created')
+        ->assertDontSee('Service Status down');
+});
+
+test('can filter by recurrings resource', function () {
+    seedDatabaseNotifications($this->user);
+
+    Livewire::test(DatabaseNotifications::class)
+        ->set('filters.resource', NotificationResource::Recurrings->value)
+        ->assertSee('Recurring payment summary')
+        ->assertDontSee('Receipt requires manual review')
+        ->assertDontSee('Budget Alert: Food')
+        ->assertDontSee('Backup created')
+        ->assertDontSee('Service Status down');
+});
+
+test('can filter by backups resource', function () {
+    seedDatabaseNotifications($this->user);
+
+    Livewire::test(DatabaseNotifications::class)
+        ->set('filters.resource', NotificationResource::Backups->value)
+        ->assertSee('Backup created')
+        ->assertDontSee('Recurring payment summary')
+        ->assertDontSee('Receipt requires manual review')
+        ->assertDontSee('Service Status down');
+});
+
+test('can filter by service status resource', function () {
+    seedDatabaseNotifications($this->user);
+
+    Livewire::test(DatabaseNotifications::class)
+        ->set('filters.resource', NotificationResource::ServiceStatus->value)
+        ->assertSee('Service Status down')
+        ->assertDontSee('Backup created')
+        ->assertDontSee('Recurring payment summary')
+        ->assertDontSee('Receipt requires manual review');
 });
 
 test('can filter by unread status', function () {
@@ -161,6 +229,9 @@ test('can filter by unread status', function () {
         ->set('filters.status', 'unread')
         ->assertSee('Profile Settings Updated')
         ->assertSee('Receipt requires manual review')
+        ->assertSee('Recurring payment summary')
+        ->assertSee('Backup created')
+        ->assertSee('Service Status down')
         ->assertDontSee('WhatsApp Connected')
         ->assertDontSee('Budget Alert: Food');
 });
@@ -173,7 +244,10 @@ test('can filter by read status', function () {
         ->assertSee('WhatsApp Connected')
         ->assertSee('Budget Alert: Food')
         ->assertDontSee('Profile Settings Updated')
-        ->assertDontSee('Receipt requires manual review');
+        ->assertDontSee('Receipt requires manual review')
+        ->assertDontSee('Recurring payment summary')
+        ->assertDontSee('Backup created')
+        ->assertDontSee('Service Status down');
 });
 
 test('can filter by from and until dates', function () {
@@ -185,7 +259,10 @@ test('can filter by from and until dates', function () {
         ->assertSee('Budget Alert: Food')
         ->assertDontSee('Profile Settings Updated')
         ->assertDontSee('Receipt requires manual review')
-        ->assertDontSee('WhatsApp Connected');
+        ->assertDontSee('WhatsApp Connected')
+        ->assertDontSee('Recurring payment summary')
+        ->assertDontSee('Backup created')
+        ->assertDontSee('Service Status down');
 });
 
 test('search and filters work together', function () {
@@ -230,7 +307,7 @@ test('unread badge count ignores search and filters', function () {
         ->set('search', 'Receipt')
         ->set('filters.status', 'unread');
 
-    expect($component->instance()->getUnreadNotificationsCount())->toBe(2);
+    expect($component->instance()->getUnreadNotificationsCount())->toBe(5);
 });
 
 test('reset filters clears applied filters', function () {

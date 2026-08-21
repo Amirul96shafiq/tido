@@ -11,6 +11,9 @@ enum NotificationResource: string
     case WhatsApp = 'whatsapp';
     case EvolutionApi = 'evolution-api';
     case Budgets = 'budgets';
+    case Recurrings = 'recurrings';
+    case Backups = 'backups';
+    case ServiceStatus = 'service-status';
 
     public function label(): string
     {
@@ -20,6 +23,9 @@ enum NotificationResource: string
             self::WhatsApp => 'WhatsApp',
             self::EvolutionApi => 'Evolution API',
             self::Budgets => 'Budgets',
+            self::Recurrings => 'Recurrings',
+            self::Backups => 'Backups',
+            self::ServiceStatus => 'Service Status',
         };
     }
 
@@ -31,6 +37,9 @@ enum NotificationResource: string
             self::WhatsApp => 'WhatsApp%',
             self::EvolutionApi => 'Evolution API%',
             self::Budgets => 'Budget%',
+            self::Recurrings => 'Recurring%',
+            self::Backups => 'Backup%',
+            self::ServiceStatus => 'Service Status%',
         };
     }
 
