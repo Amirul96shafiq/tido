@@ -349,7 +349,7 @@ class BackupService
         File::ensureDirectoryExists($tempDirectory);
 
         $tempZipPath = $tempDirectory.'/backup.zip';
-        File::put($tempZipPath, Storage::disk($diskName)->get($path));
+        $this->copyDiskArchiveToLocalPath($diskName, $path, $tempZipPath);
 
         try {
             $zip = $this->openBackupZip($tempZipPath);
@@ -365,7 +365,7 @@ class BackupService
                 $zip->close();
             }
 
-            Storage::disk($diskName)->put($path, File::get($tempZipPath));
+            $this->writeBackupArchiveToDisk($diskName, $path, $tempZipPath);
         } finally {
             File::deleteDirectory($tempDirectory);
         }
@@ -735,7 +735,7 @@ class BackupService
         $this->addEncryptedFile($zip, $databasePath, 'database.sqlite');
         $zip->close();
 
-        Storage::disk($diskName)->put($relativePath, File::get($zipPath));
+        $this->writeBackupArchiveToDisk($diskName, $relativePath, $zipPath);
         File::deleteDirectory($tempDirectory);
 
         return $this->storeBackupCatalogRecord($type, $createdBy, $filename);
@@ -791,11 +791,11 @@ class BackupService
         File::ensureDirectoryExists($tempDirectory);
 
         $tempZipPath = $tempDirectory.'/backup.zip';
-        File::put($tempZipPath, Storage::disk($diskName)->get($path));
+        $this->copyDiskArchiveToLocalPath($diskName, $path, $tempZipPath);
 
         $this->embedApplicationFilesInZip($tempZipPath);
 
-        Storage::disk($diskName)->put($path, File::get($tempZipPath));
+        $this->writeBackupArchiveToDisk($diskName, $path, $tempZipPath);
         File::deleteDirectory($tempDirectory);
     }
 
@@ -846,11 +846,19 @@ class BackupService
             return false;
         }
 
+        $normalized = str_replace('\\', '/', $relativePath);
         $backupFolder = $this->backupApplicationName().'/';
 
-        return str_starts_with($relativePath, $backupFolder)
-            || str_starts_with($relativePath, 'backup-temp/')
-            || str_starts_with($relativePath, 'backup-restore/');
+        if (
+            str_starts_with($normalized, $backupFolder)
+            || str_starts_with($normalized, 'backup-temp/')
+            || str_starts_with($normalized, 'backup-restore/')
+        ) {
+            return true;
+        }
+
+        // Nested prior/sandbox catalogs on the same disk exhaust memory and must not ship inside new archives.
+        return str_ends_with(strtolower($normalized), '.zip');
     }
 
     protected function restoreApplicationFilesFromZip(string $zipPath): void
@@ -1216,13 +1224,61 @@ class BackupService
 
     protected function addEncryptedFile(ZipArchive $zip, string $absolutePath, string $name): void
     {
-        $contents = File::get($absolutePath);
-
-        if ($zip->addFromString($name, $contents) !== true) {
+        if ($zip->addFile($absolutePath, $name) !== true) {
             throw new RuntimeException('Unable to write backup archive entry.');
         }
 
         $this->encryptZipEntry($zip, $name);
+    }
+
+    protected function writeBackupArchiveToDisk(string $diskName, string $relativePath, string $absoluteZipPath): void
+    {
+        $stream = fopen($absoluteZipPath, 'rb');
+
+        if ($stream === false) {
+            throw new RuntimeException('Unable to read backup archive.');
+        }
+
+        try {
+            Storage::disk($diskName)->put($relativePath, $stream);
+        } finally {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }
+    }
+
+    protected function copyDiskArchiveToLocalPath(string $diskName, string $relativePath, string $absoluteZipPath): void
+    {
+        $stream = Storage::disk($diskName)->readStream($relativePath);
+
+        if ($stream === false || $stream === null) {
+            throw new RuntimeException('Unable to read backup archive from disk.');
+        }
+
+        $destination = fopen($absoluteZipPath, 'wb');
+
+        if ($destination === false) {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+
+            throw new RuntimeException('Unable to stage backup archive.');
+        }
+
+        try {
+            if (stream_copy_to_stream($stream, $destination) === false) {
+                throw new RuntimeException('Unable to stage backup archive.');
+            }
+        } finally {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+
+            if (is_resource($destination)) {
+                fclose($destination);
+            }
+        }
     }
 
     protected function flushCaches(): void

@@ -335,3 +335,37 @@ test('backup archives embed and restore public avatar files', function () {
 
     File::delete($tempZip);
 });
+
+test('embedding skips prior and sandbox backup zips on the destination disk', function () {
+    Storage::fake('public');
+    Storage::fake('local');
+
+    config([
+        'backup.backup.name' => 'tido',
+        'backup.backup.destination.disks' => ['local'],
+    ]);
+
+    Storage::disk('local')->put('tido/old-manual.zip', 'live-catalog-zip');
+    Storage::disk('local')->put('tido-sandbox/sandbox-manual.zip', 'sandbox-catalog-zip');
+    Storage::disk('local')->put('receipts/keep.txt', 'receipt-bytes');
+
+    $tempZip = storage_path('app/backup-temp/'.uniqid('skip_zips_', true).'.zip');
+    File::ensureDirectoryExists(dirname($tempZip));
+
+    $zip = new ZipArchive;
+    expect($zip->open($tempZip, ZipArchive::CREATE | ZipArchive::OVERWRITE))->toBeTrue();
+    $zip->addFromString('database.sqlite', 'sqlite-placeholder');
+    $zip->close();
+
+    $embedFiles = new ReflectionMethod(BackupService::class, 'embedApplicationFilesInZip');
+    $embedFiles->invoke(app(BackupService::class), $tempZip);
+
+    $zip = new ZipArchive;
+    expect($zip->open($tempZip))->toBeTrue()
+        ->and($zip->locateName('files/private/tido/old-manual.zip'))->toBeFalse()
+        ->and($zip->locateName('files/private/tido-sandbox/sandbox-manual.zip'))->toBeFalse()
+        ->and($zip->locateName('files/private/receipts/keep.txt'))->not->toBeFalse();
+    $zip->close();
+
+    File::delete($tempZip);
+});
