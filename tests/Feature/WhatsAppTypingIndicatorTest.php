@@ -200,12 +200,11 @@ test('extract receipt data job does not dispatch typing indicator when whatsapp 
     Queue::assertNotPushed(MaintainWhatsAppTypingIndicatorJob::class);
 });
 
-test('document received ack job activates typing session and sends one presence pulse per batch', function () {
+test('document received ack job activates typing session and dispatches keeper per expense without blocking on sendTyping', function () {
     Queue::fake();
 
     Http::fake([
         '*/message/sendText/*' => Http::response(['status' => 'success']),
-        '*/chat/sendPresence/*' => Http::response(['status' => 'PENDING'], 201),
     ]);
 
     $sender = '60123456789';
@@ -238,12 +237,67 @@ test('document received ack job activates typing session and sends one presence 
         ->and(WhatsAppTypingSession::isActive(102))->toBeTrue()
         ->and(WhatsAppTypingSession::sender(101))->toBe($sender);
 
-    Http::assertSentCount(2);
+    Http::assertSentCount(1);
     Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/message/sendText/'));
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/chat/sendPresence/tido')
-        && data_get($request->data(), 'presence') === 'composing');
+    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/chat/sendPresence/'));
 
     Queue::assertPushed(ExtractReceiptDataJob::class, 2);
+    Queue::assertPushed(MaintainWhatsAppTypingIndicatorJob::class, 2);
+});
+
+test('extract receipt data job does not re-dispatch keeper when typing session already active', function () {
+    Queue::fake();
+    Storage::fake('local');
+    Storage::put('receipts/wa_typing.jpg', 'fake-image-content');
+
+    $this->seed(LabelSeeder::class);
+    $this->seed(PaymentMethodSeeder::class);
+
+    $expense = Expense::create([
+        'merchant_name' => 'Pending AI Extraction...',
+        'date_time' => now(),
+        'subtotal' => 0.00,
+        'total_tax' => 0.00,
+        'total_amount' => 0.00,
+        'currency' => 'MYR',
+        'source' => 'whatsapp',
+        'whatsapp_sender' => '60123456789',
+        'status' => 'pending',
+        'image_path' => 'receipts/wa_typing.jpg',
+        'original_filename' => 'wa_typing.jpg',
+    ]);
+
+    WhatsAppTypingSession::activate($expense->id, '60123456789');
+
+    Http::fake([
+        '*/api/generate' => Http::response([
+            'response' => json_encode([
+                'merchant_name' => '7-Eleven',
+                'invoice_number' => 'INV-1',
+                'date_time' => '2026-07-18 14:00:00',
+                'subtotal' => 2.00,
+                'total_tax' => 0.00,
+                'discount_total' => 0.00,
+                'rounding_amount' => 0.00,
+                'total_amount' => 2.00,
+                'currency' => 'MYR',
+                'payment_method' => 'cash',
+                'items' => [
+                    [
+                        'description' => 'Item',
+                        'quantity' => 1,
+                        'unit_price' => 2.00,
+                        'line_total' => 2.00,
+                        'label' => 'Food & Dining',
+                    ],
+                ],
+            ]),
+        ]),
+    ]);
+
+    app()->call([new ExtractReceiptDataJob($expense->id), 'handle']);
+
+    Queue::assertNotPushed(MaintainWhatsAppTypingIndicatorJob::class);
 });
 
 test('typing indicator keeper sends presence and reschedules while typing session is active', function () {

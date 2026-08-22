@@ -274,8 +274,12 @@ class ExtractReceiptDataJob implements ShouldQueue
             return;
         }
 
+        $sessionAlreadyActive = WhatsAppTypingSession::isActive($expense->id);
         WhatsAppTypingSession::activate($expense->id, (string) $expense->whatsapp_sender);
-        MaintainWhatsAppTypingIndicatorJob::dispatch($expense->id);
+
+        if (! $sessionAlreadyActive) {
+            MaintainWhatsAppTypingIndicatorJob::dispatch($expense->id);
+        }
     }
 
     protected function appendDateReviewNote(?string $existingNotes, bool $dateParsed, bool $dateSane): ?string

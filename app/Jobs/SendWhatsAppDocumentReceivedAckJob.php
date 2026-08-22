@@ -97,17 +97,11 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
             WhatsAppMessage::documentReceived($count, $documents),
         );
 
-        $typingActivated = false;
-
         foreach ($expenseIds as $expenseId) {
             if ($expenseId > 0) {
                 if ((bool) config('services.evolution.whatsapp_typing_enabled', true)) {
                     WhatsAppTypingSession::activate($expenseId, $this->senderNumber);
-
-                    if (! $typingActivated) {
-                        $waService->sendTyping($this->senderNumber);
-                        $typingActivated = true;
-                    }
+                    MaintainWhatsAppTypingIndicatorJob::dispatch($expenseId);
                 }
 
                 ExtractReceiptDataJob::dispatch($expenseId);

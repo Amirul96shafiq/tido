@@ -50,15 +50,13 @@ class MaintainWhatsAppTypingIndicatorJob implements ShouldQueue
             return;
         }
 
-        $waService->sendTyping($sender);
-
-        if (! WhatsAppTypingSession::isActive($this->expenseId)) {
-            return;
-        }
-
         $refreshSeconds = max(1, (int) config('services.evolution.whatsapp_typing_refresh_seconds', 15));
 
-        self::dispatch($this->expenseId)
-            ->delay(now()->addSeconds($refreshSeconds));
+        if (WhatsAppTypingSession::isActive($this->expenseId)) {
+            self::dispatch($this->expenseId)
+                ->delay(now()->addSeconds($refreshSeconds));
+        }
+
+        $waService->sendTyping($sender);
     }
 }
