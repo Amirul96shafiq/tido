@@ -76,6 +76,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureGuestRestoreRateLimiter();
         $this->configureWhatsAppWebhookRateLimiter();
+        $this->configureEvolutionSendRateLimiter();
 
         Livewire::setUpdateRoute(function ($handle, $path) {
             return Route::post('/livewire/update', $handle)
@@ -130,6 +131,15 @@ class AppServiceProvider extends ServiceProvider
                     ->by('whatsapp-webhook:global')
                     ->response($response),
             ];
+        });
+    }
+
+    protected function configureEvolutionSendRateLimiter(): void
+    {
+        RateLimiter::for('evolution-send', function (): Limit {
+            $max = max(1, (int) config('services.evolution.outbound_send_attempts_per_minute', 30));
+
+            return Limit::perMinute($max)->by('evolution-send');
         });
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Jobs\ProcessManualWhatsAppExpenseJob;
 use App\Jobs\ProcessWhatsAppMediaJob;
+use App\Jobs\ProcessWhatsAppTextReplyJob;
 use App\Models\User;
 use App\Support\WhatsAppWebhookIdempotency;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -157,16 +158,18 @@ test('whatsapp webhook returns duplicate for replayed message id', function (): 
     $payload = sec009UpsertPayload(messageId: 'MSG-REPLAY-1', text: 'help');
 
     $this->postJson('/api/webhooks/whatsapp', $payload, evolutionWebhookHeaders())
-        ->assertSuccessful();
+        ->assertSuccessful()
+        ->assertJson(['status' => 'accepted']);
 
-    Http::assertSentCount(1);
+    Http::assertNothingSent();
+    Queue::assertPushed(ProcessWhatsAppTextReplyJob::class, 1);
 
     $this->postJson('/api/webhooks/whatsapp', $payload, evolutionWebhookHeaders())
         ->assertSuccessful()
         ->assertJson(['status' => 'duplicate']);
 
-    Http::assertSentCount(1);
-    Queue::assertNothingPushed();
+    Http::assertNothingSent();
+    Queue::assertPushed(ProcessWhatsAppTextReplyJob::class, 1);
 });
 
 test('whatsapp webhook duplicate media dispatch pushes only once', function (): void {
@@ -280,7 +283,8 @@ test('whatsapp webhook enforces per-sender rate limit', function (): void {
         ->assertStatus(429)
         ->assertJson(['error' => 'Too many requests. Try again later.']);
 
-    Queue::assertNothingPushed();
+    Queue::assertPushed(ProcessWhatsAppTextReplyJob::class, 3);
+    Http::assertNothingSent();
 });
 
 test('ignored non-upsert events do not claim message ids', function (): void {
