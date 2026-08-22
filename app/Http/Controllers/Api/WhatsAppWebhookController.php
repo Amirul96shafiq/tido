@@ -8,14 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\WhatsAppWebhookRequest;
 use App\Jobs\ProcessManualWhatsAppExpenseJob;
 use App\Jobs\ProcessWhatsAppMediaJob;
-use App\Services\WhatsAppNotificationService;
+use App\Jobs\ProcessWhatsAppTextReplyJob;
 use App\Support\ManualWhatsAppExpenseParser;
-use App\Support\PhoneNumber;
 use App\Support\WhatsAppJid;
 use App\Support\WhatsAppLid;
-use App\Support\WhatsAppMessage;
-use App\Support\WhatsAppSpendingCommandParser;
-use App\Support\WhatsAppSpendingReplyBuilder;
 use App\Support\WhatsAppWebhookIdempotency;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -23,7 +19,7 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class WhatsAppWebhookController extends Controller
 {
-    public function handle(WhatsAppWebhookRequest $request, WhatsAppNotificationService $waService): JsonResponse
+    public function handle(WhatsAppWebhookRequest $request): JsonResponse
     {
         // Bearer auth is enforced in WhatsAppWebhookRequest::authorize() before schema validation.
         $validated = $request->validated();
@@ -119,20 +115,10 @@ class WhatsAppWebhookController extends Controller
                     ? ($message['extendedTextMessage']['text'] ?? '')
                     : '');
 
-            return $this->handleTextMessage((string) $text, $senderPhone, $waService);
+            return $this->handleTextMessage((string) $text, $senderPhone);
         }
 
         return response()->json(['status' => 'ignored_type']);
-    }
-
-    /**
-     * Profile WhatsApp numbers plus allowlisted Family Members may trigger
-     * bot replies / receipt import. Panel OTP login uses users.phone for primary
-     * and login-enabled Family Members. Linked WhatsApp LIDs resolve to those phones.
-     */
-    protected function isAllowedSender(string $senderNumber): bool
-    {
-        return PhoneNumber::isAllowedWhatsAppSender($senderNumber);
     }
 
     protected function senderThrottleExceeded(string $senderPhone): bool
@@ -177,7 +163,7 @@ class WhatsAppWebhookController extends Controller
         return response()->json(['status' => 'accepted']);
     }
 
-    protected function handleTextMessage(string $text, string $senderNumber, WhatsAppNotificationService $waService): JsonResponse
+    protected function handleTextMessage(string $text, string $senderNumber): JsonResponse
     {
         $originalText = trim($text);
 
@@ -187,38 +173,8 @@ class WhatsAppWebhookController extends Controller
             return response()->json(['status' => 'accepted']);
         }
 
-        $spendingCommand = WhatsAppSpendingCommandParser::parse($originalText);
+        ProcessWhatsAppTextReplyJob::dispatch($senderNumber, $originalText);
 
-        if ($spendingCommand !== null) {
-            $reply = (new WhatsAppSpendingReplyBuilder(
-                $spendingCommand['month'],
-                $spendingCommand['mode'],
-            ))->build();
-            $waService->sendMessage($senderNumber, $reply);
-
-            return response()->json(['status' => 'success', 'reply' => $reply]);
-        }
-
-        $text = strtolower($originalText);
-
-        if (str_contains($text, 'finance others')) {
-            $reply = WhatsAppMessage::financeKeywords();
-            $waService->sendMessage($senderNumber, $reply);
-
-            return response()->json(['status' => 'success', 'reply' => $reply]);
-        }
-
-        if (str_contains($text, 'manual way') || preg_match('/\bmanual\b/u', $text) === 1) {
-            $reply = WhatsAppMessage::manualApproach();
-            $waService->sendMessage($senderNumber, $reply);
-
-            return response()->json(['status' => 'success', 'reply' => $reply]);
-        }
-
-        $help = WhatsAppMessage::help();
-
-        $waService->sendMessage($senderNumber, $help);
-
-        return response()->json(['status' => 'success', 'reply' => $help]);
+        return response()->json(['status' => 'accepted']);
     }
 }

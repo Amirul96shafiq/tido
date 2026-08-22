@@ -80,6 +80,10 @@ return [
         'api_key' => env('EVOLUTION_API_KEY'),
         'webhook_secret' => env('EVOLUTION_WEBHOOK_SECRET'),
         'instance_name' => env('EVOLUTION_INSTANCE_NAME', 'tido'),
+        'timeout' => (int) env('EVOLUTION_TIMEOUT', 15),
+        'connect_timeout' => (int) env('EVOLUTION_CONNECT_TIMEOUT', 5),
+        // Outbound sendText jobs (webhook replies) per minute across workers.
+        'outbound_send_attempts_per_minute' => (int) env('EVOLUTION_OUTBOUND_SEND_ATTEMPTS_PER_MINUTE', 30),
         // Comma-separated exact IPs allowed to POST the WhatsApp webhook. Empty = fail-closed (403).
         // Default loopback matches Evolution on the same host. Behind a proxy, list Evolution's true source IP.
         'webhook_allowed_ips' => env('EVOLUTION_WEBHOOK_ALLOWED_IPS', '127.0.0.1,::1'),

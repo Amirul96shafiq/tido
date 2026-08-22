@@ -2,14 +2,17 @@
 
 declare(strict_types=1);
 
+use App\Jobs\ProcessWhatsAppTextReplyJob;
 use App\Models\FamilyMember;
 use App\Models\User;
+use App\Services\WhatsAppNotificationService;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppLid;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 
 uses(RefreshDatabase::class);
@@ -47,6 +50,7 @@ test('linking a lid to primary allows webhook replies for that lid sender', func
         ->and(PhoneNumber::isAllowedWhatsAppSender('3693839708391@lid'))->toBeTrue()
         ->and(User::query()->whereKey(1)->value('whatsapp_lid'))->toBe('3693839708391');
 
+    Queue::fake();
     Http::fake([
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
@@ -68,7 +72,19 @@ test('linking a lid to primary allows webhook replies for that lid sender', func
         ],
     ], [
         ...evolutionWebhookHeaders(),
-    ])->assertSuccessful();
+    ])
+        ->assertSuccessful()
+        ->assertJson(['status' => 'accepted']);
+
+    Http::assertNothingSent();
+
+    Queue::assertPushed(ProcessWhatsAppTextReplyJob::class, function (ProcessWhatsAppTextReplyJob $job): bool {
+        return $job->senderNumber === '60123456789'
+            && $job->originalText === 'help';
+    });
+
+    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'help');
+    $job->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/')

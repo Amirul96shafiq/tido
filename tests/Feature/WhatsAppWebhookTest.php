@@ -3,11 +3,13 @@
 declare(strict_types=1);
 
 use App\Jobs\ProcessWhatsAppMediaJob;
+use App\Jobs\ProcessWhatsAppTextReplyJob;
 use App\Models\Expense;
 use App\Models\ExpenseItem;
 use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\User;
+use App\Services\WhatsAppNotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
@@ -158,6 +160,7 @@ test('whatsapp webhook handles text queries for monthly spent', function () {
         'status' => 'reviewed',
     ]);
 
+    Queue::fake();
     Http::fake([
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
@@ -179,7 +182,19 @@ test('whatsapp webhook handles text queries for monthly spent', function () {
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
         ...evolutionWebhookHeaders(),
-    ])->assertSuccessful();
+    ])
+        ->assertSuccessful()
+        ->assertJson(['status' => 'accepted']);
+
+    Http::assertNothingSent();
+
+    Queue::assertPushed(ProcessWhatsAppTextReplyJob::class, function (ProcessWhatsAppTextReplyJob $job): bool {
+        return $job->senderNumber === '60123456789'
+            && $job->originalText === 'How much did I spend this month?';
+    });
+
+    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'How much did I spend this month?');
+    $job->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/')
@@ -221,6 +236,7 @@ test('whatsapp webhook handles spend labels sub-command', function () {
 
     Expense::setEventDispatcher(app('events'));
 
+    Queue::fake();
     Http::fake([
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
@@ -242,7 +258,19 @@ test('whatsapp webhook handles spend labels sub-command', function () {
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
         ...evolutionWebhookHeaders(),
-    ])->assertSuccessful();
+    ])
+        ->assertSuccessful()
+        ->assertJson(['status' => 'accepted']);
+
+    Http::assertNothingSent();
+
+    Queue::assertPushed(ProcessWhatsAppTextReplyJob::class, function (ProcessWhatsAppTextReplyJob $job): bool {
+        return $job->senderNumber === '60123456789'
+            && $job->originalText === 'spend labels';
+    });
+
+    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'spend labels');
+    $job->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request) {
         $text = (string) $request['text'];
@@ -254,6 +282,7 @@ test('whatsapp webhook handles spend labels sub-command', function () {
 });
 
 test('whatsapp webhook allows self-chat fromMe when sender is allowlisted', function () {
+    Queue::fake();
     Http::fake([
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
@@ -275,7 +304,16 @@ test('whatsapp webhook allows self-chat fromMe when sender is allowlisted', func
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
         ...evolutionWebhookHeaders(),
-    ])->assertSuccessful();
+    ])
+        ->assertSuccessful()
+        ->assertJson(['status' => 'accepted']);
+
+    Http::assertNothingSent();
+
+    Queue::assertPushed(ProcessWhatsAppTextReplyJob::class, 1);
+
+    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'help');
+    $job->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/')
@@ -420,6 +458,7 @@ test('whatsapp webhook allows allowlisted family members to interact with the bo
         'allowlist_enabled' => true,
     ]);
 
+    Queue::fake();
     Http::fake([
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
@@ -441,7 +480,19 @@ test('whatsapp webhook allows allowlisted family members to interact with the bo
 
     $this->postJson('/api/webhooks/whatsapp', $payload, [
         ...evolutionWebhookHeaders(),
-    ])->assertSuccessful();
+    ])
+        ->assertSuccessful()
+        ->assertJson(['status' => 'accepted']);
+
+    Http::assertNothingSent();
+
+    Queue::assertPushed(ProcessWhatsAppTextReplyJob::class, function (ProcessWhatsAppTextReplyJob $job): bool {
+        return $job->senderNumber === '60111111111'
+            && $job->originalText === 'help';
+    });
+
+    $job = new ProcessWhatsAppTextReplyJob('60111111111', 'help');
+    $job->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request) {
         return str_contains($request->url(), '/message/sendText/')

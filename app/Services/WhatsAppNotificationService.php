@@ -129,8 +129,11 @@ class WhatsAppNotificationService
             throw new RuntimeException('Evolution API is not configured. Set EVOLUTION_API_URL and EVOLUTION_API_KEY with a 32+ character value.');
         }
 
-        return Http::timeout(15)
-            ->connectTimeout(5)
+        $timeout = max(1, (int) config('services.evolution.timeout', 15));
+        $connectTimeout = max(1, (int) config('services.evolution.connect_timeout', 5));
+
+        return Http::timeout($timeout)
+            ->connectTimeout($connectTimeout)
             ->acceptJson()
             ->withHeaders(['apikey' => $this->apiKey]);
     }
