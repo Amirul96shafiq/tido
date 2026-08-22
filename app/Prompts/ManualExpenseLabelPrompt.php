@@ -29,6 +29,8 @@ class ManualExpenseLabelPrompt
             ->map(fn (string $description, int $index): string => ($index + 1).'. '.$description)
             ->implode("\n");
 
+        $labelClassificationRules = LabelClassificationRules::promptLines();
+
         return <<<PROMPT
 You classify expense line items into finance labels for a Malaysian spending tracker.
 You must respond with a raw JSON object only. Do not wrap it in markdown formatting (like ```json).
@@ -39,6 +41,7 @@ Label rules (follow strictly):
 - Pick the closest match when ambiguous.
 - Ready-to-eat / convenience-store snacks and drinks → Food & Dining. Supermarket pantry, fresh produce, and household consumables → Groceries & Household.
 - Packaged bread loaves (e.g. Gardenia Original Classic Bread) → Groceries & Household. Gardenia Quick Bites / Puazz and similar ready-to-eat snacks → Food & Dining.
+{$labelClassificationRules}
 
 Available labels (use exact name in each item's "label" field):
 {$labelLines}

@@ -28,13 +28,13 @@ class LabelSeeder extends Seeder
             ],
             [
                 'name' => 'Groceries & Household',
-                'description' => 'Supermarket pantry, fresh produce, cleaning supplies, baby wipes',
+                'description' => 'Supermarket pantry, fresh produce, cleaning supplies, baby wipes, garbage bags, detergents, air fresheners',
                 'icon' => 'heroicon-o-shopping-cart',
                 'color' => '#FFDCA1',
             ],
             [
                 'name' => 'Electronics & Gadgets',
-                'description' => 'Phones, computers, accessories, cables, appliances',
+                'description' => 'Phones, computers, tablets, accessories, cables — not large home appliances or furniture',
                 'icon' => 'heroicon-o-cpu-chip',
                 'color' => '#E09210',
             ],
