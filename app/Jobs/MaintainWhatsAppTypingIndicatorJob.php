@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Models\Expense;
 use App\Services\WhatsAppNotificationService;
+use App\Support\WhatsAppTypingSession;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -38,20 +38,21 @@ class MaintainWhatsAppTypingIndicatorJob implements ShouldQueue
             return;
         }
 
-        $expense = Expense::find($this->expenseId);
-
-        if ($expense === null
-            || $expense->source !== 'whatsapp'
-            || blank($expense->whatsapp_sender)
-            || $expense->status !== 'pending') {
+        if (! WhatsAppTypingSession::isActive($this->expenseId)) {
             return;
         }
 
-        $waService->sendTyping((string) $expense->whatsapp_sender);
+        $sender = WhatsAppTypingSession::sender($this->expenseId);
 
-        $expense->refresh();
+        if ($sender === null) {
+            WhatsAppTypingSession::deactivate($this->expenseId);
 
-        if ($expense->status !== 'pending') {
+            return;
+        }
+
+        $waService->sendTyping($sender);
+
+        if (! WhatsAppTypingSession::isActive($this->expenseId)) {
             return;
         }
 

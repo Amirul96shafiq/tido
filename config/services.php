@@ -87,6 +87,7 @@ return [
         'whatsapp_typing_enabled' => filter_var(env('EVOLUTION_WHATSAPP_TYPING_ENABLED', true), FILTER_VALIDATE_BOOL),
         'whatsapp_typing_refresh_seconds' => (int) env('EVOLUTION_WHATSAPP_TYPING_REFRESH_SECONDS', 15),
         'whatsapp_typing_delay_ms' => (int) env('EVOLUTION_WHATSAPP_TYPING_DELAY_MS', 20000),
+        'whatsapp_typing_session_ttl_seconds' => (int) env('EVOLUTION_WHATSAPP_TYPING_SESSION_TTL_SECONDS', 600),
         // Comma-separated exact IPs allowed to POST the WhatsApp webhook. Empty = fail-closed (403).
         // Default loopback matches Evolution on the same host. Behind a proxy, list Evolution's true source IP.
         'webhook_allowed_ips' => env('EVOLUTION_WEBHOOK_ALLOWED_IPS', '127.0.0.1,::1'),

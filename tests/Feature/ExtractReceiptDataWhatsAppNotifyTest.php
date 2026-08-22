@@ -49,6 +49,7 @@ function fakeSuccessfulOllamaResponse(): void
             ]),
         ]),
         '*/message/sendText/*' => Http::response(['status' => 'success']),
+        '*/chat/sendPresence/*' => Http::response(['status' => 'PENDING'], 201),
     ]);
 }
 

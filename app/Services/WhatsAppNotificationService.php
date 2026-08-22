@@ -101,7 +101,7 @@ class WhatsAppNotificationService
             $number = $this->normalizeNumber($number);
             $delayMs = max(1000, $delayMs ?? max(1000, (int) config('services.evolution.whatsapp_typing_delay_ms', 20000)));
 
-            $response = $this->client()
+            $response = $this->typingClient($delayMs)
                 ->post("{$this->apiUrl}/chat/sendPresence/{$this->instanceName}", [
                     'number' => $number,
                     'presence' => 'composing',
@@ -188,6 +188,28 @@ class WhatsAppNotificationService
             ->connectTimeout($connectTimeout)
             ->acceptJson()
             ->withHeaders(['apikey' => $this->apiKey]);
+    }
+
+    protected function typingClient(int $delayMs): PendingRequest
+    {
+        if ($this->apiUrl === '' || ! EvolutionCredential::isValid($this->apiKey)) {
+            throw new RuntimeException('Evolution API is not configured. Set EVOLUTION_API_URL and EVOLUTION_API_KEY with a 32+ character value.');
+        }
+
+        $connectTimeout = max(1, (int) config('services.evolution.connect_timeout', 5));
+
+        return Http::timeout($this->typingHttpTimeoutSeconds($delayMs))
+            ->connectTimeout($connectTimeout)
+            ->acceptJson()
+            ->withHeaders(['apikey' => $this->apiKey]);
+    }
+
+    protected function typingHttpTimeoutSeconds(int $delayMs): int
+    {
+        $delaySeconds = max(1, (int) ceil($delayMs / 1000));
+        $connectTimeout = max(1, (int) config('services.evolution.connect_timeout', 5));
+
+        return $delaySeconds + $connectTimeout + 5;
     }
 
     protected function normalizeNumber(string $number): string

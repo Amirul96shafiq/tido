@@ -17,7 +17,7 @@ use App\Services\OllamaService;
 use App\Services\PaymentMethodMatcher;
 use App\Services\ReceiptDocumentPreparer;
 use App\Services\ReceiptParseNormalizer;
-use App\Services\WhatsAppNotificationService;
+use App\Support\WhatsAppTypingSession;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -80,7 +80,6 @@ class ExtractReceiptDataJob implements ShouldQueue
 
         $documentText = $documentPreparer->extractText($expense);
         $base64Pages = $documentPreparer->prepare($expense);
-        $this->pulseWhatsAppTypingIndicator();
         $parsed = $expense->file_mime_type === 'application/pdf'
             ? $this->parsePdfDocument($ollama, $base64Pages)
             : $ollama->parseReceipt($base64Pages[0], ReceiptExtractionPrompt::build());
@@ -214,8 +213,6 @@ class ExtractReceiptDataJob implements ShouldQueue
         $pageResults = [];
 
         foreach ($base64Pages as $index => $base64Page) {
-            $this->pulseWhatsAppTypingIndicator();
-
             $pageResult = $ollama->generateJson(
                 PdfReceiptPagePrompt::build($index + 1, $pageCount),
                 [$base64Page],
@@ -232,8 +229,6 @@ class ExtractReceiptDataJob implements ShouldQueue
             return $pageResults[0];
         }
 
-        $this->pulseWhatsAppTypingIndicator();
-
         return $ollama->generateJson(PdfReceiptMergePrompt::build($pageResults));
     }
 
@@ -248,6 +243,10 @@ class ExtractReceiptDataJob implements ShouldQueue
             }
 
             $expense->update($updates);
+
+            if ($expense->source === 'whatsapp') {
+                WhatsAppTypingSession::deactivate($this->expenseId);
+            }
         }
 
         Log::error('ExtractReceiptDataJob failed after maximum retries', [
@@ -275,23 +274,8 @@ class ExtractReceiptDataJob implements ShouldQueue
             return;
         }
 
-        $this->pulseWhatsAppTypingIndicator();
+        WhatsAppTypingSession::activate($expense->id, (string) $expense->whatsapp_sender);
         MaintainWhatsAppTypingIndicatorJob::dispatch($expense->id);
-    }
-
-    protected function pulseWhatsAppTypingIndicator(): void
-    {
-        $expense = Expense::find($this->expenseId);
-
-        if ($expense === null
-            || $expense->source !== 'whatsapp'
-            || blank($expense->whatsapp_sender)
-            || ! (bool) config('services.evolution.whatsapp_typing_enabled', true)) {
-            return;
-        }
-
-        app(WhatsAppNotificationService::class)
-            ->sendTyping((string) $expense->whatsapp_sender);
     }
 
     protected function appendDateReviewNote(?string $existingNotes, bool $dateParsed, bool $dateSane): ?string
