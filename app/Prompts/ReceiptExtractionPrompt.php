@@ -56,6 +56,8 @@ class ReceiptExtractionPrompt
             $paymentMethodNames = 'null';
         }
 
+        $labelClassificationRules = LabelClassificationRules::promptLines();
+
         return <<<PROMPT
 Please extract financial information from this receipt image.
 You must respond with a raw JSON object only. Do not wrap it in markdown formatting (like ```json).
@@ -84,6 +86,7 @@ Line item label rules (follow strictly):
 - Use the exact label name from the list below. Pick the closest match when ambiguous.
 - Ready-to-eat / convenience-store snacks and drinks → Food & Dining. Supermarket pantry, fresh produce, and household consumables → Groceries & Household.
 - Packaged bread loaves (e.g. Gardenia Original Classic Bread) → Groceries & Household. Gardenia Quick Bites / Puazz and similar ready-to-eat snacks → Food & Dining.
+{$labelClassificationRules}
 
 Available labels (use exact name in each item's "label" field):
 {$labelLines}

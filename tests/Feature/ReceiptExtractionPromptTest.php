@@ -22,10 +22,29 @@ test('receipt extraction prompt includes all finance labels with descriptions', 
         ->toContain('"label": "String - exact label name from the list above"')
         ->toContain('Every item in items[] MUST include a label')
         ->toContain('Food & Dining — Ready-to-eat meals, restaurant items, convenience-store snacks and drinks')
-        ->toContain('Groceries & Household — Supermarket pantry, fresh produce, cleaning supplies, baby wipes')
+        ->toContain('Groceries & Household — Supermarket pantry, fresh produce, cleaning supplies, baby wipes, garbage bags, detergents, air fresheners')
+        ->toContain('Electronics & Gadgets — Phones, computers, tablets, accessories, cables — not large home appliances or furniture')
+        ->toContain('Groceries & Household → consumable / replenishable pantry')
+        ->toContain('Furniture & Home Appliances → durable furniture, mattresses, bed frames')
+        ->toContain('Do not classify durable furniture or appliances as Groceries & Household')
         ->toContain('Gardenia Original Classic Bread')
         ->toContain('Packaged bread loaves')
         ->not->toContain('suggested_category');
+});
+
+test('receipt extraction prompt includes furniture label description when present', function () {
+    $this->seed(LabelSeeder::class);
+    $this->seed(PaymentMethodSeeder::class);
+
+    Label::factory()->create([
+        'name' => 'Furniture & Home Appliances',
+        'slug' => 'furniture-home-appliances',
+        'description' => 'Durable furniture, mattresses, bedding sets, and home appliances (fridge, washer, aircon, vacuum, kettle, rice cooker, water filters). Home improvement durables from DIY/hardware stores.',
+    ]);
+
+    $prompt = ReceiptExtractionPrompt::build();
+
+    expect($prompt)->toContain('Furniture & Home Appliances — Durable furniture, mattresses, bedding sets');
 });
 
 test('receipt extraction prompt includes available payment methods with aliases', function () {
