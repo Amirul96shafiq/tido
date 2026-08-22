@@ -91,6 +91,44 @@ test('recommended pull command targets the vision model', function (): void {
     expect(OllamaSettings::recommendedPullCommand())->toBe('ollama pull qwen2.5vl:7b');
 });
 
+test('vision model tiers returns three entries in recommended order', function (): void {
+    $tiers = OllamaSettings::visionModelTiers();
+
+    expect($tiers)->toHaveCount(3)
+        ->and($tiers[0]['name'])->toBe('qwen2.5vl:7b')
+        ->and($tiers[0]['tier'])->toBe('recommended')
+        ->and($tiers[1]['name'])->toBe('minicpm-v')
+        ->and($tiers[1]['tier'])->toBe('lighter')
+        ->and($tiers[2]['name'])->toBe('moondream')
+        ->and($tiers[2]['tier'])->toBe('minimal');
+});
+
+test('pull command helper formats ollama pull for lighter models', function (): void {
+    expect(OllamaSettings::pullCommandFor('minicpm-v'))->toBe('ollama pull minicpm-v')
+        ->and(OllamaSettings::pullCommandFor('moondream'))->toBe('ollama pull moondream');
+});
+
+test('select option label includes tier hints for known models', function (): void {
+    expect(OllamaSettings::selectOptionLabel('minicpm-v'))->toBe('minicpm-v (Lighter · ~4 GB VRAM)')
+        ->and(OllamaSettings::selectOptionLabel('custom-model'))->toBe('custom-model');
+});
+
+test('select options for models sort tier models before other installed models', function (): void {
+    $options = OllamaSettings::selectOptionsForModels([
+        ['name' => 'llama3:8b'],
+        ['name' => 'moondream'],
+        ['name' => 'qwen2.5vl:7b'],
+        ['name' => 'minicpm-v'],
+    ]);
+
+    expect(array_keys($options))->toBe([
+        'qwen2.5vl:7b',
+        'minicpm-v',
+        'moondream',
+        'llama3:8b',
+    ]);
+});
+
 test('ollama probe uses saved host from settings', function (): void {
     OllamaSetting::singleton()->update(['host' => 'http://saved.test']);
 

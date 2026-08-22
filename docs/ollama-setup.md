@@ -70,6 +70,24 @@ Confirm the model is listed:
 curl http://127.0.0.1:11434/api/tags
 ```
 
+### Lighter alternatives
+
+If `qwen2.5vl:7b` is too heavy for your GPU or you are on CPU-only, pull one of these instead. The Filament wizard (**Integrations → AI Parsing Engine → Ollama (Local) → Configure**, step 03) lists copyable commands for each tier.
+
+| Tier | Model | Hardware | Approx. download |
+|------|-------|----------|------------------|
+| Recommended | `qwen2.5vl:7b` | 8 GB+ VRAM | ~6 GB |
+| Lighter | `minicpm-v` | ~4 GB VRAM | ~2 GB |
+| Minimal | `moondream` | ~2 GB VRAM or CPU | ~1.7 GB |
+
+```bash
+ollama pull minicpm-v
+# or
+ollama pull moondream
+```
+
+After pulling, click **I've pulled — Recheck**, choose the model in step 04, and run **Run test extraction** to confirm OCR quality on your machine. Lighter models may need manual review more often.
+
 ---
 
 ## CLI fallback: Point tido at localhost (.env)

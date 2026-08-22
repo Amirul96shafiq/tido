@@ -14,9 +14,131 @@ final class OllamaSettings
 
     private ?OllamaSetting $cachedRecord = null;
 
+    /**
+     * @return list<array{
+     *     name: string,
+     *     tier: 'recommended'|'lighter'|'minimal',
+     *     label: string,
+     *     vramHint: string,
+     *     sizeHint: string,
+     * }>
+     */
+    public static function visionModelTiers(): array
+    {
+        return [
+            [
+                'name' => self::RECOMMENDED_VISION_MODEL,
+                'tier' => 'recommended',
+                'label' => 'Recommended',
+                'vramHint' => '8 GB+ VRAM',
+                'sizeHint' => '~6 GB download',
+            ],
+            [
+                'name' => 'minicpm-v',
+                'tier' => 'lighter',
+                'label' => 'Lighter',
+                'vramHint' => '~4 GB VRAM',
+                'sizeHint' => '~2 GB download',
+            ],
+            [
+                'name' => 'moondream',
+                'tier' => 'minimal',
+                'label' => 'Minimal',
+                'vramHint' => '~2 GB VRAM or CPU',
+                'sizeHint' => '~1.7 GB download',
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function orderedTierModelNames(): array
+    {
+        return collect(self::visionModelTiers())
+            ->pluck('name')
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array{
+     *     name: string,
+     *     tier: 'recommended'|'lighter'|'minimal',
+     *     label: string,
+     *     vramHint: string,
+     *     sizeHint: string,
+     * }|null
+     */
+    public static function tierForModel(string $modelName): ?array
+    {
+        return collect(self::visionModelTiers())
+            ->first(static fn (array $tier): bool => $tier['name'] === $modelName);
+    }
+
+    public static function pullCommandFor(string $modelName): string
+    {
+        return 'ollama pull '.$modelName;
+    }
+
     public static function recommendedPullCommand(): string
     {
-        return 'ollama pull '.self::RECOMMENDED_VISION_MODEL;
+        return self::pullCommandFor(self::RECOMMENDED_VISION_MODEL);
+    }
+
+    public static function selectOptionLabel(string $modelName): string
+    {
+        $tier = self::tierForModel($modelName);
+
+        if ($tier === null) {
+            return $modelName;
+        }
+
+        return sprintf('%s (%s · %s)', $modelName, $tier['label'], $tier['vramHint']);
+    }
+
+    /**
+     * @param  list<array{name: string}>  $models
+     * @return array<string, string>
+     */
+    public static function selectOptionsForModels(array $models): array
+    {
+        $tierOrder = collect(self::orderedTierModelNames())->flip();
+
+        $names = collect($models)
+            ->pluck('name')
+            ->filter(static fn (mixed $name): bool => is_string($name) && $name !== '')
+            ->unique()
+            ->values();
+
+        $tiered = $names
+            ->filter(static fn (string $name): bool => $tierOrder->has($name))
+            ->sortBy(static fn (string $name): int => (int) $tierOrder->get($name))
+            ->mapWithKeys(static fn (string $name): array => [$name => self::selectOptionLabel($name)]);
+
+        $other = $names
+            ->reject(static fn (string $name): bool => $tierOrder->has($name))
+            ->sort()
+            ->mapWithKeys(static fn (string $name): array => [$name => $name]);
+
+        return $tiered->merge($other)->all();
+    }
+
+    /**
+     * @return list<array{
+     *     name: string,
+     *     tier: 'recommended'|'lighter'|'minimal',
+     *     label: string,
+     *     vramHint: string,
+     *     sizeHint: string,
+     * }>
+     */
+    public static function lighterVisionModelTiers(): array
+    {
+        return collect(self::visionModelTiers())
+            ->reject(static fn (array $tier): bool => $tier['tier'] === 'recommended')
+            ->values()
+            ->all();
     }
 
     public function record(): OllamaSetting
