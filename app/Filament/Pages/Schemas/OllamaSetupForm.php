@@ -6,6 +6,7 @@ namespace App\Filament\Pages\Schemas;
 
 use App\Enums\OllamaDetectionState;
 use App\Filament\Pages\OllamaPage;
+use App\Services\Ollama\OllamaSettings;
 use App\Services\Ollama\PopplerDetector;
 use App\Support\ClipboardCopy;
 use Filament\Actions\Action;
@@ -127,7 +128,9 @@ class OllamaSetupForm
                                 );
                             }),
                     )
-                    ->helperText('Run this command in a terminal on this PC. Recheck after the pull completes. The recommended vision model is several gigabytes.')
+                    ->helperText('Run this command in a terminal on this PC. Recheck after the pull completes. Lighter options for weaker hardware are listed below.')
+                    ->columnSpanFull(),
+                View::make('filament.pages.partials.ollama-vision-model-tiers')
                     ->columnSpanFull(),
                 Actions::make([
                     Action::make('recheckAfterModelPull')
@@ -148,9 +151,7 @@ class OllamaSetupForm
             ->schema([
                 Select::make('selectedModel')
                     ->label('Model')
-                    ->options(fn (OllamaPage $livewire): array => collect($livewire->availableModels)
-                        ->mapWithKeys(static fn (array $model): array => [$model['name'] => $model['name']])
-                        ->all())
+                    ->options(fn (OllamaPage $livewire): array => OllamaSettings::selectOptionsForModels($livewire->availableModels))
                     ->required()
                     ->native(false)
                     ->searchable()
@@ -162,7 +163,7 @@ class OllamaSetupForm
                             $livewire->handleModelSelection($state);
                         }
                     })
-                    ->helperText('Vision models such as qwen2.5vl:7b work best for receipt OCR.'),
+                    ->helperText('Vision models such as qwen2.5vl:7b, minicpm-v, or moondream work best for receipt OCR.'),
             ]);
     }
 

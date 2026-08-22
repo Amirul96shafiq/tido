@@ -14,6 +14,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Text;
+use Filament\Schemas\Components\View as SchemaView;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\Http;
@@ -438,6 +439,102 @@ test('ollama page shows terminal pull command when no models are installed', fun
         ->assertFormSet([
             'pull_command' => OllamaSettings::recommendedPullCommand(),
         ], 'mountedActionSchema0');
+});
+
+test('ollama vision model tiers partial lists lighter pull commands', function (): void {
+    $html = view('filament.pages.partials.ollama-vision-model-tiers')->render();
+
+    expect($html)
+        ->toContain('ollama pull minicpm-v')
+        ->toContain('ollama pull moondream')
+        ->toContain('Lighter: minicpm-v')
+        ->toContain('Minimal: moondream')
+        ->toContain('window.tidoCopyToClipboard');
+});
+
+test('ollama setup includes lighter vision model tier guide', function (): void {
+    $component = Livewire::test(OllamaPage::class)
+        ->set('availableModels', [])
+        ->set('detectionState', 'running')
+        ->mountAction('configureSetup')
+        ->assertActionMounted('configureSetup');
+
+    $view = $component->instance()->getSchema('mountedActionSchema0')?->getComponent(
+        fn (mixed $component): bool => $component instanceof SchemaView
+            && $component->getView() === 'filament.pages.partials.ollama-vision-model-tiers',
+        withHidden: true,
+    );
+
+    expect($view)->not->toBeNull();
+});
+
+test('ollama setup model select shows tier labels for installed models', function (): void {
+    $component = Livewire::test(OllamaPage::class)
+        ->set('availableModels', [
+            [
+                'name' => 'moondream',
+                'family' => 'moondream',
+                'parameterSize' => '1.8B',
+                'quantization' => 'Q4_0',
+                'contextLength' => 2048,
+                'sizeBytes' => 1_700_000_000,
+                'isConfigured' => false,
+            ],
+            [
+                'name' => 'minicpm-v',
+                'family' => 'minicpm-v',
+                'parameterSize' => '2.8B',
+                'quantization' => 'Q4_K_M',
+                'contextLength' => 8192,
+                'sizeBytes' => 2_000_000_000,
+                'isConfigured' => false,
+            ],
+            [
+                'name' => 'qwen2.5vl:7b',
+                'family' => 'qwen25vl',
+                'parameterSize' => '8.3B',
+                'quantization' => 'Q4_K_M',
+                'contextLength' => 128000,
+                'sizeBytes' => 5_969_245_856,
+                'isConfigured' => true,
+            ],
+        ])
+        ->set('detectionState', 'running')
+        ->mountAction('configureSetup')
+        ->assertActionMounted('configureSetup');
+
+    $select = $component->instance()->getSchema('mountedActionSchema0')?->getComponent('selectedModel');
+
+    expect($select)->not->toBeNull()
+        ->and($select?->getOptions())->toBe([
+            'qwen2.5vl:7b' => 'qwen2.5vl:7b (Recommended · 8 GB+ VRAM)',
+            'minicpm-v' => 'minicpm-v (Lighter · ~4 GB VRAM)',
+            'moondream' => 'moondream (Minimal · ~2 GB VRAM or CPU)',
+        ]);
+});
+
+test('ollama page auto selects first installed tier when recommended model is missing', function (): void {
+    $component = Livewire::test(OllamaPage::class)
+        ->set('availableModels', [
+            [
+                'name' => 'minicpm-v',
+                'family' => 'minicpm-v',
+                'parameterSize' => '2.8B',
+                'quantization' => 'Q4_K_M',
+                'contextLength' => 8192,
+                'sizeBytes' => 2_000_000_000,
+                'isConfigured' => false,
+            ],
+        ])
+        ->set('selectedModel', 'qwen2.5vl:7b')
+        ->set('detectionState', 'running');
+
+    $autoSelect = new ReflectionMethod(OllamaPage::class, 'autoSelectModel');
+    $autoSelect->setAccessible(true);
+    $autoSelect->invoke($component->instance());
+
+    expect($component->get('selectedModel'))->toBe('minicpm-v')
+        ->and($component->get('configuredModel'))->toBe('minicpm-v');
 });
 
 test('ollama setup modal shows a poppler guide when pdf binaries are empty', function (): void {

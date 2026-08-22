@@ -340,10 +340,24 @@ class OllamaPage extends Page
         if (! OllamaVisionModel::isLikelyVisionModel($modelName)) {
             Notification::make()
                 ->title('Vision model recommended')
-                ->body('Receipt image parsing works best with a vision model such as qwen2.5vl:7b.')
+                ->body('Receipt image parsing works best with a vision model such as qwen2.5vl:7b or minicpm-v.')
                 ->warning()
                 ->send();
         }
+    }
+
+    /**
+     * @return list<array{
+     *     name: string,
+     *     tier: 'recommended'|'lighter'|'minimal',
+     *     label: string,
+     *     vramHint: string,
+     *     sizeHint: string,
+     * }>
+     */
+    public function visionModelTiers(): array
+    {
+        return OllamaSettings::visionModelTiers();
     }
 
     public function skipPoppler(): void
@@ -736,12 +750,13 @@ class OllamaPage extends Page
             return;
         }
 
-        $recommended = collect($this->availableModels)->first(
-            static fn (array $model): bool => $model['name'] === OllamaSettings::RECOMMENDED_VISION_MODEL,
-        );
+        $installedTier = collect(OllamaSettings::orderedTierModelNames())
+            ->first(fn (string $modelName): bool => collect($this->availableModels)->contains(
+                static fn (array $model): bool => $model['name'] === $modelName,
+            ));
 
-        if (is_array($recommended)) {
-            $this->applySelectedModel($recommended['name']);
+        if (is_string($installedTier)) {
+            $this->applySelectedModel($installedTier);
 
             return;
         }
