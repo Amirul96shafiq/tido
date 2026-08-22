@@ -67,7 +67,8 @@ test('process whatsapp media job stores receipt and schedules batched document r
     Queue::assertNotPushed(ExtractReceiptDataJob::class);
     Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class, function (SendWhatsAppDocumentReceivedAckJob $ack): bool {
         return $ack->senderNumber === '60123456789'
-            && $ack->token !== '';
+            && $ack->token !== ''
+            && $ack->queue === 'default';
     });
     Queue::assertPushed(MaintainWhatsAppSenderTypingIndicatorJob::class, fn (MaintainWhatsAppSenderTypingIndicatorJob $job): bool => $job->senderNumber === '60123456789');
     Queue::assertPushed(MaintainWhatsAppTypingIndicatorJob::class, fn (MaintainWhatsAppTypingIndicatorJob $job): bool => $job->expenseId === $expense->id);

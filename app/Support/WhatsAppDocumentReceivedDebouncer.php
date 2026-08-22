@@ -43,8 +43,9 @@ final class WhatsAppDocumentReceivedDebouncer
         $token = (string) Str::uuid();
         $ttl = now()->addMinutes(5);
         $seconds = max(1, (int) config('services.evolution.document_received_debounce_seconds', 3));
+        $documentCount = 0;
 
-        Cache::lock(self::lockKey($senderNumber), 5)->block(5, function () use ($key, $token, $ttl, $document): void {
+        Cache::lock(self::lockKey($senderNumber), 5)->block(5, function () use ($key, $token, $ttl, $document, &$documentCount): void {
             $current = Cache::get($key, ['count' => 0, 'token' => null, 'documents' => []]);
             $currentDocuments = is_array($current) && is_array($current['documents'] ?? null)
                 ? $current['documents']
@@ -58,6 +59,7 @@ final class WhatsAppDocumentReceivedDebouncer
             }
 
             $documents[] = $document;
+            $documentCount = count($documents);
             $expenseIds = [];
 
             foreach ($documents as $item) {
@@ -69,7 +71,7 @@ final class WhatsAppDocumentReceivedDebouncer
             }
 
             Cache::put($key, [
-                'count' => count($documents),
+                'count' => $documentCount,
                 'token' => $token,
                 'expense_ids' => $expenseIds,
                 'documents' => $documents,

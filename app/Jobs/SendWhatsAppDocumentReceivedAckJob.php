@@ -27,7 +27,7 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
         public string $senderNumber,
         public string $token,
     ) {
-        $this->onQueue('whatsapp');
+        $this->onQueue('default');
     }
 
     /**
