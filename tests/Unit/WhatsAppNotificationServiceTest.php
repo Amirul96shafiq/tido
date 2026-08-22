@@ -104,3 +104,55 @@ test('sendMessageResult does not call evolution for numbers outside the contact 
 
     Http::assertNothingSent();
 });
+
+test('sendTyping hits evolution sendPresence with composing presence', function () {
+    User::factory()->create(['phone' => '60123456789']);
+
+    config(['services.evolution.whatsapp_typing_delay_ms' => 18000]);
+
+    Http::fake([
+        '*/chat/sendPresence/*' => Http::response(['status' => 'PENDING'], 201),
+    ]);
+
+    $result = app(WhatsAppNotificationService::class)->sendTyping('60123456789');
+
+    expect($result->ok)->toBeTrue()
+        ->and($result->reason)->toBe('ok');
+
+    Http::assertSent(function (Request $request): bool {
+        return str_contains($request->url(), '/chat/sendPresence/tido')
+            && data_get($request->data(), 'number') === '60123456789@s.whatsapp.net'
+            && data_get($request->data(), 'presence') === 'composing'
+            && data_get($request->data(), 'delay') === 18000
+            && ($request->header('apikey')[0] ?? null) === config('services.evolution.api_key');
+    });
+});
+
+test('sendTyping returns failure when evolution rejects presence request', function () {
+    User::factory()->create(['phone' => '60123456789']);
+
+    Http::fake([
+        '*/chat/sendPresence/*' => Http::response(['error' => 'instance disconnected'], 503),
+    ]);
+
+    $result = app(WhatsAppNotificationService::class)->sendTyping('60123456789');
+
+    expect($result->ok)->toBeFalse()
+        ->and($result->reason)->toBe('presence_failed')
+        ->and($result->status)->toBe(503);
+});
+
+test('sendTyping does not call evolution for numbers outside the contact allowlist', function () {
+    User::factory()->create(['phone' => '601116330705']);
+
+    Http::fake([
+        '*/chat/sendPresence/*' => Http::response(['status' => 'PENDING'], 201),
+    ]);
+
+    $result = app(WhatsAppNotificationService::class)->sendTyping('60127121550');
+
+    expect($result->ok)->toBeFalse()
+        ->and($result->reason)->toBe('not_allowlisted');
+
+    Http::assertNothingSent();
+});

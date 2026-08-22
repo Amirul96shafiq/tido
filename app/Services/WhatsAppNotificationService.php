@@ -82,6 +82,58 @@ class WhatsAppNotificationService
         }
     }
 
+    public function sendTyping(string $number, ?int $delayMs = null): WhatsAppSendResult
+    {
+        try {
+            if (! PhoneNumber::isAllowedWhatsAppSender($number)) {
+                $normalized = PhoneNumber::normalize(explode('@', $number, 2)[0]) ?? $number;
+
+                Log::warning('WhatsAppNotificationService blocked non-allowlisted typing recipient', [
+                    'number' => $normalized,
+                ]);
+
+                return WhatsAppSendResult::failure(
+                    reason: 'not_allowlisted',
+                    detail: 'Recipient is not on the contact allowlist.',
+                );
+            }
+
+            $number = $this->normalizeNumber($number);
+            $delayMs = max(1000, $delayMs ?? max(1000, (int) config('services.evolution.whatsapp_typing_delay_ms', 20000)));
+
+            $response = $this->client()
+                ->post("{$this->apiUrl}/chat/sendPresence/{$this->instanceName}", [
+                    'number' => $number,
+                    'presence' => 'composing',
+                    'delay' => $delayMs,
+                ]);
+
+            if ($response->failed()) {
+                $body = $response->body();
+
+                Log::warning('WhatsAppNotificationService typing presence failed', [
+                    'status' => $response->status(),
+                    'body' => $body,
+                ]);
+
+                return WhatsAppSendResult::failure(
+                    reason: 'presence_failed',
+                    detail: $this->extractErrorDetail($body),
+                    status: $response->status(),
+                );
+            }
+
+            return WhatsAppSendResult::success();
+        } catch (\Throwable $e) {
+            Log::warning('WhatsAppNotificationService typing presence error', ['error' => $e->getMessage()]);
+
+            return WhatsAppSendResult::failure(
+                reason: 'connection_error',
+                detail: $e->getMessage(),
+            );
+        }
+    }
+
     /**
      * Check whether a number is registered on WhatsApp via Evolution.
      * Returns null when the check request itself fails.
