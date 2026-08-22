@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Jobs\ExtractReceiptDataJob;
+use App\Jobs\MaintainWhatsAppSenderTypingIndicatorJob;
 use App\Jobs\MaintainWhatsAppTypingIndicatorJob;
 use App\Jobs\SendWhatsAppDocumentParsedJob;
 use App\Jobs\SendWhatsAppDocumentReceivedAckJob;
@@ -245,6 +246,37 @@ test('document received ack job activates typing session and dispatches keeper p
     Queue::assertPushed(MaintainWhatsAppTypingIndicatorJob::class, 2);
 });
 
+test('document received ack job does not re-dispatch expense keeper when session already active', function () {
+    Queue::fake();
+
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    $sender = '60123456789';
+
+    WhatsAppDocumentReceivedDebouncer::register($sender, [
+        'message_id' => 'MSG-1',
+        'expense_id' => 101,
+        'filename' => 'one.jpg',
+        'mime_type' => 'image/jpeg',
+        'page_count' => null,
+        'status' => 'accepted',
+        'reason' => null,
+    ]);
+
+    $payload = Cache::get(WhatsAppDocumentReceivedDebouncer::cacheKey($sender));
+
+    WhatsAppTypingSession::activate(101, $sender);
+    MaintainWhatsAppTypingIndicatorJob::dispatch(101);
+
+    (new SendWhatsAppDocumentReceivedAckJob($sender, $payload['token']))
+        ->handle(app(WhatsAppNotificationService::class));
+
+    Queue::assertPushed(MaintainWhatsAppTypingIndicatorJob::class, 1);
+    Queue::assertPushed(ExtractReceiptDataJob::class, 1);
+});
+
 test('extract receipt data job does not re-dispatch keeper when typing session already active', function () {
     Queue::fake();
     Storage::fake('local');
@@ -298,6 +330,40 @@ test('extract receipt data job does not re-dispatch keeper when typing session a
     app()->call([new ExtractReceiptDataJob($expense->id), 'handle']);
 
     Queue::assertNotPushed(MaintainWhatsAppTypingIndicatorJob::class);
+});
+
+test('sender typing indicator keeper sends presence and reschedules while sender session is active', function () {
+    Queue::fake();
+
+    WhatsAppTypingSession::activateSender('60123456789');
+
+    Http::fake([
+        '*/chat/sendPresence/*' => Http::response(['status' => 'PENDING'], 201),
+    ]);
+
+    (new MaintainWhatsAppSenderTypingIndicatorJob('60123456789'))
+        ->handle(app(WhatsAppNotificationService::class));
+
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/chat/sendPresence/tido')
+        && data_get($request->data(), 'presence') === 'composing');
+
+    Queue::assertPushed(MaintainWhatsAppSenderTypingIndicatorJob::class, function (MaintainWhatsAppSenderTypingIndicatorJob $job): bool {
+        return $job->senderNumber === '60123456789';
+    });
+});
+
+test('sender typing indicator keeper stops when sender session is inactive', function () {
+    Queue::fake();
+
+    Http::fake([
+        '*/chat/sendPresence/*' => Http::response(['status' => 'PENDING'], 201),
+    ]);
+
+    (new MaintainWhatsAppSenderTypingIndicatorJob('60123456789'))
+        ->handle(app(WhatsAppNotificationService::class));
+
+    Http::assertNothingSent();
+    Queue::assertNotPushed(MaintainWhatsAppSenderTypingIndicatorJob::class);
 });
 
 test('typing indicator keeper sends presence and reschedules while typing session is active', function () {

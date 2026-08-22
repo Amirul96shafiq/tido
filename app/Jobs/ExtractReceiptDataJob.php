@@ -17,6 +17,7 @@ use App\Services\OllamaService;
 use App\Services\PaymentMethodMatcher;
 use App\Services\ReceiptDocumentPreparer;
 use App\Services\ReceiptParseNormalizer;
+use App\Support\WhatsAppTypingCoordinator;
 use App\Support\WhatsAppTypingSession;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -270,16 +271,7 @@ class ExtractReceiptDataJob implements ShouldQueue
             return;
         }
 
-        if (! (bool) config('services.evolution.whatsapp_typing_enabled', true)) {
-            return;
-        }
-
-        $sessionAlreadyActive = WhatsAppTypingSession::isActive($expense->id);
-        WhatsAppTypingSession::activate($expense->id, (string) $expense->whatsapp_sender);
-
-        if (! $sessionAlreadyActive) {
-            MaintainWhatsAppTypingIndicatorJob::dispatch($expense->id);
-        }
+        WhatsAppTypingCoordinator::startExpenseTyping($expense->id, (string) $expense->whatsapp_sender);
     }
 
     protected function appendDateReviewNote(?string $existingNotes, bool $dateParsed, bool $dateSane): ?string

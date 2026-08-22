@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Jobs\MaintainWhatsAppSenderTypingIndicatorJob;
 use App\Jobs\ProcessWhatsAppMediaJob;
 use App\Jobs\ProcessWhatsAppTextReplyJob;
 use App\Models\Expense;
@@ -10,6 +11,7 @@ use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\User;
 use App\Services\WhatsAppNotificationService;
+use App\Support\WhatsAppTypingSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
@@ -25,6 +27,7 @@ beforeEach(function () {
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.webhook_secret' => 'test-evolution-webhook-secret-0123456789abcdef0123456789abcdef',
         'services.evolution.webhook_allowed_ips' => '127.0.0.1,::1',
+        'services.evolution.whatsapp_typing_enabled' => true,
     ]);
 
     Cache::flush();
@@ -355,6 +358,9 @@ test('whatsapp webhook accepts image message and dispatches media job', function
             && $job->mediaType === 'image'
             && $job->declaredMimeType === 'image/jpeg';
     });
+
+    Queue::assertPushed(MaintainWhatsAppSenderTypingIndicatorJob::class, fn (MaintainWhatsAppSenderTypingIndicatorJob $job): bool => $job->senderNumber === '60123456789');
+    expect(WhatsAppTypingSession::isSenderActive('60123456789'))->toBeTrue();
 
     expect(Expense::count())->toBe(0);
 });

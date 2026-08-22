@@ -29,6 +29,22 @@ test('typing session activate isActive sender and deactivate lifecycle', functio
         ->and(Cache::has(WhatsAppTypingSession::cacheKey(42)))->toBeFalse();
 });
 
+test('typing session sender activate isActive and deactivate lifecycle', function () {
+    expect(WhatsAppTypingSession::isSenderActive('60123456789'))->toBeFalse()
+        ->and(WhatsAppTypingSession::senderNumber('60123456789'))->toBeNull();
+
+    WhatsAppTypingSession::activateSender('60123456789');
+
+    expect(WhatsAppTypingSession::isSenderActive('60123456789'))->toBeTrue()
+        ->and(WhatsAppTypingSession::senderNumber('60123456789'))->toBe('60123456789')
+        ->and(Cache::has(WhatsAppTypingSession::senderCacheKey('60123456789')))->toBeTrue();
+
+    WhatsAppTypingSession::deactivateSender('60123456789');
+
+    expect(WhatsAppTypingSession::isSenderActive('60123456789'))->toBeFalse()
+        ->and(WhatsAppTypingSession::senderNumber('60123456789'))->toBeNull();
+});
+
 test('typing session activate ignores invalid expense id or blank sender', function () {
     WhatsAppTypingSession::activate(0, '60123456789');
     WhatsAppTypingSession::activate(5, '   ');
