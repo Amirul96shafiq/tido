@@ -7,6 +7,7 @@ use App\Jobs\ExtractReceiptDataJob;
 use App\Jobs\SendWhatsAppDocumentParsedJob;
 use App\Models\Expense;
 use App\Models\PaymentMethod;
+use App\Models\User;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppPublicUrl;
@@ -48,6 +49,7 @@ function fakeSuccessfulOllamaResponse(): void
             ]),
         ]),
         '*/message/sendText/*' => Http::response(['status' => 'success']),
+        '*/chat/sendPresence/*' => Http::response(['status' => 'PENDING'], 201),
     ]);
 }
 
@@ -137,6 +139,8 @@ test('extract receipt data job dispatches a needs review whatsapp result when co
     $this->seed(LabelSeeder::class);
     $this->seed(PaymentMethodSeeder::class);
 
+    User::factory()->create(['phone' => '60123456789']);
+
     $expense = Expense::create([
         'merchant_name' => 'Pending AI Extraction...',
         'date_time' => now(),
@@ -190,6 +194,8 @@ test('document parsed job waits while document received ack is pending then send
     ]);
 
     $this->seed(PaymentMethodSeeder::class);
+
+    User::factory()->create(['phone' => '60123456789']);
 
     $expense = Expense::factory()->create([
         'merchant_name' => '7-Eleven',

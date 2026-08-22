@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppMessage;
+use App\Support\WhatsAppTypingCoordinator;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -26,7 +27,7 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
         public string $senderNumber,
         public string $token,
     ) {
-        $this->onQueue('whatsapp');
+        $this->onQueue('default');
     }
 
     /**
@@ -98,6 +99,8 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
 
         foreach ($expenseIds as $expenseId) {
             if ($expenseId > 0) {
+                WhatsAppTypingCoordinator::startExpenseTyping($expenseId, $this->senderNumber);
+
                 ExtractReceiptDataJob::dispatch($expenseId);
             }
         }

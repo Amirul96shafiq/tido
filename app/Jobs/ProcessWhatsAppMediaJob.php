@@ -12,6 +12,7 @@ use App\Support\EvolutionCredential;
 use App\Support\ExpenseSenderAttribution;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppMessage;
+use App\Support\WhatsAppTypingCoordinator;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -61,6 +62,8 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
             return;
         }
 
+        WhatsAppTypingCoordinator::startSenderTyping($this->senderNumber);
+
         $binaryData = $this->downloadMedia();
 
         if ($binaryData === null) {
@@ -70,6 +73,8 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
                 $this->senderNumber,
                 WhatsAppMessage::receiptUploadFailed($attempt, $this->tries),
             );
+
+            WhatsAppTypingCoordinator::stopSenderTyping($this->senderNumber);
 
             throw new RuntimeException('Failed to download WhatsApp receipt media.');
         }
@@ -87,6 +92,8 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
 
                 return;
             }
+
+            WhatsAppTypingCoordinator::stopSenderTyping($this->senderNumber);
 
             throw new RuntimeException('WhatsApp media exceeds the configured file-size limit.');
         }
@@ -108,6 +115,8 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
             'image/png',
             'image/webp',
         ], true)) {
+            WhatsAppTypingCoordinator::stopSenderTyping($this->senderNumber);
+
             throw new RuntimeException('Unsupported WhatsApp receipt image type.');
         }
 
@@ -159,6 +168,8 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
         $localPath = 'receipts/'.$filename;
 
         if (! Storage::put($localPath, $binaryData)) {
+            WhatsAppTypingCoordinator::stopSenderTyping($this->senderNumber);
+
             throw new RuntimeException('Unable to store WhatsApp receipt media.');
         }
 
@@ -182,9 +193,12 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
             ]);
         } catch (Throwable $exception) {
             Storage::delete($localPath);
+            WhatsAppTypingCoordinator::stopSenderTyping($this->senderNumber);
 
             throw $exception;
         }
+
+        WhatsAppTypingCoordinator::handoffSenderToExpense($expense->id, $this->senderNumber);
 
         WhatsAppDocumentReceivedDebouncer::register($this->senderNumber, [
             'message_id' => $this->messageId,
@@ -216,6 +230,8 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
                 $this->deliverFallbackAcknowledgement($exception);
             }
         }
+
+        WhatsAppTypingCoordinator::stopSenderTyping($this->senderNumber);
 
         Log::error('ProcessWhatsAppMediaJob failed after maximum retries', [
             'message_id' => $this->messageId,
@@ -339,6 +355,8 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
         string $reason,
         ?int $pageCount = null,
     ): void {
+        WhatsAppTypingCoordinator::stopSenderTyping($this->senderNumber);
+
         WhatsAppDocumentReceivedDebouncer::register($this->senderNumber, [
             'message_id' => $this->messageId,
             'expense_id' => null,

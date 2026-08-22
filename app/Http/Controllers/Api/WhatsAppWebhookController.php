@@ -12,6 +12,7 @@ use App\Jobs\ProcessWhatsAppTextReplyJob;
 use App\Support\ManualWhatsAppExpenseParser;
 use App\Support\WhatsAppJid;
 use App\Support\WhatsAppLid;
+use App\Support\WhatsAppTypingCoordinator;
 use App\Support\WhatsAppWebhookIdempotency;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -149,6 +150,8 @@ class WhatsAppWebhookController extends Controller
         $messageId = (string) ($key['id'] ?? '');
         $remoteJid = (string) ($key['remoteJid'] ?? '');
         $fromMe = (bool) ($key['fromMe'] ?? false);
+
+        WhatsAppTypingCoordinator::startSenderTyping($senderNumber);
 
         ProcessWhatsAppMediaJob::dispatch(
             $senderNumber,

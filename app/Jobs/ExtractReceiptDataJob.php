@@ -17,6 +17,8 @@ use App\Services\OllamaService;
 use App\Services\PaymentMethodMatcher;
 use App\Services\ReceiptDocumentPreparer;
 use App\Services\ReceiptParseNormalizer;
+use App\Support\WhatsAppTypingCoordinator;
+use App\Support\WhatsAppTypingSession;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -74,6 +76,8 @@ class ExtractReceiptDataJob implements ShouldQueue
 
             return;
         }
+
+        $this->startWhatsAppTypingIndicator($expense);
 
         $documentText = $documentPreparer->extractText($expense);
         $base64Pages = $documentPreparer->prepare($expense);
@@ -240,6 +244,10 @@ class ExtractReceiptDataJob implements ShouldQueue
             }
 
             $expense->update($updates);
+
+            if ($expense->source === 'whatsapp') {
+                WhatsAppTypingSession::deactivate($this->expenseId);
+            }
         }
 
         Log::error('ExtractReceiptDataJob failed after maximum retries', [
@@ -255,6 +263,15 @@ class ExtractReceiptDataJob implements ShouldQueue
         }
 
         SendWhatsAppDocumentParsedJob::dispatch($expense->id);
+    }
+
+    protected function startWhatsAppTypingIndicator(Expense $expense): void
+    {
+        if ($expense->source !== 'whatsapp' || blank($expense->whatsapp_sender)) {
+            return;
+        }
+
+        WhatsAppTypingCoordinator::startExpenseTyping($expense->id, (string) $expense->whatsapp_sender);
     }
 
     protected function appendDateReviewNote(?string $existingNotes, bool $dateParsed, bool $dateSane): ?string

@@ -10,6 +10,7 @@ use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppMessage;
 use App\Support\WhatsAppPublicUrl;
+use App\Support\WhatsAppTypingSession;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -69,6 +70,8 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
         $message = $expense->status === 'requires_manual_review'
             ? WhatsAppMessage::documentNeedsReview($editUrl, $details)
             : WhatsAppMessage::documentParsed($editUrl, $details);
+
+        WhatsAppTypingSession::deactivate($this->expenseId);
 
         $waService->sendMessage($sender, $message);
 

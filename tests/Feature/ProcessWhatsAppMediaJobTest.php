@@ -3,10 +3,14 @@
 declare(strict_types=1);
 
 use App\Jobs\ExtractReceiptDataJob;
+use App\Jobs\MaintainWhatsAppSenderTypingIndicatorJob;
+use App\Jobs\MaintainWhatsAppTypingIndicatorJob;
 use App\Jobs\ProcessWhatsAppMediaJob;
 use App\Jobs\SendWhatsAppDocumentReceivedAckJob;
 use App\Models\Expense;
+use App\Models\User;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
+use App\Support\WhatsAppTypingSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
@@ -24,9 +28,12 @@ beforeEach(function () {
         'services.evolution.instance_name' => 'tido',
         'services.documents.max_bytes' => 10 * 1024 * 1024,
         'services.documents.max_pdf_pages' => 4,
+        'services.evolution.whatsapp_typing_enabled' => true,
     ]);
 
     Cache::flush();
+
+    User::factory()->create(['phone' => '60123456789']);
 });
 
 test('process whatsapp media job stores receipt and schedules batched document received ack', function () {
@@ -60,8 +67,14 @@ test('process whatsapp media job stores receipt and schedules batched document r
     Queue::assertNotPushed(ExtractReceiptDataJob::class);
     Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class, function (SendWhatsAppDocumentReceivedAckJob $ack): bool {
         return $ack->senderNumber === '60123456789'
-            && $ack->token !== '';
+            && $ack->token !== ''
+            && $ack->queue === 'default';
     });
+    Queue::assertPushed(MaintainWhatsAppSenderTypingIndicatorJob::class, fn (MaintainWhatsAppSenderTypingIndicatorJob $job): bool => $job->senderNumber === '60123456789');
+    Queue::assertPushed(MaintainWhatsAppTypingIndicatorJob::class, fn (MaintainWhatsAppTypingIndicatorJob $job): bool => $job->expenseId === $expense->id);
+
+    expect(WhatsAppTypingSession::isSenderActive('60123456789'))->toBeFalse()
+        ->and(WhatsAppTypingSession::isActive($expense->id))->toBeTrue();
 
     Http::assertSent(function (Request $request): bool {
         return str_contains($request->url(), '/chat/getBase64FromMediaMessage/')
@@ -73,6 +86,8 @@ test('process whatsapp media job stores receipt and schedules batched document r
 });
 
 test('process whatsapp media job sends attempt 1 failure message and throws', function () {
+    Queue::fake();
+
     Http::fake([
         '*/chat/getBase64FromMediaMessage/*' => Http::response('error', 500),
         '*/message/sendText/*' => Http::response(['status' => 'success']),
@@ -88,6 +103,8 @@ test('process whatsapp media job sends attempt 1 failure message and throws', fu
     expect(fn () => app()->call([$job, 'handle']))
         ->toThrow(RuntimeException::class, 'Failed to download WhatsApp receipt media.');
 
+    expect(WhatsAppTypingSession::isSenderActive('60123456789'))->toBeFalse();
+
     Http::assertSent(function (Request $request): bool {
         return str_contains($request->url(), '/message/sendText/')
             && str_contains((string) $request['text'], '*Upload failed (attempt 1 of 3)*')
@@ -98,6 +115,8 @@ test('process whatsapp media job sends attempt 1 failure message and throws', fu
 });
 
 test('process whatsapp media job sends final attempt failure message', function () {
+    Queue::fake();
+
     Http::fake([
         '*/chat/getBase64FromMediaMessage/*' => Http::response('error', 500),
         '*/message/sendText/*' => Http::response(['status' => 'success']),
@@ -142,6 +161,7 @@ test('process whatsapp media job skips duplicate message processing', function (
 
     Http::assertNothingSent();
     expect(Expense::count())->toBe(0);
+    Queue::assertNotPushed(MaintainWhatsAppSenderTypingIndicatorJob::class);
 });
 
 test('process whatsapp media job retries three times with 60 second backoff', function () {
@@ -225,6 +245,9 @@ test('process whatsapp media job stores a four-page PDF at the page limit', func
 
     Queue::assertNotPushed(ExtractReceiptDataJob::class);
     Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class);
+
+    expect(WhatsAppTypingSession::isSenderActive('60123456789'))->toBeFalse()
+        ->and(WhatsAppTypingSession::isActive($expense->id))->toBeTrue();
 });
 
 test('process whatsapp media job rejects a PDF over four pages before creating an expense', function () {
@@ -263,6 +286,8 @@ test('process whatsapp media job rejects a PDF over four pages before creating a
 
     Queue::assertNotPushed(ExtractReceiptDataJob::class);
     Queue::assertPushed(SendWhatsAppDocumentReceivedAckJob::class);
+
+    expect(WhatsAppTypingSession::isSenderActive('60123456789'))->toBeFalse();
 });
 
 test('process whatsapp media job queues a PDF when the inspection utility path is invalid', function () {
