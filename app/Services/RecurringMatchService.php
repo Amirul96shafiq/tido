@@ -8,6 +8,7 @@ use App\Enums\RecurringOccurrenceStatus;
 use App\Models\Expense;
 use App\Models\Recurring;
 use App\Models\RecurringOccurrence;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class RecurringMatchService
@@ -17,6 +18,10 @@ class RecurringMatchService
     public function matchExpense(Expense $expense): ?RecurringOccurrence
     {
         if (! in_array($expense->status, ['parsed', 'reviewed'], true)) {
+            return null;
+        }
+
+        if ($expense->isNotReceipt()) {
             return null;
         }
 
@@ -57,6 +62,7 @@ class RecurringMatchService
 
         Expense::query()
             ->whereIn('status', ['parsed', 'reviewed'])
+            ->receiptAnalyticsEligible()
             ->orderBy('date_time')
             ->orderBy('id')
             ->cursor()
@@ -82,7 +88,7 @@ class RecurringMatchService
                     'occurrence_id' => (int) $best->id,
                     'recurring_id' => (int) $best->recurring_id,
                     'recurring_title' => $title,
-                    'due_on' => $best->due_on->toDateString(),
+                    'due_on' => Carbon::parse($best->due_on)->toDateString(),
                     'actual_amount' => $expense->total_amount !== null
                         ? (string) $expense->total_amount
                         : null,
@@ -161,7 +167,7 @@ class RecurringMatchService
                 $score += 5;
             }
 
-            $daysDiff = abs($occurrence->due_on->diffInDays($expenseDate));
+            $daysDiff = abs(Carbon::parse($occurrence->due_on)->diffInDays($expenseDate));
             $score += max(0, self::DUE_WINDOW_DAYS - $daysDiff);
 
             if ($score > $bestScore) {
@@ -223,7 +229,7 @@ class RecurringMatchService
         }
 
         $occurrence->status = app(RecurringOccurrenceGenerator::class)
-            ->statusForDueOn($occurrence->due_on->copy()->startOfDay());
+            ->statusForDueOn(Carbon::parse($occurrence->due_on)->startOfDay());
         $occurrence->save();
 
         $recurring = $occurrence->recurring;

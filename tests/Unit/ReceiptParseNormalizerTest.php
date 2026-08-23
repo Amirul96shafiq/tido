@@ -263,3 +263,14 @@ test('normalize only accepts explicit three-letter currency evidence', function 
         ->and($normalizer->normalizeCurrency('$'))->toBeNull()
         ->and($normalizer->normalizeCurrency(null))->toBeNull();
 });
+
+test('normalizes document classification and fails closed for missing values', function () {
+    $normalizer = new ReceiptParseNormalizer;
+
+    expect($normalizer->normalizeDocumentClassification('receipt'))
+        ->toBe('receipt')
+        ->and($normalizer->normalizeDocumentClassification('non-receipt'))
+        ->toBe('not_receipt')
+        ->and($normalizer->normalizeDocumentClassification(null))
+        ->toBe('not_receipt');
+});

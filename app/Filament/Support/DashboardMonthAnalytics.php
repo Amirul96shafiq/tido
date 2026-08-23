@@ -610,7 +610,9 @@ final class DashboardMonthAnalytics
         }
 
         if ($canonicalMyr) {
-            $query->canonicalMyr();
+            $query
+                ->receiptAnalyticsEligible()
+                ->canonicalMyr();
         }
 
         return $query;
@@ -627,6 +629,14 @@ final class DashboardMonthAnalytics
             ->whereNull('expenses.deleted_at')
             ->whereBetween('expenses.date_time', [$start, $end])
             ->whereIn('expenses.status', Expense::dashboardAnalyticsStatuses())
+            ->where(function (Builder $query): void {
+                $query
+                    ->whereNull('expenses.document_classification')
+                    ->orWhere(
+                        'expenses.document_classification',
+                        Expense::DOCUMENT_CLASSIFICATION_RECEIPT,
+                    );
+            })
             ->where('expenses.currency', Expense::CURRENCY_MYR)
             ->whereIn('expenses.currency_conversion_status', Expense::CANONICAL_CONVERSION_STATUSES);
 

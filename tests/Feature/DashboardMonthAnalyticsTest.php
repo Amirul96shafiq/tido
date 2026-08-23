@@ -731,6 +731,77 @@ test('spent by label includes requires manual review expenses with labeled line 
     expect($spending->first()->total)->toBe(43.66);
 });
 
+test('non-receipts are excluded from financial analytics while valid receipts remain included', function () {
+    Expense::unsetEventDispatcher();
+
+    $targetMonth = now()->copy()->subMonth()->format('Y-m');
+    $bounds = DashboardMonthPeriod::boundsFromFilters(['month' => $targetMonth]);
+    $label = Label::factory()->create([
+        'name' => 'Food & Dining',
+        'slug' => 'food-dining',
+    ]);
+
+    $validReceipt = Expense::create([
+        'merchant_name' => 'Valid Cafe',
+        'invoice_number' => 'INV-VALID-RECEIPT',
+        'receipt_hash' => 'hash-valid-receipt',
+        'date_time' => $bounds['start']->copy()->addDay(),
+        'subtotal' => 25.00,
+        'total_tax' => 0.00,
+        'total_amount' => 25.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+        'document_classification' => Expense::DOCUMENT_CLASSIFICATION_RECEIPT,
+    ]);
+
+    ExpenseItem::create([
+        'expense_id' => $validReceipt->id,
+        'label_id' => $label->id,
+        'description' => 'Meal',
+        'quantity' => 1,
+        'unit_price' => 25.00,
+        'line_total' => 25.00,
+    ]);
+
+    $nonReceipt = Expense::create([
+        'merchant_name' => 'Non-receipt document',
+        'invoice_number' => null,
+        'receipt_hash' => 'hash-non-receipt',
+        'date_time' => $bounds['start']->copy()->addDay(),
+        'subtotal' => 999.00,
+        'total_tax' => 0.00,
+        'total_amount' => 999.00,
+        'currency' => 'MYR',
+        'source' => 'whatsapp',
+        'status' => 'reviewed',
+        'document_classification' => Expense::DOCUMENT_CLASSIFICATION_NOT_RECEIPT,
+    ]);
+
+    ExpenseItem::create([
+        'expense_id' => $nonReceipt->id,
+        'label_id' => $label->id,
+        'description' => 'Fabricated item',
+        'quantity' => 1,
+        'unit_price' => 999.00,
+        'line_total' => 999.00,
+    ]);
+
+    Expense::setEventDispatcher(app('events'));
+
+    $analytics = analyticsForMonth($targetMonth);
+    $summary = $analytics->summary();
+    $spending = $analytics->spentByLabel();
+    $merchants = $analytics->topMerchants();
+
+    expect($summary['current_total'])->toBe(25.0)
+        ->and($summary['processed_count'])->toBe(1)
+        ->and($spending)->toHaveCount(1)
+        ->and($spending->first()->total)->toBe(25.0)
+        ->and($merchants)->toHaveCount(1)
+        ->and($merchants->first()->merchant_name)->toBe('Valid Cafe');
+});
+
 test('budget mapping uses calendar month bounds for weekly budgets', function () {
     Expense::unsetEventDispatcher();
 

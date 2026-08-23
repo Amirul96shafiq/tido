@@ -17,6 +17,7 @@ use App\Services\OllamaService;
 use App\Services\PaymentMethodMatcher;
 use App\Services\ReceiptDocumentPreparer;
 use App\Services\ReceiptParseNormalizer;
+use App\Support\ReceiptPipelineLogger;
 use App\Support\WhatsAppTypingCoordinator;
 use App\Support\WhatsAppTypingSession;
 use Illuminate\Bus\Queueable;
@@ -77,25 +78,154 @@ class ExtractReceiptDataJob implements ShouldQueue
             return;
         }
 
+        $pipelineContext = [
+            'message_id' => $expense->whatsapp_message_id,
+            'expense_id' => $expense->id,
+            'queue' => $this->queue ?? 'receipts',
+        ];
+        $pipelineStartedAt = ReceiptPipelineLogger::start();
+
         $this->startWhatsAppTypingIndicator($expense);
 
-        $documentText = $documentPreparer->extractText($expense);
-        $base64Pages = $documentPreparer->prepare($expense);
-        $parsed = $expense->file_mime_type === 'application/pdf'
-            ? $this->parsePdfDocument($ollama, $base64Pages)
-            : $ollama->parseReceipt($base64Pages[0], ReceiptExtractionPrompt::build());
+        $textStartedAt = ReceiptPipelineLogger::start();
+
+        try {
+            $documentText = $documentPreparer->extractText($expense);
+
+            ReceiptPipelineLogger::completed('receipt.pdf.text_extract', $textStartedAt, array_merge(
+                $pipelineContext,
+                [
+                    'outcome' => $documentText === null ? 'skipped' : 'success',
+                ],
+            ));
+        } catch (\Throwable $exception) {
+            ReceiptPipelineLogger::completed('receipt.pdf.text_extract', $textStartedAt, array_merge(
+                $pipelineContext,
+                ['outcome' => 'error'],
+            ));
+
+            throw $exception;
+        }
+
+        $prepareStartedAt = ReceiptPipelineLogger::start();
+
+        try {
+            $base64Pages = $documentPreparer->prepare($expense);
+
+            ReceiptPipelineLogger::completed('receipt.pdf.render_and_encode', $prepareStartedAt, array_merge(
+                $pipelineContext,
+                [
+                    'outcome' => 'success',
+                    'page_count' => count($base64Pages),
+                ],
+            ));
+        } catch (\Throwable $exception) {
+            ReceiptPipelineLogger::completed('receipt.pdf.render_and_encode', $prepareStartedAt, array_merge(
+                $pipelineContext,
+                ['outcome' => 'error'],
+            ));
+
+            throw $exception;
+        }
+
+        $ollamaStartedAt = ReceiptPipelineLogger::start();
+
+        try {
+            $parsed = $expense->file_mime_type === 'application/pdf'
+                ? $this->parsePdfDocument($ollama, $base64Pages)
+                : $ollama->parseReceipt($base64Pages[0], ReceiptExtractionPrompt::build());
+
+            ReceiptPipelineLogger::completed('receipt.ollama.extract', $ollamaStartedAt, array_merge(
+                $pipelineContext,
+                [
+                    'outcome' => $parsed ? 'success' : 'empty',
+                    'page_count' => count($base64Pages),
+                ],
+            ));
+        } catch (\Throwable $exception) {
+            ReceiptPipelineLogger::completed('receipt.ollama.extract', $ollamaStartedAt, array_merge(
+                $pipelineContext,
+                ['outcome' => 'error'],
+            ));
+
+            throw $exception;
+        }
 
         if (! $parsed) {
             throw new RuntimeException('Ollama receipt extraction returned empty or invalid response.');
         }
 
-        $normalized = $normalizer->normalize($parsed);
-
-        $currencyDetection = $currencyDetector->detect(
-            $documentText,
-            $base64Pages,
-            $normalized['currency'],
+        $classificationStartedAt = ReceiptPipelineLogger::start();
+        $documentClassification = $normalizer->normalizeDocumentClassification(
+            $parsed['document_classification'] ?? null,
         );
+
+        ReceiptPipelineLogger::completed('receipt.classification', $classificationStartedAt, array_merge(
+            $pipelineContext,
+            [
+                'outcome' => $documentClassification,
+            ],
+        ));
+
+        if ($documentClassification !== Expense::DOCUMENT_CLASSIFICATION_RECEIPT) {
+            $this->markDocumentClassificationForManualReview(
+                $expense,
+                $documentClassification,
+                $parsed,
+            );
+            $this->notifyWhatsAppParsed($expense);
+
+            ReceiptPipelineLogger::completed('receipt.extraction.processed', $pipelineStartedAt, array_merge(
+                $pipelineContext,
+                [
+                    'outcome' => 'not_receipt',
+                    'status' => $expense->status,
+                ],
+            ));
+
+            return;
+        }
+
+        $normalizeStartedAt = ReceiptPipelineLogger::start();
+
+        try {
+            $normalized = $normalizer->normalize($parsed);
+
+            ReceiptPipelineLogger::completed('receipt.normalize', $normalizeStartedAt, array_merge(
+                $pipelineContext,
+                ['outcome' => 'success'],
+            ));
+        } catch (\Throwable $exception) {
+            ReceiptPipelineLogger::completed('receipt.normalize', $normalizeStartedAt, array_merge(
+                $pipelineContext,
+                ['outcome' => 'error'],
+            ));
+
+            throw $exception;
+        }
+
+        $currencyStartedAt = ReceiptPipelineLogger::start();
+
+        try {
+            $currencyDetection = $currencyDetector->detect(
+                $documentText,
+                $base64Pages,
+                $normalized['currency'],
+            );
+
+            ReceiptPipelineLogger::completed('receipt.currency.detect', $currencyStartedAt, array_merge(
+                $pipelineContext,
+                ['outcome' => 'success'],
+            ));
+        } catch (\Throwable $exception) {
+            ReceiptPipelineLogger::completed('receipt.currency.detect', $currencyStartedAt, array_merge(
+                $pipelineContext,
+                ['outcome' => 'error'],
+            ));
+
+            throw $exception;
+        }
+
         $normalized['currency'] = $currencyDetection['currency'];
 
         Log::info('Receipt currency detected from document content', [
@@ -111,18 +241,19 @@ class ExtractReceiptDataJob implements ShouldQueue
         $sourceAmountsReconcile = $normalizer->amountsReconcile($normalized);
 
         $expense->merchant_name = $normalized['merchant_name'];
+        $expense->document_classification = $normalized['document_classification'];
         $expense->invoice_number = $normalized['invoice_number'];
         if ($dateParsed) {
             $expense->date_time = $dateTime;
         }
-        $expense->subtotal = $normalized['subtotal'];
-        $expense->total_tax = $normalized['total_tax'];
-        $expense->discount_total = $normalized['discount_total'];
-        $expense->rounding_amount = $normalized['rounding_amount'];
-        $expense->total_amount = $normalized['total_amount'];
+        $expense->subtotal = $this->decimalAttribute($normalized['subtotal']);
+        $expense->total_tax = $this->decimalAttribute($normalized['total_tax']);
+        $expense->discount_total = $this->decimalAttribute($normalized['discount_total']);
+        $expense->rounding_amount = $this->decimalAttribute($normalized['rounding_amount']);
+        $expense->total_amount = $this->decimalAttribute($normalized['total_amount']);
         $expense->currency = $normalized['currency'] ?? Expense::CURRENCY_UNKNOWN;
         $expense->original_currency = $normalized['currency'];
-        $expense->original_total_amount = $normalized['total_amount'];
+        $expense->original_total_amount = $this->decimalAttribute($normalized['total_amount']);
         $expense->currency_conversion_status = Expense::CONVERSION_PENDING;
         $expense->currency_conversion_rate = null;
         $expense->currency_conversion_date = null;
@@ -133,9 +264,27 @@ class ExtractReceiptDataJob implements ShouldQueue
             'currency_detection' => $currencyDetection,
         ]);
 
-        // Persist the source extraction before the outbound rate request so an unavailable
-        // provider cannot make a foreign amount look like a MYR expense.
-        $expense->save();
+        $sourcePersistStartedAt = ReceiptPipelineLogger::start();
+
+        try {
+            // Persist the source extraction before the outbound rate request so an unavailable
+            // provider cannot make a foreign amount look like a MYR expense.
+            $expense->save();
+
+            ReceiptPipelineLogger::completed('receipt.persist.source', $sourcePersistStartedAt, array_merge(
+                $pipelineContext,
+                ['outcome' => 'success'],
+            ));
+        } catch (\Throwable $exception) {
+            ReceiptPipelineLogger::completed('receipt.persist.source', $sourcePersistStartedAt, array_merge(
+                $pipelineContext,
+                ['outcome' => 'error'],
+            ));
+
+            throw $exception;
+        }
+
+        $conversionStartedAt = ReceiptPipelineLogger::start();
 
         try {
             $conversion = $currencyConversionService->convert(
@@ -143,7 +292,17 @@ class ExtractReceiptDataJob implements ShouldQueue
                 $dateTime,
                 $currencyDetection['rate'] ?? null,
             );
+
+            ReceiptPipelineLogger::completed('receipt.currency.convert', $conversionStartedAt, array_merge(
+                $pipelineContext,
+                ['outcome' => 'success'],
+            ));
         } catch (CurrencyConversionException $exception) {
+            ReceiptPipelineLogger::completed('receipt.currency.convert', $conversionStartedAt, array_merge(
+                $pipelineContext,
+                ['outcome' => 'failed'],
+            ));
+
             $this->markCurrencyConversionFailure($expense, $exception);
             $this->notifyWhatsAppParsed($expense);
 
@@ -153,14 +312,14 @@ class ExtractReceiptDataJob implements ShouldQueue
         $normalized = $conversion['normalized'];
         $metadata = $conversion['metadata'];
 
-        $expense->subtotal = $normalized['subtotal'];
-        $expense->total_tax = $normalized['total_tax'];
-        $expense->discount_total = $normalized['discount_total'];
-        $expense->rounding_amount = $normalized['rounding_amount'];
-        $expense->total_amount = $normalized['total_amount'];
+        $expense->subtotal = $this->decimalAttribute($normalized['subtotal']);
+        $expense->total_tax = $this->decimalAttribute($normalized['total_tax']);
+        $expense->discount_total = $this->decimalAttribute($normalized['discount_total']);
+        $expense->rounding_amount = $this->decimalAttribute($normalized['rounding_amount']);
+        $expense->total_amount = $this->decimalAttribute($normalized['total_amount']);
         $expense->currency = Expense::CURRENCY_MYR;
         $expense->original_currency = $metadata['original_currency'];
-        $expense->original_total_amount = $metadata['original_total_amount'];
+        $expense->original_total_amount = $this->decimalAttribute($metadata['original_total_amount']);
         $expense->currency_conversion_status = $metadata['currency_conversion_status'];
         $expense->currency_conversion_rate = $metadata['currency_conversion_rate'];
         $expense->setAttribute('currency_conversion_date', $metadata['currency_conversion_date']);
@@ -175,20 +334,40 @@ class ExtractReceiptDataJob implements ShouldQueue
         $expense->status = $needsManualReview ? 'requires_manual_review' : 'parsed';
         $expense->notes = $this->appendDateReviewNote($expense->notes, $dateParsed, $dateSane);
         $expense->receipt_hash = $this->uniqueReceiptHash($expense);
-        $expense->save();
+        $finalPersistStartedAt = ReceiptPipelineLogger::start();
 
-        $expense->expenseItems()->delete();
+        try {
+            $expense->save();
 
-        foreach ($normalized['items'] as $item) {
-            ExpenseItem::create([
-                'expense_id' => $expense->id,
-                'label_id' => $labelMatcher->matchId($item['label']),
-                'description' => $item['description'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
-                'line_total' => $item['line_total'],
-                'serial_number' => $item['serial_number'],
-            ]);
+            $expense->expenseItems()->delete();
+
+            foreach ($normalized['items'] as $item) {
+                ExpenseItem::create([
+                    'expense_id' => $expense->id,
+                    'label_id' => $labelMatcher->matchId($item['label']),
+                    'description' => $item['description'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'line_total' => $item['line_total'],
+                    'serial_number' => $item['serial_number'],
+                ]);
+            }
+
+            ReceiptPipelineLogger::completed('receipt.persist.final', $finalPersistStartedAt, array_merge(
+                $pipelineContext,
+                [
+                    'outcome' => 'success',
+                    'status' => $expense->status,
+                    'item_count' => count($normalized['items']),
+                ],
+            ));
+        } catch (\Throwable $exception) {
+            ReceiptPipelineLogger::completed('receipt.persist.final', $finalPersistStartedAt, array_merge(
+                $pipelineContext,
+                ['outcome' => 'error'],
+            ));
+
+            throw $exception;
         }
 
         $this->notifyWhatsAppParsed($expense);
@@ -197,6 +376,14 @@ class ExtractReceiptDataJob implements ShouldQueue
             'expense_id' => $expense->id,
             'status' => $expense->status,
         ]);
+
+        ReceiptPipelineLogger::completed('receipt.extraction.processed', $pipelineStartedAt, array_merge(
+            $pipelineContext,
+            [
+                'outcome' => 'success',
+                'status' => $expense->status,
+            ],
+        ));
     }
 
     /**
@@ -254,6 +441,13 @@ class ExtractReceiptDataJob implements ShouldQueue
             'expense_id' => $this->expenseId,
             'error' => $exception->getMessage(),
         ]);
+
+        ReceiptPipelineLogger::event('receipt.extraction.failed', [
+            'message_id' => $expense?->whatsapp_message_id,
+            'expense_id' => $this->expenseId,
+            'queue' => $this->queue ?? 'receipts',
+            'outcome' => 'failed',
+        ]);
     }
 
     protected function notifyWhatsAppParsed(Expense $expense): void
@@ -272,6 +466,64 @@ class ExtractReceiptDataJob implements ShouldQueue
         }
 
         WhatsAppTypingCoordinator::startExpenseTyping($expense->id, (string) $expense->whatsapp_sender);
+    }
+
+    /**
+     * @param  array<string, mixed>  $parsed
+     */
+    protected function markDocumentClassificationForManualReview(
+        Expense $expense,
+        string $documentClassification,
+        array $parsed,
+    ): void {
+        $expense->expenseItems()->delete();
+        $expense->merchant_name = 'Non-receipt document';
+        $expense->document_classification = $documentClassification;
+        $expense->invoice_number = null;
+        $expense->setAttribute('subtotal', '0.00');
+        $expense->setAttribute('total_tax', '0.00');
+        $expense->setAttribute('discount_total', '0.00');
+        $expense->setAttribute('rounding_amount', '0.00');
+        $expense->setAttribute('total_amount', '0.00');
+        $expense->currency = Expense::CURRENCY_UNKNOWN;
+        $expense->original_currency = null;
+        $expense->original_total_amount = null;
+        $expense->currency_conversion_status = Expense::CONVERSION_NOT_REQUIRED;
+        $expense->currency_conversion_rate = null;
+        $expense->currency_conversion_date = null;
+        $expense->currency_conversion_provider = null;
+        $expense->currency_conversion_fetched_at = null;
+        $expense->payment_method_id = null;
+        $expense->raw_ai_response = $parsed;
+        $expense->status = 'requires_manual_review';
+        $expense->notes = $this->appendDocumentClassificationReviewNote(
+            $expense->notes,
+            $documentClassification,
+        );
+        $expense->save();
+
+        Log::info('Expense classified as a non-receipt document', [
+            'expense_id' => $expense->id,
+            'document_classification' => $documentClassification,
+        ]);
+    }
+
+    protected function appendDocumentClassificationReviewNote(
+        ?string $existingNotes,
+        string $documentClassification,
+    ): string {
+        $marker = $documentClassification === Expense::DOCUMENT_CLASSIFICATION_NOT_RECEIPT
+            ? '[AI] This upload does not appear to contain receipt information and excluded from spending analytics; review the file or enter the expense details manually.'
+            : '[AI] This upload could not be confirmed as a receipt and excluded from spending analytics; review the file or enter the expense details manually.';
+        $notes = trim((string) $existingNotes);
+
+        if ($notes !== '' && str_contains($notes, $marker)) {
+            return $notes;
+        }
+
+        $markerHtml = '<p>'.$marker.'</p>';
+
+        return $notes === '' ? $markerHtml : $notes.$markerHtml;
     }
 
     protected function appendDateReviewNote(?string $existingNotes, bool $dateParsed, bool $dateSane): ?string
@@ -326,6 +578,11 @@ class ExtractReceiptDataJob implements ShouldQueue
         $markerHtml = '<p>'.$marker.'</p>';
 
         return $notes === '' ? $markerHtml : $notes.$markerHtml;
+    }
+
+    protected function decimalAttribute(mixed $value): ?string
+    {
+        return $value === null ? null : (string) $value;
     }
 
     protected function uniqueReceiptHash(Expense $expense): string

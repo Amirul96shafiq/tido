@@ -10,6 +10,7 @@ use App\Jobs\ProcessManualWhatsAppExpenseJob;
 use App\Jobs\ProcessWhatsAppMediaJob;
 use App\Jobs\ProcessWhatsAppTextReplyJob;
 use App\Support\ManualWhatsAppExpenseParser;
+use App\Support\ReceiptPipelineLogger;
 use App\Support\WhatsAppJid;
 use App\Support\WhatsAppLid;
 use App\Support\WhatsAppTypingCoordinator;
@@ -146,6 +147,7 @@ class WhatsAppWebhookController extends Controller
         string $mimeType,
         ?string $originalFilename = null,
     ): JsonResponse {
+        $startedAt = ReceiptPipelineLogger::start();
         $key = is_array($data['key'] ?? null) ? $data['key'] : [];
         $messageId = (string) ($key['id'] ?? '');
         $remoteJid = (string) ($key['remoteJid'] ?? '');
@@ -163,6 +165,13 @@ class WhatsAppWebhookController extends Controller
             $originalFilename,
         );
 
+        ReceiptPipelineLogger::completed('receipt.webhook.accepted', $startedAt, [
+            'message_id' => $messageId,
+            'queue' => 'webhook',
+            'outcome' => 'accepted',
+            'media_type' => $mediaType,
+        ]);
+
         return response()->json(['status' => 'accepted']);
     }
 
@@ -171,6 +180,7 @@ class WhatsAppWebhookController extends Controller
         $originalText = trim($text);
 
         if (ManualWhatsAppExpenseParser::looksLike($originalText)) {
+            WhatsAppTypingCoordinator::startSenderTyping($senderNumber);
             ProcessManualWhatsAppExpenseJob::dispatch($senderNumber, $originalText);
 
             return response()->json(['status' => 'accepted']);

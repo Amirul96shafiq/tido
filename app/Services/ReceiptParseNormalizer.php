@@ -4,15 +4,34 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Expense;
 use App\Support\FieldCharacterLimits;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class ReceiptParseNormalizer
 {
+    public function normalizeDocumentClassification(mixed $value): string
+    {
+        if (is_bool($value)) {
+            return $value
+                ? Expense::DOCUMENT_CLASSIFICATION_RECEIPT
+                : Expense::DOCUMENT_CLASSIFICATION_NOT_RECEIPT;
+        }
+
+        $classification = Str::lower(trim((string) $value));
+
+        return match ($classification) {
+            'receipt', 'invoice', 'bill', 'true', 'yes' => Expense::DOCUMENT_CLASSIFICATION_RECEIPT,
+            'not_receipt', 'non_receipt', 'non-receipt', 'notreceipt', 'false', 'no' => Expense::DOCUMENT_CLASSIFICATION_NOT_RECEIPT,
+            default => Expense::DOCUMENT_CLASSIFICATION_NOT_RECEIPT,
+        };
+    }
+
     /**
      * @param  array<string, mixed>  $parsed
      * @return array{
+     *     document_classification: string,
      *     merchant_name: string,
      *     invoice_number: ?string,
      *     date_time: ?Carbon,
@@ -95,6 +114,9 @@ class ReceiptParseNormalizer
         }
 
         return [
+            'document_classification' => $this->normalizeDocumentClassification(
+                $parsed['document_classification'] ?? null,
+            ),
             'merchant_name' => $merchantName,
             'invoice_number' => $invoiceNumber,
             'date_time' => $this->parseDateTime($parsed['date_time'] ?? null),

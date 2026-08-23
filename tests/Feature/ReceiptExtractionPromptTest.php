@@ -18,6 +18,10 @@ test('receipt extraction prompt includes all finance labels with descriptions', 
     $prompt = ReceiptExtractionPrompt::build();
 
     expect($prompt)
+        ->toContain('document_classification')
+        ->toContain('exactly receipt or not_receipt')
+        ->toContain('Never invent merchant, invoice, date, amount, currency, payment, or line-item data')
+        ->toContain('"date_time": "String or null')
         ->toContain('Available labels')
         ->toContain('"label": "String - exact label name from the list above"')
         ->toContain('Every item in items[] MUST include a label')

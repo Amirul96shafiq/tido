@@ -44,6 +44,7 @@ test('extract receipt data job maps custom user label from ai response', functio
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => 'Pet Mart',
                 'invoice_number' => 'PM-001',
                 'date_time' => '2026-07-15 10:00:00',

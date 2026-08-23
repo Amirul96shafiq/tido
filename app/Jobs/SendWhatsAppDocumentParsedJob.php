@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Models\Expense;
 use App\Services\WhatsAppNotificationService;
+use App\Support\ReceiptPipelineLogger;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppMessage;
 use App\Support\WhatsAppPublicUrl;
@@ -17,6 +18,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
+use RuntimeException;
+use Throwable;
 
 class SendWhatsAppDocumentParsedJob implements ShouldQueue
 {
@@ -26,7 +29,7 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
 
     public function __construct(public int $expenseId)
     {
-        $this->onQueue('whatsapp');
+        $this->onQueue('default');
     }
 
     /**
@@ -39,9 +42,17 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
 
     public function handle(WhatsAppNotificationService $waService): void
     {
+        $startedAt = ReceiptPipelineLogger::start();
+
         $expense = Expense::find($this->expenseId);
 
         if (! $expense || $expense->source !== 'whatsapp' || blank($expense->whatsapp_sender)) {
+            ReceiptPipelineLogger::completed('receipt.parsed_reply', $startedAt, [
+                'expense_id' => $this->expenseId,
+                'queue' => $this->queue ?? 'default',
+                'outcome' => 'ignored',
+            ]);
+
             return;
         }
 
@@ -50,6 +61,27 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
 
         if (is_array($pendingAck)) {
             $this->release(1);
+
+            ReceiptPipelineLogger::completed('receipt.parsed_reply', $startedAt, [
+                'message_id' => $expense->whatsapp_message_id,
+                'expense_id' => $expense->id,
+                'queue' => $this->queue ?? 'default',
+                'outcome' => 'deferred',
+                'reason' => 'received_ack_pending',
+            ]);
+
+            return;
+        }
+
+        if (Cache::has($this->sentCacheKey())) {
+            WhatsAppTypingSession::deactivate($this->expenseId);
+
+            ReceiptPipelineLogger::completed('receipt.parsed_reply', $startedAt, [
+                'message_id' => $expense->whatsapp_message_id,
+                'expense_id' => $expense->id,
+                'queue' => $this->queue ?? 'default',
+                'outcome' => 'already_sent',
+            ]);
 
             return;
         }
@@ -67,17 +99,70 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
             'payment_method' => $paymentMethod,
         ];
 
-        $message = $expense->status === 'requires_manual_review'
-            ? WhatsAppMessage::documentNeedsReview($editUrl, $details)
-            : WhatsAppMessage::documentParsed($editUrl, $details);
+        $message = $expense->isNotReceipt()
+            ? WhatsAppMessage::documentNotReceipt($editUrl)
+            : ($expense->status === 'requires_manual_review'
+                ? WhatsAppMessage::documentNeedsReview($editUrl, $details)
+                : WhatsAppMessage::documentParsed($editUrl, $details));
 
+        $result = $waService->sendMessageResult(
+            $sender,
+            $message,
+            $expense->whatsapp_message_id,
+            $expense->id,
+        );
+
+        if (! $result->ok) {
+            ReceiptPipelineLogger::completed('receipt.parsed_reply', $startedAt, [
+                'message_id' => $expense->whatsapp_message_id,
+                'expense_id' => $expense->id,
+                'queue' => $this->queue ?? 'default',
+                'outcome' => 'failed',
+                'reason' => $result->reason,
+                'status' => $result->status,
+            ]);
+
+            throw new RuntimeException(
+                'Unable to send the WhatsApp parsed receipt reply: '.$result->reason,
+            );
+        }
+
+        Cache::add($this->sentCacheKey(), true, now()->addDay());
         WhatsAppTypingSession::deactivate($this->expenseId);
-
-        $waService->sendMessage($sender, $message);
 
         if ($expense->status === 'parsed') {
             SendDeferredWhatsAppBudgetAlertJob::dispatch($sender, $expense->id)
                 ->delay(now()->addSeconds(2));
         }
+
+        ReceiptPipelineLogger::completed('receipt.parsed_reply', $startedAt, [
+            'message_id' => $expense->whatsapp_message_id,
+            'expense_id' => $expense->id,
+            'queue' => $this->queue ?? 'default',
+            'outcome' => 'success',
+            'status' => $expense->status,
+        ]);
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        $expense = Expense::find($this->expenseId);
+
+        if ($expense?->source === 'whatsapp') {
+            WhatsAppTypingSession::deactivate($this->expenseId);
+        }
+
+        ReceiptPipelineLogger::event('receipt.parsed_reply', [
+            'message_id' => $expense?->whatsapp_message_id,
+            'expense_id' => $this->expenseId,
+            'queue' => $this->queue ?? 'default',
+            'outcome' => 'failed',
+            'reason' => 'maximum_retries',
+        ]);
+    }
+
+    protected function sentCacheKey(): string
+    {
+        return 'wa:document-parsed:sent:'.$this->expenseId;
     }
 }

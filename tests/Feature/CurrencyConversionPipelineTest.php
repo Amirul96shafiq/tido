@@ -34,6 +34,7 @@ test('foreign image receipt is converted to canonical MYR and preserves source m
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => 'Cursor',
                 'invoice_number' => 'K2WQY0IC-0012',
                 'date_time' => '2026-07-08 00:00:00',
@@ -86,7 +87,7 @@ test('foreign image receipt is converted to canonical MYR and preserves source m
         ->and($expense->total_amount)->toBe('27.00')
         ->and($expense->currency_conversion_status)->toBe('converted')
         ->and((float) $expense->currency_conversion_rate)->toBe(4.5)
-        ->and($expense->currency_conversion_date->format('Y-m-d'))->toBe('2026-07-08')
+        ->and(Carbon::parse($expense->currency_conversion_date)->format('Y-m-d'))->toBe('2026-07-08')
         ->and($expense->currency_conversion_provider)->toBe('currencyapi')
         ->and($expense->expenseItems->first()->line_total)->toBe('90.00');
 
@@ -101,6 +102,7 @@ test('focused document currency detection corrects a MYR misclassification befor
     Storage::put('receipts/misclassified-usd.jpg', 'fake-image-content');
 
     $receipt = [
+        'document_classification' => 'receipt',
         'merchant_name' => 'Anysphere, Inc.',
         'invoice_number' => 'USD-332',
         'date_time' => '2026-07-08 00:00:00',
@@ -182,6 +184,7 @@ test('foreign receipt without an available rate stays source-denominated and req
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => 'Cursor',
                 'date_time' => '2026-07-08 00:00:00',
                 'subtotal' => 6.00,

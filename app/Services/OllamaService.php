@@ -50,7 +50,6 @@ class OllamaService
             if ($response->failed()) {
                 Log::error('Ollama generate JSON HTTP request failed', [
                     'status' => $response->status(),
-                    'body' => $response->body(),
                     'has_images' => isset($payload['images']),
                 ]);
 
@@ -61,7 +60,9 @@ class OllamaService
             $rawText = $responseBody['response'] ?? '';
 
             if (empty($rawText)) {
-                Log::error('Ollama response text is empty', ['response' => $responseBody]);
+                Log::error('Ollama response text is empty', [
+                    'has_images' => isset($payload['images']),
+                ]);
 
                 return null;
             }
@@ -100,9 +101,9 @@ class OllamaService
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             Log::error('Ollama JSON decoding failed', [
-                'raw_text' => $text,
-                'cleaned_text' => $cleaned,
                 'json_error' => json_last_error_msg(),
+                'raw_text_length' => strlen($text),
+                'cleaned_text_length' => strlen($cleaned),
             ]);
 
             return null;

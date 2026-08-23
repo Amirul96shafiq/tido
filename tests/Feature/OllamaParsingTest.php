@@ -69,6 +69,7 @@ test('extract receipt data job processes mock response and updates status', func
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => 'KFC',
                 'invoice_number' => 'INV-999',
                 'date_time' => '2026-06-27 12:00:00',

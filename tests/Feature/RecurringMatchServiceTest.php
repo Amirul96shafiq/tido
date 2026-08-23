@@ -59,6 +59,29 @@ test('matches cursor alias anysphere within due window', function () {
         ->and((float) $matched->fresh()->actual_amount)->toBe(84.79);
 });
 
+test('does not match explicit non-receipt expenses', function () {
+    $recurring = Recurring::factory()->create([
+        'merchant_aliases' => ['Cursor'],
+    ]);
+
+    $occurrence = RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'due_on' => '2026-08-08',
+        'status' => RecurringOccurrenceStatus::Due,
+    ]);
+
+    $expense = Expense::factory()->create([
+        'merchant_name' => 'Cursor',
+        'date_time' => '2026-08-08 09:00:00',
+        'status' => 'parsed',
+        'document_classification' => Expense::DOCUMENT_CLASSIFICATION_NOT_RECEIPT,
+    ]);
+
+    expect(app(RecurringMatchService::class)->matchExpense($expense))->toBeNull()
+        ->and($occurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Due)
+        ->and($occurrence->fresh()->expense_id)->toBeNull();
+});
+
 test('does not match wrong owner', function () {
     $familyMember = FamilyMember::factory()->create();
     $recurring = Recurring::factory()->forFamilyMember($familyMember)->create([

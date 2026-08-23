@@ -36,6 +36,7 @@ test('extract receipt data job flags mismatched amounts for manual review', func
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => 'TMG',
                 'invoice_number' => 'GK02202607140261',
                 'date_time' => '14/07/26 20:56:20',
@@ -153,6 +154,7 @@ test('extract receipt data job replaces items on successful reparse', function (
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => 'KFC',
                 'invoice_number' => 'INV-100',
                 'date_time' => '2026-06-27 12:00:00',
@@ -212,6 +214,7 @@ test('extract receipt data job flags implausible date for manual review', functi
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => 'PETRON',
                 'invoice_number' => '9H51204',
                 'date_time' => '2018-07-13T16:32:22Z',
@@ -270,6 +273,7 @@ test('extract receipt data job keeps upload date when ai datetime cannot be pars
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => 'PIZZARO',
                 'invoice_number' => '#1-00003882',
                 'date_time' => 'garbage-date',
@@ -326,6 +330,7 @@ test('extract receipt data job parses day first datetime with T suffix correctly
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => 'BIG SUPERMARKET SDN BHD',
                 'invoice_number' => 'SGR0248021067105',
                 'date_time' => '11/07/26T17:20',

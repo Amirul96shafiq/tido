@@ -14,6 +14,7 @@ use App\Services\LabelMatcher;
 use App\Services\OllamaService;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppManualExpenseReceivedDebouncer;
+use App\Support\WhatsAppTypingSession;
 use Database\Seeders\LabelSeeder;
 use Database\Seeders\PaymentMethodSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -78,6 +79,8 @@ test('whatsapp webhook dispatches process job for manual expense text', function
         return $job->senderNumber === '60123456789'
             && $job->text === $text;
     });
+
+    expect(WhatsAppTypingSession::isSenderActive('60123456789'))->toBeTrue();
 
     Http::assertNothingSent();
 });
@@ -288,6 +291,7 @@ test('manual expense received ack sends message and dispatches parse jobs', func
 
     $payload = Cache::get(WhatsAppManualExpenseReceivedDebouncer::cacheKey($sender));
     $token = $payload['token'];
+    WhatsAppTypingSession::activateSender($sender);
 
     (new SendWhatsAppManualExpenseReceivedAckJob($sender, $token))
         ->handle(app(WhatsAppNotificationService::class));
@@ -299,6 +303,9 @@ test('manual expense received ack sends message and dispatches parse jobs', func
     });
 
     expect(Cache::get(WhatsAppManualExpenseReceivedDebouncer::cacheKey($sender)))->toBeNull();
+    expect(WhatsAppTypingSession::isSenderActive($sender))->toBeFalse()
+        ->and(WhatsAppTypingSession::isActive($expenseA->id))->toBeTrue()
+        ->and(WhatsAppTypingSession::isActive($expenseB->id))->toBeTrue();
 
     Queue::assertPushed(ParseManualWhatsAppExpenseJob::class, 2);
 });
@@ -394,8 +401,12 @@ test('send manual expense parsed job sends whatsapp message with edit url', func
         'image_path' => null,
     ]);
 
+    WhatsAppTypingSession::activate($expense->id, '60123456789');
+
     (new SendWhatsAppManualExpenseParsedJob($expense->id))
         ->handle(app(WhatsAppNotificationService::class));
+
+    expect(WhatsAppTypingSession::isActive($expense->id))->toBeFalse();
 
     Http::assertSent(function (Request $request) use ($expense): bool {
         $text = (string) $request['text'];

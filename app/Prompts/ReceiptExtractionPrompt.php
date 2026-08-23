@@ -59,8 +59,14 @@ class ReceiptExtractionPrompt
         $labelClassificationRules = LabelClassificationRules::promptLines();
 
         return <<<PROMPT
-Please extract financial information from this receipt image.
+Please inspect this document image and extract financial information only when it contains a genuine receipt, invoice, or bill.
 You must respond with a raw JSON object only. Do not wrap it in markdown formatting (like ```json).
+
+Document classification rules (follow strictly):
+- Set document_classification to "receipt" only when the image contains a genuine purchase receipt, invoice, or bill with transaction information.
+- Set document_classification to "not_receipt" for photos, screenshots, menus, identity documents, forms, blank pages, unrelated documents, or images without receipt information.
+- Never invent merchant, invoice, date, amount, currency, payment, or line-item data to make a document look like a receipt.
+- When document_classification is "not_receipt", return null for merchant_name, invoice_number, date_time, currency, and payment_method; return 0 for money fields; and return an empty items array.
 
 Malaysia receipt rules (follow strictly):
 - Dates are usually DD/MM/YY or DD/MM/YYYY (day first). If the receipt shows 14/07/26 or 14/07/2026, output 2026-07-14 (day first; two-digit years use 2000+).
@@ -96,9 +102,10 @@ Available payment methods (use exact name in "payment_method"):
 
 The output JSON structure MUST match this exact schema:
 {
-  "merchant_name": "String - prefer store brand and branch (e.g. FamilyMart Pinggiran Batu Caves)",
+  "document_classification": "String - exactly receipt or not_receipt",
+  "merchant_name": "String or null - prefer store brand and branch (e.g. FamilyMart Pinggiran Batu Caves)",
   "invoice_number": "String or null - invoice or receipt reference number",
-  "date_time": "String - YYYY-MM-DD HH:MM:SS only (example: 2026-07-14 20:56:20)",
+  "date_time": "String or null - YYYY-MM-DD HH:MM:SS only (example: 2026-07-14 20:56:20)",
   "subtotal": "Number - pre-tax / pre-rounding merchandise total",
   "total_tax": "Number - total SST / service tax / GST (include service charge if not split)",
   "discount_total": "Number - total discounts and savings (0 if none)",

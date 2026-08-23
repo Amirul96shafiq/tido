@@ -10,6 +10,7 @@ use App\Services\PdfPageInspector;
 use App\Services\WhatsAppNotificationService;
 use App\Support\EvolutionCredential;
 use App\Support\ExpenseSenderAttribution;
+use App\Support\ReceiptPipelineLogger;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppMessage;
 use App\Support\WhatsAppTypingCoordinator;
@@ -54,9 +55,17 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
         WhatsAppNotificationService $waService,
         PdfPageInspector $pdfPageInspector,
     ): void {
+        $startedAt = ReceiptPipelineLogger::start();
+
         if ($this->messageAlreadyHandled()) {
             Log::info('WhatsApp media job skipped duplicate message', [
                 'message_id' => $this->messageId,
+            ]);
+
+            ReceiptPipelineLogger::completed('receipt.media.processed', $startedAt, [
+                'message_id' => $this->messageId,
+                'queue' => $this->queue ?? 'default',
+                'outcome' => 'duplicate',
             ]);
 
             return;
@@ -72,9 +81,17 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
             $waService->sendMessage(
                 $this->senderNumber,
                 WhatsAppMessage::receiptUploadFailed($attempt, $this->tries),
+                messageId: $this->messageId,
             );
 
             WhatsAppTypingCoordinator::stopSenderTyping($this->senderNumber);
+
+            ReceiptPipelineLogger::completed('receipt.media.processed', $startedAt, [
+                'message_id' => $this->messageId,
+                'queue' => $this->queue ?? 'default',
+                'outcome' => 'failed',
+                'reason' => 'media_download_failed',
+            ]);
 
             throw new RuntimeException('Failed to download WhatsApp receipt media.');
         }
@@ -123,9 +140,27 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
         $pageCount = null;
 
         if ($detectedMimeType === 'application/pdf') {
+            $inspectionStartedAt = ReceiptPipelineLogger::start();
+
             try {
                 $pageCount = $pdfPageInspector->pageCount($binaryData);
+
+                ReceiptPipelineLogger::completed('receipt.pdf.inspect', $inspectionStartedAt, [
+                    'message_id' => $this->messageId,
+                    'queue' => $this->queue ?? 'default',
+                    'outcome' => 'success',
+                    'page_count' => $pageCount,
+                ]);
             } catch (PdfInspectionException $exception) {
+                ReceiptPipelineLogger::completed('receipt.pdf.inspect', $inspectionStartedAt, [
+                    'message_id' => $this->messageId,
+                    'queue' => $this->queue ?? 'default',
+                    'outcome' => $exception->reason === PdfInspectionException::DEPENDENCY_MISSING
+                        ? 'deferred'
+                        : 'rejected',
+                    'reason' => $exception->reason,
+                ]);
+
                 if ($exception->reason === PdfInspectionException::DEPENDENCY_MISSING) {
                     Log::warning('WhatsApp PDF page inspection deferred until AI parsing', [
                         'message_id' => $this->messageId,
@@ -167,11 +202,27 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
         $filename = $this->storedFilename($extension);
         $localPath = 'receipts/'.$filename;
 
+        $storageStartedAt = ReceiptPipelineLogger::start();
+
         if (! Storage::put($localPath, $binaryData)) {
             WhatsAppTypingCoordinator::stopSenderTyping($this->senderNumber);
 
+            ReceiptPipelineLogger::completed('receipt.media.store', $storageStartedAt, [
+                'message_id' => $this->messageId,
+                'queue' => $this->queue ?? 'default',
+                'outcome' => 'failed',
+            ]);
+
             throw new RuntimeException('Unable to store WhatsApp receipt media.');
         }
+
+        ReceiptPipelineLogger::completed('receipt.media.store', $storageStartedAt, [
+            'message_id' => $this->messageId,
+            'queue' => $this->queue ?? 'default',
+            'outcome' => 'success',
+        ]);
+
+        $persistStartedAt = ReceiptPipelineLogger::start();
 
         try {
             $expense = Expense::create([
@@ -191,9 +242,22 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
                 'file_mime_type' => $detectedMimeType,
                 'file_page_count' => $pageCount,
             ]);
+
+            ReceiptPipelineLogger::completed('receipt.media.persist', $persistStartedAt, [
+                'message_id' => $this->messageId,
+                'expense_id' => $expense->id,
+                'queue' => $this->queue ?? 'default',
+                'outcome' => 'success',
+            ]);
         } catch (Throwable $exception) {
             Storage::delete($localPath);
             WhatsAppTypingCoordinator::stopSenderTyping($this->senderNumber);
+
+            ReceiptPipelineLogger::completed('receipt.media.persist', $persistStartedAt, [
+                'message_id' => $this->messageId,
+                'queue' => $this->queue ?? 'default',
+                'outcome' => 'failed',
+            ]);
 
             throw $exception;
         }
@@ -213,6 +277,13 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
         Log::info('WhatsApp receipt media processed', [
             'expense_id' => $expense->id,
             'message_id' => $this->messageId,
+        ]);
+
+        ReceiptPipelineLogger::completed('receipt.media.processed', $startedAt, [
+            'message_id' => $this->messageId,
+            'expense_id' => $expense->id,
+            'queue' => $this->queue ?? 'default',
+            'outcome' => 'success',
         ]);
     }
 
@@ -237,6 +308,13 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
             'message_id' => $this->messageId,
             'sender' => $this->senderNumber,
             'error' => $exception->getMessage(),
+        ]);
+
+        ReceiptPipelineLogger::event('receipt.media.processed', [
+            'message_id' => $this->messageId,
+            'queue' => $this->queue ?? 'default',
+            'outcome' => 'failed',
+            'reason' => 'maximum_retries',
         ]);
     }
 
@@ -369,6 +447,13 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
 
         Cache::put($this->rejectedMessageCacheKey(), true, now()->addDays(7));
 
+        ReceiptPipelineLogger::event('receipt.media.outcome', [
+            'message_id' => $this->messageId,
+            'queue' => $this->queue ?? 'default',
+            'outcome' => $status,
+            'reason' => $reason,
+        ]);
+
         Log::info($status === 'failed'
             ? 'WhatsApp PDF processing failure registered for acknowledgement'
             : 'WhatsApp PDF rejected before AI parsing', [
@@ -387,6 +472,7 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
 
     protected function downloadMedia(): ?string
     {
+        $startedAt = ReceiptPipelineLogger::start();
         $instanceName = (string) config('services.evolution.instance_name');
         $apiUrl = rtrim((string) config('services.evolution.api_url'), '/');
         $apiKey = (string) config('services.evolution.api_key');
@@ -396,57 +482,100 @@ class ProcessWhatsAppMediaJob implements ShouldQueue
                 'message_id' => $this->messageId,
             ]);
 
+            ReceiptPipelineLogger::completed('receipt.media.download', $startedAt, [
+                'message_id' => $this->messageId,
+                'queue' => $this->queue ?? 'default',
+                'outcome' => 'failed',
+                'reason' => 'evolution_not_configured',
+            ]);
+
             return null;
         }
 
-        $response = Http::withHeaders(['apikey' => $apiKey])
-            ->post("{$apiUrl}/chat/getBase64FromMediaMessage/{$instanceName}", [
-                'message' => [
-                    'key' => [
-                        'remoteJid' => $this->remoteJid,
-                        'fromMe' => $this->fromMe,
-                        'id' => $this->messageId,
+        try {
+            $response = Http::withHeaders(['apikey' => $apiKey])
+                ->post("{$apiUrl}/chat/getBase64FromMediaMessage/{$instanceName}", [
+                    'message' => [
+                        'key' => [
+                            'remoteJid' => $this->remoteJid,
+                            'fromMe' => $this->fromMe,
+                            'id' => $this->messageId,
+                        ],
                     ],
-                ],
-                'convertToMp4' => false,
-            ]);
+                    'convertToMp4' => false,
+                ]);
 
-        if ($response->failed()) {
-            Log::error('Failed to retrieve media from Evolution API', [
+            if ($response->failed()) {
+                Log::error('Failed to retrieve media from Evolution API', [
+                    'message_id' => $this->messageId,
+                    'status' => $response->status(),
+                ]);
+
+                ReceiptPipelineLogger::completed('receipt.media.download', $startedAt, [
+                    'message_id' => $this->messageId,
+                    'queue' => $this->queue ?? 'default',
+                    'outcome' => 'failed',
+                    'status' => $response->status(),
+                ]);
+
+                return null;
+            }
+
+            $body = $response->json();
+            $base64Data = $body['base64'] ?? '';
+
+            if ($base64Data === '') {
+                Log::error('Evolution API media response did not contain base64', [
+                    'message_id' => $this->messageId,
+                ]);
+
+                ReceiptPipelineLogger::completed('receipt.media.download', $startedAt, [
+                    'message_id' => $this->messageId,
+                    'queue' => $this->queue ?? 'default',
+                    'outcome' => 'failed',
+                    'reason' => 'missing_base64',
+                ]);
+
+                return null;
+            }
+
+            if (str_contains($base64Data, ',')) {
+                $base64Data = explode(',', $base64Data, 2)[1];
+            }
+
+            $binaryData = base64_decode($base64Data, true);
+
+            if ($binaryData === false) {
+                Log::error('Evolution API media response contained invalid base64', [
+                    'message_id' => $this->messageId,
+                ]);
+
+                ReceiptPipelineLogger::completed('receipt.media.download', $startedAt, [
+                    'message_id' => $this->messageId,
+                    'queue' => $this->queue ?? 'default',
+                    'outcome' => 'failed',
+                    'reason' => 'invalid_base64',
+                ]);
+
+                return null;
+            }
+
+            ReceiptPipelineLogger::completed('receipt.media.download', $startedAt, [
                 'message_id' => $this->messageId,
-                'status' => $response->status(),
-                'body' => $response->body(),
+                'queue' => $this->queue ?? 'default',
+                'outcome' => 'success',
+                'bytes' => strlen($binaryData),
             ]);
 
-            return null;
-        }
-
-        $body = $response->json();
-        $base64Data = $body['base64'] ?? '';
-
-        if ($base64Data === '') {
-            Log::error('Evolution API media response did not contain base64', [
+            return $binaryData;
+        } catch (Throwable $exception) {
+            ReceiptPipelineLogger::completed('receipt.media.download', $startedAt, [
                 'message_id' => $this->messageId,
-                'response' => $body,
+                'queue' => $this->queue ?? 'default',
+                'outcome' => 'error',
             ]);
 
-            return null;
+            throw $exception;
         }
-
-        if (str_contains($base64Data, ',')) {
-            $base64Data = explode(',', $base64Data, 2)[1];
-        }
-
-        $binaryData = base64_decode($base64Data, true);
-
-        if ($binaryData === false) {
-            Log::error('Evolution API media response contained invalid base64', [
-                'message_id' => $this->messageId,
-            ]);
-
-            return null;
-        }
-
-        return $binaryData;
     }
 }

@@ -46,6 +46,31 @@ test('sends database notification with view and edit actions when expense requir
         ->and($notification->data['actions'][1]['shouldOpenUrlInNewTab'])->toBeTrue();
 });
 
+test('sends a specific database notification for non-receipt documents', function () {
+    $user = User::factory()->create();
+
+    $expense = Expense::factory()->create([
+        'merchant_name' => 'Non-receipt document',
+        'original_filename' => 'not-a-receipt.jpg',
+        'status' => 'parsed',
+        'document_classification' => Expense::DOCUMENT_CLASSIFICATION_RECEIPT,
+    ]);
+
+    $expense->update([
+        'document_classification' => Expense::DOCUMENT_CLASSIFICATION_NOT_RECEIPT,
+        'status' => 'requires_manual_review',
+    ]);
+
+    $notification = $user->fresh()->notifications()->first();
+
+    expect($notification)->not->toBeNull()
+        ->and($notification->data['title'])->toBe('Non-receipt document requires manual review')
+        ->and($notification->data['body'])->toContain('not-a-receipt.jpg')
+        ->and($notification->data['body'])->toContain('does not appear to contain receipt information')
+        ->and($notification->data['body'])->toContain('excluded from spending analytics')
+        ->and($notification->data['actions'])->toHaveCount(2);
+});
+
 test('notifies only the primary admin when multiple users exist', function () {
     $primary = User::factory()->create(['phone' => '60111111111']);
     $other = User::factory()->create(['phone' => '60122222222']);
