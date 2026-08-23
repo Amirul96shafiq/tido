@@ -186,14 +186,24 @@ test('topbar hides notification bell and exposes notifications in user menu', fu
 
 test('user menu profile preview shows email for primary user', function () {
     $user = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'name' => 'Primary Full Name',
+        'display_name' => 'primary-username',
         'email' => 'primary@tido.local',
+        'date_of_birth' => '1990-05-15',
     ]);
 
     $this->actingAs($user);
 
     $this->get(Dashboard::getUrl())
         ->assertSuccessful()
-        ->assertSee('primary@tido.local', false);
+        ->assertSee('primary-username', false)
+        ->assertSee('Primary Full Name', false)
+        ->assertSee('fi-user-menu-profile-preview-identity', false)
+        ->assertSee('fi-user-menu-profile-preview-details', false)
+        ->assertSee('primary@tido.local', false)
+        ->assertSee('60123456789', false)
+        ->assertSee('15/05/1990', false)
+        ->assertSee('aria-hidden="true"> | </span>', false);
 });
 
 test('user menu profile preview hides email for family member', function () {
@@ -326,10 +336,15 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->toContain('left-4')
         ->and($profilePreviewBlock)
         ->toContain('items-center')
+        ->toContain('gap-2')
         ->and($profileAvatarBlock)
         ->toContain('justify-center')
         ->and($profileAvatarSizeBlock)
         ->toContain('size-16')
+        ->and($css)
+        ->toContain('.fi-user-menu-profile-preview-identity,')
+        ->toContain('text-base/5')
+        ->toContain('text-xs/4')
         ->and($accountSwitcherHeadingBlock)
         ->toContain('px-1')
         ->toContain('text-left')

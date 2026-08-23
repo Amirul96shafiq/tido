@@ -2766,15 +2766,29 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
  */
 .tido-sidebar-flyout-panel .fi-dropdown-list-item .fi-badge.fi-color-success,
 .fi-sidebar-item-flyout .fi-dropdown-list-item .fi-badge.fi-color-success {
-    background-color: color-mix(in srgb, var(--color-emerald-500) 12%, transparent);
+    background-color: color-mix(
+        in srgb,
+        var(--color-emerald-500) 12%,
+        transparent
+    );
     color: var(--color-emerald-700);
     box-shadow: inset 0 0 0 1px
         color-mix(in srgb, var(--color-emerald-500) 55%, transparent);
 }
 
-.dark .tido-sidebar-flyout-panel .fi-dropdown-list-item .fi-badge.fi-color-success,
-.dark .fi-sidebar-item-flyout .fi-dropdown-list-item .fi-badge.fi-color-success {
-    background-color: color-mix(in srgb, var(--color-emerald-500) 14%, transparent);
+.dark
+    .tido-sidebar-flyout-panel
+    .fi-dropdown-list-item
+    .fi-badge.fi-color-success,
+.dark
+    .fi-sidebar-item-flyout
+    .fi-dropdown-list-item
+    .fi-badge.fi-color-success {
+    background-color: color-mix(
+        in srgb,
+        var(--color-emerald-500) 14%,
+        transparent
+    );
     color: var(--color-emerald-400);
     box-shadow: inset 0 0 0 1px
         color-mix(in srgb, var(--color-emerald-400) 45%, transparent);
@@ -3076,7 +3090,7 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 }
 
 .fi-user-menu-profile-preview {
-    @apply flex flex-col items-center gap-0.5 px-4 py-3 text-center;
+    @apply flex flex-col items-center gap-2 px-4 py-3 text-center;
 }
 
 .fi-user-menu-profile-preview-avatar {
@@ -3087,12 +3101,25 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     @apply size-16;
 }
 
+.fi-user-menu-profile-preview-identity,
+.fi-user-menu-profile-preview-details {
+    @apply flex flex-col items-center;
+}
+
+.fi-user-menu-profile-preview-identity {
+    @apply gap-0;
+}
+
+.fi-user-menu-profile-preview-details {
+    @apply gap-0.5;
+}
+
 .fi-user-menu-profile-preview-name {
-    @apply truncate text-sm font-semibold text-gray-950 dark:text-white;
+    @apply truncate text-base/5 font-bold text-gray-950 dark:text-white;
 }
 
 .fi-user-menu-profile-preview-meta {
-    @apply truncate text-xs text-gray-500 dark:text-gray-400;
+    @apply truncate text-xs/4 text-gray-500 dark:text-gray-400;
 }
 
 .fi-user-menu .fi-dropdown-list-item.fi-user-menu-profile-active {
