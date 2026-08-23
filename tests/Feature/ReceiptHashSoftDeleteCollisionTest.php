@@ -41,6 +41,7 @@ test('extract receipt data job uniquifies hash when soft-deleted expense owns th
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => 'RESTORAN NASI KANDAR RASSEN',
                 'invoice_number' => $invoiceNumber,
                 'date_time' => $dateTime,

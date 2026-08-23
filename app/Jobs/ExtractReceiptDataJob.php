@@ -155,6 +155,37 @@ class ExtractReceiptDataJob implements ShouldQueue
             throw new RuntimeException('Ollama receipt extraction returned empty or invalid response.');
         }
 
+        $classificationStartedAt = ReceiptPipelineLogger::start();
+        $documentClassification = $normalizer->normalizeDocumentClassification(
+            $parsed['document_classification'] ?? null,
+        );
+
+        ReceiptPipelineLogger::completed('receipt.classification', $classificationStartedAt, array_merge(
+            $pipelineContext,
+            [
+                'outcome' => $documentClassification,
+            ],
+        ));
+
+        if ($documentClassification !== Expense::DOCUMENT_CLASSIFICATION_RECEIPT) {
+            $this->markDocumentClassificationForManualReview(
+                $expense,
+                $documentClassification,
+                $parsed,
+            );
+            $this->notifyWhatsAppParsed($expense);
+
+            ReceiptPipelineLogger::completed('receipt.extraction.processed', $pipelineStartedAt, array_merge(
+                $pipelineContext,
+                [
+                    'outcome' => 'not_receipt',
+                    'status' => $expense->status,
+                ],
+            ));
+
+            return;
+        }
+
         $normalizeStartedAt = ReceiptPipelineLogger::start();
 
         try {
@@ -210,6 +241,7 @@ class ExtractReceiptDataJob implements ShouldQueue
         $sourceAmountsReconcile = $normalizer->amountsReconcile($normalized);
 
         $expense->merchant_name = $normalized['merchant_name'];
+        $expense->document_classification = $normalized['document_classification'];
         $expense->invoice_number = $normalized['invoice_number'];
         if ($dateParsed) {
             $expense->date_time = $dateTime;
@@ -434,6 +466,64 @@ class ExtractReceiptDataJob implements ShouldQueue
         }
 
         WhatsAppTypingCoordinator::startExpenseTyping($expense->id, (string) $expense->whatsapp_sender);
+    }
+
+    /**
+     * @param  array<string, mixed>  $parsed
+     */
+    protected function markDocumentClassificationForManualReview(
+        Expense $expense,
+        string $documentClassification,
+        array $parsed,
+    ): void {
+        $expense->expenseItems()->delete();
+        $expense->merchant_name = 'Non-receipt document';
+        $expense->document_classification = $documentClassification;
+        $expense->invoice_number = null;
+        $expense->setAttribute('subtotal', '0.00');
+        $expense->setAttribute('total_tax', '0.00');
+        $expense->setAttribute('discount_total', '0.00');
+        $expense->setAttribute('rounding_amount', '0.00');
+        $expense->setAttribute('total_amount', '0.00');
+        $expense->currency = Expense::CURRENCY_UNKNOWN;
+        $expense->original_currency = null;
+        $expense->original_total_amount = null;
+        $expense->currency_conversion_status = Expense::CONVERSION_NOT_REQUIRED;
+        $expense->currency_conversion_rate = null;
+        $expense->currency_conversion_date = null;
+        $expense->currency_conversion_provider = null;
+        $expense->currency_conversion_fetched_at = null;
+        $expense->payment_method_id = null;
+        $expense->raw_ai_response = $parsed;
+        $expense->status = 'requires_manual_review';
+        $expense->notes = $this->appendDocumentClassificationReviewNote(
+            $expense->notes,
+            $documentClassification,
+        );
+        $expense->save();
+
+        Log::info('Expense classified as a non-receipt document', [
+            'expense_id' => $expense->id,
+            'document_classification' => $documentClassification,
+        ]);
+    }
+
+    protected function appendDocumentClassificationReviewNote(
+        ?string $existingNotes,
+        string $documentClassification,
+    ): string {
+        $marker = $documentClassification === Expense::DOCUMENT_CLASSIFICATION_NOT_RECEIPT
+            ? '[AI] This upload does not appear to contain receipt information and excluded from spending analytics; review the file or enter the expense details manually.'
+            : '[AI] This upload could not be confirmed as a receipt and excluded from spending analytics; review the file or enter the expense details manually.';
+        $notes = trim((string) $existingNotes);
+
+        if ($notes !== '' && str_contains($notes, $marker)) {
+            return $notes;
+        }
+
+        $markerHtml = '<p>'.$marker.'</p>';
+
+        return $notes === '' ? $markerHtml : $notes.$markerHtml;
     }
 
     protected function appendDateReviewNote(?string $existingNotes, bool $dateParsed, bool $dateSane): ?string

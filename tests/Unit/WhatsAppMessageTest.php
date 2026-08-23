@@ -127,6 +127,21 @@ test('document needs review includes merchant total payment method and review no
     );
 });
 
+test('non-receipt document message avoids fabricated financial details', function () {
+    $message = WhatsAppMessage::documentNotReceipt(
+        'https://tido.test/admin/expenses/2/edit',
+    );
+
+    expect($message)
+        ->toContain('⚠️ *Non-receipt document*')
+        ->toContain('does not appear to contain receipt information')
+        ->toContain('saved as an expense for manual review')
+        ->toContain('excluded from spending analytics')
+        ->toContain('https://tido.test/admin/expenses/2/edit')
+        ->not->toContain('Merchant:')
+        ->not->toContain('Total Amount:');
+});
+
 test('manual expense received includes expense count', function () {
     $message = WhatsAppMessage::manualExpenseReceived(2);
 

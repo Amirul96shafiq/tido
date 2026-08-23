@@ -202,6 +202,23 @@ final class WhatsAppMessage
         );
     }
 
+    public static function documentNotReceipt(string $editUrl): string
+    {
+        return self::compose(
+            '⚠️',
+            'Non-receipt document',
+            implode("\n", [
+                'The uploaded file does not appear to contain receipt information.',
+                'It was saved as an expense for manual review and excluded from spending analytics.',
+                '',
+                'Replace the file or enter the expense details manually.',
+                '',
+                'Go to *expense edit*',
+                trim($editUrl),
+            ]),
+        );
+    }
+
     /**
      * @param  array{merchant_name?: string|null, total_amount?: float|int|string|null, currency?: string|null, payment_method?: string|null}  $details
      */

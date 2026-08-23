@@ -28,9 +28,17 @@ class ReceiptManualReviewNotifier
             ? (string) $expense->original_filename
             : null;
 
-        $body = $filename !== null
-            ? "\"{$filename}\" from {$merchant} could not be parsed automatically."
-            : "A receipt from {$merchant} could not be parsed automatically.";
+        $isNotReceipt = $expense->isNotReceipt();
+        $title = $isNotReceipt
+            ? 'Non-receipt document requires manual review'
+            : 'Receipt requires manual review';
+        $body = $isNotReceipt
+            ? ($filename !== null
+                ? "\"{$filename}\" does not appear to contain receipt information. It was saved for manual review and excluded from spending analytics. Enter the expense details manually if needed."
+                : 'This upload does not appear to contain receipt information. It was saved for manual review and excluded from spending analytics. Enter the expense details manually if needed.')
+            : ($filename !== null
+                ? "\"{$filename}\" from {$merchant} could not be parsed automatically."
+                : "A receipt from {$merchant} could not be parsed automatically.");
 
         $viewUrl = ExpenseResource::getUrl('index', [
             'tableAction' => 'view',
@@ -39,7 +47,7 @@ class ReceiptManualReviewNotifier
         $editUrl = ExpenseResource::getUrl('edit', ['record' => $expense]);
 
         Notification::make()
-            ->title('Receipt requires manual review')
+            ->title($title)
             ->body($body)
             ->warning()
             ->icon('heroicon-o-exclamation-triangle')

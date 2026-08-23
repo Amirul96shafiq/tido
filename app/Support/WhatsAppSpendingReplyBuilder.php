@@ -330,6 +330,7 @@ final class WhatsAppSpendingReplyBuilder
 
         $expenses = Expense::query()
             ->with('paymentMethod')
+            ->receiptAnalyticsEligible()
             ->whereBetween('created_at', [$bounds['start'], $bounds['end']])
             ->orderByDesc('created_at')
             ->limit(5)

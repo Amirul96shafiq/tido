@@ -17,6 +17,7 @@ class SpendingForecastService
         $startLimit = $now->copy()->subDays(90)->startOfDay();
 
         $dailyTotals = Expense::query()
+            ->receiptAnalyticsEligible()
             ->canonicalMyr()
             ->where('date_time', '>=', $startLimit)
             ->whereIn('status', ['parsed', 'reviewed'])

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -31,6 +32,10 @@ class Expense extends Model
     public const CONVERSION_PENDING = 'pending';
 
     public const CONVERSION_FAILED = 'failed';
+
+    public const DOCUMENT_CLASSIFICATION_RECEIPT = 'receipt';
+
+    public const DOCUMENT_CLASSIFICATION_NOT_RECEIPT = 'not_receipt';
 
     /**
      * @var list<string>
@@ -73,6 +78,7 @@ class Expense extends Model
         'image_path',
         'file_mime_type',
         'file_page_count',
+        'document_classification',
         'raw_ai_response',
         'notes',
     ];
@@ -115,7 +121,27 @@ class Expense extends Model
      */
     public function scopeProcessed(Builder $query): void
     {
-        $query->whereIn('status', ['parsed', 'reviewed']);
+        $query
+            ->whereIn('status', ['parsed', 'reviewed'])
+            ->receiptAnalyticsEligible();
+    }
+
+    /**
+     * Include only records that are receipts or pre-classification legacy/manual
+     * expenses. Explicit non-receipts must never affect spending analytics.
+     *
+     * @param  Builder<Expense>  $query
+     */
+    public function scopeReceiptAnalyticsEligible(Builder $query): void
+    {
+        $query->where(function (Builder $query): void {
+            $query
+                ->whereNull('document_classification')
+                ->orWhere(
+                    'document_classification',
+                    self::DOCUMENT_CLASSIFICATION_RECEIPT,
+                );
+        });
     }
 
     /**
@@ -127,6 +153,7 @@ class Expense extends Model
     {
         $query
             ->whereIn('status', self::dashboardAnalyticsStatuses())
+            ->receiptAnalyticsEligible()
             ->canonicalMyr();
     }
 
@@ -144,6 +171,11 @@ class Expense extends Model
     {
         return $this->currency === self::CURRENCY_MYR
             && in_array($this->currency_conversion_status, self::CANONICAL_CONVERSION_STATUSES, true);
+    }
+
+    public function isNotReceipt(): bool
+    {
+        return $this->document_classification === self::DOCUMENT_CLASSIFICATION_NOT_RECEIPT;
     }
 
     public function displayCurrency(): ?string
@@ -189,8 +221,11 @@ class Expense extends Model
             return Storage::temporaryUrl($this->image_path, now()->addMinutes(30));
         }
 
-        if (Storage::disk('public')->exists($this->image_path)) {
-            return Storage::disk('public')->url($this->image_path);
+        /** @var FilesystemAdapter $publicDisk */
+        $publicDisk = Storage::disk('public');
+
+        if ($publicDisk->exists($this->image_path)) {
+            return $publicDisk->url($this->image_path);
         }
 
         return null;

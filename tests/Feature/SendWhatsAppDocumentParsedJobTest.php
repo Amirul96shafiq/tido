@@ -79,6 +79,33 @@ test('sends document needs review message when expense requires manual review', 
     });
 });
 
+test('sends a dedicated non-receipt message without fabricated details', function () {
+    $expense = Expense::factory()->create([
+        'status' => 'requires_manual_review',
+        'source' => 'whatsapp',
+        'whatsapp_sender' => '601116330705',
+        'merchant_name' => 'Non-receipt document',
+        'total_amount' => 0,
+        'document_classification' => Expense::DOCUMENT_CLASSIFICATION_NOT_RECEIPT,
+    ]);
+
+    Cache::forget(WhatsAppDocumentReceivedDebouncer::cacheKey('601116330705'));
+
+    (new SendWhatsAppDocumentParsedJob($expense->id))->handle(app(WhatsAppNotificationService::class));
+
+    Http::assertSent(function (Request $request) use ($expense): bool {
+        $text = (string) $request['text'];
+
+        return str_contains($request->url(), '/message/sendText/')
+            && str_contains($text, '*Non-receipt document*')
+            && str_contains($text, 'does not appear to contain receipt information')
+            && str_contains($text, 'excluded from spending analytics')
+            && str_contains($text, '/admin/expenses/'.$expense->id.'/edit')
+            && ! str_contains($text, 'Merchant:')
+            && ! str_contains($text, 'Total Amount:');
+    });
+});
+
 test('throws and preserves typing when the parsed reply send fails', function () {
     Http::fake([
         '*/message/sendText/*' => Http::response(['error' => 'instance unavailable'], 503),

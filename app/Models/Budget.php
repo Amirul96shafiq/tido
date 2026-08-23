@@ -204,6 +204,14 @@ class Budget extends Model
                 ->whereNull('expenses.deleted_at')
                 ->whereBetween('expenses.date_time', [$start, $end])
                 ->whereIn('expenses.status', ['parsed', 'reviewed'])
+                ->where(function (Builder $query): void {
+                    $query
+                        ->whereNull('expenses.document_classification')
+                        ->orWhere(
+                            'expenses.document_classification',
+                            Expense::DOCUMENT_CLASSIFICATION_RECEIPT,
+                        );
+                })
                 ->where('expenses.currency', Expense::CURRENCY_MYR)
                 ->whereIn('expenses.currency_conversion_status', Expense::CANONICAL_CONVERSION_STATUSES)
                 ->selectRaw('expense_items.label_id as label_id, expenses.family_member_id as family_member_id, SUM(expense_items.line_total) as total')

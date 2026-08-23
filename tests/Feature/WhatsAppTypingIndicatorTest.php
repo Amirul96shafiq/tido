@@ -62,6 +62,7 @@ test('extract receipt data job dispatches typing indicator for whatsapp pending 
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => '7-Eleven',
                 'invoice_number' => 'INV-1',
                 'date_time' => '2026-07-18 14:00:00',
@@ -119,6 +120,7 @@ test('extract receipt data job does not dispatch typing indicator for manual upl
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => '7-Eleven',
                 'invoice_number' => 'INV-1',
                 'date_time' => '2026-07-18 14:00:00',
@@ -173,6 +175,7 @@ test('extract receipt data job does not dispatch typing indicator when whatsapp 
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => '7-Eleven',
                 'invoice_number' => 'INV-1',
                 'date_time' => '2026-07-18 14:00:00',
@@ -304,6 +307,7 @@ test('extract receipt data job does not re-dispatch keeper when typing session a
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => '7-Eleven',
                 'invoice_number' => 'INV-1',
                 'date_time' => '2026-07-18 14:00:00',

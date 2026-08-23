@@ -125,3 +125,46 @@ test('summary reports empty month when no receipts exist', function () {
 
     expect($message)->toContain('No receipts recorded for *January 2020*');
 });
+
+test('recent mode excludes explicit non-receipt documents', function () {
+    Expense::unsetEventDispatcher();
+
+    Expense::create([
+        'merchant_name' => 'Valid Receipt',
+        'invoice_number' => 'INV-RECENT-001',
+        'receipt_hash' => 'hash-recent-receipt',
+        'date_time' => now(),
+        'subtotal' => 25.00,
+        'total_tax' => 0.00,
+        'total_amount' => 25.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+        'document_classification' => Expense::DOCUMENT_CLASSIFICATION_RECEIPT,
+    ]);
+
+    Expense::create([
+        'merchant_name' => 'Non-receipt document',
+        'receipt_hash' => 'hash-recent-non-receipt',
+        'date_time' => now(),
+        'subtotal' => 999.00,
+        'total_tax' => 0.00,
+        'total_amount' => 999.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'requires_manual_review',
+        'document_classification' => Expense::DOCUMENT_CLASSIFICATION_NOT_RECEIPT,
+    ]);
+
+    Expense::setEventDispatcher(app('events'));
+
+    $message = (new WhatsAppSpendingReplyBuilder(
+        now()->format('Y-m'),
+        WhatsAppSpendingCommandParser::MODE_RECENT,
+    ))->build();
+
+    expect($message)
+        ->toContain('*Valid Receipt*')
+        ->not->toContain('Non-receipt document')
+        ->not->toContain('999.00');
+});

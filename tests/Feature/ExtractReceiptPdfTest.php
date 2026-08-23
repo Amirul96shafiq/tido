@@ -50,6 +50,7 @@ test('extract receipt data job parses PDF pages then merges them before saving',
     });
 
     $pageOne = [
+        'document_classification' => 'receipt',
         'merchant_name' => 'PDF Store',
         'invoice_number' => 'PDF-100',
         'date_time' => '2026-08-01 10:30:00',
@@ -70,6 +71,7 @@ test('extract receipt data job parses PDF pages then merges them before saving',
         ]],
     ];
     $pageTwo = [
+        'document_classification' => 'receipt',
         'merchant_name' => null,
         'invoice_number' => null,
         'date_time' => null,
@@ -83,6 +85,7 @@ test('extract receipt data job parses PDF pages then merges them before saving',
         'items' => [],
     ];
     $merged = array_replace($pageOne, [
+        'document_classification' => 'receipt',
         'total_amount' => 10,
         'payment_method' => 'Cash',
     ]);
@@ -146,4 +149,87 @@ test('extract receipt data job parses PDF pages then merges them before saving',
         ->and($ollamaRequests[1]['images'])->toBe([base64_encode('page-two-image')])
         ->and($ollamaRequests[2]['images'] ?? null)->toBeNull()
         ->and((string) $ollamaRequests[2]['prompt'])->toContain('Merge the page-level JSON');
+});
+
+test('extract receipt data job keeps a non-receipt PDF for manual review after merging pages', function () {
+    Queue::fake();
+    Storage::fake('local');
+    Storage::put('receipts/non-receipt.pdf', "%PDF-1.7\ntest non-receipt");
+
+    config([
+        'services.documents.pdfinfo_binary' => 'pdfinfo',
+        'services.documents.pdftocairo_binary' => 'pdftocairo',
+        'services.documents.pdftotext_binary' => 'pdftotext',
+        'services.ollama.host' => 'http://ollama.test',
+    ]);
+
+    Process::preventStrayProcesses();
+    Process::fake(function (PendingProcess $process) {
+        if (is_array($process->command) && $process->command[0] === 'pdfinfo') {
+            return Process::result(output: "Pages: 2\n");
+        }
+
+        if (is_array($process->command) && $process->command[0] === 'pdftotext') {
+            return Process::result(output: '');
+        }
+
+        $outputPrefix = $process->command[array_key_last($process->command)];
+        File::put($outputPrefix.'-1.jpg', 'page-one-image');
+        File::put($outputPrefix.'-2.jpg', 'page-two-image');
+
+        return Process::result();
+    });
+
+    $nonReceiptPage = [
+        'document_classification' => 'not_receipt',
+        'merchant_name' => null,
+        'invoice_number' => null,
+        'date_time' => null,
+        'subtotal' => 0,
+        'total_tax' => 0,
+        'discount_total' => 0,
+        'rounding_amount' => 0,
+        'total_amount' => 0,
+        'currency' => null,
+        'payment_method' => null,
+        'items' => [],
+    ];
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'http://ollama.test/api/generate' => Http::sequence()
+            ->push(['response' => json_encode($nonReceiptPage)])
+            ->push(['response' => json_encode($nonReceiptPage)])
+            ->push(['response' => json_encode($nonReceiptPage)]),
+    ]);
+
+    $expense = Expense::create([
+        'merchant_name' => 'Pending AI Extraction...',
+        'date_time' => now(),
+        'subtotal' => 0,
+        'total_tax' => 0,
+        'total_amount' => 0,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'pending',
+        'image_path' => 'receipts/non-receipt.pdf',
+        'original_filename' => 'non-receipt.pdf',
+        'file_mime_type' => 'application/pdf',
+        'file_page_count' => 2,
+    ]);
+
+    app()->call([new ExtractReceiptDataJob($expense->id), 'handle']);
+
+    $expense->refresh();
+
+    expect($expense->status)->toBe('requires_manual_review')
+        ->and($expense->document_classification)->toBe('not_receipt')
+        ->and($expense->merchant_name)->toBe('Non-receipt document')
+        ->and($expense->total_amount)->toBe('0.00')
+        ->and($expense->currency)->toBe(Expense::CURRENCY_UNKNOWN)
+        ->and($expense->currency_conversion_status)->toBe(Expense::CONVERSION_NOT_REQUIRED)
+        ->and($expense->expenseItems)->toBeEmpty()
+        ->and($expense->notes)->toContain('does not appear to contain receipt information');
+
+    expect(Http::recorded())->toHaveCount(3);
 });

@@ -27,6 +27,7 @@ function fakeSuccessfulOllamaResponse(): void
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => '7-Eleven',
                 'invoice_number' => 'INV-WA-1',
                 'date_time' => '2026-07-18 14:00:00',
@@ -113,6 +114,7 @@ test('extract receipt data job dispatches a needs review whatsapp result when co
     Http::fake([
         '*/api/generate' => Http::response([
             'response' => json_encode([
+                'document_classification' => 'receipt',
                 'merchant_name' => 'Cursor',
                 'invoice_number' => 'USD-FAIL',
                 'date_time' => '2026-07-08 00:00:00',
@@ -175,6 +177,62 @@ test('extract receipt data job dispatches a needs review whatsapp result when co
             && str_contains($text, '*Document needs review*')
             && str_contains($text, 'Total Amount: *USD 6.00*');
     });
+});
+
+test('extract receipt data job preserves non-receipts without saving fabricated fields', function () {
+    Queue::fake();
+    Storage::fake('local');
+    Storage::put('receipts/non-receipt.jpg', 'fake-image-content');
+
+    Http::preventStrayRequests();
+    Http::fake([
+        '*/api/generate' => Http::response([
+            'response' => json_encode([
+                'document_classification' => 'not_receipt',
+                'merchant_name' => null,
+                'invoice_number' => null,
+                'date_time' => null,
+                'subtotal' => 0,
+                'total_tax' => 0,
+                'discount_total' => 0,
+                'rounding_amount' => 0,
+                'total_amount' => 0,
+                'currency' => null,
+                'payment_method' => null,
+                'items' => [],
+            ]),
+        ]),
+    ]);
+
+    $expense = Expense::create([
+        'merchant_name' => 'Pending AI Extraction...',
+        'date_time' => now(),
+        'subtotal' => 0.00,
+        'total_tax' => 0.00,
+        'total_amount' => 0.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'pending',
+        'image_path' => 'receipts/non-receipt.jpg',
+        'original_filename' => 'non-receipt.jpg',
+    ]);
+
+    app()->call([new ExtractReceiptDataJob($expense->id), 'handle']);
+
+    $expense->refresh();
+
+    expect($expense->status)->toBe('requires_manual_review')
+        ->and($expense->document_classification)->toBe('not_receipt')
+        ->and($expense->merchant_name)->toBe('Non-receipt document')
+        ->and($expense->total_amount)->toBe('0.00')
+        ->and($expense->currency)->toBe(Expense::CURRENCY_UNKNOWN)
+        ->and($expense->currency_conversion_status)->toBe(Expense::CONVERSION_NOT_REQUIRED)
+        ->and($expense->image_path)->toBe('receipts/non-receipt.jpg')
+        ->and($expense->notes)->toContain('does not appear to contain receipt information')
+        ->and($expense->expenseItems)->toBeEmpty();
+
+    Queue::assertNotPushed(SendWhatsAppDocumentParsedJob::class);
+    Http::assertSentCount(1);
 });
 
 test('document parsed job waits while document received ack is pending then sends text url links', function () {
