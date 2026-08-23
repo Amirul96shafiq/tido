@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\LabelType;
 use App\Filament\Forms\Components\IconPicker;
+use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Backups\Pages\ListBackups;
 use App\Filament\Resources\Budgets\BudgetResource;
@@ -25,6 +26,7 @@ use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use App\Models\User;
+use App\Support\HouseholdAccess;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\Testing\TestAction;
 use Filament\Support\Icons\Heroicon;
@@ -61,6 +63,31 @@ test('authenticated user can load labels list', function () {
     $this->actingAs($this->admin)
         ->get(LabelResource::getUrl('index'))
         ->assertSuccessful();
+});
+
+test('family members see primary-only resource navigation as restricted', function () {
+    $familyMember = FamilyMember::factory()->loginEnabled()->create();
+    $familyMemberUser = User::query()
+        ->where('family_member_id', $familyMember->getKey())
+        ->firstOrFail();
+
+    $this->actingAs($familyMemberUser);
+
+    $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee('Labels', false)
+        ->assertSee('tido-primary-only-navigation', false)
+        ->assertSee('tido-primary-only-navigation-lock', false)
+        ->assertSee(HouseholdAccess::primaryOnlyAccessMessage(), false)
+        ->assertSeeHtml('aria-disabled="true"')
+        ->assertDontSeeHtml('href="'.e(LabelResource::getUrl('index')).'"');
+
+    $this->get(LabelResource::getUrl('index'))
+        ->assertForbidden();
+
+    expect(file_get_contents(resource_path('css/app.css')))
+        ->toContain('.tido-primary-only-navigation')
+        ->toContain('opacity: 0.5;');
 });
 
 test('authenticated user can load expenses list', function () {

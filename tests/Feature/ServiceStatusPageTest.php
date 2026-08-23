@@ -8,6 +8,7 @@ use App\Filament\Pages\ServiceStatusPage;
 use App\Models\FamilyMember;
 use App\Models\ServiceHealthSample;
 use App\Models\User;
+use App\Support\HouseholdAccess;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
@@ -98,5 +99,8 @@ test('family member can navigate to and view service status', function (): void 
     Livewire::test(ServiceStatusPage::class)
         ->assertSee('Summary Report')
         ->assertSee('Status')
-        ->assertActionHidden('runCheck');
+        ->assertActionVisible('runCheck')
+        ->assertActionDisabled('runCheck')
+        ->assertSee(HouseholdAccess::primaryOnlyAccessMessage(), false)
+        ->assertSee('tido-primary-only-action', false);
 });

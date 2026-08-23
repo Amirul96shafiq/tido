@@ -45,6 +45,10 @@
             ->filter()
             ->implode(' ');
     }
+    $isPrimaryOnlyNavigation = str_contains(
+        (string) $attributes->get('class'),
+        'tido-primary-only-navigation',
+    );
 @endphp
 
 <li
@@ -205,6 +209,14 @@
                         {{ $slot }}
                     </span>
 
+                    @if ($isPrimaryOnlyNavigation)
+                        <x-filament::icon
+                            icon="heroicon-o-lock-closed"
+                            class="tido-primary-only-navigation-lock"
+                            aria-hidden="true"
+                        />
+                    @endif
+
                     {{
                         \Filament\Support\generate_icon_html($childFlyoutChevron, attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['fi-sidebar-item-flyout-chevron']), size: \Filament\Support\Enums\IconSize::Small)
                     }}
@@ -232,6 +244,10 @@
                         $shouldChildItemOpenUrlInNewTab = $childItem->shouldOpenUrlInNewTab();
                         $childItemUrl = $childItem->getUrl();
                         $childItemExtraAttributes = $childItem->getExtraAttributeBag();
+                        $childItemIsPrimaryOnlyNavigation = str_contains(
+                            (string) $childItemExtraAttributes->get('class'),
+                            'tido-primary-only-navigation',
+                        );
                     @endphp
 
                     <x-filament::dropdown.list.item
@@ -239,9 +255,9 @@
                         :badge-color="$childItemBadgeColor"
                         :badge-tooltip="$childItemBadgeTooltip"
                         :color="$isChildActive ? 'primary' : 'gray'"
-                        :href="$childItemUrl"
+                        :href="$childItemIsPrimaryOnlyNavigation ? null : $childItemUrl"
                         :icon="$childItemIcon"
-                        tag="a"
+                        :tag="$childItemIsPrimaryOnlyNavigation ? 'div' : 'a'"
                         :target="$shouldChildItemOpenUrlInNewTab ? '_blank' : null"
                         :attributes="\Filament\Support\prepare_inherited_attributes($childItemExtraAttributes)->class(['fi-active' => $isChildActive])->merge(['aria-current' => $isChildActive ? 'page' : null])"
                     >
@@ -252,9 +268,14 @@
         </x-filament::dropdown>
     @else
         <a
-            {{ \Filament\Support\generate_href_html($url, $shouldOpenUrlInNewTab) }}
-            x-on:click="window.matchMedia(`(max-width: 1024px)`).matches && $store.sidebar.close()"
-            @if ($sidebarCollapsible && (! $subNavigation))
+            @if (! $isPrimaryOnlyNavigation)
+                {{ \Filament\Support\generate_href_html($url, $shouldOpenUrlInNewTab) }}
+                x-on:click="window.matchMedia(`(max-width: 1024px)`).matches && $store.sidebar.close()"
+            @else
+                aria-disabled="true"
+                tabindex="-1"
+            @endif
+            @if ($sidebarCollapsible && (! $subNavigation) && (! $isPrimaryOnlyNavigation))
                 x-data="{ tooltip: false }"
                 x-effect="
                     tooltip = $store.sidebar.isOpen
@@ -303,6 +324,14 @@
             <span class="fi-sidebar-item-label">
                 {{ $slot }}
             </span>
+
+            @if ($isPrimaryOnlyNavigation)
+                <x-filament::icon
+                    icon="heroicon-o-lock-closed"
+                    class="tido-primary-only-navigation-lock"
+                    aria-hidden="true"
+                />
+            @endif
 
             @if (filled($badge))
                 <span class="fi-sidebar-item-badge-ctn">

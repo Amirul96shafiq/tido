@@ -110,7 +110,12 @@ final class HouseholdAccess
 
     public static function createDeniedMessage(): string
     {
-        return 'Only '.self::primaryDisplayName().' able to use this CTA button.';
+        return self::primaryOnlyAccessMessage();
+    }
+
+    public static function primaryOnlyAccessMessage(): string
+    {
+        return 'Only '.self::primaryDisplayName().' can access this feature.';
     }
 
     public static function createDeniedResponse(): Response
