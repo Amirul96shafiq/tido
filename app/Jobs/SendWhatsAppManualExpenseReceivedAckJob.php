@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppManualExpenseReceivedDebouncer;
 use App\Support\WhatsAppMessage;
+use App\Support\WhatsAppTypingCoordinator;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -69,6 +70,7 @@ class SendWhatsAppManualExpenseReceivedAckJob implements ShouldQueue
 
         foreach ($expenseIds as $expenseId) {
             if ($expenseId > 0) {
+                WhatsAppTypingCoordinator::handoffSenderToExpense($expenseId, $this->senderNumber);
                 ParseManualWhatsAppExpenseJob::dispatch($expenseId);
             }
         }

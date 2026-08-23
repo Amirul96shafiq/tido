@@ -10,12 +10,14 @@ use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppManualExpenseReceivedDebouncer;
 use App\Support\WhatsAppMessage;
 use App\Support\WhatsAppPublicUrl;
+use App\Support\WhatsAppTypingSession;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
+use RuntimeException;
 
 class SendWhatsAppManualExpenseParsedJob implements ShouldQueue
 {
@@ -69,6 +71,27 @@ class SendWhatsAppManualExpenseParsedJob implements ShouldQueue
             'payment_method' => $paymentMethod,
         ]);
 
-        $waService->sendMessage($sender, $message);
+        $result = $waService->sendMessageResult(
+            $sender,
+            $message,
+            expenseId: $expense->id,
+        );
+
+        if (! $result->ok) {
+            throw new RuntimeException(
+                'Unable to send the WhatsApp manual expense parsed reply: '.$result->reason,
+            );
+        }
+
+        WhatsAppTypingSession::deactivate($this->expenseId);
+    }
+
+    public function failed(\Throwable $exception): void
+    {
+        $expense = Expense::find($this->expenseId);
+
+        if ($expense?->source === 'whatsapp') {
+            WhatsAppTypingSession::deactivate($this->expenseId);
+        }
     }
 }

@@ -180,6 +180,7 @@ class WhatsAppWebhookController extends Controller
         $originalText = trim($text);
 
         if (ManualWhatsAppExpenseParser::looksLike($originalText)) {
+            WhatsAppTypingCoordinator::startSenderTyping($senderNumber);
             ProcessManualWhatsAppExpenseJob::dispatch($senderNumber, $originalText);
 
             return response()->json(['status' => 'accepted']);
