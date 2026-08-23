@@ -206,7 +206,10 @@
                     @endif
 
                     <span class="fi-sidebar-item-label">
-                        {{ $slot }}
+                        <x-tido.text-marquee
+                            class="min-w-0 flex-1"
+                            text-class="inline-flex items-center whitespace-nowrap"
+                        >{{ $slot }}</x-tido.text-marquee>
                     </span>
 
                     @if ($isPrimaryOnlyNavigation)
@@ -322,7 +325,10 @@
             @endif
 
             <span class="fi-sidebar-item-label">
-                {{ $slot }}
+                <x-tido.text-marquee
+                    class="min-w-0 flex-1"
+                    text-class="inline-flex items-center whitespace-nowrap"
+                >{{ $slot }}</x-tido.text-marquee>
             </span>
 
             @if ($isPrimaryOnlyNavigation)

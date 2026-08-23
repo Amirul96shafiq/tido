@@ -31,6 +31,10 @@ test('primary household sees integration flyout parents in the sidebar', functio
         ->assertSee('fi-sidebar-item-has-children', false)
         ->assertSee('data-tido-child-paths', false)
         ->assertSee('/admin/evolution-api', false)
+        ->assertSee('tido-text-marquee-clip', false)
+        ->assertSee('tido-text-marquee-track', false)
+        ->assertSee('x-ref="marqueeSegment"', false)
+        ->assertSee('x-ref="marqueeTrack"', false)
         ->getContent();
 
     expect($html)
