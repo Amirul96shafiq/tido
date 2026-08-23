@@ -12,24 +12,24 @@ Activate the relevant skill when the task matches your domain.
 
 **tido** is a single-tenant **personal hub** in a **Filament v5** admin at `/admin`. The Home dashboard switches modules via icon tabs (see [`dashboard-views.md`](dashboard-views.md)):
 
-| Dashboard view | Status |
-|----------------|--------|
-| **Finances** | Shipped — MYR receipts, budgets, analytics |
-| **Training** | Coming soon |
-| **Health** | Coming soon |
-| **Task** | Coming soon |
+| Dashboard view | Status                                     |
+| -------------- | ------------------------------------------ |
+| **Finances**   | Shipped — MYR receipts, budgets, analytics |
+| **Training**   | Coming soon                                |
+| **Health**     | Coming soon                                |
+| **Task**       | Coming soon                                |
 
 **Finances** (shipped today) uses **Malaysian Ringgit (MYR)** for canonical reporting. It ingests receipt **images**, WhatsApp **PDF documents**, and WhatsApp **text manual expenses**, detects printed source currency with a **local Ollama** model, converts foreign receipt amounts using a date-specific exchange-rate provider, categorizes line items as **Labels** (model: `Label`), tracks **Budgets** and **Recurrings**, and surfaces analytics. Sidebar nav group **Finances** (Upload Receipts, Expenses, Budgets, Recurrings) is the CRUD surface for that module — distinct from the dashboard view tabs.
 
 Primary Finances ingestion paths:
 
-| Channel | Entry | Creates |
-|---------|-------|---------|
-| WhatsApp image | `POST /api/webhooks/whatsapp` | Pending `Expense` → vision OCR |
-| WhatsApp PDF | same webhook (`application/pdf`) | Validated/stored pending `Expense` → Poppler page rendering → page extraction + merge |
-| WhatsApp manual text | same webhook (fixed text format) | Pending `Expense` (no image) → label job → `requires_manual_review` |
-| UI upload | `ReceiptUploadPage` | Pending `Expense` |
-| Manual CRUD | `ExpenseResource` | Expense (may still trigger observer) |
+| Channel              | Entry                            | Creates                                                                               |
+| -------------------- | -------------------------------- | ------------------------------------------------------------------------------------- |
+| WhatsApp image       | `POST /api/webhooks/whatsapp`    | Pending `Expense` → vision OCR                                                        |
+| WhatsApp PDF         | same webhook (`application/pdf`) | Validated/stored pending `Expense` → Poppler page rendering → page extraction + merge |
+| WhatsApp manual text | same webhook (fixed text format) | Pending `Expense` (no image) → label job → `requires_manual_review`                   |
+| UI upload            | `ReceiptUploadPage`              | Pending `Expense`                                                                     |
+| Manual CRUD          | `ExpenseResource`                | Expense (may still trigger observer)                                                  |
 
 Default login (seeded): `admin@tido.local` / `password`.
 
@@ -101,23 +101,23 @@ docs/               architecture + integration setup + this file
 
 ## 4. Domain cheat sheet
 
-| Concept | Truth in code |
-|---------|----------------|
-| Expense | **`Expense`** model / `expenses` table — spending record (Filament **Expenses** CRUD) |
-| Expense item | **`ExpenseItem`** / `expense_items` — line items; FK `expense_id` |
-| Receipt | Uploaded document / ingestion vocabulary (`ReceiptUploadPage`, `receipt_hash`, OCR pipeline) — not the model name |
-| `invoice_number` | Printed bill/invoice # from OCR (column + UI label **Invoice number**) — not the record PK |
-| Category | **`Label`** model / `labels` table (UI: **Label** / **Labels**) |
-| Payment method | **`PaymentMethod`** model / `payment_methods` table (Settings CRUD; AI/WhatsApp via aliases) |
-| Family member | **`FamilyMember`** model / `family_members` table (Settings CRUD; bot allowlist + optional panel login) |
-| Uploaded By | Expense `family_member_id` — null = Primary; set from WhatsApp sender or acting user — `docs/household-access.md` |
-| WhatsApp identity | Classic phone JIDs resolve by phone; `@lid` identities resolve through `whatsapp_lid` after primary linking in Evolution API |
-| Receipt document | `image_path` stores the original image/PDF; `file_mime_type`, `file_page_count`, `original_filename`, and unique `whatsapp_message_id` preserve media metadata |
-| Money | Canonical reporting values are `decimal(12,2)` in `MYR`, cast `decimal:2`, UI `RM`; foreign source currency, original total, rate, effective date, provider, fetch time, and conversion status remain auditable on `Expense` |
-| Duplicate | `receipt_hash` SHA-256 of number + datetime + total |
-| Statuses | `pending`, `parsed`, `reviewed`, `requires_manual_review`, `failed` |
-| Auth | Filament session; household roles (`HouseholdRole`); no Spatie Permission; no tenancy |
-| Panel | `AdminPanelProvider` only — path `admin`; family members get limited Finances access |
+| Concept           | Truth in code                                                                                                                                                                                                                |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Expense           | **`Expense`** model / `expenses` table — spending record (Filament **Expenses** CRUD)                                                                                                                                        |
+| Expense item      | **`ExpenseItem`** / `expense_items` — line items; FK `expense_id`                                                                                                                                                            |
+| Receipt           | Uploaded document / ingestion vocabulary (`ReceiptUploadPage`, `receipt_hash`, OCR pipeline) — not the model name                                                                                                            |
+| `invoice_number`  | Printed bill/invoice # from OCR (column + UI label **Invoice number**) — not the record PK                                                                                                                                   |
+| Category          | **`Label`** model / `labels` table (UI: **Label** / **Labels**)                                                                                                                                                              |
+| Payment method    | **`PaymentMethod`** model / `payment_methods` table (Settings CRUD; AI/WhatsApp via aliases)                                                                                                                                 |
+| Family member     | **`FamilyMember`** model / `family_members` table (Settings CRUD; bot allowlist + optional panel login)                                                                                                                      |
+| Uploaded By       | Expense `family_member_id` — null = Primary; set from WhatsApp sender or acting user — `docs/household-access.md`                                                                                                            |
+| WhatsApp identity | Classic phone JIDs resolve by phone; `@lid` identities resolve through `whatsapp_lid` after primary linking in Evolution API                                                                                                 |
+| Receipt document  | `image_path` stores the original image/PDF; `file_mime_type`, `file_page_count`, `original_filename`, and unique `whatsapp_message_id` preserve media metadata                                                               |
+| Money             | Canonical reporting values are `decimal(12,2)` in `MYR`, cast `decimal:2`, UI `RM`; foreign source currency, original total, rate, effective date, provider, fetch time, and conversion status remain auditable on `Expense` |
+| Duplicate         | `receipt_hash` SHA-256 of number + datetime + total                                                                                                                                                                          |
+| Statuses          | `pending`, `parsed`, `reviewed`, `requires_manual_review`, `failed`                                                                                                                                                          |
+| Auth              | Filament session; household roles (`HouseholdRole`); no Spatie Permission; no tenancy                                                                                                                                        |
+| Panel             | `AdminPanelProvider` only — path `admin`; family members get limited Finances access                                                                                                                                         |
 
 Relationships: Expense `hasMany` ExpenseItems; Expense `belongsTo` FamilyMember (optional); ExpenseItem `belongsTo` Label; Budget `belongsTo` Label; Budget `belongsTo` FamilyMember (optional owner; `null` = Primary); Budget `is_shared` spending pool; Recurring `hasMany` RecurringOccurrence; Recurring ownership mirrors Budget (`family_member_id`, `is_shared`); RecurringOccurrence `belongsTo` Expense when completed; FamilyMember `hasMany` Budgets; FamilyMember `hasOne` login User.
 
@@ -149,12 +149,12 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 7. Edit pages: use `App\Filament\Concerns\AppendsResourceLabelToEditTitle` so the title ends with the singular model label (see the Filament conventions surfaced by the active agent)
 8. Nav groups: Finances (Upload Receipts, Expenses, Budgets, Recurrings) / Settings (Labels, Payment Methods, Family Members) / Integrations (WhatsApp, AI Parsing Engine) / Tools (Backups, Service Status) — Tools last. Home dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md` (not sidebar groups)
 9. Breadcrumbs use Filament native defaults plus `App\Filament\Concerns\PrependsHomeBreadcrumb` (Home → resource → page). Do not disable panel-wide or add a custom “Go back to table” header. New pages must use the trait; Create/Edit pages also register in the `PAGE_END` draft-poller scopes.
-10. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats
+10. Widgets: reuse `InteractsWithDashboardMonth` for month-scoped stats; lazy dashboard widgets must use `HasDashboardWidgetPlaceholder` so the centered accessible spinner remains visible while Livewire hydrates them
 11. Resource tables use `updated_at` for **Edited At** (`->since()->dateTimeTooltip()` with relative time + full datetime on hover), default newest-first ordering, and **Edited By** for the latest authenticated editor (`display_name` → `name` fallback). See `docs/resource-edit-audit.md`.
 12. Illustrated empty panels: Filament **tables** use `emptyStateHeading` / `Description` / `Icon` / optional `Actions` (see `docs/ui-empty-states.md` — Filament tables section); custom Blade / filtered drawers use `<x-empty-state-panel>`
 13. Custom Alpine / Blade icon CTAs: use `x-tooltip` + `theme: $store.theme` (never bare `title=`). High-z custom shells at `z-index: 99999` must set Tippy `zIndex: 100000` — see `docs/ui-tooltips.md`. Native `<x-filament::modal>` (changelog, guest restore) does not.
 14. Dark theme surfaces: Slate with slate-800 chrome — see `docs/ui-dark-theme.md` (do not reintroduce Zinc / `#333` tooltips, white text on solid gold CTAs, or elevation drop shadows as panel borders)
-15. UI copy: impersonal voice — no *we* / *you* / *your* in headings, descriptions, notifications; see `docs/ui-copy-style.md`
+15. UI copy: impersonal voice — no _we_ / _you_ / _your_ in headings, descriptions, notifications; see `docs/ui-copy-style.md`
 16. UI text headings: Title Case every word (`Text Heading`, not `Text heading` or `text heading`); see `docs/ui-text-heading.md`
 17. Resource edit audit (`edited_by`, **Edited By**, **Edited At**): see `docs/resource-edit-audit.md`
 18. Backups / Danger Zone / guest restore: see `docs/backups-and-danger-zone.md` — do not invent a second restore path
@@ -185,40 +185,40 @@ php artisan test --compact --filter=YourTest
 
 ### Codex (`AGENTS.md` + `.codex/`)
 
-| File | Content |
-|------|---------|
-| `AGENTS.md` | Always-loaded mode contract, authority boundaries, sources of truth, and non-negotiable gates |
+| File                       | Content                                                                                         |
+| -------------------------- | ----------------------------------------------------------------------------------------------- |
+| `AGENTS.md`                | Always-loaded mode contract, authority boundaries, sources of truth, and non-negotiable gates   |
 | `.codex/CODEX_WORKFLOW.md` | Ask / Plan / Agent / Debug lifecycle, branch discipline, debugging stages, and handoff contract |
-| `.codex/VERIFICATION.md` | Change-type verification matrix and asynchronous integration completion standard |
-| `.codex/PLAN_TEMPLATE.md` | Template for ignored, task-local Plan-mode documents under `.codex/plans/` |
-| `.codex/config.toml` | Project-scoped Codex configuration, including Laravel Boost MCP |
+| `.codex/VERIFICATION.md`   | Change-type verification matrix and asynchronous integration completion standard                |
+| `.codex/PLAN_TEMPLATE.md`  | Template for ignored, task-local Plan-mode documents under `.codex/plans/`                      |
+| `.codex/config.toml`       | Project-scoped Codex configuration, including Laravel Boost MCP                                 |
 
 ### Cursor IDE (`.cursor/rules/*.mdc`)
 
-| Rule file | Applies |
-|-----------|---------|
-| `project-overview.mdc` | Always — identity & entry points |
-| `php-conventions.mdc` | `app/`, `database/`, `routes/`, `tests/` PHP |
-| `filament-conventions.mdc` | `app/Filament/`, Filament views |
-| `receipt-pipeline.mdc` | Services, Jobs, Observers, API webhooks, Prompts |
-| `testing-conventions.mdc` | `tests/` |
-| `ask-before-git.mdc` | Always — git push/commit approval |
+| Rule file                  | Applies                                          |
+| -------------------------- | ------------------------------------------------ |
+| `project-overview.mdc`     | Always — identity & entry points                 |
+| `php-conventions.mdc`      | `app/`, `database/`, `routes/`, `tests/` PHP     |
+| `filament-conventions.mdc` | `app/Filament/`, Filament views                  |
+| `receipt-pipeline.mdc`     | Services, Jobs, Observers, API webhooks, Prompts |
+| `testing-conventions.mdc`  | `tests/`                                         |
+| `ask-before-git.mdc`       | Always — git push/commit approval                |
 
 ### Antigravity IDE (`.agents/`)
 
-| File | Content |
-|------|---------|
-| `AGENTS.md` | All rules consolidated (project overview, PHP, Filament, pipeline, testing, git) |
-| `skills/architecture-guard/` | Architecture gatekeeper |
-| `skills/filament-reviewer/` | Filament convention checker |
-| `skills/security-reviewer/` | Security audit |
-| `skills/integration-ops/` | Ollama / Evolution / Drive / Horizon ops |
-| `skills/receipt-pipeline-debugger/` | Receipt pipeline debugging |
-| `skills/tido-domain/` | Finances domain knowledge |
-| `skills/laravel-best-practices/` | Laravel patterns |
-| `skills/pest-testing/` | Pest test patterns |
-| `skills/configuring-horizon/` | Horizon setup |
-| `skills/tailwindcss-development/` | Tailwind conventions |
+| File                                | Content                                                                          |
+| ----------------------------------- | -------------------------------------------------------------------------------- |
+| `AGENTS.md`                         | All rules consolidated (project overview, PHP, Filament, pipeline, testing, git) |
+| `skills/architecture-guard/`        | Architecture gatekeeper                                                          |
+| `skills/filament-reviewer/`         | Filament convention checker                                                      |
+| `skills/security-reviewer/`         | Security audit                                                                   |
+| `skills/integration-ops/`           | Ollama / Evolution / Drive / Horizon ops                                         |
+| `skills/receipt-pipeline-debugger/` | Receipt pipeline debugging                                                       |
+| `skills/tido-domain/`               | Finances domain knowledge                                                        |
+| `skills/laravel-best-practices/`    | Laravel patterns                                                                 |
+| `skills/pest-testing/`              | Pest test patterns                                                               |
+| `skills/configuring-horizon/`       | Horizon setup                                                                    |
+| `skills/tailwindcss-development/`   | Tailwind conventions                                                             |
 
 ## 7. Common pitfalls
 
