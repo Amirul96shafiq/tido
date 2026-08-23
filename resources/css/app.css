@@ -2646,6 +2646,10 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     display: none;
 }
 
+.tido-primary-only-action {
+    opacity: 0.5;
+}
+
 .fi-sidebar-group.fi-active .fi-sidebar-group-dropdown-trigger-btn .fi-icon {
     color: var(--primary-500);
 }

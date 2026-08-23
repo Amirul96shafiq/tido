@@ -98,5 +98,8 @@ test('family member can navigate to and view service status', function (): void 
     Livewire::test(ServiceStatusPage::class)
         ->assertSee('Summary Report')
         ->assertSee('Status')
-        ->assertActionHidden('runCheck');
+        ->assertActionVisible('runCheck')
+        ->assertActionDisabled('runCheck')
+        ->assertSee('Only the Primary member can access this page.', false)
+        ->assertSee('tido-primary-only-action', false);
 });

@@ -87,6 +87,11 @@ class ServiceStatusPage extends Page
                 ->label('Run check now')
                 ->icon(Heroicon::OutlinedArrowPath)
                 ->authorize(fn (): bool => HouseholdAccess::canManageHouseholdSettings())
+                ->authorizationTooltip()
+                ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage())
+                ->extraAttributes(fn (): array => HouseholdAccess::isFamilyMember()
+                    ? ['class' => 'tido-primary-only-action']
+                    : [])
                 ->action(function (ServiceHealthRecorder $recorder, ServiceHealthAggregator $aggregator): void {
                     $recorder->recordAll();
                     $this->loadReport($aggregator);
