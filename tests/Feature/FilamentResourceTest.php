@@ -76,6 +76,7 @@ test('family members see primary-only resource navigation as restricted', functi
         ->assertSuccessful()
         ->assertSee('Labels', false)
         ->assertSee('tido-primary-only-navigation', false)
+        ->assertSee('tido-primary-only-navigation-lock', false)
         ->assertSee('Only the Primary member can access this page.', false)
         ->assertSeeHtml('aria-disabled="true"')
         ->assertDontSeeHtml('href="'.e(LabelResource::getUrl('index')).'"');

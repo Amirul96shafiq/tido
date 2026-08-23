@@ -2635,6 +2635,17 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     }
 }
 
+.tido-primary-only-navigation-lock {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    margin-inline-start: auto;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .tido-primary-only-navigation-lock {
+    display: none;
+}
+
 .fi-sidebar-group.fi-active .fi-sidebar-group-dropdown-trigger-btn .fi-icon {
     color: var(--primary-500);
 }

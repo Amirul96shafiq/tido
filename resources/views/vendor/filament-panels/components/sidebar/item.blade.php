@@ -209,6 +209,14 @@
                         {{ $slot }}
                     </span>
 
+                    @if ($isPrimaryOnlyNavigation)
+                        <x-filament::icon
+                            icon="heroicon-o-lock-closed"
+                            class="tido-primary-only-navigation-lock"
+                            aria-hidden="true"
+                        />
+                    @endif
+
                     {{
                         \Filament\Support\generate_icon_html($childFlyoutChevron, attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['fi-sidebar-item-flyout-chevron']), size: \Filament\Support\Enums\IconSize::Small)
                     }}
@@ -316,6 +324,14 @@
             <span class="fi-sidebar-item-label">
                 {{ $slot }}
             </span>
+
+            @if ($isPrimaryOnlyNavigation)
+                <x-filament::icon
+                    icon="heroicon-o-lock-closed"
+                    class="tido-primary-only-navigation-lock"
+                    aria-hidden="true"
+                />
+            @endif
 
             @if (filled($badge))
                 <span class="fi-sidebar-item-badge-ctn">
