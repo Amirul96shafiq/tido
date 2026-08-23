@@ -12,6 +12,7 @@ use App\Filament\Support\IntegrationNavigation;
 use App\Models\FamilyMember;
 use App\Models\ServiceHealthSample;
 use App\Models\User;
+use App\Support\HouseholdAccess;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
@@ -244,7 +245,7 @@ test('family members see restricted integration navigation with access tooltip',
         ->assertSee(IntegrationNavigation::AI_PARSING_ENGINE, false)
         ->assertSee('Ollama (Local)', false)
         ->assertSee('tido-primary-only-navigation', false)
-        ->assertSee('Only the Primary member can access this page.', false)
+        ->assertSee(HouseholdAccess::primaryOnlyAccessMessage(), false)
         ->assertDontSeeHtml('href="'.e(EvolutionApiPage::getUrl()).'"')
         ->assertDontSeeHtml('href="'.e(OllamaPage::getUrl()).'"');
 });

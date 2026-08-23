@@ -41,7 +41,7 @@
                             <span
                                 class="inline-flex"
                                 x-tooltip="{
-                                    content: @js($createDeniedMessage ?? 'Only Primary able to use this CTA button.'),
+                                    content: @js($createDeniedMessage ?? 'Only Primary can access this feature.'),
                                     theme: $store.theme,
                                 }"
                             >

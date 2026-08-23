@@ -54,8 +54,6 @@ use Livewire\Livewire;
 
 class AdminPanelProvider extends PanelProvider
 {
-    private const PRIMARY_ONLY_NAVIGATION_TOOLTIP = 'Only the Primary member can access this page.';
-
     public function boot(): void
     {
         FilamentIcon::register([
@@ -649,7 +647,7 @@ class AdminPanelProvider extends PanelProvider
         return [
             'class' => 'tido-primary-only-navigation',
             'x-data' => '{ tooltip: false }',
-            'x-tooltip' => '{ content: \''.self::PRIMARY_ONLY_NAVIGATION_TOOLTIP.'\', theme: $store.theme }',
+            'x-tooltip' => '{ content: \''.HouseholdAccess::primaryOnlyAccessMessage().'\', theme: $store.theme }',
         ];
     }
 }

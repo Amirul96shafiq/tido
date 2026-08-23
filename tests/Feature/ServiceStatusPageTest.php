@@ -8,6 +8,7 @@ use App\Filament\Pages\ServiceStatusPage;
 use App\Models\FamilyMember;
 use App\Models\ServiceHealthSample;
 use App\Models\User;
+use App\Support\HouseholdAccess;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
@@ -100,6 +101,6 @@ test('family member can navigate to and view service status', function (): void 
         ->assertSee('Status')
         ->assertActionVisible('runCheck')
         ->assertActionDisabled('runCheck')
-        ->assertSee('Only the Primary member can access this page.', false)
+        ->assertSee(HouseholdAccess::primaryOnlyAccessMessage(), false)
         ->assertSee('tido-primary-only-action', false);
 });

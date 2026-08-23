@@ -26,6 +26,7 @@ use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use App\Models\User;
+use App\Support\HouseholdAccess;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\Testing\TestAction;
 use Filament\Support\Icons\Heroicon;
@@ -77,7 +78,7 @@ test('family members see primary-only resource navigation as restricted', functi
         ->assertSee('Labels', false)
         ->assertSee('tido-primary-only-navigation', false)
         ->assertSee('tido-primary-only-navigation-lock', false)
-        ->assertSee('Only the Primary member can access this page.', false)
+        ->assertSee(HouseholdAccess::primaryOnlyAccessMessage(), false)
         ->assertSeeHtml('aria-disabled="true"')
         ->assertDontSeeHtml('href="'.e(LabelResource::getUrl('index')).'"');
 

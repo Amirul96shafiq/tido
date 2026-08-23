@@ -9,8 +9,6 @@ use Filament\Facades\Filament;
 
 trait RequiresPrimaryHouseholdAccess
 {
-    private const FAMILY_MEMBER_NAVIGATION_TOOLTIP = 'Only the Primary member can access this page.';
-
     public static function canAccess(): bool
     {
         return HouseholdAccess::canManageHouseholdSettings();
@@ -33,7 +31,7 @@ trait RequiresPrimaryHouseholdAccess
                 $navigationItem->extraAttributes([
                     'class' => 'tido-primary-only-navigation',
                     'x-data' => '{ tooltip: false }',
-                    'x-tooltip' => '{ content: \''.self::FAMILY_MEMBER_NAVIGATION_TOOLTIP.'\', theme: $store.theme }',
+                    'x-tooltip' => '{ content: \''.HouseholdAccess::primaryOnlyAccessMessage().'\', theme: $store.theme }',
                 ]);
             }
         }
