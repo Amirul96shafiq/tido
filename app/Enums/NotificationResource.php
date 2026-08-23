@@ -31,15 +31,23 @@ enum NotificationResource: string
 
     public function titleSearchPattern(): string
     {
+        return $this->titleSearchPatterns()[0];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function titleSearchPatterns(): array
+    {
         return match ($this) {
-            self::Profile => 'Profile%',
-            self::Expenses => 'Receipt%',
-            self::WhatsApp => 'WhatsApp%',
-            self::EvolutionApi => 'Evolution API%',
-            self::Budgets => 'Budget%',
-            self::Recurrings => 'Recurring%',
-            self::Backups => 'Backup%',
-            self::ServiceStatus => 'Service Status%',
+            self::Profile => ['Profile%'],
+            self::Expenses => ['Receipt%', 'Non-receipt document%'],
+            self::WhatsApp => ['WhatsApp%'],
+            self::EvolutionApi => ['Evolution API%'],
+            self::Budgets => ['Budget%'],
+            self::Recurrings => ['Recurring%'],
+            self::Backups => ['Backup%'],
+            self::ServiceStatus => ['Service Status%'],
         };
     }
 

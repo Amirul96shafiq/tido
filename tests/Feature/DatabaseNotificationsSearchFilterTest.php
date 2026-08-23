@@ -188,6 +188,18 @@ test('can filter by resource', function () {
         ->assertDontSee('Service Status down');
 });
 
+test('expenses resource includes non-receipt document notifications', function () {
+    Notification::make()
+        ->title('Non-receipt document requires manual review')
+        ->body('The uploaded document was excluded from spending analytics.')
+        ->warning()
+        ->sendToDatabase($this->user);
+
+    Livewire::test(DatabaseNotifications::class)
+        ->set('filters.resource', NotificationResource::Expenses->value)
+        ->assertSee('Non-receipt document requires manual review');
+});
+
 test('can filter by recurrings resource', function () {
     seedDatabaseNotifications($this->user);
 

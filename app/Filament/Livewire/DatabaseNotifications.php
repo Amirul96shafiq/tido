@@ -141,9 +141,13 @@ class DatabaseNotifications extends BaseDatabaseNotifications
             $resource = NotificationResource::tryFrom((string) $this->filters['resource']);
 
             if ($resource instanceof NotificationResource) {
-                $titlePrefix = rtrim($resource->titleSearchPattern(), '%');
+                $query->where(function (Builder $query) use ($resource): void {
+                    foreach ($resource->titleSearchPatterns() as $titlePattern) {
+                        $titlePrefix = rtrim($titlePattern, '%');
 
-                $query->where('data', 'like', '%"title":"'.$titlePrefix.'%');
+                        $query->orWhere('data', 'like', '%"title":"'.$titlePrefix.'%');
+                    }
+                });
             }
         }
 
