@@ -9,6 +9,7 @@ use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Resources\Expenses\Tables\ExpensesTable;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
+use App\Filament\Widgets\Concerns\HasDashboardWidgetPlaceholder;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Helpers\FilenameDisplay;
 use App\Helpers\MoneyDisplay;
@@ -25,6 +26,7 @@ use Filament\Widgets\TableWidget as BaseWidget;
 class RecentReceipts extends BaseWidget
 {
     use HasDashboardSectionId;
+    use HasDashboardWidgetPlaceholder;
     use InteractsWithDashboardMonth;
     use RefreshesTableOnExpenseBroadcast;
 

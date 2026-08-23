@@ -8,6 +8,7 @@ use App\Filament\Concerns\RefreshesOnExpenseBroadcast;
 use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
+use App\Filament\Widgets\Concerns\HasDashboardWidgetPlaceholder;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use App\Models\Budget;
 use App\Models\User;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 class BudgetStatus extends Widget
 {
     use HasDashboardSectionId;
+    use HasDashboardWidgetPlaceholder;
     use InteractsWithDashboardMonth;
     use RefreshesOnExpenseBroadcast;
 

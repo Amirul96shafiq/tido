@@ -65,6 +65,38 @@ test('dashboard view tabs partial renders the viewTabs catalog and defaults to f
         ->not->toContain('aria-current="true"');
 });
 
+test('lazy dashboard widgets render a visible loading spinner placeholder', function () {
+    $lazyWidgets = [
+        \App\Filament\Widgets\BudgetStatus::class,
+        \App\Filament\Widgets\MonthlyTrend::class,
+        \App\Filament\Widgets\ReceiptsBySource::class,
+        \App\Filament\Widgets\RecentReceipts::class,
+        \App\Filament\Widgets\SpendingByLabel::class,
+        \App\Filament\Widgets\SpendingByPaymentMethod::class,
+        \App\Filament\Widgets\TopMerchants::class,
+    ];
+
+    foreach ($lazyWidgets as $widgetClass) {
+        expect($widgetClass::isLazy())->toBeTrue()
+            ->and(class_uses_recursive($widgetClass))
+            ->toContain(\App\Filament\Widgets\Concerns\HasDashboardWidgetPlaceholder::class);
+    }
+
+    $html = view('filament.widgets.lazy-placeholder', [
+        'columnSpan' => [],
+        'columnStart' => [],
+        'height' => '12rem',
+    ])->render();
+
+    expect($html)
+        ->toContain('role="status"')
+        ->toContain('aria-busy="true"')
+        ->toContain('fi-wi-loading-section')
+        ->toContain('height: 12rem')
+        ->toContain('fi-loading-indicator')
+        ->toContain('Loading widget');
+});
+
 test('dashboard view tabs partial marks the active view tab', function () {
     $html = view('filament.pages.partials.dashboard-view-tabs', [
         'activeView' => Dashboard::VIEW_TRAINING,
