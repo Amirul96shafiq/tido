@@ -8,6 +8,7 @@ use App\Filament\Concerns\RefreshesOnExpenseBroadcast;
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\HasChartEmptyState;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
+use App\Filament\Widgets\Concerns\HasDashboardWidgetPlaceholder;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
@@ -17,6 +18,7 @@ class MonthlyTrend extends ChartWidget
 {
     use HasChartEmptyState;
     use HasDashboardSectionId;
+    use HasDashboardWidgetPlaceholder;
     use InteractsWithDashboardMonth;
     use RefreshesOnExpenseBroadcast;
 
