@@ -7,10 +7,14 @@
 
     $name = filament()->getUserName($user);
     $username = $user->display_name ?? $name;
+    $fullName = filled($user->name ?? null) ? (string) $user->name : null;
     $phone = filled($user->phone ?? null) ? (string) $user->phone : null;
     $isFamilyMember = $user instanceof User && $user->isFamilyMember();
     $email = (! $isFamilyMember && filled($user->email ?? null))
         ? (string) $user->email
+        : null;
+    $dateOfBirth = $user instanceof User && $user->date_of_birth !== null
+        ? $user->formatDate($user->date_of_birth)
         : null;
 
     $maskedPhone = null;
@@ -39,6 +43,10 @@
             $maskedEmail = str_repeat('x', strlen($email));
         }
     }
+
+    $maskedDateOfBirth = $dateOfBirth !== null
+        ? preg_replace('/\d/', 'x', $dateOfBirth)
+        : null;
 @endphp
 
 <div
@@ -51,7 +59,7 @@
     }"
     {{ $attributes->class(['fi-user-menu-profile-preview', 'relative']) }}
 >
-    @if ($phone || $email)
+    @if ($phone || $email || $dateOfBirth)
         <button
             type="button"
             x-on:click="toggle()"
@@ -80,19 +88,42 @@
         <x-filament-panels::avatar.user :user="$user" loading="lazy" />
     </div>
 
-    <p class="fi-user-menu-profile-preview-name">{{ $username }}</p>
+    <div class="fi-user-menu-profile-preview-identity">
+        <p class="fi-user-menu-profile-preview-name">{{ $username }}</p>
 
-    @if ($phone)
-        <p class="fi-user-menu-profile-preview-meta">
-            <span x-show="hidden">{{ $maskedPhone }}</span>
-            <span x-show="! hidden" x-cloak>{{ $phone }}</span>
-        </p>
-    @endif
+        @if ($fullName)
+            <p class="fi-user-menu-profile-preview-meta">
+                {{ $fullName }}
+            </p>
+        @endif
+    </div>
 
-    @if ($email)
-        <p class="fi-user-menu-profile-preview-meta">
-            <span x-show="hidden">{{ $maskedEmail }}</span>
-            <span x-show="! hidden" x-cloak>{{ $email }}</span>
-        </p>
+    @if ($email || $phone || $dateOfBirth)
+        <div class="fi-user-menu-profile-preview-details">
+            @if ($email)
+                <p class="fi-user-menu-profile-preview-meta">
+                    <span x-show="hidden">{{ $maskedEmail }}</span>
+                    <span x-show="! hidden" x-cloak>{{ $email }}</span>
+                </p>
+            @endif
+
+            @if ($phone || $dateOfBirth)
+                <p class="fi-user-menu-profile-preview-meta">
+                    @if ($phone)
+                        <span x-show="hidden">{{ $maskedPhone }}</span>
+                        <span x-show="! hidden" x-cloak>{{ $phone }}</span>
+                    @endif
+
+                    @if ($phone && $dateOfBirth)
+                        <span aria-hidden="true"> | </span>
+                    @endif
+
+                    @if ($dateOfBirth)
+                        <span x-show="hidden">{{ $maskedDateOfBirth }}</span>
+                        <span x-show="! hidden" x-cloak>{{ $dateOfBirth }}</span>
+                    @endif
+                </p>
+            @endif
+        </div>
     @endif
 </div>
