@@ -84,7 +84,7 @@ test('family members see primary-only resource navigation as restricted', functi
         ->assertForbidden();
 
     expect(file_get_contents(resource_path('css/app.css')))
-        ->toContain('.fi-sidebar-item.tido-primary-only-navigation')
+        ->toContain('.tido-primary-only-navigation')
         ->toContain('opacity: 0.5;');
 });
 

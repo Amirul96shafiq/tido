@@ -244,5 +244,7 @@ test('family members see restricted integration navigation with access tooltip',
         ->assertSee(IntegrationNavigation::AI_PARSING_ENGINE, false)
         ->assertSee('Ollama (Local)', false)
         ->assertSee('tido-primary-only-navigation', false)
-        ->assertSee('Only the Primary member can access this page.', false);
+        ->assertSee('Only the Primary member can access this page.', false)
+        ->assertDontSeeHtml('href="'.e(EvolutionApiPage::getUrl()).'"')
+        ->assertDontSeeHtml('href="'.e(OllamaPage::getUrl()).'"');
 });

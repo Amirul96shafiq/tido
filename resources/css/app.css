@@ -2624,8 +2624,15 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 }
 
 /* Sidebar navigation — match user-menu profile active / theme-switcher tokens */
-.fi-sidebar-item.tido-primary-only-navigation {
-    opacity: 0.5;
+.tido-primary-only-navigation {
+    > .fi-sidebar-item-btn > .fi-icon,
+    > .fi-sidebar-item-btn > .fi-sidebar-item-label,
+    > .fi-dropdown-list-item-label,
+    > .fi-icon,
+    .fi-sidebar-item-btn > .fi-icon,
+    .fi-sidebar-item-btn > .fi-sidebar-item-label {
+        opacity: 0.5;
+    }
 }
 
 .fi-sidebar-group.fi-active .fi-sidebar-group-dropdown-trigger-btn .fi-icon {
