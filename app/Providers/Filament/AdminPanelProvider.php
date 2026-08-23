@@ -54,6 +54,8 @@ use Livewire\Livewire;
 
 class AdminPanelProvider extends PanelProvider
 {
+    private const PRIMARY_ONLY_NAVIGATION_TOOLTIP = 'Only the Primary member can access this page.';
+
     public function boot(): void
     {
         FilamentIcon::register([
@@ -588,12 +590,12 @@ class AdminPanelProvider extends PanelProvider
                     ->group(IntegrationNavigation::GROUP)
                     ->icon('icon-whatsapp')
                     ->sort(10)
-                    ->visible(fn (): bool => HouseholdAccess::canManageHouseholdSettings()),
+                    ->extraAttributes(fn (): array => self::primaryOnlyNavigationAttributes()),
                 NavigationItem::make(IntegrationNavigation::AI_PARSING_ENGINE)
                     ->group(IntegrationNavigation::GROUP)
                     ->icon(Heroicon::OutlinedCpuChip)
                     ->sort(20)
-                    ->visible(fn (): bool => HouseholdAccess::canManageHouseholdSettings()),
+                    ->extraAttributes(fn (): array => self::primaryOnlyNavigationAttributes()),
             ])
             ->routes(function (): void {
                 Route::name('auth.')->group(function (): void {
@@ -633,5 +635,21 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function primaryOnlyNavigationAttributes(): array
+    {
+        if (! HouseholdAccess::isFamilyMember()) {
+            return [];
+        }
+
+        return [
+            'class' => 'tido-primary-only-navigation',
+            'x-data' => '{ tooltip: false }',
+            'x-tooltip' => '{ content: \''.self::PRIMARY_ONLY_NAVIGATION_TOOLTIP.'\', theme: $store.theme }',
+        ];
     }
 }

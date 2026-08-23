@@ -4,37 +4,38 @@ Single-tenant hub with **household roles**: one **Primary** user owns settings; 
 
 ## Source of truth
 
-| Layer | Path |
-|-------|------|
-| Roles | `app/Enums/HouseholdRole.php` — `primary` \| `family_member` |
-| Access helpers | `app/Support/HouseholdAccess.php` |
-| Spender filter | `app/Support/DashboardSpenderScope.php` |
-| WhatsApp attribution | `app/Support/ExpenseSenderAttribution.php` |
-| WhatsApp LID mapping | `app/Support/WhatsAppLid.php` — links opaque `@lid` identities to allowlisted contacts |
-| Login sync | `app/Services/FamilyMemberLoginService.php` + `app/Observers/FamilyMemberObserver.php` |
-| Primary-only gate | `app/Filament/Concerns/RequiresPrimaryHouseholdAccess.php` |
-| Expense mutate ACL | `app/Policies/ExpensePolicy.php` → `HouseholdAccess::canMutateExpense()` |
-| Budget mutate ACL | `app/Policies/BudgetPolicy.php` → `HouseholdAccess::canMutateBudget()` |
-| Recurring mutate ACL | `app/Policies/RecurringPolicy.php` → `HouseholdAccess::canMutateRecurring()` |
-| Resource edit audit | `app/Models/Concerns/TracksResourceEdits.php` → `edited_by` on supported resource tables |
-| Account switching | `app/Filament/Livewire/AccountSwitcher.php` + `resources/views/filament/livewire/account-switcher.blade.php` |
-| Family Member CRUD | `app/Filament/Resources/FamilyMembers/` (Settings; primary only) |
-| Local test seed | `database/seeders/FamilyMemberLoginTestSeeder.php` (local/testing only) |
-| Tests | `tests/Feature/FamilyMemberAttributionLoginTest.php`, `tests/Feature/ExpenseFamilyMemberOwnershipTest.php`, `tests/Feature/BudgetFamilyMemberOwnershipTest.php`, `tests/Feature/RecurringFamilyMemberOwnershipTest.php` |
+| Layer                | Path                                                                                                                                                                                                                    |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Roles                | `app/Enums/HouseholdRole.php` — `primary` \| `family_member`                                                                                                                                                            |
+| Access helpers       | `app/Support/HouseholdAccess.php`                                                                                                                                                                                       |
+| Spender filter       | `app/Support/DashboardSpenderScope.php`                                                                                                                                                                                 |
+| WhatsApp attribution | `app/Support/ExpenseSenderAttribution.php`                                                                                                                                                                              |
+| WhatsApp LID mapping | `app/Support/WhatsAppLid.php` — links opaque `@lid` identities to allowlisted contacts                                                                                                                                  |
+| Login sync           | `app/Services/FamilyMemberLoginService.php` + `app/Observers/FamilyMemberObserver.php`                                                                                                                                  |
+| Primary-only gate    | `app/Filament/Concerns/RequiresPrimaryHouseholdAccess.php`                                                                                                                                                              |
+| Expense mutate ACL   | `app/Policies/ExpensePolicy.php` → `HouseholdAccess::canMutateExpense()`                                                                                                                                                |
+| Budget mutate ACL    | `app/Policies/BudgetPolicy.php` → `HouseholdAccess::canMutateBudget()`                                                                                                                                                  |
+| Recurring mutate ACL | `app/Policies/RecurringPolicy.php` → `HouseholdAccess::canMutateRecurring()`                                                                                                                                            |
+| Resource edit audit  | `app/Models/Concerns/TracksResourceEdits.php` → `edited_by` on supported resource tables                                                                                                                                |
+| Account switching    | `app/Filament/Livewire/AccountSwitcher.php` + `resources/views/filament/livewire/account-switcher.blade.php`                                                                                                            |
+| Family Member CRUD   | `app/Filament/Resources/FamilyMembers/` (Settings; primary only)                                                                                                                                                        |
+| Local test seed      | `database/seeders/FamilyMemberLoginTestSeeder.php` (local/testing only)                                                                                                                                                 |
+| Tests                | `tests/Feature/FamilyMemberAttributionLoginTest.php`, `tests/Feature/ExpenseFamilyMemberOwnershipTest.php`, `tests/Feature/BudgetFamilyMemberOwnershipTest.php`, `tests/Feature/RecurringFamilyMemberOwnershipTest.php` |
 
 ## Roles
 
-| Role | How set | Panel access |
-|------|---------|--------------|
-| **Primary** | `users.household_role = primary` (default / null treated as primary) | Full `/admin` |
-| **Family member** | Linked `User` created when Family Member has **login enabled** | Finances only (see below); `canAccessPanel` requires `login_enabled` still true |
+| Role              | How set                                                              | Panel access                                                                    |
+| ----------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **Primary**       | `users.household_role = primary` (default / null treated as primary) | Full `/admin`                                                                   |
+| **Family member** | Linked `User` created when Family Member has **login enabled**       | Finances only (see below); `canAccessPanel` requires `login_enabled` still true |
 
-Primary-only surfaces use `RequiresPrimaryHouseholdAccess` (`canAccess` + hide nav):
+Primary-only surfaces use `RequiresPrimaryHouseholdAccess` (`canAccess` + restricted family navigation):
 
 - Settings: Labels, Payment Methods, Family Members
 - Integrations: Evolution API
 - Tools: Backups
 - Profile: household / WhatsApp allowlist sections that are primary-only
+- Family members see restricted entries at 50% opacity with an access tooltip; direct access remains forbidden
 - Global search destinations filtered for non-primary users (Budgets and Recurrings stay visible)
 
 Family members **can** use: Home (Finance dashboard), Upload Receipts, Expenses, Budgets, Recurrings, Service Status (read-only), Profile (own account), WhatsApp OTP login.
@@ -43,10 +44,10 @@ Family members **can** use: Home (Finance dashboard), Upload Receipts, Expenses,
 
 Each budget has:
 
-| Field | Meaning |
-|-------|---------|
-| `family_member_id` | Owner. `null` = Primary; non-null = that Family Member |
-| `is_shared` | Spending pool. `false` = only the owner’s expenses count; `true` = all household expenses count |
+| Field              | Meaning                                                                                         |
+| ------------------ | ----------------------------------------------------------------------------------------------- |
+| `family_member_id` | Owner. `null` = Primary; non-null = that Family Member                                          |
+| `is_shared`        | Spending pool. `false` = only the owner’s expenses count; `true` = all household expenses count |
 
 **List / View:** Family members see every household budget (same as Expenses). View slide-over stays available for records they cannot edit.
 
@@ -74,12 +75,12 @@ Ownership fields match budgets (`family_member_id`, `is_shared`). Full behaviour
 
 `family_members` (Settings CRUD — primary only):
 
-| Field | Role |
-|-------|------|
-| `phone` | Normalized MY WhatsApp number (unique) |
-| `whatsapp_lid` | Optional normalized WhatsApp Linked ID (unique); populated from the Evolution API LID linking flow |
-| `allowlist_enabled` | Bot contact allowlist (default on) |
-| `login_enabled` | Panel login via WhatsApp OTP (default off) |
+| Field                                       | Role                                                                                                                          |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `phone`                                     | Normalized MY WhatsApp number (unique)                                                                                        |
+| `whatsapp_lid`                              | Optional normalized WhatsApp Linked ID (unique); populated from the Evolution API LID linking flow                            |
+| `allowlist_enabled`                         | Bot contact allowlist (default on)                                                                                            |
+| `login_enabled`                             | Panel login via WhatsApp OTP (default off)                                                                                    |
 | `avatar_url`, `date_of_birth`, name/display | Bidirectional with linked login `User` when login is enabled (Family Member CRUD → User; family Edit Profile → Family Member) |
 
 Linked user email is synthetic: `family+{id}@tido.local`. Password is random (OTP-only). Disabling login deletes the linked family-member `User`.
@@ -88,11 +89,11 @@ Linked user email is synthetic: `family+{id}@tido.local`. Password is random (OT
 
 UI label: **Uploaded By**.
 
-| Source | Attribution |
-|--------|-------------|
-| WhatsApp image / PDF / manual text | `ExpenseSenderAttribution::familyMemberIdForSender()` — allowlisted Family Member phone or linked LID → id; Profile/primary sender → `null` |
-| Receipt upload / create while logged in as family member | Forced to that user’s `family_member_id` |
-| Manual create as primary | Optional select (Primary option = `null`) |
+| Source                                                   | Attribution                                                                                                                                 |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| WhatsApp image / PDF / manual text                       | `ExpenseSenderAttribution::familyMemberIdForSender()` — allowlisted Family Member phone or linked LID → id; Profile/primary sender → `null` |
+| Receipt upload / create while logged in as family member | Forced to that user’s `family_member_id`                                                                                                    |
+| Manual create as primary                                 | Optional select (Primary option = `null`)                                                                                                   |
 
 `null` = Primary household spender. Non-null = that Family Member.
 
@@ -120,11 +121,11 @@ An unlinked LID is ignored by the webhook and remembered as a pending identity, 
 
 Finance Home filter `spender` (`DashboardSpenderScope`):
 
-| Value | Meaning |
-|-------|---------|
-| `all` | No expense scope |
-| `primary` | `family_member_id` is null (label = primary user’s name + ` (me)` when viewing as primary) |
-| `family:{id}` | That Family Member |
+| Value         | Meaning                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------------ |
+| `all`         | No expense scope                                                                           |
+| `primary`     | `family_member_id` is null (label = primary user’s name + ` (me)` when viewing as primary) |
+| `family:{id}` | That Family Member                                                                         |
 
 - Primary: options = All + Primary (`… (me)`) + every member; default = Primary (self)
 - Family member: options = All + self (`… (me)`); default = self

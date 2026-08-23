@@ -230,7 +230,7 @@ test('live ollama down clears a stale Active pill', function (): void {
     ]);
 });
 
-test('family members do not see integration flyout parents', function (): void {
+test('family members see restricted integration navigation with access tooltip', function (): void {
     $familyMember = FamilyMember::factory()->loginEnabled()->create();
     $familyMemberUser = User::query()
         ->where('family_member_id', $familyMember->getKey())
@@ -240,8 +240,9 @@ test('family members do not see integration flyout parents', function (): void {
 
     $this->get(Dashboard::getUrl())
         ->assertSuccessful()
-        ->assertDontSee(IntegrationNavigation::WHATSAPP, false)
-        ->assertDontSee(IntegrationNavigation::AI_PARSING_ENGINE, false)
-        ->assertDontSee('Ollama (Local)', false)
-        ->assertDontSee('fi-sidebar-item-flyout', false);
+        ->assertSee(IntegrationNavigation::WHATSAPP, false)
+        ->assertSee(IntegrationNavigation::AI_PARSING_ENGINE, false)
+        ->assertSee('Ollama (Local)', false)
+        ->assertSee('tido-primary-only-navigation', false)
+        ->assertSee('Only the Primary member can access this page.', false);
 });
