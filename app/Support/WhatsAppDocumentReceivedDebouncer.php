@@ -20,6 +20,79 @@ final class WhatsAppDocumentReceivedDebouncer
         return self::cacheKey($senderNumber).':lock';
     }
 
+    public static function sentCacheKey(string $senderNumber, string $token): string
+    {
+        return self::cacheKey($senderNumber).':sent:'.$token;
+    }
+
+    public static function wasSent(string $senderNumber, string $token): bool
+    {
+        return Cache::has(self::sentCacheKey($senderNumber, $token));
+    }
+
+    public static function markSent(string $senderNumber, string $token): bool
+    {
+        return Cache::add(
+            self::sentCacheKey($senderNumber, $token),
+            true,
+            now()->addMinutes(5),
+        );
+    }
+
+    /**
+     * Remove one acknowledged batch while preserving documents registered afterwards.
+     *
+     * @param  list<string>  $messageIds
+     */
+    public static function consume(string $senderNumber, string $token, array $messageIds): void
+    {
+        $key = self::cacheKey($senderNumber);
+        $messageIds = array_values(array_unique($messageIds));
+
+        Cache::lock(self::lockKey($senderNumber), 5)->block(5, function () use ($key, $token, $messageIds): void {
+            $current = Cache::get($key);
+
+            if (! is_array($current) || ($current['token'] ?? null) === $token) {
+                Cache::forget($key);
+
+                return;
+            }
+
+            $remainingDocuments = array_values(array_filter(
+                $current['documents'] ?? [],
+                static fn (mixed $document): bool => is_array($document)
+                    && ! in_array((string) ($document['message_id'] ?? ''), $messageIds, true),
+            ));
+
+            if ($remainingDocuments === []) {
+                Cache::forget($key);
+
+                return;
+            }
+
+            $expenseIds = [];
+
+            foreach ($remainingDocuments as $document) {
+                $expenseId = $document['expense_id'] ?? null;
+
+                if (
+                    ($document['status'] ?? null) === 'accepted'
+                    && is_numeric($expenseId)
+                    && (int) $expenseId > 0
+                ) {
+                    $expenseIds[] = (int) $expenseId;
+                }
+            }
+
+            Cache::put($key, [
+                'count' => count($remainingDocuments),
+                'token' => (string) ($current['token'] ?? ''),
+                'expense_ids' => $expenseIds,
+                'documents' => $remainingDocuments,
+            ], now()->addMinutes(5));
+        });
+    }
+
     /**
      * @param  array{
      *     message_id: string,

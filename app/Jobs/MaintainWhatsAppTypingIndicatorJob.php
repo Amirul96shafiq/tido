@@ -57,6 +57,9 @@ class MaintainWhatsAppTypingIndicatorJob implements ShouldQueue
                 ->delay(now()->addSeconds($refreshSeconds));
         }
 
-        $waService->sendTyping($sender);
+        $waService->sendTyping(
+            $sender,
+            expenseId: $this->expenseId,
+        );
     }
 }

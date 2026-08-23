@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Support\EvolutionCredential;
 use App\Support\PhoneNumber;
+use App\Support\ReceiptPipelineLogger;
 use App\Support\WhatsAppSendResult;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
@@ -27,19 +28,39 @@ class WhatsAppNotificationService
         $this->instanceName = (string) config('services.evolution.instance_name');
     }
 
-    public function sendMessage(string $number, string $text): bool
+    public function sendMessage(
+        string $number,
+        string $text,
+        ?string $messageId = null,
+        ?int $expenseId = null,
+    ): bool
     {
-        return $this->sendMessageResult($number, $text)->ok;
+        return $this->sendMessageResult($number, $text, $messageId, $expenseId)->ok;
     }
 
-    public function sendMessageResult(string $number, string $text): WhatsAppSendResult
+    public function sendMessageResult(
+        string $number,
+        string $text,
+        ?string $messageId = null,
+        ?int $expenseId = null,
+    ): WhatsAppSendResult
     {
+        $startedAt = ReceiptPipelineLogger::start();
+
         try {
             if (! PhoneNumber::isAllowedWhatsAppSender($number)) {
                 $normalized = PhoneNumber::normalize(explode('@', $number, 2)[0]) ?? $number;
 
                 Log::warning('WhatsAppNotificationService blocked non-allowlisted recipient', [
                     'number' => $normalized,
+                ]);
+
+                ReceiptPipelineLogger::completed('whatsapp.send_text', $startedAt, [
+                    'message_id' => $messageId,
+                    'expense_id' => $expenseId,
+                    'queue' => 'outbound',
+                    'outcome' => 'blocked',
+                    'reason' => 'not_allowlisted',
                 ]);
 
                 return WhatsAppSendResult::failure(
@@ -61,7 +82,15 @@ class WhatsAppNotificationService
 
                 Log::error('WhatsAppNotificationService send failed', [
                     'status' => $response->status(),
-                    'body' => $body,
+                ]);
+
+                ReceiptPipelineLogger::completed('whatsapp.send_text', $startedAt, [
+                    'message_id' => $messageId,
+                    'expense_id' => $expenseId,
+                    'queue' => 'outbound',
+                    'outcome' => 'failed',
+                    'reason' => $this->classifySendFailure($body),
+                    'status' => $response->status(),
                 ]);
 
                 return WhatsAppSendResult::failure(
@@ -71,9 +100,25 @@ class WhatsAppNotificationService
                 );
             }
 
+            ReceiptPipelineLogger::completed('whatsapp.send_text', $startedAt, [
+                'message_id' => $messageId,
+                'expense_id' => $expenseId,
+                'queue' => 'outbound',
+                'outcome' => 'success',
+                'status' => $response->status(),
+            ]);
+
             return WhatsAppSendResult::success();
         } catch (\Throwable $e) {
             Log::error('WhatsAppNotificationService send error', ['error' => $e->getMessage()]);
+
+            ReceiptPipelineLogger::completed('whatsapp.send_text', $startedAt, [
+                'message_id' => $messageId,
+                'expense_id' => $expenseId,
+                'queue' => 'outbound',
+                'outcome' => 'error',
+                'reason' => 'connection_error',
+            ]);
 
             return WhatsAppSendResult::failure(
                 reason: 'connection_error',
@@ -82,14 +127,29 @@ class WhatsAppNotificationService
         }
     }
 
-    public function sendTyping(string $number, ?int $delayMs = null): WhatsAppSendResult
+    public function sendTyping(
+        string $number,
+        ?int $delayMs = null,
+        ?string $messageId = null,
+        ?int $expenseId = null,
+    ): WhatsAppSendResult
     {
+        $startedAt = ReceiptPipelineLogger::start();
+
         try {
             if (! PhoneNumber::isAllowedWhatsAppSender($number)) {
                 $normalized = PhoneNumber::normalize(explode('@', $number, 2)[0]) ?? $number;
 
                 Log::warning('WhatsAppNotificationService blocked non-allowlisted typing recipient', [
                     'number' => $normalized,
+                ]);
+
+                ReceiptPipelineLogger::completed('whatsapp.send_presence', $startedAt, [
+                    'message_id' => $messageId,
+                    'expense_id' => $expenseId,
+                    'queue' => 'outbound',
+                    'outcome' => 'blocked',
+                    'reason' => 'not_allowlisted',
                 ]);
 
                 return WhatsAppSendResult::failure(
@@ -113,7 +173,15 @@ class WhatsAppNotificationService
 
                 Log::warning('WhatsAppNotificationService typing presence failed', [
                     'status' => $response->status(),
-                    'body' => $body,
+                ]);
+
+                ReceiptPipelineLogger::completed('whatsapp.send_presence', $startedAt, [
+                    'message_id' => $messageId,
+                    'expense_id' => $expenseId,
+                    'queue' => 'outbound',
+                    'outcome' => 'failed',
+                    'reason' => 'presence_failed',
+                    'status' => $response->status(),
                 ]);
 
                 return WhatsAppSendResult::failure(
@@ -123,9 +191,25 @@ class WhatsAppNotificationService
                 );
             }
 
+            ReceiptPipelineLogger::completed('whatsapp.send_presence', $startedAt, [
+                'message_id' => $messageId,
+                'expense_id' => $expenseId,
+                'queue' => 'outbound',
+                'outcome' => 'success',
+                'status' => $response->status(),
+            ]);
+
             return WhatsAppSendResult::success();
         } catch (\Throwable $e) {
             Log::warning('WhatsAppNotificationService typing presence error', ['error' => $e->getMessage()]);
+
+            ReceiptPipelineLogger::completed('whatsapp.send_presence', $startedAt, [
+                'message_id' => $messageId,
+                'expense_id' => $expenseId,
+                'queue' => 'outbound',
+                'outcome' => 'error',
+                'reason' => 'connection_error',
+            ]);
 
             return WhatsAppSendResult::failure(
                 reason: 'connection_error',
@@ -155,7 +239,6 @@ class WhatsAppNotificationService
             if ($response->failed()) {
                 Log::warning('WhatsAppNotificationService number check failed', [
                     'status' => $response->status(),
-                    'body' => $response->body(),
                 ]);
 
                 return null;

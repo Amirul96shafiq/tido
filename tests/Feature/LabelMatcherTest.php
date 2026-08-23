@@ -27,6 +27,15 @@ test('label matcher resolves case insensitive exact name', function () {
     expect($matcher->matchId('food & dining'))->toBe($foodLabel->id);
 });
 
+test('label matcher resolves the seeded other label', function () {
+    $this->seed(LabelSeeder::class);
+
+    $matcher = new LabelMatcher;
+    $otherLabel = Label::query()->where('slug', 'other')->firstOrFail();
+
+    expect($matcher->matchId('Other'))->toBe($otherLabel->id);
+});
+
 test('label matcher returns null for unknown label', function () {
     $this->seed(LabelSeeder::class);
 

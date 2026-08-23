@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Services\WhatsAppNotificationService;
+use App\Support\ReceiptPipelineLogger;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppMessage;
 use App\Support\WhatsAppTypingCoordinator;
@@ -15,6 +16,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 use Throwable;
 
 class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
@@ -45,6 +47,12 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
+        ReceiptPipelineLogger::event('receipt.received_ack', [
+            'queue' => $this->queue ?? 'default',
+            'outcome' => 'failed',
+            'reason' => 'maximum_retries',
+        ]);
+
         if (! $this->isDatabaseLocked($exception)) {
             return;
         }
@@ -60,15 +68,19 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
 
     protected function sendPendingAcknowledgement(WhatsAppNotificationService $waService): void
     {
+        $startedAt = ReceiptPipelineLogger::start();
         $key = WhatsAppDocumentReceivedDebouncer::cacheKey($this->senderNumber);
         $count = 0;
+        $alreadySent = false;
         /** @var list<int> $expenseIds */
         $expenseIds = [];
         /** @var list<array<string, mixed>> $documents */
         $documents = [];
+        /** @var list<string> $messageIds */
+        $messageIds = [];
 
         Cache::lock(WhatsAppDocumentReceivedDebouncer::lockKey($this->senderNumber), 5)
-            ->block(5, function () use ($key, &$count, &$expenseIds, &$documents): void {
+            ->block(5, function () use ($key, &$count, &$alreadySent, &$expenseIds, &$documents, &$messageIds): void {
                 $payload = Cache::get($key);
 
                 if (! is_array($payload) || ($payload['token'] ?? null) !== $this->token) {
@@ -85,25 +97,81 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
                     static fn (mixed $document): bool => is_array($document),
                 ));
                 $count = max($count, count($documents));
-                Cache::forget($key);
+                $alreadySent = WhatsAppDocumentReceivedDebouncer::wasSent(
+                    $this->senderNumber,
+                    $this->token,
+                );
+                $messageIds = array_values(array_filter(
+                    array_map(
+                        static fn (mixed $document): string => (string) ($document['message_id'] ?? ''),
+                        $documents,
+                    ),
+                    static fn (string $messageId): bool => $messageId !== '',
+                ));
             });
 
         if ($count < 1) {
+            ReceiptPipelineLogger::completed('receipt.received_ack', $startedAt, [
+                'queue' => $this->queue ?? 'default',
+                'outcome' => 'ignored',
+            ]);
+
             return;
         }
 
-        $waService->sendMessage(
-            $this->senderNumber,
-            WhatsAppMessage::documentReceived($count, $documents),
-        );
+        $correlationExpenseId = $expenseIds[0] ?? null;
+        $messageId = $messageIds[0] ?? null;
 
-        foreach ($expenseIds as $expenseId) {
-            if ($expenseId > 0) {
-                WhatsAppTypingCoordinator::startExpenseTyping($expenseId, $this->senderNumber);
+        if (! $alreadySent) {
+            $result = $waService->sendMessageResult(
+                $this->senderNumber,
+                WhatsAppMessage::documentReceived($count, $documents),
+                $messageId,
+                $correlationExpenseId,
+            );
 
-                ExtractReceiptDataJob::dispatch($expenseId);
+            if (! $result->ok) {
+                ReceiptPipelineLogger::completed('receipt.received_ack', $startedAt, [
+                    'message_id' => $messageId,
+                    'expense_id' => $correlationExpenseId,
+                    'queue' => $this->queue ?? 'default',
+                    'outcome' => 'failed',
+                    'reason' => $result->reason,
+                    'status' => $result->status,
+                ]);
+
+                throw new RuntimeException(
+                    'Unable to send the WhatsApp document received acknowledgement: '.$result->reason,
+                );
+            }
+
+            WhatsAppDocumentReceivedDebouncer::markSent(
+                $this->senderNumber,
+                $this->token,
+            );
+        }
+
+        foreach ($expenseIds as $queuedExpenseId) {
+            if ($queuedExpenseId > 0) {
+                WhatsAppTypingCoordinator::startExpenseTyping($queuedExpenseId, $this->senderNumber);
+
+                ExtractReceiptDataJob::dispatch($queuedExpenseId);
             }
         }
+
+        WhatsAppDocumentReceivedDebouncer::consume(
+            $this->senderNumber,
+            $this->token,
+            $messageIds,
+        );
+
+        ReceiptPipelineLogger::completed('receipt.received_ack', $startedAt, [
+            'message_id' => $messageId,
+            'expense_id' => $correlationExpenseId,
+            'queue' => $this->queue ?? 'default',
+            'outcome' => $alreadySent ? 'already_sent' : 'success',
+            'document_count' => $count,
+        ]);
     }
 
     protected function isDatabaseLocked(Throwable $exception): bool

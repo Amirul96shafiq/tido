@@ -7,6 +7,7 @@ use App\Models\Expense;
 use App\Models\PaymentMethod;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
+use App\Support\WhatsAppTypingSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
@@ -76,4 +77,42 @@ test('sends document needs review message when expense requires manual review', 
             && str_contains($text, 'Luckin Coffee')
             && str_contains($text, 'Please review and confirm');
     });
+});
+
+test('throws and preserves typing when the parsed reply send fails', function () {
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['error' => 'instance unavailable'], 503),
+    ]);
+
+    $expense = Expense::factory()->create([
+        'status' => 'parsed',
+        'source' => 'whatsapp',
+        'whatsapp_sender' => '601116330705',
+        'merchant_name' => 'Luckin Coffee',
+        'total_amount' => 4.23,
+    ]);
+
+    WhatsAppTypingSession::activate($expense->id, $expense->whatsapp_sender);
+
+    expect(fn () => (new SendWhatsAppDocumentParsedJob($expense->id))
+        ->handle(app(WhatsAppNotificationService::class)))
+        ->toThrow(RuntimeException::class);
+
+    expect(WhatsAppTypingSession::isActive($expense->id))->toBeTrue();
+});
+
+test('does not send a duplicate parsed reply after a successful retry', function () {
+    $expense = Expense::factory()->create([
+        'status' => 'parsed',
+        'source' => 'whatsapp',
+        'whatsapp_sender' => '601116330705',
+        'merchant_name' => 'Luckin Coffee',
+        'total_amount' => 4.23,
+    ]);
+
+    $job = new SendWhatsAppDocumentParsedJob($expense->id);
+    $job->handle(app(WhatsAppNotificationService::class));
+    $job->handle(app(WhatsAppNotificationService::class));
+
+    Http::assertSentCount(1);
 });

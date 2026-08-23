@@ -132,6 +132,35 @@ test('superseded document received ack token is ignored', function () {
         ->and(Cache::get(WhatsAppDocumentReceivedDebouncer::cacheKey($sender))['count'])->toBe(2);
 });
 
+test('document received ack retains the batch and throws when Evolution rejects the send', function () {
+    Queue::fake();
+
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['error' => 'instance unavailable'], 503),
+    ]);
+
+    $sender = '60123456789';
+
+    WhatsAppDocumentReceivedDebouncer::register($sender, [
+        'message_id' => 'MSG-FAILED-ACK',
+        'expense_id' => 101,
+        'filename' => 'receipt.jpg',
+        'mime_type' => 'image/jpeg',
+        'page_count' => null,
+        'status' => 'accepted',
+        'reason' => null,
+    ]);
+
+    $payload = Cache::get(WhatsAppDocumentReceivedDebouncer::cacheKey($sender));
+
+    expect(fn () => (new SendWhatsAppDocumentReceivedAckJob($sender, $payload['token']))
+        ->handle(app(WhatsAppNotificationService::class)))
+        ->toThrow(RuntimeException::class);
+
+    expect(Cache::get(WhatsAppDocumentReceivedDebouncer::cacheKey($sender)))->toBeArray();
+    Queue::assertNotPushed(ExtractReceiptDataJob::class);
+});
+
 test('mixed PDF batch acknowledges rejected files and only dispatches accepted expenses', function () {
     Queue::fake();
     Http::fake([

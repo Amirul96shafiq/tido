@@ -68,6 +68,12 @@ class LabelSeeder extends Seeder
                 'icon' => 'heroicon-o-credit-card',
                 'color' => '#FFE7C2',
             ],
+            [
+                'name' => 'Other',
+                'description' => 'Finance expenses that do not fit another Label',
+                'icon' => 'heroicon-o-ellipsis-horizontal-circle',
+                'color' => '#A8A29E',
+            ],
         ];
 
         foreach ($labels as $label) {
