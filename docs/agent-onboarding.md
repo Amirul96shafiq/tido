@@ -55,19 +55,20 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 16. Dark theme (Slate surfaces / 1px borders without elevation shadows / tooltips / scrollbars / solid CTA text): `docs/ui-dark-theme.md`
 17. UI copy voice (impersonal, no we/you): `docs/ui-copy-style.md`
 18. UI text headings (Title Case: `Text Heading`, never `Text heading`): `docs/ui-text-heading.md`
-19. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
-20. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
-21. Field character limits (`current/max` counters): `docs/ui-field-character-limits.md`
-22. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md` (includes JS date pickers + `DateOfBirthPicker`)
-23. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
-24. Resource edit audit (latest editor, username display, table recency): `docs/resource-edit-audit.md`
-25. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
-26. Local sandbox (port 2001) for backup/wipe browser tests: `docs/sandbox-testing.md`
-27. Service Status (health probes, uptime UI): `docs/service-status.md`
-28. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
-29. Household access (attribution, family login, expense ACL): `docs/household-access.md`
-30. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
-31. Integration pages (Ollama / Evolution API page structure, conventions, new-integration checklist): `docs/integration-pages.md`
+19. Count Up numeric values (stats, widgets, tables): `docs/ui-count-up.md`
+20. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
+21. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
+22. Field character limits (`current/max` counters): `docs/ui-field-character-limits.md`
+23. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md` (includes JS date pickers + `DateOfBirthPicker`)
+24. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
+25. Resource edit audit (latest editor, username display, table recency): `docs/resource-edit-audit.md`
+26. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
+27. Local sandbox (port 2001) for backup/wipe browser tests: `docs/sandbox-testing.md`
+28. Service Status (health probes, uptime UI): `docs/service-status.md`
+29. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
+30. Household access (attribution, family login, expense ACL): `docs/household-access.md`
+31. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+32. Integration pages (Ollama / Evolution API page structure, conventions, new-integration checklist): `docs/integration-pages.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 
