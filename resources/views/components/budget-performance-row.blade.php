@@ -54,8 +54,12 @@
             </div>
         </div>
         <div class="flex shrink-0 flex-col items-end gap-0.5 text-right whitespace-nowrap sm:flex-row sm:items-baseline sm:gap-1">
-            <span class="font-bold text-gray-700 dark:text-gray-300">{{ MoneyDisplay::withPrefix($spent) }}</span>
-            <span class="text-xs font-normal text-gray-400 dark:text-gray-500">/ {{ MoneyDisplay::withPrefix($amount) }}</span>
+            <span class="font-bold text-gray-700 dark:text-gray-300">
+                {!! \Xplodman\CountUp\Facades\CountUpStat::animate(MoneyDisplay::withPrefix($spent)) !!}
+            </span>
+            <span class="text-xs font-normal text-gray-400 dark:text-gray-500">
+                / {!! \Xplodman\CountUp\Facades\CountUpStat::animate(MoneyDisplay::withPrefix($amount)) !!}
+            </span>
         </div>
     </div>
 
@@ -71,20 +75,20 @@
             @if ($rawPercentage >= 100)
                 <span class="flex items-center gap-1 font-semibold text-red-500">
                     <span class="h-1.5 w-1.5 animate-ping rounded-full bg-red-500"></span>
-                    Exceeded by {{ number_format($rawPercentage - 100, 1) }}%
+                    Exceeded by <x-count-up :value="$rawPercentage - 100" :decimals="1" suffix="%" />
                 </span>
             @elseif ($statusColor === 'amber')
                 <span class="font-semibold text-amber-500">
-                    Approaching limit ({{ number_format($rawPercentage, 1) }}%)
+                    Approaching limit (<x-count-up :value="$rawPercentage" :decimals="1" suffix="%" />)
                 </span>
             @else
                 <span class="text-gray-400 dark:text-gray-500">
-                    {{ number_format($rawPercentage, 1) }}% consumed
+                    <x-count-up :value="$rawPercentage" :decimals="1" suffix="% consumed" />
                 </span>
             @endif
         </span>
         <span>
-            {{ MoneyDisplay::withPrefix(max(0, $amount - $spent)) }} remaining
+            {!! \Xplodman\CountUp\Facades\CountUpStat::animate(MoneyDisplay::withPrefix(max(0, $amount - $spent))) !!} remaining
         </span>
     </div>
 </div>

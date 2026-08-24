@@ -33,7 +33,7 @@
         </div>
 
         <div class="fi-wi-stats-overview-stat-value">
-            {{ $getValue() }}
+            {!! \Xplodman\CountUp\Facades\CountUpStat::animate($getValue()) !!}
         </div>
 
         @if ($description = $getDescription())

@@ -74,7 +74,7 @@
                         </svg>
                         <div class="absolute inset-0 flex flex-col items-center justify-center">
                             <span class="text-lg font-semibold tabular-nums text-gray-800 dark:text-gray-200">
-                                {{ $completedCount }}
+                                <x-count-up :value="$completedCount" />
                             </span>
                             <span class="text-[11px] text-gray-400 dark:text-gray-500">
                                 of {{ $ringTotal }}
@@ -86,13 +86,13 @@
 
                 <div class="flex flex-col items-center gap-0.5 text-center">
                     <span class="text-xl font-bold tabular-nums text-gray-800 dark:text-gray-200">
-                        {{ $paidAmount }}
+                        {!! \Xplodman\CountUp\Facades\CountUpStat::animate($paidAmount) !!}
                     </span>
                     <span class="text-xs text-gray-400 dark:text-gray-500">
-                        Paid of {{ $totalAmount }}
+                        Paid of {!! \Xplodman\CountUp\Facades\CountUpStat::animate($totalAmount) !!}
                     </span>
                     <span class="text-xs text-gray-400 dark:text-gray-500">
-                        {{ $remainingAmount }} remaining
+                        {!! \Xplodman\CountUp\Facades\CountUpStat::animate($remainingAmount) !!} remaining
                     </span>
                 </div>
 

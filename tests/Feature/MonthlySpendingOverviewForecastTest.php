@@ -133,6 +133,33 @@ test('monthly spending overview stat descriptions use single-line marquee markup
         ->and($html)->toContain('x-ref="marqueeTrack"');
 });
 
+test('monthly spending overview renders count-up stats without losing formatted values', function () {
+    Carbon::setTestNow(Carbon::parse('2026-08-11 12:00:00', 'Asia/Kuala_Lumpur'));
+
+    Expense::unsetEventDispatcher();
+
+    Expense::factory()->create([
+        'date_time' => Carbon::parse('2026-08-10 10:00:00', 'Asia/Kuala_Lumpur'),
+        'subtotal' => 120.00,
+        'total_tax' => 7.20,
+        'total_amount' => 127.20,
+        'status' => 'reviewed',
+        'source' => 'manual',
+        'receipt_hash' => hash('sha256', 'overview-count-up'),
+        'invoice_number' => 'INV-COUNT-UP',
+    ]);
+
+    Expense::setEventDispatcher(app('events'));
+
+    $html = Livewire::test(MonthlySpendingOverview::class)
+        ->assertSuccessful()
+        ->html();
+
+    expect(substr_count($html, 'fi-count-up'))->toBeGreaterThanOrEqual(4)
+        ->and(substr_count($html, 'x-data="countUp('))->toBeGreaterThanOrEqual(4)
+        ->and($html)->toContain('RM 127.20');
+});
+
 test('monthly spending overview renders a native sparkline for every stat', function () {
     Carbon::setTestNow(Carbon::parse('2026-07-21 12:00:00', 'Asia/Kuala_Lumpur'));
 

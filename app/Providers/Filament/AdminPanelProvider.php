@@ -51,6 +51,7 @@ use Illuminate\Support\Facades\Vite;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Livewire\Component;
 use Livewire\Livewire;
+use Xplodman\CountUp\CountUpPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -444,6 +445,8 @@ class AdminPanelProvider extends PanelProvider
             ->globalSearchKeyBindings(['alt+k'])
             ->globalSearchFieldKeyBindingSuffix()
             ->plugins([
+                CountUpPlugin::make()
+                    ->autoAnimateStats(false),
                 GlobalSearchModalPlugin::make()
                     ->modal(
                         width: Width::TwoExtraLarge,

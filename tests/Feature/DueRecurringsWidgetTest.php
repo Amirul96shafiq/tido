@@ -42,6 +42,7 @@ test('due widget shows open occurrences for primary', function () {
         ->assertOk()
         ->assertSee('1 Recurring Payment Due')
         ->assertSee('RM 89.90')
+        ->assertSee('fi-count-up', false)
         ->assertSee('Manage')
         ->assertSee('TIME Internet')
         ->assertSee(RecurringOccurrenceStatus::Due->label());

@@ -113,7 +113,8 @@ test('create budget page shows performance empty state until amount is set', fun
         ->assertSee('Overall Budget')
         ->assertSee('Monthly')
         ->assertSee('0.0% consumed')
-        ->assertSee('RM 500.00 remaining');
+        ->assertSee('RM 500.00 remaining')
+        ->assertSee('fi-count-up', false);
 });
 
 test('create budget performance uses live form amount', function () {

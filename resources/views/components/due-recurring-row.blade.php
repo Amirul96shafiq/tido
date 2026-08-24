@@ -151,7 +151,7 @@
                 'opacity-50' => $isSkipped,
             ])
         >
-            {{ $item['amount'] }}
+            {!! \Xplodman\CountUp\Facades\CountUpStat::animate($item['amount']) !!}
         </span>
 
         <div

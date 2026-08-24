@@ -89,9 +89,10 @@ test('list page renders for primary', function () {
     $recurring = Recurring::factory()->create([
         'title' => 'GPROP',
         'label_id' => $label->id,
+        'expected_amount' => 84.79,
     ]);
 
-    Livewire::test(ListRecurrings::class)
+    $component = Livewire::test(ListRecurrings::class)
         ->assertOk()
         ->assertCanSeeTableRecords(Recurring::all())
         ->assertTableColumnExists('type', function (TextColumn $column): bool {
@@ -109,6 +110,8 @@ test('list page renders for primary', function () {
         ->assertTableColumnExists('editedBy.name', function (TextColumn $column): bool {
             return $column->getPlaceholder() === 'System';
         });
+
+    expect($component->html())->toContain('fi-count-up');
 });
 
 test('list page shows primary username when assigned to primary', function () {
