@@ -2432,6 +2432,7 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     .fi-body-has-sidebar-collapsible-on-desktop
         .fi-sidebar:not(.fi-sidebar-animating) {
         overflow: visible;
+        clip-path: none !important;
     }
 
     .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar.fi-sidebar-open {
