@@ -1739,7 +1739,8 @@ html.fi-sidebar-preload .fi-sidebar-item-btn,
 html.fi-sidebar-preload .fi-sidebar-group-dropdown-trigger-btn,
 html.fi-sidebar-preload .fi-sidebar-logo-full,
 html.fi-sidebar-preload .fi-sidebar-logo-compact,
-html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
+html.fi-sidebar-preload .fi-sidebar .fi-transition-enter,
+html.fi-sidebar-preload .fi-sidebar::after {
     transition: none !important;
     animation: none !important;
 }
@@ -2386,6 +2387,41 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
         clip-path: inset(0 0 0 0);
         transition: clip-path var(--tido-sidebar-duration)
             var(--tido-sidebar-ease) !important;
+        /*
+         * clip-path hides border-inline-end on the full-width box. Keep that
+         * edge transparent and paint the rail with ::after in idle and morph
+         * so dropping .fi-sidebar-animating does not swap layers (flash).
+         */
+        border-inline-end-color: transparent !important;
+    }
+
+    .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar::after {
+        content: "";
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
+        width: 1px;
+        background-color: var(--color-gray-100);
+        pointer-events: none;
+        z-index: 1;
+        transition: inset-inline-start var(--tido-sidebar-duration)
+            var(--tido-sidebar-ease);
+    }
+
+    .dark .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar::after {
+        background-color: color-mix(
+            in srgb,
+            var(--color-slate-700) 60%,
+            transparent
+        );
+    }
+
+    .fi-body-has-sidebar-collapsible-on-desktop
+        .fi-sidebar.fi-sidebar-open::after {
+        /* 100% is the padding box. width-1px sits in the 1px border gutter
+         * and is clipped by overflow:hidden, then flashes when idle
+         * overflow:visible restores it. */
+        inset-inline-start: calc(100% - 1px);
     }
 
     /*
@@ -2505,7 +2541,8 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     .fi-sidebar-logo-compact,
     .fi-user-menu-trigger-text,
     .fi-user-menu-trigger-chevron,
-    .fi-sidebar .fi-transition-enter {
+    .fi-sidebar .fi-transition-enter,
+    .fi-sidebar::after {
         transition: none !important;
         animation: none !important;
     }

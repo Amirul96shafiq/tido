@@ -341,6 +341,14 @@ test('sidebar collapse expand transition uses shared motion tokens and logo mask
             '.fi-body-has-sidebar-collapsible-on-desktop:has(',
         )
         ->toContain('fi-sidebar-animating')
+        ->toContain(
+            '.fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar::after {',
+        )
+        ->toContain('border-inline-end-color: transparent !important;')
+        ->toContain(
+            'transition: inset-inline-start var(--tido-sidebar-duration)',
+        )
+        ->toContain('inset-inline-start: calc(100% - 1px);')
         ->toContain('fi-sidebar-group-heading')
         ->and($collapsedFullBlock)
         ->toContain('display: none;')
