@@ -343,8 +343,13 @@ The user must review content before anything is published.
 ### Agent workflow
 
 1. Prepare the PR locally (branch, commits already reviewed with the user if new commits are needed)
-2. Show what will be pushed / what the PR will contain (summary + key files)
-3. Ask for explicit approval, then run push / `gh pr create` only after yes
+2. Format the PR description using the **Pull Request Body Standard** defined in `docs/git-workflow.md`:
+   - Keep `## Summary` first and use concise bullets in the imperative or present tense.
+   - Use `## Test plan` as step-by-step instructions for a reviewer to execute before approving the pull request, not as a retrospective list of checks already run.
+   - Prefix every test-plan step with an unchecked Markdown box (`- [ ]`), including manual checks and `Run:` commands, leaving every box unchecked.
+   - Do not use generic headings like `## Overview`, `## Changes`, or `## Verification`.
+3. Show what will be pushed / what the PR will contain (summary + key files) and the generated PR body text
+4. Ask for explicit approval, then run push / `gh pr create` only after yes
 
 ### Commit Message Format
 
