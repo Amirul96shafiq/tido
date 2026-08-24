@@ -287,7 +287,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
 
 /* Sidebar collapse/expand motion tokens */
 :root {
-    /* Slower width morph; content stays masked until width is nearly settled (A). */
+    /* Slower rail morph; content stays masked until width is nearly settled (A). */
     --tido-sidebar-duration: 520ms;
     --tido-sidebar-ease: cubic-bezier(0.45, 0.05, 0.15, 1);
     --tido-sidebar-content-delay: 340ms;
@@ -1739,7 +1739,8 @@ html.fi-sidebar-preload .fi-sidebar-item-btn,
 html.fi-sidebar-preload .fi-sidebar-group-dropdown-trigger-btn,
 html.fi-sidebar-preload .fi-sidebar-logo-full,
 html.fi-sidebar-preload .fi-sidebar-logo-compact,
-html.fi-sidebar-preload .fi-sidebar .fi-transition-enter {
+html.fi-sidebar-preload .fi-sidebar .fi-transition-enter,
+html.fi-sidebar-preload .fi-sidebar::after {
     transition: none !important;
     animation: none !important;
 }
@@ -2383,11 +2384,48 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 
     .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar {
         overflow-x: hidden;
-        transition: width var(--tido-sidebar-duration) var(--tido-sidebar-ease) !important;
+        clip-path: inset(0 0 0 0);
+        transition: clip-path var(--tido-sidebar-duration)
+            var(--tido-sidebar-ease) !important;
+        /*
+         * clip-path hides border-inline-end on the full-width box. Keep that
+         * edge transparent and paint the rail with ::after in idle and morph
+         * so dropping .fi-sidebar-animating does not swap layers (flash).
+         */
+        border-inline-end-color: transparent !important;
+    }
+
+    .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar::after {
+        content: "";
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: calc(var(--collapsed-sidebar-width, 4.5rem) - 1px);
+        width: 1px;
+        background-color: var(--color-gray-100);
+        pointer-events: none;
+        z-index: 1;
+        transition: inset-inline-start var(--tido-sidebar-duration)
+            var(--tido-sidebar-ease);
+    }
+
+    .dark .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar::after {
+        background-color: color-mix(
+            in srgb,
+            var(--color-slate-700) 60%,
+            transparent
+        );
+    }
+
+    .fi-body-has-sidebar-collapsible-on-desktop
+        .fi-sidebar.fi-sidebar-open::after {
+        /* 100% is the padding box. width-1px sits in the 1px border gutter
+         * and is clipped by overflow:hidden, then flashes when idle
+         * overflow:visible restores it. */
+        inset-inline-start: calc(100% - 1px);
     }
 
     /*
-     * Clip only while the width morph runs. Idle overflow:visible lets item
+     * Clip only while the rail morphs. Idle overflow:visible lets item
      * flyouts (portaled to .fi-sidebar, outside .fi-sidebar-nav) paint over
      * .fi-main-ctn. overflow-x:hidden otherwise clips the submenu.
      */
@@ -2398,14 +2436,39 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
 
     .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar.fi-sidebar-open {
         width: var(--sidebar-width, 18rem) !important;
+        clip-path: inset(0 0 0 0);
+    }
+
+    /*
+     * Same left-to-right / right-to-left rail as the original width morph,
+     * without relaying out sidebar descendants every frame.
+     */
+    .fi-body-has-sidebar-collapsible-on-desktop
+        .fi-sidebar.fi-sidebar-animating {
+        width: var(--sidebar-width, 18rem) !important;
+        overflow: hidden;
     }
 
     .fi-body-has-sidebar-collapsible-on-desktop
-        .fi-sidebar:not(.fi-sidebar-open),
+        .fi-sidebar.fi-sidebar-animating:not(.fi-sidebar-open) {
+        clip-path: inset(
+            0
+                calc(
+                    var(--sidebar-width, 18rem) -
+                        var(--collapsed-sidebar-width, 4.5rem)
+                )
+                0 0
+        );
+    }
+
+    .fi-body-has-sidebar-collapsible-on-desktop
+        .fi-sidebar:not(.fi-sidebar-open):not(.fi-sidebar-animating),
     html.fi-sidebar-is-collapsed
         .fi-body-has-sidebar-collapsible-on-desktop
-        .fi-sidebar {
+        .fi-sidebar:not(.fi-sidebar-animating) {
         width: var(--collapsed-sidebar-width, 4.5rem) !important;
+        clip-path: inset(0 0 0 0);
+        transition: none !important;
     }
 
     .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar-header {
@@ -2440,6 +2503,9 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
      * tido topbar is calc(var(--collapsed-sidebar-width) - 1px) (~71px) and sits
      * outside .fi-main-ctn, so the stock min-height forces ~7px page overflow
      * even when content is short. Match the real topbar height.
+     *
+     * Inset follows the rail clip-path (same duration/ease). Do not tween
+     * sidebar width — that relayouts nav chrome every frame.
      */
     .fi-body-has-sidebar-collapsible-on-desktop .fi-main-ctn {
         margin-inline-start: var(--collapsed-sidebar-width, 4.5rem);
@@ -2475,7 +2541,8 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     .fi-sidebar-logo-compact,
     .fi-user-menu-trigger-text,
     .fi-user-menu-trigger-chevron,
-    .fi-sidebar .fi-transition-enter {
+    .fi-sidebar .fi-transition-enter,
+    .fi-sidebar::after {
         transition: none !important;
         animation: none !important;
     }

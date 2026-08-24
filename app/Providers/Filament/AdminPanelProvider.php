@@ -374,8 +374,10 @@ class AdminPanelProvider extends PanelProvider
                                             clearTimeout(animTimer);
                                         }
                                         var styles = getComputedStyle(document.documentElement);
-                                        var duration = parseFloat(styles.getPropertyValue('--tido-sidebar-duration')) || 520;
-                                        var delay = parseFloat(styles.getPropertyValue('--tido-sidebar-content-delay')) || 340;
+                                        var durationParsed = parseFloat(styles.getPropertyValue('--tido-sidebar-duration'));
+                                        var delayParsed = parseFloat(styles.getPropertyValue('--tido-sidebar-content-delay'));
+                                        var duration = Number.isFinite(durationParsed) ? durationParsed : 520;
+                                        var delay = Number.isFinite(delayParsed) ? delayParsed : 340;
                                         animTimer = setTimeout(function () {
                                             sidebar.classList.remove('fi-sidebar-animating');
                                             animTimer = null;
@@ -551,10 +553,13 @@ class AdminPanelProvider extends PanelProvider
                                                 const sidebar = $el.closest('.fi-sidebar');
                                                 if (sidebar) {
                                                     sidebar.classList.add('fi-sidebar-animating');
+                                                    sidebar.style.setProperty('transition', 'none', 'important');
+                                                    sidebar.offsetWidth;
+                                                    sidebar.style.removeProperty('transition');
                                                 }
                                                 $el.blur();
                                                 document.querySelectorAll('[data-tippy-root]').forEach((node) => node.remove());
-                                                $store.sidebar.open();
+                                                requestAnimationFrame(() => $store.sidebar.open());
                                             "
                                             class="fi-sidebar-open-collapse-sidebar-btn"
                                         >

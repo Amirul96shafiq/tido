@@ -60,6 +60,7 @@ test('main content min-height matches tido topbar not Filament 4rem', function (
     expect($mainCtnBlock)
         ->toContain('min-height: calc(')
         ->toContain('100dvh - (var(--collapsed-sidebar-width, 4.5rem) - 1px)')
+        ->toContain('transition: margin-inline-start var(--tido-sidebar-duration)')
         ->not->toContain('100dvh - 4rem')
         ->not->toContain('100dvh-4rem');
 });
@@ -175,7 +176,12 @@ test('collapsed sidebar collapse footer is a square matching collapsed sidebar w
         ->toContain('class="fi-sidebar-collapse-buttons')
         ->toContain('stabilizeSidebarChrome')
         ->toContain("classList.contains('fi-sidebar-preload')")
-        ->toContain('spaNavigating');
+        ->toContain('spaNavigating')
+        ->toContain("sidebar.style.setProperty('transition', 'none', 'important')")
+        ->toContain('requestAnimationFrame(() => $store.sidebar.open())')
+        ->not->toContain('127.0.0.1:7630')
+        ->not->toContain('agent log')
+        ->not->toContain('__tidoPrepareSidebarClip');
 });
 
 test('sidebar footer owns collapse buttons and header only owns logo', function () {
@@ -318,9 +324,31 @@ test('sidebar collapse expand transition uses shared motion tokens and logo mask
         )
         ->toContain('@keyframes fi-sidebar-expand-chrome-enter')
         ->toContain(
+            'transition: clip-path var(--tido-sidebar-duration)',
+        )
+        ->toContain(
+            'transition: margin-inline-start var(--tido-sidebar-duration)',
+        )
+        ->toContain(
+            'transition: padding-inline-start var(--tido-sidebar-duration)',
+        )
+        ->not->toContain(
             'transition: width var(--tido-sidebar-duration) var(--tido-sidebar-ease) !important;',
         )
+        ->not->toContain('tido-sidebar-clip-collapsed')
+        ->not->toContain('html.tido-sidebar-hold-collapsed-inset')
+        ->not->toContain(
+            '.fi-body-has-sidebar-collapsible-on-desktop:has(',
+        )
         ->toContain('fi-sidebar-animating')
+        ->toContain(
+            '.fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar::after {',
+        )
+        ->toContain('border-inline-end-color: transparent !important;')
+        ->toContain(
+            'transition: inset-inline-start var(--tido-sidebar-duration)',
+        )
+        ->toContain('inset-inline-start: calc(100% - 1px);')
         ->toContain('fi-sidebar-group-heading')
         ->and($collapsedFullBlock)
         ->toContain('display: none;')
