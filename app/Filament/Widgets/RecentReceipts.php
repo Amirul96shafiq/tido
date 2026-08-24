@@ -22,6 +22,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 
 class RecentReceipts extends BaseWidget
 {
@@ -89,12 +90,10 @@ class RecentReceipts extends BaseWidget
                         return (string) $state;
                     }),
 
-                TextColumn::make('total_amount')
+                CountUpColumn::make('total_amount')
                     ->label('Total Amount')
-                    ->formatStateUsing(fn (?string $state, Expense $record): string => MoneyDisplay::withCurrency(
-                        $state,
-                        $record->displayCurrency(),
-                    ))
+                    ->countUpDecimals(2)
+                    ->countUpPrefix(fn (Expense $record): string => MoneyDisplay::prefixForCurrency($record->displayCurrency()).' ')
                     ->tooltip(fn (Expense $record): ?string => MoneyDisplay::conversionSummary($record))
                     ->sortable(),
 

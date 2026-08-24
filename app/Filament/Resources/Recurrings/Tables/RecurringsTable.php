@@ -10,6 +10,7 @@ use App\Enums\RecurringOccurrenceStatus;
 use App\Enums\RecurringType;
 use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Filament\Support\RecordActionsGroup;
+use App\Helpers\MoneyDisplay;
 use App\Models\Recurring;
 use App\Models\User;
 use App\Support\HouseholdAccess;
@@ -29,6 +30,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Xplodman\CountUp\Facades\CountUpStat;
 use Illuminate\Database\Eloquent\Builder;
 
 class RecurringsTable
@@ -89,7 +91,9 @@ class RecurringsTable
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('expected_amount')
-                    ->myr()
+                    ->formatStateUsing(fn (mixed $state): \Illuminate\Contracts\Support\Htmlable|string => $state === null
+                        ? 'Variable'
+                        : CountUpStat::animate(MoneyDisplay::withPrefix($state)))
                     ->placeholder('Variable')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),

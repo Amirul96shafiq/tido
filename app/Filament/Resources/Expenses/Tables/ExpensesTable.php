@@ -36,6 +36,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 
 class ExpensesTable
 {
@@ -86,19 +87,15 @@ class ExpensesTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),
 
-                TextColumn::make('total_amount')
-                    ->formatStateUsing(fn (?string $state, Expense $record): string => MoneyDisplay::withCurrency(
-                        $state,
-                        $record->displayCurrency(),
-                    ))
+                CountUpColumn::make('total_amount')
+                    ->countUpDecimals(2)
+                    ->countUpPrefix(fn (Expense $record): string => MoneyDisplay::prefixForCurrency($record->displayCurrency()).' ')
                     ->tooltip(fn (Expense $record): ?string => MoneyDisplay::conversionSummary($record))
                     ->sortable(),
 
-                TextColumn::make('discount_total')
-                    ->formatStateUsing(fn (?string $state, Expense $record): string => MoneyDisplay::withCurrency(
-                        $state,
-                        $record->displayCurrency(),
-                    ))
+                CountUpColumn::make('discount_total')
+                    ->countUpDecimals(2)
+                    ->countUpPrefix(fn (Expense $record): string => MoneyDisplay::prefixForCurrency($record->displayCurrency()).' ')
                     ->tooltip(fn (Expense $record): ?string => MoneyDisplay::conversionSummary($record))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),

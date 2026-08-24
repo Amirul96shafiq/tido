@@ -29,6 +29,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 
 class ReceiptUploadPage extends Page implements HasForms, HasTable
 {
@@ -184,12 +185,10 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
                         return (string) $state;
                     }),
 
-                TextColumn::make('total_amount')
+                CountUpColumn::make('total_amount')
                     ->label('Total Amount')
-                    ->formatStateUsing(fn (?string $state, Expense $record): string => MoneyDisplay::withCurrency(
-                        $state,
-                        $record->displayCurrency(),
-                    ))
+                    ->countUpDecimals(2)
+                    ->countUpPrefix(fn (Expense $record): string => MoneyDisplay::prefixForCurrency($record->displayCurrency()).' ')
                     ->tooltip(fn (Expense $record): ?string => MoneyDisplay::conversionSummary($record))
                     ->sortable(),
 

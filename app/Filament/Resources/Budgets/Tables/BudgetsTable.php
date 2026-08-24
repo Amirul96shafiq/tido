@@ -11,6 +11,7 @@ use App\Models\Budget;
 use App\Models\FamilyMember;
 use App\Models\User;
 use App\Support\HouseholdAccess;
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -100,8 +101,9 @@ class BudgetsTable
                     ->boolean()
                     ->toggleable(isToggledHiddenByDefault: false),
 
-                TextColumn::make('amount')
-                    ->myr()
+                CountUpColumn::make('amount')
+                    ->countUpDecimals(2)
+                    ->countUpPrefix('RM ')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),
 

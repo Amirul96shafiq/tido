@@ -39,7 +39,11 @@
                         </p>
                         <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                             <p class="text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">
-                                {{ $rateDisplay }}
+                                <x-count-up
+                                    :value="$rate"
+                                    :decimals="4"
+                                    prefix="1 USD = RM "
+                                />
                             </p>
                             @if ($hasSeriesStats && filled($changeDisplay))
                                 <p @class([
@@ -159,7 +163,7 @@
                                 <div class="flex items-center justify-between gap-3">
                                     <dt class="text-sm text-gray-500 dark:text-gray-400">Low</dt>
                                     <dd class="text-base font-semibold tabular-nums text-gray-950 dark:text-white">
-                                        {{ $lowDisplay }}
+                                        <x-count-up :value="$lowDisplay" :decimals="4" />
                                     </dd>
                                 </div>
                             </div>
@@ -167,7 +171,7 @@
                                 <div class="flex items-center justify-between gap-3">
                                     <dt class="text-sm text-gray-500 dark:text-gray-400">High</dt>
                                     <dd class="text-base font-semibold tabular-nums text-gray-950 dark:text-white">
-                                        {{ $highDisplay }}
+                                        <x-count-up :value="$highDisplay" :decimals="4" />
                                     </dd>
                                 </div>
                             </div>
@@ -175,7 +179,7 @@
                                 <div class="flex items-center justify-between gap-3">
                                     <dt class="text-sm text-gray-500 dark:text-gray-400">Avg</dt>
                                     <dd class="text-base font-semibold tabular-nums text-gray-950 dark:text-white">
-                                        {{ $avgDisplay }}
+                                        <x-count-up :value="$avgDisplay" :decimals="4" />
                                     </dd>
                                 </div>
                             </div>
