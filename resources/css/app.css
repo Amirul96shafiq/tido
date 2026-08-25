@@ -5252,3 +5252,27 @@ html.tido-reduce-motion .tido-expense-status-pending .fi-badge {
 html.tido-reduce-motion .tido-status-pulse {
     animation: none !important;
 }
+
+@keyframes tido-ping-pulse {
+    75%,
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+.tido-ping-pulse {
+    animation: tido-ping-pulse 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tido-ping-pulse {
+        animation: none !important;
+        opacity: 0 !important;
+    }
+}
+
+html.tido-reduce-motion .tido-ping-pulse {
+    animation: none !important;
+    opacity: 0 !important;
+}

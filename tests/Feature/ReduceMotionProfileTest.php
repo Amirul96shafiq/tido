@@ -107,3 +107,13 @@ test('admin panel reduce motion script syncs preference across spa navigation', 
         ->toContain('tido-reduce-motion-changed')
         ->toContain('snapCountUpsToFinal');
 });
+
+test('reduce motion css disables ping pulse animations', function (): void {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.tido-ping-pulse')
+        ->toContain('@keyframes tido-ping-pulse')
+        ->toContain('html.tido-reduce-motion .tido-ping-pulse')
+        ->toContain('opacity: 0 !important;');
+});

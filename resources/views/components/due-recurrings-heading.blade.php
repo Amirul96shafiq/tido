@@ -7,7 +7,7 @@
     <span class="relative flex size-2 shrink-0" aria-hidden="true">
         <span
             @class([
-                'absolute inline-flex h-full w-full animate-ping rounded-full opacity-75',
+                'absolute inline-flex h-full w-full tido-ping-pulse rounded-full opacity-75',
                 'bg-red-500' => $titleIndicator === 'alert',
                 'bg-gray-400 dark:bg-gray-500' => $titleIndicator === 'calm',
             ])

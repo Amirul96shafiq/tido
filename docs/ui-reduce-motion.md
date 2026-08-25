@@ -8,7 +8,7 @@ Profile **Reduce Motion** disables decorative animation across the admin panel. 
 - UI: native `Toggle::make('reduce_motion')` in **Personalize & Appearance → PREFERENCES** on [`EditProfile.php`](../app/Filament/Pages/Auth/EditProfile.php)
 - Helper: [`App\Support\ReduceMotion`](../app/Support/ReduceMotion.php)
 
-When enabled, count-up, marquee, status pulses, sidebar chrome transitions, notification timer bars, empty-panel entrance, and smooth scroll helpers use static or instant behavior.
+When enabled, count-up, marquee, status pulses, notification badge pings, recurring dues title pings, sidebar chrome transitions, notification timer bars, empty-panel entrance, and smooth scroll helpers use static or instant behavior.
 
 ## How it applies
 
@@ -34,6 +34,10 @@ The `HEAD_START` script must load before Alpine and count-up scripts.
 ## Status pulses
 
 Connected-state ring pulses use `.tido-status-pulse` in [`app.css`](../resources/css/app.css) instead of inline `animation:` styles. Surfaces: Evolution API, Ollama, Service Status.
+
+## Ping pulses
+
+Unread notification count badges (topbar avatar + menu item) and the Recurring Payment Dues title indicator use `.tido-ping-pulse` instead of Tailwind `animate-ping`. The static inner dot remains visible when motion is reduced; only the expanding ring is hidden.
 
 ## Agent checklist
 
