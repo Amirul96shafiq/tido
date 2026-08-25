@@ -6,18 +6,18 @@
  * Overflow measure stays in JS; motion is CSS animation (same contract as
  * x-tido.text-marquee) so the main thread is not writing transform every frame.
  */
-const ROOT_SELECTOR = '.tido-select-value-marquee';
+const ROOT_SELECTOR = ".tido-select-value-marquee";
 const SPEED = 40;
 
 /**
  * @returns {boolean}
  */
 function prefersReducedMotion() {
-    if (typeof window.tidoPrefersReducedMotion === 'function') {
+    if (typeof window.tidoPrefersReducedMotion === "function") {
         return window.tidoPrefersReducedMotion();
     }
 
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 /** @type {WeakMap<HTMLElement, MarqueeState>} */
@@ -38,7 +38,7 @@ const states = new WeakMap();
 function getState(clip) {
     let state = states.get(clip);
 
-    if (! state) {
+    if (!state) {
         state = {
             overflowing: false,
             scrollDistance: 0,
@@ -56,7 +56,8 @@ function getState(clip) {
  */
 function readGap(track) {
     const styles = window.getComputedStyle(track);
-    const parsed = Number.parseFloat(styles.columnGap) || Number.parseFloat(styles.gap);
+    const parsed =
+        Number.parseFloat(styles.columnGap) || Number.parseFloat(styles.gap);
 
     return Number.isFinite(parsed) ? parsed : 32;
 }
@@ -71,20 +72,23 @@ function readGap(track) {
 function applyMotion(track, shouldOverflow, scrollDistance, state) {
     state.overflowing = shouldOverflow;
     state.scrollDistance = scrollDistance;
-    track.classList.toggle('is-overflowing', shouldOverflow);
+    track.classList.toggle("is-overflowing", shouldOverflow);
 
-    if (shouldOverflow && ! prefersReducedMotion() && scrollDistance > 0) {
-        track.style.setProperty('--tido-marquee-distance', `${scrollDistance}px`);
+    if (shouldOverflow && !prefersReducedMotion() && scrollDistance > 0) {
         track.style.setProperty(
-            '--tido-marquee-duration',
+            "--tido-marquee-distance",
+            `${scrollDistance}px`,
+        );
+        track.style.setProperty(
+            "--tido-marquee-duration",
             `${(scrollDistance / SPEED).toFixed(2)}s`,
         );
 
         return;
     }
 
-    track.style.removeProperty('--tido-marquee-distance');
-    track.style.removeProperty('--tido-marquee-duration');
+    track.style.removeProperty("--tido-marquee-distance");
+    track.style.removeProperty("--tido-marquee-duration");
 }
 
 /**
@@ -95,7 +99,7 @@ function applyMotion(track, shouldOverflow, scrollDistance, state) {
  * @returns {void}
  */
 function measure(clip, track, segment, state) {
-    if (! segment.isConnected || ! track.isConnected) {
+    if (!segment.isConnected || !track.isConnected) {
         return;
     }
 
@@ -108,7 +112,7 @@ function measure(clip, track, segment, state) {
 
     const gap = readGap(track);
     const scrollDistance = segmentWidth + gap;
-    const shouldOverflow = (segmentWidth - clipWidth) > 1;
+    const shouldOverflow = segmentWidth - clipWidth > 1;
 
     applyMotion(track, shouldOverflow, scrollDistance, state);
 }
@@ -119,13 +123,15 @@ function measure(clip, track, segment, state) {
  * @returns {void}
  */
 function syncDuplicate(track, label) {
-    let duplicate = track.querySelector(':scope > .tido-text-marquee-segment[aria-hidden="true"]');
+    let duplicate = track.querySelector(
+        ':scope > .tido-text-marquee-segment[aria-hidden="true"]',
+    );
 
-    if (! duplicate) {
+    if (!duplicate) {
         duplicate = /** @type {HTMLElement} */ (label.cloneNode(true));
-        duplicate.removeAttribute('id');
-        duplicate.classList.remove('fi-select-input-value-label');
-        duplicate.setAttribute('aria-hidden', 'true');
+        duplicate.removeAttribute("id");
+        duplicate.classList.remove("fi-select-input-value-label");
+        duplicate.setAttribute("aria-hidden", "true");
         track.append(duplicate);
 
         return;
@@ -143,28 +149,38 @@ function syncDuplicate(track, label) {
  * @returns {{track: HTMLElement, segment: HTMLElement}|null}
  */
 function ensureTrack(clip) {
-    const label = clip.querySelector('.fi-select-input-value-label');
+    const label = clip.querySelector(".fi-select-input-value-label");
 
-    if (! (label instanceof HTMLElement)) {
+    if (!(label instanceof HTMLElement)) {
         return null;
     }
 
-    clip.querySelectorAll(':scope > .tido-text-marquee-track').forEach((orphan) => {
-        if (! orphan.contains(label)) {
-            orphan.remove();
-        }
-    });
+    clip.querySelectorAll(":scope > .tido-text-marquee-track").forEach(
+        (orphan) => {
+            if (!orphan.contains(label)) {
+                orphan.remove();
+            }
+        },
+    );
 
-    let track = label.closest('.tido-text-marquee-track');
+    let track = label.closest(".tido-text-marquee-track");
 
-    if (! (track instanceof HTMLElement) || track.parentElement !== clip) {
-        track = document.createElement('span');
-        track.className = 'tido-text-marquee-track';
-        label.classList.add('tido-text-marquee-segment', 'inline-block', 'whitespace-nowrap');
+    if (!(track instanceof HTMLElement) || track.parentElement !== clip) {
+        track = document.createElement("span");
+        track.className = "tido-text-marquee-track";
+        label.classList.add(
+            "tido-text-marquee-segment",
+            "inline-block",
+            "whitespace-nowrap",
+        );
         label.replaceWith(track);
         track.append(label);
     } else {
-        label.classList.add('tido-text-marquee-segment', 'inline-block', 'whitespace-nowrap');
+        label.classList.add(
+            "tido-text-marquee-segment",
+            "inline-block",
+            "whitespace-nowrap",
+        );
     }
 
     syncDuplicate(track, label);
@@ -177,19 +193,19 @@ function ensureTrack(clip) {
  * @returns {void}
  */
 function enhanceRoot(root) {
-    const clip = root.querySelector('.fi-select-input-value-ctn');
+    const clip = root.querySelector(".fi-select-input-value-ctn");
 
-    if (! (clip instanceof HTMLElement)) {
+    if (!(clip instanceof HTMLElement)) {
         return;
     }
 
-    clip.classList.add('tido-text-marquee-clip', 'min-w-0', 'overflow-hidden');
-    root.dataset.tidoMarqueeBusy = '1';
+    clip.classList.add("tido-text-marquee-clip", "min-w-0", "overflow-hidden");
+    root.dataset.tidoMarqueeBusy = "1";
 
     const wrapped = ensureTrack(clip);
     const state = getState(clip);
 
-    if (! wrapped) {
+    if (!wrapped) {
         delete root.dataset.tidoMarqueeBusy;
 
         return;
@@ -197,8 +213,8 @@ function enhanceRoot(root) {
 
     const { track, segment } = wrapped;
 
-    if (! clip.dataset.tidoMarqueeRo) {
-        clip.dataset.tidoMarqueeRo = '1';
+    if (!clip.dataset.tidoMarqueeRo) {
+        clip.dataset.tidoMarqueeRo = "1";
         new ResizeObserver(() => {
             if (state.rafMeasure) {
                 cancelAnimationFrame(state.rafMeasure);
@@ -208,7 +224,7 @@ function enhanceRoot(root) {
                 state.rafMeasure = null;
                 const current = ensureTrack(clip);
 
-                if (! current) {
+                if (!current) {
                     return;
                 }
 
@@ -232,7 +248,7 @@ function observeRoot(root) {
         return;
     }
 
-    root.dataset.tidoMarqueeMo = '1';
+    root.dataset.tidoMarqueeMo = "1";
     new MutationObserver(() => {
         if (root.dataset.tidoMarqueeBusy) {
             return;
@@ -258,10 +274,14 @@ function init() {
     bind();
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
 } else {
     init();
 }
 
-document.addEventListener('livewire:navigated', init);
+document.addEventListener("livewire:navigated", init);
+
+window.addEventListener("tido-reduce-motion-changed", () => {
+    bind();
+});

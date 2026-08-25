@@ -177,6 +177,7 @@ class AdminPanelProvider extends PanelProvider
                         <script>
                             (function () {
                                 var REDUCE_MOTION_CLASS = 'tido-reduce-motion';
+                                var STORAGE_KEY = 'tidoReduceMotion';
                                 var QUERY = '(prefers-reduced-motion: reduce)';
                                 var originalMatchMedia = window.matchMedia.bind(window);
 
@@ -188,13 +189,117 @@ class AdminPanelProvider extends PanelProvider
                                     return originalMatchMedia(QUERY).matches;
                                 }
 
+                                function syncReduceMotionStorage() {
+                                    sessionStorage.setItem(
+                                        STORAGE_KEY,
+                                        document.documentElement.classList.contains(REDUCE_MOTION_CLASS) ? '1' : '0',
+                                    );
+                                }
+
+                                function applyReduceMotionFromStorage() {
+                                    var stored = sessionStorage.getItem(STORAGE_KEY);
+
+                                    if (stored === null) {
+                                        return;
+                                    }
+
+                                    document.documentElement.classList.toggle(REDUCE_MOTION_CLASS, stored === '1');
+                                }
+
+                                function parseCountUpConfig(el) {
+                                    var attr = el.getAttribute('x-data') || '';
+                                    var start = attr.indexOf('countUp(');
+
+                                    if (start === -1) {
+                                        return null;
+                                    }
+
+                                    var openParen = start + 'countUp('.length;
+                                    var depth = 0;
+                                    var end = -1;
+
+                                    for (var i = openParen; i < attr.length; i++) {
+                                        var ch = attr[i];
+
+                                        if (ch === '(' || ch === '{') {
+                                            depth++;
+                                        } else if (ch === ')' || ch === '}') {
+                                            depth--;
+
+                                            if (depth === 0 && ch === ')') {
+                                                end = i;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (end === -1) {
+                                        return null;
+                                    }
+
+                                    try {
+                                        return JSON.parse(attr.slice(openParen, end));
+                                    } catch (error) {
+                                        return null;
+                                    }
+                                }
+
+                                function snapCountUpsToFinal() {
+                                    document.querySelectorAll('.fi-count-up, [x-data*="countUp("]').forEach(function (el) {
+                                        if (! window.Alpine) {
+                                            return;
+                                        }
+
+                                        var data = Alpine.\$data(el);
+
+                                        if (! data || typeof data.format !== 'function') {
+                                            return;
+                                        }
+
+                                        var config = parseCountUpConfig(el);
+
+                                        if (! config || ! Number.isFinite(config.value)) {
+                                            return;
+                                        }
+
+                                        data.displayValue = data.format(config.value);
+                                    });
+                                }
+
+                                function stopMarqueeMotion() {
+                                    document.querySelectorAll('.tido-text-marquee-track.is-overflowing').forEach(function (track) {
+                                        track.classList.remove('is-overflowing');
+                                        track.style.removeProperty('--tido-marquee-distance');
+                                        track.style.removeProperty('--tido-marquee-duration');
+                                    });
+                                }
+
+                                function notifyReduceMotionChanged(enabled) {
+                                    window.dispatchEvent(
+                                        new CustomEvent('tido-reduce-motion-changed', {
+                                            detail: { enabled: !! enabled },
+                                        }),
+                                    );
+                                }
+
                                 window.tidoPrefersReducedMotion = prefersReducedMotion;
 
                                 window.tidoSetReduceMotion = function (enabled) {
-                                    document.documentElement.classList.toggle(REDUCE_MOTION_CLASS, !!enabled);
+                                    var on = !! enabled;
+
+                                    document.documentElement.classList.toggle(REDUCE_MOTION_CLASS, on);
+                                    sessionStorage.setItem(STORAGE_KEY, on ? '1' : '0');
+
+                                    if (on) {
+                                        snapCountUpsToFinal();
+                                        stopMarqueeMotion();
+                                    }
+
+                                    notifyReduceMotionChanged(on);
                                 };
 
                                 {$initialClassScript}
+                                syncReduceMotionStorage();
 
                                 window.matchMedia = function (query) {
                                     var result = originalMatchMedia(query);
@@ -215,6 +320,20 @@ class AdminPanelProvider extends PanelProvider
 
                                     return result;
                                 };
+
+                                function syncReduceMotionAfterNavigation() {
+                                    applyReduceMotionFromStorage();
+
+                                    if (prefersReducedMotion()) {
+                                        snapCountUpsToFinal();
+                                        stopMarqueeMotion();
+                                    }
+
+                                    notifyReduceMotionChanged(prefersReducedMotion());
+                                }
+
+                                document.addEventListener('livewire:navigating', applyReduceMotionFromStorage);
+                                document.addEventListener('livewire:navigated', syncReduceMotionAfterNavigation);
                             })();
                         </script>
                         HTML;

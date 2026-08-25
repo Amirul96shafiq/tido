@@ -12,20 +12,21 @@ When enabled, count-up, marquee, status pulses, sidebar chrome transitions, noti
 
 ## How it applies
 
-| Layer | Mechanism |
-|-------|-----------|
-| Server | [`ReduceMotion::enabled()`](../app/Support/ReduceMotion.php) in [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php) `HEAD_START` hook |
-| HTML class | `html.tido-reduce-motion` on `document.documentElement` |
-| CSS | Mirror every `@media (prefers-reduced-motion: reduce)` rule with `html.tido-reduce-motion …` selectors in [`app.css`](../resources/css/app.css) |
-| Count-up | `window.matchMedia('(prefers-reduced-motion: reduce)')` is wrapped so `.matches` is true when the html class is present (vendor package checks media only) |
-| Marquee | [`x-tido.text-marquee`](../resources/views/components/tido/text-marquee.blade.php) and [`select-value-marquee.js`](../resources/js/select-value-marquee.js) call `window.tidoPrefersReducedMotion()` |
-| Smooth scroll | Section nav, hash scroll, go-to-top/bottom use `behavior: 'auto'` when reduced |
+| Layer          | Mechanism                                                                                                                                                                                            |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Server         | [`ReduceMotion::enabled()`](../app/Support/ReduceMotion.php) in [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php) `HEAD_START` hook                                           |
+| HTML class     | `html.tido-reduce-motion` on `document.documentElement`                                                                                                                                              |
+| CSS            | Mirror every `@media (prefers-reduced-motion: reduce)` rule with `html.tido-reduce-motion …` selectors in [`app.css`](../resources/css/app.css)                                                      |
+| Count-up       | `window.matchMedia('(prefers-reduced-motion: reduce)')` is wrapped so `.matches` is true when the html class is present (vendor package checks media only)                                           |
+| Marquee        | [`x-tido.text-marquee`](../resources/views/components/tido/text-marquee.blade.php) and [`select-value-marquee.js`](../resources/js/select-value-marquee.js) call `window.tidoPrefersReducedMotion()` |
+| Smooth scroll  | Section nav, hash scroll, go-to-top/bottom use `behavior: 'auto'` when reduced                                                                                                                       |
+| SPA navigation | `sessionStorage` + `livewire:navigating` / `livewire:navigated` restore `html.tido-reduce-motion` and re-snap count-up / marquee                                                                     |
 
 ### Client API
 
 ```js
-window.tidoPrefersReducedMotion() // OS OR profile preference
-window.tidoSetReduceMotion(true)  // live toggle on Profile (before save)
+window.tidoPrefersReducedMotion(); // OS OR profile preference
+window.tidoSetReduceMotion(true); // live toggle on Profile (before save)
 ```
 
 The `HEAD_START` script must load before Alpine and count-up scripts.

@@ -14,11 +14,19 @@ test('profile personalize preferences section renders reduce motion toggle', fun
 
     $this->actingAs($user);
 
-    Livewire::test(EditProfile::class)
+    $component = Livewire::test(EditProfile::class)
         ->assertSee('PREFERENCES', false)
         ->assertSee('Reduce Motion', false)
-        ->assertSee('Disable count-up, marquee, and other decorative animation.', false)
+        ->assertSee('Disable count-up, marquee, and other decorative animation. Save to keep this preference for future sign-ins.', false)
+        ->assertSee('fi-profile-toggle-field', false)
+        ->assertSchemaComponentExists('personalize-preferences')
         ->assertSet('data.reduce_motion', false);
+
+    $fieldset = $component->instance()->form->getComponent('personalize-preferences');
+    $toggle = $component->instance()->form->getComponent('reduce_motion');
+
+    expect($fieldset?->getColumns('lg'))->toBe(1)
+        ->and($toggle?->getColumnSpan('default'))->toBe('full');
 });
 
 test('profile saves the reduce motion preference', function (bool $enabled): void {
@@ -85,4 +93,17 @@ test('admin panel does not inject reduce motion class when preference is disable
     $response->assertSuccessful()
         ->assertSee('tidoPrefersReducedMotion', false)
         ->assertDontSee("document.documentElement.classList.add('tido-reduce-motion')", false);
+});
+
+test('admin panel reduce motion script syncs preference across spa navigation', function (): void {
+    $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
+
+    expect($provider)
+        ->toContain('sessionStorage.setItem')
+        ->toContain('tidoReduceMotion')
+        ->toContain('livewire:navigated')
+        ->toContain('livewire:navigating')
+        ->toContain('parseCountUpConfig')
+        ->toContain('tido-reduce-motion-changed')
+        ->toContain('snapCountUpsToFinal');
 });
