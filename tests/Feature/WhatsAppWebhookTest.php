@@ -196,7 +196,7 @@ test('whatsapp webhook handles text queries for monthly spent', function () {
             && $job->originalText === 'How much did I spend this month?';
     });
 
-    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'How much did I spend this month?');
+    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'How much did I spend this month?', 'MSG-WEBHOOK-SPEND');
     $job->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request) {
@@ -272,7 +272,7 @@ test('whatsapp webhook handles spend labels sub-command', function () {
             && $job->originalText === 'spend labels';
     });
 
-    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'spend labels');
+    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'spend labels', 'MSG-WEBHOOK-LABELS');
     $job->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request) {
@@ -315,7 +315,7 @@ test('whatsapp webhook allows self-chat fromMe when sender is allowlisted', func
 
     Queue::assertPushed(ProcessWhatsAppTextReplyJob::class, 1);
 
-    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'help');
+    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'help', 'MSG-WEBHOOK-HELP');
     $job->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request) {
@@ -497,7 +497,7 @@ test('whatsapp webhook allows allowlisted family members to interact with the bo
             && $job->originalText === 'help';
     });
 
-    $job = new ProcessWhatsAppTextReplyJob('60111111111', 'help');
+    $job = new ProcessWhatsAppTextReplyJob('60111111111', 'help', 'MSG-WEBHOOK-OTHER');
     $job->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request) {

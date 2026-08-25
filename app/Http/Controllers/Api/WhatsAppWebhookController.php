@@ -117,7 +117,7 @@ class WhatsAppWebhookController extends Controller
                     ? ($message['extendedTextMessage']['text'] ?? '')
                     : '');
 
-            return $this->handleTextMessage((string) $text, $senderPhone);
+            return $this->handleTextMessage((string) $text, $senderPhone, $messageId);
         }
 
         return response()->json(['status' => 'ignored_type']);
@@ -175,18 +175,18 @@ class WhatsAppWebhookController extends Controller
         return response()->json(['status' => 'accepted']);
     }
 
-    protected function handleTextMessage(string $text, string $senderNumber): JsonResponse
+    protected function handleTextMessage(string $text, string $senderNumber, string $messageId): JsonResponse
     {
         $originalText = trim($text);
 
         if (ManualWhatsAppExpenseParser::looksLike($originalText)) {
             WhatsAppTypingCoordinator::startSenderTyping($senderNumber);
-            ProcessManualWhatsAppExpenseJob::dispatch($senderNumber, $originalText);
+            ProcessManualWhatsAppExpenseJob::dispatch($senderNumber, $originalText, $messageId);
 
             return response()->json(['status' => 'accepted']);
         }
 
-        ProcessWhatsAppTextReplyJob::dispatch($senderNumber, $originalText);
+        ProcessWhatsAppTextReplyJob::dispatch($senderNumber, $originalText, $messageId);
 
         return response()->json(['status' => 'accepted']);
     }

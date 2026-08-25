@@ -83,7 +83,7 @@ test('linking a lid to primary allows webhook replies for that lid sender', func
             && $job->originalText === 'help';
     });
 
-    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'help');
+    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'help', 'MSG-LID-HELP');
     $job->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request) {

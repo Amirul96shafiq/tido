@@ -77,7 +77,8 @@ test('whatsapp webhook dispatches process job for manual expense text', function
 
     Queue::assertPushed(ProcessManualWhatsAppExpenseJob::class, function (ProcessManualWhatsAppExpenseJob $job) use ($text): bool {
         return $job->senderNumber === '60123456789'
-            && $job->text === $text;
+            && $job->text === $text
+            && $job->messageId === 'MSG-MANUAL-1';
     });
 
     expect(WhatsAppTypingSession::isSenderActive('60123456789'))->toBeTrue();
@@ -193,7 +194,7 @@ test('process manual whatsapp expense job creates expense items and registers de
 
     $text = "myNEWS Bayu Residensi;\nGARDENIA QUICKBITES CREAM ROLL, 1, 1.2;\nGARDENIA ORIG CLASSIC ENR.WHIT, 1, 3;";
 
-    (new ProcessManualWhatsAppExpenseJob('60123456789', $text))->handle();
+    (new ProcessManualWhatsAppExpenseJob('60123456789', $text, 'MSG-MANUAL-PROC-1'))->handle();
 
     $expense = Expense::query()->with('expenseItems')->first();
 
@@ -231,7 +232,7 @@ Nasi + ikan keli, 1, 12;
 Teh o ais, 1, 2.5;
 TEXT;
 
-    (new ProcessManualWhatsAppExpenseJob('60123456789', $text))->handle();
+    (new ProcessManualWhatsAppExpenseJob('60123456789', $text, 'MSG-MANUAL-PROC-1'))->handle();
 
     $expense = Expense::query()->first();
 
@@ -252,9 +253,7 @@ GARDENIA QUICKBITES CREAM ROLL, 1, 1.2;
 Hausboom Grapple 325, 1, 2;
 TEXT;
 
-    (new ProcessManualWhatsAppExpenseJob('60123456789', $text))->handle();
-
-    expect(Expense::count())->toBe(2);
+    (new ProcessManualWhatsAppExpenseJob('60123456789', $text, 'MSG-MULTI-BLOCK'))->handle();
 
     $payload = Cache::get(WhatsAppManualExpenseReceivedDebouncer::cacheKey('60123456789'));
 

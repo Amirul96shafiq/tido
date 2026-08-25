@@ -28,6 +28,7 @@ class OllamaService
             $host = $this->settings->host();
             $model = $this->settings->model();
             $timeout = $this->settings->timeout();
+            $connectTimeout = max(1, (int) config('services.ollama.connect_timeout', 5));
             $contextWindow = $this->settings->numCtx();
 
             $payload = [
@@ -45,6 +46,7 @@ class OllamaService
             }
 
             $response = Http::timeout($timeout)
+                ->connectTimeout($connectTimeout)
                 ->post("{$host}/api/generate", $payload);
 
             if ($response->failed()) {

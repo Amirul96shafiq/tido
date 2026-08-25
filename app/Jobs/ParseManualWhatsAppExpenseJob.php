@@ -8,22 +8,54 @@ use App\Models\Expense;
 use App\Prompts\ManualExpenseLabelPrompt;
 use App\Services\LabelMatcher;
 use App\Services\OllamaService;
+use App\Support\WhatsAppProcessingJobKey;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Middleware\RateLimited;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-class ParseManualWhatsAppExpenseJob implements ShouldQueue
+class ParseManualWhatsAppExpenseJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
 
+    public int $uniqueFor;
+
     public function __construct(public int $expenseId)
     {
         $this->onQueue('receipts');
+        $this->uniqueFor = WhatsAppProcessingJobKey::uniqueForSeconds();
+    }
+
+    public function uniqueId(): string
+    {
+        return WhatsAppProcessingJobKey::forExpense($this->expenseId, 'manual-labels');
+    }
+
+    /**
+     * @return list<object>
+     */
+    public function middleware(): array
+    {
+        $ollamaTimeout = max(1, (int) config('services.ollama.timeout', 120));
+
+        return [
+            (new WithoutOverlapping($this->uniqueId()))
+                ->expireAfter($ollamaTimeout + 120)
+                ->releaseAfter(30),
+            new RateLimited('ollama-generate'),
+        ];
+    }
+
+    public function retryUntil(): \DateTimeInterface
+    {
+        return now()->addMinutes(30);
     }
 
     /**

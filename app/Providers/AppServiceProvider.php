@@ -77,6 +77,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureGuestRestoreRateLimiter();
         $this->configureWhatsAppWebhookRateLimiter();
         $this->configureEvolutionSendRateLimiter();
+        $this->configureOllamaGenerateRateLimiter();
 
         Livewire::setUpdateRoute(function ($handle, $path) {
             return Route::post('/livewire/update', $handle)
@@ -140,6 +141,15 @@ class AppServiceProvider extends ServiceProvider
             $max = max(1, (int) config('services.evolution.outbound_send_attempts_per_minute', 30));
 
             return Limit::perMinute($max)->by('evolution-send');
+        });
+    }
+
+    protected function configureOllamaGenerateRateLimiter(): void
+    {
+        RateLimiter::for('ollama-generate', function (): Limit {
+            $max = max(1, (int) config('services.ollama.generate_attempts_per_minute', 6));
+
+            return Limit::perMinute($max)->by('ollama-generate');
         });
     }
 

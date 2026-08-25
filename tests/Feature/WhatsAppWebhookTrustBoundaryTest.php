@@ -332,7 +332,9 @@ test('whatsapp webhook still dispatches manual expense after trust checks', func
         ->assertSuccessful()
         ->assertJson(['status' => 'accepted']);
 
-    Queue::assertPushed(ProcessManualWhatsAppExpenseJob::class, 1);
+    Queue::assertPushed(ProcessManualWhatsAppExpenseJob::class, function (ProcessManualWhatsAppExpenseJob $job): bool {
+        return $job->messageId === 'MSG-MANUAL-TRUST';
+    });
 });
 
 test('unauthorized requests still return 401 before schema errors', function (): void {

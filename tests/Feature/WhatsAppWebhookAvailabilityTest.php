@@ -65,7 +65,7 @@ test('text reply job sends the expected help body', function (): void {
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
 
-    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'help');
+    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'help', 'MSG-AVAIL-HELP');
     $job->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request): bool {
@@ -80,7 +80,7 @@ test('text reply job sends the expected spend body', function (): void {
         '*/message/sendText/*' => Http::response(['status' => 'success']),
     ]);
 
-    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'How much did I spend this month?');
+    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'How much did I spend this month?', 'MSG-AVAIL-SPEND');
     $job->handle(app(WhatsAppNotificationService::class));
 
     Http::assertSent(function (Request $request): bool {
@@ -91,13 +91,18 @@ test('text reply job sends the expected spend body', function (): void {
 });
 
 test('text reply job declares evolution-send rate limited middleware', function (): void {
-    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'help');
+    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'help', 'MSG-AVAIL-HELP');
     $middleware = $job->middleware();
 
-    expect($middleware)->toHaveCount(1)
-        ->and($middleware[0])->toBeInstanceOf(RateLimited::class);
+    expect($middleware)->toHaveCount(2)
+        ->and(collect($middleware)->contains(fn ($item): bool => $item instanceof RateLimited))->toBeTrue();
 
-    $limiterName = (new ReflectionProperty($middleware[0], 'limiterName'))->getValue($middleware[0]);
+    $limiterName = collect($middleware)
+        ->first(fn ($item): bool => $item instanceof RateLimited);
+
+    expect($limiterName)->toBeInstanceOf(RateLimited::class);
+
+    $limiterName = (new ReflectionProperty($limiterName, 'limiterName'))->getValue($limiterName);
 
     expect($limiterName)->toBe('evolution-send');
 });
@@ -105,7 +110,7 @@ test('text reply job declares evolution-send rate limited middleware', function 
 test('text reply job timeout follows evolution timeout config', function (): void {
     config(['services.evolution.timeout' => 7]);
 
-    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'help');
+    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'help', 'MSG-AVAIL-HELP');
 
     expect($job->timeout)->toBe(22)
         ->and($job->tries)->toBe(3)

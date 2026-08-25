@@ -39,6 +39,9 @@ return [
         'host' => env('OLLAMA_HOST', 'http://127.0.0.1:11434'),
         'model' => env('OLLAMA_MODEL', 'qwen2.5vl:7b'),
         'timeout' => (int) env('OLLAMA_TIMEOUT', 120),
+        'connect_timeout' => (int) env('OLLAMA_CONNECT_TIMEOUT', 5),
+        // Receipt/manual label jobs per minute across workers.
+        'generate_attempts_per_minute' => (int) env('OLLAMA_GENERATE_ATTEMPTS_PER_MINUTE', 6),
         // Keep enough context for long receipts to finish their itemized JSON response.
         // Raising this grows the KV cache, so lower it only when the GPU has limited VRAM.
         'num_ctx' => (int) env('OLLAMA_NUM_CTX', 8192),
