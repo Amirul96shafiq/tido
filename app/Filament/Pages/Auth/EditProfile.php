@@ -238,11 +238,14 @@ class EditProfile extends BaseEditProfile implements HasTable
                                     ]),
 
                                 Fieldset::make('PREFERENCES')
+                                    ->key('personalize-preferences', isInheritable: false)
+                                    ->columns(1)
                                     ->schema([
                                         Toggle::make('reduce_motion')
                                             ->label('Reduce Motion')
-                                            ->helperText('Disable count-up, marquee, and other decorative animation. Save to apply across the panel.')
+                                            ->helperText('Disable count-up, marquee, and other decorative animation. Save to keep this preference for future sign-ins.')
                                             ->live()
+                                            ->columnSpanFull()
                                             ->fieldWrapperView('profile-toggle-field-wrapper')
                                             ->extraFieldWrapperAttributes(['class' => 'fi-profile-toggle-field'])
                                             ->afterStateUpdated(function (bool $state): void {
@@ -921,6 +924,10 @@ class EditProfile extends BaseEditProfile implements HasTable
             if ($scheduleChanged) {
                 app(RecurringReminderService::class)
                     ->suppressTodayPassIfSendTimePassed($updatedRecord);
+            }
+
+            if ($oldReduceMotion !== (bool) $updatedRecord->reduce_motion) {
+                $this->js('window.tidoSetReduceMotion('.Js::from((bool) $updatedRecord->reduce_motion).')');
             }
         }
 
