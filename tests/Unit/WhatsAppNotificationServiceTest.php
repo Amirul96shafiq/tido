@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Services\WhatsAppNotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -155,4 +156,80 @@ test('sendTyping does not call evolution for numbers outside the contact allowli
         ->and($result->reason)->toBe('not_allowlisted');
 
     Http::assertNothingSent();
+});
+
+test('sendMessageResult restores a closed socket and retries sendText', function () {
+    config([
+        'services.evolution.webhook_secret' => 'test-evolution-webhook-secret-0123456789abcdef0123456789abcdef',
+    ]);
+
+    User::factory()->create(['phone' => '60123456789']);
+    Cache::flush();
+
+    Http::fake([
+        '*/message/sendText/*' => Http::sequence()
+            ->push([
+                'status' => 500,
+                'error' => 'Internal Server Error',
+                'response' => ['message' => 'Connection Closed'],
+            ], 500)
+            ->push(['status' => 'PENDING'], 201),
+        '*/instance/fetchInstances*' => Http::response([
+            [
+                'name' => 'tido',
+                'connectionStatus' => 'open',
+                'ownerJid' => '60123456789@s.whatsapp.net',
+                'number' => '60123456789',
+            ],
+        ]),
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'close'],
+        ]),
+        '*/instance/connect/*' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+    ]);
+
+    $result = app(WhatsAppNotificationService::class)
+        ->sendMessageResult('60123456789', 'hello');
+
+    expect($result->ok)->toBeTrue();
+
+    $sendTexts = Http::recorded(
+        fn (Request $request): bool => str_contains($request->url(), '/message/sendText/'),
+    );
+    $connects = Http::recorded(
+        fn (Request $request): bool => str_contains($request->url(), '/instance/connect/tido')
+            && $request->method() === 'GET'
+            && ! str_contains($request->url(), 'number='),
+    );
+
+    expect($sendTexts)->toHaveCount(2)
+        ->and($connects)->toHaveCount(1);
+});
+
+test('sendMessageResult does not reconnect when prisma session is not open', function () {
+    config([
+        'services.evolution.webhook_secret' => 'test-evolution-webhook-secret-0123456789abcdef0123456789abcdef',
+    ]);
+
+    User::factory()->create(['phone' => '60123456789']);
+    Cache::flush();
+
+    Http::fake([
+        '*/message/sendText/*' => Http::response([
+            'status' => 500,
+            'error' => 'Internal Server Error',
+            'response' => ['message' => 'Connection Closed'],
+        ], 500),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    $result = app(WhatsAppNotificationService::class)
+        ->sendMessageResult('60123456789', 'hello');
+
+    expect($result->ok)->toBeFalse()
+        ->and($result->status)->toBe(500);
+
+    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/'));
 });

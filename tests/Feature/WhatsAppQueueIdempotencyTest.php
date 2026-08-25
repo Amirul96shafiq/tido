@@ -116,6 +116,24 @@ test('text reply job handle twice sends only one evolution message', function ()
     expect(Cache::has(WhatsAppProcessingJobKey::textReplySentCacheKey('MSG-REPLY-DUP')))->toBeTrue();
 });
 
+test('text reply job does not cache sent marker when evolution send fails', function (): void {
+    Http::fake([
+        '*/message/sendText/*' => Http::response([
+            'status' => 500,
+            'error' => 'Internal Server Error',
+            'response' => ['message' => 'Connection Closed'],
+        ], 500),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'help', 'MSG-REPLY-FAIL');
+
+    expect(fn () => $job->handle(app(WhatsAppNotificationService::class)))
+        ->toThrow(RuntimeException::class);
+
+    expect(Cache::has(WhatsAppProcessingJobKey::textReplySentCacheKey('MSG-REPLY-FAIL')))->toBeFalse();
+});
+
 test('media job timeout follows evolution timeout config', function (): void {
     config([
         'services.evolution.timeout' => 11,

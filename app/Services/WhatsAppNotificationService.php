@@ -9,6 +9,7 @@ use App\Support\PhoneNumber;
 use App\Support\ReceiptPipelineLogger;
 use App\Support\WhatsAppSendResult;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -21,8 +22,9 @@ class WhatsAppNotificationService
 
     protected string $instanceName;
 
-    public function __construct()
-    {
+    public function __construct(
+        private readonly EvolutionInstanceService $evolution,
+    ) {
         $this->apiUrl = rtrim((string) config('services.evolution.api_url'), '/');
         $this->apiKey = (string) config('services.evolution.api_key');
         $this->instanceName = (string) config('services.evolution.instance_name');
@@ -33,8 +35,7 @@ class WhatsAppNotificationService
         string $text,
         ?string $messageId = null,
         ?int $expenseId = null,
-    ): bool
-    {
+    ): bool {
         return $this->sendMessageResult($number, $text, $messageId, $expenseId)->ok;
     }
 
@@ -43,8 +44,7 @@ class WhatsAppNotificationService
         string $text,
         ?string $messageId = null,
         ?int $expenseId = null,
-    ): WhatsAppSendResult
-    {
+    ): WhatsAppSendResult {
         $startedAt = ReceiptPipelineLogger::start();
 
         try {
@@ -83,6 +83,20 @@ class WhatsAppNotificationService
                 Log::error('WhatsAppNotificationService send failed', [
                     'status' => $response->status(),
                 ]);
+
+                if ($this->bodyIndicatesClosedSocket($body)) {
+                    $retry = $this->retrySendAfterSocketRestore(
+                        $number,
+                        $text,
+                        $messageId,
+                        $expenseId,
+                        $startedAt,
+                    );
+
+                    if ($retry !== null) {
+                        return $retry;
+                    }
+                }
 
                 ReceiptPipelineLogger::completed('whatsapp.send_text', $startedAt, [
                     'message_id' => $messageId,
@@ -132,8 +146,7 @@ class WhatsAppNotificationService
         ?int $delayMs = null,
         ?string $messageId = null,
         ?int $expenseId = null,
-    ): WhatsAppSendResult
-    {
+    ): WhatsAppSendResult {
         $startedAt = ReceiptPipelineLogger::start();
 
         try {
@@ -382,5 +395,57 @@ class WhatsAppNotificationService
         }
 
         return mb_substr($trimmed, 0, 240);
+    }
+
+    private function bodyIndicatesClosedSocket(string $body): bool
+    {
+        $lower = strtolower($body);
+
+        return str_contains($lower, 'connection closed')
+            || str_contains($lower, 'connectionclosed');
+    }
+
+    private function retrySendAfterSocketRestore(
+        string $number,
+        string $text,
+        ?string $messageId,
+        ?int $expenseId,
+        int $startedAt,
+    ): ?WhatsAppSendResult {
+        $lockAcquired = Cache::add('evolution:restore-session-socket', 1, 15);
+        $restored = false;
+
+        if ($lockAcquired) {
+            $restored = $this->evolution->restoreSessionSocket();
+        } else {
+            $state = $this->evolution->connectionState();
+            $restored = in_array(strtolower($state['status']), ['open', 'connected'], true);
+        }
+
+        if (! $restored) {
+            return null;
+        }
+
+        $retry = $this->client()->post("{$this->apiUrl}/message/sendText/{$this->instanceName}", [
+            'number' => $number,
+            'text' => $text,
+        ]);
+
+        if ($retry->failed()) {
+            return null;
+        }
+
+        Log::info('WhatsAppNotificationService send recovered after socket restore');
+
+        ReceiptPipelineLogger::completed('whatsapp.send_text', $startedAt, [
+            'message_id' => $messageId,
+            'expense_id' => $expenseId,
+            'queue' => 'outbound',
+            'outcome' => 'success',
+            'reason' => 'socket_restored',
+            'status' => $retry->status(),
+        ]);
+
+        return WhatsAppSendResult::success();
     }
 }
