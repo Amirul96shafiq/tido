@@ -75,6 +75,7 @@ Count Up is used in:
 - Do not animate IDs, dates, labels, timestamps, or decorative chart values.
 - Keep `wire:key` behavior enabled for Livewire values that should replay after refresh.
 - Respect `prefers-reduced-motion`; the package skips animation automatically.
+- Profile **Reduce Motion** (`users.reduce_motion`) applies the same behavior via `html.tido-reduce-motion` — see [ui-reduce-motion.md](ui-reduce-motion.md).
 
 ## Verification
 

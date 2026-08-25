@@ -22,6 +22,7 @@ use App\Filament\Support\IntegrationNavigation;
 use App\Http\Middleware\SetUserPreferences;
 use App\Support\FilamentAuthLogout;
 use App\Support\HouseholdAccess;
+use App\Support\ReduceMotion;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResults;
 use Filament\Actions\Action;
@@ -164,6 +165,230 @@ class AdminPanelProvider extends PanelProvider
                 scopes: [
                     Login::class,
                 ],
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_START,
+                function (): string {
+                    $initialClassScript = ReduceMotion::enabled()
+                        ? "document.documentElement.classList.add('tido-reduce-motion');"
+                        : '';
+
+                    return <<<HTML
+                        <script>
+                            (function () {
+                                var REDUCE_MOTION_CLASS = 'tido-reduce-motion';
+                                var STORAGE_KEY = 'tidoReduceMotion';
+                                var QUERY = '(prefers-reduced-motion: reduce)';
+                                var originalMatchMedia = window.matchMedia.bind(window);
+
+                                function prefersReducedMotion() {
+                                    if (document.documentElement.classList.contains(REDUCE_MOTION_CLASS)) {
+                                        return true;
+                                    }
+
+                                    return originalMatchMedia(QUERY).matches;
+                                }
+
+                                function syncReduceMotionStorage() {
+                                    sessionStorage.setItem(
+                                        STORAGE_KEY,
+                                        document.documentElement.classList.contains(REDUCE_MOTION_CLASS) ? '1' : '0',
+                                    );
+                                }
+
+                                function applyReduceMotionFromStorage() {
+                                    var stored = sessionStorage.getItem(STORAGE_KEY);
+
+                                    if (stored === null) {
+                                        return;
+                                    }
+
+                                    document.documentElement.classList.toggle(REDUCE_MOTION_CLASS, stored === '1');
+                                }
+
+                                function parseCountUpConfig(el) {
+                                    var attr = el.getAttribute('x-data') || '';
+                                    var start = attr.indexOf('countUp(');
+
+                                    if (start === -1) {
+                                        return null;
+                                    }
+
+                                    var openParen = start + 'countUp('.length;
+                                    var depth = 0;
+                                    var end = -1;
+
+                                    for (var i = openParen; i < attr.length; i++) {
+                                        var ch = attr[i];
+
+                                        if (ch === '(' || ch === '{') {
+                                            depth++;
+                                        } else if (ch === ')' || ch === '}') {
+                                            depth--;
+
+                                            if (depth === 0 && ch === ')') {
+                                                end = i;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (end === -1) {
+                                        return null;
+                                    }
+
+                                    try {
+                                        return JSON.parse(attr.slice(openParen, end));
+                                    } catch (error) {
+                                        return null;
+                                    }
+                                }
+
+                                function snapCountUpsToFinal() {
+                                    document.querySelectorAll('.fi-count-up, [x-data*="countUp("]').forEach(function (el) {
+                                        if (! window.Alpine) {
+                                            return;
+                                        }
+
+                                        var data = Alpine.\$data(el);
+
+                                        if (! data || typeof data.format !== 'function') {
+                                            return;
+                                        }
+
+                                        var config = parseCountUpConfig(el);
+
+                                        if (! config || ! Number.isFinite(config.value)) {
+                                            return;
+                                        }
+
+                                        data.displayValue = data.format(config.value);
+                                    });
+                                }
+
+                                function syncMarqueeMotion() {
+                                    document.querySelectorAll('.tido-text-marquee-clip').forEach(function (clip) {
+                                        var track = clip.querySelector('.tido-text-marquee-track');
+                                        var segment = clip.querySelector(
+                                            '.tido-text-marquee-segment:not([aria-hidden="true"])',
+                                        ) || clip.querySelector('.tido-text-marquee-segment');
+
+                                        if (! track || ! segment) {
+                                            return;
+                                        }
+
+                                        var clipWidth = clip.clientWidth;
+                                        var segmentWidth = segment.offsetWidth;
+
+                                        if (clipWidth === 0 || segmentWidth === 0) {
+                                            return;
+                                        }
+
+                                        var styles = window.getComputedStyle(track);
+                                        var gap =
+                                            Number.parseFloat(styles.columnGap)
+                                            || Number.parseFloat(styles.gap)
+                                            || 32;
+                                        var scrollDistance = segmentWidth + gap;
+                                        var shouldOverflow = (segmentWidth - clipWidth) > 1;
+
+                                        track.classList.toggle(
+                                            'is-overflowing',
+                                            shouldOverflow && ! prefersReducedMotion(),
+                                        );
+
+                                        if (
+                                            shouldOverflow
+                                            && ! prefersReducedMotion()
+                                            && scrollDistance > 0
+                                        ) {
+                                            track.style.setProperty(
+                                                '--tido-marquee-distance',
+                                                scrollDistance + 'px',
+                                            );
+                                            track.style.setProperty(
+                                                '--tido-marquee-duration',
+                                                (scrollDistance / 40).toFixed(2) + 's',
+                                            );
+
+                                            return;
+                                        }
+
+                                        track.style.removeProperty('--tido-marquee-distance');
+                                        track.style.removeProperty('--tido-marquee-duration');
+                                    });
+                                }
+
+                                function scheduleMarqueeSync() {
+                                    requestAnimationFrame(function () {
+                                        requestAnimationFrame(syncMarqueeMotion);
+                                    });
+                                }
+
+                                function notifyReduceMotionChanged(enabled) {
+                                    window.dispatchEvent(
+                                        new CustomEvent('tido-reduce-motion-changed', {
+                                            detail: { enabled: !! enabled },
+                                        }),
+                                    );
+                                }
+
+                                window.tidoPrefersReducedMotion = prefersReducedMotion;
+
+                                window.tidoSetReduceMotion = function (enabled) {
+                                    var on = !! enabled;
+
+                                    document.documentElement.classList.toggle(REDUCE_MOTION_CLASS, on);
+                                    sessionStorage.setItem(STORAGE_KEY, on ? '1' : '0');
+
+                                    if (on) {
+                                        snapCountUpsToFinal();
+                                    }
+
+                                    scheduleMarqueeSync();
+                                    notifyReduceMotionChanged(on);
+                                };
+
+                                {$initialClassScript}
+                                syncReduceMotionStorage();
+
+                                window.matchMedia = function (query) {
+                                    var result = originalMatchMedia(query);
+
+                                    if (typeof query === 'string' && query.indexOf('prefers-reduced-motion') !== -1) {
+                                        return new Proxy(result, {
+                                            get: function (target, prop) {
+                                                if (prop === 'matches') {
+                                                    return prefersReducedMotion();
+                                                }
+
+                                                var value = target[prop];
+
+                                                return typeof value === 'function' ? value.bind(target) : value;
+                                            },
+                                        });
+                                    }
+
+                                    return result;
+                                };
+
+                                function syncReduceMotionAfterNavigation() {
+                                    applyReduceMotionFromStorage();
+
+                                    if (prefersReducedMotion()) {
+                                        snapCountUpsToFinal();
+                                    }
+
+                                    scheduleMarqueeSync();
+                                    notifyReduceMotionChanged(prefersReducedMotion());
+                                }
+
+                                document.addEventListener('livewire:navigating', applyReduceMotionFromStorage);
+                                document.addEventListener('livewire:navigated', syncReduceMotionAfterNavigation);
+                            })();
+                        </script>
+                        HTML;
+                },
             )
             ->renderHook(
                 PanelsRenderHook::HEAD_END,

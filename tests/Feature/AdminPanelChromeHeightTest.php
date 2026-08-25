@@ -358,9 +358,20 @@ test('sidebar collapse expand transition uses shared motion tokens and logo mask
         ->toContain('overflow: hidden;')
         ->and($reducedMotionBlock)
         ->toContain('@media (prefers-reduced-motion: reduce)')
+        ->toContain('html.tido-reduce-motion .fi-sidebar')
         ->toContain('.fi-sidebar-logo-full')
         ->toContain('.fi-sidebar-logo-compact')
         ->toContain('.fi-sidebar-item-btn')
+        ->toContain('.fi-sidebar-group-collapsed-label')
+        ->toContain('.fi-sidebar-collapse-morph')
+        ->toContain('.fi-sidebar-close-collapse-sidebar-btn')
+        ->toContain('.fi-sidebar-collapse-toggle-label')
+        ->toContain('.fi-sidebar-group-items')
+        ->toContain('.fi-sidebar .fi-dropdown-panel')
+        ->toContain('.tido-sidebar-flyout-panel')
+        ->toContain(
+            '.fi-sidebar.fi-sidebar-animating .fi-sidebar-group-collapsed-label',
+        )
         ->toContain('transition: none !important;')
         ->toContain('animation: none !important;');
 });

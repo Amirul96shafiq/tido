@@ -19,7 +19,11 @@
             });
         },
         goToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const behavior = typeof window.tidoPrefersReducedMotion === 'function' && window.tidoPrefersReducedMotion()
+                ? 'auto'
+                : 'smooth';
+
+            window.scrollTo({ top: 0, behavior });
         },
     }"
     x-init="

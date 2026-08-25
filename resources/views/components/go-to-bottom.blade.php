@@ -21,7 +21,11 @@
             });
         },
         goToBottom() {
-            window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+            const behavior = typeof window.tidoPrefersReducedMotion === 'function' && window.tidoPrefersReducedMotion()
+                ? 'auto'
+                : 'smooth';
+
+            window.scrollTo({ top: document.documentElement.scrollHeight, behavior });
         },
     }"
     x-init="

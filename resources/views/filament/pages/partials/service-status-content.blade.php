@@ -33,8 +33,7 @@
                 ])>
                     @if ($summaryStatus === \App\Enums\ServiceHealthStatus::Operational)
                         <span
-                            class="pointer-events-none absolute inset-0 rounded-full border-2 border-emerald-500/30"
-                            style="animation: service-status-pulse 2s infinite"
+                            class="tido-status-pulse pointer-events-none absolute inset-0 rounded-full border-2 border-emerald-500/30"
                         ></span>
                     @endif
 
@@ -84,20 +83,6 @@
                 </div>
             </div>
         </div>
-
-        <style>
-            @keyframes service-status-pulse {
-                0% {
-                    transform: scale(1);
-                    opacity: 1;
-                }
-
-                100% {
-                    transform: scale(1.4);
-                    opacity: 0;
-                }
-            }
-        </style>
     </x-filament::section>
 
     <x-filament::section id="service-status">

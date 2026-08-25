@@ -90,7 +90,7 @@
                         }"
                         class="fi-user-menu-notifications-badge flex items-center justify-center"
                     >
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span class="tido-ping-pulse absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                         <span
                             class="relative inline-flex h-full min-w-full items-center justify-center rounded-full bg-amber-500 px-0.5 text-[9px] font-semibold leading-none text-zinc-900"
                             x-text="$store.tidoNotifications.unread > 99 ? '99+' : $store.tidoNotifications.unread"
@@ -167,7 +167,7 @@
                             }"
                             class="fi-user-menu-item-notifications-badge flex items-center justify-center"
                         >
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span class="tido-ping-pulse absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                             <span
                                 class="relative inline-flex h-full min-w-full items-center justify-center rounded-full bg-amber-500 px-0.5 text-[9px] font-semibold leading-none text-zinc-900"
                                 x-text="$store.tidoNotifications.unread > 99 ? '99+' : $store.tidoNotifications.unread"
@@ -213,7 +213,7 @@
                             }"
                             class="fi-user-menu-item-notifications-badge flex items-center justify-center"
                         >
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span class="tido-ping-pulse absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                             <span
                                 class="relative inline-flex h-full min-w-full items-center justify-center rounded-full bg-amber-500 px-0.5 text-[9px] font-semibold leading-none text-zinc-900"
                                 x-text="$store.tidoNotifications.unread > 99 ? '99+' : $store.tidoNotifications.unread"

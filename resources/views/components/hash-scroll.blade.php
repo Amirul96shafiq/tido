@@ -28,7 +28,12 @@
             );
 
             requestAnimationFrame(() => {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                target.scrollIntoView({
+                    behavior: typeof window.tidoPrefersReducedMotion === 'function' && window.tidoPrefersReducedMotion()
+                        ? 'auto'
+                        : 'smooth',
+                    block: 'start',
+                });
             });
         };
 

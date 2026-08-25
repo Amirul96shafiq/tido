@@ -105,7 +105,7 @@ class EditProfile extends BaseEditProfile implements HasTable
     public static function sectionNavItems(): array
     {
         $items = [
-            ['label' => 'Personalize', 'id' => 'personalize'],
+            ['label' => 'Personalize & Appearance', 'id' => 'personalize-appearance'],
             ['label' => 'Account & Security', 'id' => 'account-security'],
             ['label' => 'Active Sessions', 'id' => 'active-sessions'],
             ['label' => 'Regional Preferences', 'id' => 'regional-preferences'],
@@ -217,24 +217,42 @@ class EditProfile extends BaseEditProfile implements HasTable
                     ])
                     ->extraAttributes(['class' => 'fi-profile-main-column'])
                     ->schema([
-                        Section::make('Personalize')
-                            ->id('personalize')
+                        Section::make('Personalize & Appearance')
+                            ->id('personalize-appearance')
                             ->schema([
-                                View::make('filament.schemas.components.theme-mode-field')
-                                    ->columnSpanFull(),
+                                Fieldset::make('APPEARANCE')
+                                    ->schema([
+                                        View::make('filament.schemas.components.theme-mode-field')
+                                            ->columnSpanFull(),
 
-                                View::make('filament.schemas.components.sidebar-mode-field')
-                                    ->columnSpanFull(),
+                                        View::make('filament.schemas.components.sidebar-mode-field')
+                                            ->columnSpanFull(),
 
-                                Hidden::make('stylized_background_enabled'),
+                                        Hidden::make('stylized_background_enabled'),
 
-                                View::make('filament.schemas.components.stylized-background-field')
-                                    ->viewData(fn (Get $get): array => [
-                                        'enabled' => (bool) $get('stylized_background_enabled'),
-                                    ])
-                                    ->columnSpanFull(),
-                            ])
-                            ->columns(1),
+                                        View::make('filament.schemas.components.stylized-background-field')
+                                            ->viewData(fn (Get $get): array => [
+                                                'enabled' => (bool) $get('stylized_background_enabled'),
+                                            ])
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                Fieldset::make('PREFERENCES')
+                                    ->key('personalize-preferences', isInheritable: false)
+                                    ->columns(1)
+                                    ->schema([
+                                        Toggle::make('reduce_motion')
+                                            ->label('Reduce Motion')
+                                            ->helperText('Disable count-up, marquee, and other decorative animation. Save to keep this preference for future sign-ins.')
+                                            ->live()
+                                            ->columnSpanFull()
+                                            ->fieldWrapperView('profile-toggle-field-wrapper')
+                                            ->extraFieldWrapperAttributes(['class' => 'fi-profile-toggle-field'])
+                                            ->afterStateUpdated(function (bool $state): void {
+                                                $this->js('window.tidoSetReduceMotion('.Js::from($state).')');
+                                            }),
+                                    ]),
+                            ]),
 
                         Section::make('Account & Security')
                             ->id('account-security')
@@ -891,6 +909,7 @@ class EditProfile extends BaseEditProfile implements HasTable
             ? $record->recurringReminderTimeHi()
             : '08:00';
         $oldStylizedBackgroundEnabled = (bool) $record->stylized_background_enabled;
+        $oldReduceMotion = (bool) $record->reduce_motion;
         $passwordChanged = filled($data['password'] ?? null);
 
         $updatedRecord = parent::handleRecordUpdate($record, $data);
@@ -905,6 +924,10 @@ class EditProfile extends BaseEditProfile implements HasTable
             if ($scheduleChanged) {
                 app(RecurringReminderService::class)
                     ->suppressTodayPassIfSendTimePassed($updatedRecord);
+            }
+
+            if ($oldReduceMotion !== (bool) $updatedRecord->reduce_motion) {
+                $this->js('window.tidoSetReduceMotion('.Js::from((bool) $updatedRecord->reduce_motion).')');
             }
         }
 
@@ -974,6 +997,9 @@ class EditProfile extends BaseEditProfile implements HasTable
         }
         if ($oldStylizedBackgroundEnabled !== (bool) $updatedRecord->stylized_background_enabled) {
             $changes[] = 'Stylized background';
+        }
+        if ($oldReduceMotion !== (bool) $updatedRecord->reduce_motion) {
+            $changes[] = 'Reduce Motion';
         }
 
         if (! empty($changes) && $updatedRecord->notify_profile_updates) {

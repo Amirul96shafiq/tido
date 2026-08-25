@@ -12,19 +12,19 @@ Use [`x-tido.text-marquee`](../resources/views/components/tido/text-marquee.blad
 </x-tido.text-marquee>
 ```
 
-Pass layout classes to the component and text styling through `text-class`. The component measures overflow with `ResizeObserver`, including after responsive layout changes and Livewire morphs. Motion uses CSS `@keyframes` (`--tido-marquee-distance` / `--tido-marquee-duration`) so the compositor owns the loop — JS does not write `transform` every frame. It duplicates the slot for a seamless loop and respects `prefers-reduced-motion`.
+Pass layout classes to the component and text styling through `text-class`. The component measures overflow with `ResizeObserver`, including after responsive layout changes and Livewire morphs. Motion uses CSS `@keyframes` (`--tido-marquee-distance` / `--tido-marquee-duration`) so the compositor owns the loop — JS does not write `transform` every frame. It duplicates the slot for a seamless loop and respects `prefers-reduced-motion` and Profile **Reduce Motion** (`html.tido-reduce-motion`) — see [ui-reduce-motion.md](ui-reduce-motion.md).
 
 Do **not** use for body copy, multi-line descriptions, or primary page headings.
 
 **Canonical uses:**
 
-| Surface | Path |
-|---------|------|
-| Recurring Payment Dues (title + cadence pill, description) | [`resources/views/filament/widgets/due-recurrings.blade.php`](../resources/views/filament/widgets/due-recurrings.blade.php) |
-| Budget Performance widget titles | [`resources/views/filament/widgets/budget-status.blade.php`](../resources/views/filament/widgets/budget-status.blade.php) |
-| Swap Account names | [`resources/views/filament/livewire/partials/account-switcher-account.blade.php`](../resources/views/filament/livewire/partials/account-switcher-account.blade.php) |
-| Monthly spending stats descriptions | [`resources/views/vendor/filament-widgets/stats-overview-widget/stat.blade.php`](../resources/views/vendor/filament-widgets/stats-overview-widget/stat.blade.php) |
-| Filament JS Select selected value | Expense `currency` via [`SelectValueMarquee`](../app/Filament/Support/SelectValueMarquee.php) |
+| Surface                                                    | Path                                                                                                                                                                |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Recurring Payment Dues (title + cadence pill, description) | [`resources/views/filament/widgets/due-recurrings.blade.php`](../resources/views/filament/widgets/due-recurrings.blade.php)                                         |
+| Budget Performance widget titles                           | [`resources/views/filament/widgets/budget-status.blade.php`](../resources/views/filament/widgets/budget-status.blade.php)                                           |
+| Swap Account names                                         | [`resources/views/filament/livewire/partials/account-switcher-account.blade.php`](../resources/views/filament/livewire/partials/account-switcher-account.blade.php) |
+| Monthly spending stats descriptions                        | [`resources/views/vendor/filament-widgets/stats-overview-widget/stat.blade.php`](../resources/views/vendor/filament-widgets/stats-overview-widget/stat.blade.php)   |
+| Filament JS Select selected value                          | Expense `currency` via [`SelectValueMarquee`](../app/Filament/Support/SelectValueMarquee.php)                                                                       |
 
 **Shared CSS:** [`.tido-text-marquee-track`](../resources/css/app.css) in `resources/css/app.css`  
 **Select helper JS:** [`resources/js/select-value-marquee.js`](../resources/js/select-value-marquee.js) (panel asset)
@@ -40,15 +40,15 @@ Apply this pattern when **all** of these are true:
 
 ## Contract
 
-| Token | Role |
-|-------|------|
-| `.tido-text-marquee-clip` | Outer clip: `relative min-w-0 overflow-hidden` |
-| `.tido-text-marquee-track` | Inner track; CSS animation when `.is-overflowing` |
-| `.tido-text-marquee-segment` | Slot copy; a duplicate is hidden until overflowing |
-| `x-ref="marqueeTrack"` / `x-ref="marqueeSegment"` | Measured by the Blade component |
-| `whitespace-nowrap` | Required on the segment (`text-class`) |
-| `min-w-0` | Required on clip **and** flex ancestors so width can shrink |
-| `.tido-select-value-marquee` | Opt-in on Filament JS `Select` fields |
+| Token                                             | Role                                                        |
+| ------------------------------------------------- | ----------------------------------------------------------- |
+| `.tido-text-marquee-clip`                         | Outer clip: `relative min-w-0 overflow-hidden`              |
+| `.tido-text-marquee-track`                        | Inner track; CSS animation when `.is-overflowing`           |
+| `.tido-text-marquee-segment`                      | Slot copy; a duplicate is hidden until overflowing          |
+| `x-ref="marqueeTrack"` / `x-ref="marqueeSegment"` | Measured by the Blade component                             |
+| `whitespace-nowrap`                               | Required on the segment (`text-class`)                      |
+| `min-w-0`                                         | Required on clip **and** flex ancestors so width can shrink |
+| `.tido-select-value-marquee`                      | Opt-in on Filament JS `Select` fields                       |
 
 Do not invent a second marquee class, keyframes set, or hover-pan component. Reuse `x-tido.text-marquee` (Blade) or `SelectValueMarquee` (Filament JS Select).
 
@@ -98,12 +98,12 @@ Use this when a searchable / JS Filament `Select` shows a long option label that
 
 ### Pieces
 
-| Piece | Path / value |
-|-------|----------------|
-| PHP constant | `App\Filament\Support\SelectValueMarquee::EXTRA_CLASS` → `tido-select-value-marquee` |
-| Helper | `SelectValueMarquee::extraAttributes()` |
-| CSS | `.tido-select-value-marquee …` in `resources/css/app.css` |
-| JS | `resources/js/select-value-marquee.js` (registered in `AdminPanelProvider` via `Vite::asset` — see [`vite-assets.md`](vite-assets.md)) |
+| Piece        | Path / value                                                                                                                           |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| PHP constant | `App\Filament\Support\SelectValueMarquee::EXTRA_CLASS` → `tido-select-value-marquee`                                                   |
+| Helper       | `SelectValueMarquee::extraAttributes()`                                                                                                |
+| CSS          | `.tido-select-value-marquee …` in `resources/css/app.css`                                                                              |
+| JS           | `resources/js/select-value-marquee.js` (registered in `AdminPanelProvider` via `Vite::asset` — see [`vite-assets.md`](vite-assets.md)) |
 
 ### Drop-in
 
@@ -139,18 +139,18 @@ Requirements:
 1. Text that fits the clip stays static (duplicate segment hidden; no animation).
 2. Overflowing text loops continuously via `requestAnimationFrame` on `.tido-text-marquee-track`.
 3. `ResizeObserver` re-measures after Livewire morph, sidebar collapse, and viewport resize.
-4. `prefers-reduced-motion: reduce` disables animation; text remains single-line clipped.
+4. `prefers-reduced-motion: reduce` and Profile **Reduce Motion** disable the loop; overflowing copy wraps inside the clip so the full string stays readable (no ellipsis clip).
 5. Select helper also uses `MutationObserver` because Filament recreates the selected-label DOM when the value changes.
 6. For Select marquee fields: dropdown option labels show in full (wrap allowed); only the closed selected value is single-line + marquee.
 
 ## Choosing clip width
 
-| Approach | When |
-|----------|------|
-| `flex-1 min-w-0` without fixed max | Label should take all leftover space between fixed siblings (Budget Performance, Swap Account) |
-| Fixed `max-w-[9rem] sm:max-w-[12rem]` | Dense widgets when you intentionally cap title width |
-| Smaller `max-w-*` | Very narrow columns (e.g. mobile list tiles) |
-| Select field width | Clip is the Filament `.fi-select-input-value-ctn` — no fixed `max-w-*` needed |
+| Approach                              | When                                                                                           |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `flex-1 min-w-0` without fixed max    | Label should take all leftover space between fixed siblings (Budget Performance, Swap Account) |
+| Fixed `max-w-[9rem] sm:max-w-[12rem]` | Dense widgets when you intentionally cap title width                                           |
+| Smaller `max-w-*`                     | Very narrow columns (e.g. mobile list tiles)                                                   |
+| Select field width                    | Clip is the Filament `.fi-select-input-value-ctn` — no fixed `max-w-*` needed                  |
 
 ## Tests
 

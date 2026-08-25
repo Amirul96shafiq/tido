@@ -12,8 +12,15 @@
         overflowing: false,
         scrollDistance: 0,
         speed: 40,
-        reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
         rafMeasure: null,
+
+        prefersReducedMotion() {
+            if (typeof window.tidoPrefersReducedMotion === 'function') {
+                return window.tidoPrefersReducedMotion();
+            }
+
+            return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        },
 
         init() {
             const track = this.$refs.marqueeTrack;
@@ -29,9 +36,12 @@
             const applyMotion = (shouldOverflow, scrollDistance) => {
                 this.overflowing = shouldOverflow;
                 this.scrollDistance = scrollDistance;
-                track.classList.toggle('is-overflowing', shouldOverflow);
+                track.classList.toggle(
+                    'is-overflowing',
+                    shouldOverflow && ! this.prefersReducedMotion(),
+                );
 
-                if (shouldOverflow && ! this.reducedMotion && scrollDistance > 0) {
+                if (shouldOverflow && ! this.prefersReducedMotion() && scrollDistance > 0) {
                     track.style.setProperty('--tido-marquee-distance', `${scrollDistance}px`);
                     track.style.setProperty(
                         '--tido-marquee-duration',
@@ -78,7 +88,16 @@
             };
 
             new ResizeObserver(debouncedMeasure).observe(clip);
-            this.$nextTick(measure);
+            this._onReduceMotionChanged = () => debouncedMeasure();
+            window.addEventListener('tido-reduce-motion-changed', this._onReduceMotionChanged);
+
+            if (typeof this.\$cleanup === 'function') {
+                this.\$cleanup(() => {
+                    window.removeEventListener('tido-reduce-motion-changed', this._onReduceMotionChanged);
+                });
+            }
+
+            this.\$nextTick(measure);
         },
     }"
     {{ $attributes->class(['tido-text-marquee-clip relative min-w-0 overflow-hidden']) }}

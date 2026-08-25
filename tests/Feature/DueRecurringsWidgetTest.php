@@ -524,7 +524,7 @@ test('due recurrings title flash is red when open dues exist', function () {
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSee('1 Recurring Payment Due')
-        ->assertSee('animate-ping', false)
+        ->assertSee('tido-ping-pulse', false)
         ->assertSee('bg-red-500', false)
         ->assertDontSee('bg-gray-400 dark:bg-gray-500', false);
 });
@@ -553,7 +553,7 @@ test('due recurrings title flash is gray when no open dues', function () {
         ->assertOk()
         ->assertSee('0 Recurring Payment Dues')
         ->assertSee('Paid Netflix')
-        ->assertSee('animate-ping', false)
+        ->assertSee('tido-ping-pulse', false)
         ->assertSee('bg-gray-400 dark:bg-gray-500', false)
         ->assertDontSee('bg-red-500', false);
 });

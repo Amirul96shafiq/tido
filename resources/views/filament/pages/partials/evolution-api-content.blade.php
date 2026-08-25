@@ -234,8 +234,7 @@
                 <div class="flex w-full flex-col items-center py-6 text-center lg:max-w-md">
                     <div class="bg-success-500/10 relative mb-8 flex h-20 w-20 items-center justify-center rounded-full">
                         <span
-                            class="border-success-500/30 pointer-events-none absolute inset-0 rounded-full border-2"
-                            style="animation: wa-connected-pulse 2s infinite"
+                            class="tido-status-pulse border-success-500/30 pointer-events-none absolute inset-0 rounded-full border-2"
                         ></span>
                         <x-filament::icon icon="heroicon-o-check-badge" class="text-success-500 relative h-10 w-10" />
                     </div>
@@ -325,19 +324,6 @@
                         </div>
                     </div>
                 </div>
-
-                <style>
-                    @keyframes wa-connected-pulse {
-                        0% {
-                            transform: scale(1);
-                            opacity: 1;
-                        }
-                        100% {
-                            transform: scale(1.4);
-                            opacity: 0;
-                        }
-                    }
-                </style>
             @else
                 <div class="flex w-full flex-col items-center py-6 text-center lg:max-w-sm">
                     <div class="relative mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-gray-500/10 dark:bg-slate-500/10">

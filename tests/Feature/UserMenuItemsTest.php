@@ -172,6 +172,7 @@ test('topbar hides notification bell and exposes notifications in user menu', fu
     $response->assertDontSee('fi-topbar-database-notifications-btn', false);
     $response->assertSee('fi-topbar-database-notifications-trigger-sync', false);
     $response->assertSee('fi-user-menu-notifications-badge', false);
+    $response->assertSee('tido-ping-pulse', false);
     $response->assertSee('fi-user-menu-avatar-wrap', false);
     $response->assertSee('fi-user-menu-notifications-wrap', false);
     $response->assertSee('fi-user-menu-item-notifications-badge', false);
