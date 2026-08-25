@@ -130,6 +130,7 @@ Finance Home filter `spender` (`DashboardSpenderScope`):
 - Primary: options = All + Primary (`… (me)`) + every member; default = Primary (self)
 - Family member: options = All + self (`… (me)`); default = self
 - Analytics (`DashboardMonthAnalytics`) apply the scope to expense queries/joins
+- WhatsApp `spend*` defaults to self (same as Home); `spend all` / `spend household` maps to `all`
 
 ## Login
 

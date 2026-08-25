@@ -53,16 +53,18 @@ final class WhatsAppMessage
             'Finance Keywords',
             implode("\n", [
                 'Use one of the keywords below in WhatsApp chat to retrieve according details:',
-                '- *spend* or *total* — monthly spending summary',
+                '- *spend* or *total* — your spending summary (default)',
+                '- *spend all* or *spend household* — whole household spending',
                 '- *spend labels* — label breakdown (up to 8)',
                 '- *spend merchants* — top 5 merchants',
-                '- *spend budgets* — all active budgets with status',
+                '- *spend budgets* — active budgets you can see with status',
                 '- *spend recurrings* — overdue, due, and upcoming this month',
                 '- *spend trend* — last 6 months spending',
                 '- *spend payment* — spending by payment method',
                 '- *spend recent* — last 5 receipts',
                 '- *spend last month* — summary for the previous month',
                 '- *spend march* / *spend 2025-03* — summary for a specific month',
+                '- Combine scope with any command, e.g. *spend labels all*',
             ]),
         );
     }

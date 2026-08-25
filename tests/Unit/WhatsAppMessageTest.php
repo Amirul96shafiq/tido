@@ -46,6 +46,7 @@ test('finance keywords lists spending commands', function () {
 
     expect($message)
         ->toContain('📈 *Finance Keywords*')
+        ->toContain('*spend all* or *spend household*')
         ->toContain('*spend labels* — label breakdown (up to 8)')
         ->toContain('*spend merchants* — top 5 merchants')
         ->toContain('*spend budgets*')

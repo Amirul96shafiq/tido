@@ -11,6 +11,7 @@ use App\Filament\Support\DashboardMonthPeriod;
 use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
 use App\Models\Expense;
+use App\Models\FamilyMember;
 use App\Models\RecurringOccurrence;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,6 +22,8 @@ final class WhatsAppSpendingReplyBuilder
     public function __construct(
         private readonly string $month,
         private readonly string $mode = WhatsAppSpendingCommandParser::MODE_SUMMARY,
+        private readonly ?DashboardSpenderScope $spenderScope = null,
+        private readonly ?int $senderFamilyMemberId = null,
     ) {}
 
     public function build(): string
@@ -41,7 +44,34 @@ final class WhatsAppSpendingReplyBuilder
     {
         return new DashboardMonthAnalytics(
             DashboardMonthPeriod::boundsFromFilters(['month' => $this->month]),
+            $this->spenderScope(),
         );
+    }
+
+    private function spenderScope(): DashboardSpenderScope
+    {
+        return $this->spenderScope ?? new DashboardSpenderScope(DashboardSpenderScope::PRIMARY);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function periodHeaderLines(): array
+    {
+        return [
+            "Period: *{$this->monthLabel()}*",
+            'Showing: *'.$this->scopeLabel().'*',
+            '',
+        ];
+    }
+
+    private function scopeLabel(): string
+    {
+        if ($this->spenderScope()->value() === DashboardSpenderScope::ALL) {
+            return 'Household';
+        }
+
+        return 'Your expenses';
     }
 
     private function bounds(): array
@@ -66,6 +96,52 @@ final class WhatsAppSpendingReplyBuilder
         );
     }
 
+    /**
+     * @param  Builder<Budget|\App\Models\Recurring>  $query
+     * @return Builder<Budget|\App\Models\Recurring>
+     */
+    private function constrainOwnedOrSharedQuery(Builder $query): Builder
+    {
+        $spender = $this->spenderScope()->value();
+
+        if ($spender === DashboardSpenderScope::ALL) {
+            return HouseholdAccess::constrainSharedOwnership($query, $this->senderFamilyMemberId);
+        }
+
+        if ($spender === DashboardSpenderScope::PRIMARY) {
+            return HouseholdAccess::constrainSharedOwnership($query, null);
+        }
+
+        if (str_starts_with($spender, 'family:')) {
+            $familyMemberId = (int) substr($spender, strlen('family:'));
+
+            return HouseholdAccess::constrainSharedOwnership($query, $familyMemberId);
+        }
+
+        return $query;
+    }
+
+    /**
+     * @param  Builder<Budget>  $query
+     * @return Builder<Budget>
+     */
+    private function constrainBudgetQuery(Builder $query): Builder
+    {
+        return $this->constrainOwnedOrSharedQuery($query);
+    }
+
+    /**
+     * @param  Builder<RecurringOccurrence>  $query
+     * @return Builder<RecurringOccurrence>
+     */
+    private function constrainRecurringOccurrenceQuery(Builder $query): Builder
+    {
+        return $query->whereHas(
+            'recurring',
+            fn (Builder $recurring): Builder => $this->constrainOwnedOrSharedQuery($recurring),
+        );
+    }
+
     private function buildSummary(): string
     {
         $analytics = $this->analytics();
@@ -75,6 +151,7 @@ final class WhatsAppSpendingReplyBuilder
         $previousTotal = $summary['previous_total'];
         $lines = [
             "Period: *{$monthLabel}*",
+            'Showing: *'.$this->scopeLabel().'*',
             '',
             'Total spent: *'.MoneyDisplay::withPrefix($currentTotal).'*',
         ];
@@ -103,7 +180,7 @@ final class WhatsAppSpendingReplyBuilder
             $lines = array_merge($lines, $this->forecastLines($currentTotal));
             $lines = array_merge($lines, $this->topLabelLines($analytics->spentByLabel(), 3));
             $lines = array_merge($lines, $this->topMerchantLines($analytics->topMerchants(), 3));
-            $lines = array_merge($lines, $this->budgetRiskLines($analytics));
+            $lines = array_merge($lines, $this->budgetRiskLines());
         }
 
         return WhatsAppMessage::compose('💰', 'Monthly Spending', implode("\n", $lines));
@@ -127,7 +204,7 @@ final class WhatsAppSpendingReplyBuilder
                 'Forecast (end of month): *'.MoneyDisplay::withPrefix($projectedSpend).'*',
             ];
 
-            $overallMonthlyBudget = Budget::query()
+            $overallMonthlyBudget = $this->constrainBudgetQuery(Budget::query())
                 ->whereNull('label_id')
                 ->where('period', 'monthly')
                 ->where('is_active', true)
@@ -178,10 +255,7 @@ final class WhatsAppSpendingReplyBuilder
             );
         }
 
-        $lines = [
-            "Period: *{$this->monthLabel()}*",
-            '',
-        ];
+        $lines = $this->periodHeaderLines();
 
         foreach ($labels->take(8) as $row) {
             $lines[] = sprintf(
@@ -213,10 +287,7 @@ final class WhatsAppSpendingReplyBuilder
             );
         }
 
-        $lines = [
-            "Period: *{$this->monthLabel()}*",
-            '',
-        ];
+        $lines = $this->periodHeaderLines();
 
         foreach ($merchants as $merchant) {
             $lines[] = sprintf(
@@ -234,11 +305,10 @@ final class WhatsAppSpendingReplyBuilder
 
     private function buildBudgets(): string
     {
-        $analytics = $this->analytics();
-        $spentTotals = $analytics->spentTotalsByLabelId();
+        $reference = Carbon::createFromFormat('Y-m', $this->month)->startOfMonth();
 
-        $budgets = Budget::query()
-            ->with('label')
+        $budgets = $this->constrainBudgetQuery(Budget::query())
+            ->with(['label', 'familyMember'])
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('id')
@@ -252,14 +322,11 @@ final class WhatsAppSpendingReplyBuilder
             );
         }
 
-        $lines = [
-            "Period: *{$this->monthLabel()}*",
-            '',
-        ];
+        $spentTotals = Budget::spentTotalsFor($budgets, $reference);
+        $lines = $this->periodHeaderLines();
 
         foreach ($budgets as $budget) {
-            $labelKey = $budget->label_id ?? 0;
-            $spent = $spentTotals[$labelKey] ?? 0.0;
+            $spent = (float) ($spentTotals[(int) $budget->id] ?? 0.0);
             $amount = (float) $budget->amount;
             $percentage = $amount > 0 ? ($spent / $amount) * 100 : 0.0;
             $icon = $percentage >= (float) $budget->critical_threshold
@@ -274,6 +341,7 @@ final class WhatsAppSpendingReplyBuilder
                 MoneyDisplay::withPrefix($spent),
                 MoneyDisplay::withPrefix($amount),
             );
+            $lines[] = '  Owner: *'.$this->ownerLabel($budget->familyMember, (bool) $budget->is_shared).'*';
         }
 
         return WhatsAppMessage::compose('📊', 'Budget Status', implode("\n", $lines));
@@ -287,8 +355,8 @@ final class WhatsAppSpendingReplyBuilder
         $isCurrentMonth = $this->isCurrentMonth();
         $today = now()->toDateString();
 
-        $query = RecurringOccurrence::query()
-            ->with('recurring')
+        $query = $this->constrainRecurringOccurrenceQuery(RecurringOccurrence::query())
+            ->with('recurring.familyMember')
             ->whereHas('recurring', static fn (Builder $recurring): Builder => $recurring->active())
             ->whereIn('status', [
                 RecurringOccurrenceStatus::Upcoming,
@@ -331,6 +399,7 @@ final class WhatsAppSpendingReplyBuilder
 
         $blocks = [
             "Period: *{$this->monthLabel()}*",
+            'Showing: *'.$this->scopeLabel().'*',
         ];
 
         foreach ($occurrences as $occurrence) {
@@ -350,6 +419,7 @@ final class WhatsAppSpendingReplyBuilder
 
             $blocks[] = implode("\n", [
                 "• *{$title}*",
+                '  Owner: *'.$this->ownerLabel($occurrence->recurring?->familyMember, (bool) ($occurrence->recurring?->is_shared ?? false)).'*',
                 "  Amount: {$amountLabel}",
                 '  '.($isOverdue ? 'Overdue' : 'Due').": {$dueOn}",
             ]);
@@ -387,6 +457,17 @@ final class WhatsAppSpendingReplyBuilder
             && $dueDate->toDateString() < $today;
     }
 
+    private function ownerLabel(?FamilyMember $familyMember, bool $isShared): string
+    {
+        $name = HouseholdAccess::memberDisplayName($familyMember);
+
+        if ($isShared) {
+            return $name.' (shared)';
+        }
+
+        return $name;
+    }
+
     private function buildTrend(): string
     {
         $trend = $this->analytics()->trend(6);
@@ -399,6 +480,7 @@ final class WhatsAppSpendingReplyBuilder
 
         $body = implode("\n", [
             'Last 6 months ending *'.$this->monthLabel().'*',
+            'Showing: *'.$this->scopeLabel().'*',
             '',
             implode("\n", array_map(static fn (string $chunk): string => '• '.$chunk, $chunks)),
         ]);
@@ -418,10 +500,7 @@ final class WhatsAppSpendingReplyBuilder
             );
         }
 
-        $lines = [
-            "Period: *{$this->monthLabel()}*",
-            '',
-        ];
+        $lines = $this->periodHeaderLines();
 
         foreach ($methods as $method) {
             $lines[] = sprintf(
@@ -441,10 +520,13 @@ final class WhatsAppSpendingReplyBuilder
     {
         $bounds = $this->bounds();
 
-        $expenses = Expense::query()
-            ->with('paymentMethod')
-            ->receiptAnalyticsEligible()
-            ->whereBetween('created_at', [$bounds['start'], $bounds['end']])
+        $expenses = $this->spenderScope()
+            ->applyToExpenseQuery(
+                Expense::query()
+                    ->with('paymentMethod')
+                    ->receiptAnalyticsEligible()
+                    ->whereBetween('created_at', [$bounds['start'], $bounds['end']])
+            )
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();
@@ -457,10 +539,7 @@ final class WhatsAppSpendingReplyBuilder
             );
         }
 
-        $lines = [
-            "Period: *{$this->monthLabel()}*",
-            '',
-        ];
+        $lines = $this->periodHeaderLines();
 
         foreach ($expenses as $expense) {
             $lines[] = sprintf(
@@ -525,28 +604,35 @@ final class WhatsAppSpendingReplyBuilder
     /**
      * @return list<string>
      */
-    private function budgetRiskLines(DashboardMonthAnalytics $analytics): array
+    private function budgetRiskLines(): array
     {
-        $spentTotals = $analytics->spentTotalsByLabelId();
+        $reference = Carbon::createFromFormat('Y-m', $this->month)->startOfMonth();
 
-        $atRisk = Budget::query()
+        $budgets = $this->constrainBudgetQuery(Budget::query())
+            ->with('familyMember')
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('id')
-            ->get()
-            ->filter(function (Budget $budget) use ($spentTotals): bool {
-                $labelKey = $budget->label_id ?? 0;
-                $spent = $spentTotals[$labelKey] ?? 0.0;
-                $amount = (float) $budget->amount;
+            ->get();
 
-                if ($amount <= 0) {
-                    return false;
-                }
+        if ($budgets->isEmpty()) {
+            return [];
+        }
 
-                $percentage = ($spent / $amount) * 100;
+        $spentTotals = Budget::spentTotalsFor($budgets, $reference);
 
-                return $percentage >= (float) $budget->alert_threshold;
-            });
+        $atRisk = $budgets->filter(function (Budget $budget) use ($spentTotals): bool {
+            $spent = (float) ($spentTotals[(int) $budget->id] ?? 0.0);
+            $amount = (float) $budget->amount;
+
+            if ($amount <= 0) {
+                return false;
+            }
+
+            $percentage = ($spent / $amount) * 100;
+
+            return $percentage >= (float) $budget->alert_threshold;
+        });
 
         if ($atRisk->isEmpty()) {
             return [];
@@ -555,8 +641,7 @@ final class WhatsAppSpendingReplyBuilder
         $lines = ['', 'Budgets at risk:'];
 
         foreach ($atRisk->take(3) as $budget) {
-            $labelKey = $budget->label_id ?? 0;
-            $spent = $spentTotals[$labelKey] ?? 0.0;
+            $spent = (float) ($spentTotals[(int) $budget->id] ?? 0.0);
             $amount = (float) $budget->amount;
             $percentage = ($spent / $amount) * 100;
             $icon = $percentage >= (float) $budget->critical_threshold ? '🚨' : '⚠️';
@@ -569,6 +654,7 @@ final class WhatsAppSpendingReplyBuilder
                 MoneyDisplay::withPrefix($spent),
                 MoneyDisplay::withPrefix($amount),
             );
+            $lines[] = '  Owner: *'.$this->ownerLabel($budget->familyMember, (bool) $budget->is_shared).'*';
         }
 
         if ($atRisk->count() > 3) {

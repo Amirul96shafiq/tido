@@ -11,6 +11,7 @@ use App\Models\FamilyMember;
 use App\Models\Recurring;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
 final class HouseholdAccess
@@ -121,5 +122,25 @@ final class HouseholdAccess
     public static function createDeniedResponse(): Response
     {
         return Response::deny(self::createDeniedMessage());
+    }
+
+    /**
+     * Limit budgets/recurrings to owned-or-shared rows for a family sender.
+     * Primary senders (null) see all rows.
+     *
+     * @param  Builder<\Illuminate\Database\Eloquent\Model>  $query
+     * @return Builder<\Illuminate\Database\Eloquent\Model>
+     */
+    public static function constrainSharedOwnership(Builder $query, ?int $familyMemberId): Builder
+    {
+        if ($familyMemberId === null) {
+            return $query;
+        }
+
+        return $query->where(function (Builder $inner) use ($familyMemberId): void {
+            $inner
+                ->where('is_shared', true)
+                ->orWhere('family_member_id', $familyMemberId);
+        });
     }
 }

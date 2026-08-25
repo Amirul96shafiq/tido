@@ -7,9 +7,12 @@ use App\Filament\Support\DashboardMonthPeriod;
 use App\Models\Budget;
 use App\Models\Expense;
 use App\Models\ExpenseItem;
+use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\Recurring;
 use App\Models\RecurringOccurrence;
+use App\Support\DashboardSpenderScope;
+use App\Support\HouseholdAccess;
 use App\Support\WhatsAppSpendingCommandParser;
 use App\Support\WhatsAppSpendingReplyBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -52,6 +55,7 @@ test('summary includes total receipts comparison and footer', function () {
 
     expect($message)
         ->toContain('💰 *Monthly Spending*')
+        ->toContain('Showing: *Your expenses*')
         ->toContain('Total spent: *RM 100.00*')
         ->toContain('Receipts: *1* processed')
         ->toContain('Forecast (end of month):')
@@ -247,3 +251,183 @@ test('recurrings mode reports empty month when no open occurrences exist', funct
         ->toContain('No open recurring payments for *January 2020*');
 });
 
+test('summary scopes to primary expenses by default and household when all scope is set', function () {
+    Expense::unsetEventDispatcher();
+
+    $member = FamilyMember::factory()->allowlisted()->create();
+
+    Expense::create([
+        'merchant_name' => 'Primary Store',
+        'invoice_number' => 'INV-PRIMARY',
+        'receipt_hash' => 'hash-primary-scope',
+        'date_time' => now()->copy()->startOfMonth()->addDay(),
+        'subtotal' => 100.00,
+        'total_tax' => 0.00,
+        'total_amount' => 100.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+        'family_member_id' => null,
+    ]);
+
+    Expense::create([
+        'merchant_name' => 'Family Store',
+        'invoice_number' => 'INV-FAMILY',
+        'receipt_hash' => 'hash-family-scope',
+        'date_time' => now()->copy()->startOfMonth()->addDay(),
+        'subtotal' => 50.00,
+        'total_tax' => 0.00,
+        'total_amount' => 50.00,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'reviewed',
+        'family_member_id' => $member->id,
+    ]);
+
+    Expense::setEventDispatcher(app('events'));
+
+    $primaryMessage = (new WhatsAppSpendingReplyBuilder(
+        now()->format('Y-m'),
+        WhatsAppSpendingCommandParser::MODE_SUMMARY,
+        new DashboardSpenderScope(DashboardSpenderScope::PRIMARY),
+    ))->build();
+
+    $householdMessage = (new WhatsAppSpendingReplyBuilder(
+        now()->format('Y-m'),
+        WhatsAppSpendingCommandParser::MODE_SUMMARY,
+        new DashboardSpenderScope(DashboardSpenderScope::ALL),
+    ))->build();
+
+    expect($primaryMessage)
+        ->toContain('Showing: *Your expenses*')
+        ->toContain('Total spent: *RM 100.00*')
+        ->not->toContain('Family Store');
+
+    expect($householdMessage)
+        ->toContain('Showing: *Household*')
+        ->toContain('Total spent: *RM 150.00*');
+});
+
+test('family sender budgets mode hides primary personal budgets but keeps shared and own', function () {
+    $member = FamilyMember::factory()->allowlisted()->create();
+
+    Budget::factory()->create([
+        'title' => 'Primary Personal',
+        'amount' => 500.00,
+        'period' => 'monthly',
+        'is_active' => true,
+        'is_shared' => false,
+        'family_member_id' => null,
+    ]);
+
+    Budget::factory()->create([
+        'title' => 'Household Shared',
+        'amount' => 300.00,
+        'period' => 'monthly',
+        'is_active' => true,
+        'is_shared' => true,
+        'family_member_id' => null,
+    ]);
+
+    Budget::factory()->create([
+        'title' => 'Member Budget',
+        'amount' => 200.00,
+        'period' => 'monthly',
+        'is_active' => true,
+        'is_shared' => false,
+        'family_member_id' => $member->id,
+    ]);
+
+    $message = (new WhatsAppSpendingReplyBuilder(
+        now()->format('Y-m'),
+        WhatsAppSpendingCommandParser::MODE_BUDGETS,
+        new DashboardSpenderScope(DashboardSpenderScope::ALL),
+        $member->id,
+    ))->build();
+
+    expect($message)
+        ->not->toContain('*Primary Personal*')
+        ->toContain('*Household Shared*')
+        ->toContain('*Member Budget*');
+});
+
+test('family sender recurrings mode hides primary personal templates', function () {
+    $member = FamilyMember::factory()->allowlisted()->create();
+
+    $primaryPersonal = Recurring::factory()->create([
+        'title' => 'Primary Personal Bill',
+        'is_shared' => false,
+        'family_member_id' => null,
+    ]);
+
+    $shared = Recurring::factory()->create([
+        'title' => 'Shared Bill',
+        'is_shared' => true,
+        'family_member_id' => null,
+    ]);
+
+    $memberRecurring = Recurring::factory()->create([
+        'title' => 'Member Bill',
+        'is_shared' => false,
+        'family_member_id' => $member->id,
+    ]);
+
+    foreach ([$primaryPersonal, $shared, $memberRecurring] as $recurring) {
+        RecurringOccurrence::factory()->create([
+            'recurring_id' => $recurring->id,
+            'due_on' => now()->copy()->startOfMonth()->addDays(5)->toDateString(),
+            'expected_amount' => 50.00,
+        ]);
+    }
+
+    $message = (new WhatsAppSpendingReplyBuilder(
+        now()->format('Y-m'),
+        WhatsAppSpendingCommandParser::MODE_RECURRINGS,
+        new DashboardSpenderScope(DashboardSpenderScope::ALL),
+        $member->id,
+    ))->build();
+
+    expect($message)
+        ->not->toContain('*Primary Personal Bill*')
+        ->toContain('*Shared Bill*')
+        ->toContain('*Member Bill*');
+});
+
+test('primary self recurrings mode lists family templates with owner names', function () {
+    $member = FamilyMember::factory()->allowlisted()->create([
+        'name' => 'Bayu',
+        'display_name' => 'Bayu',
+    ]);
+
+    $primaryPersonal = Recurring::factory()->create([
+        'title' => 'Primary Personal Bill',
+        'is_shared' => false,
+        'family_member_id' => null,
+    ]);
+
+    $familyPersonal = Recurring::factory()->create([
+        'title' => 'Family Personal Bill',
+        'is_shared' => false,
+        'family_member_id' => $member->id,
+    ]);
+
+    foreach ([$primaryPersonal, $familyPersonal] as $recurring) {
+        RecurringOccurrence::factory()->overdue()->create([
+            'recurring_id' => $recurring->id,
+            'due_on' => now()->copy()->startOfMonth()->addDays(4)->toDateString(),
+            'expected_amount' => 50.00,
+        ]);
+    }
+
+    $message = (new WhatsAppSpendingReplyBuilder(
+        now()->format('Y-m'),
+        WhatsAppSpendingCommandParser::MODE_RECURRINGS,
+        new DashboardSpenderScope(DashboardSpenderScope::PRIMARY),
+    ))->build();
+
+    expect($message)
+        ->toContain('*Primary Personal Bill*')
+        ->toContain('*Family Personal Bill*')
+        ->toContain('Owner: *'.HouseholdAccess::primaryDisplayName().'*')
+        ->toContain('Owner: *Bayu*');
+});

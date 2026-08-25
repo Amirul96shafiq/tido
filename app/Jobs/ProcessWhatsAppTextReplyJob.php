@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Services\WhatsAppNotificationService;
+use App\Support\DashboardSpenderScope;
+use App\Support\ExpenseSenderAttribution;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppMessage;
 use App\Support\WhatsAppProcessingJobKey;
@@ -101,9 +103,18 @@ class ProcessWhatsAppTextReplyJob implements ShouldBeUnique, ShouldQueue
         $spendingCommand = WhatsAppSpendingCommandParser::parse($originalText);
 
         if ($spendingCommand !== null) {
+            $familyMemberId = ExpenseSenderAttribution::familyMemberIdForSender($this->senderNumber);
+            $spenderScope = $spendingCommand['scope'] === WhatsAppSpendingCommandParser::SCOPE_ALL
+                ? new DashboardSpenderScope(DashboardSpenderScope::ALL)
+                : ($familyMemberId === null
+                    ? new DashboardSpenderScope(DashboardSpenderScope::PRIMARY)
+                    : new DashboardSpenderScope(DashboardSpenderScope::familyValue($familyMemberId)));
+
             return (new WhatsAppSpendingReplyBuilder(
                 $spendingCommand['month'],
                 $spendingCommand['mode'],
+                $spenderScope,
+                $familyMemberId,
             ))->build();
         }
 

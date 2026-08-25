@@ -24,6 +24,10 @@ final class WhatsAppSpendingCommandParser
 
     public const MODE_RECENT = 'recent';
 
+    public const SCOPE_SELF = 'self';
+
+    public const SCOPE_ALL = 'all';
+
     /**
      * @var array<string, list<string>>
      */
@@ -68,7 +72,7 @@ final class WhatsAppSpendingCommandParser
     ];
 
     /**
-     * @return array{mode: string, month: string}|null
+     * @return array{mode: string, month: string, scope: string}|null
      */
     public static function parse(string $text): ?array
     {
@@ -80,10 +84,12 @@ final class WhatsAppSpendingCommandParser
 
         $month = self::resolveMonth($normalized);
         $mode = self::resolveMode($normalized);
+        $scope = self::resolveScope($normalized);
 
         return [
             'mode' => $mode,
             'month' => $month,
+            'scope' => $scope,
         ];
     }
 
@@ -137,5 +143,16 @@ final class WhatsAppSpendingCommandParser
         }
 
         return self::MODE_SUMMARY;
+    }
+
+    private static function resolveScope(string $text): string
+    {
+        $withoutMonthPhrases = str_replace('last month', '', $text);
+
+        if (preg_match('/\b(all|household)\b/', $withoutMonthPhrases) === 1) {
+            return self::SCOPE_ALL;
+        }
+
+        return self::SCOPE_SELF;
     }
 }

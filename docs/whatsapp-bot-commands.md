@@ -20,20 +20,20 @@ Images and PDF documents are handled separately (receipt upload → OCR pipeline
 
 ## Receipt ingestion (no keyword)
 
-| Action | What happens |
-|--------|----------------|
-| Send **image(s) or PDF(s)** | Validated, saved, and queued for AI parsing → attributed to sender (Primary vs Family Member) → document received ack → document parsed/review reply with edit URL |
-| Send **manual expense text** | Fixed `merchant[, payment];` + `item, qty, total;` lines → attributed → manual expense received ack → parsed reply |
+| Action                       | What happens                                                                                                                                                       |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Send **image(s) or PDF(s)**  | Validated, saved, and queued for AI parsing → attributed to sender (Primary vs Family Member) → document received ack → document parsed/review reply with edit URL |
+| Send **manual expense text** | Fixed `merchant[, payment];` + `item, qty, total;` lines → attributed → manual expense received ack → parsed reply                                                 |
 
 Manual format rules and payment tokens: [whatsapp-manual-expense.md](whatsapp-manual-expense.md). Household attribution + panel login: [household-access.md](household-access.md).
 
 ## Help and guides
 
-| Type in chat | Reply |
-|--------------|-------|
-| *(anything unrecognized)* | `help` — upload options, manual expense hint, spend hint |
-| `manual` or `manual way` | Manual approach — format, sample, supported payment method names |
-| `finance others` | Finance keywords — full list of spending commands |
+| Type in chat              | Reply                                                            |
+| ------------------------- | ---------------------------------------------------------------- |
+| _(anything unrecognized)_ | `help` — upload options, manual expense hint, spend hint         |
+| `manual` or `manual way`  | Manual approach — format, sample, supported payment method names |
+| `finance others`          | Finance keywords — full list of spending commands                |
 
 ## PDF receipt handling
 
@@ -50,30 +50,43 @@ Configure Poppler with absolute paths in `.env` (`PDFINFO_BINARY`, `PDFTOCAIRO_B
 
 ## Spending commands
 
-Any message containing **`spend`** or **`total`** triggers a spending reply. Sub-commands and month filters are parsed from the same message.
+Any message containing **`spend`** or **`total`** triggers a spending reply. Sub-commands, scope, and month filters are parsed from the same message.
+
+### Scope (self vs household)
+
+By default, spending replies show **your** expenses (Primary vs Family Member attribution from the sender). Budget and recurring lists follow the same visibility as Finance Home (owned or shared for family senders).
+
+| Command                                | Scope                             |
+| -------------------------------------- | --------------------------------- |
+| `spend` / `total` / `spend labels` / … | Sender’s own expenses (default)   |
+| `spend all` / `spend household`        | Whole household expenses          |
+| `spend labels all`                     | Label breakdown for the household |
+
+Replies include `Showing: Your expenses` or `Showing: Household` on expense summaries. `spend budgets` and `spend recurrings` list templates the sender can see (Primary: household; family: owned or shared) and include an **Owner** line on each item.
 
 ### Summary (default)
 
-| Command | Reply |
-|---------|-------|
-| `spend` | Current month summary |
-| `total` | Same as `spend` |
-| `How much did I spend this month?` | Same (contains `spend`) |
+| Command                            | Reply                                 |
+| ---------------------------------- | ------------------------------------- |
+| `spend`                            | Current month summary (your expenses) |
+| `total`                            | Same as `spend`                       |
+| `spend all`                        | Current month household summary       |
+| `How much did I spend this month?` | Same (contains `spend`)               |
 
 **Default summary includes:** period, total spent, change vs previous month, receipts processed/pending, end-of-month forecast (current month) or daily average (past months), top 3 labels, top 3 merchants, budgets at warn/critical (up to 3).
 
 ### Detailed breakdowns
 
-| Command | Reply |
-|---------|-------|
-| `spend labels` | Label breakdown (up to 8) |
-| `spend merchants` | Top 5 merchants |
-| `spend budgets` | All active budgets with spent / limit / % |
+| Command            | Reply                                              |
+| ------------------ | -------------------------------------------------- |
+| `spend labels`     | Label breakdown (up to 8)                          |
+| `spend merchants`  | Top 5 merchants                                    |
+| `spend budgets`    | Active budgets you can see with spent / limit / %  |
 | `spend recurrings` | Overdue, due, and upcoming open payments (up to 8) |
-| `spend trend` | Last 6 months spending |
-| `spend payment` | Spending by payment method (top 5) |
-| `spend recent` | Last 5 receipts uploaded in the month |
-| `spend last` | Same as `spend recent` |
+| `spend trend`      | Last 6 months spending                             |
+| `spend payment`    | Spending by payment method (top 5)                 |
+| `spend recent`     | Last 5 receipts uploaded in the month              |
+| `spend last`       | Same as `spend recent`                             |
 
 **Aliases** (same mode): `label` / `categories`, `merchant` / `shops`, `budget`, `recurring`, `history`, `payments`, `receipts`.
 
@@ -81,13 +94,13 @@ Any message containing **`spend`** or **`total`** triggers a spending reply. Sub
 
 Combine any spending command with a period:
 
-| Example | Period |
-|---------|--------|
-| `spend last month` | Previous calendar month |
-| `spend 2025-03` or `spend 2025/3` | March 2025 |
-| `spend march` | March of current year (or prior year if that month is still in the future) |
-| `spend labels march 2024` | Label breakdown for March 2024 |
-| `spend recurrings last month` | Open recurrings due in the previous month |
+| Example                           | Period                                                                     |
+| --------------------------------- | -------------------------------------------------------------------------- |
+| `spend last month`                | Previous calendar month                                                    |
+| `spend 2025-03` or `spend 2025/3` | March 2025                                                                 |
+| `spend march`                     | March of current year (or prior year if that month is still in the future) |
+| `spend labels march 2024`         | Label breakdown for March 2024                                             |
+| `spend recurrings last month`     | Open recurrings due in the previous month                                  |
 
 If no month is given, **current month** is used.
 
@@ -95,26 +108,26 @@ If no month is given, **current month** is used.
 
 These are sent by the bot after ingestion jobs complete (no keyword needed):
 
-| Event | Message |
-|-------|---------|
+| Event                                 | Message                                                          |
+| ------------------------------------- | ---------------------------------------------------------------- |
 | Document/image/PDF received (batched) | Document received; rejected PDFs include the filename and reason |
-| Document parsed | Document parsed + merchant, total, payment method, edit URL |
-| Manual expense received (batched) | Manual expense received |
-| Manual expense parsed | Manual expense parsed + edit URL |
-| Upload download failed | Upload failed (with retry hint) |
-| Budget threshold crossed | Budget alert / Budget critical (proactive, Profile phone) |
+| Document parsed                       | Document parsed + merchant, total, payment method, edit URL      |
+| Manual expense received (batched)     | Manual expense received                                          |
+| Manual expense parsed                 | Manual expense parsed + edit URL                                 |
+| Upload download failed                | Upload failed (with retry hint)                                  |
+| Budget threshold crossed              | Budget alert / Budget critical (proactive, Profile phone)        |
 
 ## Key code
 
-| Piece | Location |
-|-------|----------|
-| Webhook routing | `App\Http\Controllers\Api\WhatsAppWebhookController` |
-| Message templates | `App\Support\WhatsAppMessage` |
-| Spend command parser | `App\Support\WhatsAppSpendingCommandParser` |
-| Spend reply builder | `App\Support\WhatsAppSpendingReplyBuilder` |
-| Manual text parser | `App\Support\ManualWhatsAppExpenseParser` |
-| Sender attribution | `App\Support\ExpenseSenderAttribution` |
-| Analytics data | `App\Filament\Support\DashboardMonthAnalytics` |
+| Piece                | Location                                             |
+| -------------------- | ---------------------------------------------------- |
+| Webhook routing      | `App\Http\Controllers\Api\WhatsAppWebhookController` |
+| Message templates    | `App\Support\WhatsAppMessage`                        |
+| Spend command parser | `App\Support\WhatsAppSpendingCommandParser`          |
+| Spend reply builder  | `App\Support\WhatsAppSpendingReplyBuilder`           |
+| Manual text parser   | `App\Support\ManualWhatsAppExpenseParser`            |
+| Sender attribution   | `App\Support\ExpenseSenderAttribution`               |
+| Analytics data       | `App\Filament\Support\DashboardMonthAnalytics`       |
 
 ## Related
 

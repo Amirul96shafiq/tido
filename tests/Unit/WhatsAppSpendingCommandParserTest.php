@@ -14,6 +14,7 @@ test('parse defaults to summary for current month', function () {
     expect($result)->toMatchArray([
         'mode' => WhatsAppSpendingCommandParser::MODE_SUMMARY,
         'month' => now()->format('Y-m'),
+        'scope' => WhatsAppSpendingCommandParser::SCOPE_SELF,
     ]);
 });
 
@@ -21,7 +22,8 @@ test('parse recognizes total keyword', function () {
     $result = WhatsAppSpendingCommandParser::parse('total');
 
     expect($result)->not->toBeNull()
-        ->and($result['mode'])->toBe(WhatsAppSpendingCommandParser::MODE_SUMMARY);
+        ->and($result['mode'])->toBe(WhatsAppSpendingCommandParser::MODE_SUMMARY)
+        ->and($result['scope'])->toBe(WhatsAppSpendingCommandParser::SCOPE_SELF);
 });
 
 test('parse recognizes spend sub-command modes', function (string $text, string $mode) {
@@ -47,6 +49,7 @@ test('parse resolves last month period', function () {
     expect($result)->toMatchArray([
         'mode' => WhatsAppSpendingCommandParser::MODE_SUMMARY,
         'month' => now()->copy()->subMonth()->format('Y-m'),
+        'scope' => WhatsAppSpendingCommandParser::SCOPE_SELF,
     ]);
 });
 
@@ -76,5 +79,27 @@ test('parse resolves named month with year', function () {
     expect($result)->toMatchArray([
         'mode' => WhatsAppSpendingCommandParser::MODE_LABELS,
         'month' => '2024-03',
+        'scope' => WhatsAppSpendingCommandParser::SCOPE_SELF,
+    ]);
+});
+
+test('parse resolves household scope aliases', function (string $text) {
+    $result = WhatsAppSpendingCommandParser::parse($text);
+
+    expect($result)->not->toBeNull()
+        ->and($result['scope'])->toBe(WhatsAppSpendingCommandParser::SCOPE_ALL);
+})->with([
+    'spend all',
+    'spend household',
+    'spend labels all',
+    'spend all last month',
+]);
+
+test('spend labels all keeps labels mode with household scope', function () {
+    $result = WhatsAppSpendingCommandParser::parse('spend labels all');
+
+    expect($result)->toMatchArray([
+        'mode' => WhatsAppSpendingCommandParser::MODE_LABELS,
+        'scope' => WhatsAppSpendingCommandParser::SCOPE_ALL,
     ]);
 });
