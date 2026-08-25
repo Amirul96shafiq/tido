@@ -33,6 +33,8 @@ test('parse recognizes spend sub-command modes', function (string $text, string 
     ['spend labels', WhatsAppSpendingCommandParser::MODE_LABELS],
     ['spend merchants', WhatsAppSpendingCommandParser::MODE_MERCHANTS],
     ['spend budgets', WhatsAppSpendingCommandParser::MODE_BUDGETS],
+    ['spend recurrings', WhatsAppSpendingCommandParser::MODE_RECURRINGS],
+    ['spend recurring', WhatsAppSpendingCommandParser::MODE_RECURRINGS],
     ['spend trend', WhatsAppSpendingCommandParser::MODE_TREND],
     ['spend payment', WhatsAppSpendingCommandParser::MODE_PAYMENT],
     ['spend recent', WhatsAppSpendingCommandParser::MODE_RECENT],
@@ -47,6 +49,17 @@ test('parse resolves last month period', function () {
         'month' => now()->copy()->subMonth()->format('Y-m'),
     ]);
 });
+
+test('parse resolves last month period for recurrings', function () {
+    $result = WhatsAppSpendingCommandParser::parse('spend recurrings last month');
+
+    expect($result)->toMatchArray([
+        'mode' => WhatsAppSpendingCommandParser::MODE_RECURRINGS,
+        'month' => now()->copy()->subMonth()->format('Y-m'),
+    ]);
+});
+
+
 
 test('parse resolves explicit year-month period', function () {
     $result = WhatsAppSpendingCommandParser::parse('spend 2025-03');

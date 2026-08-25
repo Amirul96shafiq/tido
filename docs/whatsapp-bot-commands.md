@@ -69,12 +69,13 @@ Any message containing **`spend`** or **`total`** triggers a spending reply. Sub
 | `spend labels` | Label breakdown (up to 8) |
 | `spend merchants` | Top 5 merchants |
 | `spend budgets` | All active budgets with spent / limit / % |
+| `spend recurrings` | Overdue, due, and upcoming open payments (up to 8) |
 | `spend trend` | Last 6 months spending |
 | `spend payment` | Spending by payment method (top 5) |
 | `spend recent` | Last 5 receipts uploaded in the month |
 | `spend last` | Same as `spend recent` |
 
-**Aliases** (same mode): `label` / `categories`, `merchant` / `shops`, `budget`, `history`, `payments`, `receipts`.
+**Aliases** (same mode): `label` / `categories`, `merchant` / `shops`, `budget`, `recurring`, `history`, `payments`, `receipts`.
 
 ### Month selection
 
@@ -86,6 +87,7 @@ Combine any spending command with a period:
 | `spend 2025-03` or `spend 2025/3` | March 2025 |
 | `spend march` | March of current year (or prior year if that month is still in the future) |
 | `spend labels march 2024` | Label breakdown for March 2024 |
+| `spend recurrings last month` | Open recurrings due in the previous month |
 
 If no month is given, **current month** is used.
 

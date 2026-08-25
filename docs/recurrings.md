@@ -69,4 +69,5 @@ Use `recurring:match-expenses` after seeding recurrings (or importing historical
 ## Related
 
 - Household visibility: [household-access.md](household-access.md)
+- WhatsApp on-demand list: [whatsapp-bot-commands.md](whatsapp-bot-commands.md) (`spend recurrings`)
 - Agent map: [agent-onboarding.md](agent-onboarding.md)

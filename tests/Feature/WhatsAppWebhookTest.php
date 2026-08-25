@@ -9,6 +9,8 @@ use App\Models\Expense;
 use App\Models\ExpenseItem;
 use App\Models\FamilyMember;
 use App\Models\Label;
+use App\Models\Recurring;
+use App\Models\RecurringOccurrence;
 use App\Models\User;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppTypingSession;
@@ -283,6 +285,59 @@ test('whatsapp webhook handles spend labels sub-command', function () {
             && str_contains($text, '*Transport*');
     });
 });
+
+test('whatsapp webhook handles spend recurrings sub-command', function () {
+    $recurring = Recurring::factory()->create(['title' => 'Astro']);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'due_on' => now()->copy()->startOfMonth()->addDays(10)->toDateString(),
+        'expected_amount' => 99.00,
+    ]);
+
+    Queue::fake();
+    Http::fake([
+        '*/message/sendText/*' => Http::response(['status' => 'success']),
+    ]);
+
+    $payload = [
+        'event' => 'messages.upsert',
+        'data' => [
+            'key' => [
+                'remoteJid' => '60123456789@s.whatsapp.net',
+                'fromMe' => false,
+                'id' => 'MSG-RECURRINGS',
+            ],
+            'messageType' => 'conversation',
+            'message' => [
+                'conversation' => 'spend recurrings',
+            ],
+        ],
+    ];
+
+    $this->postJson('/api/webhooks/whatsapp', $payload, [
+        ...evolutionWebhookHeaders(),
+    ])
+        ->assertSuccessful()
+        ->assertJson(['status' => 'accepted']);
+
+    Queue::assertPushed(ProcessWhatsAppTextReplyJob::class, function (ProcessWhatsAppTextReplyJob $job): bool {
+        return $job->senderNumber === '60123456789'
+            && $job->originalText === 'spend recurrings';
+    });
+
+    $job = new ProcessWhatsAppTextReplyJob('60123456789', 'spend recurrings', 'MSG-WEBHOOK-RECURRINGS');
+    $job->handle(app(WhatsAppNotificationService::class));
+
+    Http::assertSent(function (Request $request) {
+        $text = (string) $request['text'];
+
+        return str_contains($request->url(), '/message/sendText/')
+            && str_contains($text, '*Recurring Payments*')
+            && str_contains($text, '*Astro*');
+    });
+});
+
 
 test('whatsapp webhook allows self-chat fromMe when sender is allowlisted', function () {
     Queue::fake();
