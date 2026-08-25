@@ -18,6 +18,8 @@ test('text marquee component renders the looping track contract', function () {
         ->toContain('wire:ignore')
         ->toContain('whitespace-nowrap')
         ->toContain('ResizeObserver')
+        ->toContain('prefersReducedMotion()')
+        ->toContain('tidoPrefersReducedMotion')
         ->toContain('--tido-marquee-distance')
         ->toContain('--tido-marquee-duration')
         ->toContain('font-semibold')
@@ -37,5 +39,6 @@ test('text marquee css drives overflow motion on the compositor', function () {
         ->toContain('.tido-text-marquee-track.is-overflowing')
         ->toContain('animation: tido-text-marquee-scroll')
         ->toContain('--tido-marquee-distance')
-        ->toContain('--tido-marquee-duration');
+        ->toContain('--tido-marquee-duration')
+        ->toContain('html.tido-reduce-motion .tido-text-marquee-track');
 });

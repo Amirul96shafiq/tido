@@ -20,7 +20,7 @@ Toggle::make('notify_budget_alerts')
     ->live();
 ```
 
-On Edit Profile Personalize, stylized background uses a custom field status pill can sit next to the control; dehydrate via `Hidden::make('stylized_background_enabled')`. Both previews share [`panel-preview-chrome`](../resources/views/components/tido/panel-preview-chrome.blade.php) (real sidebar logos; topbar profile circle only; live panel art from `images/bg-l-v8.webp` / `bg-d-v8.webp`). Each preview cross-follows the other control: sidebar collapse state from `$store.sidebar`, stylized background from entangled `data.stylized_background_enabled`.
+On Edit Profile Personalize, stylized background uses a custom field status pill can sit next to the control; dehydrate via `Hidden::make('stylized_background_enabled')`. **Reduce Motion** in PREFERENCES uses native `Toggle::make('reduce_motion')` — no custom Blade toggle. See [ui-reduce-motion.md](ui-reduce-motion.md). Both previews share [`panel-preview-chrome`](../resources/views/components/tido/panel-preview-chrome.blade.php) (real sidebar logos; topbar profile circle only; live panel art from `images/bg-l-v8.webp` / `bg-d-v8.webp`). Each preview cross-follows the other control: sidebar collapse state from `$store.sidebar`, stylized background from entangled `data.stylized_background_enabled`.
 
 On Edit Profile, `defaultForm()` sets `inlineLabel(! static::isSimple())`, so native toggles render **label left / control right** in the `fi-fo-field-has-inline-label` grid. Custom toggles on that page must mirror that markup (see Layout below).
 

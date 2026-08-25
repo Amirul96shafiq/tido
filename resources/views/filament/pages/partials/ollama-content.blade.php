@@ -38,8 +38,7 @@
                         ])>
                             @if ($this->connectionStatus === 'operational')
                                 <span
-                                    class="pointer-events-none absolute inset-0 rounded-full border-2 border-success-500/30"
-                                    style="animation: wa-connected-pulse 2s infinite"
+                                    class="tido-status-pulse pointer-events-none absolute inset-0 rounded-full border-2 border-success-500/30"
                                 ></span>
                             @endif
 
@@ -209,20 +208,6 @@
                         </div>
                 </div>
             </div>
-
-            <style>
-                @keyframes wa-connected-pulse {
-                    0% {
-                        transform: scale(1);
-                        opacity: 1;
-                    }
-
-                    100% {
-                        transform: scale(1.4);
-                        opacity: 0;
-                    }
-                }
-            </style>
         </x-filament::section>
 
         <x-filament::section id="ollama-pipeline" class="h-full">

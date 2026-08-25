@@ -249,7 +249,7 @@ final class AdminDestinationSearch
             ],
             [
                 'title' => 'Personalize',
-                'keywords' => ['personalize', 'theme', 'sidebar', 'background', 'appearance'],
+                'keywords' => ['personalize', 'theme', 'sidebar', 'background', 'appearance', 'reduce', 'motion', 'accessibility', 'marquee'],
                 'group' => 'Sections',
                 'url' => $profileUrl.'#personalize',
                 'details' => ['Page' => 'Profile'],

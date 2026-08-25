@@ -358,6 +358,7 @@ test('sidebar collapse expand transition uses shared motion tokens and logo mask
         ->toContain('overflow: hidden;')
         ->and($reducedMotionBlock)
         ->toContain('@media (prefers-reduced-motion: reduce)')
+        ->toContain('html.tido-reduce-motion .fi-sidebar')
         ->toContain('.fi-sidebar-logo-full')
         ->toContain('.fi-sidebar-logo-compact')
         ->toContain('.fi-sidebar-item-btn')

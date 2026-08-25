@@ -9,6 +9,17 @@
 const ROOT_SELECTOR = '.tido-select-value-marquee';
 const SPEED = 40;
 
+/**
+ * @returns {boolean}
+ */
+function prefersReducedMotion() {
+    if (typeof window.tidoPrefersReducedMotion === 'function') {
+        return window.tidoPrefersReducedMotion();
+    }
+
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 /** @type {WeakMap<HTMLElement, MarqueeState>} */
 const states = new WeakMap();
 
@@ -16,7 +27,6 @@ const states = new WeakMap();
  * @typedef {{
  *   overflowing: boolean,
  *   scrollDistance: number,
- *   reducedMotion: boolean,
  *   rafMeasure: number|null,
  * }} MarqueeState
  */
@@ -32,7 +42,6 @@ function getState(clip) {
         state = {
             overflowing: false,
             scrollDistance: 0,
-            reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
             rafMeasure: null,
         };
         states.set(clip, state);
@@ -64,7 +73,7 @@ function applyMotion(track, shouldOverflow, scrollDistance, state) {
     state.scrollDistance = scrollDistance;
     track.classList.toggle('is-overflowing', shouldOverflow);
 
-    if (shouldOverflow && ! state.reducedMotion && scrollDistance > 0) {
+    if (shouldOverflow && ! prefersReducedMotion() && scrollDistance > 0) {
         track.style.setProperty('--tido-marquee-distance', `${scrollDistance}px`);
         track.style.setProperty(
             '--tido-marquee-duration',

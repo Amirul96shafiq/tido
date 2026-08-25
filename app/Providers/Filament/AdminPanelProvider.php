@@ -22,6 +22,7 @@ use App\Filament\Support\IntegrationNavigation;
 use App\Http\Middleware\SetUserPreferences;
 use App\Support\FilamentAuthLogout;
 use App\Support\HouseholdAccess;
+use App\Support\ReduceMotion;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResults;
 use Filament\Actions\Action;
@@ -164,6 +165,60 @@ class AdminPanelProvider extends PanelProvider
                 scopes: [
                     Login::class,
                 ],
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_START,
+                function (): string {
+                    $initialClassScript = ReduceMotion::enabled()
+                        ? "document.documentElement.classList.add('tido-reduce-motion');"
+                        : '';
+
+                    return <<<HTML
+                        <script>
+                            (function () {
+                                var REDUCE_MOTION_CLASS = 'tido-reduce-motion';
+                                var QUERY = '(prefers-reduced-motion: reduce)';
+                                var originalMatchMedia = window.matchMedia.bind(window);
+
+                                function prefersReducedMotion() {
+                                    if (document.documentElement.classList.contains(REDUCE_MOTION_CLASS)) {
+                                        return true;
+                                    }
+
+                                    return originalMatchMedia(QUERY).matches;
+                                }
+
+                                window.tidoPrefersReducedMotion = prefersReducedMotion;
+
+                                window.tidoSetReduceMotion = function (enabled) {
+                                    document.documentElement.classList.toggle(REDUCE_MOTION_CLASS, !!enabled);
+                                };
+
+                                {$initialClassScript}
+
+                                window.matchMedia = function (query) {
+                                    var result = originalMatchMedia(query);
+
+                                    if (typeof query === 'string' && query.indexOf('prefers-reduced-motion') !== -1) {
+                                        return new Proxy(result, {
+                                            get: function (target, prop) {
+                                                if (prop === 'matches') {
+                                                    return prefersReducedMotion();
+                                                }
+
+                                                var value = target[prop];
+
+                                                return typeof value === 'function' ? value.bind(target) : value;
+                                            },
+                                        });
+                                    }
+
+                                    return result;
+                                };
+                            })();
+                        </script>
+                        HTML;
+                },
             )
             ->renderHook(
                 PanelsRenderHook::HEAD_END,

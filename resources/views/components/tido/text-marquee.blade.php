@@ -12,8 +12,15 @@
         overflowing: false,
         scrollDistance: 0,
         speed: 40,
-        reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
         rafMeasure: null,
+
+        prefersReducedMotion() {
+            if (typeof window.tidoPrefersReducedMotion === 'function') {
+                return window.tidoPrefersReducedMotion();
+            }
+
+            return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        },
 
         init() {
             const track = this.$refs.marqueeTrack;
@@ -31,7 +38,7 @@
                 this.scrollDistance = scrollDistance;
                 track.classList.toggle('is-overflowing', shouldOverflow);
 
-                if (shouldOverflow && ! this.reducedMotion && scrollDistance > 0) {
+                if (shouldOverflow && ! this.prefersReducedMotion() && scrollDistance > 0) {
                     track.style.setProperty('--tido-marquee-distance', `${scrollDistance}px`);
                     track.style.setProperty(
                         '--tido-marquee-duration',

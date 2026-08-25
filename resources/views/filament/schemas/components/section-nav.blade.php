@@ -78,7 +78,12 @@
                 history.replaceState(null, '', '#' + encodeURIComponent(id));
             }
 
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            element.scrollIntoView({
+                behavior: typeof window.tidoPrefersReducedMotion === 'function' && window.tidoPrefersReducedMotion()
+                    ? 'auto'
+                    : 'smooth',
+                block: 'start',
+            });
             this.$nextTick(() => this.scrollActiveTabIntoView());
         },
         onNavClick(event) {
