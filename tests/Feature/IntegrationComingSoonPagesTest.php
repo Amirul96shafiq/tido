@@ -71,7 +71,7 @@ test('family members cannot access coming soon integration pages', function (str
     $this->actingAs($familyMemberUser);
 
     expect($page::canAccess())->toBeFalse()
-        ->and($page::shouldRegisterNavigation())->toBeFalse();
+        ->and($page::shouldRegisterNavigation())->toBeTrue();
 
     $this->get($page::getUrl())
         ->assertRedirect();

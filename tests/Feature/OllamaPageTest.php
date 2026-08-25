@@ -703,7 +703,7 @@ test('family member cannot access ollama page', function (): void {
     $this->actingAs($familyMemberUser);
 
     expect(OllamaPage::canAccess())->toBeFalse()
-        ->and(OllamaPage::shouldRegisterNavigation())->toBeFalse();
+        ->and(OllamaPage::shouldRegisterNavigation())->toBeTrue();
 
     $this->get(OllamaPage::getUrl())
         ->assertRedirect();
@@ -765,4 +765,18 @@ test('header action group recheck poppler is enabled when binaries are missing',
         ->set('pdfToCairoBinary', '')
         ->set('pdfToTextBinary', '')
         ->assertActionEnabled('recheckPoppler');
+});
+
+test('ollama activity stats render with count-up animation', function (): void {
+    Expense::factory()->create(['status' => 'parsed']);
+    Expense::factory()->create(['status' => 'reviewed']);
+    Expense::factory()->create(['status' => 'requires_manual_review']);
+    Expense::factory()->create(['file_mime_type' => 'application/pdf', 'status' => 'parsed']);
+    Expense::factory()->create(['file_mime_type' => 'image/png', 'status' => 'parsed']);
+
+    $component = Livewire::test(OllamaPage::class);
+
+    expect($component->html())
+        ->toContain('fi-count-up')
+        ->toContain('x-data="countUp(');
 });

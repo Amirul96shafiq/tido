@@ -894,45 +894,50 @@ class OllamaPage extends Page
             [
                 'label' => 'Parsed',
                 'value' => number_format((int) ($statusCounts['parsed'] ?? 0)),
+                'raw_value' => (int) ($statusCounts['parsed'] ?? 0),
                 'description' => 'Receipts stored with extracted fields.',
                 'chart' => $trend['parsed'],
             ],
             [
                 'label' => 'Reviewed',
                 'value' => number_format((int) ($statusCounts['reviewed'] ?? 0)),
+                'raw_value' => (int) ($statusCounts['reviewed'] ?? 0),
                 'description' => 'Receipts confirmed after review.',
                 'chart' => $trend['reviewed'],
             ],
             [
                 'label' => 'Manual review',
                 'value' => number_format((int) ($statusCounts['requires_manual_review'] ?? 0)),
+                'raw_value' => (int) ($statusCounts['requires_manual_review'] ?? 0),
                 'description' => 'Receipts waiting for manual checks.',
                 'chart' => $trend['manual_review'],
             ],
             [
                 'label' => 'PDF receipts',
                 'value' => number_format(
-                    Expense::query()
+                    $pdfCount = Expense::query()
                         ->where('file_mime_type', 'application/pdf')
                         ->count(),
                 ),
+                'raw_value' => $pdfCount,
                 'description' => 'Stored documents routed through PDF extraction.',
                 'chart' => $trend['pdf'],
             ],
             [
                 'label' => 'Image receipts',
                 'value' => number_format(
-                    Expense::query()
+                    $imageCount = Expense::query()
                         ->where('file_mime_type', 'like', 'image/%')
                         ->count(),
                 ),
+                'raw_value' => $imageCount,
                 'description' => 'Stored images routed through vision extraction.',
                 'chart' => $trend['image'],
             ],
             [
                 'label' => 'Text-only receipts',
                 'value' => number_format(
-                    Expense::query()
+                    $textCount = Expense::query()
                         ->where(function ($query): void {
                             $query
                                 ->whereNull('file_mime_type')
@@ -940,6 +945,7 @@ class OllamaPage extends Page
                         })
                         ->count(),
                 ),
+                'raw_value' => $textCount,
                 'description' => 'Receipts stored without an uploaded file.',
                 'chart' => $trend['text_only'],
             ],

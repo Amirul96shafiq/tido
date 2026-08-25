@@ -337,7 +337,7 @@
                             {{ $stat['label'] }}
                         </p>
                         <p class="mt-2 text-3xl font-semibold tabular-nums text-gray-950 dark:text-white">
-                            {{ $stat['value'] }}
+                            <x-count-up :value="$stat['raw_value']" />
                         </p>
                         <p class="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
                             {{ $stat['description'] }}
