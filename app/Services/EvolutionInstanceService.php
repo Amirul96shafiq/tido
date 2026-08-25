@@ -310,6 +310,37 @@ class EvolutionInstanceService
     }
 
     /**
+     * Reopen a dropped Baileys socket when Prisma still has an open session.
+     */
+    public function restoreSessionSocket(): bool
+    {
+        try {
+            $details = $this->fetchInstanceDetails();
+            $detailStatus = (string) ($details['connectionStatus'] ?? '');
+
+            if (! $details['ok'] || ! $this->isConnectedStatus($detailStatus) || blank($details['connectedNumber'])) {
+                return false;
+            }
+
+            $state = $this->connectionState();
+
+            if ($this->isConnectedStatus($state['status'])) {
+                return true;
+            }
+
+            $connect = $this->connectInstance();
+
+            if ($connect['qrBase64'] !== null || $connect['pairingCode'] !== null) {
+                return false;
+            }
+
+            return $this->isConnectedStatus($connect['status']);
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
      * @return array{ok: bool, message: string}
      */
     public function logoutInstance(): array

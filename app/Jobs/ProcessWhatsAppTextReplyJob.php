@@ -22,6 +22,7 @@ use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class ProcessWhatsAppTextReplyJob implements ShouldBeUnique, ShouldQueue
 {
@@ -89,7 +90,11 @@ class ProcessWhatsAppTextReplyJob implements ShouldBeUnique, ShouldQueue
         }
 
         $reply = $this->buildReply($this->originalText);
-        $waService->sendMessage($this->senderNumber, $reply);
+        $result = $waService->sendMessageResult($this->senderNumber, $reply);
+
+        if (! $result->ok) {
+            throw new RuntimeException('Unable to send the WhatsApp text reply: '.$result->reason);
+        }
 
         Cache::put(
             WhatsAppProcessingJobKey::textReplySentCacheKey($this->messageId),
