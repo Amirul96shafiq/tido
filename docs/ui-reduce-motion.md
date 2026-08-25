@@ -20,7 +20,7 @@ When enabled, count-up, marquee, status pulses, notification badge pings, recurr
 | Count-up       | `window.matchMedia('(prefers-reduced-motion: reduce)')` is wrapped so `.matches` is true when the html class is present (vendor package checks media only)                                           |
 | Marquee        | [`x-tido.text-marquee`](../resources/views/components/tido/text-marquee.blade.php) and [`select-value-marquee.js`](../resources/js/select-value-marquee.js) call `window.tidoPrefersReducedMotion()` |
 | Smooth scroll  | Section nav, hash scroll, go-to-top/bottom use `behavior: 'auto'` when reduced                                                                                                                       |
-| SPA navigation | `sessionStorage` + `livewire:navigating` / `livewire:navigated` restore `html.tido-reduce-motion` and re-snap count-up / marquee                                                                     |
+| SPA navigation | `sessionStorage` + `livewire:navigating` / `livewire:navigated` restore `html.tido-reduce-motion` and re-snap count-up / marquee via `syncMarqueeMotion()`                                           |
 
 ### Client API
 

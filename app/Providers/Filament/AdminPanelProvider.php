@@ -266,11 +266,59 @@ class AdminPanelProvider extends PanelProvider
                                     });
                                 }
 
-                                function stopMarqueeMotion() {
-                                    document.querySelectorAll('.tido-text-marquee-track.is-overflowing').forEach(function (track) {
-                                        track.classList.remove('is-overflowing');
+                                function syncMarqueeMotion() {
+                                    document.querySelectorAll('.tido-text-marquee-clip').forEach(function (clip) {
+                                        var track = clip.querySelector('.tido-text-marquee-track');
+                                        var segment = clip.querySelector(
+                                            '.tido-text-marquee-segment:not([aria-hidden="true"])',
+                                        ) || clip.querySelector('.tido-text-marquee-segment');
+
+                                        if (! track || ! segment) {
+                                            return;
+                                        }
+
+                                        var clipWidth = clip.clientWidth;
+                                        var segmentWidth = segment.offsetWidth;
+
+                                        if (clipWidth === 0 || segmentWidth === 0) {
+                                            return;
+                                        }
+
+                                        var styles = window.getComputedStyle(track);
+                                        var gap =
+                                            Number.parseFloat(styles.columnGap)
+                                            || Number.parseFloat(styles.gap)
+                                            || 32;
+                                        var scrollDistance = segmentWidth + gap;
+                                        var shouldOverflow = (segmentWidth - clipWidth) > 1;
+
+                                        track.classList.toggle('is-overflowing', shouldOverflow);
+
+                                        if (
+                                            shouldOverflow
+                                            && ! prefersReducedMotion()
+                                            && scrollDistance > 0
+                                        ) {
+                                            track.style.setProperty(
+                                                '--tido-marquee-distance',
+                                                scrollDistance + 'px',
+                                            );
+                                            track.style.setProperty(
+                                                '--tido-marquee-duration',
+                                                (scrollDistance / 40).toFixed(2) + 's',
+                                            );
+
+                                            return;
+                                        }
+
                                         track.style.removeProperty('--tido-marquee-distance');
                                         track.style.removeProperty('--tido-marquee-duration');
+                                    });
+                                }
+
+                                function scheduleMarqueeSync() {
+                                    requestAnimationFrame(function () {
+                                        requestAnimationFrame(syncMarqueeMotion);
                                     });
                                 }
 
@@ -292,9 +340,9 @@ class AdminPanelProvider extends PanelProvider
 
                                     if (on) {
                                         snapCountUpsToFinal();
-                                        stopMarqueeMotion();
                                     }
 
+                                    scheduleMarqueeSync();
                                     notifyReduceMotionChanged(on);
                                 };
 
@@ -326,9 +374,9 @@ class AdminPanelProvider extends PanelProvider
 
                                     if (prefersReducedMotion()) {
                                         snapCountUpsToFinal();
-                                        stopMarqueeMotion();
                                     }
 
+                                    scheduleMarqueeSync();
                                     notifyReduceMotionChanged(prefersReducedMotion());
                                 }
 

@@ -105,7 +105,9 @@ test('admin panel reduce motion script syncs preference across spa navigation', 
         ->toContain('livewire:navigating')
         ->toContain('parseCountUpConfig')
         ->toContain('tido-reduce-motion-changed')
-        ->toContain('snapCountUpsToFinal');
+        ->toContain('snapCountUpsToFinal')
+        ->toContain('syncMarqueeMotion')
+        ->toContain('scheduleMarqueeSync');
 });
 
 test('reduce motion css disables ping pulse animations', function (): void {
