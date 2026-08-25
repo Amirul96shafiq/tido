@@ -43,6 +43,8 @@ Unread notification count badges (topbar avatar + menu item) and the Recurring P
 
 When motion is reduced, sidebar collapse/expand skips width morph, clip-path, FIN/SET collapsed group labels (`.fi-sidebar-group-collapsed-label`), collapse CTA crossfade (`.fi-sidebar-collapse-morph`, open/close buttons, `.fi-sidebar-collapse-toggle-label`), and `.fi-sidebar-animating` enter keyframes. Open/collapsed visibility snaps instantly with no content delay.
 
+Navigation group open/close (Tools, Integrations, etc.) uses Alpine `x-collapse` on `.fi-sidebar-group-items` and Filament dropdown fade on `.fi-sidebar .fi-dropdown-panel` / `.tido-sidebar-flyout-panel`. `transition: none !important` zeroes computed duration so Alpine finishes collapse and flyout show/hide immediately (chevron rotation on `.fi-sidebar-group-collapse-btn` included).
+
 ## Agent checklist
 
 1. New decorative animation: respect both `@media (prefers-reduced-motion: reduce)` **and** `html.tido-reduce-motion`
