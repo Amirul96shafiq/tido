@@ -117,3 +117,15 @@ test('reduce motion css disables ping pulse animations', function (): void {
         ->toContain('html.tido-reduce-motion .tido-ping-pulse')
         ->toContain('opacity: 0 !important;');
 });
+
+test('reduce motion css disables sidebar collapsed labels and collapse cta motion', function (): void {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('html.tido-reduce-motion .fi-sidebar-group-collapsed-label')
+        ->toContain('html.tido-reduce-motion .fi-sidebar-collapse-morph')
+        ->toContain('html.tido-reduce-motion .fi-sidebar-close-collapse-sidebar-btn')
+        ->toContain('html.tido-reduce-motion .fi-sidebar-collapse-toggle-label')
+        ->toContain('.fi-sidebar.fi-sidebar-animating .fi-sidebar-group-collapsed-label')
+        ->toContain('.fi-sidebar.fi-sidebar-animating .fi-sidebar-collapse-toggle-label');
+});

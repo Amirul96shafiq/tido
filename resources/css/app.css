@@ -2539,12 +2539,19 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     .fi-sidebar-header,
     .fi-sidebar-nav,
     .fi-sidebar-collapse-footer,
+    .fi-sidebar-collapse-morph,
+    .fi-sidebar-collapse-buttons,
+    .fi-sidebar-close-collapse-sidebar-btn,
+    .fi-sidebar-open-collapse-sidebar-btn,
+    .fi-sidebar-collapse-toggle-label,
     .fi-sidebar-item-btn,
     .fi-sidebar-group-btn,
     .fi-sidebar-group-dropdown-trigger-btn,
     .fi-sidebar-item-label,
     .fi-sidebar-item-badge-ctn,
     .fi-sidebar-group-label,
+    .fi-sidebar-group-heading,
+    .fi-sidebar-group-collapsed-label,
     .fi-sidebar-group-collapse-btn,
     .fi-sidebar-header-logo-ctn,
     .fi-sidebar-logo-full,
@@ -2552,8 +2559,34 @@ html:not(.fi-sidebar-preload) .fi-sidebar[x-cloak] {
     .fi-user-menu-trigger-text,
     .fi-user-menu-trigger-chevron,
     .fi-sidebar .fi-transition-enter,
+    .fi-sidebar .fi-transition-enter-start,
+    .fi-sidebar .fi-transition-enter-end,
     .fi-sidebar::after {
         transition: none !important;
+        animation: none !important;
+    }
+
+    .fi-sidebar .fi-transition-enter-start,
+    .fi-sidebar .fi-transition-enter-end {
+        opacity: 1 !important;
+    }
+
+    .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar {
+        transition: none !important;
+    }
+
+    .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar::after {
+        transition: none !important;
+    }
+
+    /* Beat .fi-sidebar-animating enter keyframes (FIN/SET, collapse CTA, icons). */
+    .fi-sidebar.fi-sidebar-animating .fi-sidebar-group-collapsed-label,
+    .fi-sidebar.fi-sidebar-animating .fi-sidebar-collapse-toggle-label,
+    .fi-sidebar.fi-sidebar-animating .fi-sidebar-item-btn,
+    .fi-sidebar.fi-sidebar-animating .fi-sidebar-group-btn,
+    .fi-sidebar.fi-sidebar-animating .fi-sidebar-group-dropdown-trigger-btn,
+    .fi-sidebar.fi-sidebar-animating .fi-sidebar-logo-full,
+    .fi-sidebar.fi-sidebar-animating .fi-sidebar-logo-compact {
         animation: none !important;
     }
 }
@@ -2564,12 +2597,19 @@ html.tido-reduce-motion .fi-main-ctn,
 html.tido-reduce-motion .fi-sidebar-header,
 html.tido-reduce-motion .fi-sidebar-nav,
 html.tido-reduce-motion .fi-sidebar-collapse-footer,
+html.tido-reduce-motion .fi-sidebar-collapse-morph,
+html.tido-reduce-motion .fi-sidebar-collapse-buttons,
+html.tido-reduce-motion .fi-sidebar-close-collapse-sidebar-btn,
+html.tido-reduce-motion .fi-sidebar-open-collapse-sidebar-btn,
+html.tido-reduce-motion .fi-sidebar-collapse-toggle-label,
 html.tido-reduce-motion .fi-sidebar-item-btn,
 html.tido-reduce-motion .fi-sidebar-group-btn,
 html.tido-reduce-motion .fi-sidebar-group-dropdown-trigger-btn,
 html.tido-reduce-motion .fi-sidebar-item-label,
 html.tido-reduce-motion .fi-sidebar-item-badge-ctn,
 html.tido-reduce-motion .fi-sidebar-group-label,
+html.tido-reduce-motion .fi-sidebar-group-heading,
+html.tido-reduce-motion .fi-sidebar-group-collapsed-label,
 html.tido-reduce-motion .fi-sidebar-group-collapse-btn,
 html.tido-reduce-motion .fi-sidebar-header-logo-ctn,
 html.tido-reduce-motion .fi-sidebar-logo-full,
@@ -2577,8 +2617,45 @@ html.tido-reduce-motion .fi-sidebar-logo-compact,
 html.tido-reduce-motion .fi-user-menu-trigger-text,
 html.tido-reduce-motion .fi-user-menu-trigger-chevron,
 html.tido-reduce-motion .fi-sidebar .fi-transition-enter,
+html.tido-reduce-motion .fi-sidebar .fi-transition-enter-start,
+html.tido-reduce-motion .fi-sidebar .fi-transition-enter-end,
 html.tido-reduce-motion .fi-sidebar::after {
     transition: none !important;
+    animation: none !important;
+}
+
+html.tido-reduce-motion .fi-sidebar .fi-transition-enter-start,
+html.tido-reduce-motion .fi-sidebar .fi-transition-enter-end {
+    opacity: 1 !important;
+}
+
+html.tido-reduce-motion
+    .fi-body-has-sidebar-collapsible-on-desktop
+    .fi-sidebar {
+    transition: none !important;
+}
+
+html.tido-reduce-motion
+    .fi-body-has-sidebar-collapsible-on-desktop
+    .fi-sidebar::after {
+    transition: none !important;
+}
+
+html.tido-reduce-motion
+    .fi-sidebar.fi-sidebar-animating
+    .fi-sidebar-group-collapsed-label,
+html.tido-reduce-motion
+    .fi-sidebar.fi-sidebar-animating
+    .fi-sidebar-collapse-toggle-label,
+html.tido-reduce-motion .fi-sidebar.fi-sidebar-animating .fi-sidebar-item-btn,
+html.tido-reduce-motion .fi-sidebar.fi-sidebar-animating .fi-sidebar-group-btn,
+html.tido-reduce-motion
+    .fi-sidebar.fi-sidebar-animating
+    .fi-sidebar-group-dropdown-trigger-btn,
+html.tido-reduce-motion .fi-sidebar.fi-sidebar-animating .fi-sidebar-logo-full,
+html.tido-reduce-motion
+    .fi-sidebar.fi-sidebar-animating
+    .fi-sidebar-logo-compact {
     animation: none !important;
 }
 

@@ -362,6 +362,13 @@ test('sidebar collapse expand transition uses shared motion tokens and logo mask
         ->toContain('.fi-sidebar-logo-full')
         ->toContain('.fi-sidebar-logo-compact')
         ->toContain('.fi-sidebar-item-btn')
+        ->toContain('.fi-sidebar-group-collapsed-label')
+        ->toContain('.fi-sidebar-collapse-morph')
+        ->toContain('.fi-sidebar-close-collapse-sidebar-btn')
+        ->toContain('.fi-sidebar-collapse-toggle-label')
+        ->toContain(
+            '.fi-sidebar.fi-sidebar-animating .fi-sidebar-group-collapsed-label',
+        )
         ->toContain('transition: none !important;')
         ->toContain('animation: none !important;');
 });

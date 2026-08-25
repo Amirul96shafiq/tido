@@ -39,6 +39,10 @@ Connected-state ring pulses use `.tido-status-pulse` in [`app.css`](../resources
 
 Unread notification count badges (topbar avatar + menu item) and the Recurring Payment Dues title indicator use `.tido-ping-pulse` instead of Tailwind `animate-ping`. The static inner dot remains visible when motion is reduced; only the expanding ring is hidden.
 
+## Sidebar chrome
+
+When motion is reduced, sidebar collapse/expand skips width morph, clip-path, FIN/SET collapsed group labels (`.fi-sidebar-group-collapsed-label`), collapse CTA crossfade (`.fi-sidebar-collapse-morph`, open/close buttons, `.fi-sidebar-collapse-toggle-label`), and `.fi-sidebar-animating` enter keyframes. Open/collapsed visibility snaps instantly with no content delay.
+
 ## Agent checklist
 
 1. New decorative animation: respect both `@media (prefers-reduced-motion: reduce)` **and** `html.tido-reduce-motion`
