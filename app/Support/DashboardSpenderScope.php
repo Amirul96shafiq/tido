@@ -142,13 +142,17 @@ final class DashboardSpenderScope
                     ->orWhereNull('household_role');
             })
             ->orderBy('id')
-            ->first(['name']);
+            ->first(['name', 'display_name']);
 
-        if (! $primaryUser instanceof User || ! filled($primaryUser->name)) {
+        if (! $primaryUser instanceof User) {
             return 'Primary';
         }
 
-        return (string) $primaryUser->name;
+        $label = filled($primaryUser->display_name)
+            ? (string) $primaryUser->display_name
+            : (string) $primaryUser->name;
+
+        return filled($label) ? $label : 'Primary';
     }
 
     /**

@@ -301,10 +301,11 @@ test('family member login test seeder creates sample member and expenses', funct
 test('dashboard spender filter options use updated labels', function () {
     $user = User::factory()->withWhatsAppPhone('60123456789')->create([
         'name' => 'Amirul96Shafiq',
+        'display_name' => null,
         'household_role' => HouseholdRole::Primary,
     ]);
 
-    FamilyMember::factory()->create(['name' => 'Ahlong']);
+    FamilyMember::factory()->create(['name' => 'Ahlong', 'display_name' => null]);
 
     $options = DashboardSpenderScope::filterOptionsFor($user);
 
@@ -312,9 +313,21 @@ test('dashboard spender filter options use updated labels', function () {
         ->and($options[DashboardSpenderScope::PRIMARY])->toBe('Amirul96Shafiq (me)');
 });
 
+test('dashboard spender filter options use primary user display_name if filled', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'name' => 'Amirul Shafiq Harun',
+        'display_name' => 'Amirul96Shafiq',
+        'household_role' => HouseholdRole::Primary,
+    ]);
+
+    $options = DashboardSpenderScope::filterOptionsFor($user);
+
+    expect($options[DashboardSpenderScope::PRIMARY])->toBe('Amirul96Shafiq (me)');
+});
+
 test('family member spender options exclude primary and other members', function () {
-    $memberA = FamilyMember::factory()->create(['name' => 'Alpha']);
-    FamilyMember::factory()->create(['name' => 'Beta']);
+    $memberA = FamilyMember::factory()->create(['name' => 'Alpha', 'display_name' => null]);
+    FamilyMember::factory()->create(['name' => 'Beta', 'display_name' => null]);
 
     $user = User::factory()
         ->familyMember($memberA->id)
