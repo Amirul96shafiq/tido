@@ -40,5 +40,8 @@ test('text marquee css drives overflow motion on the compositor', function () {
         ->toContain('animation: tido-text-marquee-scroll')
         ->toContain('--tido-marquee-distance')
         ->toContain('--tido-marquee-duration')
-        ->toContain('html.tido-reduce-motion .tido-text-marquee-track');
+        ->toContain('html.tido-reduce-motion .tido-text-marquee-track')
+        ->toContain('html.tido-reduce-motion .tido-text-marquee-clip')
+        ->toContain('html.tido-reduce-motion .tido-text-marquee-segment')
+        ->toContain('white-space: normal !important');
 });

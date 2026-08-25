@@ -4285,13 +4285,36 @@ html.tido-reduce-motion .fi-no-empty-panel-icon-ctn::after {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .tido-text-marquee-clip {
+        overflow: visible;
+    }
+
     .tido-text-marquee-track.is-overflowing {
         animation: none;
     }
 
     .tido-text-marquee-track {
+        display: block;
+        width: 100%;
+        max-width: 100%;
         transform: none !important;
+        animation: none !important;
     }
+
+    .tido-text-marquee-segment {
+        white-space: normal !important;
+        overflow-wrap: anywhere;
+    }
+
+    .tido-text-marquee-track
+        .tido-text-marquee-segment
+        + .tido-text-marquee-segment {
+        display: none !important;
+    }
+}
+
+html.tido-reduce-motion .tido-text-marquee-clip {
+    overflow: visible;
 }
 
 html.tido-reduce-motion .tido-text-marquee-track.is-overflowing {
@@ -4299,7 +4322,29 @@ html.tido-reduce-motion .tido-text-marquee-track.is-overflowing {
 }
 
 html.tido-reduce-motion .tido-text-marquee-track {
+    display: block;
+    width: 100%;
+    max-width: 100%;
     transform: none !important;
+    animation: none !important;
+}
+
+html.tido-reduce-motion .tido-text-marquee-segment {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+}
+
+html.tido-reduce-motion
+    .tido-text-marquee-track
+    .tido-text-marquee-segment
+    + .tido-text-marquee-segment {
+    display: none !important;
+}
+
+html.tido-reduce-motion .tido-select-value-marquee .fi-select-input-value-ctn {
+    overflow: visible;
+    text-wrap: wrap;
+    white-space: normal;
 }
 
 /*

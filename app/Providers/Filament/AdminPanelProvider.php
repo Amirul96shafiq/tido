@@ -292,7 +292,10 @@ class AdminPanelProvider extends PanelProvider
                                         var scrollDistance = segmentWidth + gap;
                                         var shouldOverflow = (segmentWidth - clipWidth) > 1;
 
-                                        track.classList.toggle('is-overflowing', shouldOverflow);
+                                        track.classList.toggle(
+                                            'is-overflowing',
+                                            shouldOverflow && ! prefersReducedMotion(),
+                                        );
 
                                         if (
                                             shouldOverflow

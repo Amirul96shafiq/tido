@@ -72,7 +72,10 @@ function readGap(track) {
 function applyMotion(track, shouldOverflow, scrollDistance, state) {
     state.overflowing = shouldOverflow;
     state.scrollDistance = scrollDistance;
-    track.classList.toggle("is-overflowing", shouldOverflow);
+    track.classList.toggle(
+        "is-overflowing",
+        shouldOverflow && !prefersReducedMotion(),
+    );
 
     if (shouldOverflow && !prefersReducedMotion() && scrollDistance > 0) {
         track.style.setProperty(

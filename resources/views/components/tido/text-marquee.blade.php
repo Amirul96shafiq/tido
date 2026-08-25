@@ -36,7 +36,10 @@
             const applyMotion = (shouldOverflow, scrollDistance) => {
                 this.overflowing = shouldOverflow;
                 this.scrollDistance = scrollDistance;
-                track.classList.toggle('is-overflowing', shouldOverflow);
+                track.classList.toggle(
+                    'is-overflowing',
+                    shouldOverflow && ! this.prefersReducedMotion(),
+                );
 
                 if (shouldOverflow && ! this.prefersReducedMotion() && scrollDistance > 0) {
                     track.style.setProperty('--tido-marquee-distance', `${scrollDistance}px`);

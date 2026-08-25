@@ -45,6 +45,10 @@ When motion is reduced, sidebar collapse/expand skips width morph, clip-path, FI
 
 Navigation group open/close (Tools, Integrations, etc.) uses Alpine `x-collapse` on `.fi-sidebar-group-items` and Filament dropdown fade on `.fi-sidebar .fi-dropdown-panel` / `.tido-sidebar-flyout-panel`. `transition: none !important` zeroes computed duration so Alpine finishes collapse and flyout show/hide immediately (chevron rotation on `.fi-sidebar-group-collapse-btn` included).
 
+## Marquee text
+
+Overflowing marquee labels stop looping and **wrap** so the full string is readable (`.tido-text-marquee-clip` `overflow: visible`, segment `white-space: normal`). `is-overflowing` is only applied while motion is allowed. `syncMarqueeMotion()` in the HEAD script re-syncs tracks after toggle or SPA navigation — see [ui-text-marquee.md](ui-text-marquee.md).
+
 ## Agent checklist
 
 1. New decorative animation: respect both `@media (prefers-reduced-motion: reduce)` **and** `html.tido-reduce-motion`
