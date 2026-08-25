@@ -3,8 +3,9 @@
   "hooks": {
     "beforeShellExecution": [
       {
-        "command": "node .cursor/hooks/ask-git-permission.js",
-        "failClosed": false
+        "command": "node .cursor/hooks/ask-git-permission.cjs",
+        "failClosed": false,
+        "timeout": 10
       }
     ]
   }

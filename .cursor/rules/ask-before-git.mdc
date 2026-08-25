@@ -16,7 +16,8 @@ The user must review content before anything is published.
 
 ## May run without asking
 
-- Read-only git: `git status`, `git diff`, `git log`, `git show`, `git branch` (list only)
+- Read-only git: `git status`, `git diff`, `git log`, `git show`, `git branch` (list / `--show-current`)
+- Local branch create/switch: `git checkout -b`, `git switch -c`, `git branch <name>` (no push)
 - Inspecting PR state: `gh pr view`, `gh pr list`, `gh pr checks` (read-only)
 
 ## Agent workflow
