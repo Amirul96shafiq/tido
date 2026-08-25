@@ -1,9 +1,29 @@
 {
+  "terminalAllowlist": [
+    "git",
+    "git diff",
+    "git log",
+    "git show",
+    "git branch",
+    "git checkout",
+    "git switch",
+    "git rev-parse",
+    "git fetch",
+    "git pull",
+    "php artisan",
+    "vendor/bin/pest",
+    "vendor/bin/pint",
+    "npm"
+  ],
   "autoRun": {
+    "allow_instructions": [
+      "Allow local git branch create and switch (git checkout -b, git switch -c, git branch --show-current, git status) without prompting. These are not publish actions."
+    ],
     "block_instructions": [
       "Block git push, git commit, and any force-push or amend that publishes or rewrites history. Surface an approval prompt.",
       "Block gh pr create, gh pr merge, and other gh commands that create or merge pull requests. Surface an approval prompt.",
-      "Allow read-only git/gh inspection (status, diff, log, show, branch list, pr view/list/checks) to run without prompting."
+      "Allow read-only git/gh inspection (status, diff, log, show, branch list, pr view/list/checks) to run without prompting.",
+      "Allow local git branch create and switch (git checkout -b, git switch -c, git branch --show-current) without prompting. Do not block those as publish actions."
     ]
   }
 }
