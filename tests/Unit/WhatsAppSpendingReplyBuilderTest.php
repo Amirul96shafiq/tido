@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Enums\RecurringOccurrenceStatus;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Models\Budget;
 use App\Models\Expense;
 use App\Models\ExpenseItem;
 use App\Models\Label;
+use App\Models\Recurring;
+use App\Models\RecurringOccurrence;
 use App\Support\WhatsAppSpendingCommandParser;
 use App\Support\WhatsAppSpendingReplyBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -168,3 +171,79 @@ test('recent mode excludes explicit non-receipt documents', function () {
         ->not->toContain('Non-receipt document')
         ->not->toContain('999.00');
 });
+
+test('recurrings mode lists overdue before due items for the current month', function () {
+    $overdueRecurring = Recurring::factory()->create(['title' => 'Home Financing']);
+    $dueRecurring = Recurring::factory()->create(['title' => 'Netflix']);
+
+    RecurringOccurrence::factory()->overdue()->create([
+        'recurring_id' => $overdueRecurring->id,
+        'due_on' => now()->copy()->subMonth()->startOfMonth()->addDays(4)->toDateString(),
+        'expected_amount' => 1327.00,
+    ]);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $dueRecurring->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->copy()->endOfMonth()->toDateString(),
+        'expected_amount' => 25.00,
+    ]);
+
+    $message = (new WhatsAppSpendingReplyBuilder(
+        now()->format('Y-m'),
+        WhatsAppSpendingCommandParser::MODE_RECURRINGS,
+    ))->build();
+
+    $overduePos = strpos($message, '*Home Financing*');
+    $duePos = strpos($message, '*Netflix*');
+
+    expect($message)
+        ->toContain('⏰ *Recurring Payments*')
+        ->toContain('Period: *'.now()->format('F Y').'*')
+        ->toContain('Overdue:')
+        ->toContain('View recurrings')
+        ->and($overduePos)->not->toBeFalse()
+        ->and($duePos)->not->toBeFalse()
+        ->and($overduePos)->toBeLessThan($duePos);
+});
+
+test('recurrings mode for a past month excludes overdue from other months', function () {
+    $targetMonth = now()->copy()->subMonth();
+
+    $inMonth = Recurring::factory()->create(['title' => 'Last Month Bill']);
+    $older = Recurring::factory()->create(['title' => 'Older Overdue']);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $inMonth->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => $targetMonth->copy()->startOfMonth()->addDays(2)->toDateString(),
+        'expected_amount' => 80.00,
+    ]);
+
+    RecurringOccurrence::factory()->overdue()->create([
+        'recurring_id' => $older->id,
+        'due_on' => now()->copy()->subMonths(2)->startOfMonth()->addDays(2)->toDateString(),
+        'expected_amount' => 40.00,
+    ]);
+
+    $message = (new WhatsAppSpendingReplyBuilder(
+        $targetMonth->format('Y-m'),
+        WhatsAppSpendingCommandParser::MODE_RECURRINGS,
+    ))->build();
+
+    expect($message)
+        ->toContain('*Last Month Bill*')
+        ->not->toContain('Older Overdue');
+});
+
+test('recurrings mode reports empty month when no open occurrences exist', function () {
+    $message = (new WhatsAppSpendingReplyBuilder(
+        '2020-01',
+        WhatsAppSpendingCommandParser::MODE_RECURRINGS,
+    ))->build();
+
+    expect($message)
+        ->toContain('📅 *Recurring Payments*')
+        ->toContain('No open recurring payments for *January 2020*');
+});
+

@@ -49,6 +49,7 @@ test('finance keywords lists spending commands', function () {
         ->toContain('*spend labels* — label breakdown (up to 8)')
         ->toContain('*spend merchants* — top 5 merchants')
         ->toContain('*spend budgets*')
+        ->toContain('*spend recurrings*')
         ->toContain('*spend trend*')
         ->toContain('*spend payment*')
         ->toContain('*spend recent*')

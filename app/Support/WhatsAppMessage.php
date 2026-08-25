@@ -57,6 +57,7 @@ final class WhatsAppMessage
                 '- *spend labels* — label breakdown (up to 8)',
                 '- *spend merchants* — top 5 merchants',
                 '- *spend budgets* — all active budgets with status',
+                '- *spend recurrings* — overdue, due, and upcoming this month',
                 '- *spend trend* — last 6 months spending',
                 '- *spend payment* — spending by payment method',
                 '- *spend recent* — last 5 receipts',

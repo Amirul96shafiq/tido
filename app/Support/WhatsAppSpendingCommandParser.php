@@ -16,6 +16,8 @@ final class WhatsAppSpendingCommandParser
 
     public const MODE_BUDGETS = 'budgets';
 
+    public const MODE_RECURRINGS = 'recurrings';
+
     public const MODE_TREND = 'trend';
 
     public const MODE_PAYMENT = 'payment';
@@ -29,6 +31,7 @@ final class WhatsAppSpendingCommandParser
         self::MODE_LABELS => ['labels', 'label', 'categories', 'category'],
         self::MODE_MERCHANTS => ['merchants', 'merchant', 'shops', 'shop'],
         self::MODE_BUDGETS => ['budgets', 'budget'],
+        self::MODE_RECURRINGS => ['recurrings', 'recurring'],
         self::MODE_TREND => ['trend', 'history'],
         self::MODE_PAYMENT => ['payment', 'payments'],
         self::MODE_RECENT => ['recent', 'receipts'],

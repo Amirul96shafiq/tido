@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Enums\RecurringOccurrenceStatus;
+use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Filament\Support\DashboardMonthAnalytics;
 use App\Filament\Support\DashboardMonthPeriod;
 use App\Helpers\MoneyDisplay;
 use App\Models\Budget;
 use App\Models\Expense;
+use App\Models\RecurringOccurrence;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 final class WhatsAppSpendingReplyBuilder
@@ -25,6 +29,7 @@ final class WhatsAppSpendingReplyBuilder
             WhatsAppSpendingCommandParser::MODE_LABELS => $this->buildLabels(),
             WhatsAppSpendingCommandParser::MODE_MERCHANTS => $this->buildMerchants(),
             WhatsAppSpendingCommandParser::MODE_BUDGETS => $this->buildBudgets(),
+            WhatsAppSpendingCommandParser::MODE_RECURRINGS => $this->buildRecurrings(),
             WhatsAppSpendingCommandParser::MODE_TREND => $this->buildTrend(),
             WhatsAppSpendingCommandParser::MODE_PAYMENT => $this->buildPayment(),
             WhatsAppSpendingCommandParser::MODE_RECENT => $this->buildRecent(),
@@ -272,6 +277,114 @@ final class WhatsAppSpendingReplyBuilder
         }
 
         return WhatsAppMessage::compose('📊', 'Budget Status', implode("\n", $lines));
+    }
+
+    private function buildRecurrings(): string
+    {
+        $bounds = $this->bounds();
+        $monthStart = $bounds['start']->toDateString();
+        $monthEnd = $bounds['end']->toDateString();
+        $isCurrentMonth = $this->isCurrentMonth();
+        $today = now()->toDateString();
+
+        $query = RecurringOccurrence::query()
+            ->with('recurring')
+            ->whereHas('recurring', static fn (Builder $recurring): Builder => $recurring->active())
+            ->whereIn('status', [
+                RecurringOccurrenceStatus::Upcoming,
+                RecurringOccurrenceStatus::Due,
+                RecurringOccurrenceStatus::Overdue,
+            ])
+            ->where(function (Builder $inner) use ($monthStart, $monthEnd, $isCurrentMonth): void {
+                $inner
+                    ->whereDate('due_on', '>=', $monthStart)
+                    ->whereDate('due_on', '<=', $monthEnd);
+
+                if ($isCurrentMonth) {
+                    $inner->orWhere('status', RecurringOccurrenceStatus::Overdue);
+                }
+            });
+
+        $total = (clone $query)->count();
+
+        if ($total === 0) {
+            return WhatsAppMessage::compose(
+                '📅',
+                'Recurring Payments',
+                "No open recurring payments for *{$this->monthLabel()}*.",
+            );
+        }
+
+        $occurrences = (clone $query)
+            ->orderByRaw('CASE WHEN status = ? OR due_on < ? THEN 0 ELSE 1 END', [
+                RecurringOccurrenceStatus::Overdue->value,
+                $today,
+            ])
+            ->orderBy('due_on')
+            ->orderBy('id')
+            ->limit(8)
+            ->get();
+
+        $hasOverdue = $occurrences->contains(
+            fn (RecurringOccurrence $occurrence): bool => $this->occurrenceIsOverdue($occurrence, $today),
+        );
+
+        $blocks = [
+            "Period: *{$this->monthLabel()}*",
+        ];
+
+        foreach ($occurrences as $occurrence) {
+            $title = trim((string) ($occurrence->recurring?->title ?? ''));
+            $amount = $occurrence->resolvedExpectedAmount();
+            $dueDate = $occurrence->due_on;
+            $dueOn = $dueDate instanceof Carbon ? $dueDate->format('d M Y') : '';
+            $isOverdue = $this->occurrenceIsOverdue($occurrence, $today);
+
+            if ($title === '') {
+                $title = 'Untitled';
+            }
+
+            $amountLabel = $amount === null
+                ? 'variable'
+                : MoneyDisplay::withPrefix($amount);
+
+            $blocks[] = implode("\n", [
+                "• *{$title}*",
+                "  Amount: {$amountLabel}",
+                '  '.($isOverdue ? 'Overdue' : 'Due').": {$dueOn}",
+            ]);
+        }
+
+        if ($total > 8) {
+            $remaining = $total - 8;
+            $blocks[] = sprintf('…and %d more.', $remaining);
+        }
+
+        $indexUrl = trim((string) WhatsAppPublicUrl::withRoot(
+            static fn (): string => RecurringResource::getUrl('index'),
+        ));
+
+        if ($indexUrl !== '') {
+            $blocks[] = "View recurrings\n{$indexUrl}";
+        }
+
+        return WhatsAppMessage::compose(
+            $hasOverdue ? '⏰' : '📅',
+            'Recurring Payments',
+            implode("\n\n", $blocks),
+        );
+    }
+
+    private function occurrenceIsOverdue(RecurringOccurrence $occurrence, string $today): bool
+    {
+        if ($occurrence->status === RecurringOccurrenceStatus::Overdue) {
+            return true;
+        }
+
+        $dueDate = $occurrence->due_on;
+
+        return $dueDate instanceof Carbon
+            && $dueDate->toDateString() < $today;
     }
 
     private function buildTrend(): string

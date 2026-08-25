@@ -185,7 +185,8 @@ test('whatsapp finance others reply lists spending keywords', function () {
         return str_contains($request->url(), '/message/sendText/')
             && str_contains($text, '*Finance Keywords*')
             && str_contains($text, '*spend labels*')
-            && str_contains($text, '*spend merchants*');
+            && str_contains($text, '*spend merchants*')
+            && str_contains($text, '*spend recurrings*');
     });
 });
 
