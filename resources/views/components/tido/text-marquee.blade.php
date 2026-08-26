@@ -91,13 +91,13 @@
             this._onReduceMotionChanged = () => debouncedMeasure();
             window.addEventListener('tido-reduce-motion-changed', this._onReduceMotionChanged);
 
-            if (typeof this.\$cleanup === 'function') {
-                this.\$cleanup(() => {
+            if (typeof this.$cleanup === 'function') {
+                this.$cleanup(() => {
                     window.removeEventListener('tido-reduce-motion-changed', this._onReduceMotionChanged);
                 });
             }
 
-            this.\$nextTick(measure);
+            this.$nextTick(measure);
         },
     }"
     {{ $attributes->class(['tido-text-marquee-clip relative min-w-0 overflow-hidden']) }}
