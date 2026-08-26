@@ -5406,8 +5406,12 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 /* Hub calendar (profile menu → Calendar page) */
+.tido-calendar-page .fi-page-header-main-ctn {
+    padding-bottom: 1rem;
+}
+
 .tido-calendar-page .fi-page-main {
-    @apply flex flex-col gap-4;
+    @apply flex flex-col gap-3;
 }
 
 .tido-calendar-page .fi-header-actions-ctn {
@@ -5419,7 +5423,7 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar {
-    @apply flex flex-col gap-4;
+    @apply flex flex-col gap-3 md:h-[calc(100dvh-15.5rem)] min-h-[480px];
 }
 
 .tido-calendar__nav {
@@ -5444,11 +5448,11 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__grid-wrap {
-    @apply relative overflow-auto;
+    @apply relative flex flex-1 flex-col overflow-x-auto overflow-y-hidden;
 }
 
 .tido-calendar__grid-inner {
-    @apply relative min-w-[700px];
+    @apply relative flex h-full min-w-[700px] flex-1 flex-col;
 }
 
 .tido-calendar__loading {
@@ -5460,7 +5464,7 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__day-headers {
-    @apply grid grid-cols-7 gap-px overflow-hidden rounded-t-lg border border-gray-100 bg-gray-100 dark:border-slate-700/60 dark:bg-slate-700/60;
+    @apply grid shrink-0 grid-cols-7 gap-px overflow-hidden rounded-t-lg border border-gray-100 bg-gray-100 dark:border-slate-700/60 dark:bg-slate-700/60;
 }
 
 .tido-calendar__day-header {
@@ -5476,15 +5480,15 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__weeks {
-    @apply flex flex-col gap-px overflow-hidden rounded-b-lg border-x border-b border-gray-100 bg-gray-100 dark:border-slate-700/60 dark:bg-slate-700/60;
+    @apply grid flex-1 grid-flow-row gap-px overflow-hidden rounded-b-lg border-x border-b border-gray-100 bg-gray-100 dark:border-slate-700/60 dark:bg-slate-700/60;
 }
 
 .tido-calendar__week {
-    @apply grid grid-cols-7 gap-px bg-gray-100 dark:bg-slate-700/60;
+    @apply grid h-full grid-cols-7 gap-px bg-gray-100 dark:bg-slate-700/60;
 }
 
 .tido-calendar__day {
-    @apply flex min-h-28 flex-col bg-white p-2 dark:bg-gray-900;
+    @apply flex h-full min-h-0 flex-col bg-white p-1.5 dark:bg-gray-900 sm:p-2;
 }
 
 .tido-calendar__day.is-outside-month {
@@ -5525,7 +5529,7 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__day-events {
-    @apply flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto;
+    @apply flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden;
 }
 
 .tido-calendar-event-chip {

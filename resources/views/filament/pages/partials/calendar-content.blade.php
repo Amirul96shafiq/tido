@@ -76,7 +76,10 @@
                 @endforeach
             </div>
 
-            <div class="tido-calendar__weeks">
+            <div
+                class="tido-calendar__weeks"
+                style="grid-template-rows: repeat({{ count($weeks) }}, minmax(0, 1fr));"
+            >
                 @foreach ($weeks as $week)
                     <div class="tido-calendar__week" wire:key="calendar-week-{{ $loop->index }}-{{ $this->year }}-{{ $this->month }}">
                         @foreach ($week as $day)
