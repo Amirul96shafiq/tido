@@ -12,6 +12,7 @@ use App\Services\RecurringOccurrenceGenerator;
 use App\Support\Calendar\CalendarEvent;
 use Carbon\Carbon;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Checkbox;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\View as SchemaView;
 use Filament\Schemas\Schema;
@@ -42,16 +43,16 @@ class CalendarPage extends Page
     public int $month;
 
     /**
-     * @var list<string>
+     * @var array<string, bool>
      */
     public array $typeFilter = [];
 
-    public function mount(CalendarEventAggregator $aggregator, RecurringOccurrenceGenerator $generator): void
+    public function mount(RecurringOccurrenceGenerator $generator): void
     {
         $now = $this->viewerNow();
         $this->year = (int) $now->year;
         $this->month = (int) $now->month;
-        $this->typeFilter = array_column($aggregator->availableFilters(), 'key');
+        $this->typeFilter = $this->defaultTypeFilter();
 
         $generator->run($now->copy()->startOfDay());
     }
@@ -74,10 +75,7 @@ class CalendarPage extends Page
         return [
             Action::make('calendarHeaderActions')
                 ->label('Calendar actions')
-                ->view('filament.pages.partials.calendar-header-actions')
-                ->viewData(fn (): array => [
-                    'filters' => $this->availableFilters(),
-                ]),
+                ->view('filament.pages.partials.calendar-header-actions'),
         ];
     }
 
@@ -100,19 +98,38 @@ class CalendarPage extends Page
             ]);
     }
 
-    public function toggleTypeFilter(string $key): void
+    public function filtersForm(Schema $schema): Schema
     {
-        if (in_array($key, $this->typeFilter, true)) {
-            $this->typeFilter = array_values(array_diff($this->typeFilter, [$key]));
-        } else {
-            $this->typeFilter[] = $key;
+        $checkboxes = [];
+
+        foreach ($this->availableFilters() as $filter) {
+            $checkboxes[] = Checkbox::make($filter['key'])
+                ->label($filter['label']);
         }
+
+        return $schema
+            ->columns(1)
+            ->live()
+            ->statePath('typeFilter')
+            ->components($checkboxes);
     }
 
-    public function clearTypeFilter(): void
+    public function resetTypeFilter(): void
     {
-        $aggregator = app(CalendarEventAggregator::class);
-        $this->typeFilter = array_column($aggregator->availableFilters(), 'key');
+        $this->typeFilter = $this->defaultTypeFilter();
+    }
+
+    public function typeFilterActiveCount(): int
+    {
+        $count = 0;
+
+        foreach (array_keys($this->defaultTypeFilter()) as $key) {
+            if (! $this->typeFilterIsEnabled($key)) {
+                $count++;
+            }
+        }
+
+        return $count;
     }
 
     public function previousMonth(): void
@@ -216,7 +233,7 @@ class CalendarPage extends Page
             $calendarStart,
             $calendarEnd,
             $this->viewer(),
-            $this->typeFilter,
+            $this->enabledTypeFilterKeys(),
         );
 
         $today = $this->viewerNow()->toDateString();
@@ -278,6 +295,38 @@ class CalendarPage extends Page
     protected function refreshFromExpenseBroadcast(): void
     {
         // Re-render calendar chips when expense matching completes an occurrence.
+    }
+
+    /**
+     * @return array<string, bool>
+     */
+    private function defaultTypeFilter(): array
+    {
+        return array_fill_keys(
+            array_column($this->availableFilters(), 'key'),
+            true,
+        );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function enabledTypeFilterKeys(): array
+    {
+        $keys = [];
+
+        foreach ($this->availableFilters() as $filter) {
+            if ($this->typeFilterIsEnabled($filter['key'])) {
+                $keys[] = $filter['key'];
+            }
+        }
+
+        return $keys;
+    }
+
+    private function typeFilterIsEnabled(string $key): bool
+    {
+        return filter_var($this->typeFilter[$key] ?? false, FILTER_VALIDATE_BOOLEAN);
     }
 
     private function viewer(): User

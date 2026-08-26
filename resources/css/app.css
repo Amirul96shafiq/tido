@@ -5422,30 +5422,6 @@ html.tido-reduce-motion .tido-ping-pulse {
     @apply flex flex-col gap-4;
 }
 
-.tido-calendar-filters-dropdown-panel {
-    @apply w-56;
-}
-
-.tido-calendar__filter-header {
-    @apply flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700;
-}
-
-.tido-calendar__filter-title {
-    @apply text-sm font-semibold text-gray-900 dark:text-white;
-}
-
-.tido-calendar__filter-reset {
-    @apply text-xs font-medium text-danger-600 hover:text-danger-700 dark:text-danger-400 dark:hover:text-danger-300;
-}
-
-.tido-calendar__filter-options {
-    @apply space-y-1 p-2;
-}
-
-.tido-calendar__filter-option {
-    @apply flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800;
-}
-
 .tido-calendar__nav {
     @apply flex items-center gap-2;
 }

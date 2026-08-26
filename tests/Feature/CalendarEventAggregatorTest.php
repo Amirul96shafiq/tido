@@ -60,3 +60,15 @@ test('aggregator respects active filter keys', function () {
 
     expect($events->every(fn ($event) => $event->module === CalendarModule::Finances))->toBeTrue();
 });
+
+test('aggregator shows no events when the active filter list is empty', function () {
+    $aggregator = app(CalendarEventAggregator::class);
+    $user = User::factory()->create([
+        'date_of_birth' => now()->format('Y-m-d'),
+    ]);
+
+    $start = now()->startOfMonth();
+    $end = now()->endOfMonth();
+
+    expect($aggregator->eventsForRange($start, $end, $user, []))->toHaveCount(0);
+});

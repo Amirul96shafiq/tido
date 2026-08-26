@@ -24,11 +24,25 @@ test('calendar page renders for primary user', function () {
 
     $currentMonthLabel = now()->format('F Y');
 
-    Livewire::test(CalendarPage::class)
+    $component = Livewire::test(CalendarPage::class)
         ->assertOk()
         ->assertSee('Calendar ('.$currentMonthLabel.')')
-        ->assertSee('Filter Events')
         ->assertSee('Today');
+
+    expect($component->html())
+        ->toContain('fi-ta-filters-dropdown')
+        ->toContain('fi-ta-filters-body')
+        ->toContain('fi-ta-filters-actions-ctn')
+        ->toContain('fi-fixed-positioning-context')
+        ->toContain('fi-calendar-filters-trigger')
+        ->toContain('resetTypeFilter')
+        ->toContain('aria-label="Filter"')
+        ->toContain('aria-label="Reset"')
+        ->toContain('Recurring Dues')
+        ->toContain('Birthdays')
+        ->toContain('max-height: min(40vh, 20rem)')
+        ->not->toContain('Filter Events')
+        ->not->toContain('Show All');
 });
 
 test('calendar page shows recurring due on the due date', function () {
@@ -91,8 +105,26 @@ test('calendar type filter can hide birthdays', function () {
     $this->actingAs($user);
 
     Livewire::test(CalendarPage::class)
-        ->set('typeFilter', ['recurring_dues'])
+        ->set('typeFilter.birthdays', false)
         ->assertDontSee('Only Birthday');
+});
+
+test('calendar type filter reset restores all event types', function () {
+    $user = User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+        'date_of_birth' => now()->format('Y-m-d'),
+        'display_name' => 'Only Birthday',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(CalendarPage::class)
+        ->set('typeFilter.birthdays', false)
+        ->assertDontSee('Only Birthday')
+        ->call('resetTypeFilter')
+        ->assertSee('Only Birthday')
+        ->assertSet('typeFilter.birthdays', true)
+        ->assertSet('typeFilter.recurring_dues', true);
 });
 
 test('family member can access calendar page', function () {

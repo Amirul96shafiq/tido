@@ -1,8 +1,9 @@
 @php
     use Filament\Support\Enums\Width;
 
-    /** @var list<array{key: string, label: string, module: string}> $filters */
-    $filters = $filters ?? [];
+    $filterLabel = __('filament-tables::table.actions.filter.label');
+    $resetLabel = __('filament-tables::table.filters.actions.reset.label');
+    $activeFilterCount = $this->typeFilterActiveCount();
 @endphp
 
 <x-filament::dropdown
@@ -12,42 +13,44 @@
     max-height="min(40vh, 20rem)"
     :width="Width::ExtraSmall"
     :wire:key="$this->getId().'.calendar.filters'"
-    class="tido-calendar-filters-dropdown"
+    class="fi-ta-filters-dropdown"
 >
     <x-slot name="trigger">
         <x-filament::icon-button
             color="gray"
             icon="heroicon-m-funnel"
-            label="Filter Events"
-            tooltip="Filter Events"
-            class="fi-calendar-filters-trigger"
+            :label="$filterLabel"
+            :tooltip="$filterLabel"
+            :badge="$activeFilterCount > 0 ? (string) $activeFilterCount : null"
+            class="fi-calendar-filters-trigger fi-force-enabled"
         />
     </x-slot>
 
-    <div class="tido-calendar-filters-dropdown-panel">
-        <div class="tido-calendar__filter-header">
-            <h3 class="tido-calendar__filter-title">Filter Events</h3>
-            <button
-                type="button"
-                wire:click="clearTypeFilter"
-                class="tido-calendar__filter-reset"
-            >
-                Show All
-            </button>
+    <div class="fi-ta-filters fi-fixed-positioning-context">
+        <div class="fi-ta-filters-body">
+            {{ $this->getSchema('filtersForm') }}
         </div>
 
-        <div class="tido-calendar__filter-options">
-            @foreach ($filters as $filter)
-                <label class="tido-calendar__filter-option" wire:key="calendar-filter-{{ $filter['key'] }}">
-                    <input
-                        type="checkbox"
-                        value="{{ $filter['key'] }}"
-                        wire:model.live="typeFilter"
-                        class="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600"
-                    >
-                    <span>{{ $filter['label'] }}</span>
-                </label>
-            @endforeach
+        <div class="fi-ta-filters-actions-ctn">
+            <x-filament::button
+                color="primary"
+                icon="heroicon-o-arrow-path"
+                label-sr-only
+                :tooltip="$resetLabel"
+                tag="button"
+                type="button"
+                :attributes="
+                    \Filament\Support\prepare_inherited_attributes(
+                        new \Filament\Support\View\ComponentAttributeBag([
+                            'wire:click' => 'resetTypeFilter',
+                            'wire:loading.attr' => 'disabled',
+                            'wire:target' => 'resetTypeFilter',
+                        ])
+                    )
+                "
+            >
+                {{ $resetLabel }}
+            </x-filament::button>
         </div>
     </div>
 </x-filament::dropdown>

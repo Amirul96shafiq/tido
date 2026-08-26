@@ -46,7 +46,5 @@
         </button>
     </div>
 
-    @include('filament.pages.partials.calendar-filters-dropdown', [
-        'filters' => $filters ?? $this->availableFilters(),
-    ])
+    @include('filament.pages.partials.calendar-filters-dropdown')
 </div>

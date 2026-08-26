@@ -67,7 +67,7 @@ final class CalendarEventAggregator
         $events = collect();
 
         foreach ($this->providers as $provider) {
-            if ($activeFilterKeys !== [] && ! in_array($provider->filterKey(), $activeFilterKeys, true)) {
+            if (! in_array($provider->filterKey(), $activeFilterKeys, true)) {
                 continue;
             }
 
