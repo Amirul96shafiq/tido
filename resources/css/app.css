@@ -5410,36 +5410,20 @@ html.tido-reduce-motion .tido-ping-pulse {
     @apply flex flex-col gap-4;
 }
 
+.tido-calendar-page .fi-header-actions-ctn {
+    @apply justify-end;
+}
+
+.tido-calendar-header-actions {
+    @apply flex items-center gap-2;
+}
+
 .tido-calendar {
     @apply flex flex-col gap-4;
 }
 
-.tido-calendar__header-main {
-    @apply flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
-}
-
-.tido-calendar__month-label {
-    @apply text-left text-sm font-semibold text-gray-950 transition hover:text-primary-600 dark:text-gray-100 dark:hover:text-primary-400 2xl:text-xl;
-}
-
-.tido-calendar__month-label-compact {
-    @apply inline 2xl:hidden;
-}
-
-.tido-calendar__month-label-full {
-    @apply hidden 2xl:inline;
-}
-
-.tido-calendar__header-actions {
-    @apply flex items-center gap-3;
-}
-
-.tido-calendar__icon-btn {
-    @apply flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200/80 bg-white/30 text-gray-500 transition hover:bg-white/50 hover:text-gray-700 dark:border-gray-700/80 dark:bg-gray-800/30 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200;
-}
-
-.tido-calendar__filter-panel {
-    @apply absolute right-0 z-50 mt-2 w-56 rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-900;
+.tido-calendar-filters-dropdown-panel {
+    @apply w-56;
 }
 
 .tido-calendar__filter-header {

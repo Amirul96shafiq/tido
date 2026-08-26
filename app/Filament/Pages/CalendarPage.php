@@ -11,9 +11,11 @@ use App\Services\Calendar\CalendarEventAggregator;
 use App\Services\RecurringOccurrenceGenerator;
 use App\Support\Calendar\CalendarEvent;
 use Carbon\Carbon;
+use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\View as SchemaView;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Alignment;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Collection;
@@ -32,6 +34,8 @@ class CalendarPage extends Page
     protected static ?string $title = 'Calendar';
 
     protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
+
+    protected ?Alignment $headerActionsAlignment = Alignment::End;
 
     public int $year;
 
@@ -52,9 +56,29 @@ class CalendarPage extends Page
         $generator->run($now->copy()->startOfDay());
     }
 
+    public function getHeading(): string
+    {
+        return 'Calendar ('.$this->monthName.')';
+    }
+
     public function getSubheading(): string|Htmlable|null
     {
         return null;
+    }
+
+    /**
+     * @return array<Action>
+     */
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('calendarHeaderActions')
+                ->label('Calendar actions')
+                ->view('filament.pages.partials.calendar-header-actions')
+                ->viewData(fn (): array => [
+                    'filters' => $this->availableFilters(),
+                ]),
+        ];
     }
 
     /**

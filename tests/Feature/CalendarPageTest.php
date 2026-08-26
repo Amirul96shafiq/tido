@@ -22,8 +22,11 @@ test('calendar page renders for primary user', function () {
 
     $this->actingAs($user);
 
+    $currentMonthLabel = now()->format('F Y');
+
     Livewire::test(CalendarPage::class)
         ->assertOk()
+        ->assertSee('Calendar ('.$currentMonthLabel.')')
         ->assertSee('Filter Events')
         ->assertSee('Today');
 });
@@ -69,11 +72,13 @@ test('calendar month navigation updates the viewed month', function () {
     $this->actingAs($user);
 
     $nextMonth = now()->addMonth();
+    $nextMonthLabel = $nextMonth->format('F Y');
 
     Livewire::test(CalendarPage::class)
         ->call('nextMonth')
         ->assertSet('year', (int) $nextMonth->year)
-        ->assertSet('month', (int) $nextMonth->month);
+        ->assertSet('month', (int) $nextMonth->month)
+        ->assertSee('Calendar ('.$nextMonthLabel.')');
 });
 
 test('calendar type filter can hide birthdays', function () {

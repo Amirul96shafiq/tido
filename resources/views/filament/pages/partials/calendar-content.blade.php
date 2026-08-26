@@ -1,13 +1,13 @@
 @php
     /** @var \App\Filament\Pages\CalendarPage $this */
     $weeks = $this->weeks;
-    $filters = $this->availableFilters();
     $currentDayName = $this->currentDayKey();
     $isCurrentMonth = $this->isShowingCurrentMonth();
 @endphp
 
 <div
     class="tido-calendar"
+    @calendar-close-popover.window="closePopover()"
     x-data="{
         showEventPopover: false,
         popoverEvents: [],
@@ -41,119 +41,6 @@
         },
     }"
 >
-    <div class="tido-calendar__header">
-        <div class="tido-calendar__header-main">
-            <button
-                type="button"
-                class="tido-calendar__month-label"
-                wire:click="today"
-                aria-label="Current month"
-            >
-                <span wire:loading.remove wire:target="previousMonth,nextMonth,goToMonth,today">
-                    <span class="tido-calendar__month-label-compact">{{ $this->month }}/{{ substr((string) $this->year, -2) }}</span>
-                    <span class="tido-calendar__month-label-full">{{ $this->monthName }}</span>
-                </span>
-                <span wire:loading wire:target="previousMonth,nextMonth,goToMonth,today">Loading…</span>
-            </button>
-
-            <div class="tido-calendar__header-actions">
-                <div class="relative" x-data="{ filterOpen: false }" @click.outside="filterOpen = false">
-                    <button
-                        type="button"
-                        class="tido-calendar__icon-btn"
-                        @click="filterOpen = !filterOpen"
-                        aria-label="Filter events"
-                        x-tooltip="{
-                            content: 'Filter Events',
-                            theme: $store.theme,
-                        }"
-                    >
-                        <x-heroicon-m-funnel class="h-4 w-4" />
-                    </button>
-
-                    <div
-                        x-show="filterOpen"
-                        x-transition
-                        class="tido-calendar__filter-panel"
-                        style="display: none;"
-                    >
-                        <div class="tido-calendar__filter-header">
-                            <h3 class="tido-calendar__filter-title">Filter Events</h3>
-                            <button
-                                type="button"
-                                wire:click="clearTypeFilter"
-                                class="tido-calendar__filter-reset"
-                            >
-                                Show All
-                            </button>
-                        </div>
-
-                        <div class="tido-calendar__filter-options">
-                            @foreach ($filters as $filter)
-                                <label class="tido-calendar__filter-option" wire:key="calendar-filter-{{ $filter['key'] }}">
-                                    <input
-                                        type="checkbox"
-                                        value="{{ $filter['key'] }}"
-                                        wire:model.live="typeFilter"
-                                        class="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600"
-                                    >
-                                    <span>{{ $filter['label'] }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tido-calendar__nav">
-                    <button
-                        type="button"
-                        wire:click="previousMonth"
-                        @click="closePopover()"
-                        class="tido-calendar__nav-btn"
-                        aria-label="Previous month"
-                        x-tooltip="{
-                            content: 'Go to {{ $this->previousMonthName }}',
-                            theme: $store.theme,
-                        }"
-                    >
-                        <x-heroicon-m-arrow-left wire:loading.remove wire:target="previousMonth" class="h-5 w-5" />
-                        <x-filament::loading-indicator wire:loading wire:target="previousMonth" class="h-5 w-5" />
-                    </button>
-
-                    <button
-                        type="button"
-                        wire:click="today"
-                        @click="closePopover()"
-                        @disabled($this->isViewingToday)
-                        class="tido-calendar__today-btn {{ $this->isViewingToday ? 'is-disabled' : '' }}"
-                        x-tooltip="{
-                            content: 'Jump to Today',
-                            theme: $store.theme,
-                        }"
-                    >
-                        <span wire:loading.remove wire:target="today">Today</span>
-                        <x-filament::loading-indicator wire:loading wire:target="today" class="h-5 w-5" />
-                    </button>
-
-                    <button
-                        type="button"
-                        wire:click="nextMonth"
-                        @click="closePopover()"
-                        class="tido-calendar__nav-btn"
-                        aria-label="Next month"
-                        x-tooltip="{
-                            content: 'Go to {{ $this->nextMonthName }}',
-                            theme: $store.theme,
-                        }"
-                    >
-                        <x-heroicon-m-arrow-right wire:loading.remove wire:target="nextMonth" class="h-5 w-5" />
-                        <x-filament::loading-indicator wire:loading wire:target="nextMonth" class="h-5 w-5" />
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="tido-calendar__grid-wrap">
         <div class="tido-calendar__grid-inner">
             <div wire:loading.flex wire:target="previousMonth,nextMonth,goToMonth,today,typeFilter" class="tido-calendar__loading">
