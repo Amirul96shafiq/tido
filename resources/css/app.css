@@ -5516,7 +5516,7 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__weeks {
-    @apply overflow-hidden rounded-b-lg border-x border-b border-gray-100 dark:border-slate-700/60;
+    @apply flex flex-col gap-px overflow-hidden rounded-b-lg border-x border-b border-gray-100 bg-gray-100 dark:border-slate-700/60 dark:bg-slate-700/60;
 }
 
 .tido-calendar__week {
@@ -5528,7 +5528,20 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__day.is-outside-month {
-    @apply opacity-40;
+    @apply bg-white dark:bg-gray-900;
+}
+
+.tido-calendar__day.is-outside-month .tido-calendar__day-number {
+    @apply text-gray-400 dark:text-gray-500;
+}
+
+.tido-calendar__day.is-outside-month .tido-calendar__day-count {
+    @apply text-gray-400 dark:text-gray-500;
+}
+
+.tido-calendar__day.is-outside-month .tido-calendar-event-chip,
+.tido-calendar__day.is-outside-month .tido-calendar__more-btn {
+    @apply opacity-80;
 }
 
 .tido-calendar__day.is-today {
