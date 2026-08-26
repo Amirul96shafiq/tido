@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\GlobalSearch;
 
 use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Pages\CalendarPage;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\EvolutionApiPage;
 use App\Filament\Pages\GeminiPage;
@@ -43,6 +44,7 @@ final class AdminDestinationSearch
         $openAiUrl = OpenAiPage::getUrl();
         $officialApiUrl = WhatsAppOfficialApiPage::getUrl();
         $serviceStatusUrl = ServiceStatusPage::getUrl();
+        $calendarUrl = CalendarPage::getUrl();
         $uploadUrl = ReceiptUploadPage::getUrl();
 
         $destinations = [
@@ -51,6 +53,12 @@ final class AdminDestinationSearch
                 'keywords' => ['dashboard', 'home', 'analytics', 'finances'],
                 'group' => 'Pages',
                 'url' => $dashboardUrl,
+            ],
+            [
+                'title' => 'Calendar',
+                'keywords' => ['calendar', 'schedule', 'recurring', 'dues', 'birthday', 'payment'],
+                'group' => 'Pages',
+                'url' => $calendarUrl,
             ],
             [
                 'title' => 'Total Spent',

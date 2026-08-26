@@ -17,6 +17,9 @@ use App\Models\User;
 use App\Observers\ExpenseItemObserver;
 use App\Observers\ExpenseObserver;
 use App\Observers\FamilyMemberObserver;
+use App\Services\Calendar\BirthdayCalendarProvider;
+use App\Services\Calendar\CalendarEventAggregator;
+use App\Services\Calendar\RecurringDueCalendarProvider;
 use App\Services\Currency\CurrencyApiExchangeRateProvider;
 use App\Services\Currency\ExchangeRateProvider;
 use App\Support\FieldCharacterLimits;
@@ -54,6 +57,14 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(FilamentNotification::class, AppNotification::class);
         $this->app->bind(LogoutResponseContract::class, LogoutResponse::class);
         $this->app->bind(ExchangeRateProvider::class, CurrencyApiExchangeRateProvider::class);
+
+        $this->app->singleton(CalendarEventAggregator::class, function (): CalendarEventAggregator {
+            $aggregator = new CalendarEventAggregator;
+            $aggregator->register(app(RecurringDueCalendarProvider::class));
+            $aggregator->register(app(BirthdayCalendarProvider::class));
+
+            return $aggregator;
+        });
     }
 
     /**

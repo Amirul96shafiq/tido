@@ -14,6 +14,7 @@ use App\Filament\Pages\Auth\NotFound;
 use App\Filament\Pages\Auth\PasswordResetLinkExpired;
 use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Auth\ResetPassword;
+use App\Filament\Pages\CalendarPage;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Expenses\Pages\CreateExpense;
@@ -691,6 +692,11 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-user')
                     ->sort(0)
                     ->extraAttributes(['wire:current' => 'fi-user-menu-profile-active']),
+                Action::make('calendar')
+                    ->label('Calendar')
+                    ->icon('heroicon-o-calendar-days')
+                    ->url(fn (): string => CalendarPage::getUrl())
+                    ->sort(5),
                 Action::make('changelogs')
                     ->label('Changelogs 🡥')
                     ->icon('heroicon-o-code-bracket')

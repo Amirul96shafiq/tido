@@ -26,12 +26,14 @@ test('user menu orders profile changelogs notifications and logout', function ()
     $items = Filament::getUserMenuItems();
     $keys = array_keys($items);
 
-    expect($keys)->toBe(['profile', 'changelogs', 'notifications', 'logout']);
+    expect($keys)->toBe(['profile', 'calendar', 'changelogs', 'notifications', 'logout']);
 
     expect($items['profile']->getIcon())->toBe('heroicon-o-user');
     expect($items['profile']->getSort())->toBeGreaterThanOrEqual(0);
+    expect($items['calendar']->getLabel())->toBe('Calendar');
+    expect($items['calendar']->getSort())->toBeGreaterThan($items['profile']->getSort());
     expect($items['changelogs']->getLabel())->toBe('Changelogs 🡥');
-    expect($items['changelogs']->getSort())->toBeGreaterThan($items['profile']->getSort());
+    expect($items['changelogs']->getSort())->toBeGreaterThan($items['calendar']->getSort());
     expect($items['notifications']->getLabel())->toBe('Notifications 🡥');
     expect($items['notifications']->getIcon())->toBe('heroicon-o-bell');
     expect($items['notifications']->getSort())->toBeGreaterThan($items['changelogs']->getSort());
