@@ -31,6 +31,8 @@ test('calendar page renders for primary user', function () {
 
     expect($component->html())
         ->toContain('transition-opacity ease-out duration-200')
+        ->toContain('handleClickAway($event)')
+        ->toContain('.tido-calendar-event-chip, .tido-calendar__more-btn')
         ->toContain('fi-ta-filters-dropdown')
         ->toContain('fi-ta-filters-body')
         ->toContain('fi-ta-filters-actions-ctn')

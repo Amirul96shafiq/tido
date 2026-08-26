@@ -39,6 +39,13 @@
         closePopover() {
             this.showEventPopover = false;
         },
+        handleClickAway(event) {
+            if (event.target.closest('.tido-calendar-event-chip, .tido-calendar__more-btn')) {
+                return;
+            }
+
+            this.closePopover();
+        },
         groupByModule(events) {
             const groups = {};
             (events || []).forEach((event) => {
@@ -131,7 +138,7 @@
 
     <div
         x-show="showEventPopover"
-        @click.away="closePopover()"
+        @click.away="handleClickAway($event)"
         x-transition:enter="transition-opacity ease-out duration-200"
         x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100"
