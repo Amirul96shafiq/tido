@@ -38,6 +38,7 @@ final readonly class CalendarEvent
             'colorKey' => $this->colorKey,
             'url' => $this->url,
             'projected' => (bool) ($this->meta['projected'] ?? false),
+            'completed' => (bool) ($this->meta['completed'] ?? false),
             'isCurrentViewer' => (bool) ($this->meta['is_current_viewer'] ?? false),
         ];
     }

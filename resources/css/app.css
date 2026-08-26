@@ -5572,6 +5572,14 @@ html.tido-reduce-motion .tido-ping-pulse {
     @apply bg-pink-100 text-pink-700 hover:bg-pink-200 dark:bg-pink-900/30 dark:text-pink-400;
 }
 
+.tido-calendar-event-chip--completed {
+    @apply opacity-50;
+}
+
+.tido-calendar-event-chip--completed .tido-calendar-event-chip__label {
+    @apply line-through;
+}
+
 .tido-calendar__more-btn {
     @apply text-left text-xs font-medium text-primary-600 hover:underline dark:text-primary-400;
 }
@@ -5651,6 +5659,17 @@ html.tido-reduce-motion .tido-ping-pulse {
 
 .tido-calendar__popover-event-title {
     @apply text-sm font-semibold text-gray-800 dark:text-gray-200;
+}
+
+.tido-calendar__popover-card.is-completed .tido-calendar__popover-badges,
+.tido-calendar__popover-card.is-completed .tido-calendar__popover-event-title,
+.tido-calendar__popover-card.is-completed
+    .tido-calendar__popover-event-subtitle {
+    @apply opacity-50;
+}
+
+.tido-calendar__popover-card.is-completed .tido-calendar__popover-event-title {
+    @apply line-through;
 }
 
 .tido-calendar__popover-event-subtitle {

@@ -270,12 +270,19 @@ class CalendarPage extends Page
     public function eventChipClasses(CalendarEvent $event): string
     {
         $base = 'tido-calendar-event-chip';
+        $completed = (bool) ($event->meta['completed'] ?? false);
 
         if ((bool) ($event->meta['projected'] ?? false)) {
             return $base.' tido-calendar-event-chip--scheduled';
         }
 
-        return $base.' tido-calendar-event-chip--'.$event->colorKey;
+        $classes = $base.' tido-calendar-event-chip--'.$event->colorKey;
+
+        if ($completed) {
+            $classes .= ' tido-calendar-event-chip--completed';
+        }
+
+        return $classes;
     }
 
     /**

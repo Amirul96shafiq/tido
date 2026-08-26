@@ -48,6 +48,27 @@ test('calendar page renders for primary user', function () {
         ->not->toContain('Show All');
 });
 
+test('calendar page styles completed recurring occurrences with reduced opacity and strikethrough', function () {
+    $user = User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]);
+
+    $recurring = Recurring::factory()->create(['title' => 'Paid PTPTN']);
+
+    RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Completed,
+        'due_on' => now()->toDateString(),
+        'expected_amount' => 250.00,
+    ]);
+
+    $this->actingAs($user);
+
+    expect(Livewire::test(CalendarPage::class)->html())
+        ->toContain('Paid PTPTN')
+        ->toContain('tido-calendar-event-chip--completed');
+});
+
 test('calendar page shows recurring due on the due date', function () {
     $user = User::factory()->create([
         'household_role' => HouseholdRole::Primary,

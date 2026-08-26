@@ -181,6 +181,7 @@ final class RecurringDueCalendarProvider implements CalendarEventProvider
                 'occurrence_id' => $occurrence->id,
                 'recurring_id' => $occurrence->recurring_id,
                 'projected' => false,
+                'completed' => $status === RecurringOccurrenceStatus::Completed,
             ],
         );
     }

@@ -168,7 +168,10 @@
                         <div class="space-y-2">
                             <p class="tido-calendar__popover-module" x-text="moduleLabel"></p>
                             <template x-for="(event, index) in moduleEvents" :key="`${moduleLabel}-${index}`">
-                                <div class="tido-calendar__popover-card">
+                                <div
+                                    class="tido-calendar__popover-card"
+                                    :class="{ 'is-completed': event.completed }"
+                                >
                                     <div class="tido-calendar__popover-card-top">
                                         <div class="tido-calendar__popover-badges">
                                             <span
