@@ -206,7 +206,7 @@ final class RecurringDueCalendarProvider implements CalendarEventProvider
             subtitle: $recurring->expected_amount !== null
                 ? MoneyDisplay::withPrefix($recurring->expected_amount)
                 : null,
-            status: $projected ? 'Scheduled' : $status->label(),
+            status: $projected ? null : $status->label(),
             colorKey: $projected ? 'scheduled' : $this->colorKeyForStatus($status),
             url: $this->recurringViewUrl($recurring),
             meta: [

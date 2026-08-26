@@ -105,6 +105,7 @@ test('recurring due provider projects future due dates when no occurrence row ex
 
     expect($events)->toHaveCount(1)
         ->and($events->first()?->title)->toBe('Projected Bill')
+        ->and($events->first()?->status)->toBeNull()
         ->and($events->first()?->colorKey)->toBe('scheduled')
         ->and($events->first()?->meta['projected'] ?? false)->toBeTrue()
         ->and($events->first()?->meta['recurring_id'] ?? null)->toBe($recurring->id);
