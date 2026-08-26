@@ -52,3 +52,31 @@ test('birthday provider includes family member birthdays', function () {
 
     expect($events->pluck('title')->all())->toContain('Family Birthday');
 });
+
+test('birthday provider does not duplicate login-enabled family member birthdays', function () {
+    $viewer = User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]);
+
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Kopii',
+        'display_name' => 'Kopii',
+        'date_of_birth' => '2022-06-10',
+    ]);
+
+    $member->loginUser?->update([
+        'display_name' => 'Kopii',
+        'date_of_birth' => '2022-06-10',
+    ]);
+
+    $provider = new BirthdayCalendarProvider;
+    $events = $provider->eventsForRange(
+        Carbon::parse('2026-06-01'),
+        Carbon::parse('2026-06-30'),
+        $viewer,
+    );
+
+    expect($events)->toHaveCount(1)
+        ->and($events->first()?->title)->toBe('Kopii')
+        ->and($events->first()?->meta)->toHaveKey('user_id');
+});

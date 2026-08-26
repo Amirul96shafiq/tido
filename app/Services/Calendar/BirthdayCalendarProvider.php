@@ -66,6 +66,9 @@ final class BirthdayCalendarProvider implements CalendarEventProvider
 
         FamilyMember::query()
             ->whereNotNull('date_of_birth')
+            ->whereDoesntHave('loginUser', function ($query): void {
+                $query->whereNotNull('date_of_birth');
+            })
             ->orderBy('id')
             ->each(function (FamilyMember $member) use ($rangeStart, $rangeEnd, $year, $viewer, $events): void {
                 $event = $this->eventFromBirthDate(
