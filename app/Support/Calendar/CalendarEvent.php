@@ -40,6 +40,9 @@ final readonly class CalendarEvent
             'projected' => (bool) ($this->meta['projected'] ?? false),
             'completed' => (bool) ($this->meta['completed'] ?? false),
             'isCurrentViewer' => (bool) ($this->meta['is_current_viewer'] ?? false),
+            'occurrenceId' => $this->meta['occurrence_id'] ?? null,
+            'canSkip' => (bool) ($this->meta['can_skip'] ?? false),
+            'canRevert' => (bool) ($this->meta['can_revert'] ?? false),
         ];
     }
 }

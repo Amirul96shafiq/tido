@@ -5653,8 +5653,16 @@ html.tido-reduce-motion .tido-ping-pulse {
     @apply bg-pink-100 text-pink-700 dark:bg-pink-400/25 dark:text-pink-300;
 }
 
+.tido-calendar__popover-actions {
+    @apply flex shrink-0 items-center gap-2;
+}
+
 .tido-calendar__popover-link {
     @apply text-xs font-medium text-primary-600 hover:underline dark:text-primary-400;
+}
+
+.tido-calendar__popover-link.is-muted {
+    @apply text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300;
 }
 
 .tido-calendar__popover-event-title {

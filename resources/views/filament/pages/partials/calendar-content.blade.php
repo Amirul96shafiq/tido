@@ -185,13 +185,34 @@
                                                 x-show="event.projected"
                                             >Scheduled</span>
                                         </div>
-                                        <a
-                                            x-show="event.url"
-                                            :href="event.url"
-                                            class="tido-calendar__popover-link"
+                                        <div
+                                            class="tido-calendar__popover-actions"
+                                            x-show="event.url || event.canSkip || event.canRevert"
                                         >
-                                            View
-                                        </a>
+                                            <button
+                                                type="button"
+                                                x-show="event.canRevert"
+                                                class="tido-calendar__popover-link"
+                                                @click="$wire.mountAction('confirmRevertOccurrence', { occurrenceId: event.occurrenceId })"
+                                            >
+                                                Revert
+                                            </button>
+                                            <button
+                                                type="button"
+                                                x-show="event.canSkip"
+                                                class="tido-calendar__popover-link is-muted"
+                                                @click="$wire.mountAction('confirmSkipOccurrence', { occurrenceId: event.occurrenceId })"
+                                            >
+                                                Skip
+                                            </button>
+                                            <a
+                                                x-show="event.url"
+                                                :href="event.url"
+                                                class="tido-calendar__popover-link"
+                                            >
+                                                View
+                                            </a>
+                                        </div>
                                     </div>
                                     <p class="tido-calendar__popover-event-title" x-text="event.title"></p>
                                     <p class="tido-calendar__popover-event-subtitle" x-show="event.subtitle" x-text="event.subtitle"></p>

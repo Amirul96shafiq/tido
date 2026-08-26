@@ -4,21 +4,26 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Enums\RecurringOccurrenceStatus;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RefreshesOnExpenseBroadcast;
+use App\Models\RecurringOccurrence;
 use App\Models\User;
 use App\Services\Calendar\CalendarEventAggregator;
+use App\Services\RecurringMatchService;
 use App\Services\RecurringOccurrenceGenerator;
 use App\Support\Calendar\CalendarEvent;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\View as SchemaView;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
@@ -296,6 +301,72 @@ class CalendarPage extends Page
             ->all();
     }
 
+    public function confirmSkipOccurrence(): Action
+    {
+        return Action::make('confirmSkipOccurrence')
+            ->requiresConfirmation()
+            ->modalHeading('Skip occurrence?')
+            ->modalDescription('This occurrence will be marked as skipped.')
+            ->modalSubmitActionLabel('Skip')
+            ->action(function (array $arguments): void {
+                $this->skipOccurrence((int) ($arguments['occurrenceId'] ?? 0));
+            });
+    }
+
+    public function confirmRevertOccurrence(): Action
+    {
+        return Action::make('confirmRevertOccurrence')
+            ->requiresConfirmation()
+            ->modalHeading('Revert skipped occurrence?')
+            ->modalDescription('This occurrence will return to the due list.')
+            ->modalSubmitActionLabel('Revert back')
+            ->action(function (array $arguments): void {
+                $this->revertOccurrence((int) ($arguments['occurrenceId'] ?? 0));
+            });
+    }
+
+    public function skipOccurrence(int $occurrenceId): void
+    {
+        $occurrence = $this->visibleOccurrenceQuery()
+            ->whereKey($occurrenceId)
+            ->first();
+
+        if ($occurrence === null || ! $occurrence->isOpen()) {
+            return;
+        }
+
+        app(RecurringMatchService::class)->skipOccurrence($occurrence);
+
+        $this->dispatch('recurring-occurrences-updated');
+        $this->dispatch('calendar-close-popover');
+
+        Notification::make()
+            ->title('Occurrence skipped')
+            ->success()
+            ->send();
+    }
+
+    public function revertOccurrence(int $occurrenceId): void
+    {
+        $occurrence = $this->visibleOccurrenceQuery()
+            ->whereKey($occurrenceId)
+            ->first();
+
+        if ($occurrence === null || $occurrence->status !== RecurringOccurrenceStatus::Skipped) {
+            return;
+        }
+
+        app(RecurringMatchService::class)->revertOccurrence($occurrence);
+
+        $this->dispatch('recurring-occurrences-updated');
+        $this->dispatch('calendar-close-popover');
+
+        Notification::make()
+            ->title('Occurrence restored')
+            ->success()
+            ->send();
+    }
+
     #[On('recurring-occurrences-updated')]
     public function refreshCalendarOccurrences(): void {}
 
@@ -350,5 +421,14 @@ class CalendarPage extends Page
     private function viewerNow(): Carbon
     {
         return now()->timezone($this->viewer()->preferredTimezone());
+    }
+
+    /**
+     * @return Builder<RecurringOccurrence>
+     */
+    private function visibleOccurrenceQuery(): Builder
+    {
+        return RecurringOccurrence::query()
+            ->visibleTo($this->viewer());
     }
 }

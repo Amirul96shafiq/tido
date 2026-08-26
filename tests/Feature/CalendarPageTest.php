@@ -85,8 +85,38 @@ test('calendar page shows recurring due on the due date', function () {
 
     $this->actingAs($user);
 
+    expect(Livewire::test(CalendarPage::class)->html())
+        ->toContain('TIME Internet')
+        ->toContain("mountAction('confirmSkipOccurrence'")
+        ->toContain('Skip');
+});
+
+test('calendar page skip occurrence requires confirmation and marks occurrence skipped', function () {
+    $user = User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]);
+
+    $recurring = Recurring::factory()->once()->create(['title' => 'TIME Internet']);
+    $occurrence = RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'status' => RecurringOccurrenceStatus::Due,
+        'due_on' => now()->toDateString(),
+        'expected_amount' => 89.90,
+    ]);
+
+    $this->actingAs($user);
+
     Livewire::test(CalendarPage::class)
-        ->assertSee('TIME Internet');
+        ->mountAction('confirmSkipOccurrence', ['occurrenceId' => $occurrence->id])
+        ->assertActionMounted('confirmSkipOccurrence')
+        ->assertMountedActionModalSee('Skip occurrence?')
+        ->assertMountedActionModalSee('This occurrence will be marked as skipped.')
+        ->callMountedAction()
+        ->assertSuccessful()
+        ->assertDispatched('recurring-occurrences-updated')
+        ->assertDispatched('calendar-close-popover');
+
+    expect($occurrence->fresh()->status)->toBe(RecurringOccurrenceStatus::Skipped);
 });
 
 test('calendar page shows household birthday in the viewed month', function () {
