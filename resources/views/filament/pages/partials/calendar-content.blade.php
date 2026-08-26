@@ -25,9 +25,9 @@
                 return { left: '50%', top: '50%', translate: '-50% -50%' };
             }
 
-            const left = Math.max(20, Math.min(this.popoverPosition.x, window.innerWidth - 340));
-            const top = Math.min(this.popoverPosition.y + 10, window.innerHeight - 400);
-            const translateX = this.popoverPosition.x < 180 ? '0%' : '-50%';
+            const left = Math.max(20, Math.min(this.popoverPosition.x, window.innerWidth - 400));
+            const top = Math.min(this.popoverPosition.y + 10, window.innerHeight - 440);
+            const translateX = this.popoverPosition.x < 200 ? '0%' : '-50%';
 
             return { left: left + 'px', top: top + 'px', translate: translateX + ' 0' };
         },
@@ -151,23 +151,36 @@
     >
         <div class="tido-calendar__popover-header">
             <h4 class="tido-calendar__popover-title" x-text="popoverEvents.date"></h4>
-            <button type="button" @click="closePopover()" class="tido-calendar__popover-close" aria-label="Close">
+            <button
+                type="button"
+                @click="closePopover()"
+                class="tido-calendar__popover-close"
+                aria-label="Close"
+            >
                 <x-heroicon-o-x-mark class="h-5 w-5" />
             </button>
         </div>
 
-        <div class="tido-calendar__popover-body">
+        <div class="tido-calendar__popover-body custom-scrollbar">
             <template x-if="popoverEvents.events && popoverEvents.events.length > 0">
-                <div class="space-y-4">
+                <div class="space-y-3">
                     <template x-for="[moduleLabel, moduleEvents] in groupByModule(popoverEvents.events)" :key="moduleLabel">
                         <div class="space-y-2">
                             <p class="tido-calendar__popover-module" x-text="moduleLabel"></p>
                             <template x-for="(event, index) in moduleEvents" :key="`${moduleLabel}-${index}`">
-                                <div class="tido-calendar__popover-card" :class="`is-${event.colorKey}`">
+                                <div class="tido-calendar__popover-card">
                                     <div class="tido-calendar__popover-card-top">
                                         <div class="tido-calendar__popover-badges">
-                                            <span class="tido-calendar__popover-badge" x-show="event.status" x-text="event.status"></span>
-                                            <span class="tido-calendar__popover-badge is-scheduled" x-show="event.projected">Scheduled</span>
+                                            <span
+                                                class="tido-calendar__popover-badge"
+                                                :class="`is-${event.colorKey}`"
+                                                x-show="event.status"
+                                                x-text="event.status"
+                                            ></span>
+                                            <span
+                                                class="tido-calendar__popover-badge is-scheduled"
+                                                x-show="event.projected"
+                                            >Scheduled</span>
                                         </div>
                                         <a
                                             x-show="event.url"

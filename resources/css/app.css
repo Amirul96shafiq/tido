@@ -5577,7 +5577,7 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__popover {
-    @apply fixed z-50 w-[calc(100vw-2rem)] max-h-[80vh] rounded-lg bg-white p-4 shadow-xl ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800 sm:w-80;
+    @apply fixed z-50 w-[calc(100vw-2rem)] max-h-[80vh] rounded-xl bg-white p-4 shadow-xl ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 sm:w-80;
 }
 
 .tido-calendar__popover-header {
@@ -5585,15 +5585,15 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__popover-title {
-    @apply font-semibold text-gray-900 dark:text-gray-100;
+    @apply font-semibold text-gray-950 dark:text-white;
 }
 
 .tido-calendar__popover-close {
-    @apply text-gray-400 hover:text-gray-600 dark:hover:text-gray-300;
+    @apply text-gray-400 hover:text-gray-500 dark:hover:text-gray-300;
 }
 
 .tido-calendar__popover-body {
-    @apply max-h-64 space-y-3 overflow-y-auto;
+    @apply max-h-64 space-y-3 overflow-y-auto pr-1;
 }
 
 .tido-calendar__popover-module {
@@ -5601,33 +5601,7 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__popover-card {
-    @apply rounded-lg border-l-4 bg-gray-50 px-3 py-2 dark:bg-gray-800/50;
-}
-
-.tido-calendar__popover-card.is-danger {
-    @apply border-danger-500;
-}
-
-.tido-calendar__popover-card.is-warning {
-    @apply border-warning-500;
-}
-
-.tido-calendar__popover-card.is-primary,
-.tido-calendar__popover-card.is-scheduled {
-    @apply border-primary-500;
-}
-
-.tido-calendar__popover-card.is-success {
-    @apply border-success-500;
-}
-
-.tido-calendar__popover-card.is-muted {
-    @apply border-gray-300 dark:border-gray-700;
-}
-
-.tido-calendar__popover-card.is-birthday,
-.tido-calendar__popover-card.is-birthday-self {
-    @apply border-orange-500;
+    @apply rounded-lg bg-gray-50 p-2.5 dark:bg-slate-800/60;
 }
 
 .tido-calendar__popover-card-top {
@@ -5635,15 +5609,40 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__popover-badges {
-    @apply flex flex-wrap items-center gap-1;
+    @apply flex flex-wrap items-center gap-1.5;
 }
 
 .tido-calendar__popover-badge {
-    @apply rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200;
+    @apply inline-flex items-center rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-slate-600 dark:text-slate-100;
+}
+
+.tido-calendar__popover-badge.is-danger {
+    @apply bg-red-100 text-red-700 dark:bg-red-400/25 dark:text-red-300;
+}
+
+.tido-calendar__popover-badge.is-warning {
+    @apply bg-amber-100 text-amber-800 dark:bg-amber-400/25 dark:text-amber-300;
+}
+
+.tido-calendar__popover-badge.is-primary,
+.tido-calendar__popover-badge.is-success {
+    @apply bg-primary-100 text-primary-700 dark:bg-primary-400/25 dark:text-primary-300;
+}
+
+.tido-calendar__popover-badge.is-muted {
+    @apply bg-slate-200 text-slate-700 dark:bg-slate-600 dark:text-slate-100;
 }
 
 .tido-calendar__popover-badge.is-scheduled {
-    @apply bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400;
+    @apply border border-dashed border-primary-400/70 bg-transparent text-primary-700 dark:text-primary-300;
+}
+
+.tido-calendar__popover-badge.is-birthday {
+    @apply bg-orange-100 text-orange-700 dark:bg-orange-400/25 dark:text-orange-300;
+}
+
+.tido-calendar__popover-badge.is-birthday-self {
+    @apply bg-pink-100 text-pink-700 dark:bg-pink-400/25 dark:text-pink-300;
 }
 
 .tido-calendar__popover-link {
@@ -5651,7 +5650,7 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__popover-event-title {
-    @apply text-sm text-gray-900 dark:text-gray-100;
+    @apply text-sm font-semibold text-gray-800 dark:text-gray-200;
 }
 
 .tido-calendar__popover-event-subtitle {
