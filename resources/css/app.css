@@ -5418,6 +5418,26 @@ html.tido-reduce-motion .tido-ping-pulse {
     @apply justify-end;
 }
 
+.tido-calendar-page .fi-header-heading {
+    @apply inline-flex flex-wrap items-center gap-x-0;
+}
+
+.tido-calendar-page-heading {
+    @apply inline-flex flex-wrap items-center;
+}
+
+.tido-calendar-heading-month-dropdown {
+    @apply inline-flex;
+}
+
+.tido-calendar-heading-month-trigger {
+    @apply inline-flex cursor-pointer items-center rounded-md text-primary-600 underline-offset-2 transition hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 dark:text-primary-400;
+}
+
+.tido-calendar-heading-month-panel {
+    @apply p-3;
+}
+
 .tido-calendar-header-actions {
     @apply flex items-center gap-2;
 }

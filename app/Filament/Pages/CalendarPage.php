@@ -13,9 +13,11 @@ use App\Services\Calendar\CalendarEventAggregator;
 use App\Services\RecurringMatchService;
 use App\Services\RecurringOccurrenceGenerator;
 use App\Support\Calendar\CalendarEvent;
+use App\Support\Calendar\CalendarMonthPeriod;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\View as SchemaView;
@@ -47,6 +49,15 @@ class CalendarPage extends Page
 
     public int $month;
 
+    public string $viewMonth = '';
+
+    /**
+     * @var array{viewMonth: string}
+     */
+    public array $monthNavigation = [
+        'viewMonth' => '',
+    ];
+
     /**
      * @var array<string, bool>
      */
@@ -58,13 +69,14 @@ class CalendarPage extends Page
         $this->year = (int) $now->year;
         $this->month = (int) $now->month;
         $this->typeFilter = $this->defaultTypeFilter();
+        $this->syncViewMonth();
 
         $generator->run($now->copy()->startOfDay());
     }
 
-    public function getHeading(): string
+    public function getHeading(): string|Htmlable
     {
-        return 'Calendar ('.$this->monthName.')';
+        return view('filament.pages.partials.calendar-page-heading');
     }
 
     public function getSubheading(): string|Htmlable|null
@@ -119,6 +131,50 @@ class CalendarPage extends Page
             ->components($checkboxes);
     }
 
+    public function monthNavigationForm(Schema $schema): Schema
+    {
+        return $schema
+            ->columns(1)
+            ->live()
+            ->statePath('monthNavigation')
+            ->components([
+                Select::make('viewMonth')
+                    ->label('Month')
+                    ->options(fn (): array => CalendarMonthPeriod::optionsAround(
+                        Carbon::create($this->year, $this->month, 1),
+                        minYear: CalendarMonthPeriod::navigationMinYear(),
+                        maxYear: CalendarMonthPeriod::navigationMaxYear(),
+                    ))
+                    ->searchable()
+                    ->native(false)
+                    ->required()
+                    ->selectablePlaceholder(false)
+                    ->live()
+                    ->afterStateUpdated(function (?string $state): void {
+                        if ($state === null || $state === '') {
+                            return;
+                        }
+
+                        $this->viewMonth = $state;
+                        $this->handleViewMonthChange();
+                    })
+                    ->extraFieldWrapperAttributes([
+                        'class' => 'fi-dashboard-month-filter',
+                    ]),
+            ]);
+    }
+
+    public function updatedViewMonth(): void
+    {
+        $this->handleViewMonthChange();
+    }
+
+    public function syncViewMonth(): void
+    {
+        $this->viewMonth = Carbon::create($this->year, $this->month, 1)->format('Y-m');
+        $this->monthNavigation['viewMonth'] = $this->viewMonth;
+    }
+
     public function resetTypeFilter(): void
     {
         $this->typeFilter = $this->defaultTypeFilter();
@@ -145,6 +201,7 @@ class CalendarPage extends Page
         if ($date->year >= $minYear) {
             $this->year = (int) $date->year;
             $this->month = (int) $date->month;
+            $this->syncViewMonth();
         }
     }
 
@@ -156,6 +213,7 @@ class CalendarPage extends Page
         if ($date->year <= $maxYear) {
             $this->year = (int) $date->year;
             $this->month = (int) $date->month;
+            $this->syncViewMonth();
         }
     }
 
@@ -164,6 +222,7 @@ class CalendarPage extends Page
         $now = $this->viewerNow();
         $this->year = (int) $now->year;
         $this->month = (int) $now->month;
+        $this->syncViewMonth();
     }
 
     public function goToMonth(int $month, int $year): void
@@ -174,6 +233,7 @@ class CalendarPage extends Page
 
         $this->year = max($minYear, min($maxYear, $year));
         $this->month = max(1, min(12, $month));
+        $this->syncViewMonth();
     }
 
     public function getIsViewingTodayProperty(): bool
@@ -405,6 +465,14 @@ class CalendarPage extends Page
     private function typeFilterIsEnabled(string $key): bool
     {
         return filter_var($this->typeFilter[$key] ?? false, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    private function handleViewMonthChange(): void
+    {
+        $parsed = Carbon::createFromFormat('Y-m', $this->viewMonth);
+
+        $this->goToMonth((int) $parsed->month, (int) $parsed->year);
+        $this->dispatch('calendar-close-popover');
     }
 
     private function viewer(): User

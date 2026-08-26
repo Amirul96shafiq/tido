@@ -9,6 +9,7 @@ use App\Models\FamilyMember;
 use App\Models\Recurring;
 use App\Models\RecurringOccurrence;
 use App\Models\User;
+use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -26,10 +27,15 @@ test('calendar page renders for primary user', function () {
 
     $component = Livewire::test(CalendarPage::class)
         ->assertOk()
-        ->assertSee('Calendar ('.$currentMonthLabel.')')
+        ->assertSee('Calendar (')
+        ->assertSee($currentMonthLabel)
         ->assertSee('Today');
 
     expect($component->html())
+        ->toContain('tido-calendar-heading-month-trigger')
+        ->toContain('aria-label="Change month, '.$currentMonthLabel.'"')
+        ->toContain('tido-calendar-heading-month-panel')
+        ->toContain('fi-dashboard-month-filter')
         ->toContain('transition-opacity ease-out duration-200')
         ->toContain('handleClickAway($event)')
         ->toContain('.tido-calendar-event-chip, .tido-calendar__more-btn')
@@ -146,7 +152,46 @@ test('calendar month navigation updates the viewed month', function () {
         ->call('nextMonth')
         ->assertSet('year', (int) $nextMonth->year)
         ->assertSet('month', (int) $nextMonth->month)
-        ->assertSee('Calendar ('.$nextMonthLabel.')');
+        ->assertSet('viewMonth', $nextMonth->format('Y-m'))
+        ->assertSee($nextMonthLabel);
+});
+
+test('calendar view month picker updates the viewed month', function () {
+    $user = User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]);
+
+    $this->actingAs($user);
+
+    $target = now()->addMonths(3);
+    $targetKey = $target->format('Y-m');
+    $targetLabel = $target->format('F Y');
+
+    Livewire::test(CalendarPage::class)
+        ->set('viewMonth', $targetKey)
+        ->assertSet('year', (int) $target->year)
+        ->assertSet('month', (int) $target->month)
+        ->assertSet('viewMonth', $targetKey)
+        ->assertSee($targetLabel);
+});
+
+test('calendar go to month clamps to minimum year and syncs view month', function () {
+    $user = User::factory()->create([
+        'household_role' => HouseholdRole::Primary,
+    ]);
+
+    $this->actingAs($user);
+
+    $minYear = now()->year - 5;
+    $expectedKey = sprintf('%04d-01', $minYear);
+    $expectedLabel = Carbon::create($minYear, 1, 1)->format('F Y');
+
+    Livewire::test(CalendarPage::class)
+        ->call('goToMonth', 1, $minYear - 1)
+        ->assertSet('year', $minYear)
+        ->assertSet('month', 1)
+        ->assertSet('viewMonth', $expectedKey)
+        ->assertSee($expectedLabel);
 });
 
 test('calendar type filter can hide birthdays', function () {
