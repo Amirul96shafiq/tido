@@ -54,7 +54,7 @@ class CalendarPage extends Page
 
     public function getSubheading(): string|Htmlable|null
     {
-        return 'Household schedule and payment dues by month.';
+        return null;
     }
 
     /**
