@@ -5500,11 +5500,11 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__day-headers {
-    @apply grid grid-cols-7 gap-px overflow-hidden rounded-t-lg border border-gray-100 bg-gray-100 dark:border-gray-800 dark:bg-gray-800;
+    @apply grid grid-cols-7 gap-px overflow-hidden rounded-t-lg border border-gray-100 bg-gray-100 dark:border-slate-700/60 dark:bg-slate-700/60;
 }
 
 .tido-calendar__day-header {
-    @apply bg-gray-50 px-3 py-2 text-center dark:bg-gray-800;
+    @apply bg-gray-50 px-3 py-2 text-center dark:bg-gray-900;
 }
 
 .tido-calendar__day-header span {
@@ -5516,11 +5516,11 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__weeks {
-    @apply overflow-hidden rounded-b-lg border-x border-b border-gray-100 dark:border-gray-800;
+    @apply overflow-hidden rounded-b-lg border-x border-b border-gray-100 dark:border-slate-700/60;
 }
 
 .tido-calendar__week {
-    @apply grid grid-cols-7 gap-px bg-gray-100 dark:bg-gray-800;
+    @apply grid grid-cols-7 gap-px bg-gray-100 dark:bg-slate-700/60;
 }
 
 .tido-calendar__day {
