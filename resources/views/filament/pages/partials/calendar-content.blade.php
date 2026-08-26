@@ -20,6 +20,17 @@
         checkMobileSize() {
             this.isMobile = window.innerWidth < 640;
         },
+        popoverStyle() {
+            if (this.isMobile) {
+                return { left: '50%', top: '50%', translate: '-50% -50%' };
+            }
+
+            const left = Math.max(20, Math.min(this.popoverPosition.x, window.innerWidth - 340));
+            const top = Math.min(this.popoverPosition.y + 10, window.innerHeight - 400);
+            const translateX = this.popoverPosition.x < 180 ? '0%' : '-50%';
+
+            return { left: left + 'px', top: top + 'px', translate: translateX + ' 0' };
+        },
         openPopover(eventData, position) {
             this.popoverEvents = eventData;
             this.popoverPosition = position;
@@ -121,11 +132,14 @@
     <div
         x-show="showEventPopover"
         @click.away="closePopover()"
-        x-transition
+        x-transition:enter="transition-opacity ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition-opacity ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
         class="tido-calendar__popover"
-        :style="isMobile
-            ? 'left: 50%; top: 50%; transform: translate(-50%, -50%);'
-            : `left: ${Math.max(20, Math.min(popoverPosition.x, window.innerWidth - 340))}px; top: ${Math.min(popoverPosition.y + 10, window.innerHeight - 400)}px; transform: translateX(${popoverPosition.x < 180 ? '0%' : '-50%'});`"
+        :style="popoverStyle()"
         x-cloak
     >
         <div class="tido-calendar__popover-header">

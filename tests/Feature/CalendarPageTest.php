@@ -30,6 +30,7 @@ test('calendar page renders for primary user', function () {
         ->assertSee('Today');
 
     expect($component->html())
+        ->toContain('transition-opacity ease-out duration-200')
         ->toContain('fi-ta-filters-dropdown')
         ->toContain('fi-ta-filters-body')
         ->toContain('fi-ta-filters-actions-ctn')
