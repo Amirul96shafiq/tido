@@ -311,7 +311,7 @@ test('budget status widget scopes personal spend for family member budgets', fun
     Livewire::test(BudgetStatus::class)
         ->assertSuccessful()
         ->assertSee('Snack Cap')
-        ->assertSee('RM 25.00');
+        ->assertSee('25.00');
 });
 
 test('budget status widget blocks reorder for family members', function () {

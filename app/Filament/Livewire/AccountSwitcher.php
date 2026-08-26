@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Livewire;
 
+use App\Models\ContentDraft;
 use App\Models\FamilyMember;
 use App\Models\User;
 use Filament\Actions\Action;
@@ -165,6 +166,7 @@ class AccountSwitcher extends Component implements HasActions, HasSchemas
         session()->regenerate();
         $this->resetSessionAuthenticationMarker();
         session()->put(self::SESSION_KEY, $originalId);
+        $this->clearProfileContentDrafts((int) $currentUser->id, (int) $linkedUser->id);
 
         $displayName = $member->display_name ?? $member->name;
 
@@ -196,10 +198,17 @@ class AccountSwitcher extends Component implements HasActions, HasSchemas
             return;
         }
 
+        $familyUser = Auth::user();
+
+        if (! $familyUser instanceof User) {
+            return;
+        }
+
         Filament::auth()->login($primaryUser, remember: true);
         session()->regenerate();
         $this->resetSessionAuthenticationMarker();
         session()->forget(self::SESSION_KEY);
+        $this->clearProfileContentDrafts((int) $familyUser->id, (int) $primaryUser->id);
 
         $displayName = $primaryUser->display_name ?? $primaryUser->name;
 
@@ -216,6 +225,16 @@ class AccountSwitcher extends Component implements HasActions, HasSchemas
         $guard = (string) config('auth.defaults.guard');
 
         session()->forget("password_hash_{$guard}");
+    }
+
+    private function clearProfileContentDrafts(int ...$userIds): void
+    {
+        foreach ($userIds as $userId) {
+            ContentDraft::query()
+                ->where('user_id', $userId)
+                ->where('key', 'profile-edit')
+                ->delete();
+        }
     }
 
     public function render(): View

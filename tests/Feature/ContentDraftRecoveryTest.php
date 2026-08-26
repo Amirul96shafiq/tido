@@ -498,3 +498,25 @@ test('successful profile save clears the draft', function () {
             ->exists()
     )->toBeFalse();
 });
+
+test('profile saveDraft skips when auth user changed since form was filled', function () {
+    $otherUser = User::factory()->withWhatsAppPhone('60199887766')->create([
+        'display_name' => 'Other User',
+    ]);
+
+    $component = Livewire::test(EditProfile::class)
+        ->set('data.display_name', 'Primary Draft');
+
+    expect($component->get('contentDraftOwnerId'))->toBe($this->user->id);
+
+    $this->actingAs($otherUser);
+
+    $component->call('saveDraft');
+
+    expect(
+        ContentDraft::query()
+            ->where('user_id', $otherUser->id)
+            ->where('key', 'profile-edit')
+            ->exists()
+    )->toBeFalse();
+});

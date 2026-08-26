@@ -19,6 +19,12 @@ trait RecoversContentDraft
      */
     public ?array $contentDraftReferenceState = null;
 
+    /**
+     * Auth user id when the form was first filled. Guards against stale draft writes
+     * after account switching while an Edit page poll is still in flight.
+     */
+    public ?int $contentDraftOwnerId = null;
+
     abstract protected function contentDraftKey(): string;
 
     /**
@@ -33,6 +39,10 @@ trait RecoversContentDraft
 
     protected function afterFill(): void
     {
+        if ($this->contentDraftOwnerId === null) {
+            $this->contentDraftOwnerId = Auth::id();
+        }
+
         $this->captureContentDraftReferenceState();
         $this->offerContentDraftRecovery();
     }
@@ -50,6 +60,10 @@ trait RecoversContentDraft
 
     public function saveDraft(): void
     {
+        if (! $this->contentDraftAuthMatchesOwner()) {
+            return;
+        }
+
         $data = $this->getContentDraftPayload();
 
         if (! $this->contentDraftHasMeaningfulContent($data)) {
@@ -80,6 +94,10 @@ trait RecoversContentDraft
     #[On('restore-content-draft')]
     public function restoreContentDraft(): void
     {
+        if (! $this->contentDraftAuthMatchesOwner()) {
+            return;
+        }
+
         $draft = $this->findContentDraft();
 
         if ($draft === null) {
@@ -273,5 +291,14 @@ trait RecoversContentDraft
         ksort($data);
 
         return $data;
+    }
+
+    protected function contentDraftAuthMatchesOwner(): bool
+    {
+        if ($this->contentDraftOwnerId === null) {
+            return true;
+        }
+
+        return Auth::id() === $this->contentDraftOwnerId;
     }
 }

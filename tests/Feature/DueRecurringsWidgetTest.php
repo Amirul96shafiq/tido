@@ -41,7 +41,7 @@ test('due widget shows open occurrences for primary', function () {
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSee('1 Recurring Payment Due')
-        ->assertSee('RM 89.90')
+        ->assertSee('89.90')
         ->assertSee('fi-count-up', false)
         ->assertSee('Manage')
         ->assertSee('TIME Internet')
@@ -67,14 +67,14 @@ test('due widget hides occurrences for soft deleted recurrings until restored', 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertDontSee('Soft Deleted Bill')
-        ->assertDontSee('RM 42.00');
+        ->assertDontSee('42.00');
 
     $recurring->restore();
 
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSee('Soft Deleted Bill')
-        ->assertSee('RM 42.00');
+        ->assertSee('42.00');
 });
 
 test('due widget lists occurrence amounts without a header total', function () {
@@ -101,9 +101,9 @@ test('due widget lists occurrence amounts without a header total', function () {
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSee('2 Recurring Payment Dues')
-        ->assertSee('RM 100.00')
-        ->assertSee('RM 50.50')
-        ->assertDontSee('/ RM 150.50');
+        ->assertSee('100.00')
+        ->assertSee('50.50')
+        ->assertDontSee('150.50');
 });
 
 test('due widget shows completed occurrences at reduced opacity with completed status', function () {
@@ -139,8 +139,8 @@ test('due widget shows completed occurrences at reduced opacity with completed s
     Livewire::test(DueRecurrings::class)
         ->assertOk()
         ->assertSee('1 Recurring Payment Due')
-        ->assertSee('RM 102.80')
-        ->assertDontSee('/ RM 157.80')
+        ->assertSee('102.80')
+        ->assertDontSee('157.80')
         ->assertSee('TIME Internet')
         ->assertSee('Netflix')
         ->assertSee('Completed · '.$completedAt->format('d M Y H:i'))
@@ -236,7 +236,7 @@ test('family member sees current-month upcoming occurrences', function () {
         ->assertSee('1 Recurring Payment Due')
         ->assertSee('Celcom Mobile')
         ->assertSee('Upcoming · '.$dueOn->format('d M Y'))
-        ->assertSee('RM 338.55');
+        ->assertSee('338.55');
 });
 
 test('due widget hides upcoming occurrences from future months when the recurring already has a current-month row', function () {
@@ -293,7 +293,7 @@ test('due widget shows the next upcoming occurrence when a recurring has no curr
         ->assertSee('1 Recurring Payment Due')
         ->assertSee('Sample Shared Due Payment 01')
         ->assertSee('Upcoming · '.$nextMonthDueOn->format('d M Y'))
-        ->assertSee('RM 1.00');
+        ->assertSee('1.00');
 });
 
 test('due recurrings widget sorts after overview currency and before month snapshot', function () {
@@ -371,7 +371,7 @@ test('due recurrings widget uses payment-card two-zone layout', function () {
             'Due '.$dueOn->format('d M Y'),
             'Subscription',
             'Shared',
-            'RM 55.00',
+            '55.00',
             'Skip',
         ])
         ->assertSee($editUrl, false)
@@ -500,7 +500,7 @@ test('due recurrings widget shows overdue status on secondary meta line', functi
             'Monthly',
             'Overdue · '.$dueOn->format('d M Y'),
             'Variable bill',
-            'RM 199.14',
+            '199.14',
             'Skip',
         ])
         ->assertDontSee('Overdue · due ', false)

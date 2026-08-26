@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Filament\Livewire\AccountSwitcher;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
+use App\Models\ContentDraft;
 use App\Models\FamilyMember;
 use App\Models\User;
 use Filament\AvatarProviders\UiAvatarsProvider;
@@ -455,4 +456,75 @@ test('impersonating user previews the primary and one actionable family member',
         ->and(substr_count($html, 'wire:key="account-switcher-preview-member-'))->toBe(1)
         ->and(substr_count($html, 'wire:key="account-switcher-expanded-member-'))->toBe(2)
         ->and(strpos($html, $primary->name))->toBeLessThan(strpos($html, $firstOtherMember->name));
+});
+
+test('account switch cycle preserves family member display name in swap list', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'name' => 'Amirul Shafiq Harun',
+        'display_name' => 'Amirul96Shafiq',
+    ]);
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Nor Ezrieana Harun',
+        'display_name' => 'Along',
+    ]);
+    $familyUser = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    $this->actingAs($primary);
+    session()->put('password_hash_web', $primary->getAuthPassword());
+
+    Livewire::test(AccountSwitcher::class)
+        ->call('switchTo', $member->id)
+        ->assertRedirect();
+
+    expect($member->fresh()->display_name)->toBe('Along')
+        ->and($familyUser->fresh()->display_name)->toBe('Along');
+
+    $this->actingAs($familyUser);
+    session()->put(AccountSwitcher::SESSION_KEY, $primary->id);
+    session()->put('password_hash_web', $familyUser->getAuthPassword());
+
+    Livewire::test(AccountSwitcher::class)
+        ->call('switchBack')
+        ->assertRedirect();
+
+    expect($member->fresh()->display_name)->toBe('Along');
+
+    $this->actingAs($primary);
+
+    Livewire::test(AccountSwitcher::class)
+        ->assertSee('Along')
+        ->assertDontSee('mountAction(\'confirmSwitchBack\')', false);
+});
+
+test('account switch clears profile content drafts for involved users', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'display_name' => 'Amirul96Shafiq',
+    ]);
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Nor Ezrieana Harun',
+        'display_name' => 'Along',
+    ]);
+    $familyUser = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    ContentDraft::factory()->create([
+        'user_id' => $primary->id,
+        'key' => 'profile-edit',
+        'payload' => ['display_name' => 'Amirul96Shafiq'],
+    ]);
+    ContentDraft::factory()->create([
+        'user_id' => $familyUser->id,
+        'key' => 'profile-edit',
+        'payload' => ['display_name' => 'Along'],
+    ]);
+
+    $this->actingAs($primary);
+    session()->put('password_hash_web', $primary->getAuthPassword());
+
+    Livewire::test(AccountSwitcher::class)
+        ->call('switchTo', $member->id)
+        ->assertRedirect();
+
+    expect(
+        ContentDraft::query()->where('key', 'profile-edit')->exists()
+    )->toBeFalse();
 });
