@@ -5419,6 +5419,10 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 @media (max-width: 639px) {
+    .tido-calendar-page .fi-page-header-main-ctn {
+        padding-bottom: 0.5rem;
+    }
+
     .tido-calendar-page .fi-header {
         @apply grid items-center gap-x-2 gap-y-2;
         grid-template-columns: minmax(0, 1fr) auto;
@@ -5479,7 +5483,7 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar {
-    @apply flex flex-col gap-3 md:h-[calc(100dvh-15.5rem)] min-h-[480px];
+    @apply flex flex-col gap-3 h-[calc(100dvh-13.5rem)] sm:h-[calc(100dvh-14.5rem)] md:h-[calc(100dvh-15.5rem)] min-h-0 sm:min-h-[420px] md:min-h-[480px];
 }
 
 .tido-calendar__nav {
