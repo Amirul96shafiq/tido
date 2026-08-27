@@ -5418,6 +5418,33 @@ html.tido-reduce-motion .tido-ping-pulse {
     @apply justify-end;
 }
 
+@media (max-width: 639px) {
+    .tido-calendar-page .fi-header {
+        @apply grid items-center gap-x-2 gap-y-2;
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .tido-calendar-page .fi-header > div:first-child {
+        display: contents;
+    }
+
+    .tido-calendar-page .fi-header .fi-breadcrumbs {
+        @apply col-span-full mb-0;
+    }
+
+    .tido-calendar-page .fi-header-heading {
+        @apply col-start-1 row-start-2 min-w-0 whitespace-nowrap;
+    }
+
+    .tido-calendar-page .fi-header-actions-ctn {
+        @apply col-start-2 row-start-2 mt-0 shrink-0;
+    }
+
+    .tido-calendar-page .tido-calendar__nav-btn {
+        @apply h-9 w-9;
+    }
+}
+
 .tido-calendar-page .fi-header-heading {
     @apply inline-flex flex-wrap items-center gap-x-0;
 }
@@ -5438,7 +5465,8 @@ html.tido-reduce-motion .tido-ping-pulse {
     @apply p-3 font-normal;
 }
 
-.tido-calendar-heading-month-panel :where(.fi-dropdown-list-item, .fi-select-input-option) {
+.tido-calendar-heading-month-panel
+    :where(.fi-dropdown-list-item, .fi-select-input-option) {
     font-weight: 500;
 }
 
@@ -5458,17 +5486,12 @@ html.tido-reduce-motion .tido-ping-pulse {
     @apply flex items-center gap-2;
 }
 
-.tido-calendar__nav-btn,
-.tido-calendar__today-btn {
-    @apply inline-flex h-10 items-center justify-center rounded-lg bg-primary-500 text-sm font-medium text-primary-950 transition-colors hover:bg-primary-400 active:bg-primary-600 dark:bg-primary-500 dark:hover:bg-primary-400;
-}
-
 .tido-calendar__nav-btn {
-    @apply w-10;
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary-500 text-sm font-medium text-primary-950 transition-colors hover:bg-primary-400 active:bg-primary-600 dark:bg-primary-500 dark:hover:bg-primary-400;
 }
 
 .tido-calendar__today-btn {
-    @apply min-w-20 px-4;
+    @apply hidden h-10 min-w-20 items-center justify-center rounded-lg bg-primary-500 px-4 text-sm font-medium text-primary-950 transition-colors hover:bg-primary-400 active:bg-primary-600 dark:bg-primary-500 dark:hover:bg-primary-400 sm:inline-flex;
 }
 
 .tido-calendar__today-btn.is-disabled {

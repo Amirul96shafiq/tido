@@ -24,14 +24,18 @@ test('calendar page renders for primary user', function () {
     $this->actingAs($user);
 
     $currentMonthLabel = now()->format('F Y');
+    $currentMonthLabelShort = now()->format('m/y');
 
     $component = Livewire::test(CalendarPage::class)
         ->assertOk()
         ->assertSee('Calendar (')
         ->assertSee($currentMonthLabel)
+        ->assertSee($currentMonthLabelShort)
         ->assertSee('Today');
 
     expect($component->html())
+        ->toContain('hidden sm:inline">'.$currentMonthLabel.'</span>')
+        ->toContain('sm:hidden">'.$currentMonthLabelShort.'</span>')
         ->toContain('tido-calendar-heading-month-trigger')
         ->toContain('aria-label="Change month, '.$currentMonthLabel.'"')
         ->toContain('tido-calendar-heading-month-panel')

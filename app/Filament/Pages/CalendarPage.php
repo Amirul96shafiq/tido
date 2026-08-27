@@ -258,6 +258,11 @@ class CalendarPage extends Page
         return Carbon::create($this->year, $this->month, 1)->format('F Y');
     }
 
+    public function getMonthNameShortProperty(): string
+    {
+        return Carbon::create($this->year, $this->month, 1)->format('m/y');
+    }
+
     /**
      * @return list<array{key: string, label: string, module: string}>
      */

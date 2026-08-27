@@ -3,6 +3,7 @@
 
     /** @var \App\Filament\Pages\CalendarPage $this */
     $monthLabel = $this->monthName;
+    $monthLabelShort = $this->monthNameShort;
 @endphp
 
 <span class="tido-calendar-page-heading">
@@ -22,7 +23,8 @@
                 class="tido-calendar-heading-month-trigger"
                 aria-label="Change month, {{ $monthLabel }}"
             >
-                {{ $monthLabel }}
+                <span class="hidden sm:inline">{{ $monthLabel }}</span>
+                <span class="sm:hidden">{{ $monthLabelShort }}</span>
             </button>
         </x-slot>
 
