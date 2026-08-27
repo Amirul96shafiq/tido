@@ -1102,14 +1102,14 @@ html.tido-is-scrolling
     text-decoration: none;
 }
 
-/* Google icon — monochrome G in tido primary */
-.icon-google,
-.fi-icon.icon-google {
+/* Google OAuth icon — Sign in with Google pill + G in tido primary */
+.icon-google-oauth,
+.fi-icon.icon-google-oauth {
     color: var(--primary-600);
 }
 
-.dark .icon-google,
-.dark .fi-icon.icon-google {
+.dark .icon-google-oauth,
+.dark .fi-icon.icon-google-oauth {
     color: var(--primary-400);
 }
 

@@ -38,7 +38,7 @@ class GoogleOAuthPage extends Page implements HasTable
 
     protected static ?string $slug = 'google-oauth';
 
-    protected static string|\BackedEnum|null $navigationIcon = 'icon-google';
+    protected static string|\BackedEnum|null $navigationIcon = 'icon-google-oauth';
 
     protected static ?string $navigationLabel = 'Google OAuth';
 
