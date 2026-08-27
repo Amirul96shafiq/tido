@@ -1102,6 +1102,17 @@ html.tido-is-scrolling
     text-decoration: none;
 }
 
+/* Google icon — monochrome G in tido primary */
+.icon-google,
+.fi-icon.icon-google {
+    color: var(--primary-600);
+}
+
+.dark .icon-google,
+.dark .fi-icon.icon-google {
+    color: var(--primary-400);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .tido-auth-login-tabs .fi-tabs-item,
     .tido-auth-login-tabs .fi-tabs-item .fi-tabs-item-label,
