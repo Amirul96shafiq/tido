@@ -5183,9 +5183,9 @@ html.tido-reduce-motion .tido-select-value-marquee .fi-select-input-value-ctn {
 .fi-modal-window,
 .fi-no-database-filters-panel,
 .fi-input-wrp:not(.fi-invalid):not(:hover):not(:focus):not(:focus-within),
-.fi-fo-repeater-item:not(:focus-within),
-.fi-fo-builder-item:not(:focus-within),
-.fi-fo-file-upload .filepond--root:not(:focus-within) {
+.fi-fo-repeater-item,
+.fi-fo-builder-item,
+.fi-fo-file-upload .filepond--root {
     border-style: solid !important;
     border-width: 1px !important;
     border-color: var(--tido-border-color) !important;
