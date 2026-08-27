@@ -828,6 +828,11 @@ class AdminPanelProvider extends PanelProvider
                     ->icon(Heroicon::OutlinedCpuChip)
                     ->sort(20)
                     ->extraAttributes(fn (): array => self::primaryOnlyNavigationAttributes()),
+                NavigationItem::make(IntegrationNavigation::GOOGLE)
+                    ->group(IntegrationNavigation::GROUP)
+                    ->icon('icon-google')
+                    ->sort(30)
+                    ->extraAttributes(fn (): array => self::primaryOnlyNavigationAttributes()),
             ])
             ->routes(function (): void {
                 Route::name('auth.')->group(function (): void {

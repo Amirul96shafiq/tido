@@ -11,4 +11,6 @@ final class IntegrationNavigation
     public const WHATSAPP = 'WhatsApp Channel';
 
     public const AI_PARSING_ENGINE = 'AI Parsing Engine';
+
+    public const GOOGLE = 'Google';
 }

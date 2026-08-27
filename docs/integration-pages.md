@@ -15,6 +15,8 @@ Integrations
     Gemini                 coming soon
     Ollama (Local)         live (Active pill when latest ollama health sample is operational)
     OpenAI                 coming soon
+  Google
+    Google OAuth           live (Active pill when enabled with saved credentials)
 ```
 
 Constants live in `App\Filament\Support\IntegrationNavigation`. Parent visibility matches `HouseholdAccess::canManageHouseholdSettings()`.

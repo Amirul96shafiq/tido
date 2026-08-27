@@ -89,6 +89,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureWhatsAppWebhookRateLimiter();
         $this->configureEvolutionSendRateLimiter();
         $this->configureOllamaGenerateRateLimiter();
+        $this->configureGoogleOAuthRateLimiter();
 
         Livewire::setUpdateRoute(function ($handle, $path) {
             return Route::post('/livewire/update', $handle)
@@ -161,6 +162,13 @@ class AppServiceProvider extends ServiceProvider
             $max = max(1, (int) config('services.ollama.generate_attempts_per_minute', 6));
 
             return Limit::perMinute($max)->by('ollama-generate');
+        });
+    }
+
+    protected function configureGoogleOAuthRateLimiter(): void
+    {
+        RateLimiter::for('google-oauth', function (Request $request): Limit {
+            return Limit::perMinute(10)->by('google-oauth:'.$request->ip());
         });
     }
 

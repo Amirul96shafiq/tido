@@ -9,6 +9,7 @@ use App\Filament\Pages\CalendarPage;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\EvolutionApiPage;
 use App\Filament\Pages\GeminiPage;
+use App\Filament\Pages\GoogleOAuthPage;
 use App\Filament\Pages\OllamaPage;
 use App\Filament\Pages\OpenAiPage;
 use App\Filament\Pages\ReceiptUploadPage;
@@ -42,6 +43,7 @@ final class AdminDestinationSearch
         $ollamaUrl = OllamaPage::getUrl();
         $geminiUrl = GeminiPage::getUrl();
         $openAiUrl = OpenAiPage::getUrl();
+        $googleOAuthUrl = GoogleOAuthPage::getUrl();
         $officialApiUrl = WhatsAppOfficialApiPage::getUrl();
         $serviceStatusUrl = ServiceStatusPage::getUrl();
         $calendarUrl = CalendarPage::getUrl();
@@ -242,6 +244,12 @@ final class AdminDestinationSearch
                 'keywords' => ['official', 'api', 'whatsapp', 'coming soon', 'integration', 'cloud'],
                 'group' => 'Pages',
                 'url' => $officialApiUrl,
+            ],
+            [
+                'title' => 'Google OAuth',
+                'keywords' => ['google', 'oauth', 'sign in', 'login', 'integration', 'primary'],
+                'group' => 'Pages',
+                'url' => $googleOAuthUrl,
             ],
             [
                 'title' => 'Service Status',

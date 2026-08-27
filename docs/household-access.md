@@ -137,6 +137,7 @@ Finance Home filter `spender` (`DashboardSpenderScope`):
 1. Primary enables **Allow panel login via WhatsApp OTP** on the Family Member.
 2. Member opens `/admin/login`, enters their WhatsApp number, receives OTP (Evolution).
 3. Email/password login remains **primary only**.
+4. Google OAuth sign-in remains **primary only** when enabled — see `docs/google-oauth-setup.md`.
 
 **Local / testing without a second phone:**
 

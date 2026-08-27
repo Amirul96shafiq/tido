@@ -1,6 +1,7 @@
 <?php
 
 use App\Helpers\ChangelogHelper;
+use App\Http\Controllers\Auth\GoogleOAuthController;
 use App\Http\Controllers\BackupDownloadController;
 use App\Http\Controllers\GuestRestoreBackupController;
 use App\Models\User;
@@ -17,6 +18,15 @@ Route::get('/backups/{backup}/download', BackupDownloadController::class)
 Route::post('/restore-backup', GuestRestoreBackupController::class)
     ->middleware('throttle:guest-restore')
     ->name('restore-backup');
+
+Route::middleware(['throttle:google-oauth'])->group(function (): void {
+    Route::get('/admin/auth/google/redirect', [GoogleOAuthController::class, 'redirect'])
+        ->name('filament.admin.auth.google.redirect');
+    Route::get('/admin/auth/google/callback', [GoogleOAuthController::class, 'callback'])
+        ->name('filament.admin.auth.google.callback');
+    Route::get('/admin/auth/google/complete', [GoogleOAuthController::class, 'complete'])
+        ->name('filament.admin.auth.google.complete');
+});
 
 Route::get('/changelog', function () {
     try {

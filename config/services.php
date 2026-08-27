@@ -65,6 +65,10 @@ return [
         'series_cache_ttl' => (int) env('CURRENCY_API_SERIES_CACHE_TTL', 604800),
     ],
 
+    'outbound_http' => [
+        'cainfo' => env('OUTBOUND_HTTP_CAINFO', env('CURRENCY_API_CAINFO')),
+    ],
+
     'documents' => [
         'max_bytes' => (int) env('PDF_MAX_BYTES', 10 * 1024 * 1024),
         'max_pdf_pages' => (int) env('PDF_MAX_PAGES', 4),
@@ -76,6 +80,13 @@ return [
         'pdf_render_timeout' => (int) env('PDF_RENDER_TIMEOUT', 60),
         'pdf_text_timeout' => (int) env('PDF_TEXT_TIMEOUT', 15),
         'pdf_render_dpi' => (int) env('PDF_RENDER_DPI', 144),
+    ],
+
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+        'enabled' => filter_var(env('GOOGLE_OAUTH_ENABLED', false), FILTER_VALIDATE_BOOL),
     ],
 
     'evolution' => [

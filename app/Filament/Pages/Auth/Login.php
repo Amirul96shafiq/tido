@@ -6,6 +6,7 @@ namespace App\Filament\Pages\Auth;
 
 use App\Models\User;
 use App\Services\ActiveSessionService;
+use App\Services\GoogleOAuth\GoogleOAuthSettings;
 use App\Services\WhatsAppLoginOtpService;
 use App\Support\PhoneNumber;
 use App\Support\TidoBrandCopy;
@@ -54,6 +55,27 @@ class Login extends BaseLogin
     public ?int $otpCooldownEndsAt = null;
 
     public ?string $lastOtpPhone = null;
+
+    public function mount(): void
+    {
+        if (session()->pull('google_oauth_error')) {
+            Notification::make()
+                ->title('Google sign-in failed')
+                ->body('Google sign-in is not available for this account.')
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function googleSignInAvailable(): bool
+    {
+        return app(GoogleOAuthSettings::class)->isSignInAvailable();
+    }
+
+    public function googleRedirectUrl(): string
+    {
+        return app(GoogleOAuthSettings::class)->authorizeUrl();
+    }
 
     public function getHeading(): string|Htmlable|null
     {
@@ -386,6 +408,19 @@ class Login extends BaseLogin
             ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication));
     }
 
+    protected function getGoogleSignInComponent(): Component
+    {
+        return Html::make(fn (): HtmlString => new HtmlString(
+            Blade::render(
+                '<x-auth-google-sign-in :redirect-url="$redirectUrl" />',
+                ['redirectUrl' => $this->googleRedirectUrl()],
+            )
+        ))
+            ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
+                && $this->loginMode !== 'otp'
+                && $this->googleSignInAvailable());
+    }
+
     public function content(Schema $schema): Schema
     {
         return $schema
@@ -393,6 +428,7 @@ class Login extends BaseLogin
                 RenderHook::make(PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE),
                 $this->getLoginModeTabsComponent(),
                 $this->getFormContentComponent(),
+                $this->getGoogleSignInComponent(),
                 $this->getMultiFactorChallengeFormContentComponent(),
                 $this->getUseDifferentNumberComponent(),
                 RenderHook::make(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER),

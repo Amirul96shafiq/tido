@@ -6,6 +6,7 @@ use App\Filament\GlobalSearch\AdminDestinationSearch;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\EvolutionApiPage;
 use App\Filament\Pages\GeminiPage;
+use App\Filament\Pages\GoogleOAuthPage;
 use App\Filament\Pages\OllamaPage;
 use App\Filament\Resources\Backups\BackupResource;
 use App\Filament\Resources\Budgets\BudgetResource;
@@ -172,6 +173,16 @@ test('destination search finds evolutionapi page', function () {
 
     expect($match)->not->toBeNull()
         ->and($match->url)->toBe(EvolutionApiPage::getUrl());
+});
+
+test('destination search finds google oauth page', function () {
+    $results = AdminDestinationSearch::search('Google OAuth', GlobalSearchResults::make());
+    $pages = collect($results->getCategories()->get('Pages', []));
+
+    $match = $pages->first(fn ($result): bool => $result->title === 'Google OAuth');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toBe(GoogleOAuthPage::getUrl());
 });
 
 test('destination search finds ollama local page', function () {

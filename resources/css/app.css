@@ -1067,6 +1067,41 @@ html.tido-is-scrolling
     }
 }
 
+.tido-auth-google-sign-in-wrap {
+    margin-top: 1rem;
+}
+
+.tido-auth-google-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    color: rgb(107 114 128);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.tido-auth-google-divider::before,
+.tido-auth-google-divider::after {
+    content: "";
+    flex: 1 1 0%;
+    border-top: 1px solid rgb(229 231 235);
+}
+
+.dark .tido-auth-google-divider::before,
+.dark .tido-auth-google-divider::after {
+    border-top-color: rgb(51 65 85);
+}
+
+.tido-auth-google-sign-in-btn {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    text-decoration: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .tido-auth-login-tabs .fi-tabs-item,
     .tido-auth-login-tabs .fi-tabs-item .fi-tabs-item-label,
@@ -2972,7 +3007,8 @@ html.tido-reduce-motion
     @apply pointer-events-none absolute top-1.5 left-4 z-10 -translate-y-0.5 translate-x-0.5;
 }
 
-.fi-user-menu .fi-dropdown-list-item-label:has(.fi-user-menu-calendar-date-pill) {
+.fi-user-menu
+    .fi-dropdown-list-item-label:has(.fi-user-menu-calendar-date-pill) {
     @apply flex w-full items-center justify-between gap-x-2;
 }
 
