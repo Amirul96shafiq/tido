@@ -1102,17 +1102,6 @@ html.tido-is-scrolling
     text-decoration: none;
 }
 
-/* Google OAuth icon — Sign in with Google pill + G in tido primary */
-.icon-google-oauth,
-.fi-icon.icon-google-oauth {
-    color: var(--primary-600);
-}
-
-.dark .icon-google-oauth,
-.dark .fi-icon.icon-google-oauth {
-    color: var(--primary-400);
-}
-
 @media (prefers-reduced-motion: reduce) {
     .tido-auth-login-tabs .fi-tabs-item,
     .tido-auth-login-tabs .fi-tabs-item .fi-tabs-item-label,
