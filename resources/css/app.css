@@ -3105,6 +3105,14 @@ html.tido-reduce-motion
     @apply pointer-events-none absolute top-1.5 left-4 z-10 -translate-y-0.5 translate-x-0.5;
 }
 
+.fi-user-menu .fi-dropdown-list-item-label:has(.fi-user-menu-calendar-date-pill) {
+    @apply flex w-full items-center justify-between gap-x-2;
+}
+
+.fi-user-menu .fi-dropdown-list-item-label .fi-user-menu-calendar-date-pill {
+    @apply ms-auto inline-flex items-center rounded-md bg-gray-100/90 px-1.5 py-0.5 text-[11px] font-medium tracking-tight tabular-nums text-gray-600 ring-1 ring-gray-950/5 dark:bg-slate-800 dark:text-slate-300 dark:ring-white/10;
+}
+
 /* Keep DatabaseNotifications mounted for the slide-over + Echo, but hide the topbar trigger. */
 .fi-topbar-end .fi-no-database > .fi-modal-trigger {
     @apply pointer-events-none absolute size-0 overflow-hidden opacity-0;
@@ -5403,4 +5411,342 @@ html.tido-reduce-motion .tido-status-pulse {
 html.tido-reduce-motion .tido-ping-pulse {
     animation: none !important;
     opacity: 0 !important;
+}
+
+/* Hub calendar (profile menu → Calendar page) */
+.tido-calendar-page .fi-page-header-main-ctn {
+    padding-bottom: 1rem;
+}
+
+.tido-calendar-page .fi-page-main {
+    @apply flex flex-col gap-3;
+}
+
+.tido-calendar-page .fi-header-actions-ctn {
+    @apply justify-end;
+}
+
+@media (max-width: 639px) {
+    .tido-calendar-page .fi-page-header-main-ctn {
+        padding-bottom: 0.5rem;
+    }
+
+    .tido-calendar-page .fi-header {
+        @apply grid items-center gap-x-2 gap-y-2;
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .tido-calendar-page .fi-header > div:first-child {
+        display: contents;
+    }
+
+    .tido-calendar-page .fi-header .fi-breadcrumbs {
+        @apply col-span-full mb-0;
+    }
+
+    .tido-calendar-page .fi-header-heading {
+        @apply col-start-1 row-start-2 min-w-0 whitespace-nowrap;
+    }
+
+    .tido-calendar-page .fi-header-actions-ctn {
+        @apply col-start-2 row-start-2 mt-0 shrink-0;
+    }
+
+    .tido-calendar-page .tido-calendar__nav-btn {
+        @apply h-9 w-9;
+    }
+}
+
+.tido-calendar-page .fi-header-heading {
+    @apply inline-flex flex-wrap items-center gap-x-0;
+}
+
+.tido-calendar-page-heading {
+    @apply inline-flex flex-wrap items-center;
+}
+
+.tido-calendar-heading-month-dropdown {
+    @apply inline-flex;
+}
+
+.tido-calendar-heading-month-trigger {
+    @apply inline-flex cursor-pointer items-center rounded-md text-primary-600 underline-offset-2 transition hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 dark:text-primary-400;
+}
+
+.tido-calendar-heading-month-panel {
+    @apply p-3 font-normal;
+}
+
+.tido-calendar-heading-month-panel
+    :where(.fi-dropdown-list-item, .fi-select-input-option) {
+    font-weight: 500;
+}
+
+.tido-calendar-heading-month-panel :where(input, .fi-select-input) {
+    font-weight: 400;
+}
+
+.tido-calendar-header-actions {
+    @apply flex items-center gap-2;
+}
+
+.tido-calendar {
+    @apply flex flex-col gap-3 h-[calc(100dvh-13.5rem)] sm:h-[calc(100dvh-14.5rem)] md:h-[calc(100dvh-15.5rem)] min-h-0 sm:min-h-[420px] md:min-h-[480px];
+}
+
+.tido-calendar__nav {
+    @apply flex items-center gap-2;
+}
+
+.tido-calendar__nav-btn {
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary-500 text-sm font-medium text-primary-950 transition-colors hover:bg-primary-400 active:bg-primary-600 dark:bg-primary-500 dark:hover:bg-primary-400;
+}
+
+.tido-calendar__today-btn {
+    @apply hidden h-10 min-w-20 items-center justify-center rounded-lg bg-primary-500 px-4 text-sm font-medium text-primary-950 transition-colors hover:bg-primary-400 active:bg-primary-600 dark:bg-primary-500 dark:hover:bg-primary-400 sm:inline-flex;
+}
+
+.tido-calendar__today-btn.is-disabled {
+    @apply cursor-not-allowed opacity-60 hover:bg-primary-500 dark:hover:bg-primary-500;
+}
+
+.tido-calendar__grid-wrap {
+    @apply relative flex flex-1 flex-col overflow-x-auto overflow-y-hidden;
+}
+
+.tido-calendar__grid-inner {
+    @apply relative flex h-full min-w-[700px] flex-1 flex-col;
+}
+
+.tido-calendar__loading {
+    @apply absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-lg border border-gray-200 bg-white/90 dark:border-gray-700 dark:bg-gray-900/90;
+}
+
+.tido-calendar__loading-text {
+    @apply text-sm text-gray-600 dark:text-gray-300;
+}
+
+.tido-calendar__day-headers {
+    @apply grid shrink-0 grid-cols-7 gap-px overflow-hidden rounded-t-lg border border-gray-100 bg-gray-100 dark:border-slate-700/60 dark:bg-slate-700/60;
+}
+
+.tido-calendar__day-header {
+    @apply bg-gray-50 px-3 py-2 text-center dark:bg-gray-900;
+}
+
+.tido-calendar__day-header span {
+    @apply text-xs font-semibold text-gray-700 dark:text-gray-300;
+}
+
+.tido-calendar__day-header span.is-today-column {
+    @apply text-primary-600 dark:text-primary-400;
+}
+
+.tido-calendar__weeks {
+    @apply grid flex-1 grid-flow-row gap-px overflow-hidden rounded-b-lg border-x border-b border-gray-100 bg-gray-100 dark:border-slate-700/60 dark:bg-slate-700/60;
+}
+
+.tido-calendar__week {
+    @apply grid h-full grid-cols-7 gap-px bg-gray-100 dark:bg-slate-700/60;
+}
+
+.tido-calendar__day {
+    @apply flex h-full min-h-0 flex-col bg-white p-1.5 dark:bg-gray-900 sm:p-2;
+}
+
+.tido-calendar__day.is-outside-month {
+    @apply bg-white dark:bg-gray-900;
+}
+
+.tido-calendar__day.is-outside-month .tido-calendar__day-number {
+    @apply text-gray-400 dark:text-gray-500;
+}
+
+.tido-calendar__day.is-outside-month .tido-calendar__day-count {
+    @apply text-gray-400 dark:text-gray-500;
+}
+
+.tido-calendar__day.is-outside-month .tido-calendar-event-chip,
+.tido-calendar__day.is-outside-month .tido-calendar__more-btn {
+    @apply opacity-80;
+}
+
+.tido-calendar__day.is-today {
+    @apply ring-2 ring-inset ring-primary-500;
+}
+
+.tido-calendar__day-top {
+    @apply mb-1 flex items-center justify-between;
+}
+
+.tido-calendar__day-number {
+    @apply text-sm font-medium text-gray-500 dark:text-gray-200;
+}
+
+.tido-calendar__day.is-today .tido-calendar__day-number {
+    @apply text-primary-600 dark:text-primary-400;
+}
+
+.tido-calendar__day-count {
+    @apply text-[10px] text-gray-500 dark:text-gray-400;
+}
+
+.tido-calendar__day-events {
+    @apply flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden;
+}
+
+.tido-calendar-event-chip {
+    @apply flex w-full items-center rounded px-1 py-1 text-left text-[10px] transition-colors duration-150 sm:text-xs cursor-pointer;
+}
+
+.tido-calendar-event-chip__dot {
+    @apply mr-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-current;
+}
+
+.tido-calendar-event-chip__label {
+    @apply truncate;
+}
+
+.tido-calendar-event-chip--danger {
+    @apply bg-danger-100 text-danger-700 hover:bg-danger-200 dark:bg-danger-900/30 dark:text-danger-400 dark:hover:bg-danger-900/50;
+}
+
+.tido-calendar-event-chip--warning {
+    @apply bg-warning-100 text-warning-700 hover:bg-warning-200 dark:bg-warning-900/30 dark:text-warning-400 dark:hover:bg-warning-900/50;
+}
+
+.tido-calendar-event-chip--primary {
+    @apply bg-primary-100 text-primary-700 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:hover:bg-primary-900/50;
+}
+
+.tido-calendar-event-chip--success {
+    @apply bg-success-100 text-success-700 hover:bg-success-200 dark:bg-success-900/30 dark:text-success-400 dark:hover:bg-success-900/50;
+}
+
+.tido-calendar-event-chip--muted {
+    @apply bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-slate-700/60;
+}
+
+.tido-calendar-event-chip--scheduled {
+    @apply border border-dashed border-primary-400/70 bg-transparent text-primary-700 hover:bg-primary-50 dark:text-primary-300 dark:hover:bg-primary-900/30;
+}
+
+.tido-calendar-event-chip--birthday {
+    @apply bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:hover:bg-orange-900/50;
+}
+
+.tido-calendar-event-chip--birthday-self {
+    @apply bg-pink-100 text-pink-700 hover:bg-pink-200 dark:bg-pink-900/30 dark:text-pink-400 dark:hover:bg-pink-900/50;
+}
+
+.tido-calendar-event-chip--completed {
+    @apply opacity-50;
+}
+
+.tido-calendar-event-chip--completed .tido-calendar-event-chip__label {
+    @apply line-through;
+}
+
+.tido-calendar__more-btn {
+    @apply text-left text-xs font-medium text-primary-600 transition-colors hover:text-primary-700 hover:underline dark:text-primary-400 dark:hover:text-primary-300;
+}
+
+.tido-calendar__popover {
+    @apply fixed z-50 w-[calc(100vw-2rem)] max-h-[80vh] rounded-xl bg-white p-4 shadow-xl ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 sm:w-80;
+}
+
+.tido-calendar__popover-header {
+    @apply mb-3 flex items-center justify-between;
+}
+
+.tido-calendar__popover-title {
+    @apply font-semibold text-gray-950 dark:text-white;
+}
+
+.tido-calendar__popover-close {
+    @apply rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500 dark:hover:bg-slate-800 dark:hover:text-gray-300;
+}
+
+.tido-calendar__popover-body {
+    @apply max-h-64 space-y-3 overflow-y-auto pr-1;
+}
+
+.tido-calendar__popover-module {
+    @apply text-xs font-medium text-gray-500 dark:text-gray-400;
+}
+
+.tido-calendar__popover-card {
+    @apply rounded-lg bg-gray-50 p-2.5 transition-colors duration-150 hover:bg-gray-100 dark:bg-slate-800/60 dark:hover:bg-slate-800;
+}
+
+.tido-calendar__popover-card-top {
+    @apply mb-1 flex items-center justify-between gap-2;
+}
+
+.tido-calendar__popover-badges {
+    @apply flex flex-wrap items-center gap-1.5;
+}
+
+.tido-calendar__popover-badge {
+    @apply inline-flex items-center rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-slate-600 dark:text-slate-100;
+}
+
+.tido-calendar__popover-badge.is-danger {
+    @apply bg-red-100 text-red-700 dark:bg-red-400/25 dark:text-red-300;
+}
+
+.tido-calendar__popover-badge.is-warning {
+    @apply bg-amber-100 text-amber-800 dark:bg-amber-400/25 dark:text-amber-300;
+}
+
+.tido-calendar__popover-badge.is-primary,
+.tido-calendar__popover-badge.is-success {
+    @apply bg-primary-100 text-primary-700 dark:bg-primary-400/25 dark:text-primary-300;
+}
+
+.tido-calendar__popover-badge.is-muted {
+    @apply bg-slate-200 text-slate-700 dark:bg-slate-600 dark:text-slate-100;
+}
+
+.tido-calendar__popover-badge.is-scheduled {
+    @apply border border-dashed border-primary-400/70 bg-transparent text-primary-700 dark:text-primary-300;
+}
+
+.tido-calendar__popover-badge.is-birthday {
+    @apply bg-orange-100 text-orange-700 dark:bg-orange-400/25 dark:text-orange-300;
+}
+
+.tido-calendar__popover-badge.is-birthday-self {
+    @apply bg-pink-100 text-pink-700 dark:bg-pink-400/25 dark:text-pink-300;
+}
+
+.tido-calendar__popover-actions {
+    @apply flex shrink-0 items-center gap-2;
+}
+
+.tido-calendar__popover-link {
+    @apply text-xs font-medium text-primary-600 hover:underline dark:text-primary-400;
+}
+
+.tido-calendar__popover-link.is-muted {
+    @apply text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300;
+}
+
+.tido-calendar__popover-event-title {
+    @apply text-sm font-semibold text-gray-800 dark:text-gray-200;
+}
+
+.tido-calendar__popover-card.is-completed .tido-calendar__popover-badges,
+.tido-calendar__popover-card.is-completed .tido-calendar__popover-event-title,
+.tido-calendar__popover-card.is-completed
+    .tido-calendar__popover-event-subtitle {
+    @apply opacity-50;
+}
+
+.tido-calendar__popover-card.is-completed .tido-calendar__popover-event-title {
+    @apply line-through;
+}
+
+.tido-calendar__popover-event-subtitle {
+    @apply text-xs text-gray-500 dark:text-gray-400;
 }
