@@ -3110,7 +3110,7 @@ html.tido-reduce-motion
 }
 
 .fi-user-menu .fi-dropdown-list-item-label .fi-user-menu-calendar-date-pill {
-    @apply ms-auto inline-flex items-center rounded-md bg-gray-100/90 px-1.5 py-0.5 text-[11px] font-medium tracking-tight tabular-nums text-gray-600 ring-1 ring-gray-950/5 dark:bg-slate-800 dark:text-slate-300 dark:ring-white/10;
+    @apply ms-auto inline-flex items-center rounded-md border border-gray-200/80 bg-gray-100/90 px-1.5 py-0.5 text-[11px] font-medium tracking-tight tabular-nums text-gray-600 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300;
 }
 
 /* Keep DatabaseNotifications mounted for the slide-over + Echo, but hide the topbar trigger. */
