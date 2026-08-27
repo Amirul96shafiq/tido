@@ -2929,27 +2929,35 @@ html.tido-reduce-motion
     .fi-sidebar-group-dropdown-trigger-btn.fi-version-icon-btn {
     @apply size-10 p-0;
     margin-inline: 0;
-    justify-content: flex-start;
-    padding-inline-start: var(--tido-sidebar-icon-pad);
-    padding-inline-end: 0;
+    justify-content: center;
+    padding: 0;
 }
 
 /*
- * Collapsed: left-aligned size-10 box (equal rail padding handles spacing).
- * Icon inset matches expanded p-2 (1rem rail + 0.5rem pad = 1.5rem).
- * Avoid margin-inline: auto — it recenters icons mid-width tween.
+ * Collapsed: centered size-10 square (1x1 ratio, full width and height).
+ * Centered icon with equal 10px clearance across 40px square rail.
  * Steady collapsed icons stay visible. Fade from 0 only while .fi-sidebar-animating
  * (collapse/expand), not on SPA remount.
  */
-.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn {
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-flyout,
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-flyout > .fi-dropdown-trigger {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn,
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-flyout .fi-sidebar-item-btn {
     width: 2.5rem;
     height: 2.5rem;
     margin-inline: 0;
-    padding-inline-start: var(--tido-sidebar-icon-pad);
-    padding-inline-end: 0;
-    padding-block: 0;
+    padding: 0;
     gap: 0;
-    justify-content: flex-start;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
     overflow: hidden;
     opacity: 1;
 }
