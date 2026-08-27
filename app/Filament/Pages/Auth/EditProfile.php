@@ -911,6 +911,7 @@ class EditProfile extends BaseEditProfile implements HasTable
         $oldStylizedBackgroundEnabled = (bool) $record->stylized_background_enabled;
         $oldReduceMotion = (bool) $record->reduce_motion;
         $passwordChanged = filled($data['password'] ?? null);
+        $profileSnapshot = $this->profileSnapshotForPageRefresh($record);
 
         $updatedRecord = parent::handleRecordUpdate($record, $data);
 
@@ -1018,14 +1019,67 @@ class EditProfile extends BaseEditProfile implements HasTable
                 ->sendToDatabase($record);
         }
 
-        if (
-            $oldAvatar !== $updatedRecord->avatar_url
-            || $oldStylizedBackgroundEnabled !== (bool) $updatedRecord->stylized_background_enabled
-        ) {
+        if ($this->profilePageRefreshRequired($profileSnapshot, $updatedRecord)) {
             $this->js('window.location.reload()');
         }
 
         return $updatedRecord;
+    }
+
+    /**
+     * Profile fields whose changes require a full page reload after save.
+     *
+     * @return list<string>
+     */
+    protected static function profileFieldsRequiringPageRefresh(): array
+    {
+        return [
+            // Personalize & Appearance → Preferences
+            'reduce_motion',
+            // Regional Preferences
+            'locale',
+            'timezone',
+            'date_format',
+            // Appearance / identity
+            'avatar_url',
+            'stylized_background_enabled',
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function profileSnapshotForPageRefresh(Model $record): array
+    {
+        $snapshot = [];
+
+        foreach (static::profileFieldsRequiringPageRefresh() as $field) {
+            $snapshot[$field] = $this->profileFieldValueForPageRefresh($record, $field);
+        }
+
+        return $snapshot;
+    }
+
+    protected function profileFieldValueForPageRefresh(Model $record, string $field): mixed
+    {
+        return match ($field) {
+            'reduce_motion', 'stylized_background_enabled' => (bool) $record->getAttributeValue($field),
+            default => $record->getAttributeValue($field),
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $before
+     */
+    protected function profilePageRefreshRequired(array $before, Model $after): bool
+    {
+        foreach (static::profileFieldsRequiringPageRefresh() as $field) {
+            if ($before[$field] !== $this->profileFieldValueForPageRefresh($after, $field)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
