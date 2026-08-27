@@ -5435,7 +5435,15 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar-heading-month-panel {
-    @apply p-3;
+    @apply p-3 font-normal;
+}
+
+.tido-calendar-heading-month-panel :where(.fi-dropdown-list-item, .fi-select-input-option) {
+    font-weight: 500;
+}
+
+.tido-calendar-heading-month-panel :where(input, .fi-select-input) {
+    font-weight: 400;
 }
 
 .tido-calendar-header-actions {
