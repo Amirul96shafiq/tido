@@ -345,6 +345,7 @@ class GoogleOAuthPage extends Page implements HasTable
             ->filters([
                 SelectFilter::make('event')
                     ->label('Event')
+                    ->searchable()
                     ->options(GoogleOAuthLoginEvent::options()),
             ])
             ->emptyStateHeading('No sign-in events yet')
