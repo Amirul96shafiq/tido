@@ -9,6 +9,7 @@ use App\Models\GoogleOAuthLoginLog;
 use App\Models\GoogleOAuthSetting;
 use App\Models\User;
 use App\Services\GoogleOAuth\GoogleOAuthSettings;
+use Filament\Actions\ActionGroup;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
@@ -123,4 +124,15 @@ test('reset credentials clears settings and linked google account', function ():
 
     expect(app(GoogleOAuthSettings::class)->hasCredentials())->toBeFalse()
         ->and($user->fresh()->google_id)->toBeNull();
+});
+
+test('header overflow uses the same gray button as other integration pages', function (): void {
+    $group = collect(Livewire::test(GoogleOAuthPage::class)->instance()->getCachedHeaderActions())
+        ->first(fn (mixed $action): bool => $action instanceof ActionGroup);
+
+    expect($group)->toBeInstanceOf(ActionGroup::class)
+        ->and($group->isButton())->toBeTrue()
+        ->and($group->getColor())->toBe('gray')
+        ->and($group->getIcon())->toBe('heroicon-m-ellipsis-vertical')
+        ->and($group->getLabel())->toBe('');
 });

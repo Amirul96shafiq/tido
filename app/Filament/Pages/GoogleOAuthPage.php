@@ -308,7 +308,11 @@ class GoogleOAuthPage extends Page implements HasTable
                     ->action(function (): void {
                         $this->resetCredentials();
                     }),
-            ]),
+            ])
+                ->label('')
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray')
+                ->button(),
         ];
     }
 
