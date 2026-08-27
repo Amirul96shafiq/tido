@@ -62,7 +62,7 @@ Reference implementations in `resources/css/app.css`:
 - `.fi-sidebar` / `.fi-topbar` — 1px border + `box-shadow: none`
 - `.fi-account-switcher-section` / `.fi-account-switcher-expanded` — same light/dark border tokens, no elevation shadow
 
-**Allowed exceptions:** focus rings (`focus:ring-*`) and intentional modal/toast elevation that already exists (e.g. login toast). Do not extend those shadows to nested user-menu panels or new chrome.
+**Allowed exceptions:** focus rings (`focus:ring-*`) and intentional modal elevation that already exists. Do not extend those shadows to nested user-menu panels or new chrome.
 
 ## Solid CTA buttons (primary gold)
 
