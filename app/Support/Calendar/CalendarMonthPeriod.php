@@ -9,6 +9,10 @@ use Carbon\CarbonInterface;
 
 final class CalendarMonthPeriod
 {
+    public const NAVIGATION_MONTHS_BACK = 6;
+
+    public const NAVIGATION_MONTHS_FORWARD = 6;
+
     /**
      * @return array<string, string>
      */

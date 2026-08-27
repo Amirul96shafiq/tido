@@ -142,10 +142,11 @@ class CalendarPage extends Page
                     ->label('Month')
                     ->options(fn (): array => CalendarMonthPeriod::optionsAround(
                         Carbon::create($this->year, $this->month, 1),
+                        monthsBack: CalendarMonthPeriod::NAVIGATION_MONTHS_BACK,
+                        monthsForward: CalendarMonthPeriod::NAVIGATION_MONTHS_FORWARD,
                         minYear: CalendarMonthPeriod::navigationMinYear(),
                         maxYear: CalendarMonthPeriod::navigationMaxYear(),
                     ))
-                    ->searchable()
                     ->native(false)
                     ->required()
                     ->selectablePlaceholder(false)
