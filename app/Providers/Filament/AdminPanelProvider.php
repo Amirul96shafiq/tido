@@ -21,6 +21,7 @@ use App\Filament\Resources\Expenses\Pages\CreateExpense;
 use App\Filament\Resources\Expenses\Pages\EditExpense;
 use App\Filament\Support\IntegrationNavigation;
 use App\Http\Middleware\SetUserPreferences;
+use App\Support\Calendar\UserMenuCalendarLabel;
 use App\Support\FilamentAuthLogout;
 use App\Support\HouseholdAccess;
 use App\Support\ReduceMotion;
@@ -50,6 +51,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Vite;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Livewire\Component;
 use Livewire\Livewire;
@@ -693,7 +695,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(0)
                     ->extraAttributes(['wire:current' => 'fi-user-menu-profile-active']),
                 Action::make('calendar')
-                    ->label('Calendar')
+                    ->label(fn (): HtmlString => UserMenuCalendarLabel::html())
                     ->icon('heroicon-o-calendar-days')
                     ->url(fn (): string => CalendarPage::getUrl())
                     ->sort(5),

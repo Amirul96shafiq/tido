@@ -20,6 +20,21 @@ enum UserDateFormat: string
         return now()->format($this->value);
     }
 
+    public function menuCalendarPillFormat(): string
+    {
+        return match ($this) {
+            self::DmySlash => 'j/n',
+            self::DmyLong => 'j M',
+            self::Iso => 'm-d',
+        };
+    }
+
+    public static function menuCalendarPillFormatFor(string $format): string
+    {
+        return self::tryFrom($format)?->menuCalendarPillFormat()
+            ?? self::DmySlash->menuCalendarPillFormat();
+    }
+
     /**
      * @return array<string, string>
      */

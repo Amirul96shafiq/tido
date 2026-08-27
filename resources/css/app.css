@@ -3105,6 +3105,14 @@ html.tido-reduce-motion
     @apply pointer-events-none absolute top-1.5 left-4 z-10 -translate-y-0.5 translate-x-0.5;
 }
 
+.fi-user-menu .fi-dropdown-list-item-label:has(.fi-user-menu-calendar-date-pill) {
+    @apply flex w-full items-center justify-between gap-x-2;
+}
+
+.fi-user-menu .fi-dropdown-list-item-label .fi-user-menu-calendar-date-pill {
+    @apply ms-auto inline-flex items-center rounded-md bg-gray-100/90 px-1.5 py-0.5 text-[11px] font-medium tracking-tight tabular-nums text-gray-600 ring-1 ring-gray-950/5 dark:bg-slate-800 dark:text-slate-300 dark:ring-white/10;
+}
+
 /* Keep DatabaseNotifications mounted for the slide-over + Echo, but hide the topbar trigger. */
 .fi-topbar-end .fi-no-database > .fi-modal-trigger {
     @apply pointer-events-none absolute size-0 overflow-hidden opacity-0;

@@ -9,6 +9,7 @@ use App\Models\FamilyMember;
 use App\Models\Recurring;
 use App\Models\RecurringOccurrence;
 use App\Models\User;
+use App\Support\Calendar\UserMenuCalendarLabel;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -250,6 +251,6 @@ test('user menu includes calendar link before changelogs', function () {
     $items = Filament::getUserMenuItems();
 
     expect(array_keys($items))->toBe(['profile', 'calendar', 'changelogs', 'notifications', 'logout'])
-        ->and($items['calendar']->getLabel())->toBe('Calendar')
+        ->and($items['calendar']->getLabel())->toEqual(UserMenuCalendarLabel::html())
         ->and($items['calendar']->getUrl())->toBe(CalendarPage::getUrl());
 });

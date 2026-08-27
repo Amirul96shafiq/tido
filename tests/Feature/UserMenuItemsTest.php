@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Enums\UserDateFormat;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Dashboard;
 use App\Helpers\GitHelper;
 use App\Models\FamilyMember;
 use App\Models\User;
+use App\Support\Calendar\UserMenuCalendarLabel;
+use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Livewire\Topbar;
 use Filament\Notifications\Notification;
@@ -30,7 +33,7 @@ test('user menu orders profile changelogs notifications and logout', function ()
 
     expect($items['profile']->getIcon())->toBe('heroicon-o-user');
     expect($items['profile']->getSort())->toBeGreaterThanOrEqual(0);
-    expect($items['calendar']->getLabel())->toBe('Calendar');
+    expect($items['calendar']->getLabel())->toEqual(UserMenuCalendarLabel::html());
     expect($items['calendar']->getSort())->toBeGreaterThan($items['profile']->getSort());
     expect($items['changelogs']->getLabel())->toBe('Changelogs 🡥');
     expect($items['changelogs']->getSort())->toBeGreaterThan($items['calendar']->getSort());
@@ -76,6 +79,50 @@ test('user menu logout mounts confirmation without signing out', function () {
         ->assertMountedActionModalSee('Are you sure you want to sign out of your account?');
 
     $this->assertAuthenticatedAs($user);
+});
+
+test('user menu calendar label uses viewer timezone when date is omitted', function () {
+    Carbon::setTestNow(Carbon::create(2026, 1, 5, 10, 0, 0, 'Asia/Kuala_Lumpur'));
+
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'timezone' => 'Asia/Kuala_Lumpur',
+    ]);
+
+    $this->actingAs($user);
+
+    expect(UserMenuCalendarLabel::text())->toBe('Calendar 5/1');
+});
+
+test('user menu displays calendar date pill in menu', function () {
+    Carbon::setTestNow(Carbon::create(2026, 8, 27, 10, 0, 0, 'Asia/Kuala_Lumpur'));
+
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'timezone' => 'Asia/Kuala_Lumpur',
+    ]);
+
+    $this->actingAs($user);
+
+    $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee('fi-user-menu-calendar-date-pill', false)
+        ->assertSee('Calendar', false)
+        ->assertSee('27/8', false);
+});
+
+test('user menu calendar date pill follows selected account date format', function () {
+    Carbon::setTestNow(Carbon::create(2026, 8, 14, 10, 0, 0, 'Asia/Kuala_Lumpur'));
+
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'date_format' => UserDateFormat::DmyLong->value,
+        'timezone' => 'Asia/Kuala_Lumpur',
+    ]);
+
+    $this->actingAs($user);
+
+    $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee('14 Aug', false)
+        ->assertDontSee('14/8', false);
 });
 
 test('user menu displays the app version and sidebar footer owns collapse controls', function () {
@@ -388,7 +435,7 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->toContain('.tido-text-marquee-track:not(.is-overflowing)')
         ->not->toContain('.tido-single-line-text {')
         ->not->toContain('--tido-single-line-text-overflow')
-        ->not->toContain('@keyframes tido-text-marquee')
+        ->not->toContain('@keyframes tido-text-marquee {')
         ->and($accountSwitcherChevronBlock)
         ->toContain('ml-auto')
         ->toContain('size-6')
