@@ -30,8 +30,9 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use Xplodman\CountUp\Facades\CountUpStat;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
+use Xplodman\CountUp\Facades\CountUpStat;
 
 class RecurringsTable
 {
@@ -91,7 +92,7 @@ class RecurringsTable
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('expected_amount')
-                    ->formatStateUsing(fn (mixed $state): \Illuminate\Contracts\Support\Htmlable|string => $state === null
+                    ->formatStateUsing(fn (mixed $state): Htmlable|string => $state === null
                         ? 'Variable'
                         : CountUpStat::animate(MoneyDisplay::withPrefix($state)))
                     ->placeholder('Variable')

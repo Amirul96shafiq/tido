@@ -236,3 +236,15 @@ test('google callback hands off session to app url when redirect host differs', 
 
     $this->assertAuthenticatedAs($user);
 });
+
+test('google sign in wrapper balances gap above and below divider', function (): void {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $wrapBlock = Str::between($css, '.tido-auth-google-sign-in-wrap {', '}');
+    $dividerBlock = Str::between($css, '.tido-auth-google-divider {', '}');
+
+    expect($wrapBlock)
+        ->toContain('margin-top: -0.5rem;')
+        ->and($dividerBlock)
+        ->toContain('margin-bottom: 1rem;');
+});

@@ -2,8 +2,12 @@
 
 namespace App\Helpers;
 
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 class ChangelogHelper
 {
@@ -82,7 +86,7 @@ class ChangelogHelper
                     $currentCommit = [
                         'short_hash' => $shortHash,
                         'full_hash' => $fullHash,
-                        'date' => \Carbon\Carbon::parse($date),
+                        'date' => Carbon::parse($date),
                         'author_name' => $authorName,
                         'author_email' => $authorEmail,
                         'author_avatar' => self::getAuthorAvatar($authorEmail),
@@ -129,22 +133,22 @@ class ChangelogHelper
 
     protected static function getAuthorAvatar(string $email, int $size = 32): string
     {
-        $cacheKey = 'github_avatar_' . md5(strtolower(trim($email)));
+        $cacheKey = 'github_avatar_'.md5(strtolower(trim($email)));
 
-        $avatarUrl = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addDays(7), function () use ($email) {
+        $avatarUrl = Cache::remember($cacheKey, now()->addDays(7), function () use ($email) {
             try {
-                $response = \Illuminate\Support\Facades\Http::withoutVerifying()->withHeaders([
+                $response = Http::withoutVerifying()->withHeaders([
                     'User-Agent' => 'tido-app',
-                ])->timeout(3)->get('https://api.github.com/search/users?q=' . urlencode($email));
+                ])->timeout(3)->get('https://api.github.com/search/users?q='.urlencode($email));
 
                 if ($response->successful()) {
                     $data = $response->json();
-                    if (($data['total_count'] ?? 0) > 0 && !empty($data['items'][0]['avatar_url'])) {
+                    if (($data['total_count'] ?? 0) > 0 && ! empty($data['items'][0]['avatar_url'])) {
                         return $data['items'][0]['avatar_url'];
                     }
                 }
             } catch (\Exception $e) {
-                \Log::warning('GitHub avatar lookup failed for ' . $email . ': ' . $e->getMessage());
+                \Log::warning('GitHub avatar lookup failed for '.$email.': '.$e->getMessage());
             }
 
             return null;
@@ -154,7 +158,7 @@ class ChangelogHelper
             return $avatarUrl;
         }
 
-        $user = \App\Models\User::where('email', $email)->first();
+        $user = User::where('email', $email)->first();
         if ($user && $user->avatar_url) {
             return $user->getFilamentAvatarUrl();
         }

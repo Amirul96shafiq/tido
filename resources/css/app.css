@@ -1068,7 +1068,7 @@ html.tido-is-scrolling
 }
 
 .tido-auth-google-sign-in-wrap {
-    margin-top: 1rem;
+    margin-top: -0.5rem;
 }
 
 .tido-auth-google-divider {
