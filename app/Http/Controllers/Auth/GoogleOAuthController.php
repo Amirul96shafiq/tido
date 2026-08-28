@@ -9,8 +9,8 @@ use App\Services\ActiveSessionService;
 use App\Services\GoogleOAuth\GoogleOAuthAuthenticator;
 use App\Services\GoogleOAuth\GoogleOAuthSettings;
 use App\Services\GoogleOAuth\GoogleOAuthSocialite;
+use App\Support\FilamentAuthLogin;
 use Filament\Facades\Filament;
-use Filament\Notifications\Notification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -148,10 +148,7 @@ class GoogleOAuthController extends Controller
         Auth::guard(Filament::getAuthGuard())->login($user, false);
         session()->regenerate();
 
-        Notification::make()
-            ->title('Signed in successfully')
-            ->success()
-            ->send();
+        FilamentAuthLogin::sendSignedInViaGoogle();
 
         $sessionId = session()->getId();
         app()->terminating(function () use ($activeSessionService, $sessionId): void {

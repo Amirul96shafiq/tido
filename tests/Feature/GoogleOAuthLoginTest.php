@@ -98,7 +98,7 @@ test('google callback links primary user by email on first sign in', function ()
 
     $this->assertAuthenticatedAs($user);
 
-    Notification::assertNotified('Signed in successfully');
+    Notification::assertNotified('Signed in successfully, via Google Account');
 
     expect($user->fresh())
         ->google_id->toBe('google-sub-100')
@@ -123,7 +123,7 @@ test('google callback signs in primary user by google id on subsequent sign in',
 
     $this->assertAuthenticatedAs($user);
 
-    Notification::assertNotified('Signed in successfully');
+    Notification::assertNotified('Signed in successfully, via Google Account');
 });
 
 test('google callback rejects unknown email with generic login error', function (): void {
@@ -136,7 +136,7 @@ test('google callback rejects unknown email with generic login error', function 
 
     $this->assertGuest();
 
-    Notification::assertNotNotified('Signed in successfully');
+    Notification::assertNotNotified('Signed in successfully, via Google Account');
 
     expect(GoogleOAuthLoginLog::query()->where('status', 'failed')->count())->toBe(1);
 
@@ -243,7 +243,7 @@ test('google callback hands off session to app url when redirect host differs', 
 
     $this->assertAuthenticatedAs($user);
 
-    Notification::assertNotified('Signed in successfully');
+    Notification::assertNotified('Signed in successfully, via Google Account');
 });
 
 test('google sign in wrapper balances gap above and below divider', function (): void {

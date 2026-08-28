@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\ActiveSessionService;
 use App\Services\GoogleOAuth\GoogleOAuthSettings;
 use App\Services\WhatsAppLoginOtpService;
+use App\Support\FilamentAuthLogin;
 use App\Support\PhoneNumber;
 use App\Support\TidoBrandCopy;
 use App\Support\WhatsAppLoginDevOtp;
@@ -701,7 +702,7 @@ class Login extends BaseLogin
         session()->regenerate();
 
         $this->scheduleSessionCreatedAtStamp();
-        $this->sendLoginSuccessNotification();
+        FilamentAuthLogin::sendSignedInViaEmail();
 
         return app(LoginResponse::class);
     }
@@ -742,7 +743,7 @@ class Login extends BaseLogin
         session()->regenerate();
 
         $this->scheduleSessionCreatedAtStamp();
-        $this->sendLoginSuccessNotification();
+        FilamentAuthLogin::sendSignedInViaOtp();
 
         return app(LoginResponse::class);
     }
@@ -765,14 +766,6 @@ class Login extends BaseLogin
             ->orWhere('phone', '+'.$normalizedPhone)
             ->orWhere('phone', $localForm)
             ->first();
-    }
-
-    protected function sendLoginSuccessNotification(): void
-    {
-        Notification::make()
-            ->title('Signed in successfully')
-            ->success()
-            ->send();
     }
 
     protected function throwFailureValidationException(): never
