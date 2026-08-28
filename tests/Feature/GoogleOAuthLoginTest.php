@@ -8,6 +8,7 @@ use App\Models\GoogleOAuthLoginLog;
 use App\Models\GoogleOAuthSetting;
 use App\Models\User;
 use App\Services\GoogleOAuth\GoogleOAuthSettings;
+use Filament\Notifications\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
@@ -97,6 +98,8 @@ test('google callback links primary user by email on first sign in', function ()
 
     $this->assertAuthenticatedAs($user);
 
+    Notification::assertNotified('Signed in successfully');
+
     expect($user->fresh())
         ->google_id->toBe('google-sub-100')
         ->google_linked_at->not->toBeNull();
@@ -119,6 +122,8 @@ test('google callback signs in primary user by google id on subsequent sign in',
         ->assertRedirect('/admin');
 
     $this->assertAuthenticatedAs($user);
+
+    Notification::assertNotified('Signed in successfully');
 });
 
 test('google callback rejects unknown email with generic login error', function (): void {
@@ -130,6 +135,8 @@ test('google callback rejects unknown email with generic login error', function 
         ->assertRedirect(route('filament.admin.auth.login'));
 
     $this->assertGuest();
+
+    Notification::assertNotNotified('Signed in successfully');
 
     expect(GoogleOAuthLoginLog::query()->where('status', 'failed')->count())->toBe(1);
 
@@ -235,6 +242,8 @@ test('google callback hands off session to app url when redirect host differs', 
         ->assertRedirect('/admin');
 
     $this->assertAuthenticatedAs($user);
+
+    Notification::assertNotified('Signed in successfully');
 });
 
 test('google sign in wrapper balances gap above and below divider', function (): void {
