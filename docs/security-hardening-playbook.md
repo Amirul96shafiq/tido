@@ -64,17 +64,17 @@ Examples:
 
 Prefer the existing Laravel boundary:
 
-| Security surface | Preferred implementation boundary |
-|------------------|------------------------------------|
-| Authentication/session | Filament auth page, session config, middleware, password/OTP service |
+| Security surface        | Preferred implementation boundary                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------------------- |
+| Authentication/session  | Filament auth page, session config, middleware, password/OTP service                                    |
 | Household authorization | `HouseholdAccess`, `ExpensePolicy`, `BudgetPolicy`, `RecurringPolicy`, `RequiresPrimaryHouseholdAccess` |
-| Webhook | Route middleware/Form Request/DTO, verifier service, queued job, idempotency store |
-| Guest restore | `GuestRestoreBackupRequest`, `GuestRestoreBackupController`, `BackupService` |
-| Backup | `BackupService`, `config/backup.php`, storage disk and retention configuration |
-| File upload | Form Request/Filament upload configuration, private disk, controlled download |
-| AI pipeline | Ollama service, prompt builder, normalizer, queued job, redacted logging |
-| Operational disclosure | Health probe result/aggregator, error mapper, role-aware UI |
-| Production baseline | `config/*`, deployment environment, reverse proxy, firewall, database transport |
+| Webhook                 | Route middleware/Form Request/DTO, verifier service, queued job, idempotency store                      |
+| Guest restore           | `GuestRestoreBackupRequest`, `GuestRestoreBackupController`, `BackupService`                            |
+| Backup                  | `BackupService`, `config/backup.php`, storage disk and retention configuration                          |
+| File upload             | Form Request/Filament upload configuration, private disk, controlled download                           |
+| AI pipeline             | Ollama service, prompt builder, normalizer, queued job, redacted logging                                |
+| Operational disclosure  | Health probe result/aggregator, error mapper, role-aware UI                                             |
+| Production baseline     | `config/*`, deployment environment, reverse proxy, firewall, database transport                         |
 
 Do not move domain side effects into a controller merely to fix a test. Do not make a security control depend only on client-side Livewire/Filament visibility; enforce it again on the server boundary.
 
@@ -139,16 +139,16 @@ Do not rewrite the original evidence to make a finding appear less serious. Add 
 
 Use this map to locate the implementation context without broadening the selected change:
 
-| IDs | Primary docs and source context |
-|-----|--------------------------------|
-| `SEC-001`, `SEC-009`, `SEC-010`, `SEC-011`, `SEC-027` | [evolution-local-windows.md](evolution-local-windows.md), [household-access.md](household-access.md), `routes/api.php`, `WhatsAppWebhookController`, WhatsApp jobs, [WhatsAppWebhookTest.php](../tests/Feature/WhatsAppWebhookTest.php) |
-| `SEC-003` through `SEC-008` | [backups-and-danger-zone.md](backups-and-danger-zone.md), `GuestRestoreBackupRequest`, `GuestRestoreBackupController`, `BackupService`, [GuestRestoreBackupTest.php](../tests/Feature/GuestRestoreBackupTest.php) |
-| `SEC-002` | `composer.json`, `composer.lock`, installed package metadata, Composer audit output |
-| `SEC-012`, `SEC-021`, `SEC-024`, `SEC-025` | `config/session.php`, `config/database.php`, `config/services.php`, `HorizonServiceProvider`, deployment/reverse-proxy documentation |
-| `SEC-013`, `SEC-014`, `SEC-015` | `routes/web.php`, `ChangelogHelper`, ignored debug artifacts, public disclosure policy |
-| `SEC-016`, `SEC-017`, `SEC-018`, `SEC-027` | [whatsapp-bot-commands.md](whatsapp-bot-commands.md), [whatsapp-manual-expense.md](whatsapp-manual-expense.md), media/manual jobs, `OllamaService`, receipt tests |
-| `SEC-019`, `SEC-020`, `SEC-026` | [active-sessions.md](active-sessions.md), [household-access.md](household-access.md), Filament login/OTP/password-reset pages and tests |
-| `SEC-022`, `SEC-023` | [service-status.md](service-status.md), health probes, models, resources, policies, and authorization tests |
+| IDs                                                   | Primary docs and source context                                                                                                                                                                                                                                                                                     |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SEC-001`, `SEC-009`, `SEC-010`, `SEC-011`, `SEC-027` | [evolution-local-windows.md](evolution-local-windows.md), [household-access.md](household-access.md), `routes/api.php`, `WhatsAppWebhookController`, WhatsApp jobs, [WhatsAppWebhookTest.php](../tests/Feature/WhatsAppWebhookTest.php)                                                                             |
+| `SEC-003` through `SEC-008`                           | [backups-and-danger-zone.md](backups-and-danger-zone.md), `GuestRestoreBackupRequest`, `GuestRestoreBackupController`, `BackupService`, [GuestRestoreBackupTest.php](../tests/Feature/GuestRestoreBackupTest.php)                                                                                                   |
+| `SEC-002`                                             | `composer.json`, `composer.lock`, installed package metadata, Composer audit output                                                                                                                                                                                                                                 |
+| `SEC-012`, `SEC-021`, `SEC-024`, `SEC-025`            | `config/session.php`, `config/database.php`, `config/services.php`, `HorizonServiceProvider`, deployment/reverse-proxy documentation                                                                                                                                                                                |
+| `SEC-013`, `SEC-014`, `SEC-015`                       | `routes/web.php`, `ChangelogHelper`, ignored debug artifacts, public disclosure policy                                                                                                                                                                                                                              |
+| `SEC-016`, `SEC-017`, `SEC-018`, `SEC-027`            | [whatsapp-bot-commands.md](whatsapp-bot-commands.md), [whatsapp-manual-expense.md](whatsapp-manual-expense.md), `ProcessWhatsAppMediaJob` (images and PDFs), media/manual jobs, `OllamaService`, [CurrencyApiExchangeRateProvider.php](../app/Services/Currency/CurrencyApiExchangeRateProvider.php), receipt tests |
+| `SEC-019`, `SEC-020`, `SEC-026`                       | [active-sessions.md](active-sessions.md), [household-access.md](household-access.md), [google-oauth-setup.md](google-oauth-setup.md), `GoogleOAuthController`, Filament login/OTP/password-reset pages and tests                                                                                                    |
+| `SEC-022`, `SEC-023`                                  | [service-status.md](service-status.md), health probes, models, resources, policies, and authorization tests                                                                                                                                                                                                         |
 
 ## AI handoff format
 
@@ -208,4 +208,3 @@ Before public deployment, every Critical and High row must be `Verified` or have
 - Composer and npm dependency audits are clean or have documented owner-approved exceptions;
 - Horizon and Service Status provide enough protected operational visibility for incident response;
 - focused security tests and the required broader verification matrix pass.
-
