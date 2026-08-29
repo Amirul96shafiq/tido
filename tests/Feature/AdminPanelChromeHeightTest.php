@@ -376,12 +376,12 @@ test('sidebar collapse expand transition uses shared motion tokens and logo mask
         ->toContain('animation: none !important;');
 });
 
-test('collapsed sidebar nav icons share expanded icon inset via flex-start rail', function () {
+test('collapsed sidebar nav icons are centered in 1x1 ratio square buttons', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
     $collapsedItemBtnBlock = Str::between(
         $css,
-        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn {',
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn,',
         '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-group-dropdown-trigger-btn {',
     );
     $collapsedGroupTriggerBlock = Str::between(
@@ -389,21 +389,22 @@ test('collapsed sidebar nav icons share expanded icon inset via flex-start rail'
         '.fi-sidebar:not(.fi-sidebar-open)
     .fi-sidebar-group-dropdown-trigger-btn.fi-version-icon-btn {',
         '/*
- * Collapsed: left-aligned size-10 box',
+ * Collapsed: centered size-10 square',
     );
 
     expect($css)
         ->toContain('--tido-sidebar-nav-pad: 1.5rem;')
-        ->toContain('--tido-sidebar-icon-pad: 0.5rem;')
         ->and($collapsedItemBtnBlock)
-        ->toContain('justify-content: flex-start;')
-        ->toContain('padding-inline-start: var(--tido-sidebar-icon-pad);')
+        ->toContain('justify-content: center;')
+        ->toContain('width: 2.5rem;')
+        ->toContain('height: 2.5rem;')
+        ->toContain('padding: 0;')
         ->toContain('opacity: 1;')
         ->not->toContain('opacity: 0;')
-        ->not->toContain('justify-content: center;')
+        ->not->toContain('justify-content: flex-start;')
         ->and($collapsedGroupTriggerBlock)
-        ->toContain('justify-content: flex-start;')
-        ->toContain('padding-inline-start: var(--tido-sidebar-icon-pad);')
+        ->toContain('justify-content: center;')
+        ->toContain('padding: 0;')
         ->and($css)
         ->toContain('.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav-groups')
         ->toContain('margin-inline: -0.5rem;')

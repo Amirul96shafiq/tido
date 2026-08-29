@@ -175,6 +175,7 @@ Before coding a feature or fix: branch from up-to-date `main` (`feature/...` or 
 4. Foreign receipt conversion uses the configured `CURRENCY_API_*` provider with the receipt date, bounded timeout/retry, and a cached source/target/date lookup; never revalue an already converted expense automatically
 5. Never call real Ollama, Evolution, or exchange-rate providers in tests
 6. Integration page structure (class anatomy, section layout, setup wizard, status conventions, new-integration checklist): `docs/integration-pages.md`
+7. Google OAuth Primary sign-in: `docs/google-oauth-setup.md`
 
 ### After code changes
 

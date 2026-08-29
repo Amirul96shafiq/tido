@@ -11,7 +11,6 @@ use App\Models\Budget;
 use App\Models\FamilyMember;
 use App\Models\User;
 use App\Support\HouseholdAccess;
-use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -30,6 +29,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 
 class BudgetsTable
 {

@@ -26,6 +26,7 @@ test('primary household sees integration flyout parents in the sidebar', functio
         ->assertSuccessful()
         ->assertSee(IntegrationNavigation::WHATSAPP, false)
         ->assertSee(IntegrationNavigation::AI_PARSING_ENGINE, false)
+        ->assertSee(IntegrationNavigation::GOOGLE, false)
         ->assertSee('Ollama (Local)', false)
         ->assertSee('fi-sidebar-item-flyout', false)
         ->assertSee('fi-sidebar-item-has-children', false)
@@ -95,7 +96,7 @@ test('small sidebar flyouts close sibling integration menus', function (): void 
     expect($html)
         ->toContain('tido-sidebar-flyout-exclusive')
         ->toContain("window.matchMedia('(min-width: 1024px)').matches")
-        ->and(substr_count($html, 'tido-sidebar-flyout-exclusive.window'))->toBe(2);
+        ->and(substr_count($html, 'tido-sidebar-flyout-exclusive.window'))->toBe(3);
 });
 
 test('small sidebar flyouts clamp to the viewport', function (): void {
@@ -247,6 +248,7 @@ test('family members see restricted integration navigation with access tooltip',
         ->assertSuccessful()
         ->assertSee(IntegrationNavigation::WHATSAPP, false)
         ->assertSee(IntegrationNavigation::AI_PARSING_ENGINE, false)
+        ->assertSee(IntegrationNavigation::GOOGLE, false)
         ->assertSee('Ollama (Local)', false)
         ->assertSee('tido-primary-only-navigation', false)
         ->assertSee(HouseholdAccess::primaryOnlyAccessMessage(), false)

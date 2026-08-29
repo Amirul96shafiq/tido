@@ -66,6 +66,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
     protected $hidden = [
         'password',
         'remember_token',
+        'google_id',
     ];
 
     protected function casts(): array
@@ -86,6 +87,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
             'recurring_reminder_lead_days' => 'integer',
             'stylized_background_enabled' => 'boolean',
             'reduce_motion' => 'boolean',
+            'google_linked_at' => 'datetime',
         ];
     }
 

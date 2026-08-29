@@ -205,7 +205,7 @@ test('otp login authenticates with correct code after phone step', function () {
         ->assertRedirect('/admin');
 
     expect(collect(session('filament.notifications'))->pluck('title'))
-        ->toContain('Signed in successfully');
+        ->toContain('Signed in successfully, via OTP');
 
     $this->assertAuthenticatedAs($user);
 });
@@ -246,7 +246,7 @@ test('password login step authenticates with email and password', function () {
         ->call('authenticate')
         ->assertHasNoErrors()
         ->assertRedirect('/admin')
-        ->assertNotified('Signed in successfully');
+        ->assertNotified('Signed in successfully, via Email Sign In');
 
     $this->assertAuthenticatedAs($user);
 });
@@ -313,7 +313,7 @@ test('otp service verify is used end to end after send', function () {
         ->assertRedirect('/admin');
 
     expect(collect(session('filament.notifications'))->pluck('title'))
-        ->toContain('Signed in successfully');
+        ->toContain('Signed in successfully, via OTP');
 
     $this->assertAuthenticatedAs($user);
 });
@@ -414,7 +414,7 @@ test('otp cooldown clears after successful authentication', function () {
         ->assertSet('lastOtpPhone', null);
 
     expect(collect(session('filament.notifications'))->pluck('title'))
-        ->toContain('Signed in successfully');
+        ->toContain('Signed in successfully, via OTP');
 
     $this->assertAuthenticatedAs($user);
 });
