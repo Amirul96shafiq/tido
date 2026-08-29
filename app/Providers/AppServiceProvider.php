@@ -23,6 +23,7 @@ use App\Services\Calendar\RecurringDueCalendarProvider;
 use App\Services\Currency\CurrencyApiExchangeRateProvider;
 use App\Services\Currency\ExchangeRateProvider;
 use App\Support\FieldCharacterLimits;
+use App\Support\ProductionEnvironmentBaseline;
 use App\View\Components\ButtonComponent;
 use BladeUI\Icons\Factory;
 use Filament\Actions\Action;
@@ -72,6 +73,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        ProductionEnvironmentBaseline::assert();
+
         $this->callAfterResolving(Factory::class, function (Factory $factory): void {
             $factory->add('tido', [
                 'path' => resource_path('svg'),
