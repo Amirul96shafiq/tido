@@ -18,6 +18,9 @@
 /* Shared neutral border visual for panel chrome and component surfaces. */
 :root {
     --tido-border-color: var(--color-gray-100);
+    --tido-scrollbar-thumb: rgba(156, 163, 175, 0.3);
+    --tido-scrollbar-thumb-hover: rgba(156, 163, 175, 0.5);
+    --tido-scrollbar-track: var(--tido-bg-color-light, var(--color-white));
 }
 
 .dark {
@@ -26,6 +29,9 @@
         var(--color-slate-700) 60%,
         transparent
     );
+    --tido-scrollbar-thumb: rgba(51, 65, 85, 0.5);
+    --tido-scrollbar-thumb-hover: rgba(71, 85, 105, 0.7);
+    --tido-scrollbar-track: var(--tido-bg-color-dark, var(--color-slate-800));
 }
 
 @media (min-width: 1024px) {
@@ -36,15 +42,16 @@
 }
 
 /* Custom scrollbar — page chrome, reusable class, Filament panels.
- * Do NOT set scrollbar-width/scrollbar-color on the main page scroller or
- * .fi-sidebar-nav in Chromium: those standard props win and suppress
- * ::-webkit-scrollbar-* (page track border + overlay thumb). Firefox gets
- * them via @supports below.
+ * Do NOT set scrollbar-width: thin OR ::-webkit-scrollbar on nested overflow
+ * (.fi-sidebar-nav, .custom-scrollbar) in Chromium: those become classic
+ * 6px gutters with discrete wheel scrolling. Nested lists may use
+ * scrollbar-color so the OS track matches the surface (white / slate-800).
+ * The page scroller (html/body/.fi-body) may keep the 6px webkit overlay.
+ * Firefox nested bars get thin via @supports below.
  * Filament slide-overs (View details, changelog, resource View) scroll on
  * .fi-modal-window (overflow-y-auto).
  * Centered action modals (Ollama Edit setup) scroll on .fi-modal-window-ctn.
  * Database notifications pin header/footer and scroll .fi-modal-content. */
-.custom-scrollbar,
 .fi-dropdown-panel,
 .fi-ta-filters-body,
 .fi-ta-col-manager-body,
@@ -54,25 +61,34 @@
 .results-container,
 .fi-ta-content-ctn {
     scrollbar-width: thin !important;
-    scrollbar-color: rgba(156, 163, 175, 0.3) transparent !important;
+    scrollbar-color: var(--tido-scrollbar-thumb) var(--tido-scrollbar-track) !important;
 }
 
 @supports not selector(::-webkit-scrollbar) {
     html,
     body,
     .fi-body,
-    .fi-main-ctn,
-    .fi-sidebar-nav {
+    .fi-main-ctn {
         scrollbar-width: thin;
-        scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+        scrollbar-color: var(--tido-scrollbar-thumb) var(--tido-scrollbar-track);
+    }
+
+    .fi-sidebar-nav,
+    .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: var(--tido-scrollbar-thumb) var(--color-white);
     }
 
     html.dark,
     .dark body,
     .dark .fi-body,
-    .dark .fi-main-ctn,
-    .dark .fi-sidebar-nav {
-        scrollbar-color: rgba(51, 65, 85, 0.5) transparent;
+    .dark .fi-main-ctn {
+        scrollbar-color: var(--tido-scrollbar-thumb) var(--tido-scrollbar-track);
+    }
+
+    .dark .fi-sidebar-nav,
+    .dark .custom-scrollbar {
+        scrollbar-color: var(--tido-scrollbar-thumb) var(--color-slate-800);
     }
 }
 
@@ -80,8 +96,6 @@ html::-webkit-scrollbar,
 body::-webkit-scrollbar,
 .fi-body::-webkit-scrollbar,
 .fi-main-ctn::-webkit-scrollbar,
-.fi-sidebar-nav::-webkit-scrollbar,
-.custom-scrollbar::-webkit-scrollbar,
 .fi-dropdown-panel::-webkit-scrollbar,
 .fi-ta-filters-body::-webkit-scrollbar,
 .fi-ta-col-manager-body::-webkit-scrollbar,
@@ -97,18 +111,10 @@ body::-webkit-scrollbar,
     height: 6px !important;
 }
 
-.fi-sidebar-nav::-webkit-scrollbar-button {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-}
-
 html::-webkit-scrollbar-track,
 body::-webkit-scrollbar-track,
 .fi-body::-webkit-scrollbar-track,
 .fi-main-ctn::-webkit-scrollbar-track,
-.fi-sidebar-nav::-webkit-scrollbar-track,
-.custom-scrollbar::-webkit-scrollbar-track,
 .fi-dropdown-panel::-webkit-scrollbar-track,
 .fi-ta-filters-body::-webkit-scrollbar-track,
 .fi-ta-col-manager-body::-webkit-scrollbar-track,
@@ -123,7 +129,7 @@ body::-webkit-scrollbar-track,
     > .fi-modal-content::-webkit-scrollbar-track,
 .results-container::-webkit-scrollbar-track,
 .fi-ta-content-ctn::-webkit-scrollbar-track {
-    background: transparent !important;
+    background-color: var(--tido-scrollbar-track) !important;
 }
 
 /*
@@ -158,8 +164,6 @@ html::-webkit-scrollbar-thumb,
 body::-webkit-scrollbar-thumb,
 .fi-body::-webkit-scrollbar-thumb,
 .fi-main-ctn::-webkit-scrollbar-thumb,
-.fi-sidebar-nav::-webkit-scrollbar-thumb,
-.custom-scrollbar::-webkit-scrollbar-thumb,
 .fi-dropdown-panel::-webkit-scrollbar-thumb,
 .fi-ta-filters-body::-webkit-scrollbar-thumb,
 .fi-ta-col-manager-body::-webkit-scrollbar-thumb,
@@ -174,7 +178,7 @@ body::-webkit-scrollbar-thumb,
     > .fi-modal-content::-webkit-scrollbar-thumb,
 .results-container::-webkit-scrollbar-thumb,
 .fi-ta-content-ctn::-webkit-scrollbar-thumb {
-    background-color: rgba(156, 163, 175, 0.3) !important;
+    background-color: var(--tido-scrollbar-thumb) !important;
     border-radius: 0 !important;
 }
 
@@ -182,8 +186,6 @@ html::-webkit-scrollbar-thumb:hover,
 body::-webkit-scrollbar-thumb:hover,
 .fi-body::-webkit-scrollbar-thumb:hover,
 .fi-main-ctn::-webkit-scrollbar-thumb:hover,
-.fi-sidebar-nav::-webkit-scrollbar-thumb:hover,
-.custom-scrollbar::-webkit-scrollbar-thumb:hover,
 .fi-dropdown-panel::-webkit-scrollbar-thumb:hover,
 .fi-ta-filters-body::-webkit-scrollbar-thumb:hover,
 .fi-ta-col-manager-body::-webkit-scrollbar-thumb:hover,
@@ -198,10 +200,9 @@ body::-webkit-scrollbar-thumb:hover,
     > .fi-modal-content::-webkit-scrollbar-thumb:hover,
 .results-container::-webkit-scrollbar-thumb:hover,
 .fi-ta-content-ctn::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(156, 163, 175, 0.5) !important;
+    background-color: var(--tido-scrollbar-thumb-hover) !important;
 }
 
-.dark .custom-scrollbar,
 .dark .fi-dropdown-panel,
 .dark .fi-ta-filters-body,
 .dark .fi-ta-col-manager-body,
@@ -214,15 +215,13 @@ body::-webkit-scrollbar-thumb:hover,
     > .fi-modal-content,
 .dark .results-container,
 .dark .fi-ta-content-ctn {
-    scrollbar-color: rgba(51, 65, 85, 0.5) transparent !important;
+    scrollbar-color: var(--tido-scrollbar-thumb) var(--tido-scrollbar-track) !important;
 }
 
 html.dark::-webkit-scrollbar-thumb,
 .dark body::-webkit-scrollbar-thumb,
 .dark .fi-body::-webkit-scrollbar-thumb,
 .dark .fi-main-ctn::-webkit-scrollbar-thumb,
-.dark .fi-sidebar-nav::-webkit-scrollbar-thumb,
-.dark .custom-scrollbar::-webkit-scrollbar-thumb,
 .dark .fi-dropdown-panel::-webkit-scrollbar-thumb,
 .dark .fi-ta-filters-body::-webkit-scrollbar-thumb,
 .dark .fi-ta-col-manager-body::-webkit-scrollbar-thumb,
@@ -240,15 +239,13 @@ html.dark::-webkit-scrollbar-thumb,
     > .fi-modal-content::-webkit-scrollbar-thumb,
 .dark .results-container::-webkit-scrollbar-thumb,
 .dark .fi-ta-content-ctn::-webkit-scrollbar-thumb {
-    background-color: rgba(51, 65, 85, 0.5) !important;
+    background-color: var(--tido-scrollbar-thumb) !important;
 }
 
 html.dark::-webkit-scrollbar-thumb:hover,
 .dark body::-webkit-scrollbar-thumb:hover,
 .dark .fi-body::-webkit-scrollbar-thumb:hover,
 .dark .fi-main-ctn::-webkit-scrollbar-thumb:hover,
-.dark .fi-sidebar-nav::-webkit-scrollbar-thumb:hover,
-.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover,
 .dark .fi-dropdown-panel::-webkit-scrollbar-thumb:hover,
 .dark .fi-ta-filters-body::-webkit-scrollbar-thumb:hover,
 .dark .fi-ta-col-manager-body::-webkit-scrollbar-thumb:hover,
@@ -266,7 +263,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
     > .fi-modal-content::-webkit-scrollbar-thumb:hover,
 .dark .results-container::-webkit-scrollbar-thumb:hover,
 .dark .fi-ta-content-ctn::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(71, 85, 105, 0.7) !important;
+    background-color: var(--tido-scrollbar-thumb-hover) !important;
 }
 
 /* Tippy default (dark) theme — lighter than slate-800 chrome */
@@ -311,10 +308,34 @@ html.dark::-webkit-scrollbar-thumb:hover,
 }
 
 /* Collapsed nav: same horizontal pad as Filament expanded px-6 (1.5rem).
- * Groups keep -mx-2 (-0.5rem); item pad 0.5rem → icon left edge at 1.5rem. */
+ * Groups keep -mx-2 (-0.5rem); item pad 0.5rem → icon left edge at 1.5rem.
+ * Hide the nested gutter: a styled 6px bar on this overflow is classic/snappy. */
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav {
     scrollbar-gutter: auto;
+    scrollbar-width: none;
     padding-inline: var(--tido-sidebar-nav-pad);
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/*
+ * Nested overflow-y:auto cannot use overflow-x: clip — Chromium computes
+ * clip+auto to hidden, so the Filament overflow-x-hidden path remains.
+ * Hint the compositor so nested wheel animation can match the root scroller.
+ */
+.fi-sidebar-nav,
+.custom-scrollbar {
+    will-change: scroll-position;
+    scrollbar-color: var(--tido-scrollbar-thumb) var(--color-white);
+}
+
+.dark .fi-sidebar-nav,
+.dark .custom-scrollbar {
+    scrollbar-color: var(--tido-scrollbar-thumb) var(--color-slate-800);
 }
 
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav-groups {
@@ -976,16 +997,52 @@ html.dark::-webkit-scrollbar-thumb:hover,
 }
 
 /*
- * While the page is scrolling, drop the stronger 8px veil blur so Chromium
- * is not resampling two backdrop-filters every frame. Tint stays; frost
- * returns when sticky-blur-veil.js removes html.tido-is-scrolling.
+ * While the page or a nested overflow scroller is scrolling, drop both veil
+ * blurs so Chromium is not resampling backdrop-filter every frame. Tint
+ * stays; frost returns when sticky-blur-veil.js removes html.tido-is-scrolling.
  */
+html.tido-is-scrolling
+    .tido-sticky-scope
+    > .fi-sc
+    > .fi-grid-col:has(.tido-sticky-marker).tido-sticky-stuck::before,
 html.tido-is-scrolling
     .tido-sticky-scope
     > .fi-sc
     > .fi-grid-col:has(.tido-sticky-marker).tido-sticky-stuck::after {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+}
+
+/*
+ * Desktop: keep the fixed veil out of the sidebar. Nested sidebar scroll would
+ * otherwise move icons under a full-width backdrop-filter every frame.
+ */
+@media (min-width: 1024px) {
+    .fi-body-has-sidebar-collapsible-on-desktop
+        .tido-sticky-scope
+        > .fi-sc
+        > .fi-grid-col:has(.tido-sticky-marker)::before,
+    .fi-body-has-sidebar-collapsible-on-desktop
+        .tido-sticky-scope
+        > .fi-sc
+        > .fi-grid-col:has(.tido-sticky-marker)::after {
+        inset-inline-start: var(--sidebar-width, 18rem);
+    }
+
+    .fi-body-has-sidebar-collapsible-on-desktop:has(
+            .fi-sidebar:not(.fi-sidebar-open)
+        )
+        .tido-sticky-scope
+        > .fi-sc
+        > .fi-grid-col:has(.tido-sticky-marker)::before,
+    .fi-body-has-sidebar-collapsible-on-desktop:has(
+            .fi-sidebar:not(.fi-sidebar-open)
+        )
+        .tido-sticky-scope
+        > .fi-sc
+        > .fi-grid-col:has(.tido-sticky-marker)::after {
+        inset-inline-start: var(--collapsed-sidebar-width, 4.5rem);
+    }
 }
 
 .fi-simple-page .fi-sc-form {
@@ -2940,7 +2997,9 @@ html.tido-reduce-motion
  * (collapse/expand), not on SPA remount.
  */
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-flyout,
-.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-flyout > .fi-dropdown-trigger {
+.fi-sidebar:not(.fi-sidebar-open)
+    .fi-sidebar-item-flyout
+    > .fi-dropdown-trigger {
     width: 2.5rem;
     height: 2.5rem;
     display: flex;

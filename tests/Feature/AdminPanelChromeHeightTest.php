@@ -181,6 +181,7 @@ test('collapsed sidebar collapse footer is a square matching collapsed sidebar w
         ->toContain('requestAnimationFrame(() => $store.sidebar.open())')
         ->not->toContain('127.0.0.1:7630')
         ->not->toContain('agent log')
+        ->not->toContain('debug-nested-scroll')
         ->not->toContain('__tidoPrepareSidebarClip');
 });
 
@@ -302,6 +303,11 @@ test('sidebar collapse expand transition uses shared motion tokens and logo mask
         '/* Honor prefers-reduced-motion: skip sidebar collapse/expand chrome motion */',
         '/*\n * Filament .fi-page-header-main-ctn uses py-8.',
     );
+    $desktopSidebarBlock = Str::between(
+        $css,
+        '/* Desktop layout overrides for full-height sidebar and static topbar */',
+        '/* Honor prefers-reduced-motion: skip sidebar collapse/expand chrome motion */',
+    );
 
     expect($css)
         ->toContain('--tido-sidebar-duration: 520ms;')
@@ -337,9 +343,11 @@ test('sidebar collapse expand transition uses shared motion tokens and logo mask
         )
         ->not->toContain('tido-sidebar-clip-collapsed')
         ->not->toContain('html.tido-sidebar-hold-collapsed-inset')
+        ->and($desktopSidebarBlock)
         ->not->toContain(
             '.fi-body-has-sidebar-collapsible-on-desktop:has(',
         )
+        ->and($css)
         ->toContain('fi-sidebar-animating')
         ->toContain(
             '.fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar::after {',
