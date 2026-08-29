@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Filament\Pages\Dashboard;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
@@ -40,7 +41,7 @@ test('filament slide-overs use the shared custom scrollbar theme', function () {
         ->toContain('.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,')
         ->toContain('.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn::-webkit-scrollbar,')
         ->toContain('> .fi-modal-content::-webkit-scrollbar,')
-        ->toContain('.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar-thumb,')
+        ->toContain('> .fi-modal-window::-webkit-scrollbar-thumb,')
         ->toContain('> .fi-modal-content::-webkit-scrollbar-thumb,')
         ->not->toContain(".fi-modal[id='ollama-config-details'] .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar")
         ->not->toContain(".fi-modal[id='ollama-supported-tasks'] .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar")
@@ -55,7 +56,7 @@ test('filament slide-overs use the shared custom scrollbar theme', function () {
         ->and($evolution)->not->toContain('custom-scrollbar');
 });
 
-test('sidebar nav uses page-scroller webkit overlay instead of chromium scrollbar-width', function () {
+test('sidebar nav and widget lists skip chromium nested webkit scrollbars', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
     $chromiumWidthBlock = Str::between(
@@ -73,7 +74,7 @@ test('sidebar nav uses page-scroller webkit overlay instead of chromium scrollba
     $webkitWidthBlock = Str::between(
         $css,
         'html::-webkit-scrollbar,',
-        '.fi-sidebar-nav::-webkit-scrollbar-button {',
+        'html::-webkit-scrollbar-track,',
     );
 
     $chromiumDarkColorBlock = Str::between(
@@ -85,18 +86,34 @@ test('sidebar nav uses page-scroller webkit overlay instead of chromium scrollba
     expect($chromiumWidthBlock)
         ->toContain('scrollbar-width: thin !important;')
         ->not->toContain('.fi-sidebar-nav')
+        ->not->toContain('.custom-scrollbar')
         ->and($firefoxBlock)
-        ->toContain('.fi-sidebar-nav {')
-        ->toContain('.dark .fi-sidebar-nav {')
+        ->toContain('.fi-sidebar-nav,')
+        ->toContain('.custom-scrollbar {')
+        ->toContain('.dark .fi-sidebar-nav,')
+        ->toContain('.dark .custom-scrollbar {')
         ->toContain('scrollbar-width: thin;')
+        ->toContain('var(--color-white)')
+        ->toContain('var(--color-slate-800)')
         ->and($webkitWidthBlock)
-        ->toContain('.fi-sidebar-nav::-webkit-scrollbar,')
+        ->toContain('.fi-dropdown-panel::-webkit-scrollbar,')
         ->toContain('width: 6px !important;')
+        ->not->toContain('.fi-sidebar-nav::-webkit-scrollbar,')
+        ->not->toContain('.custom-scrollbar::-webkit-scrollbar,')
         ->and($chromiumDarkColorBlock)
-        ->toContain('scrollbar-color: rgba(51, 65, 85, 0.5) transparent !important;')
+        ->toContain('scrollbar-color: var(--tido-scrollbar-thumb) var(--tido-scrollbar-track) !important;')
         ->not->toContain('.fi-sidebar-nav')
+        ->not->toContain('.custom-scrollbar')
         ->and($css)
-        ->toContain('.fi-sidebar-nav::-webkit-scrollbar-button {');
+        ->toContain('--tido-scrollbar-track: var(--tido-bg-color-light, var(--color-white));')
+        ->toContain('--tido-scrollbar-track: var(--tido-bg-color-dark, var(--color-slate-800));')
+        ->toContain('background-color: var(--tido-scrollbar-track) !important;')
+        ->toContain('.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav {')
+        ->toContain('scrollbar-width: none;')
+        ->toContain('.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav::-webkit-scrollbar {')
+        ->toContain('will-change: scroll-position')
+        ->toContain('scrollbar-color: var(--tido-scrollbar-thumb) var(--color-white);')
+        ->toContain('scrollbar-color: var(--tido-scrollbar-thumb) var(--color-slate-800);');
 });
 
 test('dashboard renders changelog slide-over shell', function () {

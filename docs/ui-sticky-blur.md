@@ -110,7 +110,7 @@ Dashboard remains the reference for **top** sticky bars (manual `Group` + marker
 
 ## Assets (already panel-wide)
 
-- CSS: [`resources/css/app.css`](../resources/css/app.css) — sticky offsets, progressive blur/tint veil (dual `::before` / `::after` layers). `backdrop-filter` applies only while `.tido-sticky-stuck`; `html.tido-is-scrolling` drops the stronger `::after` blur during native scroll
+- CSS: [`resources/css/app.css`](../resources/css/app.css) — sticky offsets, progressive blur/tint veil (dual `::before` / `::after` layers). `backdrop-filter` applies only while `.tido-sticky-stuck`; `html.tido-is-scrolling` drops both veil blurs during native or nested scroll. On desktop the veil starts after the sidebar.
 - JS: [`resources/js/sticky-blur-veil.js`](../resources/js/sticky-blur-veil.js) — capture-phase scroll listener (page + nested overflow); caches pin offsets; skips no-op class toggles; toggles `tido-sticky-stuck` and `html.tido-is-scrolling`
 - Registered in [`vite.config.js`](../vite.config.js) and [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php) `->assets()` via `Vite::asset()` — see [`vite-assets.md`](vite-assets.md)
 
@@ -120,8 +120,8 @@ No per-page JS registration is required once the hook classes are present.
 
 - **Top offset** matches tido topbar height: `calc(var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem)` (`gap-1` under the topbar).
 - **Bottom offset** uses `0.25rem` from the viewport bottom.
-- Veil is **fixed**, full width, only visible while `.tido-sticky-stuck` (CSS sticky slot, ~2px). At document top the top pin is in flow so the top veil is off; at document bottom the bottom pin releases so the bottom veil is off. Progressive dual-layer blur + slate/white tint avoids Chromium’s hard `backdrop-filter` mask cutoff.
-- `backdrop-filter` is **not** applied while the veil is `opacity: 0` (unstuck). While `html.tido-is-scrolling`, the stronger `::after` blur is disabled so Chromium is not resampling two filters every frame; the tint remains. Frost returns when scroll idle (~150ms). Nested overflow scrollers (e.g. Recurring Payment Due lists) also set `tido-is-scrolling` via a capture-phase listener — window scroll alone would miss them.
+- Veil is **fixed**, only visible while `.tido-sticky-stuck` (CSS sticky slot, ~2px). On desktop it starts after the sidebar (`--sidebar-width` / `--collapsed-sidebar-width`); below `lg` it stays full viewport width. At document top the top pin is in flow so the top veil is off; at document bottom the bottom pin releases so the bottom veil is off. Progressive dual-layer blur + slate/white tint avoids Chromium’s hard `backdrop-filter` mask cutoff.
+- `backdrop-filter` is **not** applied while the veil is `opacity: 0` (unstuck). While `html.tido-is-scrolling`, both veil blurs are disabled so Chromium is not resampling filters every frame; the tint remains. Frost returns when scroll idle (~150ms). Nested overflow scrollers (e.g. Budget Performance lists) also set `tido-is-scrolling` via a capture-phase listener — window scroll alone would miss them.
 - Pin children stay sharp (`z-index: 1` above the veil).
 - SPA: JS re-binds on `livewire:navigated` and after Livewire `morphed` (in-page updates such as dashboard Focus tabs). Do **not** add GSAP ScrollSmoother / Lenis / `scroll-behavior: smooth` on `html` — those fight CSS sticky, `position: fixed` chrome, and Livewire SPA scroll.
 

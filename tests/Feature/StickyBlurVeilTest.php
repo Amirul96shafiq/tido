@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Str;
+
 test('sticky blur veil script caches pin offsets and marks native scrolling', function () {
     $js = (string) file_get_contents(resource_path('js/sticky-blur-veil.js'));
 
@@ -41,7 +43,10 @@ test('sticky blur veil applies backdrop filter only while stuck', function () {
         ->toContain('.tido-sticky-stuck::after {')
         ->toContain('backdrop-filter: blur(8px);')
         ->toContain('html.tido-is-scrolling')
-        ->toContain('backdrop-filter: none;');
+        ->toContain('.tido-sticky-stuck::before,')
+        ->toContain('backdrop-filter: none;')
+        ->toContain('inset-inline-start: var(--sidebar-width, 18rem);')
+        ->toContain('inset-inline-start: var(--collapsed-sidebar-width, 4.5rem);');
 });
 
 test('panel does not install a transform-based smooth scroll library', function () {
