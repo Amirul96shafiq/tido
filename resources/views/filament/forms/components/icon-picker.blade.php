@@ -120,7 +120,7 @@
                 </x-slot>
 
                 <div class="flex flex-col gap-4">
-                    <div class="grid max-h-96 grid-cols-3 gap-2 overflow-y-auto sm:grid-cols-4 md:grid-cols-6">
+                    <div class="custom-scrollbar grid max-h-96 grid-cols-3 gap-2 overflow-y-auto sm:grid-cols-4 md:grid-cols-6">
                         <template x-for="icon in visible" :key="icon.value">
                             <button
                                 type="button"

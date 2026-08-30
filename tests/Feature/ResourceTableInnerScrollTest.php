@@ -28,6 +28,19 @@ test('app.css contains resource table inner scroll and height rules', function (
         ->toContain('overflow-y: auto !important;');
 });
 
+test('resource table inner scroll uses overlay scrollbar like finances widgets', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.custom-scrollbar,')
+        ->toContain('.fi-ta-content-ctn,')
+        ->toContain('.fi-dropdown-panel,')
+        ->toContain('.results-container,')
+        ->not->toContain('.fi-ta-content-ctn::-webkit-scrollbar')
+        ->not->toContain('.fi-dropdown-panel::-webkit-scrollbar')
+        ->not->toContain('.results-container::-webkit-scrollbar');
+});
+
 test('app.css freezes resource table record actions on the right', function () {
     $css = file_get_contents(resource_path('css/app.css'));
 
