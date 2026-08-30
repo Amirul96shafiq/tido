@@ -4,10 +4,10 @@ Run **tido** and **Evolution** as two separate processes on the Windows host.
 
 ## Architecture (local)
 
-| Terminal | Command | Role |
-|----------|---------|------|
-| 1 | `npm run dev:full` | tido (Vite + `artisan serve` :2000 + queue + Reverb :8081) |
-| 2 | `npm run evolution` | Evolution API on `http://127.0.0.1:8080` |
+| Terminal | Command             | Role                                                       |
+| -------- | ------------------- | ---------------------------------------------------------- |
+| 1        | `npm run dev:full`  | tido (Vite + `artisan serve` :2000 + queue + Reverb :8081) |
+| 2        | `npm run evolution` | Evolution API on `http://127.0.0.1:8080`                   |
 
 Optional later: `npm run dev:whatsapp` starts tido **and** Evolution in one window (Approach A). Prefer two terminals until QR pairing works.
 
@@ -45,8 +45,8 @@ Edit Evolution’s `.env` at minimum:
 - Redis URL if required
 - Server port `8080` (default). tido Reverb uses **8081** — do not put Evolution on 8081 or Reverb on 8080. See [realtime-broadcasting.md](realtime-broadcasting.md).
 - Linked device label (optional; `npm run evolution` defaults these):
-  - `CONFIG_SESSION_PHONE_CLIENT="tido App (Evolution API)"` — os string WhatsApp shows
-  - `CONFIG_SESSION_PHONE_NAME=Desktop` — PlatformType for **QR** links (`Chrome` forces a “Google Chrome (…)” prefix)
+    - `CONFIG_SESSION_PHONE_CLIENT="tido App (Evolution API)"` — os string WhatsApp shows
+    - `CONFIG_SESSION_PHONE_NAME=Desktop` — PlatformType for **QR** links (`Chrome` forces a “Google Chrome (…)” prefix)
 - Pair with code uses Evolution’s stock Baileys path (no custom browser identity). Linked Devices typically shows `Google Chrome (Mac OS)`. Use **QR** if you want `tido App (Evolution API)` as the device label.
 - After changing those values: **Log out** the linked device on your phone, restart Evolution, then connect again (QR or pairing code). Existing links keep the old name.
 - If WhatsApp shows **Google Chrome (Mac OS)** after pairing with a code, Evolution was skipping the custom `browser` identity on the pairing path (Baileys default). Use a build that sets CLIENT + Chrome for pairing, then logout and re-pair.
@@ -209,7 +209,7 @@ Use **Dismiss** for an identity that should not be linked. Use **Unlink** on a l
 ## Step 5: Verify
 
 Terminal 1: `npm run dev:full`  
-Terminal 2: Evolution running  
+Terminal 2: Evolution running
 
 ```bash
 php artisan whatsapp:ping
@@ -225,27 +225,28 @@ If Evolution is down, use **Sign in with email & password** (primary user only).
 
 ## npm scripts (tido)
 
-| Script | Purpose |
-|--------|---------|
-| `npm run dev:full` | tido only (default daily work) |
-| `npm run evolution` | Start Evolution from `EVOLUTION_PATH` (default `../evolution-api`). Kills leftover Evolution Node processes first and uses `npm run start` (no `tsx watch`) so one WhatsApp socket stays alive. |
-| `npm run dev:whatsapp` | tido + Evolution together (opt-in) |
+| Script                 | Purpose                                                                                                                                                                                                                                                                       |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev:full`     | tido only (default daily work)                                                                                                                                                                                                                                                |
+| `npm run evolution`    | Start Evolution from `EVOLUTION_PATH` (default `../evolution-api`). Kills leftover Evolution Node processes first and runs `tsx ./src/main.ts` (no `tsx watch`) so one WhatsApp socket stays alive. stdout/stderr are also appended to tido `storage/logs/evolution-api.log`. |
+| `npm run dev:whatsapp` | tido + Evolution together (opt-in)                                                                                                                                                                                                                                            |
 
 ---
 
 ## Troubleshooting
 
-| Issue | Check |
-|-------|--------|
-| `whatsapp:ping` fails | Evolution up? `EVOLUTION_API_URL=http://127.0.0.1:8080`? Does `EVOLUTION_API_KEY` match `AUTHENTICATION_API_KEY`? |
-| Evolution page reports unconfigured | Confirm both credentials are present, at least 32 characters, distinct, and free of angle-bracket or known placeholder values. |
-| Connection refused | Wrong port; Evolution not started |
-| OTP not received | Instance CONNECTED? Number matches `User.phone`? |
-| Webhook never fires | URL must be `http://127.0.0.1:2000/...` while using `artisan serve`; confirm the registered `Authorization` header uses `EVOLUTION_WEBHOOK_SECRET` |
-| Wrong Evolution URL in `.env` | Use `http://127.0.0.1:8080` |
-| PDF is rejected as unreadable or password-protected | Resend an unencrypted PDF; password-protected and unreadable PDFs are not supported |
-| PDF remains pending or ends in manual review | Confirm `PDFINFO_BINARY`, `PDFTOCAIRO_BINARY`, and `PDFTOPPM_BINARY` point to working Poppler executables, then restart the queue worker |
-| LID sender is ignored | Open the WhatsApp LID section and link the pending LID to the correct allowlisted contact |
-| Evolution log repeats `CONNECTED TO WHATSAPP` with `conflict` / `replaced` | Two Evolution Node processes share the same linked device. Stop `dev:all`, then start it once — `npm run evolution` now kills leftover processes before connecting. |
+| Issue                                                                                                           | Check                                                                                                                                                                                                                                                                                                   |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `whatsapp:ping` fails                                                                                           | Evolution up? `EVOLUTION_API_URL=http://127.0.0.1:8080`? Does `EVOLUTION_API_KEY` match `AUTHENTICATION_API_KEY`?                                                                                                                                                                                       |
+| Evolution page reports unconfigured                                                                             | Confirm both credentials are present, at least 32 characters, distinct, and free of angle-bracket or known placeholder values.                                                                                                                                                                          |
+| Connection refused                                                                                              | Wrong port; Evolution not started                                                                                                                                                                                                                                                                       |
+| OTP not received                                                                                                | Instance CONNECTED? Number matches `User.phone`?                                                                                                                                                                                                                                                        |
+| Webhook never fires                                                                                             | URL must be `http://127.0.0.1:2000/...` while using `artisan serve`; confirm the registered `Authorization` header uses `EVOLUTION_WEBHOOK_SECRET`                                                                                                                                                      |
+| Wrong Evolution URL in `.env`                                                                                   | Use `http://127.0.0.1:8080`                                                                                                                                                                                                                                                                             |
+| PDF is rejected as unreadable or password-protected                                                             | Resend an unencrypted PDF; password-protected and unreadable PDFs are not supported                                                                                                                                                                                                                     |
+| PDF remains pending or ends in manual review                                                                    | Confirm `PDFINFO_BINARY`, `PDFTOCAIRO_BINARY`, and `PDFTOPPM_BINARY` point to working Poppler executables, then restart the queue worker                                                                                                                                                                |
+| LID sender is ignored                                                                                           | Open the WhatsApp LID section and link the pending LID to the correct allowlisted contact                                                                                                                                                                                                               |
+| Combined `dev:all` terminal hides Evolution send/receive payloads                                               | Eight processes share one pane; Evolution `console.log(object)` also collapsed nested webhook bodies to `[Object]`. Filter `[evolution]` in the terminal, or tail `storage/logs/evolution-api.log` for the full stream. Filament receipt uploads never hit Evolution — only WhatsApp send/receive does. |
+| Evolution log repeats `CONNECTED TO WHATSAPP` with `conflict` / `replaced`, or only the first message is logged | Two Evolution processes or WhatsApp Web share the same linked device. Stop every `dev:all` window, close extra WhatsApp Web sessions for that device, then start **one** stack. The launcher takes a single-instance lock and kills leftover Evolution Node processes before connecting.                |
 
 Production later: run tido + Evolution as separate managed services on a Linux VPS, not `concurrently` on a desktop.
