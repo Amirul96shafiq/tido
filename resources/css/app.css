@@ -43,23 +43,23 @@
 
 /* Custom scrollbar — page chrome, reusable class, Filament panels.
  * Do NOT set scrollbar-width: thin OR ::-webkit-scrollbar on nested overflow
- * (.fi-sidebar-nav, .custom-scrollbar) in Chromium: those become classic
- * 6px gutters with discrete wheel scrolling. Nested lists may use
+ * (.fi-sidebar-nav, .custom-scrollbar, .fi-ta-content-ctn, changelog window,
+ * notification .fi-modal-content) in Chromium: those
+ * become classic 6px gutters with discrete wheel scrolling. Nested lists may use
  * scrollbar-color so the OS track matches the surface (white / slate-800).
  * The page scroller (html/body/.fi-body) may keep the 6px webkit overlay.
  * Firefox nested bars get thin via @supports below.
- * Filament slide-overs (View details, changelog, resource View) scroll on
+ * Filament slide-overs (View details, resource View) scroll on
  * .fi-modal-window (overflow-y-auto).
  * Centered action modals (Ollama Edit setup) scroll on .fi-modal-window-ctn.
- * Database notifications pin header/footer and scroll .fi-modal-content. */
+ * Database notifications pin header/footer and overlay-scroll .fi-modal-content.
+ * Resource tables inner-scroll on .fi-ta-content-ctn (overlay, like widgets). */
 .fi-dropdown-panel,
 .fi-ta-filters-body,
 .fi-ta-col-manager-body,
-.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window,
+.fi-modal-slide-over:not(.fi-changelog) .fi-modal-window-ctn > .fi-modal-window,
 .fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn,
-.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content,
-.results-container,
-.fi-ta-content-ctn {
+.results-container {
     scrollbar-width: thin !important;
     scrollbar-color: var(--tido-scrollbar-thumb) var(--tido-scrollbar-track) !important;
 }
@@ -74,7 +74,13 @@
     }
 
     .fi-sidebar-nav,
-    .custom-scrollbar {
+    .custom-scrollbar,
+    .fi-ta-content-ctn,
+    .fi-changelog .fi-modal-window-ctn > .fi-modal-window,
+    .fi-no-database
+        .fi-modal-window-ctn
+        > .fi-modal-window
+        > .fi-modal-content {
         scrollbar-width: thin;
         scrollbar-color: var(--tido-scrollbar-thumb) var(--color-white);
     }
@@ -87,7 +93,14 @@
     }
 
     .dark .fi-sidebar-nav,
-    .dark .custom-scrollbar {
+    .dark .custom-scrollbar,
+    .dark .fi-ta-content-ctn,
+    .dark .fi-changelog .fi-modal-window-ctn > .fi-modal-window,
+    .dark
+        .fi-no-database
+        .fi-modal-window-ctn
+        > .fi-modal-window
+        > .fi-modal-content {
         scrollbar-color: var(--tido-scrollbar-thumb) var(--color-slate-800);
     }
 }
@@ -99,14 +112,11 @@ body::-webkit-scrollbar,
 .fi-dropdown-panel::-webkit-scrollbar,
 .fi-ta-filters-body::-webkit-scrollbar,
 .fi-ta-col-manager-body::-webkit-scrollbar,
-.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar,
-.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn::-webkit-scrollbar,
-.fi-no-database
+.fi-modal-slide-over:not(.fi-changelog)
     .fi-modal-window-ctn
-    > .fi-modal-window
-    > .fi-modal-content::-webkit-scrollbar,
-.results-container::-webkit-scrollbar,
-.fi-ta-content-ctn::-webkit-scrollbar {
+    > .fi-modal-window::-webkit-scrollbar,
+.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn::-webkit-scrollbar,
+.results-container::-webkit-scrollbar {
     width: 6px !important;
     height: 6px !important;
 }
@@ -118,17 +128,12 @@ body::-webkit-scrollbar-track,
 .fi-dropdown-panel::-webkit-scrollbar-track,
 .fi-ta-filters-body::-webkit-scrollbar-track,
 .fi-ta-col-manager-body::-webkit-scrollbar-track,
-.fi-modal-slide-over
+.fi-modal-slide-over:not(.fi-changelog)
     .fi-modal-window-ctn
     > .fi-modal-window::-webkit-scrollbar-track,
 .fi-modal:not(.fi-modal-slide-over)
     > .fi-modal-window-ctn::-webkit-scrollbar-track,
-.fi-no-database
-    .fi-modal-window-ctn
-    > .fi-modal-window
-    > .fi-modal-content::-webkit-scrollbar-track,
-.results-container::-webkit-scrollbar-track,
-.fi-ta-content-ctn::-webkit-scrollbar-track {
+.results-container::-webkit-scrollbar-track {
     background-color: var(--tido-scrollbar-track) !important;
 }
 
@@ -167,17 +172,12 @@ body::-webkit-scrollbar-thumb,
 .fi-dropdown-panel::-webkit-scrollbar-thumb,
 .fi-ta-filters-body::-webkit-scrollbar-thumb,
 .fi-ta-col-manager-body::-webkit-scrollbar-thumb,
-.fi-modal-slide-over
+.fi-modal-slide-over:not(.fi-changelog)
     .fi-modal-window-ctn
     > .fi-modal-window::-webkit-scrollbar-thumb,
 .fi-modal:not(.fi-modal-slide-over)
     > .fi-modal-window-ctn::-webkit-scrollbar-thumb,
-.fi-no-database
-    .fi-modal-window-ctn
-    > .fi-modal-window
-    > .fi-modal-content::-webkit-scrollbar-thumb,
-.results-container::-webkit-scrollbar-thumb,
-.fi-ta-content-ctn::-webkit-scrollbar-thumb {
+.results-container::-webkit-scrollbar-thumb {
     background-color: var(--tido-scrollbar-thumb) !important;
     border-radius: 0 !important;
 }
@@ -189,32 +189,24 @@ body::-webkit-scrollbar-thumb:hover,
 .fi-dropdown-panel::-webkit-scrollbar-thumb:hover,
 .fi-ta-filters-body::-webkit-scrollbar-thumb:hover,
 .fi-ta-col-manager-body::-webkit-scrollbar-thumb:hover,
-.fi-modal-slide-over
+.fi-modal-slide-over:not(.fi-changelog)
     .fi-modal-window-ctn
     > .fi-modal-window::-webkit-scrollbar-thumb:hover,
 .fi-modal:not(.fi-modal-slide-over)
     > .fi-modal-window-ctn::-webkit-scrollbar-thumb:hover,
-.fi-no-database
-    .fi-modal-window-ctn
-    > .fi-modal-window
-    > .fi-modal-content::-webkit-scrollbar-thumb:hover,
-.results-container::-webkit-scrollbar-thumb:hover,
-.fi-ta-content-ctn::-webkit-scrollbar-thumb:hover {
+.results-container::-webkit-scrollbar-thumb:hover {
     background-color: var(--tido-scrollbar-thumb-hover) !important;
 }
 
 .dark .fi-dropdown-panel,
 .dark .fi-ta-filters-body,
 .dark .fi-ta-col-manager-body,
-.dark .fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window,
-.dark .fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn,
 .dark
-    .fi-no-database
+    .fi-modal-slide-over:not(.fi-changelog)
     .fi-modal-window-ctn
-    > .fi-modal-window
-    > .fi-modal-content,
-.dark .results-container,
-.dark .fi-ta-content-ctn {
+    > .fi-modal-window,
+.dark .fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn,
+.dark .results-container {
     scrollbar-color: var(--tido-scrollbar-thumb) var(--tido-scrollbar-track) !important;
 }
 
@@ -226,19 +218,13 @@ html.dark::-webkit-scrollbar-thumb,
 .dark .fi-ta-filters-body::-webkit-scrollbar-thumb,
 .dark .fi-ta-col-manager-body::-webkit-scrollbar-thumb,
 .dark
-    .fi-modal-slide-over
+    .fi-modal-slide-over:not(.fi-changelog)
     .fi-modal-window-ctn
     > .fi-modal-window::-webkit-scrollbar-thumb,
 .dark
     .fi-modal:not(.fi-modal-slide-over)
     > .fi-modal-window-ctn::-webkit-scrollbar-thumb,
-.dark
-    .fi-no-database
-    .fi-modal-window-ctn
-    > .fi-modal-window
-    > .fi-modal-content::-webkit-scrollbar-thumb,
-.dark .results-container::-webkit-scrollbar-thumb,
-.dark .fi-ta-content-ctn::-webkit-scrollbar-thumb {
+.dark .results-container::-webkit-scrollbar-thumb {
     background-color: var(--tido-scrollbar-thumb) !important;
 }
 
@@ -250,19 +236,13 @@ html.dark::-webkit-scrollbar-thumb:hover,
 .dark .fi-ta-filters-body::-webkit-scrollbar-thumb:hover,
 .dark .fi-ta-col-manager-body::-webkit-scrollbar-thumb:hover,
 .dark
-    .fi-modal-slide-over
+    .fi-modal-slide-over:not(.fi-changelog)
     .fi-modal-window-ctn
     > .fi-modal-window::-webkit-scrollbar-thumb:hover,
 .dark
     .fi-modal:not(.fi-modal-slide-over)
     > .fi-modal-window-ctn::-webkit-scrollbar-thumb:hover,
-.dark
-    .fi-no-database
-    .fi-modal-window-ctn
-    > .fi-modal-window
-    > .fi-modal-content::-webkit-scrollbar-thumb:hover,
-.dark .results-container::-webkit-scrollbar-thumb:hover,
-.dark .fi-ta-content-ctn::-webkit-scrollbar-thumb:hover {
+.dark .results-container::-webkit-scrollbar-thumb:hover {
     background-color: var(--tido-scrollbar-thumb-hover) !important;
 }
 
@@ -328,13 +308,23 @@ html.dark::-webkit-scrollbar-thumb:hover,
  * Hint the compositor so nested wheel animation can match the root scroller.
  */
 .fi-sidebar-nav,
-.custom-scrollbar {
+.custom-scrollbar,
+.fi-ta-content-ctn,
+.fi-changelog .fi-modal-window-ctn > .fi-modal-window,
+.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content {
     will-change: scroll-position;
     scrollbar-color: var(--tido-scrollbar-thumb) var(--color-white);
 }
 
 .dark .fi-sidebar-nav,
-.dark .custom-scrollbar {
+.dark .custom-scrollbar,
+.dark .fi-ta-content-ctn,
+.dark .fi-changelog .fi-modal-window-ctn > .fi-modal-window,
+.dark
+    .fi-no-database
+    .fi-modal-window-ctn
+    > .fi-modal-window
+    > .fi-modal-content {
     scrollbar-color: var(--tido-scrollbar-thumb) var(--color-slate-800);
 }
 
