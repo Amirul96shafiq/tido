@@ -353,6 +353,26 @@ test('expense global search finds line item description', function () {
         ->and($results->first()->details['Items'])->toBe('Organic Almond Milk Special (RM 12.50)');
 });
 
+test('expense global search results are ordered by edited at newest first', function () {
+    Expense::factory()->create([
+        'merchant_name' => 'SortAlpha Market',
+        'updated_at' => now()->subDays(2),
+    ]);
+
+    Expense::factory()->create([
+        'merchant_name' => 'SortBeta Market',
+        'updated_at' => now()->subHour(),
+    ]);
+
+    $results = ExpenseResource::getGlobalSearchResults('Sort');
+
+    expect($results)->toHaveCount(2)
+        ->and($results->map(fn ($result): string => $result->title)->all())->toBe([
+            'SortBeta Market',
+            'SortAlpha Market',
+        ]);
+});
+
 test('expense global search includes each matching item price', function () {
     $expense = Expense::factory()->create([
         'merchant_name' => 'Wet Market',

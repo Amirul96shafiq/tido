@@ -93,6 +93,11 @@ class ExpenseResource extends Resource
         return parent::getGlobalSearchEloquentQuery()->with(['expenseItems.label']);
     }
 
+    public static function modifyGlobalSearchQuery(Builder $query, string $search): void
+    {
+        $query->latest($query->getModel()->getQualifiedUpdatedAtColumn());
+    }
+
     public static function getGlobalSearchResults(string $search): Collection
     {
         static::$globalSearchQuery = $search;
