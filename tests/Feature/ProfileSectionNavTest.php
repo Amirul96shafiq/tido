@@ -44,7 +44,7 @@ test('profile section nav lists main column sections as anchor tabs', function (
         ->assertSee('Regional Preferences')
         ->assertSee('Notifications')
         ->assertSee('Danger Zone')
-        ->assertSee('#personalize', false)
+        ->assertSee('#personalize-appearance', false)
         ->assertSee('#account-security', false)
         ->assertSee('#active-sessions', false)
         ->assertSee('#regional-preferences', false)
@@ -76,7 +76,7 @@ test('profile section nav excludes sidebar photo and personal details', function
 
 test('profile section nav items match sectionNavItems helper', function () {
     expect(EditProfile::sectionNavItems())->toBe([
-        ['label' => 'Personalize', 'id' => 'personalize'],
+        ['label' => 'Personalize & Appearance', 'id' => 'personalize-appearance'],
         ['label' => 'Account & Security', 'id' => 'account-security'],
         ['label' => 'Active Sessions', 'id' => 'active-sessions'],
         ['label' => 'Regional Preferences', 'id' => 'regional-preferences'],
@@ -94,7 +94,7 @@ test('family member profile hides account and security section and nav', functio
     $this->actingAs($user);
 
     expect(EditProfile::sectionNavItems())->toBe([
-        ['label' => 'Personalize', 'id' => 'personalize'],
+        ['label' => 'Personalize & Appearance', 'id' => 'personalize-appearance'],
         ['label' => 'Active Sessions', 'id' => 'active-sessions'],
         ['label' => 'Regional Preferences', 'id' => 'regional-preferences'],
         ['label' => 'Notifications', 'id' => 'notifications'],

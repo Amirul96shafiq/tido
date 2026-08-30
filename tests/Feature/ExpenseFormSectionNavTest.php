@@ -6,6 +6,7 @@ use App\Filament\Resources\Expenses\Pages\CreateExpense;
 use App\Filament\Resources\Expenses\Pages\EditExpense;
 use App\Filament\Resources\Expenses\Schemas\ExpenseForm;
 use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -58,6 +59,20 @@ test('expense section nav items match sectionNavItems helper', function () {
         ['label' => 'Line Items', 'id' => 'line-items'],
         ['label' => 'Expense Status', 'id' => 'expense-status'],
     ]);
+});
+
+test('expense edit page renders line item anchors for global search', function () {
+    $expense = Expense::factory()->create();
+
+    $item = ExpenseItem::factory()
+        ->for($expense)
+        ->create([
+            'description' => 'Anchor Test Item',
+        ]);
+
+    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSee('id="expense-item-'.$item->getKey().'"', false);
 });
 
 test('expense section nav smooth scrolls on tab click', function () {

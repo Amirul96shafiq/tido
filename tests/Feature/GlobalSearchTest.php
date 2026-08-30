@@ -30,6 +30,7 @@ use CharrafiMed\GlobalSearchModal\Livewire\GlobalSearchModal;
 use CharrafiMed\GlobalSearchModal\SearchEngine;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -243,7 +244,7 @@ test('profile edit page exposes searchable section anchors', function () {
     expect($html)
         ->toContain('id="account-security"')
         ->toContain('id="active-sessions"')
-        ->toContain('id="personalize"')
+        ->toContain('id="personalize-appearance"')
         ->toContain('id="danger-zone"')
         ->toContain('id="profile-photo"')
         ->toContain('id="personal-details"');
@@ -252,7 +253,44 @@ test('profile edit page exposes searchable section anchors', function () {
 test('admin panel includes spa-safe hash scroll helper', function () {
     $this->get('/admin')
         ->assertOk()
-        ->assertSee('__tidoHashScrollInstalled', false);
+        ->assertSee('__tidoHashScrollInstalled', false)
+        ->assertSee('tido-section-search-highlight', false)
+        ->assertSee('tidoClearSearchHighlights', false)
+        ->assertSee('tido-suppress-search-highlight', false)
+        ->assertSee("classList.contains('fi-section')", false)
+        ->assertSee("classList.contains('fi-sc-section')", false);
+});
+
+test('hash scroll highlights searchable filament sections', function () {
+    $script = (string) file_get_contents(resource_path('views/components/hash-scroll.blade.php'));
+
+    expect($script)
+        ->toContain('tido-section-search-highlight')
+        ->toContain('window.tidoClearSearchHighlights = clearSearchHighlights')
+        ->toContain('tido-suppress-search-highlight')
+        ->toContain('applySearchHighlight')
+        ->toContain("classList.contains('fi-section')")
+        ->toContain("classList.contains('fi-sc-section')")
+        ->toContain(':scope > .fi-section')
+        ->not->toContain("closest('.fi-section')");
+
+    $nav = (string) file_get_contents(resource_path('views/filament/schemas/components/section-nav.blade.php'));
+
+    expect($nav)
+        ->toContain('tidoClearSearchHighlights')
+        ->toContain('tido-suppress-search-highlight')
+        ->toContain('scrollToSection(id)');
+});
+
+test('destination search personalize section uses the appearance anchor', function () {
+    $results = AdminDestinationSearch::search('Personalize', GlobalSearchResults::make());
+    $sections = collect($results->getCategories()->get('Sections', []));
+
+    $match = $sections->first(fn ($result): bool => $result->title === 'Personalize');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toEndWith('#personalize-appearance')
+        ->and($match->details)->toBe(['Page' => 'Profile']);
 });
 
 test('section anchors include scroll margin offset for sticky topbar', function () {
@@ -318,6 +356,24 @@ test('expense global search finds merchant name', function () {
         ->and($results->first()->title)->toBe('UniqueMerchantXYZ');
 });
 
+test('expense global search details include buy date and last updated', function () {
+    $this->travelTo(Carbon::parse('2026-08-31 12:00:00', 'Asia/Kuala_Lumpur'));
+
+    Expense::factory()->create([
+        'merchant_name' => 'Dates Detail Shop',
+        'date_time' => Carbon::parse('2026-08-20 14:30:00', 'Asia/Kuala_Lumpur'),
+        'updated_at' => Carbon::parse('2026-08-30 12:00:00', 'Asia/Kuala_Lumpur'),
+    ]);
+
+    $results = ExpenseResource::getGlobalSearchResults('Dates Detail Shop');
+    $details = $results->first()->details;
+
+    expect($results)->toHaveCount(1)
+        ->and($details)->not->toHaveKey('Date')
+        ->and($details['Buy Date'])->toBe('20 Aug 2026')
+        ->and($details['Last Updated'])->toBe('1 day ago (30 Aug 2026 12:00)');
+});
+
 test('expense global search finds status', function () {
     $expense = Expense::factory()->create([
         'merchant_name' => 'Status Store',
@@ -342,14 +398,77 @@ test('expense global search finds line item description', function () {
         ->for($expense)
         ->create([
             'description' => 'Organic Almond Milk Special',
+            'line_total' => '12.50',
         ]);
 
     $results = ExpenseResource::getGlobalSearchResults('Almond Milk');
 
     expect($results)->toHaveCount(1)
         ->and($results->first()->title)->toBe('Generic Store')
-        ->and($results->first()->details)->toHaveKey('Items')
-        ->and($results->first()->details['Items'])->toContain('Organic Almond Milk Special');
+        ->and($results->first()->details)->toHaveKey('Item')
+        ->and($results->first()->details['Item'])->toBe('Organic Almond Milk Special (RM 12.50)')
+        ->and($results->first()->url)->toEndWith('#expense-item-'.$expense->expenseItems->first()->getKey());
+});
+
+test('expense global search splits into one result per matching line item', function () {
+    $expense = Expense::factory()->create([
+        'merchant_name' => 'Wet Market',
+    ]);
+
+    $firstItem = ExpenseItem::factory()
+        ->for($expense)
+        ->create([
+            'description' => 'Ayam',
+            'line_total' => '8.90',
+        ]);
+
+    $secondItem = ExpenseItem::factory()
+        ->for($expense)
+        ->create([
+            'description' => 'Ayam',
+            'line_total' => '15.00',
+        ]);
+
+    $results = ExpenseResource::getGlobalSearchResults('Ayam');
+
+    expect($results)->toHaveCount(2)
+        ->and($results[0]->title)->toBe('Wet Market')
+        ->and($results[1]->title)->toBe('Wet Market')
+        ->and($results[0]->details['Item'])->toBe('Ayam (RM 8.90)')
+        ->and($results[1]->details['Item'])->toBe('Ayam (RM 15.00)')
+        ->and($results[0]->url)->toEndWith('#expense-item-'.$firstItem->getKey())
+        ->and($results[1]->url)->toEndWith('#expense-item-'.$secondItem->getKey());
+});
+
+test('expense global search omits item hash when only merchant matches', function () {
+    Expense::factory()->create([
+        'merchant_name' => 'Cake Bakery Only',
+    ]);
+
+    $results = ExpenseResource::getGlobalSearchResults('Cake Bakery Only');
+
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->url)->not->toContain('expense-item-');
+});
+
+test('expense global search results are ordered by edited at newest first', function () {
+    Expense::factory()->create([
+        'merchant_name' => 'SortAlpha Market',
+        'updated_at' => now()->subDays(2),
+    ]);
+
+    Expense::factory()->create([
+        'merchant_name' => 'SortBeta Market',
+        'updated_at' => now()->subHour(),
+    ]);
+
+    $results = ExpenseResource::getGlobalSearchResults('Sort');
+
+    expect($results)->toHaveCount(2)
+        ->and($results->map(fn ($result): string => $result->title)->all())->toBe([
+            'SortBeta Market',
+            'SortAlpha Market',
+        ]);
 });
 
 test('global search highlights matching detail values with the primary color', function () {
@@ -361,6 +480,7 @@ test('global search highlights matching detail values with the primary color', f
         ->for($expense)
         ->create([
             'description' => 'Organic Almond Milk Special',
+            'line_total' => '12.50',
         ]);
 
     $html = Livewire::test(GlobalSearchModal::class)
@@ -369,7 +489,7 @@ test('global search highlights matching detail values with the primary color', f
 
     expect($html)
         ->toContain('<span class="text-primary-500 font-semibold hover:underline">Almond Milk</span>')
-        ->toContain('Organic <span class="text-primary-500 font-semibold hover:underline">Almond Milk</span> Special');
+        ->toContain('Organic <span class="text-primary-500 font-semibold hover:underline">Almond Milk</span> Special (RM 12.50)');
 });
 
 test('expense global search omits items detail when only merchant matches', function () {
@@ -380,6 +500,7 @@ test('expense global search omits items detail when only merchant matches', func
     $results = ExpenseResource::getGlobalSearchResults('Cake Bakery Only');
 
     expect($results)->toHaveCount(1)
+        ->and($results->first()->details)->not->toHaveKey('Item')
         ->and($results->first()->details)->not->toHaveKey('Items');
 });
 

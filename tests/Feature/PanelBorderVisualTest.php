@@ -46,6 +46,7 @@ test('panel surfaces share the chrome border token', function () {
         ->toContain('.fi-input-wrp.fi-disabled:not(.fi-invalid):focus-within {')
         ->toContain('border-color: var(--primary-600) !important;')
         ->toContain('border-color: var(--primary-500) !important;')
+        ->toContain('.fi-body .fi-section.tido-section-search-highlight')
         ->toContain('.fi-sidebar {')
         ->toContain('border-style: solid !important;')
         ->toContain('border-width: 1px !important;')
@@ -94,4 +95,23 @@ test('dashboard stats wrapper does not add a duplicate outer border', function (
         )
         ->toContain('border-width: 0 !important;')
         ->toContain('--tw-ring-shadow: 0 0 0 0 transparent !important;');
+});
+
+test('global search hash targets highlight section and expense item borders', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+    $highlightBlock = Str::between(
+        $css,
+        '.fi-expense-form-page .fi-fo-repeater-item:has([id^="expense-item-"]:target),',
+        '.fi-input-wrp:not(.fi-invalid):not(.fi-disabled):hover,',
+    );
+
+    expect($highlightBlock)
+        ->not->toBeEmpty()
+        ->toContain('.fi-body .fi-section.tido-section-search-highlight')
+        ->toContain('html:not(.tido-suppress-search-highlight)')
+        ->toContain('.fi-sc-section:target')
+        ->toContain('.fi-section:target')
+        ->toContain('border-color: var(--primary-600) !important;')
+        ->toContain('border-color: var(--primary-500) !important;')
+        ->toContain('--tw-ring-shadow: 0 0 0 2px var(--tw-ring-color) !important;');
 });
