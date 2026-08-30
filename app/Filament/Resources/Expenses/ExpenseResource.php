@@ -117,7 +117,14 @@ class ExpenseResource extends Resource
         /** @var Expense $record */
         $details = [
             'Expense #' => $record->invoice_number ?? '—',
-            'Date' => $record->date_time?->format('d M Y') ?? '—',
+            'Buy Date' => $record->date_time?->format('d M Y') ?? '—',
+            'Last Updated' => $record->updated_at === null
+                ? '—'
+                : sprintf(
+                    '%s (%s)',
+                    $record->updated_at->diffForHumans(),
+                    $record->updated_at->format('d M Y H:i'),
+                ),
             'Total' => MoneyDisplay::withCurrency($record->total_amount, $record->displayCurrency()),
             'Status' => $record->status,
         ];

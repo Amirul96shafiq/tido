@@ -30,6 +30,7 @@ use CharrafiMed\GlobalSearchModal\Livewire\GlobalSearchModal;
 use CharrafiMed\GlobalSearchModal\SearchEngine;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -316,6 +317,24 @@ test('expense global search finds merchant name', function () {
 
     expect($results)->toHaveCount(1)
         ->and($results->first()->title)->toBe('UniqueMerchantXYZ');
+});
+
+test('expense global search details include buy date and last updated', function () {
+    $this->travelTo(Carbon::parse('2026-08-31 12:00:00', 'Asia/Kuala_Lumpur'));
+
+    Expense::factory()->create([
+        'merchant_name' => 'Dates Detail Shop',
+        'date_time' => Carbon::parse('2026-08-20 14:30:00', 'Asia/Kuala_Lumpur'),
+        'updated_at' => Carbon::parse('2026-08-30 12:00:00', 'Asia/Kuala_Lumpur'),
+    ]);
+
+    $results = ExpenseResource::getGlobalSearchResults('Dates Detail Shop');
+    $details = $results->first()->details;
+
+    expect($results)->toHaveCount(1)
+        ->and($details)->not->toHaveKey('Date')
+        ->and($details['Buy Date'])->toBe('20 Aug 2026')
+        ->and($details['Last Updated'])->toBe('1 day ago (30 Aug 2026 12:00)');
 });
 
 test('expense global search finds status', function () {
