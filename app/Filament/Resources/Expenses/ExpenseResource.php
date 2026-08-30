@@ -164,26 +164,35 @@ class ExpenseResource extends Resource
 
                 return false;
             })
-            ->map(function (ExpenseItem $item): string {
-                $description = trim((string) ($item->description ?? ''));
-
-                if ($description !== '') {
-                    return $description;
-                }
-
-                $serial = trim((string) ($item->serial_number ?? ''));
-
-                if ($serial !== '') {
-                    return $serial;
-                }
-
-                return trim((string) ($item->label?->name ?? ''));
-            })
+            ->map(fn (ExpenseItem $item): string => static::expenseItemSearchLabel($item, $record))
             ->filter()
             ->unique()
             ->take(3)
             ->values()
             ->all();
+    }
+
+    protected static function expenseItemSearchLabel(ExpenseItem $item, Expense $expense): string
+    {
+        $label = trim((string) ($item->description ?? ''));
+
+        if ($label === '') {
+            $label = trim((string) ($item->serial_number ?? ''));
+        }
+
+        if ($label === '') {
+            $label = trim((string) ($item->label?->name ?? ''));
+        }
+
+        if ($label === '' || $item->line_total === null || $item->line_total === '') {
+            return $label;
+        }
+
+        return sprintf(
+            '%s (%s)',
+            $label,
+            MoneyDisplay::withCurrency($item->line_total, $expense->displayCurrency()),
+        );
     }
 
     /**
