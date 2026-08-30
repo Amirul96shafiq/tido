@@ -16,6 +16,11 @@
                 : 'smooth'
         );
 
+        const clearExpenseItemHighlights = () => {
+            document.querySelectorAll('.tido-expense-item-search-highlight')
+                .forEach((element) => element.classList.remove('tido-expense-item-search-highlight'));
+        };
+
         const scrollToHash = (attempt = 0) => {
             const hash = window.location.hash;
 
@@ -35,6 +40,10 @@
             }
 
             const sectionId = id.startsWith('expense-item-') ? 'line-items' : id;
+
+            if (!id.startsWith('expense-item-')) {
+                clearExpenseItemHighlights();
+            }
 
             window.dispatchEvent(
                 new CustomEvent('open-section', {
@@ -57,6 +66,9 @@
                 const headerLabel = repeaterItem.querySelector('.fi-fo-repeater-item-header-label');
 
                 scrollTarget = headerLabel ?? repeaterItem;
+
+                clearExpenseItemHighlights();
+                repeaterItem.classList.add('tido-expense-item-search-highlight');
             }
 
             requestAnimationFrame(() => {

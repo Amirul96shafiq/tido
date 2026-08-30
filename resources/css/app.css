@@ -5098,6 +5098,24 @@ html.tido-reduce-motion .tido-select-value-marquee .fi-select-input-value-ctn {
     box-shadow: none !important;
 }
 
+.fi-expense-form-page .fi-fo-repeater-item:has([id^="expense-item-"]:target),
+.fi-expense-form-page .fi-fo-repeater-item.tido-expense-item-search-highlight {
+    border-color: var(--primary-600) !important;
+    --tw-ring-color: var(--primary-600) !important;
+    --tw-ring-shadow: 0 0 0 2px var(--tw-ring-color) !important;
+    box-shadow: var(--tw-ring-shadow) !important;
+}
+
+.dark
+    .fi-expense-form-page
+    .fi-fo-repeater-item:has([id^="expense-item-"]:target),
+.dark
+    .fi-expense-form-page
+    .fi-fo-repeater-item.tido-expense-item-search-highlight {
+    border-color: var(--primary-500) !important;
+    --tw-ring-color: var(--primary-500) !important;
+}
+
 .fi-input-wrp:not(.fi-invalid):not(.fi-disabled):hover,
 .fi-input-wrp:not(.fi-invalid):not(.fi-disabled):focus,
 .fi-input-wrp:not(.fi-invalid):not(.fi-disabled):focus-within {
