@@ -325,7 +325,7 @@ test('ollama page shows receipt & parsing activity stats from stored expenses', 
         ->assertSee('PDF receipts')
         ->assertSee('Image receipts')
         ->assertSee('Text-only receipts')
-        ->assertSee('Upload Receipts')
+        ->assertSee('Add Receipts')
         ->assertSee(ReceiptUploadPage::getUrl(), false);
 
     $html = Livewire::test(OllamaPage::class)

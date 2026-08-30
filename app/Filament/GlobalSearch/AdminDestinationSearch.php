@@ -168,8 +168,8 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Dashboard'],
             ],
             [
-                'title' => 'Upload Receipts',
-                'keywords' => ['upload', 'receipt', 'receipts', 'finances', 'ingest'],
+                'title' => 'Add Receipts',
+                'keywords' => ['add', 'upload', 'receipt', 'receipts', 'finances', 'ingest'],
                 'group' => 'Pages',
                 'url' => $uploadUrl,
             ],
@@ -383,18 +383,18 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Service Status'],
             ],
             [
-                'title' => 'Upload Receipts',
-                'keywords' => ['upload', 'receipt', 'receipts', 'file', 'image'],
+                'title' => 'Add Receipts',
+                'keywords' => ['add', 'upload', 'receipt', 'receipts', 'file', 'image'],
                 'group' => 'Sections',
-                'url' => $uploadUrl.'#upload-receipts',
-                'details' => ['Page' => 'Upload Receipts'],
+                'url' => $uploadUrl.'#add-receipts',
+                'details' => ['Page' => 'Add Receipts'],
             ],
             [
                 'title' => 'Recent Uploads & Processing Status',
                 'keywords' => ['recent', 'uploads', 'processing', 'status', 'queue', 'pending'],
                 'group' => 'Sections',
                 'url' => $uploadUrl.'#recent-uploads',
-                'details' => ['Page' => 'Upload Receipts'],
+                'details' => ['Page' => 'Add Receipts'],
             ],
         ];
 

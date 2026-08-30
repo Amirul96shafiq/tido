@@ -1,5 +1,5 @@
 /**
- * Processes sessionStorage handoff on the Upload Receipts page (SPA-safe).
+ * Processes sessionStorage handoff on the Add Receipts page (SPA-safe).
  */
 
 const COPY = {

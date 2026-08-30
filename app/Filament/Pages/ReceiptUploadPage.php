@@ -41,15 +41,15 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
 
     protected static ?string $slug = 'upload-receipts';
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-up-on-square';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-plus';
 
-    protected static ?string $navigationLabel = 'Upload Receipts';
+    protected static ?string $navigationLabel = 'Add Receipts';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Finances';
 
     protected static ?int $navigationSort = 1;
 
-    protected static ?string $title = 'Upload Receipts';
+    protected static ?string $title = 'Add Receipts';
 
     public ?array $data = [];
 
@@ -69,14 +69,14 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
     public static function sectionNavItems(): array
     {
         return [
-            ['label' => 'Upload Receipts', 'id' => 'upload-receipts'],
+            ['label' => 'Add Receipts', 'id' => 'add-receipts'],
             ['label' => 'Recent Uploads & Processing Status', 'id' => 'recent-uploads'],
         ];
     }
 
     public function sectionNavAriaLabel(): string
     {
-        return 'Upload receipts sections';
+        return 'Add receipts sections';
     }
 
     public function content(Schema $schema): Schema

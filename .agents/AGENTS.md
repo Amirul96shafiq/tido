@@ -124,9 +124,9 @@ Use Filament `Schema` for forms (v5), not legacy Form API. Prefer native Form/Ta
 
 ### Navigation
 
-- Groups: **Finances** (Upload Receipts, Expenses, Budgets), **Settings** (Labels, Payment Methods, Family Members), **Integrations** (WhatsApp, AI Parsing Engine), **Tools** (Backups, Service Status) — Tools is last
+- Groups: **Finances** (Add Receipts, Expenses, Budgets, Recurrings), **Settings** (Labels, Payment Methods, Family Members), **Integrations** (WhatsApp, AI Parsing Engine), **Tools** (Backups, Service Status) — Tools is last
 - Home dashboard modules (Finances / Training / Health / Task icon tabs): see `docs/dashboard-views.md` — not sidebar nav groups
-- **Primary-only** Settings / Tools / Integrations: use `RequiresPrimaryHouseholdAccess` (or `HouseholdAccess::isPrimary()`). Family members get Finances (Upload, Expenses, Budgets, Recurrings) + Profile; Budgets/Recurrings create stays primary-only — see `docs/household-access.md`
+- **Primary-only** Settings / Tools / Integrations: use `RequiresPrimaryHouseholdAccess` (or `HouseholdAccess::isPrimary()`). Family members get Finances (Add Receipts, Expenses, Budgets, Recurrings) + Profile; Budgets/Recurrings create stays primary-only — see `docs/household-access.md`
 - Theme: amber/zinc accents + Slate dark surfaces (see `docs/ui-dark-theme.md`), Outfit font, SPA mode, collapsible sidebar, database notifications
 - Breadcrumbs: Filament native panel breadcrumbs with `PrependsHomeBreadcrumb`. Kept visible on small screens via `.fi-header .fi-breadcrumbs` override in `app.css`. Do not disable panel-wide or replace with a custom back link. When adding a new Create/Edit/List/custom page, use `PrependsHomeBreadcrumb` and register Create/Edit pages in the `PAGE_END` draft-poller scopes.
 - Custom pages: `Dashboard`, `ReceiptUploadPage`, `Auth/EditProfile`, `EvolutionApiPage`, `OllamaPage`, `WhatsAppOfficialApiPage`, `GeminiPage`, `OpenAiPage`, `ServiceStatusPage`
@@ -223,7 +223,7 @@ Resource::getUrl('index', [
 - Dedicated View pages (`ViewRecord`, `make:filament-page --type=ViewRecord`, `getPages()` `view` routes)
 - Custom resource `infolist()` / `Schemas/*Infolist.php` for table View slide-overs
 - Omitting View from resource table `recordActions` (except Backups)
-- Flat Edit/Delete/custom row actions outside `RecordActionsGroup` (Upload Receipts / Recent Receipts excepted)
+- Flat Edit/Delete/custom row actions outside `RecordActionsGroup` (Add Receipts / Recent Receipts excepted)
 - Visible text labels on ungrouped table record actions (icons only)
 - Raw `->dateTime()` alone on `created_at` resource columns — use `since()` + `dateTimeTooltip()`
 - Browser-native `title=` tooltips on icon CTAs

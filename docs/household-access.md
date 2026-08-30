@@ -38,7 +38,7 @@ Primary-only surfaces use `RequiresPrimaryHouseholdAccess` (`canAccess` + restri
 - Family members see restricted entries at 50% opacity with an access tooltip; direct access remains forbidden
 - Global search destinations filtered for non-primary users (Budgets and Recurrings stay visible)
 
-Family members **can** use: Home (Finance dashboard), Upload Receipts, Expenses, Budgets, Recurrings, Service Status (read-only), Profile (own account), WhatsApp OTP login.
+Family members **can** use: Home (Finance dashboard), Add Receipts, Expenses, Budgets, Recurrings, Service Status (read-only), Profile (own account), WhatsApp OTP login.
 
 ## Budgets (owner + share)
 

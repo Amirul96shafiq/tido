@@ -284,7 +284,7 @@ class ExpensesTable
             ->emptyStateIcon('heroicon-o-document-text')
             ->emptyStateActions([
                 Action::make('uploadReceipts')
-                    ->label('Upload Receipts')
+                    ->label('Add Receipts')
                     ->icon(Heroicon::Plus)
                     ->url(ReceiptUploadPage::getUrl())
                     ->button(),

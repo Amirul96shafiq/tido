@@ -98,14 +98,14 @@ Home module tabs (Finances / Training / Health / Task) are **not** section nav â
 | Scroll offset CSS | [`.tido-dashboard-page .fi-wi-widget[id]`](../resources/css/app.css), [`.tido-dashboard-page .fi-wi-stats-overview-stat[id]`](../resources/css/app.css) + `--tido-dashboard-section-nav-offset` |
 | Tests | [`tests/Feature/DashboardSectionNavTest.php`](../tests/Feature/DashboardSectionNavTest.php) |
 
-## Upload Receipts
+## Add Receipts
 
 | Layer | Path |
 |-------|------|
 | Section list | `ReceiptUploadPage::sectionNavItems()` |
 | Sticky pin + content scope | `ReceiptUploadPage::content()` â€” `wrapInSectionNavScope()` + content partial |
 | Page class | `.fi-upload-receipts-page` |
-| Anchors | `#upload-receipts`, `#recent-uploads` in [`receipt-upload-content.blade.php`](../resources/views/filament/pages/partials/receipt-upload-content.blade.php) |
+| Anchors | `#add-receipts`, `#recent-uploads` in [`receipt-upload-content.blade.php`](../resources/views/filament/pages/partials/receipt-upload-content.blade.php) |
 | Tests | [`tests/Feature/ReceiptUploadSectionNavTest.php`](../tests/Feature/ReceiptUploadSectionNavTest.php) |
 
 ## Expense Create / Edit

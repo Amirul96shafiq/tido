@@ -46,7 +46,7 @@ test('expense table shows payment method labels for qr and touch n go', function
         ->assertSee("Touch 'n Go");
 });
 
-test('upload receipts table shows payment method labels for qr and touch n go', function () {
+test('add receipts table shows payment method labels for qr and touch n go', function () {
     $qrExpense = Expense::factory()->create([
         'payment_method_id' => PaymentMethod::findBySlug('pay_with_qr')->id,
         'original_filename' => 'qr_receipt.jpg',

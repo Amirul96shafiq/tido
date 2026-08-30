@@ -13,7 +13,7 @@ beforeEach(function () {
     $this->actingAs(User::factory()->withWhatsAppPhone('60123456789')->create());
 });
 
-test('upload receipts page renders sticky section nav markers', function () {
+test('add receipts page renders sticky section nav markers', function () {
     Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
         ->assertSee('tido-sticky-scope', false)
@@ -21,23 +21,23 @@ test('upload receipts page renders sticky section nav markers', function () {
         ->assertSee('tido-section-nav', false);
 });
 
-test('upload receipts section nav lists anchor tabs', function () {
+test('add receipts section nav lists anchor tabs', function () {
     Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
-        ->assertSee('Upload Receipts')
+        ->assertSee('Add Receipts')
         ->assertSee('Recent Uploads &amp; Processing Status', false)
-        ->assertSee('#upload-receipts', false)
+        ->assertSee('#add-receipts', false)
         ->assertSee('#recent-uploads', false);
 });
 
-test('upload receipts section nav items match sectionNavItems helper', function () {
+test('add receipts section nav items match sectionNavItems helper', function () {
     expect(ReceiptUploadPage::sectionNavItems())->toBe([
-        ['label' => 'Upload Receipts', 'id' => 'upload-receipts'],
+        ['label' => 'Add Receipts', 'id' => 'add-receipts'],
         ['label' => 'Recent Uploads & Processing Status', 'id' => 'recent-uploads'],
     ]);
 });
 
-test('upload receipts section nav smooth scrolls on tab click', function () {
+test('add receipts section nav smooth scrolls on tab click', function () {
     Livewire::test(ReceiptUploadPage::class)
         ->assertSuccessful()
         ->assertSee('scrollToSection', false)

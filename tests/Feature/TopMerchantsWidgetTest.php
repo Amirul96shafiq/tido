@@ -82,7 +82,7 @@ test('top merchants widget renders empty state', function () {
         ->assertSuccessful()
         ->assertSee('No merchants')
         ->assertSee('No merchant spending recorded for this month.')
-        ->assertSee('Upload Receipts');
+        ->assertSee('Add Receipts');
 });
 
 test('top merchants widget listens for echo expense updates without polling', function () {

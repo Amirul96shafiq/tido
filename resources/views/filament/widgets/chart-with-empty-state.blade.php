@@ -93,7 +93,7 @@
                                 color="primary"
                                 icon="heroicon-m-plus"
                             >
-                                Upload Receipts
+                                Add Receipts
                             </x-filament::button>
                         </x-slot>
                     </x-empty-state-panel>

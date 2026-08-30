@@ -6,7 +6,7 @@ Live expense tables update when a receipt is uploaded or OCR status changes, wit
 
 Receipt parsing is asynchronous. An expense is created as `pending`, then `ExtractReceiptDataJob` (or a WhatsApp job) updates status later on the `receipts` queue. WhatsApp uploads also arrive from a webhook, not the current Livewire request. Budget alerts, backup notices, and manual-review notices are stored as database notifications after those jobs finish.
 
-Expenses, Upload Receipts, and Recent Receipts used `->poll('10s.visible')` to notice table changes. The notifications slide-over used `databaseNotificationsPolling('60s')`. Polling is replaced with Laravel Reverb (local websocket) plus Filament Echo.
+Expenses, Add Receipts, and Recent Receipts used `->poll('10s.visible')` to notice table changes. The notifications slide-over used `databaseNotificationsPolling('60s')`. Polling is replaced with Laravel Reverb (local websocket) plus Filament Echo.
 
 ## Local runtime
 

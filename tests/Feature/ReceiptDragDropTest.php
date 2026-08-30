@@ -93,7 +93,7 @@ test('admin dashboard includes drag drop config bootstrap', function () {
         ->assertSee(ReceiptUploadPage::getUrl(), false);
 });
 
-test('upload receipts page includes drag drop config bootstrap', function () {
+test('add receipts page includes drag drop config bootstrap', function () {
     $this->get(ReceiptUploadPage::getUrl())
         ->assertSuccessful()
         ->assertSee('window.dragDropConfig', false);

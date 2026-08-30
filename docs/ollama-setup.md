@@ -141,7 +141,7 @@ That starts Vite, `php artisan serve` (port 2000), and `queue:listen` on `defaul
 
 ## Step 5: Smoke test
 
-1. Open Filament → **Upload Receipts** and upload a receipt image, or send an image/PDF from an allowlisted WhatsApp number.
+1. Open Filament → **Add Receipts** and upload a receipt image, or send an image/PDF from an allowlisted WhatsApp number.
 2. Open the expense: status should move from `pending` → `parsed` with merchant / amounts / line items.
 3. If status stays `pending`, the queue worker is not running.
 4. If status becomes `requires_manual_review`, check `storage/logs/laravel.log` for Ollama connection or HTTP errors.

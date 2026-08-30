@@ -307,7 +307,7 @@
                         :href="\App\Filament\Pages\ReceiptUploadPage::getUrl()"
                         class="shrink-0 self-center sm:self-auto"
                     >
-                        Upload Receipts
+                        Add Receipts
                     </x-filament::button>
                 </div>
             </div>

@@ -53,5 +53,5 @@ test('spending by payment method widget renders empty state', function () {
         ->assertSuccessful()
         ->assertSee('No expenses')
         ->assertSee('No payment method spending recorded for this month.')
-        ->assertSee('Upload Receipts');
+        ->assertSee('Add Receipts');
 });

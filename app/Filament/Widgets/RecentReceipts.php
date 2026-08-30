@@ -147,7 +147,7 @@ class RecentReceipts extends BaseWidget
             ->emptyStateIcon('heroicon-o-receipt-percent')
             ->emptyStateActions([
                 Action::make('uploadReceipts')
-                    ->label('Upload Receipts')
+                    ->label('Add Receipts')
                     ->icon(Heroicon::Plus)
                     ->url(ReceiptUploadPage::getUrl())
                     ->button(),

@@ -86,7 +86,7 @@ Attribution: `family_member_id` null = Primary; set from WhatsApp sender (`Expen
 
 ## Filament map
 
-- Resources: Upload Receipts, Expenses, Budgets, Recurrings (Finances); Labels, Payment Methods, Family Members (Settings); Evolution API (Integrations); Backups, Service Status (Tools) — models `Label`, `PaymentMethod`, `FamilyMember`, `Backup`, `Recurring`
+- Resources: Add Receipts, Expenses, Budgets, Recurrings (Finances); Labels, Payment Methods, Family Members (Settings); Evolution API (Integrations); Backups, Service Status (Tools) — models `Label`, `PaymentMethod`, `FamilyMember`, `Backup`, `Recurring`
 - Primary-only: Labels, Payment Methods, Family Members, Evolution, Backups (`RequiresPrimaryHouseholdAccess`); Service Status is household-readable with primary-only manual probes
 - Family Finances ACL: Expenses, Budgets, and Recurrings are listable; mutate assigned records only; create for Budgets/Recurrings stays primary-only (visible disabled CTA)
 - Recurrings docs: `docs/recurrings.md`

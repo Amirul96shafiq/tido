@@ -78,7 +78,7 @@ test('custom receipt upload page shows home and title breadcrumbs', function () 
         ->assertSee('fi-breadcrumbs', false)
         ->assertSee('Home')
         ->assertSee($homeUrl, false)
-        ->assertSee('Upload Receipts');
+        ->assertSee('Add Receipts');
 });
 
 /**

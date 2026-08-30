@@ -49,7 +49,7 @@ test('spending by label widget renders empty state', function () {
         ->assertSuccessful()
         ->assertSee('No expenses')
         ->assertSee('No label spending recorded for this month.')
-        ->assertSee('Upload Receipts');
+        ->assertSee('Add Receipts');
 });
 
 test('spending by label widget listens for echo expense updates without polling', function () {

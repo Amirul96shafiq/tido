@@ -1,6 +1,6 @@
 <form wire:submit="save">
-    <x-filament::section id="upload-receipts">
-        <x-slot name="heading">Upload Receipts</x-slot>
+    <x-filament::section id="add-receipts">
+        <x-slot name="heading">Add Receipts</x-slot>
 
         {{ $this->form }}
 

@@ -24,7 +24,7 @@ test('expenses list shows illustrated empty state', function () {
         ->assertSuccessful()
         ->assertSee('No expenses yet')
         ->assertSee('Upload a receipt or add an expense to start tracking spending.')
-        ->assertSee('Upload Receipts');
+        ->assertSee('Add Receipts');
 });
 
 test('budgets list shows illustrated empty state', function () {
@@ -56,7 +56,7 @@ test('recent receipts widget shows illustrated empty state', function () {
         ->assertSuccessful()
         ->assertSee('No receipts')
         ->assertSee('No receipts recorded for this month.')
-        ->assertSee('Upload Receipts');
+        ->assertSee('Add Receipts');
 });
 
 test('receipt upload page table shows illustrated empty state', function () {
