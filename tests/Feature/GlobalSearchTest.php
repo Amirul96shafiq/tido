@@ -244,7 +244,7 @@ test('profile edit page exposes searchable section anchors', function () {
     expect($html)
         ->toContain('id="account-security"')
         ->toContain('id="active-sessions"')
-        ->toContain('id="personalize"')
+        ->toContain('id="personalize-appearance"')
         ->toContain('id="danger-zone"')
         ->toContain('id="profile-photo"')
         ->toContain('id="personal-details"');
@@ -253,7 +253,44 @@ test('profile edit page exposes searchable section anchors', function () {
 test('admin panel includes spa-safe hash scroll helper', function () {
     $this->get('/admin')
         ->assertOk()
-        ->assertSee('__tidoHashScrollInstalled', false);
+        ->assertSee('__tidoHashScrollInstalled', false)
+        ->assertSee('tido-section-search-highlight', false)
+        ->assertSee('tidoClearSearchHighlights', false)
+        ->assertSee('tido-suppress-search-highlight', false)
+        ->assertSee("classList.contains('fi-section')", false)
+        ->assertSee("classList.contains('fi-sc-section')", false);
+});
+
+test('hash scroll highlights searchable filament sections', function () {
+    $script = (string) file_get_contents(resource_path('views/components/hash-scroll.blade.php'));
+
+    expect($script)
+        ->toContain('tido-section-search-highlight')
+        ->toContain('window.tidoClearSearchHighlights = clearSearchHighlights')
+        ->toContain('tido-suppress-search-highlight')
+        ->toContain('applySearchHighlight')
+        ->toContain("classList.contains('fi-section')")
+        ->toContain("classList.contains('fi-sc-section')")
+        ->toContain(':scope > .fi-section')
+        ->not->toContain("closest('.fi-section')");
+
+    $nav = (string) file_get_contents(resource_path('views/filament/schemas/components/section-nav.blade.php'));
+
+    expect($nav)
+        ->toContain('tidoClearSearchHighlights')
+        ->toContain('tido-suppress-search-highlight')
+        ->toContain('scrollToSection(id)');
+});
+
+test('destination search personalize section uses the appearance anchor', function () {
+    $results = AdminDestinationSearch::search('Personalize', GlobalSearchResults::make());
+    $sections = collect($results->getCategories()->get('Sections', []));
+
+    $match = $sections->first(fn ($result): bool => $result->title === 'Personalize');
+
+    expect($match)->not->toBeNull()
+        ->and($match->url)->toEndWith('#personalize-appearance')
+        ->and($match->details)->toBe(['Page' => 'Profile']);
 });
 
 test('section anchors include scroll margin offset for sticky topbar', function () {

@@ -5099,7 +5099,14 @@ html.tido-reduce-motion .tido-select-value-marquee .fi-select-input-value-ctn {
 }
 
 .fi-expense-form-page .fi-fo-repeater-item:has([id^="expense-item-"]:target),
-.fi-expense-form-page .fi-fo-repeater-item.tido-expense-item-search-highlight {
+.fi-expense-form-page .fi-fo-repeater-item.tido-expense-item-search-highlight,
+html:not(.tido-suppress-search-highlight)
+    .fi-body
+    .fi-section:target,
+html:not(.tido-suppress-search-highlight)
+    .fi-sc-section:target
+    > .fi-section,
+.fi-body .fi-section.tido-section-search-highlight {
     border-color: var(--primary-600) !important;
     --tw-ring-color: var(--primary-600) !important;
     --tw-ring-shadow: 0 0 0 2px var(--tw-ring-color) !important;
@@ -5111,7 +5118,12 @@ html.tido-reduce-motion .tido-select-value-marquee .fi-select-input-value-ctn {
     .fi-fo-repeater-item:has([id^="expense-item-"]:target),
 .dark
     .fi-expense-form-page
-    .fi-fo-repeater-item.tido-expense-item-search-highlight {
+    .fi-fo-repeater-item.tido-expense-item-search-highlight,
+.dark:not(.tido-suppress-search-highlight) .fi-body .fi-section:target,
+.dark:not(.tido-suppress-search-highlight)
+    .fi-sc-section:target
+    > .fi-section,
+.dark .fi-body .fi-section.tido-section-search-highlight {
     border-color: var(--primary-500) !important;
     --tw-ring-color: var(--primary-500) !important;
 }

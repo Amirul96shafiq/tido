@@ -9,6 +9,8 @@
 
         const maxAttempts = 10;
         const retryDelayMs = 150;
+        const expenseHighlightClass = 'tido-expense-item-search-highlight';
+        const sectionHighlightClass = 'tido-section-search-highlight';
 
         const scrollBehavior = () => (
             typeof window.tidoPrefersReducedMotion === 'function' && window.tidoPrefersReducedMotion()
@@ -16,9 +18,45 @@
                 : 'smooth'
         );
 
-        const clearExpenseItemHighlights = () => {
-            document.querySelectorAll('.tido-expense-item-search-highlight')
-                .forEach((element) => element.classList.remove('tido-expense-item-search-highlight'));
+        const clearSearchHighlights = () => {
+            document.querySelectorAll(`.${expenseHighlightClass}, .${sectionHighlightClass}`)
+                .forEach((element) => {
+                    element.classList.remove(expenseHighlightClass);
+                    element.classList.remove(sectionHighlightClass);
+                });
+        };
+
+        window.tidoClearSearchHighlights = clearSearchHighlights;
+
+        const sectionBorderTarget = (element) => {
+            if (element.classList.contains('fi-section')) {
+                return element;
+            }
+
+            if (element.classList.contains('fi-sc-section')) {
+                return element.querySelector(':scope > .fi-section');
+            }
+
+            return null;
+        };
+
+        const applySearchHighlight = (target) => {
+            document.documentElement.classList.remove('tido-suppress-search-highlight');
+            clearSearchHighlights();
+
+            const repeaterItem = target.closest('.fi-fo-repeater-item');
+
+            if (repeaterItem) {
+                repeaterItem.classList.add(expenseHighlightClass);
+
+                return;
+            }
+
+            const section = sectionBorderTarget(target);
+
+            if (section) {
+                section.classList.add(sectionHighlightClass);
+            }
         };
 
         const scrollToHash = (attempt = 0) => {
@@ -41,10 +79,6 @@
 
             const sectionId = id.startsWith('expense-item-') ? 'line-items' : id;
 
-            if (!id.startsWith('expense-item-')) {
-                clearExpenseItemHighlights();
-            }
-
             window.dispatchEvent(
                 new CustomEvent('open-section', {
                     detail: { id: sectionId },
@@ -66,10 +100,9 @@
                 const headerLabel = repeaterItem.querySelector('.fi-fo-repeater-item-header-label');
 
                 scrollTarget = headerLabel ?? repeaterItem;
-
-                clearExpenseItemHighlights();
-                repeaterItem.classList.add('tido-expense-item-search-highlight');
             }
+
+            applySearchHighlight(target);
 
             requestAnimationFrame(() => {
                 scrollTarget.scrollIntoView({

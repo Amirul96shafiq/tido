@@ -72,6 +72,11 @@
                 return;
             }
 
+            if (typeof window.tidoClearSearchHighlights === 'function') {
+                document.documentElement.classList.add('tido-suppress-search-highlight');
+                window.tidoClearSearchHighlights();
+            }
+
             this.activeId = id;
 
             if (decodeURIComponent(window.location.hash.slice(1)) !== id) {
