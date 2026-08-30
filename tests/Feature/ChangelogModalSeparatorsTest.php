@@ -31,18 +31,17 @@ test('changelog slide-over css fixes content bleed like database notifications',
         ->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window .fi-modal-content');
 });
 
-test('filament slide-overs use the shared custom scrollbar theme', function () {
+test('filament nested panels use overlay scrollbar not webkit gutter', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
     expect($css)
-        ->toContain('.fi-modal-slide-over:not(.fi-changelog) .fi-modal-window-ctn > .fi-modal-window,')
-        ->toContain('.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn,')
-        ->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window,')
-        ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content {')
-        ->toContain('.fi-modal-slide-over:not(.fi-changelog)')
-        ->toContain('.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn::-webkit-scrollbar,')
-        ->not->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content::-webkit-scrollbar')
-        ->not->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar')
+        ->toContain('.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window,')
+        ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content,')
+        ->toContain('.results-container,')
+        ->not->toContain('.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar')
+        ->not->toContain('.fi-dropdown-panel::-webkit-scrollbar')
+        ->not->toContain('.fi-ta-filters-body::-webkit-scrollbar')
+        ->not->toContain('.results-container::-webkit-scrollbar')
         ->not->toContain(".fi-modal[id='ollama-config-details'] .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar")
         ->not->toContain(".fi-modal[id='ollama-supported-tasks'] .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar")
         ->not->toContain('.fi-modal.fi-evolution-api-details .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar');
@@ -56,14 +55,8 @@ test('filament slide-overs use the shared custom scrollbar theme', function () {
         ->and($evolution)->not->toContain('custom-scrollbar');
 });
 
-test('sidebar nav and widget lists skip chromium nested webkit scrollbars', function () {
+test('page chrome keeps webkit gutter and nested lists use overlay tint', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
-
-    $chromiumWidthBlock = Str::between(
-        $css,
-        'Resource tables inner-scroll on .fi-ta-content-ctn (overlay, like widgets). */',
-        '@supports not selector(::-webkit-scrollbar) {',
-    );
 
     $firefoxBlock = Str::between(
         $css,
@@ -77,47 +70,41 @@ test('sidebar nav and widget lists skip chromium nested webkit scrollbars', func
         'html::-webkit-scrollbar-track,',
     );
 
-    $chromiumDarkColorBlock = Str::between(
+    $overlayBlock = Str::between(
         $css,
-        '.results-container::-webkit-scrollbar-thumb:hover {',
-        'html.dark::-webkit-scrollbar-thumb,',
+        'Hint the compositor so nested wheel animation can match the root scroller.',
+        '.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav-groups {',
     );
 
-    expect($chromiumWidthBlock)
-        ->toContain('scrollbar-width: thin !important;')
-        ->not->toContain('.fi-sidebar-nav')
-        ->not->toContain('.custom-scrollbar')
-        ->not->toContain('.fi-ta-content-ctn')
-        ->not->toContain('.fi-no-database')
-        ->toContain(':not(.fi-changelog)')
+    expect($webkitWidthBlock)
+        ->toContain('body::-webkit-scrollbar,')
+        ->toContain('.fi-main-ctn::-webkit-scrollbar')
+        ->toContain('width: 6px !important;')
+        ->not->toContain('.fi-dropdown-panel')
+        ->not->toContain('.fi-ta-filters-body')
+        ->not->toContain('.fi-modal-slide-over')
+        ->not->toContain('.results-container')
+        ->and($css)
+        ->toContain('html::-webkit-scrollbar,')
         ->and($firefoxBlock)
         ->toContain('.fi-sidebar-nav,')
         ->toContain('.custom-scrollbar,')
         ->toContain('.fi-ta-content-ctn,')
-        ->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window,')
-        ->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content {')
-        ->toContain('.dark .fi-sidebar-nav,')
-        ->toContain('.dark .custom-scrollbar,')
-        ->toContain('.dark .fi-ta-content-ctn,')
-        ->toContain('.dark .fi-changelog .fi-modal-window-ctn > .fi-modal-window,')
+        ->toContain('.fi-dropdown-panel,')
+        ->toContain('.fi-ta-filters-body,')
+        ->toContain('.fi-ta-col-manager-body,')
+        ->toContain('.fi-modal-slide-over .fi-modal-window-ctn > .fi-modal-window,')
+        ->toContain('.fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn,')
+        ->toContain('.results-container,')
+        ->toContain('.tido-date-picker-month-panel')
         ->toContain('scrollbar-width: thin;')
         ->toContain('var(--color-white)')
         ->toContain('var(--color-slate-800)')
-        ->and($webkitWidthBlock)
-        ->toContain('.fi-dropdown-panel::-webkit-scrollbar,')
-        ->toContain('width: 6px !important;')
-        ->not->toContain('.fi-sidebar-nav::-webkit-scrollbar,')
-        ->not->toContain('.custom-scrollbar::-webkit-scrollbar,')
-        ->not->toContain('.fi-ta-content-ctn::-webkit-scrollbar')
-        ->not->toContain('.fi-changelog .fi-modal-window-ctn > .fi-modal-window::-webkit-scrollbar')
-        ->not->toContain('.fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-content::-webkit-scrollbar')
-        ->and($chromiumDarkColorBlock)
-        ->toContain('scrollbar-color: var(--tido-scrollbar-thumb) var(--tido-scrollbar-track) !important;')
-        ->not->toContain('.fi-sidebar-nav')
-        ->not->toContain('.custom-scrollbar')
-        ->not->toContain('.fi-ta-content-ctn')
-        ->not->toContain('.fi-no-database')
-        ->toContain(':not(.fi-changelog)')
+        ->and($overlayBlock)
+        ->toContain('will-change: scroll-position')
+        ->toContain('.fi-dropdown-panel,')
+        ->toContain('.tido-date-picker-month-panel')
+        ->not->toContain('::-webkit-scrollbar')
         ->and($css)
         ->toContain('--tido-scrollbar-track: var(--tido-bg-color-light, var(--color-white));')
         ->toContain('--tido-scrollbar-track: var(--tido-bg-color-dark, var(--color-slate-800));')
@@ -125,9 +112,23 @@ test('sidebar nav and widget lists skip chromium nested webkit scrollbars', func
         ->toContain('.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav {')
         ->toContain('scrollbar-width: none;')
         ->toContain('.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav::-webkit-scrollbar {')
-        ->toContain('will-change: scroll-position')
         ->toContain('scrollbar-color: var(--tido-scrollbar-thumb) var(--color-white);')
         ->toContain('scrollbar-color: var(--tido-scrollbar-thumb) var(--color-slate-800);');
+});
+
+test('global search modal vendor view omits classic scrollbar utilities', function () {
+    $blade = (string) file_get_contents(resource_path('views/vendor/global-search-modal/components/global-search-modal.blade.php'));
+
+    expect($blade)
+        ->toContain('results-container')
+        ->not->toContain('[scrollbar-width:thin]')
+        ->not->toContain('::-webkit-scrollbar]');
+});
+
+test('icon picker overflow grid uses custom scrollbar class', function () {
+    $blade = (string) file_get_contents(resource_path('views/filament/forms/components/icon-picker.blade.php'));
+
+    expect($blade)->toContain('custom-scrollbar grid max-h-96');
 });
 
 test('dashboard renders changelog slide-over shell', function () {

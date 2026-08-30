@@ -33,8 +33,12 @@ test('resource table inner scroll uses overlay scrollbar like finances widgets',
 
     expect($css)
         ->toContain('.custom-scrollbar,')
-        ->toContain('.fi-ta-content-ctn {')
-        ->not->toContain('.fi-ta-content-ctn::-webkit-scrollbar');
+        ->toContain('.fi-ta-content-ctn,')
+        ->toContain('.fi-dropdown-panel,')
+        ->toContain('.results-container,')
+        ->not->toContain('.fi-ta-content-ctn::-webkit-scrollbar')
+        ->not->toContain('.fi-dropdown-panel::-webkit-scrollbar')
+        ->not->toContain('.results-container::-webkit-scrollbar');
 });
 
 test('app.css freezes resource table record actions on the right', function () {
