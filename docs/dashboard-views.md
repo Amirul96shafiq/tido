@@ -4,12 +4,12 @@ Top-level **dashboard modules** on the Filament Home page. These are distinct fr
 
 ## Product modules
 
-| View         | Status                                           | Tab icon                     | Query                      |
-| ------------ | ------------------------------------------------ | ---------------------------- | -------------------------- |
-| **Finance**  | Shipped — MYR receipts, budgets, month analytics | `heroicon-m-calculator`      | default (`?view=` omitted) |
-| **Training** | Coming soon                                      | `heroicon-m-bolt`            | `?view=training`           |
-| **Health**   | Coming soon                                      | `heroicon-m-heart`           | `?view=health`             |
-| **Task**     | Coming soon                                      | `heroicon-m-rectangle-stack` | `?view=task`               |
+| View         | Status                                                      | Tab icon                     | Query                      |
+| ------------ | ----------------------------------------------------------- | ---------------------------- | -------------------------- |
+| **Finance**  | Shipped — MYR receipts, budgets, month analytics            | `heroicon-m-calculator`      | default (`?view=` omitted) |
+| **Training** | Coming soon — parked design in [`training.md`](training.md) | `heroicon-m-bolt`            | `?view=training`           |
+| **Health**   | Coming soon                                                 | `heroicon-m-heart`           | `?view=health`             |
+| **Task**     | Coming soon                                                 | `heroicon-m-rectangle-stack` | `?view=task`               |
 
 Sidebar nav group **Finances** (Add Receipts, Expenses, Budgets) is the CRUD surface for the Finance module. It is not the same as the dashboard view tab (**Finance**).
 

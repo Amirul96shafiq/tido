@@ -41,7 +41,7 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 2. Active agent workflow: root `AGENTS.md` + `.codex/CODEX_WORKFLOW.md` (Codex), `.cursorrules` (Cursor), or `.agents/AGENTS.md` (Antigravity)
 3. `docs/system-architecture.md` — product blueprint (note: some version numbers are outdated; trust Laravel 12 / PG 17 / stack in `AGENTS.md`)
 4. Future SaaS only (do not implement yet): `docs/saas-prd.md` — household isolation between signups; live contract remains single-tenant until architecture is updated
-5. Dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md`
+5. Dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md`. Parked Training design (do not implement until requested): `docs/training.md`
 6. Domain skill: activate the `tido-domain` skill surfaced by the active agent (+ its `pipeline.md` when touching OCR/webhooks) — Finances domain
 7. Framework skills surfaced by the active agent: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
 8. Setup ops only when needed: `docs/ollama-setup.md`, `docs/evolution-local-windows.md`, `docs/realtime-broadcasting.md`, `docs/whatsapp-bot-commands.md`, `docs/whatsapp-manual-expense.md`
