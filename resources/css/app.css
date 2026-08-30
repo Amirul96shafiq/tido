@@ -3060,6 +3060,7 @@ html.tido-reduce-motion
 /* Section nav — offset topbar + sticky tab bar when scrolling to hash. */
 .fi-profile-page .fi-sc-section[id],
 .fi-expense-form-page .fi-sc-section[id],
+.fi-expense-form-page [id^="expense-item-"],
 .fi-budget-form-page .fi-sc-section[id],
 .fi-recurring-form-page .fi-sc-section[id],
 .fi-label-form-page .fi-sc-section[id],
@@ -3068,6 +3069,15 @@ html.tido-reduce-motion
     scroll-margin-top: calc(
         var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
             var(--tido-section-nav-height, 2.75rem) + 1rem
+    );
+}
+
+.fi-expense-form-page
+    .fi-fo-repeater-item:has([id^="expense-item-"])
+    .fi-fo-repeater-item-header-label {
+    scroll-margin-top: calc(
+        var(--collapsed-sidebar-width, 4.5rem) - 1px + 0.25rem +
+            var(--tido-section-nav-height, 2.75rem) + 1rem + 1.25rem
     );
 }
 

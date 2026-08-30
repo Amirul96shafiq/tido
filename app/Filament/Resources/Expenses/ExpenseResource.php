@@ -12,6 +12,8 @@ use App\Filament\Resources\Expenses\Tables\ExpensesTable;
 use App\Helpers\MoneyDisplay;
 use App\Models\Expense;
 use App\Models\ExpenseItem;
+use Filament\Actions\Action;
+use Filament\GlobalSearch\GlobalSearchResult;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
@@ -103,7 +105,31 @@ class ExpenseResource extends Resource
         static::$globalSearchQuery = $search;
 
         try {
-            return parent::getGlobalSearchResults($search);
+            $query = static::getGlobalSearchEloquentQuery();
+
+            static::applyGlobalSearchAttributeConstraints($query, $search);
+            static::modifyGlobalSearchQuery($query, $search);
+
+            return $query
+                ->limit(static::getGlobalSearchResultsLimit())
+                ->get()
+                ->flatMap(function (Model $record): Collection {
+                    /** @var Expense $record */
+                    $matchingItems = static::matchingExpenseItems($record, static::$globalSearchQuery);
+
+                    if ($matchingItems->isEmpty()) {
+                        $result = static::makeGlobalSearchResult($record);
+
+                        return $result !== null ? collect([$result]) : collect();
+                    }
+
+                    return $matchingItems
+                        ->map(fn (ExpenseItem $item): ?GlobalSearchResult => static::makeGlobalSearchResult($record, $item))
+                        ->filter()
+                        ->values();
+                })
+                ->take(static::getGlobalSearchResultsLimit())
+                ->values();
         } finally {
             static::$globalSearchQuery = null;
         }
@@ -115,6 +141,39 @@ class ExpenseResource extends Resource
     public static function getGlobalSearchResultDetails(Model $record): array
     {
         /** @var Expense $record */
+        return static::buildGlobalSearchResultDetails($record);
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): ?string
+    {
+        /** @var Expense $record */
+        return static::buildGlobalSearchResultUrl($record);
+    }
+
+    protected static function makeGlobalSearchResult(Expense $record, ?ExpenseItem $item = null): ?GlobalSearchResult
+    {
+        $url = static::buildGlobalSearchResultUrl($record, $item);
+
+        if (blank($url)) {
+            return null;
+        }
+
+        return new GlobalSearchResult(
+            title: static::getGlobalSearchResultTitle($record),
+            url: $url,
+            details: static::buildGlobalSearchResultDetails($record, $item),
+            actions: array_map(
+                fn (Action $action) => $action->hasRecord() ? $action : $action->record($record),
+                static::getGlobalSearchResultActions($record),
+            ),
+        );
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected static function buildGlobalSearchResultDetails(Expense $record, ?ExpenseItem $item = null): array
+    {
         $details = [
             'Expense #' => $record->invoice_number ?? '—',
             'Buy Date' => $record->date_time?->format('d M Y') ?? '—',
@@ -134,28 +193,49 @@ class ExpenseResource extends Resource
             $details['Currency'] = $conversionSummary;
         }
 
-        $matchingItems = static::matchingExpenseItemLabels($record, static::$globalSearchQuery);
-
-        if ($matchingItems !== []) {
-            $details['Items'] = implode(', ', $matchingItems);
+        if ($item !== null) {
+            $details['Item'] = static::expenseItemSearchLabel($item, $record);
         }
 
         return $details;
     }
 
+    protected static function buildGlobalSearchResultUrl(Expense $record, ?ExpenseItem $item = null): ?string
+    {
+        if (static::canEdit($record)) {
+            $url = static::getUrl('edit', ['record' => $record]);
+
+            if ($item !== null) {
+                $url .= '#'.static::expenseItemAnchorId($item);
+            }
+
+            return $url;
+        }
+
+        return static::getUrl('index', [
+            'tableAction' => 'view',
+            'tableActionRecord' => $record->getRouteKey(),
+        ]);
+    }
+
+    public static function expenseItemAnchorId(ExpenseItem $item): string
+    {
+        return 'expense-item-'.$item->getKey();
+    }
+
     /**
-     * @return list<string>
+     * @return Collection<int, ExpenseItem>
      */
-    protected static function matchingExpenseItemLabels(Expense $record, ?string $search): array
+    protected static function matchingExpenseItems(Expense $record, ?string $search): Collection
     {
         if (blank($search) || ! $record->relationLoaded('expenseItems')) {
-            return [];
+            return collect();
         }
 
         $terms = static::globalSearchTerms($search);
 
         if ($terms === []) {
-            return [];
+            return collect();
         }
 
         return $record->expenseItems
@@ -176,6 +256,15 @@ class ExpenseResource extends Resource
 
                 return false;
             })
+            ->values();
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected static function matchingExpenseItemLabels(Expense $record, ?string $search): array
+    {
+        return static::matchingExpenseItems($record, $search)
             ->map(fn (ExpenseItem $item): string => static::expenseItemSearchLabel($item, $record))
             ->filter()
             ->unique()

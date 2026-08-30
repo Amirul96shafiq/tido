@@ -313,6 +313,7 @@ class ExpenseForm
                                 Repeater::make('expenseItems')
                                     ->relationship('expenseItems')
                                     ->schema([
+                                        Hidden::make('id'),
                                         TextInput::make('description')
                                             ->required()
                                             ->default('Item name')
@@ -323,6 +324,9 @@ class ExpenseForm
                                                     $component->state('Item name');
                                                 }
                                             })
+                                            ->extraAttributes(fn (Get $get): array => filled($get('id'))
+                                                ? ['id' => 'expense-item-'.$get('id')]
+                                                : [])
                                             ->columnSpanFull(),
 
                                         Grid::make(4)

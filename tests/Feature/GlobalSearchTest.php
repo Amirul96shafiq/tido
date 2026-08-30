@@ -368,8 +368,50 @@ test('expense global search finds line item description', function () {
 
     expect($results)->toHaveCount(1)
         ->and($results->first()->title)->toBe('Generic Store')
-        ->and($results->first()->details)->toHaveKey('Items')
-        ->and($results->first()->details['Items'])->toBe('Organic Almond Milk Special (RM 12.50)');
+        ->and($results->first()->details)->toHaveKey('Item')
+        ->and($results->first()->details['Item'])->toBe('Organic Almond Milk Special (RM 12.50)')
+        ->and($results->first()->url)->toEndWith('#expense-item-'.$expense->expenseItems->first()->getKey());
+});
+
+test('expense global search splits into one result per matching line item', function () {
+    $expense = Expense::factory()->create([
+        'merchant_name' => 'Wet Market',
+    ]);
+
+    $firstItem = ExpenseItem::factory()
+        ->for($expense)
+        ->create([
+            'description' => 'Ayam',
+            'line_total' => '8.90',
+        ]);
+
+    $secondItem = ExpenseItem::factory()
+        ->for($expense)
+        ->create([
+            'description' => 'Ayam',
+            'line_total' => '15.00',
+        ]);
+
+    $results = ExpenseResource::getGlobalSearchResults('Ayam');
+
+    expect($results)->toHaveCount(2)
+        ->and($results[0]->title)->toBe('Wet Market')
+        ->and($results[1]->title)->toBe('Wet Market')
+        ->and($results[0]->details['Item'])->toBe('Ayam (RM 8.90)')
+        ->and($results[1]->details['Item'])->toBe('Ayam (RM 15.00)')
+        ->and($results[0]->url)->toEndWith('#expense-item-'.$firstItem->getKey())
+        ->and($results[1]->url)->toEndWith('#expense-item-'.$secondItem->getKey());
+});
+
+test('expense global search omits item hash when only merchant matches', function () {
+    Expense::factory()->create([
+        'merchant_name' => 'Cake Bakery Only',
+    ]);
+
+    $results = ExpenseResource::getGlobalSearchResults('Cake Bakery Only');
+
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->url)->not->toContain('expense-item-');
 });
 
 test('expense global search results are ordered by edited at newest first', function () {
@@ -390,32 +432,6 @@ test('expense global search results are ordered by edited at newest first', func
             'SortBeta Market',
             'SortAlpha Market',
         ]);
-});
-
-test('expense global search includes each matching item price', function () {
-    $expense = Expense::factory()->create([
-        'merchant_name' => 'Wet Market',
-    ]);
-
-    ExpenseItem::factory()
-        ->for($expense)
-        ->create([
-            'description' => 'Ayam',
-            'line_total' => '8.90',
-        ]);
-
-    ExpenseItem::factory()
-        ->for($expense)
-        ->create([
-            'description' => 'Ayam',
-            'line_total' => '15.00',
-        ]);
-
-    $results = ExpenseResource::getGlobalSearchResults('Ayam');
-
-    expect($results)->toHaveCount(1)
-        ->and($results->first()->details['Items'])->toContain('Ayam (RM 8.90)')
-        ->and($results->first()->details['Items'])->toContain('Ayam (RM 15.00)');
 });
 
 test('global search highlights matching detail values with the primary color', function () {
@@ -447,6 +463,7 @@ test('expense global search omits items detail when only merchant matches', func
     $results = ExpenseResource::getGlobalSearchResults('Cake Bakery Only');
 
     expect($results)->toHaveCount(1)
+        ->and($results->first()->details)->not->toHaveKey('Item')
         ->and($results->first()->details)->not->toHaveKey('Items');
 });
 
