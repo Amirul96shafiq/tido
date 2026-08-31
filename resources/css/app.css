@@ -6033,6 +6033,16 @@ html.tido-mobilenav {
         padding-bottom: var(--tido-mobilenav-height, 4rem);
     }
 
+    /*
+     * Filament .fi-sidebar is inset-block:0 + height:100dvh at z-30.
+     * The bar is z-35, so raise the rail instead of letting the footer sit
+     * behind the nav. height:auto lets top + inset-block-end size the box.
+     */
+    html.tido-mobilenav .fi-sidebar {
+        inset-block-end: var(--tido-mobilenav-height, 4rem);
+        height: auto;
+    }
+
     html.tido-mobilenav
         .tido-sticky-scope
         > .fi-sc

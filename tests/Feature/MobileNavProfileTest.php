@@ -156,7 +156,10 @@ test('mobile nav css hides topbar and offsets sticky chrome on small screens', f
         ->not->toContain(".tido-mobilenav {\n    display: none;\n}")
         ->toContain('display: none !important')
         ->toContain('tido-sticky-marker--bottom')
-        ->toContain('var(--tido-mobilenav-height, 4rem) + 0.25rem');
+        ->toContain('var(--tido-mobilenav-height, 4rem) + 0.25rem')
+        ->toContain('html.tido-mobilenav .fi-sidebar')
+        ->toContain('inset-block-end: var(--tido-mobilenav-height, 4rem)')
+        ->toContain("html.tido-mobilenav .fi-sidebar {\n        inset-block-end: var(--tido-mobilenav-height, 4rem);\n        height: auto;");
 });
 
 test('mobile nav avatar notification badge overlays the wrap like the topbar', function (): void {
