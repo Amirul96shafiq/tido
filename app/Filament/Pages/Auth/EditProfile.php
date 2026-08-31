@@ -258,10 +258,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                                             ->live()
                                             ->columnSpanFull()
                                             ->fieldWrapperView('profile-toggle-field-wrapper')
-                                            ->extraFieldWrapperAttributes(['class' => 'fi-profile-toggle-field'])
-                                            ->afterStateUpdated(function (bool $state): void {
-                                                $this->js('window.tidoSetMobileNav('.Js::from($state).')');
-                                            }),
+                                            ->extraFieldWrapperAttributes(['class' => 'fi-profile-toggle-field']),
                                     ]),
                             ]),
 
@@ -941,10 +938,6 @@ class EditProfile extends BaseEditProfile implements HasTable
 
             if ($oldReduceMotion !== (bool) $updatedRecord->reduce_motion) {
                 $this->js('window.tidoSetReduceMotion('.Js::from((bool) $updatedRecord->reduce_motion).')');
-            }
-
-            if ($oldMobileNavEnabled !== (bool) $updatedRecord->mobile_nav_enabled) {
-                $this->js('window.tidoSetMobileNav('.Js::from((bool) $updatedRecord->mobile_nav_enabled).')');
             }
         }
 

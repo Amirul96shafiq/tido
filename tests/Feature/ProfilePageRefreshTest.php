@@ -29,6 +29,32 @@ test('changing regional preference fields reloads the page after save', function
     'date format' => ['date_format', UserDateFormat::Iso->value],
 ]);
 
+test('changing mobile nav reloads the page after save', function (): void {
+    $user = User::factory()->create([
+        'mobile_nav_enabled' => false,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->set('data.mobile_nav_enabled', true)
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertJs('window.location.reload()');
+});
+
+test('toggling mobile nav without save does not apply client preference', function (): void {
+    $user = User::factory()->create([
+        'mobile_nav_enabled' => false,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->set('data.mobile_nav_enabled', true)
+        ->assertNoJs();
+});
+
 test('changing reduce motion reloads the page after save', function (): void {
     $user = User::factory()->create([
         'reduce_motion' => false,
