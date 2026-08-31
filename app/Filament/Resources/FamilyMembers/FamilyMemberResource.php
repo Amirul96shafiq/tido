@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\FamilyMembers;
 
 use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
+use App\Filament\GlobalSearch\AppliesGlobalSearchCriteria;
 use App\Filament\Resources\FamilyMembers\Pages\CreateFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\EditFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\ListFamilyMembers;
@@ -143,6 +144,11 @@ class FamilyMemberResource extends Resource
             'display_name',
             'phone',
         ];
+    }
+
+    public static function modifyGlobalSearchQuery(Builder $query, string $search): void
+    {
+        AppliesGlobalSearchCriteria::applyToFamilyMemberQuery($query);
     }
 
     /**

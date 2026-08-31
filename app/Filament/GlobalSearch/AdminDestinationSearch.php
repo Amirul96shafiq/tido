@@ -436,6 +436,12 @@ final class AdminDestinationSearch
             return $builder;
         }
 
+        $criteria = GlobalSearchCriteria::instance();
+
+        if (! $criteria->includesDestinations()) {
+            return $builder;
+        }
+
         $terms = self::searchTerms($query);
 
         if ($terms === []) {
@@ -456,12 +462,17 @@ final class AdminDestinationSearch
                 details: $destination['details'] ?? [],
             );
 
-            if ($destination['group'] === 'Pages') {
+            if ($destination['group'] === 'Pages' && $criteria->includesPages()) {
                 $pageResults[] = $result;
-            } else {
+            }
+
+            if ($destination['group'] === 'Sections' && $criteria->includesSections()) {
                 $sectionResults[] = $result;
             }
         }
+
+        $pageResults = AppliesGlobalSearchCriteria::sortDestinationResults($pageResults, $criteria->sort());
+        $sectionResults = AppliesGlobalSearchCriteria::sortDestinationResults($sectionResults, $criteria->sort());
 
         if ($pageResults !== []) {
             $builder->category('Pages', $pageResults);

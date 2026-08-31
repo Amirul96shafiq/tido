@@ -87,6 +87,8 @@ When adding a new `*Resource.php` (record search):
 4. Override `getGlobalSearchResultUrl()` for index-only resources (e.g. Backups).
 5. Set `$globalSearchSort` for sensible result group ordering.
 
+**Type / Sort / Filters** in the search modal: `App\Filament\Livewire\GlobalSearchModal`, request-scoped `App\Filament\GlobalSearch\GlobalSearchCriteria`, and `App\Filament\GlobalSearch\AppliesGlobalSearchCriteria` on each searchable resource's `modifyGlobalSearchQuery()`. When adding filters for a new searchable resource, extend `GlobalSearchType`, `GlobalSearchModal::filtersForm()`, and `AppliesGlobalSearchCriteria`.
+
 ## Prefer
 
 - `relationship()` for related selects

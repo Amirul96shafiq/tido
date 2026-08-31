@@ -6,23 +6,25 @@ How tido registers Filament panel JS/CSS with Vite, and when `npm run build` is 
 
 ## Two registration paths
 
-| Path | Typical use | Resolves via |
-|------|-------------|--------------|
-| `@vite(...)` / Blade | `resources/css/app.css` (render hook in [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php)) | Vite HMR when `public/hot` exists; otherwise the production manifest |
-| `Vite::asset(...)` | Extra panel scripts in `AdminPanelProvider` `->assets()` (`Js::make(...)`) | Same: `public/hot` **or** [`public/build/manifest.json`](../public/build/manifest.json) |
+| Path                 | Typical use                                                                                                       | Resolves via                                                                            |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `@vite(...)` / Blade | `resources/css/app.css` (render hook in [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php)) | Vite HMR when `public/hot` exists; otherwise the production manifest                    |
+| `Vite::asset(...)`   | Extra panel scripts in `AdminPanelProvider` `->assets()` (`Js::make(...)`)                                        | Same: `public/hot` **or** [`public/build/manifest.json`](../public/build/manifest.json) |
 
 Panel scripts (swipe dismiss, sticky blur veil, Tippy mobile disable, marquees, upload handlers, date-picker month select / filter calendar pin, etc.) use **`Vite::asset()`**. They must be listed in [`vite.config.js`](../vite.config.js) `input` **and** registered in `AdminPanelProvider`.
 
-| Script | Role |
-|--------|------|
-| `resources/js/date-picker-month-select.js` | Themed month menu for JS date pickers; pins calendars `position:fixed` inside table filter overflow contexts |
-| `resources/js/disable-select-search-autofocus.js` | Stops searchable Selects from focusing the dropdown search box on open |
+| Script                                            | Role                                                                                                         |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `resources/js/date-picker-month-select.js`        | Themed month menu for JS date pickers; pins calendars `position:fixed` inside table filter overflow contexts |
+| `resources/js/disable-select-search-autofocus.js` | Stops searchable Selects from focusing the dropdown search box on open                                       |
+| `resources/js/gsm-filter-select-pin.js`           | Pins Select option panels `position:fixed` inside global-search filter dropdowns                             |
+
 ## Scripts (keep separate)
 
-| Command | Role |
-|---------|------|
-| `npm run dev` | Vite **dev server** (HMR); writes `public/hot` |
-| `npm run build` | One-shot production build; writes `public/build/manifest.json` + hashed assets |
+| Command                        | Role                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------ |
+| `npm run dev`                  | Vite **dev server** (HMR); writes `public/hot`                                 |
+| `npm run build`                | One-shot production build; writes `public/build/manifest.json` + hashed assets |
 | `npm run dev:full` / `dev:all` | Concurrent Vite + PHP (+ queue / Evolution / Ollama). Does **not** run `build` |
 
 Do **not** fold `build` into every `dev` / `dev:all` start. Do **not** treat `build` and `dev` as interchangeable for **new** `Vite::asset()` entry paths.

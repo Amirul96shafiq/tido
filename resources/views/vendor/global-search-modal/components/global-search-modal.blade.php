@@ -51,7 +51,12 @@
         ])"
     >
         <x-slot name="header">
-            <x-global-search-modal::search.bar/>
+            <div class="w-full">
+                <x-global-search-modal::search.bar/>
+                @unless(empty($search))
+                    <x-global-search-modal::search.toolbar />
+                @endunless
+            </div>
         </x-slot>
 
         <div class="results-container overflow-y-auto">

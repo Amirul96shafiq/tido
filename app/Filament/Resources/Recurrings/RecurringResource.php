@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Recurrings;
 
+use App\Filament\GlobalSearch\AppliesGlobalSearchCriteria;
 use App\Filament\Resources\Recurrings\Pages\CreateRecurring;
 use App\Filament\Resources\Recurrings\Pages\EditRecurring;
 use App\Filament\Resources\Recurrings\Pages\ListRecurrings;
@@ -153,6 +154,11 @@ class RecurringResource extends Resource
     public static function getGlobalSearchEloquentQuery(): Builder
     {
         return parent::getGlobalSearchEloquentQuery()->with(['label', 'familyMember']);
+    }
+
+    public static function modifyGlobalSearchQuery(Builder $query, string $search): void
+    {
+        AppliesGlobalSearchCriteria::applyToRecurringQuery($query);
     }
 
     /**

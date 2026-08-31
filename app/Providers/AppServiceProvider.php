@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Filament\GlobalSearch\TidoSearchEngine;
+use App\Filament\Livewire\GlobalSearchModal;
 use App\Filament\Notifications\Notification as AppNotification;
 use App\Helpers\MoneyDisplay;
 use App\Helpers\UserDateDisplay;
@@ -26,6 +28,7 @@ use App\Support\FieldCharacterLimits;
 use App\Support\ProductionEnvironmentBaseline;
 use App\View\Components\ButtonComponent;
 use BladeUI\Icons\Factory;
+use CharrafiMed\GlobalSearchModal\SearchEngine;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Auth\Http\Responses\Contracts\LogoutResponse as LogoutResponseContract;
@@ -58,6 +61,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(FilamentNotification::class, AppNotification::class);
         $this->app->bind(LogoutResponseContract::class, LogoutResponse::class);
         $this->app->bind(ExchangeRateProvider::class, CurrencyApiExchangeRateProvider::class);
+        $this->app->bind(SearchEngine::class, TidoSearchEngine::class);
 
         $this->app->singleton(CalendarEventAggregator::class, function (): CalendarEventAggregator {
             $aggregator = new CalendarEventAggregator;
@@ -98,6 +102,8 @@ class AppServiceProvider extends ServiceProvider
             return Route::post('/livewire/update', $handle)
                 ->middleware(['web', LogLivewireUpdates::class]);
         });
+
+        Livewire::component('global-search-modal', GlobalSearchModal::class);
 
         $this->configureFilamentDateFormats();
         $this->configureFilamentMoneyFormatting();

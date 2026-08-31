@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Labels;
 
 use App\Enums\LabelType;
 use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
+use App\Filament\GlobalSearch\AppliesGlobalSearchCriteria;
 use App\Filament\Resources\Labels\Pages\CreateLabel;
 use App\Filament\Resources\Labels\Pages\EditLabel;
 use App\Filament\Resources\Labels\Pages\ListLabels;
@@ -125,6 +126,11 @@ class LabelResource extends Resource
             'slug',
             'description',
         ];
+    }
+
+    public static function modifyGlobalSearchQuery(Builder $query, string $search): void
+    {
+        AppliesGlobalSearchCriteria::applyToLabelQuery($query);
     }
 
     /**

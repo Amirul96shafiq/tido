@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Filament\GlobalSearch\AdminDestinationSearch;
+use App\Filament\Livewire\GlobalSearchModal;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\EvolutionApiPage;
 use App\Filament\Pages\GeminiPage;
@@ -26,7 +27,6 @@ use App\Models\Label;
 use App\Models\PaymentMethod;
 use App\Models\User;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResults;
-use CharrafiMed\GlobalSearchModal\Livewire\GlobalSearchModal;
 use CharrafiMed\GlobalSearchModal\SearchEngine;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;

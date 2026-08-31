@@ -60,6 +60,7 @@ No multi-tenancy package. One Filament panel with **household roles** (`primary`
 - Develop features directly on `main` (use `feature/*` or `fix/*` → PR → `main`)
 
 ### Windows Composer File Locks
+
 - **CRITICAL**: On Windows, when `npm run dev:all` is stopped, orphaned `php.exe` processes (like `artisan serve` or `queue:listen`) may stay alive in the background and hold file locks on `vendor/` and `bootstrap/cache/`. This will cause `composer` commands (like `composer update` or `dump-autoload`) to hang indefinitely.
 - **Always** run `taskkill /F /IM php.exe` to terminate orphaned processes before running Composer commands if dev servers were recently running or interrupted.
 
@@ -188,6 +189,8 @@ When adding a new `*Resource.php` (record search):
 3. Add `getGlobalSearchEloquentQuery()` when searching relationship dot-notation
 4. Override `getGlobalSearchResultUrl()` for index-only resources
 5. Set `$globalSearchSort` for sensible result group ordering
+
+**Type / Sort / Filters** in the search modal: `App\Filament\Livewire\GlobalSearchModal`, request-scoped `App\Filament\GlobalSearch\GlobalSearchCriteria`, and `App\Filament\GlobalSearch\AppliesGlobalSearchCriteria` on each searchable resource's `modifyGlobalSearchQuery()`. When adding filters for a new searchable resource, extend `GlobalSearchType`, `GlobalSearchModal::filtersForm()`, and `AppliesGlobalSearchCriteria`.
 
 ### View records (required)
 
@@ -344,10 +347,10 @@ The user must review content before anything is published.
 
 1. Prepare the PR locally (branch, commits already reviewed with the user if new commits are needed)
 2. Format the PR description using the **Pull Request Body Standard** defined in `docs/git-workflow.md`:
-   - Keep `## Summary` first and use concise bullets in the imperative or present tense.
-   - Use `## Test plan` as step-by-step instructions for a reviewer to execute before approving the pull request, not as a retrospective list of checks already run.
-   - Prefix every test-plan step with an unchecked Markdown box (`- [ ]`), including manual checks and `Run:` commands, leaving every box unchecked.
-   - Do not use generic headings like `## Overview`, `## Changes`, or `## Verification`.
+    - Keep `## Summary` first and use concise bullets in the imperative or present tense.
+    - Use `## Test plan` as step-by-step instructions for a reviewer to execute before approving the pull request, not as a retrospective list of checks already run.
+    - Prefix every test-plan step with an unchecked Markdown box (`- [ ]`), including manual checks and `Run:` commands, leaving every box unchecked.
+    - Do not use generic headings like `## Overview`, `## Changes`, or `## Verification`.
 3. Show what will be pushed / what the PR will contain (summary + key files) and the generated PR body text
 4. Ask for explicit approval, then run push / `gh pr create` only after yes
 

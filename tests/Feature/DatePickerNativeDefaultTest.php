@@ -98,5 +98,7 @@ test('filter dropdown css keeps overflow hidden and pins date picker panels fixe
 
     expect($js)
         ->toContain('pinDatePickerPanelFixed')
-        ->toContain("setProperty('position', 'fixed', 'important')");
+        ->toContain('setProperty("position", "fixed", "important")')
+        ->toContain('getFixedCoordsForTrigger')
+        ->toContain('.fi-gsm-toolbar');
 });
