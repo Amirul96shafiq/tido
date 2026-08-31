@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Filament\GlobalSearch\TidoSearchEngine;
 use App\Filament\Livewire\GlobalSearchModal;
+use App\Filament\Livewire\MobileNav;
 use App\Filament\Notifications\Notification as AppNotification;
 use App\Helpers\MoneyDisplay;
 use App\Helpers\UserDateDisplay;
@@ -104,6 +105,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Livewire::component('global-search-modal', GlobalSearchModal::class);
+        Livewire::component('tido.mobile_nav', MobileNav::class);
 
         $this->configureFilamentDateFormats();
         $this->configureFilamentMoneyFormatting();

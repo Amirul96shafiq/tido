@@ -1,5 +1,7 @@
 @props([
     'position' => null,
+    'instance' => 'topbar',
+    'anchor' => null,
 ])
 
 @php
@@ -28,6 +30,28 @@
 
     $position ??= filament()->getUserMenuPosition();
 
+    $anchor ??= $instance === 'mobilenav'
+        ? 'mobilenav'
+        : (($position === UserMenuPosition::Topbar) ? 'topbar' : 'sidebar');
+
+    $dropdownPlacement = match ($anchor) {
+        'mobilenav' => 'top-end',
+        'topbar' => 'bottom-end',
+        default => 'top-end',
+    };
+
+    $dropdownOffset = match ($anchor) {
+        'mobilenav' => 8,
+        'topbar' => -39,
+        default => 8,
+    };
+
+    $dropdownTeleport = in_array($anchor, ['topbar', 'mobilenav'], true);
+
+    $isAvatarTrigger = in_array($anchor, ['topbar', 'mobilenav'], true);
+
+    $userMenuInstanceKey = str_replace('-', '_', $instance);
+
     $isSidebarCollapsibleOnDesktop = filament()->isSidebarCollapsibleOnDesktop();
     $gitVersion = GitHelper::getVersionString();
 @endphp
@@ -35,16 +59,19 @@
 {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::USER_MENU_BEFORE) }}
 
 <x-filament::dropdown
-    :placement="($position === UserMenuPosition::Topbar) ? 'bottom-end' : 'top-end'"
-    :offset="($position === UserMenuPosition::Topbar) ? -39 : 8"
-    :teleport="$position === UserMenuPosition::Topbar"
+    :placement="$dropdownPlacement"
+    :offset="$dropdownOffset"
+    :teleport="$dropdownTeleport"
     :attributes="
         \Filament\Support\prepare_inherited_attributes($attributes)
-            ->class(['fi-user-menu'])
+            ->class([
+                'fi-user-menu',
+                'fi-user-menu--' . $instance,
+            ])
     "
 >
     <x-slot name="trigger">
-        @if ($position === UserMenuPosition::Topbar)
+        @if ($isAvatarTrigger)
             <button
                 aria-label="{{ __('filament-panels::layout.actions.open_user_menu.label') }}"
                 type="button"
@@ -183,7 +210,7 @@
 
     <x-user-menu-profile-preview :user="$user" />
 
-    @livewire(\App\Filament\Livewire\AccountSwitcher::class, key('account-switcher'))
+    @livewire(\App\Filament\Livewire\AccountSwitcher::class, key('account-switcher-'.$userMenuInstanceKey))
 
     @if (filament()->hasDarkMode() && (! filament()->hasDarkModeForced()))
         <x-filament::dropdown.list>

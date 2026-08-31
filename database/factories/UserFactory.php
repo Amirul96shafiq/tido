@@ -57,6 +57,7 @@ class UserFactory extends Factory
             'recurring_reminder_time' => '08:00:00',
             'stylized_background_enabled' => true,
             'reduce_motion' => false,
+            'mobile_nav_enabled' => false,
         ];
     }
 

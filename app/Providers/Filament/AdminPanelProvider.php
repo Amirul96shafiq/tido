@@ -24,6 +24,7 @@ use App\Http\Middleware\SetUserPreferences;
 use App\Support\Calendar\UserMenuCalendarLabel;
 use App\Support\FilamentAuthLogout;
 use App\Support\HouseholdAccess;
+use App\Support\MobileNav;
 use App\Support\ReduceMotion;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResults;
@@ -169,8 +170,12 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_START,
                 function (): string {
-                    $initialClassScript = ReduceMotion::enabled()
+                    $initialReduceMotionScript = ReduceMotion::enabled()
                         ? "document.documentElement.classList.add('tido-reduce-motion');"
+                        : '';
+
+                    $initialMobileNavScript = MobileNav::enabled()
+                        ? "document.documentElement.classList.add('tido-mobilenav');"
                         : '';
 
                     return <<<HTML
@@ -349,8 +354,38 @@ class AdminPanelProvider extends PanelProvider
                                     notifyReduceMotionChanged(on);
                                 };
 
-                                {$initialClassScript}
+                                {$initialReduceMotionScript}
                                 syncReduceMotionStorage();
+
+                                var MOBILE_NAV_CLASS = 'tido-mobilenav';
+                                var MOBILE_NAV_STORAGE_KEY = 'tidoMobileNav';
+
+                                function syncMobileNavStorage() {
+                                    sessionStorage.setItem(
+                                        MOBILE_NAV_STORAGE_KEY,
+                                        document.documentElement.classList.contains(MOBILE_NAV_CLASS) ? '1' : '0',
+                                    );
+                                }
+
+                                function applyMobileNavFromStorage() {
+                                    var stored = sessionStorage.getItem(MOBILE_NAV_STORAGE_KEY);
+
+                                    if (stored === null) {
+                                        return;
+                                    }
+
+                                    document.documentElement.classList.toggle(MOBILE_NAV_CLASS, stored === '1');
+                                }
+
+                                window.tidoSetMobileNav = function (enabled) {
+                                    var on = !! enabled;
+
+                                    document.documentElement.classList.toggle(MOBILE_NAV_CLASS, on);
+                                    sessionStorage.setItem(MOBILE_NAV_STORAGE_KEY, on ? '1' : '0');
+                                };
+
+                                {$initialMobileNavScript}
+                                syncMobileNavStorage();
 
                                 window.matchMedia = function (query) {
                                     var result = originalMatchMedia(query);
@@ -374,6 +409,7 @@ class AdminPanelProvider extends PanelProvider
 
                                 function syncReduceMotionAfterNavigation() {
                                     applyReduceMotionFromStorage();
+                                    applyMobileNavFromStorage();
 
                                     if (prefersReducedMotion()) {
                                         snapCountUpsToFinal();
@@ -383,7 +419,10 @@ class AdminPanelProvider extends PanelProvider
                                     notifyReduceMotionChanged(prefersReducedMotion());
                                 }
 
-                                document.addEventListener('livewire:navigating', applyReduceMotionFromStorage);
+                                document.addEventListener('livewire:navigating', function () {
+                                    applyReduceMotionFromStorage();
+                                    applyMobileNavFromStorage();
+                                });
                                 document.addEventListener('livewire:navigated', syncReduceMotionAfterNavigation);
                             })();
                         </script>
@@ -812,7 +851,7 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,
-                fn (): string => Blade::render('<x-changelog-modal /><x-restore-backup-modal /><x-drag-drop-config /><x-go-to-top /><x-go-to-bottom /><x-global-search-shortcut /><x-hash-scroll />'),
+                fn (): string => view('components.panel-body-end')->render(),
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->navigationGroups([

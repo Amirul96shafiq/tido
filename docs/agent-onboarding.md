@@ -57,6 +57,7 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 18. UI text headings (Title Case: `Text Heading`, never `Text heading`): `docs/ui-text-heading.md`
 19. Count Up numeric values (stats, widgets, tables): `docs/ui-count-up.md`
 20. Reduce Motion accessibility preference: `docs/ui-reduce-motion.md`
+21. Mobile Nav bottom bar (Profile opt-in): `docs/ui-mobile-nav.md`
 21. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
 22. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
 23. Field character limits (`current/max` counters): `docs/ui-field-character-limits.md`

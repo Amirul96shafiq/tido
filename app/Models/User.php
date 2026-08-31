@@ -49,12 +49,14 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
         'recurring_reminder_time',
         'stylized_background_enabled',
         'reduce_motion',
+        'mobile_nav_enabled',
     ];
 
     protected $attributes = [
         'household_role' => 'primary',
         'stylized_background_enabled' => true,
         'reduce_motion' => false,
+        'mobile_nav_enabled' => false,
         'notify_recurring_reminders' => true,
         'notify_receipt_review' => true,
         'notify_service_status' => true,
@@ -87,6 +89,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
             'recurring_reminder_lead_days' => 'integer',
             'stylized_background_enabled' => 'boolean',
             'reduce_motion' => 'boolean',
+            'mobile_nav_enabled' => 'boolean',
             'google_linked_at' => 'datetime',
         ];
     }

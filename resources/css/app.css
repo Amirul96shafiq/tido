@@ -5800,3 +5800,219 @@ html.tido-reduce-motion .tido-ping-pulse {
 .tido-calendar__popover-event-subtitle {
     @apply text-xs text-gray-500 dark:text-gray-400;
 }
+
+/*
+ * Mobile bottom nav (opt-in via Profile → Mobile Nav).
+ * Active when html.tido-mobilenav and viewport < lg.
+ */
+html.tido-mobilenav {
+    --tido-mobilenav-height: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+.tido-mobilenav-root {
+    display: none;
+}
+
+@media (max-width: 1023px) {
+    html.tido-mobilenav .fi-topbar-ctn {
+        display: none !important;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-root {
+        display: block;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-bar {
+        position: fixed;
+        inset-inline: 0;
+        bottom: 0;
+        z-index: 35;
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        align-items: stretch;
+        min-height: var(--tido-mobilenav-height, 4rem);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        border-top: 1px solid var(--color-gray-100);
+        background-color: color-mix(
+            in srgb,
+            var(--color-white) 82%,
+            transparent
+        );
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* `dark` lives on <html> with tido-mobilenav — not as an ancestor of html. */
+    html.dark.tido-mobilenav .tido-mobilenav-bar {
+        border-top-color: color-mix(
+            in srgb,
+            var(--color-slate-700) 60%,
+            transparent
+        );
+        background-color: color-mix(
+            in srgb,
+            var(--color-slate-800) 88%,
+            transparent
+        );
+    }
+
+    html.tido-mobilenav .tido-mobilenav-item {
+        display: flex;
+        min-height: 4rem;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        background: transparent;
+        color: var(--color-gray-600);
+        text-decoration: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    html.dark.tido-mobilenav .tido-mobilenav-item {
+        color: var(--color-gray-300);
+    }
+
+    html.tido-mobilenav .tido-mobilenav-item--primary {
+        color: var(--color-primary-600);
+    }
+
+    html.dark.tido-mobilenav .tido-mobilenav-item--primary {
+        color: var(--color-primary-400);
+    }
+
+    html.tido-mobilenav .tido-mobilenav-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-icon--primary {
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-item--avatar {
+        padding: 0;
+    }
+
+    html.tido-mobilenav .fi-user-menu--mobilenav {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    html.tido-mobilenav .fi-user-menu--mobilenav .fi-dropdown-trigger {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+    }
+
+    html.tido-mobilenav .fi-user-menu--mobilenav .fi-user-menu-trigger {
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: visible;
+    }
+
+    html.tido-mobilenav .fi-user-menu--mobilenav .fi-user-menu-avatar-wrap {
+        @apply relative inline-flex;
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+
+    html.tido-mobilenav
+        .fi-user-menu--mobilenav
+        .fi-user-menu-notifications-badge {
+        @apply pointer-events-none absolute top-0 right-0 z-10 translate-x-0.5 -translate-y-0.5;
+    }
+
+    html.tido-mobilenav .fi-user-menu--mobilenav .fi-avatar {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+    }
+
+    html.tido-mobilenav .fi-main-ctn {
+        padding-bottom: var(--tido-mobilenav-height, 4rem);
+    }
+
+    html.tido-mobilenav
+        .tido-sticky-scope
+        > .fi-sc
+        > .fi-grid-col:has(.tido-sticky-marker--top) {
+        top: 0.25rem;
+    }
+
+    html.tido-mobilenav
+        .tido-sticky-scope
+        > .fi-sc
+        > .fi-grid-col:has(.tido-sticky-marker--bottom) {
+        bottom: calc(var(--tido-mobilenav-height, 4rem) + 0.25rem);
+    }
+
+    html.tido-mobilenav
+        .tido-sticky-scope
+        > .fi-sc
+        > .fi-grid-col:has(.tido-sticky-marker--top)::before,
+    html.tido-mobilenav
+        .tido-sticky-scope
+        > .fi-sc
+        > .fi-grid-col:has(.tido-sticky-marker--top)::after {
+        inset: 0.25rem 0 auto 0;
+    }
+
+    html.tido-mobilenav
+        .tido-sticky-scope
+        > .fi-sc
+        > .fi-grid-col:has(.tido-sticky-marker--bottom)::before,
+    html.tido-mobilenav
+        .tido-sticky-scope
+        > .fi-sc
+        > .fi-grid-col:has(.tido-sticky-marker--bottom)::after {
+        inset: auto 0 var(--tido-mobilenav-height, 4rem) 0;
+    }
+
+    html.tido-mobilenav .fi-main-ctn [id] {
+        scroll-margin-top: 1rem;
+    }
+
+    html.tido-mobilenav .tido-dashboard-page .fi-wi-widget[id],
+    html.tido-mobilenav .tido-dashboard-page .fi-wi-stats-overview-stat[id] {
+        scroll-margin-top: calc(
+            0.25rem + var(--tido-dashboard-section-nav-offset, 2.75rem) + 1rem
+        );
+    }
+
+    html.tido-mobilenav .fi-profile-page .fi-sc-section[id],
+    html.tido-mobilenav .fi-expense-form-page .fi-sc-section[id],
+    html.tido-mobilenav .fi-expense-form-page [id^="expense-item-"],
+    html.tido-mobilenav .fi-budget-form-page .fi-sc-section[id],
+    html.tido-mobilenav .fi-recurring-form-page .fi-sc-section[id],
+    html.tido-mobilenav .fi-label-form-page .fi-sc-section[id],
+    html.tido-mobilenav .fi-payment-method-form-page .fi-sc-section[id],
+    html.tido-mobilenav .fi-family-member-form-page .fi-sc-section[id],
+    html.tido-mobilenav .fi-upload-receipts-page [id],
+    html.tido-mobilenav .fi-ollama-page [id],
+    html.tido-mobilenav .fi-evolution-api-page [id],
+    html.tido-mobilenav .fi-service-status-page [id] {
+        scroll-margin-top: calc(
+            0.25rem + var(--tido-section-nav-height, 2.75rem) + 1rem
+        );
+    }
+
+    html.tido-mobilenav .tido-go-to-top {
+        top: 0.25rem;
+    }
+
+    html.tido-mobilenav .tido-go-to-bottom {
+        top: auto;
+        bottom: calc(var(--tido-mobilenav-height, 4rem) + 0.25rem);
+    }
+}
