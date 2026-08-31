@@ -2822,6 +2822,22 @@ html.tido-reduce-motion
     color: inherit;
 }
 
+.fi-gsm-toolbar-menu .fi-dropdown-list-item.fi-active {
+    background-color: var(--gray-50);
+    color: var(--primary-500);
+    font-weight: 500;
+}
+
+.dark .fi-gsm-toolbar-menu .fi-dropdown-list-item.fi-active {
+    background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
+    color: var(--primary-400);
+    font-weight: 500;
+}
+
+.fi-gsm-toolbar-menu .fi-dropdown-list-item.fi-active .fi-dropdown-list-item-label {
+    color: inherit;
+}
+
 @media (max-width: 1023px) {
     .tido-sidebar-flyout-panel {
         max-width: min(14rem, calc(100vw - 1rem)) !important;

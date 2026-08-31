@@ -64,7 +64,8 @@
                     <x-filament::dropdown.list.item
                         wire:click="$set('type', '{{ $value }}')"
                         wire:key="gsm-type-option-{{ $value }}-{{ $placementConfig['placement'] }}"
-                        :icon="$this->type === $value ? Heroicon::Check : null"
+                        :color="$this->type === $value ? 'primary' : 'gray'"
+                        @class(['fi-active' => $this->type === $value])
                     >
                         {{ $label }}
                     </x-filament::dropdown.list.item>
@@ -111,7 +112,8 @@
                     <x-filament::dropdown.list.item
                         wire:click="$set('sort', '{{ $value }}')"
                         wire:key="gsm-sort-option-{{ $value }}-{{ $placementConfig['placement'] }}"
-                        :icon="$this->sort === $value ? Heroicon::Check : null"
+                        :color="$this->sort === $value ? 'primary' : 'gray'"
+                        @class(['fi-active' => $this->sort === $value])
                     >
                         {{ $label }}
                     </x-filament::dropdown.list.item>

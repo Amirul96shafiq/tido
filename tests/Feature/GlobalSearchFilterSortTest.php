@@ -92,6 +92,19 @@ test('global search modal defaults to all type and default sort', function () {
         ->assertSet('sort', 'default');
 });
 
+test('global search modal toolbar highlights active type and sort with subtle active class', function () {
+    $html = Livewire::test(GlobalSearchModal::class)
+        ->set('search', 'market')
+        ->set('type', 'expenses')
+        ->set('sort', 'updated_desc')
+        ->html();
+
+    expect($html)
+        ->toContain('fi-active')
+        ->not->toContain('heroicon-o-check')
+        ->not->toContain('heroicon-m-check');
+});
+
 test('global search modal resets state when modal closes', function () {
     Livewire::test(GlobalSearchModal::class)
         ->set('search', 'market')
