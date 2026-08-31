@@ -15,6 +15,7 @@
         ['class' => 'hidden lg:block', 'placement' => 'right-start', 'tooltipPlacement' => 'right'],
         ['class' => 'lg:hidden', 'placement' => 'bottom-end', 'tooltipPlacement' => 'bottom'],
     ];
+    $dropdownOffset = 12;
 @endphp
 
 <div
@@ -33,9 +34,9 @@
             :placement="$placementConfig['placement']"
             shift
             :flip="false"
-            :width="Width::Small"
+            :offset="$dropdownOffset"
             :wire:key="$this->getId().'.gsm.type.'.$placementConfig['placement']"
-            @class(['fi-gsm-toolbar-control fi-gsm-toolbar-type', $placementConfig['class']])
+            @class(['fi-gsm-toolbar-control fi-gsm-toolbar-type fi-gsm-toolbar-menu', $placementConfig['class']])
         >
             <x-slot name="trigger">
                 <button
@@ -80,9 +81,9 @@
             :placement="$placementConfig['placement']"
             shift
             :flip="false"
-            :width="Width::Small"
+            :offset="$dropdownOffset"
             :wire:key="$this->getId().'.gsm.sort.'.$this->type.'.'.$placementConfig['placement']"
-            @class(['fi-gsm-toolbar-control fi-gsm-toolbar-sort', $placementConfig['class']])
+            @class(['fi-gsm-toolbar-control fi-gsm-toolbar-sort fi-gsm-toolbar-menu', $placementConfig['class']])
         >
             <x-slot name="trigger">
                 <button
@@ -128,6 +129,7 @@
                 :placement="$placementConfig['placement']"
                 shift
                 :flip="false"
+                :offset="$dropdownOffset"
                 max-height="min(70vh, 28rem)"
                 :width="Width::ExtraSmall"
                 :wire:key="$this->getId().'.gsm.filters.'.$this->type.'.'.$placementConfig['placement']"

@@ -50,16 +50,19 @@ test('global search modal toolbar renders type sort and filters icon controls', 
 
     expect($html)
         ->toContain('fi-gsm-toolbar')
+        ->toContain('fi-gsm-toolbar-menu')
         ->toContain('aria-label="Type"')
         ->toContain('aria-label="Sort"')
         ->toContain('aria-label="Filters"')
         ->toContain('fi-gsm-toolbar-filters')
+        ->toContain('offset: 12')
         ->toContain('appendTo: () => document.body')
         ->toContain("placement: 'right'")
         ->toContain("placement: 'bottom'")
         ->toContain('zIndex: 100000')
         ->toContain('data-gsm-tooltip-trigger')
         ->not->toMatch('/content:\s*@js\(/')
+        ->not->toContain('fi-width-sm')
         ->toContain('Expenses')
         ->toContain('Last Updated');
 });
