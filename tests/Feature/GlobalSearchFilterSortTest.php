@@ -90,6 +90,7 @@ test('global search type-chosen filters menu reuses table filter padding and a t
         ->toContain('.fi-gsm-toolbar-filters')
         ->toContain('> .fi-dropdown-panel.fi-scrollable {')
         ->toContain('max-height: min(70vh, 28rem) !important;')
+        ->toContain('[data-tido-gsm-select-fixed-pinned="1"]')
         ->toContain('.fi-gsm-toolbar-filters-unavailable')
         ->toContain('cursor-not-allowed opacity-50')
         ->not->toMatch('/fi-gsm-toolbar-filters-unavailable\s*\{\s*display:\s*none/')

@@ -3130,6 +3130,17 @@ body:has([id="global-search-modal::plugin"].fi-modal-open) [data-tippy-root] {
     max-height: min(70vh, 28rem) !important;
 }
 
+/*
+ * GSM filter Select panels are pinned to position:fixed via gsm-filter-select-pin.js
+ * because the modal is fi-absolute-positioning-context (Filament keeps selects absolute).
+ */
+[id="global-search-modal::plugin"]
+    .fi-gsm-filters-dropdown-panel
+    .fi-select-input-ctn
+    > .fi-dropdown-panel.fi-scrollable[data-tido-gsm-select-fixed-pinned="1"] {
+    z-index: 100002;
+}
+
 /* Global search section anchors — offset sticky topbar when scrolling to hash. */
 .fi-main-ctn [id] {
     scroll-margin-top: 5rem;
@@ -5050,6 +5061,31 @@ html.tido-reduce-motion .tido-select-value-marquee .fi-select-input-value-ctn {
     overflow: hidden !important;
     overflow-x: hidden !important;
     overflow-y: hidden !important;
+}
+
+[id="global-search-modal::plugin"]
+    .fi-gsm-filters-dropdown-panel
+    .fi-fo-date-time-picker-panel[data-tido-fixed-pinned="1"] {
+    z-index: 100002;
+}
+
+[id="global-search-modal::plugin"]
+    .fi-gsm-filters-dropdown-panel
+    .fi-fo-date-time-picker-panel[style*="display: block"]:not(
+        [data-tido-fixed-pinned="1"]
+    ) {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+[id="global-search-modal::plugin"]
+    .fi-gsm-filters-dropdown-panel
+    .fi-select-input-ctn
+    > .fi-dropdown-panel.fi-scrollable[style*="display: block"]:not(
+        [data-tido-gsm-select-fixed-pinned="1"]
+    ) {
+    opacity: 0 !important;
+    pointer-events: none;
 }
 
 /*

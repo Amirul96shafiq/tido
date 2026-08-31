@@ -129,6 +129,10 @@ class AdminPanelProvider extends PanelProvider
                     Vite::asset('resources/js/disable-select-search-autofocus.js'),
                 )->module(),
                 Js::make(
+                    'gsm-filter-select-pin',
+                    Vite::asset('resources/js/gsm-filter-select-pin.js'),
+                )->module(),
+                Js::make(
                     'clipboard-copy',
                     Vite::asset('resources/js/clipboard-copy.js'),
                 )->module(),

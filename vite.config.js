@@ -1,7 +1,7 @@
-import os from 'os';
-import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
-import tailwindcss from '@tailwindcss/vite';
+import os from "os";
+import { defineConfig } from "vite";
+import laravel from "laravel-vite-plugin";
+import tailwindcss from "@tailwindcss/vite";
 
 /**
  * Prefer 192.168.*, then 10.*, for phone-reachable Vite HMR on the LAN.
@@ -16,11 +16,11 @@ function detectLanIpv4() {
         }
 
         for (const address of addresses) {
-            if (address.family !== 'IPv4' || address.internal) {
+            if (address.family !== "IPv4" || address.internal) {
                 continue;
             }
 
-            if (address.address.startsWith('192.168.')) {
+            if (address.address.startsWith("192.168.")) {
                 return address.address;
             }
 
@@ -29,7 +29,7 @@ function detectLanIpv4() {
     }
 
     for (const ip of candidates) {
-        if (ip.startsWith('10.')) {
+        if (ip.startsWith("10.")) {
             return ip;
         }
     }
@@ -43,21 +43,22 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
-                'resources/css/app.css',
-                'resources/js/app.js',
-                'resources/js/filament-chart-js-plugins.js',
-                'resources/js/disable-mobile-tippy.js',
-                'resources/js/drag-drop-upload.js',
-                'resources/js/receipt-upload-handler.js',
-                'resources/js/sticky-blur-veil.js',
-                'resources/js/select-value-marquee.js',
-                'resources/js/receipt-image-preview.js',
-                'resources/js/notification-swipe-dismiss.js',
-                'resources/js/file-upload-editor-overlay.js',
-                'resources/js/unsupported-record-checkbox.js',
-                'resources/js/date-picker-month-select.js',
-                'resources/js/disable-select-search-autofocus.js',
-                'resources/js/clipboard-copy.js',
+                "resources/css/app.css",
+                "resources/js/app.js",
+                "resources/js/filament-chart-js-plugins.js",
+                "resources/js/disable-mobile-tippy.js",
+                "resources/js/drag-drop-upload.js",
+                "resources/js/receipt-upload-handler.js",
+                "resources/js/sticky-blur-veil.js",
+                "resources/js/select-value-marquee.js",
+                "resources/js/receipt-image-preview.js",
+                "resources/js/notification-swipe-dismiss.js",
+                "resources/js/file-upload-editor-overlay.js",
+                "resources/js/unsupported-record-checkbox.js",
+                "resources/js/date-picker-month-select.js",
+                "resources/js/disable-select-search-autofocus.js",
+                "resources/js/gsm-filter-select-pin.js",
+                "resources/js/clipboard-copy.js",
             ],
             refresh: true,
         }),
@@ -77,7 +78,7 @@ export default defineConfig({
             ],
         },
         watch: {
-            ignored: ['**/storage/framework/views/**'],
+            ignored: ["**/storage/framework/views/**"],
         },
     },
 });
