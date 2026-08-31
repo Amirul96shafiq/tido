@@ -12,21 +12,37 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-test('profile personalize preferences section renders mobile nav toggle', function (): void {
+test('profile personalize appearance section renders mobile navigation menu field', function (): void {
     $user = User::factory()->create();
 
     $this->actingAs($user);
 
-    $component = Livewire::test(EditProfile::class)
-        ->assertSee('PREFERENCES', false)
-        ->assertSee('Mobile Nav', false)
-        ->assertSee('On small screens, replace the top bar with a bottom navigation bar. Save to keep this preference for future sign-ins.', false)
-        ->assertSchemaComponentExists('personalize-preferences')
+    Livewire::test(EditProfile::class)
+        ->assertSee('APPEARANCE', false)
+        ->assertSee('Mobile Navigation Menu', false)
+        ->assertSee('Save changes needed to take effect.', false)
+        ->assertSee('Enabled: Bottom Bar', false)
+        ->assertSee('Disabled: Top Bar', false)
+        ->assertSee('tido-mobilenav-preview', false)
+        ->assertSee('tido-mobilenav-preview-frame', false)
+        ->assertSee('tido-mobile-preview-chrome', false)
+        ->assertSee('tido-mobile-preview-topbar', false)
+        ->assertSee('tido-mobilenav-preview-bar', false)
+        ->assertSee('data.mobile_nav_enabled', false)
+        ->assertSee("mobileNav ? 'Enabled: Bottom Bar' : 'Disabled: Top Bar'", false)
+        ->assertSee('x-show="! mobileNav"', false)
+        ->assertSee('x-show="mobileNav"', false)
         ->assertSet('data.mobile_nav_enabled', false);
 
-    $toggle = $component->instance()->form->getComponent('mobile_nav_enabled');
+    $mobileNavField = (string) file_get_contents(
+        resource_path('views/filament/schemas/components/mobile-nav-field.blade.php'),
+    );
 
-    expect($toggle?->getColumnSpan('default'))->toBe('full');
+    expect($mobileNavField)
+        ->toContain('tido-mobilenav-preview-frame')
+        ->toContain('mobile-preview-chrome')
+        ->not->toContain('panel-preview-chrome')
+        ->not->toContain('aspect-ratio: 1919 / 1079');
 });
 
 test('profile saves the mobile nav preference', function (bool $enabled): void {
@@ -63,7 +79,7 @@ test('changing the mobile nav preference reports the profile change', function (
     $notification = $user->fresh()->notifications()->first();
 
     expect($notification)->not->toBeNull()
-        ->and($notification->data['body'])->toContain('Mobile Nav');
+        ->and($notification->data['body'])->toContain('Mobile Navigation Menu');
 });
 
 test('admin panel injects mobile nav script and class when preference is enabled', function (): void {

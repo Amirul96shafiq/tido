@@ -1,12 +1,15 @@
-# Mobile Nav (opt-in bottom bar)
+# Mobile Navigation Menu (opt-in bottom bar)
 
-Profile **Mobile Nav** replaces the sticky Filament topbar with a five-slot bottom navigation bar on viewports below `lg` (1024px).
+Profile **Mobile Navigation Menu** replaces the sticky Filament topbar with a five-slot bottom navigation bar on viewports below `lg` (1024px).
 
 ## Profile control
 
 - Field: `users.mobile_nav_enabled` (boolean, default `false`)
-- UI: native `Toggle::make('mobile_nav_enabled')` in **Personalize & Appearance → PREFERENCES** on [`EditProfile.php`](../app/Filament/Pages/Auth/EditProfile.php)
+- UI: custom Blade field in **Personalize & Appearance → APPEARANCES** on [`EditProfile.php`](../app/Filament/Pages/Auth/EditProfile.php) — `Hidden::make('mobile_nav_enabled')` + [`mobile-nav-field.blade.php`](../resources/views/filament/schemas/components/mobile-nav-field.blade.php)
 - Helper: [`App\Support\MobileNav`](../app/Support/MobileNav.php)
+- Pills: `Enabled: Bottom Bar` / `Disabled: Top Bar`
+- Helper text: _Save changes needed to take effect._
+- Preview: portrait `tido-mobilenav-preview` phone mock via [`mobile-preview-chrome`](../resources/views/components/tido/mobile-preview-chrome.blade.php) (no sidebar; top bar vs five-slot bottom bar)
 
 When enabled, the panel adds `html.tido-mobilenav` and hides `.fi-topbar-ctn` below `lg`. The bottom bar root uses `.tido-mobilenav-root` so the document flag does not share a class with `display: none`. In-page Filament headers (breadcrumbs, titles, dashboard Focus tabs) stay visible.
 

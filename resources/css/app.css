@@ -2643,7 +2643,8 @@ html.tido-reduce-motion
  * editor is open lift its column above the Personalize previews.
  */
 .tido-sidebar-preview,
-.tido-stylized-preview {
+.tido-stylized-preview,
+.tido-mobilenav-preview {
     isolation: isolate;
 }
 
@@ -2655,7 +2656,9 @@ html.tido-reduce-motion
 .fi-layout:has(.fi-fo-file-upload-editor:not([style*="display: none"]))
     .tido-sidebar-preview,
 .fi-layout:has(.fi-fo-file-upload-editor:not([style*="display: none"]))
-    .tido-stylized-preview {
+    .tido-stylized-preview,
+.fi-layout:has(.fi-fo-file-upload-editor:not([style*="display: none"]))
+    .tido-mobilenav-preview {
     z-index: 0;
 }
 
@@ -5801,8 +5804,95 @@ html.tido-reduce-motion .tido-ping-pulse {
     @apply text-xs text-gray-500 dark:text-gray-400;
 }
 
+/* Personalize mobile-nav preview (portrait phone mock — Mobile Navigation Menu only). */
+.tido-mobilenav-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 18rem;
+    padding: 1.5rem;
+}
+
+.tido-mobilenav-preview-frame {
+    width: min(11rem, 42%);
+    aspect-ratio: 9 / 19.5;
+    overflow: hidden;
+    border-radius: 1rem;
+    border: 1px solid var(--tido-border-color);
+    background-color: var(--color-white);
+    box-shadow: none;
+}
+
+.dark .tido-mobilenav-preview-frame {
+    background-color: var(--color-slate-900);
+}
+
+.tido-mobile-preview-chrome {
+    isolation: isolate;
+}
+
+.tido-mobilenav-preview-bar {
+    @apply px-1 py-1;
+}
+
+.tido-mobilenav-preview-bar-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: center;
+    min-height: 2rem;
+}
+
+.tido-mobilenav-preview-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-gray-500);
+}
+
+.dark .tido-mobilenav-preview-slot {
+    color: var(--color-gray-400);
+}
+
+.tido-mobilenav-preview-slot--primary {
+    color: var(--color-primary-600);
+}
+
+.dark .tido-mobilenav-preview-slot--primary {
+    color: var(--color-primary-400);
+}
+
+.tido-mobilenav-preview-icon {
+    display: block;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 0.125rem;
+    background-color: currentColor;
+    opacity: 0.85;
+}
+
+.tido-mobilenav-preview-icon--primary {
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 9999px;
+    opacity: 1;
+}
+
+.tido-mobilenav-preview-avatar {
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 9999px;
+    border: 1px solid var(--color-gray-400);
+    background-color: var(--color-gray-300);
+}
+
+.dark .tido-mobilenav-preview-avatar {
+    border-color: var(--color-slate-500);
+    background-color: var(--color-slate-600);
+}
+
 /*
- * Mobile bottom nav (opt-in via Profile → Mobile Nav).
+ * Mobile bottom nav (opt-in via Profile → Mobile Navigation Menu).
  * Active when html.tido-mobilenav and viewport < lg.
  */
 html.tido-mobilenav {

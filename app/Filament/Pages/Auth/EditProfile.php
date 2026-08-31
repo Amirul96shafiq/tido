@@ -220,7 +220,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                         Section::make('Personalize & Appearance')
                             ->id('personalize-appearance')
                             ->schema([
-                                Fieldset::make('APPEARANCE')
+                                Fieldset::make('APPEARANCES')
                                     ->schema([
                                         View::make('filament.schemas.components.theme-mode-field')
                                             ->columnSpanFull(),
@@ -233,6 +233,14 @@ class EditProfile extends BaseEditProfile implements HasTable
                                         View::make('filament.schemas.components.stylized-background-field')
                                             ->viewData(fn (Get $get): array => [
                                                 'enabled' => (bool) $get('stylized_background_enabled'),
+                                            ])
+                                            ->columnSpanFull(),
+
+                                        Hidden::make('mobile_nav_enabled'),
+
+                                        View::make('filament.schemas.components.mobile-nav-field')
+                                            ->viewData(fn (Get $get): array => [
+                                                'mobileNavEnabled' => (bool) $get('mobile_nav_enabled'),
                                             ])
                                             ->columnSpanFull(),
                                     ]),
@@ -251,14 +259,6 @@ class EditProfile extends BaseEditProfile implements HasTable
                                             ->afterStateUpdated(function (bool $state): void {
                                                 $this->js('window.tidoSetReduceMotion('.Js::from($state).')');
                                             }),
-
-                                        Toggle::make('mobile_nav_enabled')
-                                            ->label('Mobile Nav')
-                                            ->helperText('On small screens, replace the top bar with a bottom navigation bar. Save to keep this preference for future sign-ins.')
-                                            ->live()
-                                            ->columnSpanFull()
-                                            ->fieldWrapperView('profile-toggle-field-wrapper')
-                                            ->extraFieldWrapperAttributes(['class' => 'fi-profile-toggle-field']),
                                     ]),
                             ]),
 
@@ -1012,7 +1012,7 @@ class EditProfile extends BaseEditProfile implements HasTable
             $changes[] = 'Reduce Motion';
         }
         if ($oldMobileNavEnabled !== (bool) $updatedRecord->mobile_nav_enabled) {
-            $changes[] = 'Mobile Nav';
+            $changes[] = 'Mobile Navigation Menu';
         }
 
         if (! empty($changes) && $updatedRecord->notify_profile_updates) {
@@ -1048,12 +1048,13 @@ class EditProfile extends BaseEditProfile implements HasTable
         return [
             // Personalize & Appearance → Preferences
             'reduce_motion',
+            // Personalize & Appearance → Appearances
             'mobile_nav_enabled',
             // Regional Preferences
             'locale',
             'timezone',
             'date_format',
-            // Appearance / identity
+            // Appearances / identity
             'avatar_url',
             'stylized_background_enabled',
         ];
