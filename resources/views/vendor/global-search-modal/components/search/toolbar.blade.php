@@ -8,44 +8,46 @@
 @endphp
 
 <div
-    class="fi-gsm-toolbar mt-2 flex w-full flex-wrap items-end gap-3 border-t border-gray-100 pt-3 dark:border-white/10"
+    @class([
+        'fi-gsm-toolbar mt-2 grid w-full gap-3 border-t border-gray-100 pt-3 dark:border-white/10',
+        'sm:grid-cols-2' => ! $hasTypeFilters,
+        'sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]' => $hasTypeFilters,
+    ])
     x-on:modal-closed.window="
         if ($event.detail?.id === 'global-search-modal::plugin') {
             $wire.resetModalState();
         }
     "
 >
-    <div class="grid min-w-0 flex-1 gap-3 sm:grid-cols-2">
-        <div class="min-w-0">
-            <label class="fi-gsm-toolbar-label mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
-                Type
-            </label>
-            <x-filament::input.wrapper>
-                <x-filament::input.select wire:model.live="type">
-                    @foreach ($this->typeOptions as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </x-filament::input.select>
-            </x-filament::input.wrapper>
-        </div>
+    <div class="min-w-0">
+        <label class="fi-gsm-toolbar-label mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
+            Type
+        </label>
+        <x-filament::input.wrapper>
+            <x-filament::input.select wire:model.live="type">
+                @foreach ($this->typeOptions as $value => $label)
+                    <option value="{{ $value }}">{{ $label }}</option>
+                @endforeach
+            </x-filament::input.select>
+        </x-filament::input.wrapper>
+    </div>
 
-        <div class="min-w-0">
-            <label class="fi-gsm-toolbar-label mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
-                Sort
-            </label>
-            <x-filament::input.wrapper>
-                <x-filament::input.select wire:model.live="sort">
-                    @foreach ($this->sortOptions as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </x-filament::input.select>
-            </x-filament::input.wrapper>
-        </div>
+    <div class="min-w-0">
+        <label class="fi-gsm-toolbar-label mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
+            Sort
+        </label>
+        <x-filament::input.wrapper>
+            <x-filament::input.select wire:model.live="sort">
+                @foreach ($this->sortOptions as $value => $label)
+                    <option value="{{ $value }}">{{ $label }}</option>
+                @endforeach
+            </x-filament::input.select>
+        </x-filament::input.wrapper>
     </div>
 
     @if ($hasTypeFilters)
         <div
-            class="fi-ta-filters-trigger-action-ctn ms-auto shrink-0"
+            class="fi-gsm-toolbar-filters min-w-0 sm:justify-self-end"
             @if ($this->filtersOpen)
                 x-on:click.outside="
                     if ($event.target.closest('.fi-dropdown-panel, .fi-fo-date-time-picker-panel')) {
@@ -56,6 +58,11 @@
                 "
             @endif
         >
+            <label class="fi-gsm-toolbar-label mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
+                Filters
+            </label>
+
+            <div class="fi-ta-filters-trigger-action-ctn">
             <button
                 type="button"
                 class="fi-icon-btn fi-size-md fi-color fi-color-gray relative"
@@ -122,6 +129,7 @@
                     </div>
                 </div>
             @endif
+            </div>
         </div>
     @endif
 </div>
