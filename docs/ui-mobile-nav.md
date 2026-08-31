@@ -51,9 +51,12 @@ Dark bar chrome uses `html.dark.tido-mobilenav` (Filament puts `dark` on `<html>
 
 ## Chrome offsets (mobile + `html.tido-mobilenav`)
 
-- `--tido-mobilenav-height: calc(4rem + env(safe-area-inset-bottom, 0px))`
+- `--tido-mobilenav-height: calc(4rem + 1px + env(safe-area-inset-bottom, 0px))`
 - `--tido-mobilenav-menu-gap: 0.75rem` — shared offset above the nav bar for Add sheet and user menu panel
-- Main content `padding-bottom` clears the bar
+- Main content `padding-bottom` clears the bar plus `0.25rem` gap (matches sticky CTAs / go-to-bottom)
+- Page vertical scroll is confined to `.fi-main-ctn` (`height: calc(100dvh - var(--tido-mobilenav-height))`, `overflow-y: auto`) so the page scrollbar ends above the fixed bar; `html` / `body` / `.fi-body` use `overflow: hidden`
+- `.fi-body::after` scrollbar rail stops above the bar (`inset-block-end: var(--tido-mobilenav-height)`)
+- Table inner-scroll caps (`.fi-ta-ctn`, `.fi-ta-content-ctn`) subtract `--tido-mobilenav-height` so horizontal overflow thumbs stay above the bar
 - Open sidebar is half the viewport (`50vw` / `--tido-mobilenav-sidebar-width`); `inset-block-end` + `height: auto` sits above the bar
 - Collapse footer and Collapse Sidebar CTA are hidden; the Menu slot closes the drawer
 - Sticky form CTAs (`tido-sticky-marker--bottom`) and bottom blur veil sit above the nav

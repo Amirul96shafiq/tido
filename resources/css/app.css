@@ -6070,8 +6070,40 @@ html.tido-mobilenav {
         height: 2.5rem !important;
     }
 
+    /*
+     * Page scroll: confine vertical scrolling to .fi-main-ctn so the page
+     * scrollbar ends above the fixed bottom bar (not through the nav zone).
+     */
+    html.tido-mobilenav,
+    html.tido-mobilenav body,
+    html.tido-mobilenav .fi-body {
+        height: 100dvh;
+        overflow: hidden;
+    }
+
+    html.tido-mobilenav .fi-body::after {
+        inset-block-end: var(--tido-mobilenav-height, 4rem);
+    }
+
     html.tido-mobilenav .fi-main-ctn {
-        padding-bottom: var(--tido-mobilenav-height, 4rem);
+        height: calc(100dvh - var(--tido-mobilenav-height, 4rem));
+        max-height: calc(100dvh - var(--tido-mobilenav-height, 4rem));
+        overflow-y: auto;
+        overflow-x: visible;
+        padding-bottom: 0.25rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /*
+     * Table inner scrollports: cap height so overflow-x thumbs sit above the
+     * fixed bottom bar (same --tido-mobilenav-height as sticky CTAs / sidebar).
+     */
+    html.tido-mobilenav .fi-ta-ctn {
+        max-height: calc(100vh - 16rem - var(--tido-mobilenav-height, 4rem));
+    }
+
+    html.tido-mobilenav .fi-ta-content-ctn {
+        max-height: calc(65vh - var(--tido-mobilenav-height, 4rem));
     }
 
     /*

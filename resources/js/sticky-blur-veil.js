@@ -127,10 +127,24 @@ function markScrolling() {
 }
 
 function isPageScrollTarget(target) {
-    return target === document
+    if (
+        target === document
         || target === document.documentElement
         || target === document.body
-        || target === window;
+        || target === window
+    ) {
+        return true;
+    }
+
+    if (
+        document.documentElement.classList.contains('tido-mobilenav')
+        && target instanceof Element
+        && target.classList.contains('fi-main-ctn')
+    ) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
