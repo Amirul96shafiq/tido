@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Budgets;
 
+use App\Filament\GlobalSearch\AppliesGlobalSearchCriteria;
 use App\Filament\Resources\Budgets\Pages\CreateBudget;
 use App\Filament\Resources\Budgets\Pages\EditBudget;
 use App\Filament\Resources\Budgets\Pages\ListBudgets;
@@ -141,6 +142,11 @@ class BudgetResource extends Resource
     public static function getGlobalSearchEloquentQuery(): Builder
     {
         return parent::getGlobalSearchEloquentQuery()->with(['label', 'familyMember']);
+    }
+
+    public static function modifyGlobalSearchQuery(Builder $query, string $search): void
+    {
+        AppliesGlobalSearchCriteria::applyToBudgetQuery($query);
     }
 
     /**

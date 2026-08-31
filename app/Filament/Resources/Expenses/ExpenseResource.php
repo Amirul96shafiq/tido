@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Expenses;
 
+use App\Filament\GlobalSearch\AppliesGlobalSearchCriteria;
 use App\Filament\Resources\Expenses\Pages\CreateExpense;
 use App\Filament\Resources\Expenses\Pages\EditExpense;
 use App\Filament\Resources\Expenses\Pages\ListExpenses;
@@ -97,7 +98,7 @@ class ExpenseResource extends Resource
 
     public static function modifyGlobalSearchQuery(Builder $query, string $search): void
     {
-        $query->latest($query->getModel()->getQualifiedUpdatedAtColumn());
+        AppliesGlobalSearchCriteria::applyToExpenseQuery($query);
     }
 
     public static function getGlobalSearchResults(string $search): Collection

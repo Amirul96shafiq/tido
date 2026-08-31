@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Backups;
 
 use App\Enums\BackupType;
 use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
+use App\Filament\GlobalSearch\AppliesGlobalSearchCriteria;
 use App\Filament\Resources\Backups\Pages\ListBackups;
 use App\Filament\Resources\Backups\Tables\BackupsTable;
 use App\Models\Backup;
@@ -13,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class BackupResource extends Resource
@@ -72,6 +74,11 @@ class BackupResource extends Resource
             'filename',
             'type',
         ];
+    }
+
+    public static function modifyGlobalSearchQuery(Builder $query, string $search): void
+    {
+        AppliesGlobalSearchCriteria::applyToBackupQuery($query);
     }
 
     /**

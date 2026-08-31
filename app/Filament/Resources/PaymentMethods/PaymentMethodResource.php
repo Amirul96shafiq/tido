@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\PaymentMethods;
 
 use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
+use App\Filament\GlobalSearch\AppliesGlobalSearchCriteria;
 use App\Filament\Resources\PaymentMethods\Pages\CreatePaymentMethod;
 use App\Filament\Resources\PaymentMethods\Pages\EditPaymentMethod;
 use App\Filament\Resources\PaymentMethods\Pages\ListPaymentMethods;
@@ -124,6 +125,11 @@ class PaymentMethodResource extends Resource
             'slug',
             'notes',
         ];
+    }
+
+    public static function modifyGlobalSearchQuery(Builder $query, string $search): void
+    {
+        AppliesGlobalSearchCriteria::applyToPaymentMethodQuery($query);
     }
 
     /**
