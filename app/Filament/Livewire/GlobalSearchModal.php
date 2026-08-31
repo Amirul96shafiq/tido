@@ -21,7 +21,10 @@ use Livewire\Attributes\Computed;
 
 class GlobalSearchModal extends BaseGlobalSearchModal
 {
-    public string $type = 'all';
+    /**
+     * @var list<string>
+     */
+    public array $type = ['all'];
 
     public string $sort = 'default';
 
@@ -32,20 +35,69 @@ class GlobalSearchModal extends BaseGlobalSearchModal
 
     public function mount(): void
     {
+        $this->type = $this->normalizedTypeValues();
         $this->ensureFilterBuckets();
     }
 
     public function updated(string $property): void
     {
-        if ($property === 'type') {
-            $this->sort = GlobalSearchType::tryFromValue($this->type)->defaultSort();
+        if ($property !== 'type' && ! str_starts_with($property, 'type.')) {
+            return;
         }
+
+        $normalized = $this->normalizedTypeValues();
+
+        if ($this->type !== $normalized) {
+            $this->type = $normalized;
+        }
+
+        $this->sort = $this->sortType()->defaultSort();
+    }
+
+    public function toggleType(string $value): void
+    {
+        $allowed = array_keys(GlobalSearchType::optionsForUser());
+
+        if (! in_array($value, $allowed, true)) {
+            return;
+        }
+
+        if ($value === GlobalSearchType::All->value) {
+            $this->type = [GlobalSearchType::All->value];
+            $this->sort = $this->sortType()->defaultSort();
+
+            return;
+        }
+
+        $selected = array_values(array_filter(
+            $this->normalizedTypeValues(),
+            fn (string $type): bool => $type !== GlobalSearchType::All->value,
+        ));
+
+        if (in_array($value, $selected, true)) {
+            $selected = array_values(array_filter(
+                $selected,
+                fn (string $type): bool => $type !== $value,
+            ));
+        } else {
+            $selected[] = $value;
+        }
+
+        $this->type = $selected === []
+            ? [GlobalSearchType::All->value]
+            : array_values(array_intersect($allowed, $selected));
+        $this->sort = $this->sortType()->defaultSort();
     }
 
     public function resetFilters(): void
     {
-        $searchType = GlobalSearchType::tryFromValue($this->type);
-        $this->filters[$searchType->value] = $searchType->defaultFilters();
+        foreach ($this->selectedTypes() as $searchType) {
+            if ($searchType->defaultFilters() === []) {
+                continue;
+            }
+
+            $this->filters[$searchType->value] = $searchType->defaultFilters();
+        }
     }
 
     public function clearFilters(): void
@@ -56,7 +108,7 @@ class GlobalSearchModal extends BaseGlobalSearchModal
     public function resetModalState(): void
     {
         $this->search = '';
-        $this->type = GlobalSearchType::All->value;
+        $this->type = [GlobalSearchType::All->value];
         $this->sort = GlobalSearchType::All->defaultSort();
         $this->filters = [];
         $this->ensureFilterBuckets();
@@ -72,16 +124,79 @@ class GlobalSearchModal extends BaseGlobalSearchModal
     #[Computed]
     public function sortOptions(): array
     {
-        return GlobalSearchType::tryFromValue($this->type)->sortOptions();
+        return $this->sortType()->sortOptions();
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function normalizedTypeValues(): array
+    {
+        $allowed = array_keys(GlobalSearchType::optionsForUser());
+        $values = array_values(array_intersect(
+            $allowed,
+            array_map(
+                fn (GlobalSearchType $type): string => $type->value,
+                GlobalSearchType::tryFromValues($this->type),
+            ),
+        ));
+
+        return $values === [] ? [GlobalSearchType::All->value] : $values;
+    }
+
+    /**
+     * @return list<GlobalSearchType>
+     */
+    public function selectedTypes(): array
+    {
+        return array_map(
+            fn (string $value): GlobalSearchType => GlobalSearchType::tryFromValue($value),
+            $this->normalizedTypeValues(),
+        );
+    }
+
+    public function sortType(): GlobalSearchType
+    {
+        $types = $this->selectedTypes();
+
+        return count($types) === 1 ? $types[0] : GlobalSearchType::All;
+    }
+
+    public function isAllTypes(): bool
+    {
+        return $this->normalizedTypeValues() === [GlobalSearchType::All->value];
+    }
+
+    public function isTypeSelected(string $value): bool
+    {
+        if ($value === GlobalSearchType::All->value) {
+            return $this->isAllTypes();
+        }
+
+        return in_array($value, $this->normalizedTypeValues(), true);
+    }
+
+    public function hasTypeFilters(): bool
+    {
+        $types = $this->selectedTypes();
+
+        return count($types) === 1 && $types[0]->hasTypeFilters();
+    }
+
+    public function typeTooltipLabel(): string
+    {
+        return collect($this->selectedTypes())
+            ->map(fn (GlobalSearchType $type): string => $type->label())
+            ->implode(', ');
     }
 
     public function getActiveFiltersCount(): int
     {
-        $searchType = GlobalSearchType::tryFromValue($this->type);
-
-        if (! $searchType->hasTypeFilters()) {
+        if (! $this->hasTypeFilters()) {
             return 0;
         }
+
+        $searchType = $this->sortType();
 
         return collect($this->filters[$searchType->value] ?? [])
             ->filter(fn (mixed $value): bool => filled($value))
@@ -90,7 +205,7 @@ class GlobalSearchModal extends BaseGlobalSearchModal
 
     public function filtersForm(Schema $schema): Schema
     {
-        $searchType = GlobalSearchType::tryFromValue($this->type);
+        $searchType = $this->sortType();
 
         return $schema
             ->statePath('filters.'.$searchType->value)
@@ -257,11 +372,10 @@ class GlobalSearchModal extends BaseGlobalSearchModal
 
     public function getResults(): ?GlobalSearchResults
     {
-        $searchType = GlobalSearchType::tryFromValue($this->type);
         $this->ensureFilterBuckets();
 
         GlobalSearchCriteria::apply(
-            $searchType,
+            $this->selectedTypes(),
             $this->sort,
             $this->filters,
         );

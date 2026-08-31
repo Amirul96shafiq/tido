@@ -37,13 +37,12 @@ class TidoSearchEngine extends SearchEngine
 
         $builder = GlobalSearchResults::make();
         $criteria = GlobalSearchCriteria::instance();
-        $type = $criteria->type();
 
-        if ($plugin->hasCustomSearch() && $plugin->mergesWithCore() && $type->isDestinationType()) {
+        if ($plugin->hasCustomSearch() && $plugin->mergesWithCore() && $criteria->includesDestinations()) {
             $builder->merge($plugin->executeSearchCallback($query));
         }
 
-        if ($type === GlobalSearchType::All || $type->resourceClass() !== null) {
+        if ($criteria->includesResources()) {
             $resourceResults = TidoResourceGlobalSearch::search($query);
 
             if ($resourceResults !== null) {
@@ -59,7 +58,7 @@ class TidoSearchEngine extends SearchEngine
             $builder->sort($plugin->getSort());
         }
 
-        if ($type === GlobalSearchType::All && in_array($criteria->sort(), ['title_asc', 'title_desc'], true)) {
+        if ($criteria->usesSharedTitleSort()) {
             $categories = AppliesGlobalSearchCriteria::sortAllTypeCategories(
                 $builder->getCategories()->all(),
                 $criteria->sort(),

@@ -138,6 +138,46 @@ enum GlobalSearchType: string
     }
 
     /**
+     * @param  self|list<self|string>|string|null  $values
+     * @return list<self>
+     */
+    public static function tryFromValues(mixed $values): array
+    {
+        if ($values instanceof self) {
+            $values = [$values];
+        } elseif (is_string($values) && $values !== '') {
+            $values = [$values];
+        } elseif (! is_array($values)) {
+            $values = [];
+        }
+
+        $types = [];
+
+        foreach ($values as $value) {
+            $type = match (true) {
+                $value instanceof self => $value,
+                is_string($value) => self::tryFrom($value),
+                default => null,
+            };
+
+            if ($type instanceof self && ! in_array($type, $types, true)) {
+                $types[] = $type;
+            }
+        }
+
+        if ($types === []) {
+            return [self::All];
+        }
+
+        $withoutAll = array_values(array_filter(
+            $types,
+            fn (self $type): bool => $type !== self::All,
+        ));
+
+        return $withoutAll === [] ? [self::All] : $withoutAll;
+    }
+
+    /**
      * @return array<string, string>
      */
     public function sortOptions(): array

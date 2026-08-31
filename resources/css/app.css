@@ -2834,7 +2834,9 @@ html.tido-reduce-motion
     font-weight: 500;
 }
 
-.fi-gsm-toolbar-menu .fi-dropdown-list-item.fi-active .fi-dropdown-list-item-label {
+.fi-gsm-toolbar-menu
+    .fi-dropdown-list-item.fi-active
+    .fi-dropdown-list-item-label {
     color: inherit;
 }
 
@@ -3105,6 +3107,10 @@ html.tido-reduce-motion
 
 body:has([id="global-search-modal::plugin"].fi-modal-open) [data-tippy-root] {
     z-index: 100001 !important;
+}
+
+[id="global-search-modal::plugin"] .fi-gsm-toolbar-filters-unavailable {
+    display: none !important;
 }
 
 [id="global-search-modal::plugin"] .fi-gsm-toolbar-trigger.fi-icon-btn {

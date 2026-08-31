@@ -21,13 +21,13 @@ final class AppliesGlobalSearchCriteria
     {
         $criteria = GlobalSearchCriteria::instance();
 
-        if ($criteria->type() !== GlobalSearchType::Expenses && $criteria->type() !== GlobalSearchType::All) {
+        if (! $criteria->includes(GlobalSearchType::Expenses)) {
             return;
         }
 
         $filters = $criteria->activeFilters();
 
-        if ($criteria->type() === GlobalSearchType::All) {
+        if (! $criteria->isOnly(GlobalSearchType::Expenses)) {
             self::applyExpenseSort($query, $criteria->sort());
 
             return;
@@ -77,7 +77,7 @@ final class AppliesGlobalSearchCriteria
     {
         $criteria = GlobalSearchCriteria::instance();
 
-        if ($criteria->type() !== GlobalSearchType::Budgets) {
+        if (! $criteria->isOnly(GlobalSearchType::Budgets)) {
             return;
         }
 
@@ -110,7 +110,7 @@ final class AppliesGlobalSearchCriteria
     {
         $criteria = GlobalSearchCriteria::instance();
 
-        if ($criteria->type() !== GlobalSearchType::Recurrings) {
+        if (! $criteria->isOnly(GlobalSearchType::Recurrings)) {
             return;
         }
 
@@ -139,7 +139,7 @@ final class AppliesGlobalSearchCriteria
     {
         $criteria = GlobalSearchCriteria::instance();
 
-        if ($criteria->type() !== GlobalSearchType::Labels) {
+        if (! $criteria->isOnly(GlobalSearchType::Labels)) {
             return;
         }
 
@@ -160,7 +160,7 @@ final class AppliesGlobalSearchCriteria
     {
         $criteria = GlobalSearchCriteria::instance();
 
-        if ($criteria->type() !== GlobalSearchType::PaymentMethods) {
+        if (! $criteria->isOnly(GlobalSearchType::PaymentMethods)) {
             return;
         }
 
@@ -177,7 +177,7 @@ final class AppliesGlobalSearchCriteria
     {
         $criteria = GlobalSearchCriteria::instance();
 
-        if ($criteria->type() !== GlobalSearchType::FamilyMembers) {
+        if (! $criteria->isOnly(GlobalSearchType::FamilyMembers)) {
             return;
         }
 
@@ -198,7 +198,7 @@ final class AppliesGlobalSearchCriteria
     {
         $criteria = GlobalSearchCriteria::instance();
 
-        if ($criteria->type() !== GlobalSearchType::Backups) {
+        if (! $criteria->isOnly(GlobalSearchType::Backups)) {
             return;
         }
 

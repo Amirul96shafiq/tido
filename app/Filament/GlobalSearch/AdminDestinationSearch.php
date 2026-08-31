@@ -437,9 +437,8 @@ final class AdminDestinationSearch
         }
 
         $criteria = GlobalSearchCriteria::instance();
-        $type = $criteria->type();
 
-        if (! $type->isDestinationType()) {
+        if (! $criteria->includesDestinations()) {
             return $builder;
         }
 
@@ -463,11 +462,11 @@ final class AdminDestinationSearch
                 details: $destination['details'] ?? [],
             );
 
-            if ($destination['group'] === 'Pages' && $type->includesPages()) {
+            if ($destination['group'] === 'Pages' && $criteria->includesPages()) {
                 $pageResults[] = $result;
             }
 
-            if ($destination['group'] === 'Sections' && $type->includesSections()) {
+            if ($destination['group'] === 'Sections' && $criteria->includesSections()) {
                 $sectionResults[] = $result;
             }
         }

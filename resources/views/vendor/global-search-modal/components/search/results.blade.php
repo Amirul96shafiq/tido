@@ -23,7 +23,7 @@
     }}
 >
     @if ($results->getCategories()->isEmpty())
-        @if (\App\Filament\GlobalSearch\GlobalSearchType::tryFromValue($this->type)->hasTypeFilters() && $this->getActiveFiltersCount() > 0)
+        @if ($this->hasTypeFilters() && $this->getActiveFiltersCount() > 0)
             <x-empty-state-panel
                 class="fi-gsm-empty-filter px-4 py-12"
                 heading="No Matches Found"

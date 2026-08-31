@@ -13,14 +13,13 @@ final class TidoResourceGlobalSearch
     {
         $builder = GlobalSearchResults::make();
         $criteria = GlobalSearchCriteria::instance();
-        $type = $criteria->type();
 
         foreach (Filament::getResources() as $resource) {
             if (! $resource::canGloballySearch()) {
                 continue;
             }
 
-            if (! $type->includesResource($resource)) {
+            if (! $criteria->includesResource($resource)) {
                 continue;
             }
 

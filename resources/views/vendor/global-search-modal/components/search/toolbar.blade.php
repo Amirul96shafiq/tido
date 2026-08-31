@@ -5,8 +5,8 @@
     use Filament\Support\View\Components\BadgeComponent;
 
     $activeFiltersCount = $this->getActiveFiltersCount();
-    $hasTypeFilters = \App\Filament\GlobalSearch\GlobalSearchType::tryFromValue($this->type)->hasTypeFilters();
-    $currentTypeLabel = $this->typeOptions[$this->type] ?? 'All';
+    $hasTypeFilters = $this->hasTypeFilters();
+    $currentTypeLabel = $this->typeTooltipLabel();
     $currentSortLabel = $this->sortOptions[$this->sort] ?? 'Default';
     $typeTooltipLabel = 'Type: '.$currentTypeLabel;
     $sortTooltipLabel = 'Sort: '.$currentSortLabel;
@@ -62,10 +62,12 @@
             <x-filament::dropdown.list>
                 @foreach ($this->typeOptions as $value => $label)
                     <x-filament::dropdown.list.item
-                        wire:click="$set('type', '{{ $value }}')"
+                        wire:click="toggleType('{{ $value }}')"
+                        x-on:click.stop
                         wire:key="gsm-type-option-{{ $value }}-{{ $placementConfig['placement'] }}"
-                        :color="$this->type === $value ? 'primary' : 'gray'"
-                        @class(['fi-active' => $this->type === $value])
+                        :color="$this->isTypeSelected($value) ? 'primary' : 'gray'"
+                        :aria-pressed="$this->isTypeSelected($value) ? 'true' : 'false'"
+                        @class(['fi-active' => $this->isTypeSelected($value)])
                     >
                         {{ $label }}
                     </x-filament::dropdown.list.item>
@@ -83,7 +85,7 @@
             shift
             :flip="false"
             :offset="$dropdownOffset"
-            :wire:key="$this->getId().'.gsm.sort.'.$this->type.'.'.$placementConfig['placement']"
+            :wire:key="$this->getId().'.gsm.sort.'.$placementConfig['placement']"
             @class(['fi-gsm-toolbar-control fi-gsm-toolbar-sort fi-gsm-toolbar-menu', $placementConfig['class']])
         >
             <x-slot name="trigger">
@@ -122,21 +124,24 @@
         </x-filament::dropdown>
     @endforeach
 
-    @if ($hasTypeFilters)
-        @foreach ($dropdownPlacements as $placementConfig)
-            @php
-                $tooltipPlacement = $placementConfig['tooltipPlacement'];
-            @endphp
-            <x-filament::dropdown
-                :placement="$placementConfig['placement']"
-                shift
-                :flip="false"
-                :offset="$dropdownOffset"
-                max-height="min(70vh, 28rem)"
-                :width="Width::ExtraSmall"
-                :wire:key="$this->getId().'.gsm.filters.'.$this->type.'.'.$placementConfig['placement']"
-                @class(['fi-gsm-toolbar-control fi-gsm-toolbar-filters', $placementConfig['class']])
-            >
+    @foreach ($dropdownPlacements as $placementConfig)
+        @php
+            $tooltipPlacement = $placementConfig['tooltipPlacement'];
+        @endphp
+        <x-filament::dropdown
+            :placement="$placementConfig['placement']"
+            shift
+            :flip="false"
+            :offset="$dropdownOffset"
+            max-height="min(70vh, 28rem)"
+            :width="Width::ExtraSmall"
+            :wire:key="$this->getId().'.gsm.filters.'.$placementConfig['placement']"
+            @class([
+                'fi-gsm-toolbar-control fi-gsm-toolbar-filters',
+                $placementConfig['class'],
+                'fi-gsm-toolbar-filters-unavailable' => ! $hasTypeFilters,
+            ])
+        >
                 <x-slot name="trigger">
                     <button
                         type="button"
@@ -192,6 +197,5 @@
                     </div>
                 </div>
             </x-filament::dropdown>
-        @endforeach
-    @endif
+    @endforeach
 </div>

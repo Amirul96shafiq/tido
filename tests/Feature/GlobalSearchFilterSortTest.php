@@ -37,7 +37,7 @@ afterEach(function () {
     GlobalSearchCriteria::reset();
 });
 
-function applyGlobalSearchCriteria(GlobalSearchType $type, string $sort = 'default', array $filters = []): void
+function applyGlobalSearchCriteria(GlobalSearchType|array $type, string $sort = 'default', array $filters = []): void
 {
     GlobalSearchCriteria::apply($type, $sort, $filters);
 }
@@ -45,7 +45,7 @@ function applyGlobalSearchCriteria(GlobalSearchType $type, string $sort = 'defau
 test('global search modal toolbar renders type sort and filters icon controls', function () {
     $html = Livewire::test(GlobalSearchModal::class)
         ->set('search', 'market')
-        ->set('type', 'expenses')
+        ->set('type', ['expenses'])
         ->html();
 
     expect($html)
@@ -55,6 +55,7 @@ test('global search modal toolbar renders type sort and filters icon controls', 
         ->toContain('aria-label="Sort"')
         ->toContain('aria-label="Filters"')
         ->toContain('fi-gsm-toolbar-filters')
+        ->not->toContain('fi-gsm-toolbar-filters-unavailable')
         ->toContain('offset: 12')
         ->toContain('appendTo: () => document.body')
         ->toContain("placement: 'right'")
@@ -64,38 +65,40 @@ test('global search modal toolbar renders type sort and filters icon controls', 
         ->not->toMatch('/content:\s*@js\(/')
         ->not->toContain('fi-width-sm')
         ->toContain('Expenses')
-        ->toContain('Last Updated');
+        ->toContain('Last Updated')
+        ->toContain("wire:click=\"toggleType('expenses')\"")
+        ->toContain('aria-pressed');
 });
 
 test('global search modal toolbar hides filters control for all type', function () {
     $html = Livewire::test(GlobalSearchModal::class)
         ->set('search', 'market')
-        ->set('type', 'all')
+        ->set('type', ['all'])
         ->html();
 
     expect($html)
         ->toContain('aria-label="Type"')
         ->toContain('aria-label="Sort"')
-        ->not->toContain('fi-gsm-toolbar-filters');
+        ->toContain('fi-gsm-toolbar-filters-unavailable');
 });
 
 test('global search modal type dropdown updates type', function () {
     Livewire::test(GlobalSearchModal::class)
         ->set('search', 'market')
-        ->call('$set', 'type', 'expenses')
-        ->assertSet('type', 'expenses');
+        ->call('toggleType', 'expenses')
+        ->assertSet('type', ['expenses']);
 });
 
 test('global search modal defaults to all type and default sort', function () {
     Livewire::test(GlobalSearchModal::class)
-        ->assertSet('type', 'all')
+        ->assertSet('type', ['all'])
         ->assertSet('sort', 'default');
 });
 
 test('global search modal toolbar highlights active type and sort with subtle active class', function () {
     $html = Livewire::test(GlobalSearchModal::class)
         ->set('search', 'market')
-        ->set('type', 'expenses')
+        ->set('type', ['expenses'])
         ->set('sort', 'updated_desc')
         ->html();
 
@@ -108,11 +111,11 @@ test('global search modal toolbar highlights active type and sort with subtle ac
 test('global search modal resets state when modal closes', function () {
     Livewire::test(GlobalSearchModal::class)
         ->set('search', 'market')
-        ->set('type', 'expenses')
+        ->set('type', ['expenses'])
         ->set('sort', 'date_desc')
         ->call('resetModalState')
         ->assertSet('search', '')
-        ->assertSet('type', 'all')
+        ->assertSet('type', ['all'])
         ->assertSet('sort', 'default');
 });
 
@@ -121,7 +124,7 @@ test('type expenses hides pages sections and other resource groups', function ()
     Label::factory()->create(['name' => 'UniqueExpenseOnlyShop Label', 'slug' => 'unique-expense-only-shop-label']);
 
     $component = Livewire::test(GlobalSearchModal::class)
-        ->set('type', 'expenses')
+        ->set('type', ['expenses'])
         ->set('search', 'UniqueExpenseOnlyShop');
 
     $results = $component->instance()->getResults();
@@ -304,7 +307,7 @@ test('primary user type options include all searchable resources', function () {
 
 test('global search modal clear filters action resets active filters', function () {
     Livewire::test(GlobalSearchModal::class)
-        ->set('type', 'expenses')
+        ->set('type', ['expenses'])
         ->set('filters.expenses.status', 'reviewed')
         ->call('clearFilters')
         ->assertSet('filters.expenses.status', null);
@@ -318,7 +321,7 @@ test('global search modal shows clear filters empty state when filters exclude a
 
     $html = Livewire::test(GlobalSearchModal::class)
         ->set('search', 'Empty Filter Shop')
-        ->set('type', 'expenses')
+        ->set('type', ['expenses'])
         ->set('filters.expenses.status', 'pending')
         ->html();
 
@@ -473,4 +476,96 @@ test('family member global search filters by panel login', function () {
 
     expect($results)->toHaveCount(1)
         ->and($results->first()->title)->toBe('Filter Member Login On');
+});
+
+test('global search modal type dropdown can select multiple types', function () {
+    Livewire::test(GlobalSearchModal::class)
+        ->call('toggleType', 'expenses')
+        ->assertSet('type', ['expenses'])
+        ->assertSet('sort', 'updated_desc')
+        ->call('toggleType', 'budgets')
+        ->assertSet('type', ['expenses', 'budgets'])
+        ->assertSet('sort', 'default');
+});
+
+test('global search modal type all clears other type selections', function () {
+    Livewire::test(GlobalSearchModal::class)
+        ->call('toggleType', 'expenses')
+        ->call('toggleType', 'budgets')
+        ->call('toggleType', 'all')
+        ->assertSet('type', ['all'])
+        ->assertSet('sort', 'default');
+});
+
+test('global search modal deselecting last type restores all', function () {
+    Livewire::test(GlobalSearchModal::class)
+        ->call('toggleType', 'expenses')
+        ->call('toggleType', 'expenses')
+        ->assertSet('type', ['all']);
+});
+
+test('global search modal ignores unauthorized type toggles', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'phone' => '60118886666',
+    ]);
+    $user = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    $this->actingAs($user);
+
+    Livewire::test(GlobalSearchModal::class)
+        ->call('toggleType', 'labels')
+        ->assertSet('type', ['all']);
+});
+
+test('type expenses and labels returns both groups', function () {
+    Expense::factory()->create(['merchant_name' => 'SharedShopMulti']);
+    Label::factory()->create([
+        'name' => 'SharedShopMulti Label',
+        'slug' => 'shared-shop-multi-label',
+    ]);
+
+    $component = Livewire::test(GlobalSearchModal::class)
+        ->set('type', ['expenses', 'labels'])
+        ->set('search', 'SharedShopMulti');
+
+    $results = $component->instance()->getResults();
+
+    expect($results)->not->toBeNull()
+        ->and($results->getCategories()->has('expenses'))->toBeTrue()
+        ->and($results->getCategories()->has('Labels'))->toBeTrue()
+        ->and($results->getCategories()->has('Pages'))->toBeFalse()
+        ->and($results->getCategories()->has('Sections'))->toBeFalse();
+});
+
+test('type pages and expenses includes pages but not sections', function () {
+    applyGlobalSearchCriteria(
+        [GlobalSearchType::Pages, GlobalSearchType::Expenses],
+        'default',
+    );
+
+    $results = AdminDestinationSearch::search('Expenses', GlobalSearchResults::make());
+
+    expect($results->getCategories()->has('Pages'))->toBeTrue()
+        ->and($results->getCategories()->has('Sections'))->toBeFalse();
+});
+
+test('global search modal toolbar hides filters control for multiple types', function () {
+    $html = Livewire::test(GlobalSearchModal::class)
+        ->set('search', 'market')
+        ->set('type', ['expenses', 'budgets'])
+        ->html();
+
+    expect($html)
+        ->toContain('aria-label="Type"')
+        ->toContain('Type: Expenses, Budgets')
+        ->toContain('fi-gsm-toolbar-filters-unavailable');
+});
+
+test('try from values drops all when mixed with specific types', function () {
+    expect(GlobalSearchType::tryFromValues(['all', 'expenses', 'budgets']))
+        ->toBe([GlobalSearchType::Expenses, GlobalSearchType::Budgets])
+        ->and(GlobalSearchType::tryFromValues([]))
+        ->toBe([GlobalSearchType::All])
+        ->and(GlobalSearchType::tryFromValues('expenses'))
+        ->toBe([GlobalSearchType::Expenses]);
 });
