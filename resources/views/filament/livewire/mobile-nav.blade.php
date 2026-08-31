@@ -6,13 +6,34 @@
     class="tido-mobilenav-root lg:hidden"
     x-data="{
         addOpen: false,
+        init() {
+            if (! this.$store.tidoNotifications) {
+                Alpine.store('tidoNotifications', { unread: 0, menuOpen: false });
+            } else if (this.$store.tidoNotifications.menuOpen === undefined) {
+                this.$store.tidoNotifications.menuOpen = false;
+            }
+        },
+        closeUserMenu() {
+            const menu = this.$root.querySelector('.fi-user-menu--mobilenav');
+            const data = menu ? Alpine.$data(menu) : null;
+            data?.close?.();
+        },
         openAdd() {
+            this.closeUserMenu();
+            if (this.$store.sidebar.isOpen) {
+                this.$store.sidebar.close();
+            }
             this.addOpen = true;
         },
         closeAdd() {
             this.addOpen = false;
         },
         openSearch() {
+            this.closeAdd();
+            this.closeUserMenu();
+            if (this.$store.sidebar.isOpen) {
+                this.$store.sidebar.close();
+            }
             window.dispatchEvent(
                 new CustomEvent('open-global-search-modal', {
                     detail: { id: 'global-search-modal::plugin' },
@@ -21,6 +42,8 @@
             );
         },
         toggleSidebar() {
+            this.closeAdd();
+            this.closeUserMenu();
             if (this.$store.sidebar.isOpen) {
                 this.$store.sidebar.close();
             } else {
@@ -33,9 +56,18 @@
     <div
         x-cloak
         x-show="addOpen"
-        x-transition.opacity
-        class="tido-mobilenav-add-backdrop fixed inset-0 z-[34] bg-gray-950/50 backdrop-blur-md dark:bg-gray-950/75"
+        x-transition.opacity.300ms
+        class="tido-chrome-overlay tido-mobilenav-add-backdrop"
         x-on:click="closeAdd()"
+        aria-hidden="true"
+    ></div>
+
+    <div
+        x-cloak
+        x-show="$store.tidoNotifications && $store.tidoNotifications.menuOpen"
+        x-transition.opacity.300ms
+        class="tido-chrome-overlay tido-user-menu-overlay"
+        x-on:click="closeUserMenu()"
         aria-hidden="true"
     ></div>
 

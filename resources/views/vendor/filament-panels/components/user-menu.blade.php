@@ -269,4 +269,16 @@
     </div>
 </x-filament::dropdown>
 
+@if ($anchor !== 'mobilenav')
+    <div
+        x-cloak
+        x-data
+        x-show="$store.tidoNotifications && $store.tidoNotifications.menuOpen"
+        x-transition.opacity.300ms
+        x-on:click="Alpine.$data($el.previousElementSibling)?.close?.()"
+        class="tido-chrome-overlay tido-user-menu-overlay lg:hidden"
+        aria-hidden="true"
+    ></div>
+@endif
+
 {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::USER_MENU_AFTER) }}

@@ -5892,6 +5892,35 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 /*
+ * Mobile chrome overlays (sidebar, Add sheet, user menu, global search).
+ * Visual reference: Filament .fi-sidebar-close-overlay — dim only, no frost.
+ * See docs/ui-mobile-nav.md and docs/ui-modal-overlay.md.
+ */
+.tido-chrome-overlay {
+    @apply fixed inset-0 z-30 bg-gray-950/50 dark:bg-gray-950/75;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.fi-sidebar-close-overlay {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+@media (max-width: 1023px) {
+    [id="global-search-modal::plugin"].fi-modal > .fi-modal-close-overlay {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+}
+
+@media (min-width: 1024px) {
+    .tido-user-menu-overlay {
+        display: none !important;
+    }
+}
+
+/*
  * Mobile bottom nav (opt-in via Profile → Mobile Navigation Menu).
  * Active when html.tido-mobilenav and viewport < lg.
  */

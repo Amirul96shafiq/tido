@@ -49,6 +49,19 @@ The topbar user menu remains mounted for desktop and for `DatabaseNotifications`
 
 Dark bar chrome uses `html.dark.tido-mobilenav` (Filament puts `dark` on `<html>`, same as `.dark .fi-topbar`). Do not write `.dark html.tido-mobilenav` — that selector never matches.
 
+## Chrome overlays (below `lg`)
+
+Shared dim layer matching Filament’s mobile sidebar overlay (`.fi-sidebar-close-overlay`): `bg-gray-950/50` / `dark:bg-gray-950/75`, **no** `backdrop-blur`. Class: `.tido-chrome-overlay`.
+
+| Surface | Overlay |
+| ------- | ------- |
+| Sidebar (Menu) | `.fi-sidebar-close-overlay` |
+| Add sheet | `.tido-mobilenav-add-backdrop.tido-chrome-overlay` |
+| User menu | `.tido-user-menu-overlay.tido-chrome-overlay` (bottom-bar instance in [`mobile-nav.blade.php`](../resources/views/filament/livewire/mobile-nav.blade.php); topbar instance in [`user-menu.blade.php`](../resources/views/vendor/filament-panels/components/user-menu.blade.php), `lg:hidden`) |
+| Global search | `[id="global-search-modal::plugin"] > .fi-modal-close-overlay` — frost stripped below `lg` so it matches sidebar |
+
+Action / slide-over modals keep the frosted overlay in [`ui-modal-overlay.md`](ui-modal-overlay.md). Overlay `z-index` stays `30` (same as the sidebar close overlay) so the bottom bar (`z-index: 35`) remains tappable.
+
 ## Chrome offsets (mobile + `html.tido-mobilenav`)
 
 - `--tido-mobilenav-height: calc(4rem + 1px + env(safe-area-inset-bottom, 0px))`

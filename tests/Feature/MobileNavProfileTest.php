@@ -123,10 +123,11 @@ test('mobile nav user menu opens upward from the bottom avatar', function (): vo
         ->toContain("'mobilenav' => 'top-end'")
         ->toContain("'mobilenav' => 13")
         ->toContain('$dropdownShift = $anchor === \'mobilenav\'')
-        ->toContain("'mobilenav' => 12")
+        ->toContain("'mobilenav' => 0")
         ->toContain("in_array(\$anchor, ['topbar', 'mobilenav'], true)")
         ->toContain("key('account-switcher-'.\$userMenuInstanceKey)")
-        ->toContain('fi-user-menu--');
+        ->toContain('fi-user-menu--')
+        ->toContain('tido-user-menu-overlay');
 });
 
 test('family member mobile nav add sheet disables budget and recurring create links', function (): void {
@@ -264,6 +265,44 @@ test('mobile nav add sheet sits flush on the bottom bar', function (): void {
         ->toContain('rounded-xl')
         ->not->toContain('border-b-0')
         ->not->toContain('bottom-[var(--tido-mobilenav-height');
+});
+
+test('mobile chrome overlays match the sidebar close overlay', function (): void {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+    $mobileNav = (string) file_get_contents(
+        resource_path('views/filament/livewire/mobile-nav.blade.php'),
+    );
+    $userMenu = (string) file_get_contents(
+        resource_path('views/vendor/filament-panels/components/user-menu.blade.php'),
+    );
+
+    expect($css)
+        ->toContain('.tido-chrome-overlay {')
+        ->toContain('@apply fixed inset-0 z-30 bg-gray-950/50 dark:bg-gray-950/75')
+        ->toContain('.fi-sidebar-close-overlay {')
+        ->toContain('[id="global-search-modal::plugin"].fi-modal > .fi-modal-close-overlay')
+        ->toContain('.tido-user-menu-overlay {');
+
+    $chromeOverlay = Str::between(
+        $css,
+        '.tido-chrome-overlay {',
+        '.fi-sidebar-close-overlay {',
+    );
+
+    expect($chromeOverlay)
+        ->toContain('backdrop-filter: none')
+        ->not->toContain('@apply backdrop-blur-md');
+
+    expect($mobileNav)
+        ->toContain('tido-chrome-overlay tido-mobilenav-add-backdrop')
+        ->toContain('tido-chrome-overlay tido-user-menu-overlay')
+        ->toContain('x-transition.opacity.300ms')
+        ->toContain('$store.tidoNotifications.menuOpen')
+        ->not->toContain('backdrop-blur-md');
+
+    expect($userMenu)
+        ->toContain("\$anchor !== 'mobilenav'")
+        ->toContain('tido-chrome-overlay tido-user-menu-overlay lg:hidden');
 });
 
 test('mobile nav css swaps home outline and solid icons on current dashboard link', function (): void {
