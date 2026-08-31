@@ -51,7 +51,7 @@ Dark bar chrome uses `html.dark.tido-mobilenav` (Filament puts `dark` on `<html>
 
 - `--tido-mobilenav-height: calc(4rem + env(safe-area-inset-bottom, 0px))`
 - Main content `padding-bottom` clears the bar
-- Open sidebar (`inset-block-end` + `height: auto`) sits above the bar
+- Open sidebar is half the viewport (`50vw` / `--tido-mobilenav-sidebar-width`); `inset-block-end` + `height: auto` sits above the bar
 - Collapse footer and Collapse Sidebar CTA are hidden; the Menu slot closes the drawer
 - Sticky form CTAs (`tido-sticky-marker--bottom`) and bottom blur veil sit above the nav
 - Top sticky bars pin at `0.25rem` (no topbar offset)

@@ -159,7 +159,9 @@ test('mobile nav css hides topbar and offsets sticky chrome on small screens', f
         ->toContain('var(--tido-mobilenav-height, 4rem) + 0.25rem')
         ->toContain('html.tido-mobilenav .fi-sidebar')
         ->toContain('inset-block-end: var(--tido-mobilenav-height, 4rem)')
-        ->toContain("html.tido-mobilenav .fi-sidebar {\n        inset-block-end: var(--tido-mobilenav-height, 4rem);\n        height: auto;");
+        ->toContain('--tido-mobilenav-sidebar-width: 50vw')
+        ->toContain('--sidebar-width: var(--tido-mobilenav-sidebar-width, 50vw)')
+        ->toContain("html.tido-mobilenav .fi-sidebar {\n        inset-block-end: var(--tido-mobilenav-height, 4rem);\n        height: auto;\n        width: var(--tido-mobilenav-sidebar-width, 50vw) !important;\n        max-width: var(--tido-mobilenav-sidebar-width, 50vw);");
 
     $collapseFooterHide = Str::between(
         $css,
