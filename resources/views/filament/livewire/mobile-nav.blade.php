@@ -154,13 +154,20 @@
         <a
             href="{{ $homeUrl }}"
             wire:navigate
+            wire:current.exact="tido-mobilenav-item--current"
             class="tido-mobilenav-item"
             aria-label="Home"
         >
             {{
                 \Filament\Support\generate_icon_html(
                     Heroicon::OutlinedHome,
-                    attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon']),
+                    attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--outline']),
+                )
+            }}
+            {{
+                \Filament\Support\generate_icon_html(
+                    Heroicon::Home,
+                    attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--solid']),
                 )
             }}
         </a>
@@ -169,28 +176,50 @@
             type="button"
             class="tido-mobilenav-item"
             aria-label="Menu"
+            x-bind:aria-expanded="$store.sidebar.isOpen"
             x-on:click="toggleSidebar()"
         >
-            {{
-                \Filament\Support\generate_icon_html(
-                    Heroicon::OutlinedBars3,
-                    attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon']),
-                )
-            }}
+            <span x-cloak x-show="! $store.sidebar.isOpen">
+                {{
+                    \Filament\Support\generate_icon_html(
+                        Heroicon::OutlinedBars3,
+                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon']),
+                    )
+                }}
+            </span>
+            <span x-cloak x-show="$store.sidebar.isOpen">
+                {{
+                    \Filament\Support\generate_icon_html(
+                        Heroicon::OutlinedBars3BottomLeft,
+                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon']),
+                    )
+                }}
+            </span>
         </button>
 
         <button
             type="button"
             class="tido-mobilenav-item tido-mobilenav-item--primary"
             aria-label="Add"
-            x-on:click="openAdd()"
+            x-bind:aria-expanded="addOpen"
+            x-on:click="addOpen ? closeAdd() : openAdd()"
         >
-            {{
-                \Filament\Support\generate_icon_html(
-                    Heroicon::OutlinedPlus,
-                    attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--primary']),
-                )
-            }}
+            <span x-cloak x-show="! addOpen">
+                {{
+                    \Filament\Support\generate_icon_html(
+                        Heroicon::OutlinedPlusCircle,
+                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--primary']),
+                    )
+                }}
+            </span>
+            <span x-cloak x-show="addOpen">
+                {{
+                    \Filament\Support\generate_icon_html(
+                        Heroicon::PlusCircle,
+                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--primary']),
+                    )
+                }}
+            </span>
         </button>
 
         <button

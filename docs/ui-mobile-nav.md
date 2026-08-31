@@ -15,13 +15,15 @@ When enabled, the panel adds `html.tido-mobilenav` and hides `.fi-topbar-ctn` be
 
 ## Bottom bar slots
 
-| Slot   | Action                                                                                                                        |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| Home   | Dashboard (`wire:navigate`)                                                                                                   |
-| Menu   | Toggle `$store.sidebar` (mobile sidebar)                                                                                      |
-| Add    | Sheet above the bar — Finances: Add Receipt, Add Budget, Add Recurring                                                        |
-| Search | `open-global-search-modal` event (Global Search Modal)                                                                        |
-| Avatar | Dedicated user menu instance (`instance="mobilenav"`) — Profile, Notifications, Logout, switcher, theme, calendar, changelogs |
+| Slot   | Action                                                                                                                        | Icon (idle)                         | Icon (active)                                      |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------- |
+| Home   | Dashboard (`wire:navigate`)                                                                                                   | `OutlinedHome`                      | solid `Home` on any dashboard view (`/admin`)      |
+| Menu   | Toggle `$store.sidebar` (mobile sidebar)                                                                                      | `OutlinedBars3`                     | `OutlinedBars3BottomLeft` while sidebar open       |
+| Add    | Sheet above the bar — Finances: Add Receipt, Add Budget, Add Recurring (tap again to close)                                   | `OutlinedPlusCircle`                | solid `PlusCircle` while Add sheet open            |
+| Search | `open-global-search-modal` event (Global Search Modal)                                                                        | `OutlinedMagnifyingGlass`           | —                                                  |
+| Avatar | Dedicated user menu instance (`instance="mobilenav"`) — Profile, Notifications, Logout, switcher, theme, calendar, changelogs | avatar                              | —                                                  |
+
+Home active state uses `wire:current.exact` on the dashboard link (path `/admin`; query `?view=` does not affect match). Menu and Add swap icons via Alpine (`$store.sidebar.isOpen`, `addOpen`).
 
 Family members: Add Receipt stays available; Add Budget / Add Recurring render disabled with the primary-only CTA message.
 

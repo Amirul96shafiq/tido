@@ -210,3 +210,37 @@ test('admin panel mobile nav script syncs preference across spa navigation', fun
         ->toContain('livewire:navigated')
         ->toContain('livewire:navigating');
 });
+
+test('mobile nav bottom bar uses active-state icons for home menu and add slots', function (): void {
+    $mobileNav = (string) file_get_contents(
+        resource_path('views/filament/livewire/mobile-nav.blade.php'),
+    );
+
+    expect($mobileNav)
+        ->toContain('wire:current.exact="tido-mobilenav-item--current"')
+        ->toContain('Heroicon::OutlinedHome')
+        ->toContain('Heroicon::Home')
+        ->toContain('tido-mobilenav-icon--outline')
+        ->toContain('tido-mobilenav-icon--solid')
+        ->toContain('Heroicon::OutlinedBars3')
+        ->toContain('Heroicon::OutlinedBars3BottomLeft')
+        ->toContain('x-show="! $store.sidebar.isOpen"')
+        ->toContain('x-show="$store.sidebar.isOpen"')
+        ->toContain('Heroicon::OutlinedPlusCircle')
+        ->toContain('Heroicon::PlusCircle')
+        ->toContain('x-show="! addOpen"')
+        ->toContain('x-show="addOpen"')
+        ->toContain('addOpen ? closeAdd() : openAdd()')
+        ->not->toContain('Heroicon::OutlinedPlus,');
+});
+
+test('mobile nav css swaps home outline and solid icons on current dashboard link', function (): void {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('html.tido-mobilenav .tido-mobilenav-icon--solid')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-item--current .tido-mobilenav-icon--outline')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-item[data-current] .tido-mobilenav-icon--outline')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-item--current .tido-mobilenav-icon--solid')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-item[data-current] .tido-mobilenav-icon--solid');
+});

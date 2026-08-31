@@ -5986,6 +5986,20 @@ html.tido-mobilenav {
         height: 1.75rem;
     }
 
+    html.tido-mobilenav .tido-mobilenav-icon--solid {
+        display: none;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-item--current .tido-mobilenav-icon--outline,
+    html.tido-mobilenav .tido-mobilenav-item[data-current] .tido-mobilenav-icon--outline {
+        display: none;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-item--current .tido-mobilenav-icon--solid,
+    html.tido-mobilenav .tido-mobilenav-item[data-current] .tido-mobilenav-icon--solid {
+        display: block;
+    }
+
     html.tido-mobilenav .tido-mobilenav-item--avatar {
         padding: 0;
     }
