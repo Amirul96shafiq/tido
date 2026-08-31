@@ -151,39 +151,20 @@
                     })
 
                 if (window.innerWidth < 1024) {
-                    var mobileGroups = Array.prototype.slice.call(
-                        document.querySelectorAll('.fi-sidebar-group[data-group-label]'),
-                    )
-                    var mobileOpen = sessionStorage.getItem('tidoMobileOpenNavGroup')
+                    document
+                        .querySelectorAll('.fi-sidebar-group')
+                        .forEach((group) => {
+                            const items = group.querySelector(
+                                '.fi-sidebar-group-items',
+                            )
 
-                    if (mobileOpen === null) {
-                        var mobileActive = document.querySelector(
-                            '.fi-sidebar-group.fi-active[data-group-label]',
-                        )
-                        mobileOpen =
-                            (mobileActive && mobileActive.dataset.groupLabel) ||
-                            (mobileGroups[0] && mobileGroups[0].dataset.groupLabel) ||
-                            ''
-                    }
+                            if (! items) {
+                                return
+                            }
 
-                    mobileGroups.forEach((group) => {
-                        var items = group.querySelector('.fi-sidebar-group-items')
-                        var collapsed =
-                            mobileOpen === '' ||
-                            group.dataset.groupLabel !== mobileOpen
-
-                        if (! items) {
-                            return
-                        }
-
-                        if (collapsed) {
-                            items.style.display = 'none'
-                            group.classList.add('fi-collapsed')
-                        } else {
                             items.style.display = ''
                             group.classList.remove('fi-collapsed')
-                        }
-                    })
+                        })
                 }
             </script>
 

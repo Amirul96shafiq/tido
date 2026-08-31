@@ -305,41 +305,33 @@ test('mobile chrome overlays match the sidebar close overlay', function (): void
         ->toContain('tido-chrome-overlay tido-user-menu-overlay lg:hidden');
 });
 
-test('mobile sidebar keeps only one navigation group expanded at a time', function (): void {
-    $js = (string) file_get_contents(resource_path('js/sidebar-group-accordion.js'));
-    $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
-    $vite = (string) file_get_contents(base_path('vite.config.js'));
+test('mobile sidebar expands all navigation groups when menu opens', function (): void {
+    $mobileNav = (string) file_get_contents(
+        resource_path('views/filament/livewire/mobile-nav.blade.php'),
+    );
     $sidebar = (string) file_get_contents(
         resource_path('views/vendor/filament-panels/livewire/sidebar.blade.php'),
     );
-    $group = (string) file_get_contents(
-        resource_path('views/vendor/filament-panels/components/sidebar/group.blade.php'),
-    );
+    $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
+    $vite = (string) file_get_contents(base_path('vite.config.js'));
     $docs = (string) file_get_contents(base_path('docs/ui-mobile-nav.md'));
 
-    expect($js)
-        ->toContain('matchMedia("(max-width: 1023px)")')
-        ->toContain('toggleCollapsedGroup')
-        ->toContain('tidoMobileOpenNavGroup')
-        ->toContain('setExclusiveCollapsedGroups')
-        ->toContain('labels.filter((label) => label !== openLabel)')
-        ->toContain('sessionStorage.setItem(OPEN_GROUP_KEY, "")');
-
-    expect($provider)
-        ->toContain("'sidebar-group-accordion'")
-        ->toContain("Vite::asset('resources/js/sidebar-group-accordion.js')");
-
-    expect($vite)->toContain('resources/js/sidebar-group-accordion.js');
-
-    expect($group)->toContain('$store.sidebar.toggleCollapsedGroup(label)');
+    expect($mobileNav)
+        ->toContain('expandAllSidebarGroups()')
+        ->toContain('this.$store.sidebar.collapsedGroups = []')
+        ->toContain('this.expandAllSidebarGroups()');
 
     expect($sidebar)
-        ->toContain("sessionStorage.getItem('tidoMobileOpenNavGroup')")
-        ->toContain('window.innerWidth < 1024');
+        ->toContain('window.innerWidth < 1024')
+        ->toContain("group.classList.remove('fi-collapsed')")
+        ->not->toContain('tidoMobileOpenNavGroup');
+
+    expect($provider)->not->toContain('sidebar-group-accordion');
+    expect($vite)->not->toContain('sidebar-group-accordion.js');
 
     expect($docs)
-        ->toContain('Navigation groups are exclusive below `lg`')
-        ->toContain('sidebar-group-accordion.js');
+        ->toContain('start fully expanded when the Menu drawer opens')
+        ->not->toContain('sidebar-group-accordion.js');
 });
 
 test('mobile nav closes sidebar and add sheet when user menu opens', function (): void {

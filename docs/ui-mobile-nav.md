@@ -53,12 +53,12 @@ Dark bar chrome uses `html.dark.tido-mobilenav` (Filament puts `dark` on `<html>
 
 Shared dim layer matching Filament’s mobile sidebar overlay (`.fi-sidebar-close-overlay`): `bg-gray-950/50` / `dark:bg-gray-950/75`, **no** `backdrop-blur`. Class: `.tido-chrome-overlay`.
 
-| Surface | Overlay |
-| ------- | ------- |
-| Sidebar (Menu) | `.fi-sidebar-close-overlay` |
-| Add sheet | `.tido-mobilenav-add-backdrop.tido-chrome-overlay` |
-| User menu | `.tido-user-menu-overlay.tido-chrome-overlay` (bottom-bar instance in [`mobile-nav.blade.php`](../resources/views/filament/livewire/mobile-nav.blade.php); topbar instance in [`user-menu.blade.php`](../resources/views/vendor/filament-panels/components/user-menu.blade.php), `lg:hidden`) |
-| Global search | `[id="global-search-modal::plugin"] > .fi-modal-close-overlay` — frost stripped below `lg` so it matches sidebar |
+| Surface        | Overlay                                                                                                                                                                                                                                                                                       |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sidebar (Menu) | `.fi-sidebar-close-overlay`                                                                                                                                                                                                                                                                   |
+| Add sheet      | `.tido-mobilenav-add-backdrop.tido-chrome-overlay`                                                                                                                                                                                                                                            |
+| User menu      | `.tido-user-menu-overlay.tido-chrome-overlay` (bottom-bar instance in [`mobile-nav.blade.php`](../resources/views/filament/livewire/mobile-nav.blade.php); topbar instance in [`user-menu.blade.php`](../resources/views/vendor/filament-panels/components/user-menu.blade.php), `lg:hidden`) |
+| Global search  | `[id="global-search-modal::plugin"] > .fi-modal-close-overlay` — frost stripped below `lg` so it matches sidebar                                                                                                                                                                              |
 
 Action / slide-over modals keep the frosted overlay in [`ui-modal-overlay.md`](ui-modal-overlay.md). Overlay `z-index` stays `30` (same as the sidebar close overlay) so the bottom bar (`z-index: 35`) remains tappable.
 
@@ -72,15 +72,15 @@ Action / slide-over modals keep the frosted overlay in [`ui-modal-overlay.md`](u
 - Table inner-scroll caps (`.fi-ta-ctn`, `.fi-ta-content-ctn`) subtract `--tido-mobilenav-height` so horizontal overflow thumbs stay above the bar
 - Open sidebar is half the viewport (`50vw` / `--tido-mobilenav-sidebar-width`); `inset-block-end` + `height: auto` sits above the bar
 - Collapse footer and Collapse Sidebar CTA are hidden; the Menu slot closes the drawer
-- Navigation groups are exclusive below `lg`: only one of Finances / Settings / Integrations / Tools is expanded. Opening a group closes the previous. The current-page group (else the last opened group, else the first group) starts open. Desktop (`lg`+) keeps independent Filament group collapse.
+- Navigation groups below `lg` start fully expanded when the Menu drawer opens (`collapsedGroups = []`); multiple groups may stay open; users can still collapse individual groups
 - Sticky form CTAs (`tido-sticky-marker--bottom`) and bottom blur veil sit above the nav
 - Top sticky bars pin at `0.25rem` (no topbar offset)
 - Hash / section-nav scroll margins drop the 71px topbar offset
 - Go-to-bottom CTA sits above the nav; go-to-top uses viewport top
 
-## Sidebar group accordion
+## Sidebar groups (mobile)
 
-[`sidebar-group-accordion.js`](../resources/js/sidebar-group-accordion.js) wraps `$store.sidebar.toggleCollapsedGroup` below `lg` (1024px), including the mobile-nav Menu drawer and Filament’s default mobile sidebar. The open group is remembered in `sessionStorage` key `tidoMobileOpenNavGroup`. The published sidebar preload in [`sidebar.blade.php`](../resources/views/vendor/filament-panels/livewire/sidebar.blade.php) hides the other groups before Alpine mounts.
+Below `lg`, the published sidebar preload in [`sidebar.blade.php`](../resources/views/vendor/filament-panels/livewire/sidebar.blade.php) expands every navigation group before Alpine mounts. The Menu slot in [`mobile-nav.blade.php`](../resources/views/filament/livewire/mobile-nav.blade.php) clears `$store.sidebar.collapsedGroups` each time the drawer opens so Finances / Settings / Integrations / Tools all start expanded. Filament’s native per-group collapse toggle still works; multiple groups may stay open at once.
 
 ## Tests
 

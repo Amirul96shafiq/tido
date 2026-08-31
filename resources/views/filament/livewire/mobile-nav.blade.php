@@ -53,12 +53,16 @@
                 }),
             );
         },
+        expandAllSidebarGroups() {
+            this.$store.sidebar.collapsedGroups = [];
+        },
         toggleSidebar() {
             this.closeAdd();
             this.closeUserMenu();
             if (this.$store.sidebar.isOpen) {
                 this.$store.sidebar.close();
             } else {
+                this.expandAllSidebarGroups();
                 this.$store.sidebar.open();
             }
         },
