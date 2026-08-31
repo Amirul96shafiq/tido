@@ -3127,6 +3127,8 @@ body:has([id="global-search-modal::plugin"].fi-modal-open) [data-tippy-root] {
 [id="global-search-modal::plugin"]
     .fi-gsm-toolbar-filters
     > .fi-dropdown-panel.fi-scrollable {
+    min-width: 16rem;
+    max-width: min(20rem, calc(100vw - 2rem)) !important;
     max-height: min(70vh, 28rem) !important;
 }
 
