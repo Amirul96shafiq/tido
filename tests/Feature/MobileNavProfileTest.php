@@ -121,7 +121,9 @@ test('mobile nav user menu opens upward from the bottom avatar', function (): vo
 
     expect($userMenu)
         ->toContain("'mobilenav' => 'top-end'")
-        ->toContain("'mobilenav' => 8")
+        ->toContain("'mobilenav' => 13")
+        ->toContain('$dropdownShift = $anchor === \'mobilenav\'')
+        ->toContain("'mobilenav' => 12")
         ->toContain("in_array(\$anchor, ['topbar', 'mobilenav'], true)")
         ->toContain("key('account-switcher-'.\$userMenuInstanceKey)")
         ->toContain('fi-user-menu--');
@@ -149,7 +151,8 @@ test('mobile nav css hides topbar and offsets sticky chrome on small screens', f
 
     expect($css)
         ->toContain('html.tido-mobilenav')
-        ->toContain('--tido-mobilenav-height')
+        ->toContain('--tido-mobilenav-height: calc(')
+        ->toContain('4rem + 1px + env(safe-area-inset-bottom, 0px)')
         ->toContain('html.tido-mobilenav .fi-topbar-ctn')
         ->toContain('.tido-mobilenav-root')
         ->toContain('html.tido-mobilenav .tido-mobilenav-root')
@@ -159,7 +162,11 @@ test('mobile nav css hides topbar and offsets sticky chrome on small screens', f
         ->toContain('var(--tido-mobilenav-height, 4rem) + 0.25rem')
         ->toContain('html.tido-mobilenav .fi-sidebar')
         ->toContain('inset-block-end: var(--tido-mobilenav-height, 4rem)')
-        ->toContain('--tido-mobilenav-sidebar-width: 50vw')
+        ->toContain('--tido-mobilenav-inset')
+        ->toContain('--tido-mobilenav-menu-gap')
+        ->toContain('.tido-mobilenav-add-sheet')
+        ->toContain('var(--tido-mobilenav-menu-gap, 0.75rem)')
+        ->toContain('justify-content: flex-end')
         ->toContain('--sidebar-width: var(--tido-mobilenav-sidebar-width, 50vw)')
         ->toContain("html.tido-mobilenav .fi-sidebar {\n        inset-block-end: var(--tido-mobilenav-height, 4rem);\n        height: auto;\n        width: var(--tido-mobilenav-sidebar-width, 50vw) !important;\n        max-width: var(--tido-mobilenav-sidebar-width, 50vw);");
 
@@ -234,13 +241,25 @@ test('mobile nav bottom bar uses active-state icons for home menu and add slots'
         ->not->toContain('Heroicon::OutlinedPlus,');
 });
 
+test('mobile nav add sheet sits flush on the bottom bar', function (): void {
+    $mobileNav = (string) file_get_contents(
+        resource_path('views/filament/livewire/mobile-nav.blade.php'),
+    );
+
+    expect($mobileNav)
+        ->toContain('tido-mobilenav-add-card')
+        ->toContain('rounded-xl')
+        ->not->toContain('border-b-0')
+        ->not->toContain('bottom-[var(--tido-mobilenav-height');
+});
+
 test('mobile nav css swaps home outline and solid icons on current dashboard link', function (): void {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
     expect($css)
         ->toContain('html.tido-mobilenav .tido-mobilenav-icon--solid')
-        ->toContain('html.tido-mobilenav .tido-mobilenav-item--current .tido-mobilenav-icon--outline')
-        ->toContain('html.tido-mobilenav .tido-mobilenav-item[data-current] .tido-mobilenav-icon--outline')
-        ->toContain('html.tido-mobilenav .tido-mobilenav-item--current .tido-mobilenav-icon--solid')
-        ->toContain('html.tido-mobilenav .tido-mobilenav-item[data-current] .tido-mobilenav-icon--solid');
+        ->toContain('.tido-mobilenav-item--current')
+        ->toContain('.tido-mobilenav-icon--outline')
+        ->toContain('.tido-mobilenav-item[data-current]')
+        ->toContain('.tido-mobilenav-icon--solid');
 });

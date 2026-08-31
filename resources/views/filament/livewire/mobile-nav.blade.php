@@ -43,16 +43,16 @@
         x-cloak
         x-show="addOpen"
         x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="translate-y-full opacity-0"
-        x-transition:enter-end="translate-y-0 opacity-100"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
         x-transition:leave="transition ease-in duration-150"
-        x-transition:leave-start="translate-y-0 opacity-100"
-        x-transition:leave-end="translate-y-full opacity-0"
-        class="tido-mobilenav-add-sheet fixed inset-x-0 bottom-[var(--tido-mobilenav-height,4rem)] z-[35] mx-auto max-w-lg px-3"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="tido-mobilenav-add-sheet fixed inset-x-0 z-[35] mx-auto max-w-lg"
         role="dialog"
         aria-label="Add"
     >
-        <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-none dark:border-slate-700 dark:bg-slate-800">
+        <div class="tido-mobilenav-add-card overflow-hidden rounded-xl border border-gray-200 bg-white shadow-none dark:border-slate-700 dark:bg-slate-800">
             <div class="border-b border-gray-100 px-4 py-3 dark:border-slate-700">
                 <h2 class="text-sm font-semibold text-gray-950 dark:text-white">Add</h2>
             </div>

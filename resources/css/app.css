@@ -5896,7 +5896,11 @@ html.tido-reduce-motion .tido-ping-pulse {
  * Active when html.tido-mobilenav and viewport < lg.
  */
 html.tido-mobilenav {
-    --tido-mobilenav-height: calc(4rem + env(safe-area-inset-bottom, 0px));
+    --tido-mobilenav-height: calc(
+        4rem + 1px + env(safe-area-inset-bottom, 0px)
+    );
+    --tido-mobilenav-menu-gap: 0.75rem;
+    --tido-mobilenav-inset: 0.75rem;
     --tido-mobilenav-sidebar-width: 50vw;
 }
 
@@ -5990,18 +5994,36 @@ html.tido-mobilenav {
         display: none;
     }
 
-    html.tido-mobilenav .tido-mobilenav-item--current .tido-mobilenav-icon--outline,
-    html.tido-mobilenav .tido-mobilenav-item[data-current] .tido-mobilenav-icon--outline {
+    html.tido-mobilenav
+        .tido-mobilenav-item--current
+        .tido-mobilenav-icon--outline,
+    html.tido-mobilenav
+        .tido-mobilenav-item[data-current]
+        .tido-mobilenav-icon--outline {
         display: none;
     }
 
-    html.tido-mobilenav .tido-mobilenav-item--current .tido-mobilenav-icon--solid,
-    html.tido-mobilenav .tido-mobilenav-item[data-current] .tido-mobilenav-icon--solid {
+    html.tido-mobilenav
+        .tido-mobilenav-item--current
+        .tido-mobilenav-icon--solid,
+    html.tido-mobilenav
+        .tido-mobilenav-item[data-current]
+        .tido-mobilenav-icon--solid {
         display: block;
     }
 
     html.tido-mobilenav .tido-mobilenav-item--avatar {
-        padding: 0;
+        justify-content: flex-end;
+        padding: 0 var(--tido-mobilenav-inset, 0.75rem) 0 0;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-sheet {
+        bottom: calc(
+            var(--tido-mobilenav-height, 4rem) +
+                var(--tido-mobilenav-menu-gap, 0.75rem)
+        );
+        z-index: 35;
+        padding-inline: var(--tido-mobilenav-inset, 0.75rem);
     }
 
     html.tido-mobilenav .fi-user-menu--mobilenav {

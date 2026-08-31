@@ -15,13 +15,13 @@ When enabled, the panel adds `html.tido-mobilenav` and hides `.fi-topbar-ctn` be
 
 ## Bottom bar slots
 
-| Slot   | Action                                                                                                                        | Icon (idle)                         | Icon (active)                                      |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------- |
-| Home   | Dashboard (`wire:navigate`)                                                                                                   | `OutlinedHome`                      | solid `Home` on any dashboard view (`/admin`)      |
-| Menu   | Toggle `$store.sidebar` (mobile sidebar)                                                                                      | `OutlinedBars3`                     | `OutlinedBars3BottomLeft` while sidebar open       |
-| Add    | Sheet above the bar — Finances: Add Receipt, Add Budget, Add Recurring (tap again to close)                                   | `OutlinedPlusCircle`                | solid `PlusCircle` while Add sheet open            |
-| Search | `open-global-search-modal` event (Global Search Modal)                                                                        | `OutlinedMagnifyingGlass`           | —                                                  |
-| Avatar | Dedicated user menu instance (`instance="mobilenav"`) — Profile, Notifications, Logout, switcher, theme, calendar, changelogs | avatar                              | —                                                  |
+| Slot   | Action                                                                                                                        | Icon (idle)               | Icon (active)                                 |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------- |
+| Home   | Dashboard (`wire:navigate`)                                                                                                   | `OutlinedHome`            | solid `Home` on any dashboard view (`/admin`) |
+| Menu   | Toggle `$store.sidebar` (mobile sidebar)                                                                                      | `OutlinedBars3`           | `OutlinedBars3BottomLeft` while sidebar open  |
+| Add    | Sheet above the bar — Finances: Add Receipt, Add Budget, Add Recurring (tap again to close)                                   | `OutlinedPlusCircle`      | solid `PlusCircle` while Add sheet open       |
+| Search | `open-global-search-modal` event (Global Search Modal)                                                                        | `OutlinedMagnifyingGlass` | —                                             |
+| Avatar | Dedicated user menu instance (`instance="mobilenav"`) — Profile, Notifications, Logout, switcher, theme, calendar, changelogs | avatar                    | —                                             |
 
 Home active state uses `wire:current.exact` on the dashboard link (path `/admin`; query `?view=` does not affect match). Menu and Add swap icons via Alpine (`$store.sidebar.isOpen`, `addOpen`).
 
@@ -32,7 +32,7 @@ Family members: Add Receipt stays available; Add Budget / Add Recurring render d
 The bottom avatar is a **second** user-menu instance — not a proxy of the hidden topbar trigger.
 
 - Component: [`user-menu.blade.php`](../resources/views/vendor/filament-panels/components/user-menu.blade.php) with `instance="mobilenav"` and `anchor="mobilenav"`
-- Dropdown: `placement="top-end"`, `offset={8}`, `teleport=true` — panel opens **above** the bottom avatar
+- Dropdown: `placement="top-end"`, `offset={13}`, `shift={true}`, `sizePadding={0}`, `teleport=true` — panel bottom aligns with the nav bar top (compensates for vertically centered avatar trigger); inset from the screen edge by `--tido-mobilenav-inset` (0.75rem)
 - Account switcher Livewire key: `account-switcher-mobilenav`
 
 The topbar user menu remains mounted for desktop and for `DatabaseNotifications` Livewire.
@@ -52,6 +52,7 @@ Dark bar chrome uses `html.dark.tido-mobilenav` (Filament puts `dark` on `<html>
 ## Chrome offsets (mobile + `html.tido-mobilenav`)
 
 - `--tido-mobilenav-height: calc(4rem + env(safe-area-inset-bottom, 0px))`
+- `--tido-mobilenav-menu-gap: 0.75rem` — shared offset above the nav bar for Add sheet and user menu panel
 - Main content `padding-bottom` clears the bar
 - Open sidebar is half the viewport (`50vw` / `--tido-mobilenav-sidebar-width`); `inset-block-end` + `height: auto` sits above the bar
 - Collapse footer and Collapse Sidebar CTA are hidden; the Menu slot closes the drawer

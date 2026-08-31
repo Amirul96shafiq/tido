@@ -41,9 +41,16 @@
     };
 
     $dropdownOffset = match ($anchor) {
-        'mobilenav' => 8,
+        'mobilenav' => 13,
         'topbar' => -39,
         default => 8,
+    };
+
+    $dropdownShift = $anchor === 'mobilenav';
+
+    $dropdownSizePadding = match ($anchor) {
+        'mobilenav' => 0,
+        default => 16,
     };
 
     $dropdownTeleport = in_array($anchor, ['topbar', 'mobilenav'], true);
@@ -61,6 +68,8 @@
 <x-filament::dropdown
     :placement="$dropdownPlacement"
     :offset="$dropdownOffset"
+    :shift="$dropdownShift"
+    :sizePadding="$dropdownSizePadding"
     :teleport="$dropdownTeleport"
     :attributes="
         \Filament\Support\prepare_inherited_attributes($attributes)
