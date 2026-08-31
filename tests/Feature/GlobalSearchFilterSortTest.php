@@ -53,7 +53,8 @@ test('global search modal toolbar renders type sort and filters icon controls', 
         ->toContain('fi-gsm-toolbar-menu')
         ->toContain('aria-label="Type"')
         ->toContain('aria-label="Sort"')
-        ->toContain('aria-label="Filters"')
+        ->toContain('aria-label="Expenses Filters"')
+        ->toContain('Expenses Filters')
         ->toContain('fi-gsm-toolbar-filters')
         ->not->toContain('fi-gsm-toolbar-filters-unavailable')
         ->toContain('offset: 12')
@@ -81,6 +82,22 @@ test('global search modal toolbar hides filters control for all type', function 
         ->toContain('aria-label="Sort"')
         ->toContain('fi-gsm-toolbar-filters-unavailable');
 });
+
+test('global search modal filters tooltip uses the selected type label', function (string $type, string $label) {
+    $html = Livewire::test(GlobalSearchModal::class)
+        ->set('search', 'market')
+        ->set('type', [$type])
+        ->html();
+
+    expect($html)
+        ->toContain('aria-label="'.$label.' Filters"')
+        ->toContain($label.' Filters')
+        ->not->toContain('fi-gsm-toolbar-filters-unavailable');
+})->with([
+    'expenses' => ['expenses', 'Expenses'],
+    'recurrings' => ['recurrings', 'Recurrings'],
+    'payment methods' => ['payment_methods', 'Payment Methods'],
+]);
 
 test('global search modal type dropdown updates type', function () {
     Livewire::test(GlobalSearchModal::class)

@@ -10,6 +10,7 @@
     $currentSortLabel = $this->sortOptions[$this->sort] ?? 'Default';
     $typeTooltipLabel = 'Type: '.$currentTypeLabel;
     $sortTooltipLabel = 'Sort: '.$currentSortLabel;
+    $filtersTooltipLabel = $this->filtersTooltipLabel();
 
     $dropdownPlacements = [
         ['class' => 'hidden lg:block', 'placement' => 'right-start', 'tooltipPlacement' => 'right'],
@@ -146,10 +147,10 @@
                     <button
                         type="button"
                         data-gsm-tooltip-trigger
-                        aria-label="Filters"
+                        aria-label="{{ $filtersTooltipLabel }}"
                         class="fi-icon-btn fi-color-gray fi-size-md fi-gsm-toolbar-trigger fi-version-icon-btn"
                         x-tooltip="{
-                            content: @js('Filters'),
+                            content: @js($filtersTooltipLabel),
                             theme: $store.theme,
                             placement: '{{ $tooltipPlacement }}',
                             appendTo: () => document.body,

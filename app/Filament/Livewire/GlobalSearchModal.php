@@ -190,6 +190,15 @@ class GlobalSearchModal extends BaseGlobalSearchModal
             ->implode(', ');
     }
 
+    public function filtersTooltipLabel(): string
+    {
+        if (! $this->hasTypeFilters()) {
+            return 'Filters';
+        }
+
+        return $this->sortType()->label().' Filters';
+    }
+
     public function getActiveFiltersCount(): int
     {
         if (! $this->hasTypeFilters()) {
