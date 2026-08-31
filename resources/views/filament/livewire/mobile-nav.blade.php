@@ -48,7 +48,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="tido-mobilenav-add-sheet fixed inset-x-0 z-[35] mx-auto max-w-lg"
+        class="tido-mobilenav-add-sheet fixed inset-x-0 z-[35] mx-auto max-w-3xs"
         role="dialog"
         aria-label="Add"
     >
