@@ -56,6 +56,11 @@ test('global search modal toolbar renders type sort and filters icon controls', 
         ->toContain('aria-label="Expenses Filters"')
         ->toContain('Expenses Filters')
         ->toContain('fi-gsm-toolbar-filters')
+        ->toContain('fi-ta-filters-dropdown')
+        ->toContain('fi-gsm-filters-dropdown-panel')
+        ->toContain('fi-ta-filters-body')
+        ->toContain('fi-ta-filters-actions-ctn')
+        ->toContain('max-height: min(70vh, 28rem)')
         ->not->toContain('fi-gsm-toolbar-filters-unavailable')
         ->toContain('offset: 12')
         ->toContain('appendTo: () => document.body')
@@ -69,6 +74,21 @@ test('global search modal toolbar renders type sort and filters icon controls', 
         ->toContain('Last Updated')
         ->toContain("wire:click=\"toggleType('expenses')\"")
         ->toContain('aria-pressed');
+});
+
+test('global search type-chosen filters menu reuses table filter padding and a taller panel', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.fi-ta-filters-dropdown .fi-ta-filters-body,')
+        ->toContain('padding: 1.5rem;')
+        ->toContain('gap: 1rem;')
+        ->toContain('.fi-ta-filters-dropdown .fi-ta-filters-actions-ctn,')
+        ->toContain('padding: 0.75rem 1.5rem;')
+        ->toContain('.fi-gsm-toolbar-filters')
+        ->toContain('> .fi-dropdown-panel.fi-scrollable {')
+        ->toContain('max-height: min(70vh, 28rem) !important;')
+        ->not->toContain('gap-3 pt-3');
 });
 
 test('global search modal toolbar hides filters control for all type', function () {

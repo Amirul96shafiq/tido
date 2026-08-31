@@ -138,65 +138,67 @@
             :width="Width::ExtraSmall"
             :wire:key="$this->getId().'.gsm.filters.'.$placementConfig['placement']"
             @class([
-                'fi-gsm-toolbar-control fi-gsm-toolbar-filters',
+                'fi-gsm-toolbar-control fi-gsm-toolbar-filters fi-ta-filters-dropdown',
                 $placementConfig['class'],
                 'fi-gsm-toolbar-filters-unavailable' => ! $hasTypeFilters,
             ])
         >
-                <x-slot name="trigger">
-                    <button
-                        type="button"
-                        data-gsm-tooltip-trigger
-                        aria-label="{{ $filtersTooltipLabel }}"
-                        class="fi-icon-btn fi-color-gray fi-size-md fi-gsm-toolbar-trigger fi-version-icon-btn"
-                        x-tooltip="{
-                            content: @js($filtersTooltipLabel),
-                            theme: $store.theme,
-                            placement: '{{ $tooltipPlacement }}',
-                            appendTo: () => document.body,
-                            zIndex: 100000,
-                        }"
-                    >
-                        <x-filament::icon
-                            :icon="Heroicon::Funnel"
-                            class="fi-icon fi-size-md"
-                        />
+            <x-slot name="trigger">
+                <button
+                    type="button"
+                    data-gsm-tooltip-trigger
+                    aria-label="{{ $filtersTooltipLabel }}"
+                    class="fi-icon-btn fi-color-gray fi-size-md fi-gsm-toolbar-trigger fi-version-icon-btn"
+                    x-tooltip="{
+                        content: @js($filtersTooltipLabel),
+                        theme: $store.theme,
+                        placement: '{{ $tooltipPlacement }}',
+                        appendTo: () => document.body,
+                        zIndex: 100000,
+                    }"
+                >
+                    <x-filament::icon
+                        :icon="Heroicon::Funnel"
+                        class="fi-icon fi-size-md"
+                    />
 
-                        @if ($activeFiltersCount > 0)
-                            <div class="fi-icon-btn-badge-ctn">
-                                <span
-                                    {{
-                                        (new FilamentComponentAttributeBag)->color(BadgeComponent::class, 'primary')->class([
-                                            'fi-badge fi-size-xs',
-                                        ])
-                                    }}
-                                >
-                                    {{ $activeFiltersCount }}
-                                </span>
-                            </div>
-                        @endif
-                    </button>
-                </x-slot>
+                    @if ($activeFiltersCount > 0)
+                        <div class="fi-icon-btn-badge-ctn">
+                            <span
+                                {{
+                                    (new FilamentComponentAttributeBag)->color(BadgeComponent::class, 'primary')->class([
+                                        'fi-badge fi-size-xs',
+                                    ])
+                                }}
+                            >
+                                {{ $activeFiltersCount }}
+                            </span>
+                        </div>
+                    @endif
+                </button>
+            </x-slot>
 
-                <div class="fi-gsm-filters-dropdown-panel fi-fixed-positioning-context">
+            <div class="fi-ta-filters fi-gsm-filters-dropdown-panel fi-fixed-positioning-context">
+                <div class="fi-ta-filters-body">
                     {{ $this->getSchema('filtersForm') }}
-
-                    <div class="fi-ta-filters-actions-ctn">
-                        <x-filament::button
-                            color="primary"
-                            icon="heroicon-o-arrow-path"
-                            label-sr-only
-                            tooltip="Reset filters"
-                            tag="button"
-                            size="sm"
-                            wire:click="resetFilters"
-                            wire:loading.attr="disabled"
-                            wire:target="resetFilters"
-                        >
-                            Reset filters
-                        </x-filament::button>
-                    </div>
                 </div>
-            </x-filament::dropdown>
+
+                <div class="fi-ta-filters-actions-ctn">
+                    <x-filament::button
+                        color="primary"
+                        icon="heroicon-o-arrow-path"
+                        label-sr-only
+                        tooltip="Reset filters"
+                        tag="button"
+                        size="sm"
+                        wire:click="resetFilters"
+                        wire:loading.attr="disabled"
+                        wire:target="resetFilters"
+                    >
+                        Reset filters
+                    </x-filament::button>
+                </div>
+            </div>
+        </x-filament::dropdown>
     @endforeach
 </div>
