@@ -305,6 +305,54 @@ test('mobile chrome overlays match the sidebar close overlay', function (): void
         ->toContain('tido-chrome-overlay tido-user-menu-overlay lg:hidden');
 });
 
+test('mobile sidebar keeps only one navigation group expanded at a time', function (): void {
+    $js = (string) file_get_contents(resource_path('js/sidebar-group-accordion.js'));
+    $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
+    $vite = (string) file_get_contents(base_path('vite.config.js'));
+    $sidebar = (string) file_get_contents(
+        resource_path('views/vendor/filament-panels/livewire/sidebar.blade.php'),
+    );
+    $group = (string) file_get_contents(
+        resource_path('views/vendor/filament-panels/components/sidebar/group.blade.php'),
+    );
+    $docs = (string) file_get_contents(base_path('docs/ui-mobile-nav.md'));
+
+    expect($js)
+        ->toContain('matchMedia("(max-width: 1023px)")')
+        ->toContain('toggleCollapsedGroup')
+        ->toContain('tidoMobileOpenNavGroup')
+        ->toContain('setExclusiveCollapsedGroups')
+        ->toContain('labels.filter((label) => label !== openLabel)')
+        ->toContain('sessionStorage.setItem(OPEN_GROUP_KEY, "")');
+
+    expect($provider)
+        ->toContain("'sidebar-group-accordion'")
+        ->toContain("Vite::asset('resources/js/sidebar-group-accordion.js')");
+
+    expect($vite)->toContain('resources/js/sidebar-group-accordion.js');
+
+    expect($group)->toContain('$store.sidebar.toggleCollapsedGroup(label)');
+
+    expect($sidebar)
+        ->toContain("sessionStorage.getItem('tidoMobileOpenNavGroup')")
+        ->toContain('window.innerWidth < 1024');
+
+    expect($docs)
+        ->toContain('Navigation groups are exclusive below `lg`')
+        ->toContain('sidebar-group-accordion.js');
+});
+
+test('mobile nav closes sidebar and add sheet when user menu opens', function (): void {
+    $mobileNav = (string) file_get_contents(
+        resource_path('views/filament/livewire/mobile-nav.blade.php'),
+    );
+
+    expect($mobileNav)
+        ->toContain('$watch(\'$store.tidoNotifications.menuOpen\'')
+        ->toContain('this.closeAdd()')
+        ->toContain('this.$store.sidebar.close()');
+});
+
 test('mobile nav css swaps home outline and solid icons on current dashboard link', function (): void {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 

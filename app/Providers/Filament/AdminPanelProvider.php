@@ -137,6 +137,10 @@ class AdminPanelProvider extends PanelProvider
                     'clipboard-copy',
                     Vite::asset('resources/js/clipboard-copy.js'),
                 )->module(),
+                Js::make(
+                    'sidebar-group-accordion',
+                    Vite::asset('resources/js/sidebar-group-accordion.js'),
+                )->module(),
             ])
             ->renderHook(
                 PanelsRenderHook::PAGE_HEADER_ACTIONS_BEFORE,

@@ -59,6 +59,7 @@ export default defineConfig({
                 "resources/js/disable-select-search-autofocus.js",
                 "resources/js/gsm-filter-select-pin.js",
                 "resources/js/clipboard-copy.js",
+                "resources/js/sidebar-group-accordion.js",
             ],
             refresh: true,
         }),

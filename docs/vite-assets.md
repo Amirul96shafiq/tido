@@ -18,6 +18,7 @@ Panel scripts (swipe dismiss, sticky blur veil, Tippy mobile disable, marquees, 
 | `resources/js/date-picker-month-select.js`        | Themed month menu for JS date pickers; pins calendars `position:fixed` inside table filter overflow contexts |
 | `resources/js/disable-select-search-autofocus.js` | Stops searchable Selects from focusing the dropdown search box on open                                       |
 | `resources/js/gsm-filter-select-pin.js`           | Pins Select option panels `position:fixed` inside global-search filter dropdowns                             |
+| `resources/js/sidebar-group-accordion.js`       | Mobile sidebar: only one nav group expanded below `lg`                                                       |
 
 ## Scripts (keep separate)
 

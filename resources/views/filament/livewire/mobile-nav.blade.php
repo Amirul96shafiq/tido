@@ -12,6 +12,18 @@
             } else if (this.$store.tidoNotifications.menuOpen === undefined) {
                 this.$store.tidoNotifications.menuOpen = false;
             }
+
+            this.$watch('$store.tidoNotifications.menuOpen', (menuOpen) => {
+                if (! menuOpen) {
+                    return;
+                }
+
+                this.closeAdd();
+
+                if (this.$store.sidebar.isOpen) {
+                    this.$store.sidebar.close();
+                }
+            });
         },
         closeUserMenu() {
             const menu = this.$root.querySelector('.fi-user-menu--mobilenav');

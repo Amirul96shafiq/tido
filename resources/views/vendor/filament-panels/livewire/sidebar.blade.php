@@ -136,7 +136,8 @@
                     .querySelectorAll('.fi-sidebar-group')
                     .forEach((group) => {
                         if (
-                            !collapsedGroups.includes(group.dataset.groupLabel)
+                            ! Array.isArray(collapsedGroups) ||
+                            ! collapsedGroups.includes(group.dataset.groupLabel)
                         ) {
                             return
                         }
@@ -148,6 +149,42 @@
                         ).style.display = 'none'
                         group.classList.add('fi-collapsed')
                     })
+
+                if (window.innerWidth < 1024) {
+                    var mobileGroups = Array.prototype.slice.call(
+                        document.querySelectorAll('.fi-sidebar-group[data-group-label]'),
+                    )
+                    var mobileOpen = sessionStorage.getItem('tidoMobileOpenNavGroup')
+
+                    if (mobileOpen === null) {
+                        var mobileActive = document.querySelector(
+                            '.fi-sidebar-group.fi-active[data-group-label]',
+                        )
+                        mobileOpen =
+                            (mobileActive && mobileActive.dataset.groupLabel) ||
+                            (mobileGroups[0] && mobileGroups[0].dataset.groupLabel) ||
+                            ''
+                    }
+
+                    mobileGroups.forEach((group) => {
+                        var items = group.querySelector('.fi-sidebar-group-items')
+                        var collapsed =
+                            mobileOpen === '' ||
+                            group.dataset.groupLabel !== mobileOpen
+
+                        if (! items) {
+                            return
+                        }
+
+                        if (collapsed) {
+                            items.style.display = 'none'
+                            group.classList.add('fi-collapsed')
+                        } else {
+                            items.style.display = ''
+                            group.classList.remove('fi-collapsed')
+                        }
+                    })
+                }
             </script>
 
             {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_NAV_END) }}

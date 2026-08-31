@@ -72,10 +72,15 @@ Action / slide-over modals keep the frosted overlay in [`ui-modal-overlay.md`](u
 - Table inner-scroll caps (`.fi-ta-ctn`, `.fi-ta-content-ctn`) subtract `--tido-mobilenav-height` so horizontal overflow thumbs stay above the bar
 - Open sidebar is half the viewport (`50vw` / `--tido-mobilenav-sidebar-width`); `inset-block-end` + `height: auto` sits above the bar
 - Collapse footer and Collapse Sidebar CTA are hidden; the Menu slot closes the drawer
+- Navigation groups are exclusive below `lg`: only one of Finances / Settings / Integrations / Tools is expanded. Opening a group closes the previous. The current-page group (else the last opened group, else the first group) starts open. Desktop (`lg`+) keeps independent Filament group collapse.
 - Sticky form CTAs (`tido-sticky-marker--bottom`) and bottom blur veil sit above the nav
 - Top sticky bars pin at `0.25rem` (no topbar offset)
 - Hash / section-nav scroll margins drop the 71px topbar offset
 - Go-to-bottom CTA sits above the nav; go-to-top uses viewport top
+
+## Sidebar group accordion
+
+[`sidebar-group-accordion.js`](../resources/js/sidebar-group-accordion.js) wraps `$store.sidebar.toggleCollapsedGroup` below `lg` (1024px), including the mobile-nav Menu drawer and Filament’s default mobile sidebar. The open group is remembered in `sessionStorage` key `tidoMobileOpenNavGroup`. The published sidebar preload in [`sidebar.blade.php`](../resources/views/vendor/filament-panels/livewire/sidebar.blade.php) hides the other groups before Alpine mounts.
 
 ## Tests
 
