@@ -6035,12 +6035,22 @@ html.tido-mobilenav {
 
     /*
      * Filament .fi-sidebar is inset-block:0 + height:100dvh at z-30.
-     * The bar is z-35, so raise the rail instead of letting the footer sit
-     * behind the nav. height:auto lets top + inset-block-end size the box.
+     * The bar is z-35, so raise the rail so nav items aren't covered.
+     * height:auto lets top + inset-block-end size the box.
      */
     html.tido-mobilenav .fi-sidebar {
         inset-block-end: var(--tido-mobilenav-height, 4rem);
         height: auto;
+    }
+
+    /*
+     * Menu slot already closes the drawer. Beat .fi-sidebar.fi-sidebar-open
+     * .fi-sidebar-collapse-footer { display: flex !important }.
+     */
+    html.tido-mobilenav .fi-sidebar .fi-sidebar-collapse-footer,
+    html.tido-mobilenav .fi-sidebar .fi-sidebar-close-collapse-sidebar-btn,
+    html.tido-mobilenav .fi-sidebar .fi-sidebar-open-collapse-sidebar-btn {
+        display: none !important;
     }
 
     html.tido-mobilenav
