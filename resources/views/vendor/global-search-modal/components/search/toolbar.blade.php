@@ -1,120 +1,179 @@
 @php
+    use Filament\Support\Enums\Width;
     use Filament\Support\Icons\Heroicon;
+    use Filament\Support\View\ComponentAttributeBag as FilamentComponentAttributeBag;
     use Filament\Support\View\Components\BadgeComponent;
-    use Illuminate\View\ComponentAttributeBag;
 
     $activeFiltersCount = $this->getActiveFiltersCount();
     $hasTypeFilters = \App\Filament\GlobalSearch\GlobalSearchType::tryFromValue($this->type)->hasTypeFilters();
+    $currentTypeLabel = $this->typeOptions[$this->type] ?? 'All';
+    $currentSortLabel = $this->sortOptions[$this->sort] ?? 'Default';
+    $typeTooltipLabel = 'Type: '.$currentTypeLabel;
+    $sortTooltipLabel = 'Sort: '.$currentSortLabel;
+
+    $dropdownPlacements = [
+        ['class' => 'hidden lg:block', 'placement' => 'right-start', 'tooltipPlacement' => 'right'],
+        ['class' => 'lg:hidden', 'placement' => 'bottom-end', 'tooltipPlacement' => 'bottom'],
+    ];
 @endphp
 
 <div
-    @class([
-        'fi-gsm-toolbar mt-2 grid w-full gap-3 border-t border-gray-100 pt-3 dark:border-white/10',
-        'sm:grid-cols-2' => ! $hasTypeFilters,
-        'sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]' => $hasTypeFilters,
-    ])
+    class="fi-gsm-toolbar"
     x-on:modal-closed.window="
         if ($event.detail?.id === 'global-search-modal::plugin') {
             $wire.resetModalState();
         }
     "
 >
-    <div class="min-w-0">
-        <label class="fi-gsm-toolbar-label mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
-            Type
-        </label>
-        <x-filament::input.wrapper>
-            <x-filament::input.select wire:model.live="type">
-                @foreach ($this->typeOptions as $value => $label)
-                    <option value="{{ $value }}">{{ $label }}</option>
-                @endforeach
-            </x-filament::input.select>
-        </x-filament::input.wrapper>
-    </div>
+    @foreach ($dropdownPlacements as $placementConfig)
+        @php
+            $tooltipPlacement = $placementConfig['tooltipPlacement'];
+        @endphp
+        <x-filament::dropdown
+            :placement="$placementConfig['placement']"
+            shift
+            :flip="false"
+            :width="Width::Small"
+            :wire:key="$this->getId().'.gsm.type.'.$placementConfig['placement']"
+            @class(['fi-gsm-toolbar-control fi-gsm-toolbar-type', $placementConfig['class']])
+        >
+            <x-slot name="trigger">
+                <button
+                    type="button"
+                    data-gsm-tooltip-trigger
+                    aria-label="Type"
+                    class="fi-icon-btn fi-color-gray fi-size-md fi-gsm-toolbar-trigger fi-version-icon-btn"
+                    x-tooltip="{
+                        content: @js($typeTooltipLabel),
+                        theme: $store.theme,
+                        placement: '{{ $tooltipPlacement }}',
+                        appendTo: () => document.body,
+                        zIndex: 100000,
+                    }"
+                >
+                    <x-filament::icon
+                        :icon="Heroicon::Squares2x2"
+                        class="fi-icon fi-size-md"
+                    />
+                </button>
+            </x-slot>
 
-    <div class="min-w-0">
-        <label class="fi-gsm-toolbar-label mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
-            Sort
-        </label>
-        <x-filament::input.wrapper>
-            <x-filament::input.select wire:model.live="sort">
-                @foreach ($this->sortOptions as $value => $label)
-                    <option value="{{ $value }}">{{ $label }}</option>
+            <x-filament::dropdown.list>
+                @foreach ($this->typeOptions as $value => $label)
+                    <x-filament::dropdown.list.item
+                        wire:click="$set('type', '{{ $value }}')"
+                        wire:key="gsm-type-option-{{ $value }}-{{ $placementConfig['placement'] }}"
+                        :icon="$this->type === $value ? Heroicon::Check : null"
+                    >
+                        {{ $label }}
+                    </x-filament::dropdown.list.item>
                 @endforeach
-            </x-filament::input.select>
-        </x-filament::input.wrapper>
-    </div>
+            </x-filament::dropdown.list>
+        </x-filament::dropdown>
+    @endforeach
+
+    @foreach ($dropdownPlacements as $placementConfig)
+        @php
+            $tooltipPlacement = $placementConfig['tooltipPlacement'];
+        @endphp
+        <x-filament::dropdown
+            :placement="$placementConfig['placement']"
+            shift
+            :flip="false"
+            :width="Width::Small"
+            :wire:key="$this->getId().'.gsm.sort.'.$this->type.'.'.$placementConfig['placement']"
+            @class(['fi-gsm-toolbar-control fi-gsm-toolbar-sort', $placementConfig['class']])
+        >
+            <x-slot name="trigger">
+                <button
+                    type="button"
+                    data-gsm-tooltip-trigger
+                    aria-label="Sort"
+                    class="fi-icon-btn fi-color-gray fi-size-md fi-gsm-toolbar-trigger fi-version-icon-btn"
+                    x-tooltip="{
+                        content: @js($sortTooltipLabel),
+                        theme: $store.theme,
+                        placement: '{{ $tooltipPlacement }}',
+                        appendTo: () => document.body,
+                        zIndex: 100000,
+                    }"
+                >
+                    <x-filament::icon
+                        :icon="Heroicon::ArrowsUpDown"
+                        class="fi-icon fi-size-md"
+                    />
+                </button>
+            </x-slot>
+
+            <x-filament::dropdown.list>
+                @foreach ($this->sortOptions as $value => $label)
+                    <x-filament::dropdown.list.item
+                        wire:click="$set('sort', '{{ $value }}')"
+                        wire:key="gsm-sort-option-{{ $value }}-{{ $placementConfig['placement'] }}"
+                        :icon="$this->sort === $value ? Heroicon::Check : null"
+                    >
+                        {{ $label }}
+                    </x-filament::dropdown.list.item>
+                @endforeach
+            </x-filament::dropdown.list>
+        </x-filament::dropdown>
+    @endforeach
 
     @if ($hasTypeFilters)
-        <div
-            class="fi-gsm-toolbar-filters min-w-0 sm:justify-self-end"
-            @if ($this->filtersOpen)
-                x-on:click.outside="
-                    if ($event.target.closest('.fi-dropdown-panel, .fi-fo-date-time-picker-panel')) {
-                        return;
-                    }
-
-                    $wire.closeFilters();
-                "
-            @endif
-        >
-            <label class="fi-gsm-toolbar-label mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
-                Filters
-            </label>
-
-            <div class="fi-ta-filters-trigger-action-ctn">
-            <button
-                type="button"
-                class="fi-icon-btn fi-size-md fi-color fi-color-gray relative"
-                wire:click="toggleFilters"
-                wire:loading.attr="disabled"
-                wire:target="toggleFilters, closeFilters, resetFilters, search, filters, type, sort"
-                aria-label="Filters"
-                aria-expanded="{{ $this->filtersOpen ? 'true' : 'false' }}"
-                x-tooltip="{
-                    content: 'Filters',
-                    theme: $store.theme,
-                    zIndex: 100000,
-                }"
+        @foreach ($dropdownPlacements as $placementConfig)
+            @php
+                $tooltipPlacement = $placementConfig['tooltipPlacement'];
+            @endphp
+            <x-filament::dropdown
+                :placement="$placementConfig['placement']"
+                shift
+                :flip="false"
+                max-height="min(70vh, 28rem)"
+                :width="Width::ExtraSmall"
+                :wire:key="$this->getId().'.gsm.filters.'.$this->type.'.'.$placementConfig['placement']"
+                @class(['fi-gsm-toolbar-control fi-gsm-toolbar-filters', $placementConfig['class']])
             >
-                <x-filament::icon
-                    :icon="Heroicon::Funnel"
-                    class="fi-icon fi-size-md"
-                    wire:loading.remove.delay.default
-                    wire:target="toggleFilters, closeFilters, resetFilters, search, filters, type, sort"
-                />
-
-                <x-filament::loading-indicator
-                    class="fi-icon fi-size-md"
-                    wire:loading.delay.default
-                    wire:target="toggleFilters, closeFilters, resetFilters, search, filters, type, sort"
-                />
-
-                @if ($activeFiltersCount > 0)
-                    <span
-                        {{
-                            (new ComponentAttributeBag)->color(BadgeComponent::class, 'primary')->class([
-                                'fi-badge fi-size-xs absolute -top-1 -end-1',
-                            ])
-                        }}
-                        wire:loading.remove.delay.default
-                        wire:target="toggleFilters, closeFilters, resetFilters, search, filters, type, sort"
+                <x-slot name="trigger">
+                    <button
+                        type="button"
+                        data-gsm-tooltip-trigger
+                        aria-label="Filters"
+                        class="fi-icon-btn fi-color-gray fi-size-md fi-gsm-toolbar-trigger fi-version-icon-btn"
+                        x-tooltip="{
+                            content: @js('Filters'),
+                            theme: $store.theme,
+                            placement: '{{ $tooltipPlacement }}',
+                            appendTo: () => document.body,
+                            zIndex: 100000,
+                        }"
                     >
-                        {{ $activeFiltersCount }}
-                    </span>
-                @endif
-            </button>
+                        <x-filament::icon
+                            :icon="Heroicon::Funnel"
+                            class="fi-icon fi-size-md"
+                        />
 
-            @if ($this->filtersOpen)
-                <div
-                    wire:key="global-search-filters-panel-{{ $this->type }}"
-                    class="fi-gsm-filters-panel"
-                >
+                        @if ($activeFiltersCount > 0)
+                            <div class="fi-icon-btn-badge-ctn">
+                                <span
+                                    {{
+                                        (new FilamentComponentAttributeBag)->color(BadgeComponent::class, 'primary')->class([
+                                            'fi-badge fi-size-xs',
+                                        ])
+                                    }}
+                                >
+                                    {{ $activeFiltersCount }}
+                                </span>
+                            </div>
+                        @endif
+                    </button>
+                </x-slot>
+
+                <div class="fi-gsm-filters-dropdown-panel fi-fixed-positioning-context">
                     {{ $this->getSchema('filtersForm') }}
 
                     <div class="fi-ta-filters-actions-ctn">
                         <x-filament::button
-                            color="danger"
+                            color="primary"
                             icon="heroicon-o-arrow-path"
                             label-sr-only
                             tooltip="Reset filters"
@@ -128,8 +187,7 @@
                         </x-filament::button>
                     </div>
                 </div>
-            @endif
-            </div>
-        </div>
+            </x-filament::dropdown>
+        @endforeach
     @endif
 </div>

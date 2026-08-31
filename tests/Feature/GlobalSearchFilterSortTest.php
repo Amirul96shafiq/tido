@@ -42,16 +42,45 @@ function applyGlobalSearchCriteria(GlobalSearchType $type, string $sort = 'defau
     GlobalSearchCriteria::apply($type, $sort, $filters);
 }
 
-test('global search modal toolbar renders type sort and filters controls', function () {
+test('global search modal toolbar renders type sort and filters icon controls', function () {
     $html = Livewire::test(GlobalSearchModal::class)
         ->set('search', 'market')
         ->set('type', 'expenses')
         ->html();
 
     expect($html)
-        ->toContain('Type')
-        ->toContain('Sort')
-        ->toContain('Filters');
+        ->toContain('fi-gsm-toolbar')
+        ->toContain('aria-label="Type"')
+        ->toContain('aria-label="Sort"')
+        ->toContain('aria-label="Filters"')
+        ->toContain('fi-gsm-toolbar-filters')
+        ->toContain('appendTo: () => document.body')
+        ->toContain("placement: 'right'")
+        ->toContain("placement: 'bottom'")
+        ->toContain('zIndex: 100000')
+        ->toContain('data-gsm-tooltip-trigger')
+        ->not->toMatch('/content:\s*@js\(/')
+        ->toContain('Expenses')
+        ->toContain('Last Updated');
+});
+
+test('global search modal toolbar hides filters control for all type', function () {
+    $html = Livewire::test(GlobalSearchModal::class)
+        ->set('search', 'market')
+        ->set('type', 'all')
+        ->html();
+
+    expect($html)
+        ->toContain('aria-label="Type"')
+        ->toContain('aria-label="Sort"')
+        ->not->toContain('fi-gsm-toolbar-filters');
+});
+
+test('global search modal type dropdown updates type', function () {
+    Livewire::test(GlobalSearchModal::class)
+        ->set('search', 'market')
+        ->call('$set', 'type', 'expenses')
+        ->assertSet('type', 'expenses');
 });
 
 test('global search modal defaults to all type and default sort', function () {
@@ -262,7 +291,6 @@ test('global search modal clear filters action resets active filters', function 
         ->set('type', 'expenses')
         ->set('filters.expenses.status', 'reviewed')
         ->call('clearFilters')
-        ->assertSet('filtersOpen', false)
         ->assertSet('filters.expenses.status', null);
 });
 

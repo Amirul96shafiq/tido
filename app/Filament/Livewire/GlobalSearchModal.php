@@ -25,8 +25,6 @@ class GlobalSearchModal extends BaseGlobalSearchModal
 
     public string $sort = 'default';
 
-    public bool $filtersOpen = false;
-
     /**
      * @var array<string, array<string, mixed>>
      */
@@ -41,18 +39,7 @@ class GlobalSearchModal extends BaseGlobalSearchModal
     {
         if ($property === 'type') {
             $this->sort = GlobalSearchType::tryFromValue($this->type)->defaultSort();
-            $this->filtersOpen = false;
         }
-    }
-
-    public function toggleFilters(): void
-    {
-        $this->filtersOpen = ! $this->filtersOpen;
-    }
-
-    public function closeFilters(): void
-    {
-        $this->filtersOpen = false;
     }
 
     public function resetFilters(): void
@@ -63,7 +50,6 @@ class GlobalSearchModal extends BaseGlobalSearchModal
 
     public function clearFilters(): void
     {
-        $this->filtersOpen = false;
         $this->resetFilters();
     }
 
@@ -72,7 +58,6 @@ class GlobalSearchModal extends BaseGlobalSearchModal
         $this->search = '';
         $this->type = GlobalSearchType::All->value;
         $this->sort = GlobalSearchType::All->defaultSort();
-        $this->filtersOpen = false;
         $this->filters = [];
         $this->ensureFilterBuckets();
         GlobalSearchCriteria::reset();
