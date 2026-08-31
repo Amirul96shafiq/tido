@@ -23,7 +23,7 @@
     }}
 >
     @if ($results->getCategories()->isEmpty())
-        @if ($this->hasTypeFilters() && $this->getActiveFiltersCount() > 0)
+        @unless (filled($plugin->getNotFoundView()))
             <x-empty-state-panel
                 class="fi-gsm-empty-filter px-4 py-12"
                 heading="No Matches Found"
@@ -38,14 +38,8 @@
                 </x-slot>
             </x-empty-state-panel>
         @else
-            @unless (filled($plugin->getNotFoundView()))
-                <p class="px-4 py-16 text-center rounded-lg text-sm text-gray-500 dark:text-gray-400 bg-white/5">
-                    {{ __('filament-panels::global-search.no_results_message') }}
-                </p>
-            @else
-                {!! $plugin->getNotFoundView()->render() !!}
-            @endunless
-        @endif
+            {!! $plugin->getNotFoundView()->render() !!}
+        @endunless
     @else
         @if ($plugin->shouldShowTotalSearchCounts())
             <div class="flex items-center ml-2 rtl:mr-2">

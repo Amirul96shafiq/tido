@@ -102,7 +102,16 @@ class GlobalSearchModal extends BaseGlobalSearchModal
 
     public function clearFilters(): void
     {
-        $this->resetFilters();
+        foreach (GlobalSearchType::cases() as $searchType) {
+            if ($searchType->defaultFilters() === []) {
+                continue;
+            }
+
+            $this->filters[$searchType->value] = $searchType->defaultFilters();
+        }
+
+        $this->type = [GlobalSearchType::All->value];
+        $this->sort = GlobalSearchType::All->defaultSort();
     }
 
     public function resetModalState(): void

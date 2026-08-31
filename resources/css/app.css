@@ -3119,6 +3119,12 @@ body:has([id="global-search-modal::plugin"].fi-modal-open) [data-tippy-root] {
     @apply m-0 size-10 border border-gray-200 bg-white shadow-none dark:border-white/10 dark:bg-gray-900;
 }
 
+[id="global-search-modal::plugin"] .fi-gsm-empty-filter {
+    overflow: visible;
+    position: relative;
+    z-index: 0;
+}
+
 /*
  * Type-chosen filters reuse table-filter padding, body scroll, and pinned
  * Reset. Keep a taller panel so Status → Label still fit under the generic

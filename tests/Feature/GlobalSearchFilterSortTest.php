@@ -361,7 +361,20 @@ test('global search modal clear filters action resets active filters', function 
         ->set('type', ['expenses'])
         ->set('filters.expenses.status', 'reviewed')
         ->call('clearFilters')
-        ->assertSet('filters.expenses.status', null);
+        ->assertSet('filters.expenses.status', null)
+        ->assertSet('type', ['all'])
+        ->assertSet('sort', 'default');
+});
+
+test('global search modal clear filters action resets narrowed type and restores results', function () {
+    Livewire::test(GlobalSearchModal::class)
+        ->set('search', 'tabung')
+        ->set('type', ['labels'])
+        ->set('sort', 'updated_desc')
+        ->call('clearFilters')
+        ->assertSet('type', ['all'])
+        ->assertSet('sort', 'default')
+        ->assertDontSee('No Matches Found');
 });
 
 test('global search modal shows clear filters empty state when filters exclude all results', function () {
@@ -378,7 +391,22 @@ test('global search modal shows clear filters empty state when filters exclude a
 
     expect($html)
         ->toContain('No Matches Found')
-        ->toContain('Clear Filters');
+        ->toContain('Clear Filters')
+        ->toContain('fi-gsm-empty-filter')
+        ->toContain('fi-no-empty-panel');
+});
+
+test('global search modal shows illustrated empty state when search has no matches', function () {
+    $html = Livewire::test(GlobalSearchModal::class)
+        ->set('search', 'zzznomatchxyz123')
+        ->html();
+
+    expect($html)
+        ->toContain('No Matches Found')
+        ->toContain('No results match the current search or filters. Adjust the criteria, or clear filters to see everything again.')
+        ->toContain('Clear Filters')
+        ->toContain('fi-gsm-empty-filter')
+        ->toContain('fi-no-empty-panel');
 });
 
 test('destination search sorts pages by title ascending', function () {
