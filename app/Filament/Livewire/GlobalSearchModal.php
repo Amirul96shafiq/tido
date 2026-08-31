@@ -183,6 +183,11 @@ class GlobalSearchModal extends BaseGlobalSearchModal
         return count($types) === 1 && $types[0]->hasTypeFilters();
     }
 
+    public function filtersNeedSingleType(): bool
+    {
+        return $this->isAllTypes() || count($this->selectedTypes()) > 1;
+    }
+
     public function typeTooltipLabel(): string
     {
         return collect($this->selectedTypes())
@@ -192,11 +197,15 @@ class GlobalSearchModal extends BaseGlobalSearchModal
 
     public function filtersTooltipLabel(): string
     {
-        if (! $this->hasTypeFilters()) {
-            return 'Filters';
+        if ($this->hasTypeFilters()) {
+            return $this->sortType()->label().' Filters';
         }
 
-        return $this->sortType()->label().' Filters';
+        if ($this->filtersNeedSingleType()) {
+            return 'Select one type to use filters';
+        }
+
+        return 'Filters are not available for this type';
     }
 
     public function getActiveFiltersCount(): int

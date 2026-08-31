@@ -3109,8 +3109,10 @@ body:has([id="global-search-modal::plugin"].fi-modal-open) [data-tippy-root] {
     z-index: 100001 !important;
 }
 
-[id="global-search-modal::plugin"] .fi-gsm-toolbar-filters-unavailable {
-    display: none !important;
+[id="global-search-modal::plugin"]
+    .fi-gsm-toolbar-filters-unavailable
+    .fi-gsm-toolbar-trigger {
+    @apply cursor-not-allowed opacity-50;
 }
 
 [id="global-search-modal::plugin"] .fi-gsm-toolbar-trigger.fi-icon-btn {

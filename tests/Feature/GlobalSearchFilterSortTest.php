@@ -62,6 +62,8 @@ test('global search modal toolbar renders type sort and filters icon controls', 
         ->toContain('fi-ta-filters-actions-ctn')
         ->toContain('max-height: min(70vh, 28rem)')
         ->not->toContain('fi-gsm-toolbar-filters-unavailable')
+        ->not->toContain('fi-gsm-filters-empty-panel')
+        ->not->toContain('aria-disabled="true"')
         ->toContain('offset: 12')
         ->toContain('appendTo: () => document.body')
         ->toContain("placement: 'right'")
@@ -88,10 +90,13 @@ test('global search type-chosen filters menu reuses table filter padding and a t
         ->toContain('.fi-gsm-toolbar-filters')
         ->toContain('> .fi-dropdown-panel.fi-scrollable {')
         ->toContain('max-height: min(70vh, 28rem) !important;')
+        ->toContain('.fi-gsm-toolbar-filters-unavailable')
+        ->toContain('cursor-not-allowed opacity-50')
+        ->not->toMatch('/fi-gsm-toolbar-filters-unavailable\s*\{\s*display:\s*none/')
         ->not->toContain('gap-3 pt-3');
 });
 
-test('global search modal toolbar hides filters control for all type', function () {
+test('global search modal toolbar disables filters control for all type', function () {
     $html = Livewire::test(GlobalSearchModal::class)
         ->set('search', 'market')
         ->set('type', ['all'])
@@ -100,7 +105,13 @@ test('global search modal toolbar hides filters control for all type', function 
     expect($html)
         ->toContain('aria-label="Type"')
         ->toContain('aria-label="Sort"')
-        ->toContain('fi-gsm-toolbar-filters-unavailable');
+        ->toContain('aria-label="Select one type to use filters"')
+        ->toContain('Select one type to use filters')
+        ->toContain('fi-gsm-toolbar-filters-unavailable')
+        ->toContain('aria-disabled="true"')
+        ->not->toContain('fi-gsm-filters-empty-panel')
+        ->not->toContain('fi-ta-filters-body')
+        ->not->toContain('fi-no-empty-panel');
 });
 
 test('global search modal filters tooltip uses the selected type label', function (string $type, string $label) {
@@ -586,7 +597,7 @@ test('type pages and expenses includes pages but not sections', function () {
         ->and($results->getCategories()->has('Sections'))->toBeFalse();
 });
 
-test('global search modal toolbar hides filters control for multiple types', function () {
+test('global search modal toolbar disables filters control for multiple types', function () {
     $html = Livewire::test(GlobalSearchModal::class)
         ->set('search', 'market')
         ->set('type', ['expenses', 'budgets'])
@@ -595,7 +606,25 @@ test('global search modal toolbar hides filters control for multiple types', fun
     expect($html)
         ->toContain('aria-label="Type"')
         ->toContain('Type: Expenses, Budgets')
-        ->toContain('fi-gsm-toolbar-filters-unavailable');
+        ->toContain('aria-label="Select one type to use filters"')
+        ->toContain('fi-gsm-toolbar-filters-unavailable')
+        ->toContain('aria-disabled="true"')
+        ->not->toContain('fi-gsm-filters-empty-panel')
+        ->not->toContain('fi-ta-filters-body');
+});
+
+test('global search modal toolbar disables filters control for pages type', function () {
+    $html = Livewire::test(GlobalSearchModal::class)
+        ->set('search', 'market')
+        ->set('type', ['pages'])
+        ->html();
+
+    expect($html)
+        ->toContain('aria-label="Filters are not available for this type"')
+        ->toContain('fi-gsm-toolbar-filters-unavailable')
+        ->toContain('aria-disabled="true"')
+        ->not->toContain('fi-gsm-filters-empty-panel')
+        ->not->toContain('fi-ta-filters-body');
 });
 
 test('try from values drops all when mixed with specific types', function () {
