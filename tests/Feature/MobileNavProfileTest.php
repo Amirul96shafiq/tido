@@ -184,6 +184,8 @@ test('mobile nav css hides topbar and offsets sticky chrome on small screens', f
         ->not->toContain(".tido-mobilenav {\n    display: none;\n}")
         ->toContain('display: none !important')
         ->toContain('tido-sticky-marker--bottom')
+        ->toContain("has(.tido-sticky-marker--bottom) {\n        bottom: 0.25rem;")
+        ->toContain('inset: auto 0 var(--tido-mobilenav-height, 4rem) 0;')
         ->toContain('var(--tido-mobilenav-height, 4rem) + 0.25rem')
         ->toContain('html.tido-mobilenav body')
         ->toContain('overflow: hidden')

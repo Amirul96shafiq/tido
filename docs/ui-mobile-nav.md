@@ -76,14 +76,14 @@ Shared chrome overlay uses `z-index: 29` under `html.tido-mobilenav` (above `.fi
 
 - `--tido-mobilenav-height: calc(4rem + 1px + env(safe-area-inset-bottom, 0px))`
 - `--tido-mobilenav-menu-gap: 0.75rem` — shared offset above the nav bar for Add sheet and user menu panel
-- Main content `padding-bottom` clears the bar plus `0.25rem` gap (matches sticky CTAs / go-to-bottom)
+- Main content `padding-bottom` is `0.25rem` inside `.fi-main-ctn` (the scrollport already excludes the bar)
 - Page vertical scroll is confined to `.fi-main-ctn` (`height: calc(100dvh - var(--tido-mobilenav-height))`, `overflow-y: auto`) so the page scrollbar ends above the fixed bar; `html` / `body` / `.fi-body` use `overflow: hidden`
 - `.fi-body::after` scrollbar rail stops above the bar (`inset-block-end: var(--tido-mobilenav-height)`)
 - Table inner-scroll caps (`.fi-ta-ctn`, `.fi-ta-content-ctn`) subtract `--tido-mobilenav-height` so horizontal overflow thumbs stay above the bar
 - Open sidebar is half the viewport (`50vw` / `--tido-mobilenav-sidebar-width`); `inset-block-end` + `height: auto` sits above the bar
 - Collapse footer and Collapse Sidebar CTA are hidden; the Menu slot closes the drawer
 - Navigation groups below `lg` start fully expanded when the Menu drawer opens (`collapsedGroups = []`); multiple groups may stay open; users can still collapse individual groups
-- Sticky form CTAs (`tido-sticky-marker--bottom`) and bottom blur veil sit above the nav
+- Sticky form CTAs pin at `0.25rem` above the `.fi-main-ctn` bottom (do not add `--tido-mobilenav-height` — sticky is relative to the already-shortened scrollport). The `position: fixed` blur veil still uses `inset-block-end: var(--tido-mobilenav-height)`
 - Top sticky bars pin at `0.25rem` (no topbar offset)
 - Hash / section-nav scroll margins drop the 71px topbar offset
 - Go-to-bottom CTA sits above the nav; go-to-top uses viewport top

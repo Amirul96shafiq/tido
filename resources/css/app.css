@@ -6313,11 +6313,17 @@ html.tido-mobilenav {
         top: 0.25rem;
     }
 
+    /*
+     * Sticky bottom is relative to .fi-main-ctn, which is already shortened
+     * by the nav. Adding --tido-mobilenav-height here double-counts and
+     * lifts CTAs ~4rem above the bar. The fixed veil still uses
+     * inset-block-end: var(--tido-mobilenav-height).
+     */
     html.tido-mobilenav
         .tido-sticky-scope
         > .fi-sc
         > .fi-grid-col:has(.tido-sticky-marker--bottom) {
-        bottom: calc(var(--tido-mobilenav-height, 4rem) + 0.25rem);
+        bottom: 0.25rem;
     }
 
     html.tido-mobilenav
