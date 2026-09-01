@@ -5,7 +5,6 @@
 <div
     class="tido-mobilenav-root lg:hidden"
     x-data="{
-        addOpen: false,
         init() {
             if (! this.$store.tidoNotifications) {
                 Alpine.store('tidoNotifications', { unread: 0, menuOpen: false });
@@ -18,18 +17,20 @@
                     return;
                 }
 
-                this.closeAdd();
-                this.closeSearch();
+                this.$store.tidoMobileChrome.addOpen = false;
+                this.$store.tidoMobileChrome.closeSearchModal();
 
                 if (this.$store.sidebar.isOpen) {
                     this.$store.sidebar.close();
                 }
+
+                this.$store.tidoMobileChrome.syncOverlay();
             });
+
+            this.$store.tidoMobileChrome.syncOverlay();
         },
         closeUserMenu() {
-            const menu = this.$root.querySelector('.fi-user-menu--mobilenav');
-            const data = menu ? Alpine.$data(menu) : null;
-            data?.close?.();
+            this.$store.tidoMobileChrome.closeUserMenu();
         },
         searchModal() {
             return document.getElementById('global-search-modal::plugin');
@@ -40,27 +41,26 @@
             return modal ? Alpine.$data(modal) : null;
         },
         isSearchOpen() {
-            return this.searchModalData()?.isOpen === true;
+            return this.searchModalData()?.isOpen === true
+                || this.$store.tidoMobileChrome.searchOpen === true;
         },
         closeSearch() {
-            const data = this.searchModalData();
-
-            if (! data?.isOpen) {
-                return;
-            }
-
-            data.close();
+            this.$store.tidoMobileChrome.closeSearchModal();
         },
         openAdd() {
-            this.closeSearch();
+            this.$store.tidoMobileChrome.primeOverlay();
+            this.$store.tidoMobileChrome.addOpen = true;
+            this.$store.tidoMobileChrome.syncOverlay();
+            this.$store.tidoMobileChrome.closeSearchModal();
             this.closeUserMenu();
             if (this.$store.sidebar.isOpen) {
                 this.$store.sidebar.close();
             }
-            this.addOpen = true;
+            this.$store.tidoMobileChrome.syncOverlay();
         },
         closeAdd() {
-            this.addOpen = false;
+            this.$store.tidoMobileChrome.addOpen = false;
+            this.$store.tidoMobileChrome.dismissOverlay();
         },
         toggleSearch() {
             if (this.isSearchOpen()) {
@@ -69,7 +69,10 @@
                 return;
             }
 
-            this.closeAdd();
+            this.$store.tidoMobileChrome.primeOverlay();
+            this.$store.tidoMobileChrome.searchOpen = true;
+            this.$store.tidoMobileChrome.syncOverlay();
+            this.$store.tidoMobileChrome.addOpen = false;
             this.closeUserMenu();
             if (this.$store.sidebar.isOpen) {
                 this.$store.sidebar.close();
@@ -81,45 +84,41 @@
                     bubbles: true,
                 }),
             );
+
+            this.$store.tidoMobileChrome.syncOverlay();
         },
         expandAllSidebarGroups() {
             this.$store.sidebar.collapsedGroups = [];
         },
         toggleSidebar() {
-            this.closeSearch();
-            this.closeAdd();
-            this.closeUserMenu();
             if (this.$store.sidebar.isOpen) {
                 this.$store.sidebar.close();
-            } else {
-                this.expandAllSidebarGroups();
-                this.$store.sidebar.open();
+                this.$store.tidoMobileChrome.dismissOverlay();
+
+                return;
             }
+
+            this.expandAllSidebarGroups();
+            this.$store.sidebar.open();
+            this.$store.tidoMobileChrome.primeOverlay();
+            this.$store.tidoMobileChrome.syncOverlay();
+            this.$store.tidoMobileChrome.addOpen = false;
+            this.closeUserMenu();
+
+            if (this.isSearchOpen()) {
+                this.closeSearch();
+            } else {
+                this.$store.tidoMobileChrome.searchOpen = false;
+            }
+
+            this.$store.tidoMobileChrome.syncOverlay();
         },
     }"
-    x-on:keydown.escape.window="if (addOpen) { closeAdd(); }"
+    x-on:keydown.escape.window="if ($store.tidoMobileChrome.addOpen) { closeAdd(); }"
 >
     <div
         x-cloak
-        x-show="addOpen"
-        x-transition.duration.300ms.opacity
-        class="tido-chrome-overlay tido-mobilenav-add-backdrop"
-        x-on:click="closeAdd()"
-        aria-hidden="true"
-    ></div>
-
-    <div
-        x-cloak
-        x-show="$store.tidoNotifications && $store.tidoNotifications.menuOpen"
-        x-transition.duration.300ms.opacity
-        class="tido-chrome-overlay tido-user-menu-overlay"
-        x-on:click="closeUserMenu()"
-        aria-hidden="true"
-    ></div>
-
-    <div
-        x-cloak
-        x-show="addOpen"
+        x-show="$store.tidoMobileChrome.addOpen"
         x-transition:enter="fi-transition-enter"
         x-transition:leave="fi-transition-leave"
         x-transition:enter-start="fi-transition-enter-start"
@@ -280,10 +279,10 @@
             type="button"
             class="tido-mobilenav-item tido-mobilenav-item--primary"
             aria-label="Add"
-            x-bind:aria-expanded="addOpen"
-            x-on:click="addOpen ? closeAdd() : openAdd()"
+            x-bind:aria-expanded="$store.tidoMobileChrome.addOpen"
+            x-on:click="$store.tidoMobileChrome.addOpen ? closeAdd() : openAdd()"
         >
-            <span x-cloak x-show="! addOpen">
+            <span x-cloak x-show="! $store.tidoMobileChrome.addOpen">
                 {{
                     \Filament\Support\generate_icon_html(
                         Heroicon::OutlinedPlusCircle,
@@ -291,7 +290,7 @@
                     )
                 }}
             </span>
-            <span x-cloak x-show="addOpen">
+            <span x-cloak x-show="$store.tidoMobileChrome.addOpen">
                 {{
                     \Filament\Support\generate_icon_html(
                         Heroicon::PlusCircle,
@@ -318,7 +317,6 @@
 
         <div
             class="tido-mobilenav-item tido-mobilenav-item--avatar"
-            x-on:click.capture="closeSearch()"
         >
             <x-filament-panels::user-menu
                 instance="mobilenav"

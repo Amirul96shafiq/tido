@@ -424,6 +424,295 @@ class AdminPanelProvider extends PanelProvider
                                     applyMobileNavFromStorage();
                                 });
                                 document.addEventListener('livewire:navigated', syncReduceMotionAfterNavigation);
+
+                                document.addEventListener('alpine:init', function () {
+                                    Alpine.store('tidoMobileChrome', {
+                                        addOpen: false,
+                                        searchOpen: false,
+                                        overlayOpen: false,
+                                        overlayShown: false,
+                                        _chromeWasOpen: false,
+                                        _swapLocked: false,
+                                        _swapLockTimer: null,
+
+                                        _isTransitioning: function (element) {
+                                            if (! element) {
+                                                return false;
+                                            }
+
+                                            return element.classList.contains('fi-transition-enter')
+                                                || element.classList.contains('fi-transition-enter-start')
+                                                || element.classList.contains('fi-transition-enter-end')
+                                                || element.classList.contains('fi-transition-leave')
+                                                || element.classList.contains('fi-transition-leave-start')
+                                                || element.classList.contains('fi-transition-leave-end');
+                                        },
+
+                                        isAddSheetOpen: function () {
+                                            if (this.addOpen) {
+                                                return true;
+                                            }
+
+                                            return this._isTransitioning(
+                                                document.querySelector('.tido-mobilenav-add-sheet'),
+                                            );
+                                        },
+
+                                        isSearchModalOpen: function () {
+                                            if (this.searchOpen) {
+                                                return true;
+                                            }
+
+                                            var modal = this.searchModal();
+
+                                            if (! modal) {
+                                                return false;
+                                            }
+
+                                            if (this._isTransitioning(modal)) {
+                                                return true;
+                                            }
+
+                                            var data = this.searchModalData();
+
+                                            return !!(data && data.isOpen);
+                                        },
+
+                                        isSidebarOpen: function () {
+                                            var sidebarStore = Alpine.store('sidebar');
+
+                                            if (sidebarStore && sidebarStore.isOpen) {
+                                                return true;
+                                            }
+
+                                            var sidebarEl = document.querySelector('.fi-sidebar');
+
+                                            if (! sidebarEl) {
+                                                return false;
+                                            }
+
+                                            if (sidebarEl.classList.contains('fi-sidebar-open')) {
+                                                return true;
+                                            }
+
+                                            return this._isTransitioning(sidebarEl);
+                                        },
+
+                                        isMobilenavUserMenuOpen: function () {
+                                            var trigger = document.querySelector('.fi-user-menu--mobilenav .fi-user-menu-trigger');
+
+                                            if (trigger && trigger.getAttribute('aria-expanded') === 'true') {
+                                                return true;
+                                            }
+
+                                            var notifications = Alpine.store('tidoNotifications');
+                                            var panel = document.querySelector('.fi-user-menu--mobilenav .fi-dropdown-panel');
+
+                                            if (!panel) {
+                                                return !!(notifications && notifications.menuOpen);
+                                            }
+
+                                            if (panel.classList.contains('fi-transition-enter')
+                                                || panel.classList.contains('fi-transition-enter-start')
+                                                || panel.classList.contains('fi-transition-enter-end')
+                                                || panel.classList.contains('fi-transition-leave')
+                                                || panel.classList.contains('fi-transition-leave-start')
+                                                || panel.classList.contains('fi-transition-leave-end')) {
+                                                return true;
+                                            }
+
+                                            if (notifications && notifications.menuOpen) {
+                                                return true;
+                                            }
+
+                                            return window.getComputedStyle(panel).display !== 'none';
+                                        },
+
+                                        isChromeOpen: function () {
+                                            return this.isAddSheetOpen()
+                                                || this.isSearchModalOpen()
+                                                || this.isSidebarOpen()
+                                                || this.isMobilenavUserMenuOpen();
+                                        },
+
+                                        overlayVisible: function () {
+                                            return this.isChromeOpen()
+                                                || this._swapLocked
+                                                || this.overlayOpen;
+                                        },
+
+                                        _syncOverlayShown: function () {
+                                            if (this.isChromeOpen() || this._swapLocked) {
+                                                this.overlayShown = true;
+
+                                                return;
+                                            }
+
+                                            this.overlayShown = false;
+                                        },
+
+                                        _cancelSwapLock: function () {
+                                            if (this._swapLockTimer !== null) {
+                                                clearTimeout(this._swapLockTimer);
+                                                this._swapLockTimer = null;
+                                            }
+
+                                            this._swapLocked = false;
+                                        },
+
+                                        _armSwapLock: function () {
+                                            var self = this;
+
+                                            this._cancelSwapLock();
+                                            this._swapLocked = true;
+
+                                            this._swapLockTimer = setTimeout(function () {
+                                                self._swapLockTimer = null;
+                                                self._swapLocked = false;
+
+                                                if (! self.isChromeOpen()) {
+                                                    self.dismissOverlay();
+                                                } else {
+                                                    self._syncOverlayShown();
+                                                }
+                                            }, 400);
+                                        },
+
+                                        dismissOverlay: function () {
+                                            this._cancelSwapLock();
+
+                                            if (! this.isChromeOpen()) {
+                                                this.overlayOpen = false;
+                                                this.overlayShown = false;
+                                            } else {
+                                                this._syncOverlayShown();
+                                            }
+                                        },
+
+                                        primeOverlay: function () {
+                                            if (! document.documentElement.classList.contains('tido-mobilenav')) {
+                                                return;
+                                            }
+
+                                            this._armSwapLock();
+                                            this.overlayOpen = true;
+                                            this._syncOverlayShown();
+                                        },
+
+                                        syncOverlay: function () {
+                                            if (this.isChromeOpen()) {
+                                                this.overlayOpen = true;
+                                                this._syncOverlayShown();
+                                            }
+                                        },
+
+                                        searchModal: function () {
+                                            return document.getElementById('global-search-modal::plugin');
+                                        },
+
+                                        searchModalData: function () {
+                                            var modal = this.searchModal();
+
+                                            return modal ? Alpine.\$data(modal) : null;
+                                        },
+
+                                        closeSearchModal: function () {
+                                            var data = this.searchModalData();
+
+                                            if (! data || ! data.isOpen) {
+                                                this.searchOpen = false;
+
+                                                return;
+                                            }
+
+                                            data.close();
+                                        },
+
+                                        closeUserMenu: function () {
+                                            var menu = document.querySelector('.fi-user-menu--mobilenav');
+                                            var data = menu ? Alpine.\$data(menu) : null;
+
+                                            if (data && typeof data.close === 'function') {
+                                                data.close();
+                                            }
+                                        },
+
+                                        closeActiveChrome: function () {
+                                            if (this.addOpen) {
+                                                this.addOpen = false;
+                                                this.dismissOverlay();
+
+                                                return;
+                                            }
+
+                                            if (this.isMobilenavUserMenuOpen()) {
+                                                this.closeUserMenu();
+
+                                                return;
+                                            }
+
+                                            if (this.isSearchModalOpen()) {
+                                                this.closeSearchModal();
+
+                                                return;
+                                            }
+
+                                            var sidebar = Alpine.store('sidebar');
+
+                                            if (sidebar && sidebar.isOpen) {
+                                                sidebar.close();
+                                                this.dismissOverlay();
+                                            }
+                                        },
+                                    });
+                                });
+
+                                document.addEventListener('alpine:initialized', function () {
+                                    var chrome = Alpine.store('tidoMobileChrome');
+
+                                    if (! chrome) {
+                                        return;
+                                    }
+
+                                    window.addEventListener('modal-closed', function (event) {
+                                        if (event.detail && event.detail.id === 'global-search-modal::plugin') {
+                                            chrome.searchOpen = false;
+                                            chrome.dismissOverlay();
+                                        }
+                                    });
+
+                                    Alpine.effect(function () {
+                                        var sidebar = Alpine.store('sidebar');
+
+                                        if (sidebar) {
+                                            sidebar.isOpen;
+                                        }
+
+                                        var notifications = Alpine.store('tidoNotifications');
+
+                                        if (notifications) {
+                                            notifications.menuOpen;
+                                        }
+
+                                        chrome.addOpen;
+                                        chrome.searchOpen;
+
+                                        if (chrome.isChromeOpen()) {
+                                            chrome._chromeWasOpen = true;
+                                            chrome.overlayOpen = true;
+                                        } else {
+                                            if (chrome._chromeWasOpen) {
+                                                chrome._chromeWasOpen = false;
+                                            }
+
+                                            if (! chrome._swapLocked) {
+                                                chrome.overlayOpen = false;
+                                            }
+                                        }
+
+                                        chrome._syncOverlayShown();
+                                    });
+                                });
                             })();
                         </script>
                         HTML;

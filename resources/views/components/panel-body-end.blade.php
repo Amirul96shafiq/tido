@@ -7,5 +7,6 @@
 <x-hash-scroll />
 
 @auth
+    <x-tido.mobile-chrome-overlay />
     @livewire('tido.mobile_nav')
 @endauth

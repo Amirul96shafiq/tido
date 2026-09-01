@@ -86,6 +86,9 @@
                 aria-label="{{ __('filament-panels::layout.actions.open_user_menu.label') }}"
                 type="button"
                 class="fi-user-menu-trigger"
+                @if ($anchor === 'mobilenav')
+                    x-on:click.capture="! $store.tidoNotifications?.menuOpen && $store.tidoMobileChrome?.primeOverlay()"
+                @endif
                 x-data
                 x-init="
                     if (! Alpine.store('tidoNotifications')) {
@@ -96,11 +99,32 @@
 
                     // Filament 5.7+: aria-expanded lives on the focusable button; the
                     // .fi-dropdown-trigger wrapper attribute is stripped by dropdown.js.
+                    // Observe the panel display/transition too so menuOpen does not flicker
+                    // false during mobilenav modal transitions (shared chrome overlay).
                     const expandTarget = $el;
+                    const dropdown = expandTarget.closest('.fi-dropdown');
+                    const panel = dropdown ? dropdown.querySelector('.fi-dropdown-panel') : null;
 
                     const syncMenuOpen = () => {
+                        const isExpanded = expandTarget.getAttribute('aria-expanded') === 'true';
+
+                        if (!panel) {
+                            Alpine.store('tidoNotifications').menuOpen = isExpanded;
+
+                            return;
+                        }
+
+                        const isTransitioning = panel.classList.contains('fi-transition-enter')
+                            || panel.classList.contains('fi-transition-enter-start')
+                            || panel.classList.contains('fi-transition-enter-end')
+                            || panel.classList.contains('fi-transition-leave')
+                            || panel.classList.contains('fi-transition-leave-start')
+                            || panel.classList.contains('fi-transition-leave-end');
+
                         Alpine.store('tidoNotifications').menuOpen =
-                            expandTarget.getAttribute('aria-expanded') === 'true';
+                            isTransitioning
+                            || window.getComputedStyle(panel).display !== 'none'
+                            || isExpanded;
                     };
 
                     syncMenuOpen();
@@ -109,6 +133,13 @@
                         attributes: true,
                         attributeFilter: ['aria-expanded'],
                     });
+
+                    if (panel) {
+                        new MutationObserver(syncMenuOpen).observe(panel, {
+                            attributes: true,
+                            attributeFilter: ['style', 'class'],
+                        });
+                    }
                 "
                 x-tooltip="{
                     content: @js(__('filament-panels::layout.actions.open_user_menu.label')),

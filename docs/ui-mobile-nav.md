@@ -51,16 +51,22 @@ Dark bar chrome uses `html.dark.tido-mobilenav` (Filament puts `dark` on `<html>
 
 ## Chrome overlays (below `lg`)
 
-Shared dim layer matching Filament’s mobile sidebar overlay (`.fi-sidebar-close-overlay`): `bg-gray-950/50` / `dark:bg-gray-950/75`, **no** `backdrop-blur`. Class: `.tido-chrome-overlay`.
+When `html.tido-mobilenav` is active, **one shared dim layer** covers the page while any bottom-bar chrome surface is open (Menu sidebar, Add sheet, user menu, or global search). The overlay fades in when the first surface opens and fades out only when all are closed — switching slots does not refresh the dim layer.
 
-| Surface        | Overlay                                                                                                                                                                                                                                                                                       |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Sidebar (Menu) | `.fi-sidebar-close-overlay`                                                                                                                                                                                                                                                                   |
-| Add sheet      | `.tido-mobilenav-add-backdrop.tido-chrome-overlay`                                                                                                                                                                                                                                            |
-| User menu      | `.tido-user-menu-overlay.tido-chrome-overlay` (bottom-bar instance in [`mobile-nav.blade.php`](../resources/views/filament/livewire/mobile-nav.blade.php); topbar instance in [`user-menu.blade.php`](../resources/views/vendor/filament-panels/components/user-menu.blade.php), `lg:hidden`) |
-| Global search  | `[id="global-search-modal::plugin"] > .fi-modal-close-overlay` — frost stripped below `lg` so it matches sidebar                                                                                                                                                                              |
+Markup: [`mobile-chrome-overlay.blade.php`](../resources/views/components/tido/mobile-chrome-overlay.blade.php) included from [`panel-body-end.blade.php`](../resources/views/components/panel-body-end.blade.php) (end of `<body>`, before the bottom nav). Classes: `.tido-mobilenav-shared-chrome-overlay.tido-chrome-overlay` (plus Filament’s `.fi-sidebar-close-overlay` for stacking). State: Alpine store `tidoMobileChrome` (`addOpen`, `searchOpen`, `overlayOpen`, `overlayShown`, `syncOverlay()`, `closeActiveChrome()`).
 
-Action / slide-over modals keep the frosted overlay in [`ui-modal-overlay.md`](ui-modal-overlay.md). Overlay `z-index` stays `30` (same as the sidebar close overlay) so the bottom bar (`z-index: 35`) remains tappable.
+Visual recipe matches Filament’s sidebar close overlay: `bg-gray-950/50` / `dark:bg-gray-950/75`, **no** `backdrop-blur`.
+
+| Surface        | Panel / sheet                         | Per-surface overlay (mobilenav)                           |
+| -------------- | ------------------------------------- | --------------------------------------------------------- |
+| Sidebar (Menu) | Filament `.fi-sidebar`                | Hidden — uses shared overlay                              |
+| Add sheet      | `.tido-mobilenav-add-sheet`           | Hidden — uses shared overlay                              |
+| User menu      | `.fi-user-menu--mobilenav` dropdown   | Hidden — uses shared overlay                              |
+| Global search  | `#global-search-modal::plugin` window | Hidden (`display: none !important`) — uses shared overlay |
+
+Topbar user menu (non-mobilenav) keeps its own `.tido-user-menu-overlay` in [`user-menu.blade.php`](../resources/views/vendor/filament-panels/components/user-menu.blade.php) (`lg:hidden`).
+
+Shared chrome overlay uses `z-index: 29` under `html.tido-mobilenav` (above `.fi-main-ctn`, below `.fi-sidebar` at `z-30` and bottom bar at `65`) so the dim shows beside the Menu drawer while chrome sheets / the bar stay above the dim. When a modal is open, `.fi-main-ctn` stays at `z-index: 1` so it does not stack above the shared dim.
 
 ## Chrome offsets (mobile + `html.tido-mobilenav`)
 

@@ -5943,6 +5943,15 @@ html.tido-reduce-motion .tido-ping-pulse {
     -webkit-backdrop-filter: none;
 }
 
+html.tido-mobilenav .tido-mobilenav-shared-chrome-overlay {
+    /*
+     * Below .fi-sidebar (z-30) so the drawer stays bright; above .fi-main-ctn (z-1).
+     * Below chrome sheets / bottom bar (--tido-mobilenav-z-chrome: 65).
+     */
+    z-index: 29 !important;
+    transition: none !important;
+}
+
 .fi-sidebar-close-overlay {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -5954,17 +5963,38 @@ html.tido-reduce-motion .tido-ping-pulse {
         -webkit-backdrop-filter: none;
     }
 
+    html.tido-mobilenav
+        .fi-sidebar-close-overlay:not(.tido-mobilenav-shared-chrome-overlay) {
+        display: none !important;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    html.tido-mobilenav
+        [id="global-search-modal::plugin"].fi-modal
+        > .fi-modal-close-overlay {
+        display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    /*
+     * Filament lifts .fi-main-ctn to z-35 when any modal opens; that paints page
+     * content above the shared chrome overlay (z-29) and reads as a second dim layer
+     * behind the global search modal.
+     */
+    html.tido-mobilenav
+        .fi-layout:has(.fi-modal.fi-modal-open:not([style*="display: none"]))
+        .fi-main-ctn {
+        z-index: 1;
+    }
+
     /*
      * Keep dim + click-away layers above the page but below/outside the bottom bar.
      * The bar uses --tido-mobilenav-z-chrome (65) above the modal window (z-60).
      */
-    html.tido-mobilenav
-        [id="global-search-modal::plugin"].fi-modal.fi-modal-open
-        > .fi-modal-close-overlay {
-        z-index: 30;
-        bottom: var(--tido-mobilenav-height, 4rem);
-    }
-
     html.tido-mobilenav
         [id="global-search-modal::plugin"].fi-modal.fi-modal-open
         > .fi-modal-window-ctn {
@@ -6009,10 +6039,6 @@ html.tido-mobilenav {
         display: block;
         position: relative;
         z-index: var(--tido-mobilenav-z-chrome, 65);
-    }
-
-    html.tido-mobilenav .tido-mobilenav-root > .tido-chrome-overlay {
-        z-index: calc(var(--tido-mobilenav-z-chrome, 65) - 1);
     }
 
     html.tido-mobilenav .tido-mobilenav-bar {

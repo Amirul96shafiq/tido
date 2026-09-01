@@ -128,7 +128,9 @@ test('mobile nav user menu opens upward from the bottom avatar', function (): vo
         ->toContain(':useModalTransition="$anchor === \'mobilenav\'"')
         ->toContain("key('account-switcher-'.\$userMenuInstanceKey)")
         ->toContain('fi-user-menu--')
-        ->toContain('tido-user-menu-overlay');
+        ->toContain('tido-user-menu-overlay')
+        ->toContain('fi-dropdown-panel')
+        ->toContain('attributeFilter: [\'style\', \'class\']');
 });
 
 test('family member mobile nav add sheet disables budget and recurring create links', function (): void {
@@ -216,8 +218,8 @@ test('mobile nav chrome sheets use the same modal enter transition as global sea
         ->toContain('tido-mobilenav-add-sheet')
         ->toContain('x-transition:enter="fi-transition-enter"')
         ->toContain('x-transition:leave-end="fi-transition-leave-end"')
-        ->toContain('tido-chrome-overlay tido-mobilenav-add-backdrop')
-        ->toContain('x-transition.duration.300ms.opacity')
+        ->toContain('$store.tidoMobileChrome.addOpen')
+        ->not->toContain('tido-mobilenav-add-backdrop')
         ->not->toContain('transition ease-out duration-200')
         ->not->toContain('transition ease-in duration-150');
 
@@ -267,6 +269,20 @@ test('admin panel mobile nav script syncs preference across spa navigation', fun
         ->toContain('tidoMobileNav')
         ->toContain('tidoSetMobileNav')
         ->toContain('applyMobileNavFromStorage')
+        ->toContain('tidoMobileChrome')
+        ->toContain('syncOverlay')
+        ->toContain('overlayVisible')
+        ->toContain('dismissOverlay')
+        ->toContain('_syncOverlayShown')
+        ->toContain('overlayShown')
+        ->toContain('primeOverlay')
+        ->toContain('_armSwapLock')
+        ->toContain('_swapLocked')
+        ->toContain('isChromeOpen')
+        ->toContain('isAddSheetOpen')
+        ->toContain('isSidebarOpen')
+        ->toContain('PanelsRenderHook::BODY_END')
+        ->not->toContain('PanelsRenderHook::LAYOUT_START')
         ->toContain('livewire:navigated')
         ->toContain('livewire:navigating');
 });
@@ -284,11 +300,12 @@ test('mobile nav closes global search when another chrome slot is activated', fu
         ->toContain('toggleSearch()')
         ->toContain("getElementById('global-search-modal::plugin')")
         ->toContain('Alpine.$data(modal)')
-        ->toContain('data.close()')
+        ->toContain('closeSearchModal()')
+        ->toContain('searchOpen = true')
+        ->toContain('if (this.isSearchOpen()) {')
+        ->toContain('this.closeSearch();')
         ->toContain('x-on:click="closeSearch()"')
-        ->toContain('x-on:click.capture="closeSearch()"')
-        ->toContain('x-bind:aria-expanded="isSearchOpen()"')
-        ->toContain('this.closeSearch()');
+        ->toContain('x-bind:aria-expanded="isSearchOpen()"');
 });
 
 test('mobile nav bottom bar uses active-state icons for home menu and add slots', function (): void {
@@ -308,9 +325,9 @@ test('mobile nav bottom bar uses active-state icons for home menu and add slots'
         ->toContain('x-show="$store.sidebar.isOpen"')
         ->toContain('Heroicon::OutlinedPlusCircle')
         ->toContain('Heroicon::PlusCircle')
-        ->toContain('x-show="! addOpen"')
-        ->toContain('x-show="addOpen"')
-        ->toContain('addOpen ? closeAdd() : openAdd()')
+        ->toContain('x-show="! $store.tidoMobileChrome.addOpen"')
+        ->toContain('x-show="$store.tidoMobileChrome.addOpen"')
+        ->toContain('$store.tidoMobileChrome.addOpen ? closeAdd() : openAdd()')
         ->not->toContain('Heroicon::OutlinedPlus,');
 });
 
@@ -332,9 +349,13 @@ test('mobile chrome overlays match the sidebar close overlay', function (): void
     $mobileNav = (string) file_get_contents(
         resource_path('views/filament/livewire/mobile-nav.blade.php'),
     );
+    $overlay = (string) file_get_contents(
+        resource_path('views/components/tido/mobile-chrome-overlay.blade.php'),
+    );
     $userMenu = (string) file_get_contents(
         resource_path('views/vendor/filament-panels/components/user-menu.blade.php'),
     );
+    $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
 
     expect($css)
         ->toContain('.tido-chrome-overlay {')
@@ -342,14 +363,17 @@ test('mobile chrome overlays match the sidebar close overlay', function (): void
         ->toContain('.fi-sidebar-close-overlay {')
         ->toContain('[id="global-search-modal::plugin"].fi-modal > .fi-modal-close-overlay')
         ->toContain('html.tido-mobilenav')
+        ->toContain('.tido-mobilenav-shared-chrome-overlay')
+        ->toContain('.fi-sidebar-close-overlay:not(.tido-mobilenav-shared-chrome-overlay)')
+        ->toContain('display: none !important')
+        ->toContain('backdrop-filter: none !important')
+        ->toContain('.fi-layout:has(.fi-modal.fi-modal-open')
         ->toContain('[id="global-search-modal::plugin"].fi-modal.fi-modal-open')
-        ->toContain('> .fi-modal-close-overlay {')
-        ->toContain('z-index: 30;')
-        ->toContain('--tido-mobilenav-z-chrome: 65')
-        ->toContain('z-index: var(--tido-mobilenav-z-chrome, 65)')
-        ->toContain('html.tido-mobilenav .tido-mobilenav-root > .tido-chrome-overlay')
         ->toContain('> .fi-modal-window-ctn {')
         ->toContain('bottom: var(--tido-mobilenav-height, 4rem)')
+        ->toContain('--tido-mobilenav-z-chrome: 65')
+        ->toContain('z-index: var(--tido-mobilenav-z-chrome, 65)')
+        ->not->toContain('html.tido-mobilenav .tido-mobilenav-root > .tido-chrome-overlay')
         ->toContain('.tido-user-menu-overlay {');
 
     $chromeOverlay = Str::between(
@@ -365,15 +389,46 @@ test('mobile chrome overlays match the sidebar close overlay', function (): void
         ->toContain('transition-opacity duration-300')
         ->not->toContain('@apply backdrop-blur-md');
 
+    expect($css)
+        ->toContain('html.tido-mobilenav .tido-mobilenav-shared-chrome-overlay')
+        ->toContain('z-index: 29 !important')
+        ->toContain('transition: none !important');
+
     expect($mobileNav)
-        ->toContain('tido-chrome-overlay tido-mobilenav-add-backdrop')
-        ->toContain('tido-chrome-overlay tido-user-menu-overlay')
-        ->toContain('x-transition.duration.300ms.opacity')
-        ->toContain('$store.tidoNotifications.menuOpen')
+        ->toContain('$store.tidoMobileChrome')
+        ->toContain('syncOverlay()')
+        ->toContain('dismissOverlay()')
+        ->toContain('this.$store.tidoMobileChrome.primeOverlay()')
+        ->not->toContain('x-on:click.capture="$store.tidoMobileChrome.primeOverlay()"')
+        ->not->toContain('tido-mobilenav-add-backdrop')
+        ->not->toContain('tido-user-menu-overlay')
         ->not->toContain('backdrop-blur-md');
+
+    expect($overlay)
+        ->toContain('tido-mobilenav-shared-chrome-overlay')
+        ->toContain('tido-chrome-overlay')
+        ->toContain('fi-sidebar-close-overlay')
+        ->toContain('x-effect')
+        ->toContain('$store.tidoMobileChrome?.overlayShown')
+        ->toContain("classList.toggle('opacity-0'")
+        ->toContain("classList.toggle('pointer-events-none'")
+        ->toContain('closeActiveChrome()')
+        ->not->toContain('x-transition.opacity.300ms');
+
+    $panelBodyEnd = (string) file_get_contents(
+        resource_path('views/components/panel-body-end.blade.php'),
+    );
+
+    expect($panelBodyEnd)
+        ->toContain('tido.mobile-chrome-overlay')
+        ->toContain('tido.mobile_nav');
+
+    expect($provider)
+        ->not->toContain('PanelsRenderHook::LAYOUT_START');
 
     expect($userMenu)
         ->toContain("\$anchor !== 'mobilenav'")
+        ->toContain('! $store.tidoNotifications?.menuOpen && $store.tidoMobileChrome?.primeOverlay()')
         ->toContain('x-transition.duration.300ms.opacity')
         ->toContain('tido-chrome-overlay tido-user-menu-overlay lg:hidden');
 });
@@ -414,7 +469,7 @@ test('mobile nav closes sidebar and add sheet when user menu opens', function ()
 
     expect($mobileNav)
         ->toContain('$watch(\'$store.tidoNotifications.menuOpen\'')
-        ->toContain('this.closeAdd()')
+        ->toContain('tidoMobileChrome.addOpen = false')
         ->toContain('this.$store.sidebar.close()');
 });
 
