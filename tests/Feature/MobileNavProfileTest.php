@@ -294,6 +294,8 @@ test('admin panel mobile nav script syncs preference across spa navigation', fun
         ->toContain('applyMobileNavFromStorage')
         ->toContain('tidoMobileChrome')
         ->toContain('mobilenavActive')
+        ->toContain('isMobilenavActiveNow')
+        ->toContain('isMobilenavViewport')
         ->toContain('syncMobileNavChromeStore')
         ->toContain('syncOverlay')
         ->toContain('overlayVisible')
@@ -425,7 +427,10 @@ test('mobile chrome overlays match the sidebar close overlay', function (): void
 
     expect($css)
         ->toContain('html.tido-mobilenav .tido-mobilenav-shared-chrome-overlay')
-        ->toContain('z-index: 29 !important');
+        ->toContain('z-index: 29 !important')
+        ->toContain('@media (min-width: 1024px)')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-shared-chrome-overlay')
+        ->toContain('pointer-events: none !important');
 
     expect($sharedChromeOverlay)
         ->not->toContain('transition: none !important');

@@ -359,6 +359,19 @@ class AdminPanelProvider extends PanelProvider
 
                                 var MOBILE_NAV_CLASS = 'tido-mobilenav';
                                 var MOBILE_NAV_STORAGE_KEY = 'tidoMobileNav';
+                                var MOBILE_NAV_DESKTOP_BREAKPOINT = 1024;
+
+                                function isMobilenavEnabled() {
+                                    return document.documentElement.classList.contains(MOBILE_NAV_CLASS);
+                                }
+
+                                function isMobilenavViewport() {
+                                    return window.innerWidth < MOBILE_NAV_DESKTOP_BREAKPOINT;
+                                }
+
+                                function isMobilenavActiveNow() {
+                                    return isMobilenavEnabled() && isMobilenavViewport();
+                                }
 
                                 function syncMobileNavStorage() {
                                     sessionStorage.setItem(
@@ -378,7 +391,7 @@ class AdminPanelProvider extends PanelProvider
                                         return;
                                     }
 
-                                    chrome.mobilenavActive = document.documentElement.classList.contains(MOBILE_NAV_CLASS);
+                                    chrome.mobilenavActive = isMobilenavActiveNow();
                                 }
 
                                 function applyMobileNavFromStorage() {
@@ -450,7 +463,7 @@ class AdminPanelProvider extends PanelProvider
 
                                 document.addEventListener('alpine:init', function () {
                                     Alpine.store('tidoMobileChrome', {
-                                        mobilenavActive: document.documentElement.classList.contains(MOBILE_NAV_CLASS),
+                                        mobilenavActive: isMobilenavActiveNow(),
                                         addOpen: false,
                                         searchOpen: false,
                                         overlayOpen: false,
@@ -553,6 +566,10 @@ class AdminPanelProvider extends PanelProvider
                                         },
 
                                         isChromeOpen: function () {
+                                            if (! this.mobilenavActive) {
+                                                return false;
+                                            }
+
                                             return this.isAddSheetOpen()
                                                 || this.isSearchModalOpen()
                                                 || this.isSidebarOpen()
@@ -566,6 +583,12 @@ class AdminPanelProvider extends PanelProvider
                                         },
 
                                         _syncOverlayShown: function () {
+                                            if (! this.mobilenavActive) {
+                                                this.overlayShown = false;
+
+                                                return;
+                                            }
+
                                             this.overlayShown = this.isChromeOpen() || this._swapLocked;
                                         },
 
@@ -608,7 +631,7 @@ class AdminPanelProvider extends PanelProvider
                                         },
 
                                         primeOverlay: function () {
-                                            if (! document.documentElement.classList.contains('tido-mobilenav')) {
+                                            if (! isMobilenavActiveNow()) {
                                                 return;
                                             }
 
@@ -618,6 +641,10 @@ class AdminPanelProvider extends PanelProvider
                                         },
 
                                         syncOverlay: function () {
+                                            if (! this.mobilenavActive) {
+                                                return;
+                                            }
+
                                             if (this.isChromeOpen()) {
                                                 this.overlayOpen = true;
                                                 this._syncOverlayShown();
@@ -700,6 +727,8 @@ class AdminPanelProvider extends PanelProvider
                                     });
 
                                     Alpine.effect(function () {
+                                        syncMobileNavChromeStore();
+
                                         var sidebar = Alpine.store('sidebar');
 
                                         if (sidebar) {
@@ -723,13 +752,27 @@ class AdminPanelProvider extends PanelProvider
                                                 chrome._chromeWasOpen = false;
                                             }
 
-                                            if (! chrome._swapLocked) {
+                                            if (! chrome._swapLocked || ! chrome.mobilenavActive) {
                                                 chrome.overlayOpen = false;
                                             }
                                         }
 
                                         chrome._syncOverlayShown();
                                     });
+
+                                    window.addEventListener('resize', function () {
+                                        var wasActive = chrome.mobilenavActive;
+
+                                        syncMobileNavChromeStore();
+
+                                        if (wasActive && ! chrome.mobilenavActive) {
+                                            chrome.addOpen = false;
+                                            chrome.searchOpen = false;
+                                            chrome.dismissOverlay();
+                                        }
+
+                                        chrome._syncOverlayShown();
+                                    }, { passive: true });
                                 });
                             })();
                         </script>
