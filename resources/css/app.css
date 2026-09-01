@@ -3069,8 +3069,8 @@ html.tido-reduce-motion
     @apply ms-auto inline-flex items-center rounded-md border border-gray-200/80 bg-gray-100/90 px-1.5 py-0.5 text-[11px] font-medium tracking-tight tabular-nums text-gray-600 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300;
 }
 
-/* Keep DatabaseNotifications mounted for the slide-over + Echo, but hide the topbar trigger. */
-.fi-topbar-end .fi-no-database > .fi-modal-trigger {
+/* Keep DatabaseNotifications mounted for the slide-over + Echo, but hide the bell trigger. */
+.fi-no-database > .fi-modal-trigger {
     @apply pointer-events-none absolute size-0 overflow-hidden opacity-0;
 }
 
@@ -6011,6 +6011,12 @@ html.tido-mobilenav .tido-mobilenav-shared-chrome-overlay {
         > .fi-modal-close-overlay,
     html.tido-mobilenav
         [data-fi-modal-id="changelog"].fi-modal.fi-modal-open
+        > .fi-modal-window-ctn,
+    html.tido-mobilenav
+        [data-fi-modal-id="database-notifications"].fi-modal.fi-modal-open
+        > .fi-modal-close-overlay,
+    html.tido-mobilenav
+        [data-fi-modal-id="database-notifications"].fi-modal.fi-modal-open
         > .fi-modal-window-ctn {
         z-index: calc(var(--tido-mobilenav-z-chrome, 65) + 1);
     }

@@ -100,6 +100,27 @@ test('admin panel injects mobile nav script and class when preference is enabled
         ->assertSee('account-switcher-mobilenav', false);
 });
 
+test('database notifications livewire mounts at panel body end not the topbar', function (): void {
+    $user = User::factory()->create([
+        'mobile_nav_enabled' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get('/admin');
+
+    $response->assertSuccessful()
+        ->assertSee('data-fi-modal-id="database-notifications"', false)
+        ->assertSee('fi-topbar-database-notifications-trigger-sync', false)
+        ->assertSee('panel-database-notifications', false);
+
+    $topbar = (string) file_get_contents(
+        resource_path('views/vendor/filament-panels/livewire/topbar.blade.php'),
+    );
+
+    expect($topbar)->not->toContain('getDatabaseNotificationsLivewireComponent');
+});
+
 test('admin panel does not inject mobile nav class when preference is disabled', function (): void {
     $user = User::factory()->create([
         'mobile_nav_enabled' => false,
@@ -370,6 +391,7 @@ test('mobile chrome overlays match the sidebar close overlay', function (): void
         ->toContain('.fi-layout:has(.fi-modal.fi-modal-open')
         ->toContain('[id="global-search-modal::plugin"].fi-modal.fi-modal-open')
         ->toContain('[data-fi-modal-id="changelog"].fi-modal.fi-modal-open')
+        ->toContain('[data-fi-modal-id="database-notifications"].fi-modal.fi-modal-open')
         ->toContain('z-index: calc(var(--tido-mobilenav-z-chrome, 65) + 1)')
         ->toContain('> .fi-modal-window-ctn {')
         ->toContain('bottom: var(--tido-mobilenav-height, 4rem)')
@@ -431,7 +453,9 @@ test('mobile chrome overlays match the sidebar close overlay', function (): void
 
     expect($panelBodyEnd)
         ->toContain('tido.mobile-chrome-overlay')
-        ->toContain('tido.mobile_nav');
+        ->toContain('tido.mobile_nav')
+        ->toContain("key('panel-database-notifications')")
+        ->toContain("'lazy' => false");
 
     expect($provider)
         ->not->toContain('PanelsRenderHook::LAYOUT_START');

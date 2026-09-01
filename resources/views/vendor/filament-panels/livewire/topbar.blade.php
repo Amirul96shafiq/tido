@@ -199,11 +199,7 @@
             {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::GLOBAL_SEARCH_AFTER) }}
 
             @if (filament()->auth()->check())
-                @if (filament()->hasDatabaseNotifications() && filament()->getDatabaseNotificationsPosition() === \Filament\Enums\DatabaseNotificationsPosition::Topbar)
-                    @livewire(filament()->getDatabaseNotificationsLivewireComponent(), [
-                        'lazy' => filament()->hasLazyLoadedDatabaseNotifications(),
-                    ])
-                @endif
+                {{-- DatabaseNotifications mounts in panel-body-end so the inbox modal is not trapped in a display:none topbar (html.tido-mobilenav). --}}
 
                 @if (filament()->hasUserMenu() && filament()->getUserMenuPosition() === \Filament\Enums\UserMenuPosition::Topbar)
                     <x-filament-panels::user-menu />

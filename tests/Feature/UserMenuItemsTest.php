@@ -305,7 +305,7 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
     $itemBadgeBlock = Str::between(
         $css,
         '.fi-user-menu-notifications-wrap .fi-user-menu-item-notifications-badge {',
-        '.fi-topbar-end .fi-no-database > .fi-modal-trigger {',
+        '.fi-no-database > .fi-modal-trigger {',
     );
     $profilePreviewBlock = Str::between(
         $css,

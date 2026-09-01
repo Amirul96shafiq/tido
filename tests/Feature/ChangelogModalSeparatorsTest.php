@@ -165,6 +165,7 @@ test('changelog slide-over stacks above the mobilenav bottom bar', function () {
 
     expect($css)
         ->toContain('[data-fi-modal-id="changelog"].fi-modal.fi-modal-open')
+        ->toContain('[data-fi-modal-id="database-notifications"].fi-modal.fi-modal-open')
         ->toContain('> .fi-modal-close-overlay,')
         ->toContain('z-index: calc(var(--tido-mobilenav-z-chrome, 65) + 1)')
         ->not->toContain('[data-fi-modal-id="changelog"].fi-modal.fi-modal-slide-over.fi-modal-open');

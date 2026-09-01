@@ -13,7 +13,15 @@
     $activeFiltersCount = $this->getActiveFiltersCount();
 @endphp
 
-<div class="fi-no-database">
+<div
+    class="fi-no-database"
+    x-data
+    x-on:open-modal.window="
+        if ($event.detail?.id === 'database-notifications') {
+            $store.tidoMobileChrome?.closeUserMenu?.();
+        }
+    "
+>
     <style>
         /* Unread badge sits absolute beside the heading; avoid clipping it. */
         .fi-no-database .fi-modal-window-ctn > .fi-modal-window > .fi-modal-header {

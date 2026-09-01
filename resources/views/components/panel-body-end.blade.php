@@ -1,4 +1,11 @@
 <x-changelog-modal />
+@auth
+    @if (filament()->hasDatabaseNotifications())
+        @livewire(filament()->getDatabaseNotificationsLivewireComponent(), [
+            'lazy' => false,
+        ], key('panel-database-notifications'))
+    @endif
+@endauth
 <x-restore-backup-modal />
 <x-drag-drop-config />
 <x-go-to-top />

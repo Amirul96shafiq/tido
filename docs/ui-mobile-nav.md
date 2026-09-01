@@ -70,6 +70,8 @@ Shared chrome overlay uses `z-index: 29` under `html.tido-mobilenav` (above `.fi
 
 **Changelogs** stays full viewport height (`h-dvh`). Opening it closes the user menu and lifts the slide-over (`z-index: calc(var(--tido-mobilenav-z-chrome) + 1)`) so the sheet covers the bottom bar. Global search still offsets `bottom` above the bar instead.
 
+**Notifications** (database inbox) mounts from [`panel-body-end.blade.php`](../resources/views/components/panel-body-end.blade.php), not the hidden `.fi-topbar-ctn`. The slide-over uses the same z-index lift as Changelogs. The unread badge still syncs through the sr-only trigger inside that Livewire view.
+
 ## Chrome offsets (mobile + `html.tido-mobilenav`)
 
 - `--tido-mobilenav-height: calc(4rem + 1px + env(safe-area-inset-bottom, 0px))`
