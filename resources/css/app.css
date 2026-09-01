@@ -6000,6 +6000,34 @@ html.tido-mobilenav .tido-mobilenav-shared-chrome-overlay {
         > .fi-modal-window-ctn {
         bottom: var(--tido-mobilenav-height, 4rem);
     }
+
+    html.tido-mobilenav
+        [data-fi-modal-id="changelog"].fi-modal.fi-modal-slide-over.fi-modal-open
+        > .fi-modal-window-ctn {
+        top: 0;
+        bottom: var(--tido-mobilenav-height, 4rem);
+        /* Filament min-h-full keeps the fixed container at 100vh and ignores bottom. */
+        min-height: 0;
+        height: auto;
+        overflow: hidden;
+        grid-template-rows: minmax(0, 1fr);
+        align-content: start;
+    }
+
+    /*
+     * Slide-over panels use h-dvh on .fi-modal-window and sit in grid row 2 by
+     * default, which leaves a top gap once height is reduced. Pin the sheet to
+     * the viewport top and fill the container above the bottom bar.
+     */
+    html.tido-mobilenav
+        [data-fi-modal-id="changelog"].fi-modal.fi-modal-slide-over.fi-modal-open
+        > .fi-modal-window-ctn
+        > .fi-modal-window {
+        grid-row-start: 1;
+        height: 100%;
+        max-height: 100%;
+        min-height: 0;
+    }
 }
 
 @media (min-width: 1024px) {

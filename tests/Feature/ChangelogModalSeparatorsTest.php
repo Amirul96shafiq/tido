@@ -151,3 +151,25 @@ test('user menu changelogs action opens changelog slide-over', function () {
         ->assertSuccessful()
         ->assertSee("\$dispatch('open-modal', { id: 'changelog' })", false);
 });
+
+test('changelog slide-over closes mobilenav user menu on open', function () {
+    $blade = (string) file_get_contents(resource_path('views/components/changelog-modal.blade.php'));
+
+    expect($blade)
+        ->toContain("\$store.tidoMobileChrome?.closeUserMenu?.()")
+        ->toContain("if (\$event.detail.id !== 'changelog')");
+});
+
+test('changelog slide-over clears mobilenav bottom bar on small screens', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('[data-fi-modal-id="changelog"].fi-modal.fi-modal-slide-over.fi-modal-open')
+        ->toContain('top: 0')
+        ->toContain('min-height: 0')
+        ->toContain('height: auto')
+        ->toContain('grid-template-rows: minmax(0, 1fr)')
+        ->toContain('grid-row-start: 1')
+        ->toContain('height: 100%')
+        ->toContain('bottom: var(--tido-mobilenav-height, 4rem)');
+});
