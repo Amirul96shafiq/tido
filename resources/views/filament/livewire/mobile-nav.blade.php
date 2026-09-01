@@ -81,7 +81,7 @@
     <div
         x-cloak
         x-show="$store.tidoNotifications && $store.tidoNotifications.menuOpen"
-        x-transition.opacity.300ms
+        x-transition.duration.300ms.opacity
         class="tido-chrome-overlay tido-user-menu-overlay"
         x-on:click="closeUserMenu()"
         aria-hidden="true"

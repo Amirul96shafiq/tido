@@ -125,6 +125,7 @@ test('mobile nav user menu opens upward from the bottom avatar', function (): vo
         ->toContain('$dropdownShift = $anchor === \'mobilenav\'')
         ->toContain("'mobilenav' => 0")
         ->toContain("in_array(\$anchor, ['topbar', 'mobilenav'], true)")
+        ->toContain(':useModalTransition="$anchor === \'mobilenav\'"')
         ->toContain("key('account-switcher-'.\$userMenuInstanceKey)")
         ->toContain('fi-user-menu--')
         ->toContain('tido-user-menu-overlay');
@@ -194,6 +195,29 @@ test('mobile nav css hides topbar and offsets sticky chrome on small screens', f
         ->toContain('.fi-sidebar-close-collapse-sidebar-btn')
         ->toContain('.fi-sidebar-open-collapse-sidebar-btn')
         ->toContain('display: none !important');
+});
+
+test('mobile nav user menu panel uses the same modal enter transition as global search', function (): void {
+    $dropdown = (string) file_get_contents(
+        resource_path('views/vendor/filament/components/dropdown/index.blade.php'),
+    );
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($dropdown)
+        ->toContain("'useModalTransition' => false")
+        ->toContain('x-transition:enter="fi-transition-enter"')
+        ->toContain('x-transition:enter-start="fi-transition-enter-start"')
+        ->toContain('x-transition:enter-end="fi-transition-enter-end"');
+
+    expect($css)
+        ->toContain('html.tido-mobilenav .fi-user-menu--mobilenav .fi-dropdown-panel.fi-transition-enter,')
+        ->toContain('.fi-dropdown-panel.fi-transition-enter-start,')
+        ->toContain('@apply scale-95 opacity-0;')
+        ->toContain('.fi-dropdown-panel.fi-transition-enter-end,')
+        ->toContain('@apply scale-100 opacity-100;')
+        ->toContain('html.tido-reduce-motion.tido-mobilenav')
+        ->toContain('.fi-user-menu--mobilenav')
+        ->toContain('.fi-dropdown-panel.fi-transition-enter-start,');
 });
 
 test('mobile nav avatar notification badge overlays the wrap like the topbar', function (): void {
@@ -278,30 +302,34 @@ test('mobile chrome overlays match the sidebar close overlay', function (): void
 
     expect($css)
         ->toContain('.tido-chrome-overlay {')
-        ->toContain('@apply fixed inset-0 z-30 bg-gray-950/50 dark:bg-gray-950/75')
+        ->toContain('@apply fixed inset-0 z-30 bg-gray-950/50 transition-opacity duration-300 dark:bg-gray-950/75')
         ->toContain('.fi-sidebar-close-overlay {')
         ->toContain('[id="global-search-modal::plugin"].fi-modal > .fi-modal-close-overlay')
         ->toContain('.tido-user-menu-overlay {');
 
     $chromeOverlay = Str::between(
         $css,
-        '.tido-chrome-overlay {',
+        ' * See docs/ui-mobile-nav.md and docs/ui-modal-overlay.md.
+ */
+.tido-chrome-overlay {',
         '.fi-sidebar-close-overlay {',
     );
 
     expect($chromeOverlay)
         ->toContain('backdrop-filter: none')
+        ->toContain('transition-opacity duration-300')
         ->not->toContain('@apply backdrop-blur-md');
 
     expect($mobileNav)
         ->toContain('tido-chrome-overlay tido-mobilenav-add-backdrop')
         ->toContain('tido-chrome-overlay tido-user-menu-overlay')
-        ->toContain('x-transition.opacity.300ms')
+        ->toContain('x-transition.duration.300ms.opacity')
         ->toContain('$store.tidoNotifications.menuOpen')
         ->not->toContain('backdrop-blur-md');
 
     expect($userMenu)
         ->toContain("\$anchor !== 'mobilenav'")
+        ->toContain('x-transition.duration.300ms.opacity')
         ->toContain('tido-chrome-overlay tido-user-menu-overlay lg:hidden');
 });
 

@@ -71,6 +71,7 @@
     :shift="$dropdownShift"
     :sizePadding="$dropdownSizePadding"
     :teleport="$dropdownTeleport"
+    :useModalTransition="$anchor === 'mobilenav'"
     :attributes="
         \Filament\Support\prepare_inherited_attributes($attributes)
             ->class([
@@ -274,7 +275,7 @@
         x-cloak
         x-data
         x-show="$store.tidoNotifications && $store.tidoNotifications.menuOpen"
-        x-transition.opacity.300ms
+        x-transition.duration.300ms.opacity
         x-on:click="Alpine.$data($el.previousElementSibling)?.close?.()"
         class="tido-chrome-overlay tido-user-menu-overlay lg:hidden"
         aria-hidden="true"

@@ -2518,6 +2518,35 @@ html.tido-reduce-motion .fi-sidebar .fi-transition-enter-end {
     opacity: 1 !important;
 }
 
+html.tido-reduce-motion.tido-mobilenav
+    .fi-user-menu--mobilenav
+    .fi-dropdown-panel.fi-transition-enter,
+html.tido-reduce-motion.tido-mobilenav
+    .fi-user-menu--mobilenav
+    .fi-dropdown-panel.fi-transition-leave {
+    transition: none !important;
+}
+
+html.tido-reduce-motion.tido-mobilenav
+    .fi-user-menu--mobilenav
+    .fi-dropdown-panel.fi-transition-enter-start,
+html.tido-reduce-motion.tido-mobilenav
+    .fi-user-menu--mobilenav
+    .fi-dropdown-panel.fi-transition-enter-end,
+html.tido-reduce-motion.tido-mobilenav
+    .fi-user-menu--mobilenav
+    .fi-dropdown-panel.fi-transition-leave-start,
+html.tido-reduce-motion.tido-mobilenav
+    .fi-user-menu--mobilenav
+    .fi-dropdown-panel.fi-transition-leave-end {
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+html.tido-reduce-motion .tido-chrome-overlay {
+    transition: none !important;
+}
+
 html.tido-reduce-motion
     .fi-body-has-sidebar-collapsible-on-desktop
     .fi-sidebar {
@@ -5897,7 +5926,7 @@ html.tido-reduce-motion .tido-ping-pulse {
  * See docs/ui-mobile-nav.md and docs/ui-modal-overlay.md.
  */
 .tido-chrome-overlay {
-    @apply fixed inset-0 z-30 bg-gray-950/50 dark:bg-gray-950/75;
+    @apply fixed inset-0 z-30 bg-gray-950/50 transition-opacity duration-300 dark:bg-gray-950/75;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
 }
@@ -6097,6 +6126,37 @@ html.tido-mobilenav {
     html.tido-mobilenav .fi-user-menu--mobilenav .fi-avatar {
         width: 2.5rem !important;
         height: 2.5rem !important;
+    }
+
+    /*
+     * Mobile nav user menu: match centered Filament modal enter/leave
+     * (global search modal — scale-95/opacity-0 → scale-100/opacity-100, 300ms).
+     */
+    html.tido-mobilenav
+        .fi-user-menu--mobilenav
+        .fi-dropdown-panel.fi-transition-enter,
+    html.tido-mobilenav
+        .fi-user-menu--mobilenav
+        .fi-dropdown-panel.fi-transition-leave {
+        @apply duration-300;
+    }
+
+    html.tido-mobilenav
+        .fi-user-menu--mobilenav
+        .fi-dropdown-panel.fi-transition-enter-start,
+    html.tido-mobilenav
+        .fi-user-menu--mobilenav
+        .fi-dropdown-panel.fi-transition-leave-end {
+        @apply scale-95 opacity-0;
+    }
+
+    html.tido-mobilenav
+        .fi-user-menu--mobilenav
+        .fi-dropdown-panel.fi-transition-enter-end,
+    html.tido-mobilenav
+        .fi-user-menu--mobilenav
+        .fi-dropdown-panel.fi-transition-leave-start {
+        @apply scale-100 opacity-100;
     }
 
     /*
