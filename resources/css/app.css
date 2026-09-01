@@ -2527,7 +2527,9 @@ html.tido-reduce-motion.tido-mobilenav
 html.tido-reduce-motion.tido-mobilenav
     .tido-mobilenav-add-sheet.fi-transition-enter,
 html.tido-reduce-motion.tido-mobilenav
-    .tido-mobilenav-add-sheet.fi-transition-leave {
+    .tido-mobilenav-add-sheet.fi-transition-leave,
+html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-btn,
+html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-icon {
     transition: none !important;
 }
 
@@ -3048,7 +3050,7 @@ html.tido-reduce-motion
 }
 
 .fi-topbar .fi-user-menu-trigger .fi-user-menu-notifications-badge {
-    @apply pointer-events-none absolute top-0 right-0 z-10 translate-x-0.5 -translate-y-0.5;
+    @apply pointer-events-none absolute top-0 right-0 z-10 translate-x-1.5 -translate-y-1;
 }
 
 .fi-user-menu-notifications-wrap {
@@ -6042,10 +6044,10 @@ html.tido-mobilenav .tido-mobilenav-shared-chrome-overlay {
  */
 html.tido-mobilenav {
     --tido-mobilenav-height: calc(
-        4rem + 1px + env(safe-area-inset-bottom, 0px)
+        4.25rem + 1px + env(safe-area-inset-bottom, 0px)
     );
-    --tido-mobilenav-menu-gap: 0.75rem;
-    --tido-mobilenav-inset: 0.75rem;
+    --tido-mobilenav-menu-gap: 2rem;
+    --tido-mobilenav-inset: 1rem;
     --tido-mobilenav-sidebar-width: 50vw;
     --tido-mobilenav-z-chrome: 65;
 }
@@ -6078,7 +6080,7 @@ html.tido-mobilenav {
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
         align-items: stretch;
-        min-height: var(--tido-mobilenav-height, 4rem);
+        min-height: var(--tido-mobilenav-height, 4.25rem);
         padding-bottom: env(safe-area-inset-bottom, 0px);
         border-top: 1px solid var(--color-gray-100);
         background-color: color-mix(
@@ -6106,9 +6108,14 @@ html.tido-mobilenav {
 
     html.tido-mobilenav .tido-mobilenav-item {
         display: flex;
-        min-height: 4rem;
+        flex-direction: column;
+        height: 100%;
+        min-height: 4.25rem;
+        padding-top: 0.375rem;
+        padding-bottom: 0.75rem;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-end;
+        position: relative;
         border: 0;
         background: transparent;
         color: var(--color-gray-600);
@@ -6120,6 +6127,20 @@ html.tido-mobilenav {
         color: var(--color-gray-300);
     }
 
+    html.tido-mobilenav .tido-mobilenav-item--current,
+    html.tido-mobilenav .tido-mobilenav-item[data-current],
+    html.tido-mobilenav .tido-mobilenav-item--active,
+    html.tido-mobilenav .fi-user-menu--mobilenav .fi-user-menu-trigger.tido-mobilenav-item--active {
+        color: var(--color-primary-600);
+    }
+
+    html.dark.tido-mobilenav .tido-mobilenav-item--current,
+    html.dark.tido-mobilenav .tido-mobilenav-item[data-current],
+    html.dark.tido-mobilenav .tido-mobilenav-item--active,
+    html.dark.tido-mobilenav .fi-user-menu--mobilenav .fi-user-menu-trigger.tido-mobilenav-item--active {
+        color: var(--color-primary-400);
+    }
+
     html.tido-mobilenav .tido-mobilenav-item--primary {
         color: var(--color-primary-600);
     }
@@ -6128,9 +6149,32 @@ html.tido-mobilenav {
         color: var(--color-primary-400);
     }
 
-    html.tido-mobilenav .tido-mobilenav-icon {
+    html.tido-mobilenav .tido-mobilenav-icon-wrap {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         width: 1.5rem;
         height: 1.5rem;
+        margin-bottom: 0.25rem;
+        flex-shrink: 0;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-label {
+        display: block;
+        font-size: 0.6875rem;
+        line-height: 1;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        color: inherit;
+        text-align: center;
+        white-space: nowrap;
+        pointer-events: none;
+        margin: 0;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-icon {
+        width: 1.375rem;
+        height: 1.375rem;
     }
 
     html.tido-mobilenav .tido-mobilenav-icon--primary {
@@ -6160,62 +6204,118 @@ html.tido-mobilenav {
         display: block;
     }
 
+    /* Add button in mobile nav */
+    html.tido-mobilenav .tido-mobilenav-item--add {
+        position: relative;
+        justify-content: flex-end;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 6rem;
+        height: 4rem;
+        position: absolute;
+        bottom: 1.75rem;
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 9999px;
+        background-color: var(--color-primary-500);
+        color: var(--color-white);
+        border: 3px solid var(--color-white);
+        box-shadow: none;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                    background-color 0.2s ease;
+    }
+
+    html.dark.tido-mobilenav .tido-mobilenav-add-btn {
+        background-color: var(--color-primary-500);
+        color: var(--color-slate-950);
+        border-color: var(--color-slate-800);
+        box-shadow: none;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-btn:active {
+        transform: translateX(-50%) scale(0.92);
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-icon {
+        width: 1.625rem;
+        height: 1.625rem;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: rotate(0deg);
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-btn--open .tido-mobilenav-add-icon {
+        transform: rotate(45deg);
+    }
+
     html.tido-mobilenav .tido-mobilenav-item--avatar {
         justify-content: flex-end;
-        padding: 0 var(--tido-mobilenav-inset, 0.75rem) 0 0;
+        padding: 0;
     }
 
     html.tido-mobilenav .tido-mobilenav-add-sheet {
         bottom: calc(
-            var(--tido-mobilenav-height, 4rem) +
-                var(--tido-mobilenav-menu-gap, 0.75rem)
+            var(--tido-mobilenav-height, 4.25rem) +
+                var(--tido-mobilenav-menu-gap, 2rem)
         );
         z-index: calc(var(--tido-mobilenav-z-chrome, 65) + 1);
-        padding-inline: var(--tido-mobilenav-inset, 0.75rem);
+        padding-inline: var(--tido-mobilenav-inset, 1rem);
     }
 
-    html.tido-mobilenav .fi-user-menu--mobilenav {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
+    html.tido-mobilenav .fi-user-menu--mobilenav,
+    html.tido-mobilenav .fi-user-menu--mobilenav .fi-dropdown,
     html.tido-mobilenav .fi-user-menu--mobilenav .fi-dropdown-trigger {
-        display: flex;
         width: 100%;
         height: 100%;
+        display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-end;
     }
 
     html.tido-mobilenav .fi-user-menu--mobilenav .fi-user-menu-trigger {
-        width: 2.5rem;
-        height: 2.5rem;
-        padding: 0;
-        border-radius: 9999px;
+        width: 100%;
+        height: 100%;
+        padding-top: 0.375rem;
+        padding-bottom: 0.75rem;
+        border: 0;
+        background: transparent;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-end;
+        color: var(--color-gray-600);
         overflow: visible;
     }
 
+    html.dark.tido-mobilenav .fi-user-menu--mobilenav .fi-user-menu-trigger {
+        color: var(--color-gray-300);
+    }
+
     html.tido-mobilenav .fi-user-menu--mobilenav .fi-user-menu-avatar-wrap {
-        @apply relative inline-flex;
-        width: 2.5rem;
-        height: 2.5rem;
+        @apply relative inline-flex items-center justify-center;
+        width: 1.5rem;
+        height: 1.5rem;
+        margin-bottom: 0.25rem;
     }
 
     html.tido-mobilenav
         .fi-user-menu--mobilenav
         .fi-user-menu-notifications-badge {
-        @apply pointer-events-none absolute top-0 right-0 z-10 translate-x-0.5 -translate-y-0.5;
+        @apply pointer-events-none absolute top-0 right-0 z-10 translate-x-2 -translate-y-1;
     }
 
     html.tido-mobilenav .fi-user-menu--mobilenav .fi-avatar {
         width: 2.5rem !important;
         height: 2.5rem !important;
+    }
+
+    html.tido-mobilenav .fi-user-menu--mobilenav .fi-dropdown-panel {
+        translate: -1.75rem 0 !important;
+        z-index: calc(var(--tido-mobilenav-z-chrome, 65) + 1) !important;
     }
 
     /*

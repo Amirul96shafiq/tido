@@ -15,24 +15,25 @@ When enabled, the panel adds `html.tido-mobilenav` and hides `.fi-topbar-ctn` be
 
 ## Bottom bar slots
 
-| Slot   | Action                                                                                                                        | Icon (idle)               | Icon (active)                                 |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------- |
-| Home   | Dashboard (`wire:navigate`)                                                                                                   | `OutlinedHome`            | solid `Home` on any dashboard view (`/admin`) |
-| Menu   | Toggle `$store.sidebar` (mobile sidebar)                                                                                      | `OutlinedBars3`           | `OutlinedBars3BottomLeft` while sidebar open  |
-| Add    | Sheet above the bar — Finances: Add Receipt, Add Budget, Add Recurring (tap again to close)                                   | `OutlinedPlusCircle`      | solid `PlusCircle` while Add sheet open       |
-| Search | `open-global-search-modal` event (Global Search Modal)                                                                        | `OutlinedMagnifyingGlass` | —                                             |
-| Avatar | Dedicated user menu instance (`instance="mobilenav"`) — Profile, Notifications, Logout, switcher, theme, calendar, changelogs | avatar                    | —                                             |
+| Slot    | Label   | Action                                                                                                                        | Icon (idle)               | Icon (active)                                      |
+| ------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------- | -------------------------------------------------- |
+| Home    | Home    | Dashboard (`wire:navigate`)                                                                                                   | `OutlinedHome`            | solid `Home` on any dashboard view (`/admin`)      |
+| Menu    | Menu    | Toggle `$store.sidebar` (mobile sidebar)                                                                                      | `OutlinedBars3`           | `OutlinedBars3BottomLeft` while sidebar open       |
+| Add     | Add     | Sheet above the bar — Finances: Add Receipt, Add Budget, Add Recurring (tap again to close)                                   | `Plus` (floating primary button, 0deg) | `Plus` rotated 45deg to `×` while Add sheet open   |
+| Search  | Search  | `open-global-search-modal` event (Global Search Modal)                                                                        | `OutlinedMagnifyingGlass` | —                                                  |
+| Profile | Profile | Dedicated user menu instance (`instance="mobilenav"`) — Profile, Notifications, Logout, switcher, theme, calendar, changelogs | `OutlinedUser`            | solid `User` while user menu open or on Profile    |
 
-Home active state uses `wire:current.exact` on the dashboard link (path `/admin`; query `?view=` does not affect match). Menu and Add swap icons via Alpine (`$store.sidebar.isOpen`, `addOpen`).
+Each slot includes a text label (`.tido-mobilenav-label`) positioned below its icon, horizontally aligned straight across all 5 slots from the bottom edge of the bar (`padding-bottom: 0.5rem`). Home active state uses `wire:current.exact` on the dashboard link (path `/admin`; query `?view=` does not affect match). Menu swaps icons via Alpine (`$store.sidebar.isOpen`), Add rotates smoothly to `×` via CSS transition on Alpine `$store.tidoMobileChrome.addOpen`, and Profile swaps outline/solid based on menu state and Profile page route.
 
 Family members: Add Receipt stays available; Add Budget / Add Recurring render disabled with the primary-only CTA message.
 
 ## User menu anchor
 
-The bottom avatar is a **second** user-menu instance — not a proxy of the hidden topbar trigger.
+The bottom user icon is a **second** user-menu instance — not a proxy of the hidden topbar trigger.
 
 - Component: [`user-menu.blade.php`](../resources/views/vendor/filament-panels/components/user-menu.blade.php) with `instance="mobilenav"` and `anchor="mobilenav"`
-- Dropdown: `placement="top-end"`, `offset={13}`, `shift={true}`, `sizePadding={0}`, `teleport=true` — panel bottom aligns with the nav bar top (compensates for vertically centered avatar trigger); inset from the screen edge by `--tido-mobilenav-inset` (0.75rem)
+- Trigger: centered outline/solid user icon (replaces desktop avatar picture for mobile nav)
+- Dropdown: `placement="top-end"`, `offset={28}`, `shift={true}`, `sizePadding={16}`, `teleport=false` — equal 1.75rem (28px) gap from right screen edge and above the nav bar
 - Account switcher Livewire key: `account-switcher-mobilenav`
 
 The topbar user menu remains mounted for desktop and for `DatabaseNotifications` Livewire.

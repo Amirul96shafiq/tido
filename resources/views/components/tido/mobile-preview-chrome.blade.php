@@ -68,7 +68,7 @@
                 <span class="tido-mobilenav-preview-icon"></span>
             </span>
             <span class="tido-mobilenav-preview-slot">
-                <span class="tido-mobilenav-preview-avatar"></span>
+                <span class="tido-mobilenav-preview-icon"></span>
             </span>
         </div>
     </div>

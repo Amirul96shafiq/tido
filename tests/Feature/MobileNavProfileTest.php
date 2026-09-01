@@ -142,16 +142,19 @@ test('mobile nav user menu opens upward from the bottom avatar', function (): vo
 
     expect($userMenu)
         ->toContain("'mobilenav' => 'top-end'")
-        ->toContain("'mobilenav' => 13")
+        ->toContain("'mobilenav' => 28")
         ->toContain('$dropdownShift = $anchor === \'mobilenav\'')
-        ->toContain("'mobilenav' => 0")
+        ->toContain("'mobilenav' => 16")
         ->toContain("in_array(\$anchor, ['topbar', 'mobilenav'], true)")
         ->toContain(':useModalTransition="$anchor === \'mobilenav\'"')
         ->toContain("key('account-switcher-'.\$userMenuInstanceKey)")
         ->toContain('fi-user-menu--')
         ->toContain('tido-user-menu-overlay')
         ->toContain('fi-dropdown-panel')
-        ->toContain('attributeFilter: [\'style\', \'class\']');
+        ->toContain('attributeFilter: [\'style\', \'class\']')
+        ->toContain('Heroicon::OutlinedUser')
+        ->toContain('class="tido-mobilenav-label"')
+        ->toContain('Profile</span>');
 });
 
 test('family member mobile nav add sheet disables budget and recurring create links', function (): void {
@@ -177,7 +180,7 @@ test('mobile nav css hides topbar and offsets sticky chrome on small screens', f
     expect($css)
         ->toContain('html.tido-mobilenav')
         ->toContain('--tido-mobilenav-height: calc(')
-        ->toContain('4rem + 1px + env(safe-area-inset-bottom, 0px)')
+        ->toContain('4.25rem + 1px + env(safe-area-inset-bottom, 0px)')
         ->toContain('html.tido-mobilenav .fi-topbar-ctn')
         ->toContain('.tido-mobilenav-root')
         ->toContain('html.tido-mobilenav .tido-mobilenav-root')
@@ -205,8 +208,8 @@ test('mobile nav css hides topbar and offsets sticky chrome on small screens', f
         ->toContain('--tido-mobilenav-inset')
         ->toContain('--tido-mobilenav-menu-gap')
         ->toContain('.tido-mobilenav-add-sheet')
-        ->toContain('var(--tido-mobilenav-menu-gap, 0.75rem)')
-        ->toContain('justify-content: flex-end')
+        ->toContain('var(--tido-mobilenav-menu-gap, 2rem)')
+        ->toContain('.tido-mobilenav-item--avatar')
         ->toContain('--sidebar-width: var(--tido-mobilenav-sidebar-width, 50vw)')
         ->toContain("html.tido-mobilenav .fi-sidebar {\n        inset-block-end: var(--tido-mobilenav-height, 4rem);\n        height: auto;\n        width: var(--tido-mobilenav-sidebar-width, 50vw) !important;\n        max-width: var(--tido-mobilenav-sidebar-width, 50vw);");
 
@@ -272,7 +275,7 @@ test('mobile nav avatar notification badge overlays the wrap like the topbar', f
     expect($avatarChrome)
         ->toContain('@apply relative inline-flex')
         ->toContain('.fi-user-menu-notifications-badge {')
-        ->toContain('@apply pointer-events-none absolute top-0 right-0 z-10 translate-x-0.5 -translate-y-0.5');
+        ->toContain('@apply pointer-events-none absolute top-0 right-0 z-10 translate-x-2 -translate-y-1');
 });
 
 test('mobile nav bar dark chrome targets html.dark not a dark ancestor of html', function (): void {
@@ -350,12 +353,16 @@ test('mobile nav bottom bar uses active-state icons for home menu and add slots'
         ->toContain('Heroicon::OutlinedBars3BottomLeft')
         ->toContain('x-show="! $store.sidebar.isOpen"')
         ->toContain('x-show="$store.sidebar.isOpen"')
-        ->toContain('Heroicon::OutlinedPlusCircle')
-        ->toContain('Heroicon::PlusCircle')
-        ->toContain('x-show="! $store.tidoMobileChrome.addOpen"')
-        ->toContain('x-show="$store.tidoMobileChrome.addOpen"')
+        ->toContain('Heroicon::Plus')
+        ->toContain('tido-mobilenav-add-btn')
+        ->toContain('tido-mobilenav-add-btn--open')
         ->toContain('$store.tidoMobileChrome.addOpen ? closeAdd() : openAdd()')
-        ->not->toContain('Heroicon::OutlinedPlus,');
+        ->toContain('Home</span>')
+        ->toContain('Menu</span>')
+        ->toContain('Add</span>')
+        ->toContain('Search</span>')
+        ->toContain("x-bind:class=\"{ 'tido-mobilenav-item--active text-primary-600 dark:text-primary-400': \$store.sidebar.isOpen }\"")
+        ->toContain("x-bind:class=\"{ 'tido-mobilenav-item--active text-primary-600 dark:text-primary-400': isSearchOpen() }\"");
 });
 
 test('mobile nav add sheet sits flush on the bottom bar', function (): void {

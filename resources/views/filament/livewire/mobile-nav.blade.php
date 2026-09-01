@@ -236,83 +236,100 @@
             aria-label="Home"
             x-on:click="closeSearch()"
         >
-            {{
-                \Filament\Support\generate_icon_html(
-                    Heroicon::OutlinedHome,
-                    attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--outline']),
-                )
-            }}
-            {{
-                \Filament\Support\generate_icon_html(
-                    Heroicon::Home,
-                    attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--solid']),
-                )
-            }}
+            <span class="tido-mobilenav-icon-wrap">
+                {{
+                    \Filament\Support\generate_icon_html(
+                        Heroicon::OutlinedHome,
+                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--outline']),
+                    )
+                }}
+                {{
+                    \Filament\Support\generate_icon_html(
+                        Heroicon::Home,
+                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--solid']),
+                    )
+                }}
+            </span>
+            <span class="tido-mobilenav-label">Home</span>
         </a>
 
         <button
             type="button"
             class="tido-mobilenav-item"
             aria-label="Menu"
+            x-bind:class="{ 'tido-mobilenav-item--active text-primary-600 dark:text-primary-400': $store.sidebar.isOpen }"
             x-bind:aria-expanded="$store.sidebar.isOpen"
             x-on:click="toggleSidebar()"
         >
-            <span x-cloak x-show="! $store.sidebar.isOpen">
-                {{
-                    \Filament\Support\generate_icon_html(
-                        Heroicon::OutlinedBars3,
-                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon']),
-                    )
-                }}
+            <span class="tido-mobilenav-icon-wrap">
+                <span x-cloak x-show="! $store.sidebar.isOpen">
+                    {{
+                        \Filament\Support\generate_icon_html(
+                            Heroicon::OutlinedBars3,
+                            attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon']),
+                        )
+                    }}
+                </span>
+                <span x-cloak x-show="$store.sidebar.isOpen">
+                    {{
+                        \Filament\Support\generate_icon_html(
+                            Heroicon::OutlinedBars3BottomLeft,
+                            attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon text-primary-600 dark:text-primary-400']),
+                        )
+                    }}
+                </span>
             </span>
-            <span x-cloak x-show="$store.sidebar.isOpen">
-                {{
-                    \Filament\Support\generate_icon_html(
-                        Heroicon::OutlinedBars3BottomLeft,
-                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon']),
-                    )
-                }}
-            </span>
+            <span
+                class="tido-mobilenav-label"
+                x-bind:class="{ 'text-primary-600 dark:text-primary-400': $store.sidebar.isOpen }"
+            >Menu</span>
         </button>
 
         <button
             type="button"
-            class="tido-mobilenav-item tido-mobilenav-item--primary"
+            class="tido-mobilenav-item tido-mobilenav-item--add"
             aria-label="Add"
+            x-bind:class="{ 'tido-mobilenav-item--active text-primary-600 dark:text-primary-400': $store.tidoMobileChrome.addOpen }"
             x-bind:aria-expanded="$store.tidoMobileChrome.addOpen"
             x-on:click="$store.tidoMobileChrome.addOpen ? closeAdd() : openAdd()"
         >
-            <span x-cloak x-show="! $store.tidoMobileChrome.addOpen">
+            <span
+                class="tido-mobilenav-add-btn"
+                x-bind:class="{ 'tido-mobilenav-add-btn--open': $store.tidoMobileChrome.addOpen }"
+            >
                 {{
                     \Filament\Support\generate_icon_html(
-                        Heroicon::OutlinedPlusCircle,
-                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--primary']),
+                        Heroicon::Plus,
+                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-add-icon']),
                     )
                 }}
             </span>
-            <span x-cloak x-show="$store.tidoMobileChrome.addOpen">
-                {{
-                    \Filament\Support\generate_icon_html(
-                        Heroicon::PlusCircle,
-                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--primary']),
-                    )
-                }}
-            </span>
+            <span
+                class="tido-mobilenav-label"
+                x-bind:class="{ 'text-primary-600 dark:text-primary-400': $store.tidoMobileChrome.addOpen }"
+            >Add</span>
         </button>
 
         <button
             type="button"
             class="tido-mobilenav-item"
             aria-label="Search"
+            x-bind:class="{ 'tido-mobilenav-item--active text-primary-600 dark:text-primary-400': isSearchOpen() }"
             x-bind:aria-expanded="isSearchOpen()"
             x-on:click="toggleSearch()"
         >
-            {{
-                \Filament\Support\generate_icon_html(
-                    Heroicon::OutlinedMagnifyingGlass,
-                    attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon']),
-                )
-            }}
+            <span class="tido-mobilenav-icon-wrap">
+                {{
+                    \Filament\Support\generate_icon_html(
+                        Heroicon::OutlinedMagnifyingGlass,
+                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon']),
+                    )
+                }}
+            </span>
+            <span
+                class="tido-mobilenav-label"
+                x-bind:class="{ 'text-primary-600 dark:text-primary-400': isSearchOpen() }"
+            >Search</span>
         </button>
 
         <div
