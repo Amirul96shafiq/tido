@@ -367,6 +367,20 @@ class AdminPanelProvider extends PanelProvider
                                     );
                                 }
 
+                                function syncMobileNavChromeStore() {
+                                    if (typeof Alpine === 'undefined') {
+                                        return;
+                                    }
+
+                                    var chrome = Alpine.store('tidoMobileChrome');
+
+                                    if (! chrome) {
+                                        return;
+                                    }
+
+                                    chrome.mobilenavActive = document.documentElement.classList.contains(MOBILE_NAV_CLASS);
+                                }
+
                                 function applyMobileNavFromStorage() {
                                     var stored = sessionStorage.getItem(MOBILE_NAV_STORAGE_KEY);
 
@@ -375,6 +389,7 @@ class AdminPanelProvider extends PanelProvider
                                     }
 
                                     document.documentElement.classList.toggle(MOBILE_NAV_CLASS, stored === '1');
+                                    syncMobileNavChromeStore();
                                 }
 
                                 window.tidoSetMobileNav = function (enabled) {
@@ -382,6 +397,7 @@ class AdminPanelProvider extends PanelProvider
 
                                     document.documentElement.classList.toggle(MOBILE_NAV_CLASS, on);
                                     sessionStorage.setItem(MOBILE_NAV_STORAGE_KEY, on ? '1' : '0');
+                                    syncMobileNavChromeStore();
                                 };
 
                                 {$initialMobileNavScript}
@@ -417,6 +433,13 @@ class AdminPanelProvider extends PanelProvider
 
                                     scheduleMarqueeSync();
                                     notifyReduceMotionChanged(prefersReducedMotion());
+                                    syncMobileNavChromeStore();
+
+                                    var chrome = typeof Alpine !== 'undefined' ? Alpine.store('tidoMobileChrome') : null;
+
+                                    if (chrome) {
+                                        chrome._syncOverlayShown();
+                                    }
                                 }
 
                                 document.addEventListener('livewire:navigating', function () {
@@ -427,6 +450,7 @@ class AdminPanelProvider extends PanelProvider
 
                                 document.addEventListener('alpine:init', function () {
                                     Alpine.store('tidoMobileChrome', {
+                                        mobilenavActive: document.documentElement.classList.contains(MOBILE_NAV_CLASS),
                                         addOpen: false,
                                         searchOpen: false,
                                         overlayOpen: false,

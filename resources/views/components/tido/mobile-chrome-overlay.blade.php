@@ -1,9 +1,9 @@
 <div
-    x-cloak
     x-data
-    x-show="document.documentElement.classList.contains('tido-mobilenav')"
     x-effect="
-        const shown = $store.tidoMobileChrome?.overlayShown ?? false;
+        const mobilenav = $store.tidoMobileChrome?.mobilenavActive ?? false;
+        const shown = mobilenav && ($store.tidoMobileChrome?.overlayShown ?? false);
+        $el.style.display = mobilenav ? 'block' : 'none';
         $el.classList.toggle('opacity-0', ! shown);
         $el.classList.toggle('pointer-events-none', ! shown);
     "
