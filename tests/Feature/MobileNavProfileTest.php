@@ -389,10 +389,18 @@ test('mobile chrome overlays match the sidebar close overlay', function (): void
         ->toContain('transition-opacity duration-300')
         ->not->toContain('@apply backdrop-blur-md');
 
+    $sharedChromeOverlay = Str::between(
+        $css,
+        'html.tido-mobilenav .tido-mobilenav-shared-chrome-overlay {',
+        '.fi-sidebar-close-overlay {',
+    );
+
     expect($css)
         ->toContain('html.tido-mobilenav .tido-mobilenav-shared-chrome-overlay')
-        ->toContain('z-index: 29 !important')
-        ->toContain('transition: none !important');
+        ->toContain('z-index: 29 !important');
+
+    expect($sharedChromeOverlay)
+        ->not->toContain('transition: none !important');
 
     expect($mobileNav)
         ->toContain('$store.tidoMobileChrome')

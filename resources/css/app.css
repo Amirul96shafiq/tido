@@ -5947,9 +5947,9 @@ html.tido-mobilenav .tido-mobilenav-shared-chrome-overlay {
     /*
      * Below .fi-sidebar (z-30) so the drawer stays bright; above .fi-main-ctn (z-1).
      * Below chrome sheets / bottom bar (--tido-mobilenav-z-chrome: 65).
+     * Opacity fade inherits from .tido-chrome-overlay (transition-opacity duration-300).
      */
     z-index: 29 !important;
-    transition: none !important;
 }
 
 .fi-sidebar-close-overlay {

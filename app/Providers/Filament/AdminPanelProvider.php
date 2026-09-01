@@ -542,13 +542,7 @@ class AdminPanelProvider extends PanelProvider
                                         },
 
                                         _syncOverlayShown: function () {
-                                            if (this.isChromeOpen() || this._swapLocked) {
-                                                this.overlayShown = true;
-
-                                                return;
-                                            }
-
-                                            this.overlayShown = false;
+                                            this.overlayShown = this.isChromeOpen() || this._swapLocked;
                                         },
 
                                         _cancelSwapLock: function () {
