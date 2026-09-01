@@ -160,16 +160,12 @@ test('changelog slide-over closes mobilenav user menu on open', function () {
         ->toContain("if (\$event.detail.id !== 'changelog')");
 });
 
-test('changelog slide-over clears mobilenav bottom bar on small screens', function () {
+test('changelog slide-over stacks above the mobilenav bottom bar', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
     expect($css)
-        ->toContain('[data-fi-modal-id="changelog"].fi-modal.fi-modal-slide-over.fi-modal-open')
-        ->toContain('top: 0')
-        ->toContain('min-height: 0')
-        ->toContain('height: auto')
-        ->toContain('grid-template-rows: minmax(0, 1fr)')
-        ->toContain('grid-row-start: 1')
-        ->toContain('height: 100%')
-        ->toContain('bottom: var(--tido-mobilenav-height, 4rem)');
+        ->toContain('[data-fi-modal-id="changelog"].fi-modal.fi-modal-open')
+        ->toContain('> .fi-modal-close-overlay,')
+        ->toContain('z-index: calc(var(--tido-mobilenav-z-chrome, 65) + 1)')
+        ->not->toContain('[data-fi-modal-id="changelog"].fi-modal.fi-modal-slide-over.fi-modal-open');
 });

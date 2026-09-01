@@ -68,6 +68,8 @@ Topbar user menu (non-mobilenav) keeps its own `.tido-user-menu-overlay` in [`us
 
 Shared chrome overlay uses `z-index: 29` under `html.tido-mobilenav` (above `.fi-main-ctn`, below `.fi-sidebar` at `z-30` and bottom bar at `65`) so the dim shows beside the Menu drawer while chrome sheets / the bar stay above the dim. When a modal is open, `.fi-main-ctn` stays at `z-index: 1` so it does not stack above the shared dim.
 
+**Changelogs** stays full viewport height (`h-dvh`). Opening it closes the user menu and lifts the slide-over (`z-index: calc(var(--tido-mobilenav-z-chrome) + 1)`) so the sheet covers the bottom bar. Global search still offsets `bottom` above the bar instead.
+
 ## Chrome offsets (mobile + `html.tido-mobilenav`)
 
 - `--tido-mobilenav-height: calc(4rem + 1px + env(safe-area-inset-bottom, 0px))`
