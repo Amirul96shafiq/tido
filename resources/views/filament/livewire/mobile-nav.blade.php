@@ -19,6 +19,7 @@
                 }
 
                 this.closeAdd();
+                this.closeSearch();
 
                 if (this.$store.sidebar.isOpen) {
                     this.$store.sidebar.close();
@@ -30,7 +31,28 @@
             const data = menu ? Alpine.$data(menu) : null;
             data?.close?.();
         },
+        searchModal() {
+            return document.getElementById('global-search-modal::plugin');
+        },
+        searchModalData() {
+            const modal = this.searchModal();
+
+            return modal ? Alpine.$data(modal) : null;
+        },
+        isSearchOpen() {
+            return this.searchModalData()?.isOpen === true;
+        },
+        closeSearch() {
+            const data = this.searchModalData();
+
+            if (! data?.isOpen) {
+                return;
+            }
+
+            data.close();
+        },
         openAdd() {
+            this.closeSearch();
             this.closeUserMenu();
             if (this.$store.sidebar.isOpen) {
                 this.$store.sidebar.close();
@@ -40,12 +62,19 @@
         closeAdd() {
             this.addOpen = false;
         },
-        openSearch() {
+        toggleSearch() {
+            if (this.isSearchOpen()) {
+                this.closeSearch();
+
+                return;
+            }
+
             this.closeAdd();
             this.closeUserMenu();
             if (this.$store.sidebar.isOpen) {
                 this.$store.sidebar.close();
             }
+
             window.dispatchEvent(
                 new CustomEvent('open-global-search-modal', {
                     detail: { id: 'global-search-modal::plugin' },
@@ -57,6 +86,7 @@
             this.$store.sidebar.collapsedGroups = [];
         },
         toggleSidebar() {
+            this.closeSearch();
             this.closeAdd();
             this.closeUserMenu();
             if (this.$store.sidebar.isOpen) {
@@ -96,7 +126,7 @@
         x-transition:enter-end="fi-transition-enter-end"
         x-transition:leave-start="fi-transition-leave-start"
         x-transition:leave-end="fi-transition-leave-end"
-        class="tido-mobilenav-add-sheet fixed inset-x-0 z-[35] mx-auto max-w-3xs"
+        class="tido-mobilenav-add-sheet fixed inset-x-0 mx-auto max-w-3xs"
         role="dialog"
         aria-label="Add"
     >
@@ -205,6 +235,7 @@
             wire:current.exact="tido-mobilenav-item--current"
             class="tido-mobilenav-item"
             aria-label="Home"
+            x-on:click="closeSearch()"
         >
             {{
                 \Filament\Support\generate_icon_html(
@@ -274,7 +305,8 @@
             type="button"
             class="tido-mobilenav-item"
             aria-label="Search"
-            x-on:click="openSearch()"
+            x-bind:aria-expanded="isSearchOpen()"
+            x-on:click="toggleSearch()"
         >
             {{
                 \Filament\Support\generate_icon_html(
@@ -284,7 +316,10 @@
             }}
         </button>
 
-        <div class="tido-mobilenav-item tido-mobilenav-item--avatar">
+        <div
+            class="tido-mobilenav-item tido-mobilenav-item--avatar"
+            x-on:click.capture="closeSearch()"
+        >
             <x-filament-panels::user-menu
                 instance="mobilenav"
                 anchor="mobilenav"

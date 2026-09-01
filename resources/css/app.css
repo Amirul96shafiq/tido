@@ -5953,6 +5953,23 @@ html.tido-reduce-motion .tido-ping-pulse {
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
     }
+
+    /*
+     * Keep dim + click-away layers above the page but below/outside the bottom bar.
+     * The bar uses --tido-mobilenav-z-chrome (65) above the modal window (z-60).
+     */
+    html.tido-mobilenav
+        [id="global-search-modal::plugin"].fi-modal.fi-modal-open
+        > .fi-modal-close-overlay {
+        z-index: 30;
+        bottom: var(--tido-mobilenav-height, 4rem);
+    }
+
+    html.tido-mobilenav
+        [id="global-search-modal::plugin"].fi-modal.fi-modal-open
+        > .fi-modal-window-ctn {
+        bottom: var(--tido-mobilenav-height, 4rem);
+    }
 }
 
 @media (min-width: 1024px) {
@@ -5972,6 +5989,7 @@ html.tido-mobilenav {
     --tido-mobilenav-menu-gap: 0.75rem;
     --tido-mobilenav-inset: 0.75rem;
     --tido-mobilenav-sidebar-width: 50vw;
+    --tido-mobilenav-z-chrome: 65;
 }
 
 .tido-mobilenav-root {
@@ -5989,13 +6007,19 @@ html.tido-mobilenav {
 
     html.tido-mobilenav .tido-mobilenav-root {
         display: block;
+        position: relative;
+        z-index: var(--tido-mobilenav-z-chrome, 65);
+    }
+
+    html.tido-mobilenav .tido-mobilenav-root > .tido-chrome-overlay {
+        z-index: calc(var(--tido-mobilenav-z-chrome, 65) - 1);
     }
 
     html.tido-mobilenav .tido-mobilenav-bar {
         position: fixed;
         inset-inline: 0;
         bottom: 0;
-        z-index: 35;
+        z-index: var(--tido-mobilenav-z-chrome, 65);
         box-sizing: border-box;
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -6092,7 +6116,7 @@ html.tido-mobilenav {
             var(--tido-mobilenav-height, 4rem) +
                 var(--tido-mobilenav-menu-gap, 0.75rem)
         );
-        z-index: 35;
+        z-index: calc(var(--tido-mobilenav-z-chrome, 65) + 1);
         padding-inline: var(--tido-mobilenav-inset, 0.75rem);
     }
 

@@ -271,6 +271,26 @@ test('admin panel mobile nav script syncs preference across spa navigation', fun
         ->toContain('livewire:navigating');
 });
 
+test('mobile nav closes global search when another chrome slot is activated', function (): void {
+    $mobileNav = (string) file_get_contents(
+        resource_path('views/filament/livewire/mobile-nav.blade.php'),
+    );
+
+    expect($mobileNav)
+        ->toContain('searchModal()')
+        ->toContain('searchModalData()')
+        ->toContain('isSearchOpen()')
+        ->toContain('closeSearch()')
+        ->toContain('toggleSearch()')
+        ->toContain("getElementById('global-search-modal::plugin')")
+        ->toContain('Alpine.$data(modal)')
+        ->toContain('data.close()')
+        ->toContain('x-on:click="closeSearch()"')
+        ->toContain('x-on:click.capture="closeSearch()"')
+        ->toContain('x-bind:aria-expanded="isSearchOpen()"')
+        ->toContain('this.closeSearch()');
+});
+
 test('mobile nav bottom bar uses active-state icons for home menu and add slots', function (): void {
     $mobileNav = (string) file_get_contents(
         resource_path('views/filament/livewire/mobile-nav.blade.php'),
@@ -321,6 +341,15 @@ test('mobile chrome overlays match the sidebar close overlay', function (): void
         ->toContain('@apply fixed inset-0 z-30 bg-gray-950/50 transition-opacity duration-300 dark:bg-gray-950/75')
         ->toContain('.fi-sidebar-close-overlay {')
         ->toContain('[id="global-search-modal::plugin"].fi-modal > .fi-modal-close-overlay')
+        ->toContain('html.tido-mobilenav')
+        ->toContain('[id="global-search-modal::plugin"].fi-modal.fi-modal-open')
+        ->toContain('> .fi-modal-close-overlay {')
+        ->toContain('z-index: 30;')
+        ->toContain('--tido-mobilenav-z-chrome: 65')
+        ->toContain('z-index: var(--tido-mobilenav-z-chrome, 65)')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-root > .tido-chrome-overlay')
+        ->toContain('> .fi-modal-window-ctn {')
+        ->toContain('bottom: var(--tido-mobilenav-height, 4rem)')
         ->toContain('.tido-user-menu-overlay {');
 
     $chromeOverlay = Str::between(
