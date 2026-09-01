@@ -2523,7 +2523,11 @@ html.tido-reduce-motion.tido-mobilenav
     .fi-dropdown-panel.fi-transition-enter,
 html.tido-reduce-motion.tido-mobilenav
     .fi-user-menu--mobilenav
-    .fi-dropdown-panel.fi-transition-leave {
+    .fi-dropdown-panel.fi-transition-leave,
+html.tido-reduce-motion.tido-mobilenav
+    .tido-mobilenav-add-sheet.fi-transition-enter,
+html.tido-reduce-motion.tido-mobilenav
+    .tido-mobilenav-add-sheet.fi-transition-leave {
     transition: none !important;
 }
 
@@ -2538,7 +2542,15 @@ html.tido-reduce-motion.tido-mobilenav
     .fi-dropdown-panel.fi-transition-leave-start,
 html.tido-reduce-motion.tido-mobilenav
     .fi-user-menu--mobilenav
-    .fi-dropdown-panel.fi-transition-leave-end {
+    .fi-dropdown-panel.fi-transition-leave-end,
+html.tido-reduce-motion.tido-mobilenav
+    .tido-mobilenav-add-sheet.fi-transition-enter-start,
+html.tido-reduce-motion.tido-mobilenav
+    .tido-mobilenav-add-sheet.fi-transition-enter-end,
+html.tido-reduce-motion.tido-mobilenav
+    .tido-mobilenav-add-sheet.fi-transition-leave-start,
+html.tido-reduce-motion.tido-mobilenav
+    .tido-mobilenav-add-sheet.fi-transition-leave-end {
     opacity: 1 !important;
     transform: none !important;
 }
@@ -6129,7 +6141,7 @@ html.tido-mobilenav {
     }
 
     /*
-     * Mobile nav user menu: match centered Filament modal enter/leave
+     * Mobile nav chrome sheets: match centered Filament modal enter/leave
      * (global search modal — scale-95/opacity-0 → scale-100/opacity-100, 300ms).
      */
     html.tido-mobilenav
@@ -6137,7 +6149,9 @@ html.tido-mobilenav {
         .fi-dropdown-panel.fi-transition-enter,
     html.tido-mobilenav
         .fi-user-menu--mobilenav
-        .fi-dropdown-panel.fi-transition-leave {
+        .fi-dropdown-panel.fi-transition-leave,
+    html.tido-mobilenav .tido-mobilenav-add-sheet.fi-transition-enter,
+    html.tido-mobilenav .tido-mobilenav-add-sheet.fi-transition-leave {
         @apply duration-300;
     }
 
@@ -6146,7 +6160,9 @@ html.tido-mobilenav {
         .fi-dropdown-panel.fi-transition-enter-start,
     html.tido-mobilenav
         .fi-user-menu--mobilenav
-        .fi-dropdown-panel.fi-transition-leave-end {
+        .fi-dropdown-panel.fi-transition-leave-end,
+    html.tido-mobilenav .tido-mobilenav-add-sheet.fi-transition-enter-start,
+    html.tido-mobilenav .tido-mobilenav-add-sheet.fi-transition-leave-end {
         @apply scale-95 opacity-0;
     }
 
@@ -6155,7 +6171,9 @@ html.tido-mobilenav {
         .fi-dropdown-panel.fi-transition-enter-end,
     html.tido-mobilenav
         .fi-user-menu--mobilenav
-        .fi-dropdown-panel.fi-transition-leave-start {
+        .fi-dropdown-panel.fi-transition-leave-start,
+    html.tido-mobilenav .tido-mobilenav-add-sheet.fi-transition-enter-end,
+    html.tido-mobilenav .tido-mobilenav-add-sheet.fi-transition-leave-start {
         @apply scale-100 opacity-100;
     }
 

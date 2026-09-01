@@ -72,7 +72,7 @@
     <div
         x-cloak
         x-show="addOpen"
-        x-transition.opacity.300ms
+        x-transition.duration.300ms.opacity
         class="tido-chrome-overlay tido-mobilenav-add-backdrop"
         x-on:click="closeAdd()"
         aria-hidden="true"
@@ -90,12 +90,12 @@
     <div
         x-cloak
         x-show="addOpen"
-        x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition ease-in duration-150"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
+        x-transition:enter="fi-transition-enter"
+        x-transition:leave="fi-transition-leave"
+        x-transition:enter-start="fi-transition-enter-start"
+        x-transition:enter-end="fi-transition-enter-end"
+        x-transition:leave-start="fi-transition-leave-start"
+        x-transition:leave-end="fi-transition-leave-end"
         class="tido-mobilenav-add-sheet fixed inset-x-0 z-[35] mx-auto max-w-3xs"
         role="dialog"
         aria-label="Add"

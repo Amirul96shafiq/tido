@@ -197,9 +197,12 @@ test('mobile nav css hides topbar and offsets sticky chrome on small screens', f
         ->toContain('display: none !important');
 });
 
-test('mobile nav user menu panel uses the same modal enter transition as global search', function (): void {
+test('mobile nav chrome sheets use the same modal enter transition as global search', function (): void {
     $dropdown = (string) file_get_contents(
         resource_path('views/vendor/filament/components/dropdown/index.blade.php'),
+    );
+    $mobileNav = (string) file_get_contents(
+        resource_path('views/filament/livewire/mobile-nav.blade.php'),
     );
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
@@ -209,15 +212,27 @@ test('mobile nav user menu panel uses the same modal enter transition as global 
         ->toContain('x-transition:enter-start="fi-transition-enter-start"')
         ->toContain('x-transition:enter-end="fi-transition-enter-end"');
 
+    expect($mobileNav)
+        ->toContain('tido-mobilenav-add-sheet')
+        ->toContain('x-transition:enter="fi-transition-enter"')
+        ->toContain('x-transition:leave-end="fi-transition-leave-end"')
+        ->toContain('tido-chrome-overlay tido-mobilenav-add-backdrop')
+        ->toContain('x-transition.duration.300ms.opacity')
+        ->not->toContain('transition ease-out duration-200')
+        ->not->toContain('transition ease-in duration-150');
+
     expect($css)
-        ->toContain('html.tido-mobilenav .fi-user-menu--mobilenav .fi-dropdown-panel.fi-transition-enter,')
+        ->toContain('.fi-user-menu--mobilenav')
+        ->toContain('.fi-dropdown-panel.fi-transition-enter,')
+        ->toContain('.tido-mobilenav-add-sheet.fi-transition-enter,')
         ->toContain('.fi-dropdown-panel.fi-transition-enter-start,')
+        ->toContain('.tido-mobilenav-add-sheet.fi-transition-enter-start,')
         ->toContain('@apply scale-95 opacity-0;')
         ->toContain('.fi-dropdown-panel.fi-transition-enter-end,')
+        ->toContain('.tido-mobilenav-add-sheet.fi-transition-enter-end,')
         ->toContain('@apply scale-100 opacity-100;')
         ->toContain('html.tido-reduce-motion.tido-mobilenav')
-        ->toContain('.fi-user-menu--mobilenav')
-        ->toContain('.fi-dropdown-panel.fi-transition-enter-start,');
+        ->toContain('.tido-mobilenav-add-sheet.fi-transition-leave-end');
 });
 
 test('mobile nav avatar notification badge overlays the wrap like the topbar', function (): void {
@@ -287,6 +302,7 @@ test('mobile nav add sheet sits flush on the bottom bar', function (): void {
     expect($mobileNav)
         ->toContain('tido-mobilenav-add-card')
         ->toContain('rounded-xl')
+        ->toContain('x-transition:enter="fi-transition-enter"')
         ->not->toContain('border-b-0')
         ->not->toContain('bottom-[var(--tido-mobilenav-height');
 });
