@@ -121,6 +121,8 @@ test('global search modal vendor view omits classic scrollbar utilities', functi
 
     expect($blade)
         ->toContain('results-container')
+        ->toContain('max-lg:!grid-rows-[1fr_auto_1fr]')
+        ->toContain('max-lg:!pt-0')
         ->not->toContain('[scrollbar-width:thin]')
         ->not->toContain('::-webkit-scrollbar]');
 });
@@ -156,7 +158,7 @@ test('changelog slide-over closes mobilenav user menu on open', function () {
     $blade = (string) file_get_contents(resource_path('views/components/changelog-modal.blade.php'));
 
     expect($blade)
-        ->toContain("\$store.tidoMobileChrome?.closeUserMenu?.()")
+        ->toContain('$store.tidoMobileChrome?.closeUserMenu?.()')
         ->toContain("if (\$event.detail.id !== 'changelog')");
 });
 

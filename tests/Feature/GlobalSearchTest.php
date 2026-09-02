@@ -615,5 +615,7 @@ test('topbar global search collapses to icon button on small screens', function 
         ->toContain('flex-none')
         ->toContain('opacity-0')
         ->toContain('[id="global-search-modal::plugin"] .fi-modal-footer')
-        ->toContain('hide keyboard shortcut footer');
+        ->toContain('hide keyboard shortcut footer')
+        ->toContain('grid-template-rows: 1fr auto 1fr !important')
+        ->toContain('Center the search modal on both axes');
 });

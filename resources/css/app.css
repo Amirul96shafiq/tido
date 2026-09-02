@@ -3117,7 +3117,7 @@ html.tido-reduce-motion
 }
 
 [id="global-search-modal::plugin"] .fi-modal-window-ctn {
-    @apply overflow-visible;
+    @apply overflow-visible justify-items-center;
 }
 
 [id="global-search-modal::plugin"] .fi-modal-window {
@@ -3142,6 +3142,15 @@ html.tido-reduce-motion
 @media (max-width: 1023px) {
     [id="global-search-modal::plugin"] .fi-gsm-toolbar {
         @apply end-0 top-0 flex-row -translate-y-[calc(100%+var(--fi-gsm-gap))];
+    }
+
+    /*
+     * Center the search modal on both axes above the bottom nav bar.
+     * Vendor blade uses asymmetric grid rows on lg+ only.
+     */
+    [id="global-search-modal::plugin"] .fi-modal-window-ctn {
+        grid-template-rows: 1fr auto 1fr !important;
+        padding-top: 0 !important;
     }
 }
 
@@ -6130,14 +6139,18 @@ html.tido-mobilenav {
     html.tido-mobilenav .tido-mobilenav-item--current,
     html.tido-mobilenav .tido-mobilenav-item[data-current],
     html.tido-mobilenav .tido-mobilenav-item--active,
-    html.tido-mobilenav .fi-user-menu--mobilenav .fi-user-menu-trigger.tido-mobilenav-item--active {
+    html.tido-mobilenav
+        .fi-user-menu--mobilenav
+        .fi-user-menu-trigger.tido-mobilenav-item--active {
         color: var(--color-primary-600);
     }
 
     html.dark.tido-mobilenav .tido-mobilenav-item--current,
     html.dark.tido-mobilenav .tido-mobilenav-item[data-current],
     html.dark.tido-mobilenav .tido-mobilenav-item--active,
-    html.dark.tido-mobilenav .fi-user-menu--mobilenav .fi-user-menu-trigger.tido-mobilenav-item--active {
+    html.dark.tido-mobilenav
+        .fi-user-menu--mobilenav
+        .fi-user-menu-trigger.tido-mobilenav-item--active {
         color: var(--color-primary-400);
     }
 
@@ -6225,8 +6238,9 @@ html.tido-mobilenav {
         color: var(--color-white);
         border: 3px solid var(--color-white);
         box-shadow: none;
-        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-                    background-color 0.2s ease;
+        transition:
+            transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+            background-color 0.2s ease;
     }
 
     html.dark.tido-mobilenav .tido-mobilenav-add-btn {

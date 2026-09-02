@@ -16,11 +16,11 @@
         // reduce also the padding of contents 
         '[&_.fi-modal-content]:!py-3 [&_.fi-modal-content]:!px-4', 
 
-        // reduce top padding a little bit
-        '[&_.fi-modal-window-ctn]:!grid-rows-[0.6fr_auto_1fr] [&_.fi-modal-window-ctn]:sm:!grid-rows-[0.5fr_auto_3fr]', 
-  
-        // give it some padding when the auto in "0.6fr_auto_1fr" expand across
-        '[&_:not(.fi-modal-slide-over):not(.fi-width-screen)_.fi-modal-window-ctn]:!pt-16',
+        // Mobile: center vertically (1fr auto 1fr); lg+: bias upward for side toolbar
+        '[&_.fi-modal-window-ctn]:max-lg:!grid-rows-[1fr_auto_1fr] [&_.fi-modal-window-ctn]:lg:!grid-rows-[0.5fr_auto_3fr]',
+
+        // Desktop only: room for left toolbar; mobile: no extra top padding
+        '[&_:not(.fi-modal-slide-over):not(.fi-width-screen)_.fi-modal-window-ctn]:max-lg:!pt-0 [&_:not(.fi-modal-slide-over):not(.fi-width-screen)_.fi-modal-window-ctn]:lg:!pt-16',
 
         // handle the close button 
         '[&_.fi-modal-close-btn]:!top-4 [&_.fi-modal-close-btn]:!end-4 [&_.fi-modal-close-btn]:!p-0.5 [&_.fi-modal-close-btn]:size-6 ',
