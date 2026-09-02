@@ -1068,6 +1068,7 @@ class AdminPanelProvider extends PanelProvider
                         width: Width::TwoExtraLarge,
                         hasCloseButton: false,
                     )
+                    ->localStorageMaxItemsAllowed(5)
                     ->searchUsing(
                         fn (string $query, GlobalSearchResults $builder): GlobalSearchResults => AdminDestinationSearch::search($query, $builder),
                         mergeWithCore: true,

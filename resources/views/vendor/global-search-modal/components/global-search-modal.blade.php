@@ -69,6 +69,7 @@
                     maxItemsAllowed:  @js($maxItemsAllowed),
                     retainRecentIfFavorite : @js($isRetainRecentIfFavorite)
                 })"
+                x-init="search_history = search_history.slice(0, @js($maxItemsAllowed)); favorite_items = favorite_items.slice(0, @js($maxItemsAllowed))"
             >
                 @unless(empty($search))
                     <x-global-search-modal::search.results 

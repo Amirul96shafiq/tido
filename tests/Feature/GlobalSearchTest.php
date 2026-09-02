@@ -26,6 +26,7 @@ use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use App\Models\User;
+use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResults;
 use CharrafiMed\GlobalSearchModal\SearchEngine;
 use Filament\Facades\Filament;
@@ -307,6 +308,19 @@ test('admin panel requires global search resource opt-in', function () {
 
 test('admin panel opens global search with alt+k', function () {
     expect(filament()->getCurrentOrDefaultPanel()->getGlobalSearchKeyBindings())->toBe(['alt+k']);
+});
+
+test('global search modal keeps five recent searches', function () {
+    /** @var GlobalSearchModalPlugin $plugin */
+    $plugin = filament()->getPlugin('global-search-modal');
+
+    expect($plugin->getMaxItemsAllowed())->toBe(5);
+
+    $html = Livewire::test(GlobalSearchModal::class)->html();
+
+    expect($html)
+        ->toContain('maxItemsAllowed:  5')
+        ->toContain('search_history.slice(0, 5)');
 });
 
 test('admin panel includes spa-safe alt+k global search shortcut', function () {
