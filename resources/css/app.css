@@ -2531,6 +2531,7 @@ html.tido-reduce-motion.tido-mobilenav
 html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-btn,
 html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-svg {
     transition: none !important;
+    animation: none !important;
 }
 
 html.tido-reduce-motion.tido-mobilenav
@@ -6245,6 +6246,28 @@ html.tido-mobilenav {
         transform: translateX(-50%) scale(0.92);
     }
 
+    html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-svg {
+        animation-play-state: paused;
+    }
+
+    @keyframes tido-mobilenav-add-breathe {
+        0% {
+            transform: scale(1, 1);
+        }
+        20% {
+            transform: scale(0.975, 1.055) translateY(-1px);
+        }
+        38% {
+            transform: scale(1.015, 0.985) translateY(0);
+        }
+        50% {
+            transform: scale(1, 1);
+        }
+        100% {
+            transform: scale(1, 1);
+        }
+    }
+
     html.tido-mobilenav .tido-mobilenav-add-svg {
         display: block;
         width: 100%;
@@ -6252,6 +6275,18 @@ html.tido-mobilenav {
         overflow: visible;
         pointer-events: none;
         user-select: none;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-svg--default {
+        transform-origin: center bottom;
+        animation: tido-mobilenav-add-breathe 4s ease-in-out infinite;
+        will-change: transform;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-btn--open .tido-mobilenav-add-svg,
+    html.tido-mobilenav .tido-mobilenav-item--active .tido-mobilenav-add-svg,
+    html.tido-mobilenav .tido-mobilenav-add-svg--active {
+        animation: none !important;
     }
 
     html.tido-mobilenav .tido-mobilenav-add-bg {

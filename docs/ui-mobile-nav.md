@@ -25,6 +25,8 @@ When enabled, the panel adds `html.tido-mobilenav` and hides `.fi-topbar-ctn` be
 
 Each slot includes a text label (`.tido-mobilenav-label`) positioned below its icon, horizontally aligned straight across all 5 slots from the bottom edge of the bar (`padding-bottom: 0.5rem`). Home active state uses `wire:current.exact` on the dashboard link (path `/admin`; query `?view=` does not affect match). Menu swaps icons via Alpine (`$store.sidebar.isOpen`), Add swaps to active state SVG on Alpine `$store.tidoMobileChrome.addOpen`, and Profile swaps outline/solid based on menu state and Profile page route.
 
+In the idle state, the default Add SVG (`.tido-mobilenav-add-svg--default`) runs a continuous 4s breathing keyframe loop (`tido-mobilenav-add-breathe`) that gently stretches vertically with a 2s rest pause between breath cycles. When the Add sheet opens (`$store.tidoMobileChrome.addOpen` / `.tido-mobilenav-add-btn--open`), the animation stops completely and the active SVG remains steady. Tapping/pressing the button pauses the animation immediately (`animation-play-state: paused`), and enabling Reduce Motion (`html.tido-reduce-motion.tido-mobilenav` / `prefers-reduced-motion`) suppresses all breathing animation.
+
 Family members: Add Receipt stays available; Add Budget / Add Recurring render disabled with the primary-only CTA message.
 
 ## User menu anchor

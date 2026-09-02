@@ -554,3 +554,19 @@ test('mobile nav css swaps home outline and solid icons on current dashboard lin
         ->toContain('.tido-mobilenav-item[data-current]')
         ->toContain('.tido-mobilenav-icon--solid');
 });
+
+test('mobile nav default add svg runs looping breathing animation with active state suppression', function (): void {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('@keyframes tido-mobilenav-add-breathe')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-svg--default')
+        ->toContain('animation: tido-mobilenav-add-breathe 4s ease-in-out infinite;')
+        ->toContain('transform-origin: center bottom;')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-btn--open .tido-mobilenav-add-svg')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-item--active .tido-mobilenav-add-svg')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-svg--active')
+        ->toContain('animation: none !important;')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-svg')
+        ->toContain('animation-play-state: paused;');
+});
