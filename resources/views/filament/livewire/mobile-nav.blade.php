@@ -130,10 +130,6 @@
         aria-label="Add"
     >
         <div class="tido-mobilenav-add-card overflow-hidden rounded-xl border border-gray-200 bg-white shadow-none dark:border-slate-700 dark:bg-slate-800">
-            <div class="border-b border-gray-100 px-4 py-3 dark:border-slate-700">
-                <h2 class="text-sm font-semibold text-gray-950 dark:text-white">Add</h2>
-            </div>
-
             <div class="px-4 py-3">
                 <p class="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
                     Finances
@@ -200,7 +196,7 @@
                             >
                                 {{
                                     \Filament\Support\generate_icon_html(
-                                        Heroicon::OutlinedArrowPathRoundedSquare,
+                                        Heroicon::OutlinedArrowPath,
                                         attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0 text-primary-600 dark:text-primary-400']),
                                     )
                                 }}
@@ -214,7 +210,7 @@
                             >
                                 {{
                                     \Filament\Support\generate_icon_html(
-                                        Heroicon::OutlinedArrowPathRoundedSquare,
+                                        Heroicon::OutlinedArrowPath,
                                         attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0']),
                                     )
                                 }}
