@@ -278,6 +278,24 @@ test('mobile nav avatar notification badge overlays the wrap like the topbar', f
         ->toContain('@apply pointer-events-none absolute top-0 right-0 z-10 translate-x-2 -translate-y-1');
 });
 
+test('mobile nav bar light chrome uses solid white without backdrop blur', function (): void {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $lightBarStart = strpos($css, 'html.tido-mobilenav .tido-mobilenav-bar {');
+    $darkBarStart = strpos($css, 'html.dark.tido-mobilenav .tido-mobilenav-bar {');
+
+    expect($lightBarStart)->not->toBeFalse()
+        ->and($darkBarStart)->not->toBeFalse();
+
+    $lightBarBlock = substr($css, $lightBarStart, $darkBarStart - $lightBarStart);
+
+    expect($lightBarBlock)
+        ->toContain('background-color: var(--color-white)')
+        ->toContain('backdrop-filter: none')
+        ->not->toContain('color-mix(')
+        ->not->toContain('blur(12px)');
+});
+
 test('mobile nav bar dark chrome targets html.dark not a dark ancestor of html', function (): void {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
