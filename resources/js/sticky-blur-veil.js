@@ -3,9 +3,9 @@
  * See docs/ui-sticky-blur.md.
  */
 const PIN_SELECTOR =
-    '.tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker)';
-const STUCK_CLASS = 'tido-sticky-stuck';
-const SCROLLING_CLASS = 'tido-is-scrolling';
+    ".tido-sticky-scope > .fi-sc > .fi-grid-col:has(.tido-sticky-marker)";
+const STUCK_CLASS = "tido-sticky-stuck";
+const SCROLLING_CLASS = "tido-is-scrolling";
 const SCROLL_IDLE_MS = 150;
 
 /**
@@ -31,7 +31,7 @@ function findPins() {
 }
 
 function isBottomPin(pinEl) {
-    return Boolean(pinEl.querySelector('.tido-sticky-marker--bottom'));
+    return Boolean(pinEl.querySelector(".tido-sticky-marker--bottom"));
 }
 
 function readMetrics(pinEl) {
@@ -57,12 +57,61 @@ function invalidateMetrics() {
     }
 }
 
+function pageScrollRoot() {
+    const main = document.querySelector(".fi-main-ctn");
+
+    if (!main) {
+        return null;
+    }
+
+    const overflowY = getComputedStyle(main).overflowY;
+
+    if (overflowY === "auto" || overflowY === "scroll") {
+        return main;
+    }
+
+    return null;
+}
+
+function bottomReferenceEdge() {
+    const root = pageScrollRoot();
+
+    if (root) {
+        const portRect = root.getBoundingClientRect();
+        const paddingBottom =
+            parseFloat(getComputedStyle(root).paddingBottom) || 0;
+
+        return portRect.bottom - paddingBottom;
+    }
+
+    return window.innerHeight;
+}
+
+function isScrolledToEnd(root) {
+    if (root) {
+        return root.scrollTop + root.clientHeight >= root.scrollHeight - 8;
+    }
+
+    return (
+        window.scrollY + window.innerHeight >=
+        document.documentElement.scrollHeight - 8
+    );
+}
+
 function isStuck(pinEl) {
     const metrics = metricsFor(pinEl);
     const rect = pinEl.getBoundingClientRect();
 
     if (metrics.isBottom) {
-        return Math.abs(window.innerHeight - rect.bottom - metrics.expectedOffset) < 2;
+        const insetDelta =
+            bottomReferenceEdge() - rect.bottom - metrics.expectedOffset;
+        const atStickyEdge = insetDelta > -2 && insetDelta < 16;
+
+        if (!atStickyEdge) {
+            return false;
+        }
+
+        return !isScrolledToEnd(pageScrollRoot());
     }
 
     return Math.abs(rect.top - metrics.expectedOffset) < 2;
@@ -78,7 +127,7 @@ function updateStuck() {
     rafId = null;
 
     for (const pin of [...tracked]) {
-        if (! document.contains(pin)) {
+        if (!document.contains(pin)) {
             forgetPin(pin);
             continue;
         }
@@ -127,10 +176,18 @@ function markScrolling() {
 }
 
 function isPageScrollTarget(target) {
-    return target === document
-        || target === document.documentElement
-        || target === document.body
-        || target === window;
+    if (
+        target === document ||
+        target === document.documentElement ||
+        target === document.body ||
+        target === window
+    ) {
+        return true;
+    }
+
+    const root = pageScrollRoot();
+
+    return root !== null && target === root;
 }
 
 /**
@@ -141,7 +198,7 @@ function isPageScrollTarget(target) {
 function onScrollCapture(event) {
     markScrolling();
 
-    if (! isPageScrollTarget(event.target)) {
+    if (!isPageScrollTarget(event.target)) {
         return;
     }
 
@@ -155,7 +212,7 @@ function onResize() {
 
 function bind() {
     for (const pin of [...tracked]) {
-        if (! document.contains(pin)) {
+        if (!document.contains(pin)) {
             forgetPin(pin);
         }
     }
@@ -168,16 +225,17 @@ function bind() {
         return;
     }
 
-    if (! listening) {
-        document.addEventListener('scroll', onScrollCapture, {
+    if (!listening) {
+        document.addEventListener("scroll", onScrollCapture, {
             passive: true,
             capture: true,
         });
-        window.addEventListener('resize', onResize, { passive: true });
+        window.addEventListener("resize", onResize, { passive: true });
         listening = true;
     }
 
     updateStuck();
+    requestAnimationFrame(updateStuck);
 }
 
 function init() {
@@ -200,14 +258,14 @@ function scheduleBindAfterMorph() {
     });
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
 } else {
     init();
 }
 
-document.addEventListener('livewire:navigated', init);
+document.addEventListener("livewire:navigated", init);
 
-document.addEventListener('livewire:init', () => {
-    Livewire.hook('morphed', scheduleBindAfterMorph);
+document.addEventListener("livewire:init", () => {
+    Livewire.hook("morphed", scheduleBindAfterMorph);
 });

@@ -59,7 +59,17 @@
             this.expandedCommit = this.expandedCommit === hash ? null : hash;
         },
     }"
-    x-on:open-modal.window="if ($event.detail.id === 'changelog' && commits.length === 0) loadCommits();"
+    x-on:open-modal.window="
+        if ($event.detail.id !== 'changelog') {
+            return;
+        }
+
+        $store.tidoMobileChrome?.closeUserMenu?.();
+
+        if (commits.length === 0) {
+            loadCommits();
+        }
+    "
 >
     <x-filament::modal
         id="changelog"

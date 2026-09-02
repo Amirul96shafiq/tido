@@ -136,7 +136,8 @@
                     .querySelectorAll('.fi-sidebar-group')
                     .forEach((group) => {
                         if (
-                            !collapsedGroups.includes(group.dataset.groupLabel)
+                            ! Array.isArray(collapsedGroups) ||
+                            ! collapsedGroups.includes(group.dataset.groupLabel)
                         ) {
                             return
                         }
@@ -148,6 +149,23 @@
                         ).style.display = 'none'
                         group.classList.add('fi-collapsed')
                     })
+
+                if (window.innerWidth < 1024) {
+                    document
+                        .querySelectorAll('.fi-sidebar-group')
+                        .forEach((group) => {
+                            const items = group.querySelector(
+                                '.fi-sidebar-group-items',
+                            )
+
+                            if (! items) {
+                                return
+                            }
+
+                            items.style.display = ''
+                            group.classList.remove('fi-collapsed')
+                        })
+                }
             </script>
 
             {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_NAV_END) }}

@@ -49,12 +49,12 @@ Action::make('pairWithCode')
 
 Filament `Width` enum maps to Tailwind max-width (`ExtraSmall` … `SevenExtraLarge`). Prefer:
 
-| Use case | Width |
-|----------|-------|
-| Single field / confirm | `Width::Small` |
-| Short form (2–4 fields) | `Width::Medium` |
+| Use case                      | Width                     |
+| ----------------------------- | ------------------------- |
+| Single field / confirm        | `Width::Small`            |
+| Short form (2–4 fields)       | `Width::Medium`           |
 | Default Filament action modal | (omit — Filament default) |
-| Wide content | `Width::Large` or larger |
+| Wide content                  | `Width::Large` or larger  |
 
 ## Filament Blade modals (`<x-filament::modal>`)
 
@@ -97,13 +97,18 @@ Uses `<x-filament::modal>` like changelog (`resources/views/components/restore-b
 Inline on the backdrop element (same tokens as the shared overlay):
 
 ```html
-class="absolute inset-0 bg-gray-950/50 dark:bg-gray-950/75 backdrop-blur-md transition-opacity"
+class="absolute inset-0 bg-gray-950/50 dark:bg-gray-950/75 backdrop-blur-md
+transition-opacity"
 ```
+
+## Mobile chrome overlays (not this pattern)
+
+Below `lg`, the **sidebar**, **Add sheet**, **user menu**, and **global search modal** use the Filament sidebar close overlay recipe: dim only (`bg-gray-950/50` / `dark:bg-gray-950/75`), no `backdrop-blur`. See [ui-mobile-nav.md](ui-mobile-nav.md). Do not add frost to `.fi-sidebar-close-overlay` or `.tido-chrome-overlay`.
 
 ## Checklist for new modals
 
 1. Choose **Filament action** vs **`<x-filament::modal>`** vs **custom Alpine**.
-2. Apply blur using one of the patterns above — do not ship a dim-only overlay when other modals in the panel use blur.
+2. Apply blur using one of the patterns above — do not ship a dim-only overlay when other **Filament action / slide-over** modals in the panel use blur. Mobile chrome overlays (sidebar, Add, user menu, global search below `lg`) stay dim-only — see [ui-mobile-nav.md](ui-mobile-nav.md).
 3. For action modals with one or two fields, set `modalWidth(Width::Small)` (or `Medium`) so the dialog is not full-page wide.
 4. Icon CTAs inside the modal must use Filament Tippy (`x-tooltip` / `:tooltip`) — see [ui-tooltips.md](ui-tooltips.md). Custom shells at `z-index: 99999` need Tippy `zIndex: 100000`. Native `<x-filament::modal>` does not.
 5. After CSS changes, run `npm run build` or `npm run dev` so Filament panel picks up `app.css`.

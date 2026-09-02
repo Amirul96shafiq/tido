@@ -24,6 +24,7 @@ use App\Http\Middleware\SetUserPreferences;
 use App\Support\Calendar\UserMenuCalendarLabel;
 use App\Support\FilamentAuthLogout;
 use App\Support\HouseholdAccess;
+use App\Support\MobileNav;
 use App\Support\ReduceMotion;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use CharrafiMed\GlobalSearchModal\GlobalSearchResults;
@@ -169,8 +170,12 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_START,
                 function (): string {
-                    $initialClassScript = ReduceMotion::enabled()
+                    $initialReduceMotionScript = ReduceMotion::enabled()
                         ? "document.documentElement.classList.add('tido-reduce-motion');"
+                        : '';
+
+                    $initialMobileNavScript = MobileNav::enabled()
+                        ? "document.documentElement.classList.add('tido-mobilenav');"
                         : '';
 
                     return <<<HTML
@@ -349,8 +354,67 @@ class AdminPanelProvider extends PanelProvider
                                     notifyReduceMotionChanged(on);
                                 };
 
-                                {$initialClassScript}
+                                {$initialReduceMotionScript}
                                 syncReduceMotionStorage();
+
+                                var MOBILE_NAV_CLASS = 'tido-mobilenav';
+                                var MOBILE_NAV_STORAGE_KEY = 'tidoMobileNav';
+                                var MOBILE_NAV_DESKTOP_BREAKPOINT = 1024;
+
+                                function isMobilenavEnabled() {
+                                    return document.documentElement.classList.contains(MOBILE_NAV_CLASS);
+                                }
+
+                                function isMobilenavViewport() {
+                                    return window.innerWidth < MOBILE_NAV_DESKTOP_BREAKPOINT;
+                                }
+
+                                function isMobilenavActiveNow() {
+                                    return isMobilenavEnabled() && isMobilenavViewport();
+                                }
+
+                                function syncMobileNavStorage() {
+                                    sessionStorage.setItem(
+                                        MOBILE_NAV_STORAGE_KEY,
+                                        document.documentElement.classList.contains(MOBILE_NAV_CLASS) ? '1' : '0',
+                                    );
+                                }
+
+                                function syncMobileNavChromeStore() {
+                                    if (typeof Alpine === 'undefined') {
+                                        return;
+                                    }
+
+                                    var chrome = Alpine.store('tidoMobileChrome');
+
+                                    if (! chrome) {
+                                        return;
+                                    }
+
+                                    chrome.mobilenavActive = isMobilenavActiveNow();
+                                }
+
+                                function applyMobileNavFromStorage() {
+                                    var stored = sessionStorage.getItem(MOBILE_NAV_STORAGE_KEY);
+
+                                    if (stored === null) {
+                                        return;
+                                    }
+
+                                    document.documentElement.classList.toggle(MOBILE_NAV_CLASS, stored === '1');
+                                    syncMobileNavChromeStore();
+                                }
+
+                                window.tidoSetMobileNav = function (enabled) {
+                                    var on = !! enabled;
+
+                                    document.documentElement.classList.toggle(MOBILE_NAV_CLASS, on);
+                                    sessionStorage.setItem(MOBILE_NAV_STORAGE_KEY, on ? '1' : '0');
+                                    syncMobileNavChromeStore();
+                                };
+
+                                {$initialMobileNavScript}
+                                syncMobileNavStorage();
 
                                 window.matchMedia = function (query) {
                                     var result = originalMatchMedia(query);
@@ -374,6 +438,7 @@ class AdminPanelProvider extends PanelProvider
 
                                 function syncReduceMotionAfterNavigation() {
                                     applyReduceMotionFromStorage();
+                                    applyMobileNavFromStorage();
 
                                     if (prefersReducedMotion()) {
                                         snapCountUpsToFinal();
@@ -381,10 +446,334 @@ class AdminPanelProvider extends PanelProvider
 
                                     scheduleMarqueeSync();
                                     notifyReduceMotionChanged(prefersReducedMotion());
+                                    syncMobileNavChromeStore();
+
+                                    var chrome = typeof Alpine !== 'undefined' ? Alpine.store('tidoMobileChrome') : null;
+
+                                    if (chrome) {
+                                        chrome._syncOverlayShown();
+                                    }
                                 }
 
-                                document.addEventListener('livewire:navigating', applyReduceMotionFromStorage);
+                                document.addEventListener('livewire:navigating', function () {
+                                    applyReduceMotionFromStorage();
+                                    applyMobileNavFromStorage();
+                                });
                                 document.addEventListener('livewire:navigated', syncReduceMotionAfterNavigation);
+
+                                document.addEventListener('alpine:init', function () {
+                                    Alpine.store('tidoMobileChrome', {
+                                        mobilenavActive: isMobilenavActiveNow(),
+                                        addOpen: false,
+                                        searchOpen: false,
+                                        overlayOpen: false,
+                                        overlayShown: false,
+                                        _chromeWasOpen: false,
+                                        _swapLocked: false,
+                                        _swapLockTimer: null,
+
+                                        _isTransitioning: function (element) {
+                                            if (! element) {
+                                                return false;
+                                            }
+
+                                            return element.classList.contains('fi-transition-enter')
+                                                || element.classList.contains('fi-transition-enter-start')
+                                                || element.classList.contains('fi-transition-enter-end')
+                                                || element.classList.contains('fi-transition-leave')
+                                                || element.classList.contains('fi-transition-leave-start')
+                                                || element.classList.contains('fi-transition-leave-end');
+                                        },
+
+                                        isAddSheetOpen: function () {
+                                            if (this.addOpen) {
+                                                return true;
+                                            }
+
+                                            return this._isTransitioning(
+                                                document.querySelector('.tido-mobilenav-add-sheet'),
+                                            );
+                                        },
+
+                                        isSearchModalOpen: function () {
+                                            if (this.searchOpen) {
+                                                return true;
+                                            }
+
+                                            var modal = this.searchModal();
+
+                                            if (! modal) {
+                                                return false;
+                                            }
+
+                                            if (this._isTransitioning(modal)) {
+                                                return true;
+                                            }
+
+                                            var data = this.searchModalData();
+
+                                            return !!(data && data.isOpen);
+                                        },
+
+                                        isSidebarOpen: function () {
+                                            var sidebarStore = Alpine.store('sidebar');
+
+                                            if (sidebarStore && sidebarStore.isOpen) {
+                                                return true;
+                                            }
+
+                                            var sidebarEl = document.querySelector('.fi-sidebar');
+
+                                            if (! sidebarEl) {
+                                                return false;
+                                            }
+
+                                            if (sidebarEl.classList.contains('fi-sidebar-open')) {
+                                                return true;
+                                            }
+
+                                            return this._isTransitioning(sidebarEl);
+                                        },
+
+                                        isMobilenavUserMenuOpen: function () {
+                                            var trigger = document.querySelector('.fi-user-menu--mobilenav .fi-user-menu-trigger');
+
+                                            if (trigger && trigger.getAttribute('aria-expanded') === 'true') {
+                                                return true;
+                                            }
+
+                                            var notifications = Alpine.store('tidoNotifications');
+                                            var panel = document.querySelector('.fi-user-menu--mobilenav .fi-dropdown-panel');
+
+                                            if (!panel) {
+                                                return !!(notifications && notifications.menuOpen);
+                                            }
+
+                                            if (panel.classList.contains('fi-transition-enter')
+                                                || panel.classList.contains('fi-transition-enter-start')
+                                                || panel.classList.contains('fi-transition-enter-end')
+                                                || panel.classList.contains('fi-transition-leave')
+                                                || panel.classList.contains('fi-transition-leave-start')
+                                                || panel.classList.contains('fi-transition-leave-end')) {
+                                                return true;
+                                            }
+
+                                            if (notifications && notifications.menuOpen) {
+                                                return true;
+                                            }
+
+                                            return window.getComputedStyle(panel).display !== 'none';
+                                        },
+
+                                        isChromeOpen: function () {
+                                            if (! this.mobilenavActive) {
+                                                return false;
+                                            }
+
+                                            return this.isAddSheetOpen()
+                                                || this.isSearchModalOpen()
+                                                || this.isSidebarOpen()
+                                                || this.isMobilenavUserMenuOpen();
+                                        },
+
+                                        overlayVisible: function () {
+                                            return this.isChromeOpen()
+                                                || this._swapLocked
+                                                || this.overlayOpen;
+                                        },
+
+                                        _syncOverlayShown: function () {
+                                            if (! this.mobilenavActive) {
+                                                this.overlayShown = false;
+
+                                                return;
+                                            }
+
+                                            this.overlayShown = this.isChromeOpen() || this._swapLocked;
+                                        },
+
+                                        _cancelSwapLock: function () {
+                                            if (this._swapLockTimer !== null) {
+                                                clearTimeout(this._swapLockTimer);
+                                                this._swapLockTimer = null;
+                                            }
+
+                                            this._swapLocked = false;
+                                        },
+
+                                        _armSwapLock: function () {
+                                            var self = this;
+
+                                            this._cancelSwapLock();
+                                            this._swapLocked = true;
+
+                                            this._swapLockTimer = setTimeout(function () {
+                                                self._swapLockTimer = null;
+                                                self._swapLocked = false;
+
+                                                if (! self.isChromeOpen()) {
+                                                    self.dismissOverlay();
+                                                } else {
+                                                    self._syncOverlayShown();
+                                                }
+                                            }, 400);
+                                        },
+
+                                        dismissOverlay: function () {
+                                            this._cancelSwapLock();
+
+                                            if (! this.isChromeOpen()) {
+                                                this.overlayOpen = false;
+                                                this.overlayShown = false;
+                                            } else {
+                                                this._syncOverlayShown();
+                                            }
+                                        },
+
+                                        primeOverlay: function () {
+                                            if (! isMobilenavActiveNow()) {
+                                                return;
+                                            }
+
+                                            this._armSwapLock();
+                                            this.overlayOpen = true;
+                                            this._syncOverlayShown();
+                                        },
+
+                                        syncOverlay: function () {
+                                            if (! this.mobilenavActive) {
+                                                return;
+                                            }
+
+                                            if (this.isChromeOpen()) {
+                                                this.overlayOpen = true;
+                                                this._syncOverlayShown();
+                                            }
+                                        },
+
+                                        searchModal: function () {
+                                            return document.getElementById('global-search-modal::plugin');
+                                        },
+
+                                        searchModalData: function () {
+                                            var modal = this.searchModal();
+
+                                            return modal ? Alpine.\$data(modal) : null;
+                                        },
+
+                                        closeSearchModal: function () {
+                                            var data = this.searchModalData();
+
+                                            if (! data || ! data.isOpen) {
+                                                this.searchOpen = false;
+
+                                                return;
+                                            }
+
+                                            data.close();
+                                        },
+
+                                        closeUserMenu: function () {
+                                            var menu = document.querySelector('.fi-user-menu--mobilenav');
+                                            var data = menu ? Alpine.\$data(menu) : null;
+
+                                            if (data && typeof data.close === 'function') {
+                                                data.close();
+                                            }
+                                        },
+
+                                        closeActiveChrome: function () {
+                                            if (this.addOpen) {
+                                                this.addOpen = false;
+                                                this.dismissOverlay();
+
+                                                return;
+                                            }
+
+                                            if (this.isMobilenavUserMenuOpen()) {
+                                                this.closeUserMenu();
+
+                                                return;
+                                            }
+
+                                            if (this.isSearchModalOpen()) {
+                                                this.closeSearchModal();
+
+                                                return;
+                                            }
+
+                                            var sidebar = Alpine.store('sidebar');
+
+                                            if (sidebar && sidebar.isOpen) {
+                                                sidebar.close();
+                                                this.dismissOverlay();
+                                            }
+                                        },
+                                    });
+                                });
+
+                                document.addEventListener('alpine:initialized', function () {
+                                    var chrome = Alpine.store('tidoMobileChrome');
+
+                                    if (! chrome) {
+                                        return;
+                                    }
+
+                                    window.addEventListener('modal-closed', function (event) {
+                                        if (event.detail && event.detail.id === 'global-search-modal::plugin') {
+                                            chrome.searchOpen = false;
+                                            chrome.dismissOverlay();
+                                        }
+                                    });
+
+                                    Alpine.effect(function () {
+                                        syncMobileNavChromeStore();
+
+                                        var sidebar = Alpine.store('sidebar');
+
+                                        if (sidebar) {
+                                            sidebar.isOpen;
+                                        }
+
+                                        var notifications = Alpine.store('tidoNotifications');
+
+                                        if (notifications) {
+                                            notifications.menuOpen;
+                                        }
+
+                                        chrome.addOpen;
+                                        chrome.searchOpen;
+
+                                        if (chrome.isChromeOpen()) {
+                                            chrome._chromeWasOpen = true;
+                                            chrome.overlayOpen = true;
+                                        } else {
+                                            if (chrome._chromeWasOpen) {
+                                                chrome._chromeWasOpen = false;
+                                            }
+
+                                            if (! chrome._swapLocked || ! chrome.mobilenavActive) {
+                                                chrome.overlayOpen = false;
+                                            }
+                                        }
+
+                                        chrome._syncOverlayShown();
+                                    });
+
+                                    window.addEventListener('resize', function () {
+                                        var wasActive = chrome.mobilenavActive;
+
+                                        syncMobileNavChromeStore();
+
+                                        if (wasActive && ! chrome.mobilenavActive) {
+                                            chrome.addOpen = false;
+                                            chrome.searchOpen = false;
+                                            chrome.dismissOverlay();
+                                        }
+
+                                        chrome._syncOverlayShown();
+                                    }, { passive: true });
+                                });
                             })();
                         </script>
                         HTML;
@@ -812,7 +1201,7 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,
-                fn (): string => Blade::render('<x-changelog-modal /><x-restore-backup-modal /><x-drag-drop-config /><x-go-to-top /><x-go-to-bottom /><x-global-search-shortcut /><x-hash-scroll />'),
+                fn (): string => view('components.panel-body-end')->render(),
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->navigationGroups([

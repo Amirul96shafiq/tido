@@ -88,6 +88,7 @@ test('file upload editor paints above sticky edit page controls', function () {
         ->toContain('z-index: -1;')
         ->toContain('.tido-sidebar-preview')
         ->toContain('.tido-stylized-preview')
+        ->toContain('.tido-mobilenav-preview')
         ->toContain('isolation: isolate;')
         ->toContain('.fi-grid-col:has(.fi-fo-file-upload-editor)')
         ->toContain('z-index: 40;');

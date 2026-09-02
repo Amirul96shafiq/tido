@@ -200,7 +200,7 @@ test('user menu places account switcher between profile details and theme select
         ->and($accountSwitcherPosition)->toBeLessThan($themeSwitcherPosition);
 
     expect(file_get_contents(resource_path('views/vendor/filament-panels/components/user-menu.blade.php')))
-        ->toContain("@livewire(\\App\\Filament\\Livewire\\AccountSwitcher::class, key('account-switcher'))");
+        ->toContain("key('account-switcher-'.\$userMenuInstanceKey)");
 
     expect(file_get_contents(resource_path('views/filament/livewire/partials/account-switcher-account.blade.php')))
         ->toContain('heroicon-m-chevron-right');
@@ -305,7 +305,7 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
     $itemBadgeBlock = Str::between(
         $css,
         '.fi-user-menu-notifications-wrap .fi-user-menu-item-notifications-badge {',
-        '.fi-topbar-end .fi-no-database > .fi-modal-trigger {',
+        '.fi-no-database > .fi-modal-trigger {',
     );
     $profilePreviewBlock = Str::between(
         $css,

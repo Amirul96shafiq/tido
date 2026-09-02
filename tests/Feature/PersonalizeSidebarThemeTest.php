@@ -67,6 +67,33 @@ test('profile personalize section renders stylized background indicators', funct
         ->assertSee('collapsed ? \'Collapsed style\' : \'Expanded style\'', false);
 });
 
+test('profile personalize section renders mobile navigation menu portrait preview', function (): void {
+    $user = User::factory()->create([
+        'mobile_nav_enabled' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->assertSee('Mobile Navigation Menu', false)
+        ->assertSee('Enabled: Bottom Bar', false)
+        ->assertSee('tido-mobilenav-preview-frame', false)
+        ->assertSee('tido-mobile-preview-chrome', false)
+        ->assertSee('tido-mobilenav-preview-bar-grid', false)
+        ->assertSee('tido-mobilenav-preview-slot--primary', false)
+        ->assertSee('x-show="! mobileNav"', false)
+        ->assertSee('x-show="mobileNav"', false);
+});
+
+test('desktop panel preview chrome does not render mobile navigation chrome', function (): void {
+    $chrome = (string) file_get_contents(resource_path('views/components/tido/panel-preview-chrome.blade.php'));
+
+    expect($chrome)
+        ->not->toContain('mobileNav')
+        ->not->toContain('tido-mobilenav-preview-bar')
+        ->not->toContain('tido-mobile-preview-chrome');
+});
+
 test('sidebar and theme preferences are not stored on users table', function (): void {
     expect(Schema::hasColumn('users', 'sidebar_collapsed'))->toBeFalse()
         ->and(Schema::hasColumn('users', 'sidebar_mode'))->toBeFalse()

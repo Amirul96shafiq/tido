@@ -9,6 +9,7 @@ Prefer Filament’s native `Toggle::make()` whenever the value lives in form/`$w
 
 - Sidebar (Alpine store): [`sidebar-mode-field.blade.php`](../resources/views/filament/schemas/components/sidebar-mode-field.blade.php)
 - Stylized background (entangled form field + pill + CSS mock preview): [`stylized-background-field.blade.php`](../resources/views/filament/schemas/components/stylized-background-field.blade.php)
+- Mobile navigation menu (entangled form field + pill + CSS mock preview): [`mobile-nav-field.blade.php`](../resources/views/filament/schemas/components/mobile-nav-field.blade.php)
 
 ## Prefer native first
 
@@ -20,7 +21,7 @@ Toggle::make('notify_budget_alerts')
     ->live();
 ```
 
-On Edit Profile Personalize, stylized background uses a custom field status pill can sit next to the control; dehydrate via `Hidden::make('stylized_background_enabled')`. **Reduce Motion** in PREFERENCES uses native `Toggle::make('reduce_motion')` — no custom Blade toggle. See [ui-reduce-motion.md](ui-reduce-motion.md). Both previews share [`panel-preview-chrome`](../resources/views/components/tido/panel-preview-chrome.blade.php) (real sidebar logos; topbar profile circle only; live panel art from `images/bg-l-v8.webp` / `bg-d-v8.webp`). Each preview cross-follows the other control: sidebar collapse state from `$store.sidebar`, stylized background from entangled `data.stylized_background_enabled`.
+On Edit Profile Personalize, stylized background and mobile navigation menu use custom fields so a status pill can sit next to the control; dehydrate via `Hidden::make('stylized_background_enabled')` and `Hidden::make('mobile_nav_enabled')`. **Reduce Motion** in PREFERENCES uses native `Toggle::make('reduce_motion')` — no custom Blade toggle. See [ui-reduce-motion.md](ui-reduce-motion.md). Sidebar and stylized background previews share [`panel-preview-chrome`](../resources/views/components/tido/panel-preview-chrome.blade.php) (desktop landscape, sidebar + topbar; live panel art from `images/bg-l-v8.webp` / `bg-d-v8.webp`). Mobile navigation menu uses [`mobile-preview-chrome`](../resources/views/components/tido/mobile-preview-chrome.blade.php) (portrait phone mock, no sidebar). Sidebar collapse follows `$store.sidebar`; stylized background follows entangled `data.stylized_background_enabled`; mobile nav preview follows entangled `data.mobile_nav_enabled` only in its own field.
 
 On Edit Profile, `defaultForm()` sets `inlineLabel(! static::isSimple())`, so native toggles render **label left / control right** in the `fi-fo-field-has-inline-label` grid. Custom toggles on that page must mirror that markup (see Layout below).
 
@@ -28,11 +29,12 @@ On Edit Profile, `defaultForm()` sets `inlineLabel(! static::isSimple())`, so na
 
 Personalize preference rows show a live primary pill beside the control (and keep the same copy on preview overlays where applicable):
 
-| Control | Pill text |
-|---------|-----------|
-| Theme Mode | `Light` / `Dark` / `System` (`theme-changed` / `localStorage.theme`) |
-| Stylized Background | `Enabled: Stylized Mode` / `Disabled: Focus Mode` |
-| Sidebar Mode | `Collapsed style` / `Expanded style` |
+| Control                | Pill text                                                            |
+| ---------------------- | -------------------------------------------------------------------- |
+| Theme Mode             | `Light` / `Dark` / `System` (`theme-changed` / `localStorage.theme`) |
+| Stylized Background    | `Enabled: Stylized Mode` / `Disabled: Focus Mode`                    |
+| Sidebar Mode           | `Collapsed style` / `Expanded style`                                 |
+| Mobile Navigation Menu | `Enabled: Bottom Bar` / `Disabled: Top Bar`                          |
 
 Shared classes: `rounded-full bg-primary-500/90 px-2 py-1 text-xs font-medium text-primary-900`. Place the pill in a `flex w-full items-center justify-between gap-2` wrapper with the control inside `fi-fo-field-content-col` so the pill aligns to the end of the row.
 
@@ -113,12 +115,12 @@ Do **not** use a full-width `justify-between` row for label + toggle on Profile 
 
 When the preference is Filament panel chrome (sidebar open/collapsed, theme), bind to the existing Alpine store instead of inventing a Livewire/`users` column:
 
-| Concern | Source of truth |
-|---------|-----------------|
+| Concern                    | Source of truth                                                     |
+| -------------------------- | ------------------------------------------------------------------- |
 | Sidebar collapse (desktop) | `$store.sidebar.isOpenDesktop` (`localStorage` key `isOpenDesktop`) |
-| Sidebar open (mobile) | `$store.sidebar.isOpen` (`localStorage` key `isOpen`) |
-| Mutate sidebar | `$store.sidebar.open()` / `$store.sidebar.close()` |
-| Theme | Filament theme switcher → `theme-changed` / `localStorage.theme` |
+| Sidebar open (mobile)      | `$store.sidebar.isOpen` (`localStorage` key `isOpen`)               |
+| Mutate sidebar             | `$store.sidebar.open()` / `$store.sidebar.close()`                  |
+| Theme                      | Filament theme switcher → `theme-changed` / `localStorage.theme`    |
 
 Example getter used on Profile:
 
@@ -145,7 +147,7 @@ Avoid `$wire.set('data.…')` for these chrome prefs: dehydrated/non-model keys 
 
 ## Related
 
-- Profile Personalize: [`EditProfile.php`](../app/Filament/Pages/Auth/EditProfile.php), [`sidebar-mode-field.blade.php`](../resources/views/filament/schemas/components/sidebar-mode-field.blade.php), [`stylized-background-field.blade.php`](../resources/views/filament/schemas/components/stylized-background-field.blade.php)
+- Profile Personalize: [`EditProfile.php`](../app/Filament/Pages/Auth/EditProfile.php), [`sidebar-mode-field.blade.php`](../resources/views/filament/schemas/components/sidebar-mode-field.blade.php), [`stylized-background-field.blade.php`](../resources/views/filament/schemas/components/stylized-background-field.blade.php), [`mobile-nav-field.blade.php`](../resources/views/filament/schemas/components/mobile-nav-field.blade.php), [`mobile-preview-chrome.blade.php`](../resources/views/components/tido/mobile-preview-chrome.blade.php)
 - Theme switcher embed: [`theme-mode-field.blade.php`](../resources/views/filament/schemas/components/theme-mode-field.blade.php)
 - Dark theme / primary accents: [ui-dark-theme.md](ui-dark-theme.md)
 - Filament conventions: `.cursor/rules/filament-conventions.mdc`

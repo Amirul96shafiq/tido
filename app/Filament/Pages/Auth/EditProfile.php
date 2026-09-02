@@ -220,7 +220,7 @@ class EditProfile extends BaseEditProfile implements HasTable
                         Section::make('Personalize & Appearance')
                             ->id('personalize-appearance')
                             ->schema([
-                                Fieldset::make('APPEARANCE')
+                                Fieldset::make('APPEARANCES')
                                     ->schema([
                                         View::make('filament.schemas.components.theme-mode-field')
                                             ->columnSpanFull(),
@@ -233,6 +233,14 @@ class EditProfile extends BaseEditProfile implements HasTable
                                         View::make('filament.schemas.components.stylized-background-field')
                                             ->viewData(fn (Get $get): array => [
                                                 'enabled' => (bool) $get('stylized_background_enabled'),
+                                            ])
+                                            ->columnSpanFull(),
+
+                                        Hidden::make('mobile_nav_enabled'),
+
+                                        View::make('filament.schemas.components.mobile-nav-field')
+                                            ->viewData(fn (Get $get): array => [
+                                                'mobileNavEnabled' => (bool) $get('mobile_nav_enabled'),
                                             ])
                                             ->columnSpanFull(),
                                     ]),
@@ -910,6 +918,7 @@ class EditProfile extends BaseEditProfile implements HasTable
             : '08:00';
         $oldStylizedBackgroundEnabled = (bool) $record->stylized_background_enabled;
         $oldReduceMotion = (bool) $record->reduce_motion;
+        $oldMobileNavEnabled = (bool) $record->mobile_nav_enabled;
         $passwordChanged = filled($data['password'] ?? null);
         $profileSnapshot = $this->profileSnapshotForPageRefresh($record);
 
@@ -1002,6 +1011,9 @@ class EditProfile extends BaseEditProfile implements HasTable
         if ($oldReduceMotion !== (bool) $updatedRecord->reduce_motion) {
             $changes[] = 'Reduce Motion';
         }
+        if ($oldMobileNavEnabled !== (bool) $updatedRecord->mobile_nav_enabled) {
+            $changes[] = 'Mobile Navigation Menu';
+        }
 
         if (! empty($changes) && $updatedRecord->notify_profile_updates) {
             $changeList = implode(', ', $changes);
@@ -1036,11 +1048,13 @@ class EditProfile extends BaseEditProfile implements HasTable
         return [
             // Personalize & Appearance → Preferences
             'reduce_motion',
+            // Personalize & Appearance → Appearances
+            'mobile_nav_enabled',
             // Regional Preferences
             'locale',
             'timezone',
             'date_format',
-            // Appearance / identity
+            // Appearances / identity
             'avatar_url',
             'stylized_background_enabled',
         ];
@@ -1063,7 +1077,7 @@ class EditProfile extends BaseEditProfile implements HasTable
     protected function profileFieldValueForPageRefresh(Model $record, string $field): mixed
     {
         return match ($field) {
-            'reduce_motion', 'stylized_background_enabled' => (bool) $record->getAttributeValue($field),
+            'reduce_motion', 'stylized_background_enabled', 'mobile_nav_enabled' => (bool) $record->getAttributeValue($field),
             default => $record->getAttributeValue($field),
         };
     }
