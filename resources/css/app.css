@@ -2530,7 +2530,8 @@ html.tido-reduce-motion.tido-mobilenav
     .tido-mobilenav-add-sheet.fi-transition-leave,
 html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-btn,
 html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-svg,
-html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-z {
+html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-z,
+html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-eye {
     transition: none !important;
     animation: none !important;
 }
@@ -6378,6 +6379,36 @@ html.tido-mobilenav {
     }
 
     html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-z {
+        animation-play-state: paused;
+    }
+
+    @keyframes tido-mobilenav-blink {
+        0%, 100% {
+            transform: rotate(55deg) scale(1, 1) rotate(-55deg);
+        }
+        50% {
+            transform: rotate(55deg) scale(1, 0.08) rotate(-55deg);
+        }
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-svg--active .tido-mobilenav-add-eye {
+        transform-box: fill-box;
+        transform-origin: center center;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-svg--active.is-blinking-1 .tido-mobilenav-add-eye {
+        animation: tido-mobilenav-blink 0.22s ease-in-out 1;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-svg--active.is-blinking-2 .tido-mobilenav-add-eye {
+        animation: tido-mobilenav-blink 0.22s ease-in-out 2;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-svg--active.is-blinking-3 .tido-mobilenav-add-eye {
+        animation: tido-mobilenav-blink 0.22s ease-in-out 3;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-eye {
         animation-play-state: paused;
     }
 

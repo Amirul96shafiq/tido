@@ -372,6 +372,10 @@ test('mobile nav bottom bar uses active-state icons for home menu and add slots'
         ->toContain('x-show="! $store.sidebar.isOpen"')
         ->toContain('tido-mobilenav-add-svg--default')
         ->toContain('tido-mobilenav-add-svg--active')
+        ->toContain('tido-mobilenav-add-eye--right')
+        ->toContain('tido-mobilenav-add-eye--left')
+        ->toContain('tido-mobilenav-add-eye-sclera')
+        ->toContain('tido-mobilenav-add-eye-pupil')
         ->toContain('tido-mobilenav-add-bg')
         ->toContain('tido-mobilenav-add-btn')
         ->toContain('tido-mobilenav-add-btn--open')
@@ -581,5 +585,29 @@ test('mobile nav default add svg runs looping breathing animation with active st
         ->toContain('animation: none !important;')
         ->toContain('html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-svg')
         ->toContain('html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-z')
+        ->toContain('animation-play-state: paused;');
+});
+
+test('mobile nav active add svg runs blinking eye animation', function (): void {
+    $mobileNav = (string) file_get_contents(
+        resource_path('views/filament/livewire/mobile-nav.blade.php'),
+    );
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($mobileNav)
+        ->toContain('scheduleBlink')
+        ->toContain('blinkCount = Math.floor(Math.random() * 3) + 1')
+        ->toContain("is-blinking-' + blinkCount");
+
+    expect($css)
+        ->toContain('@keyframes tido-mobilenav-blink')
+        ->toMatch('/@keyframes tido-mobilenav-blink\s*\{[^}]*rotate\(\s*-?\d+(\.\d+)?deg\)/')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-svg--active .tido-mobilenav-add-eye')
+        ->toContain('.is-blinking-1')
+        ->toContain('.is-blinking-2')
+        ->toContain('.is-blinking-3')
+        ->toContain('transform-box: fill-box;')
+        ->toContain('transform-origin: center center;')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-eye')
         ->toContain('animation-play-state: paused;');
 });
