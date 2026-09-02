@@ -138,5 +138,6 @@ test('reduce motion css disables sidebar collapsed labels and collapse cta motio
         ->toContain('html.tido-reduce-motion .tido-sidebar-flyout-panel')
         ->toContain('.fi-sidebar.fi-sidebar-animating .fi-sidebar-group-collapsed-label')
         ->toContain('.fi-sidebar.fi-sidebar-animating .fi-sidebar-collapse-toggle-label')
-        ->toContain('html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-svg');
+        ->toContain('html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-svg')
+        ->toContain('html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-z');
 });

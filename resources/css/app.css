@@ -2529,7 +2529,8 @@ html.tido-reduce-motion.tido-mobilenav
 html.tido-reduce-motion.tido-mobilenav
     .tido-mobilenav-add-sheet.fi-transition-leave,
 html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-btn,
-html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-svg {
+html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-svg,
+html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-z {
     transition: none !important;
     animation: none !important;
 }
@@ -6268,6 +6269,52 @@ html.tido-mobilenav {
         }
     }
 
+    @keyframes tido-mobilenav-z1-float {
+        0% {
+            opacity: 0;
+            transform: translate(0, 3px) scale(0.6) rotate(-8deg);
+        }
+        18% {
+            opacity: 0.95;
+            transform: translate(1px, 0) scale(0.9) rotate(-4deg);
+        }
+        38% {
+            opacity: 0.95;
+            transform: translate(3px, -5px) scale(1) rotate(-10deg);
+        }
+        55% {
+            opacity: 0;
+            transform: translate(5px, -11px) scale(1.1) rotate(-14deg);
+        }
+        100% {
+            opacity: 0;
+            transform: translate(0, 3px) scale(0.6) rotate(-8deg);
+        }
+    }
+
+    @keyframes tido-mobilenav-z2-float {
+        0% {
+            opacity: 0;
+            transform: translate(0, 3px) scale(0.6) rotate(6deg);
+        }
+        18% {
+            opacity: 0.95;
+            transform: translate(2px, -1px) scale(0.95) rotate(10deg);
+        }
+        38% {
+            opacity: 0.95;
+            transform: translate(4px, -7px) scale(1.15) rotate(14deg);
+        }
+        55% {
+            opacity: 0;
+            transform: translate(7px, -14px) scale(1.25) rotate(18deg);
+        }
+        100% {
+            opacity: 0;
+            transform: translate(0, 3px) scale(0.6) rotate(6deg);
+        }
+    }
+
     html.tido-mobilenav .tido-mobilenav-add-svg {
         display: block;
         width: 100%;
@@ -6287,6 +6334,51 @@ html.tido-mobilenav {
     html.tido-mobilenav .tido-mobilenav-item--active .tido-mobilenav-add-svg,
     html.tido-mobilenav .tido-mobilenav-add-svg--active {
         animation: none !important;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-zzz {
+        pointer-events: none;
+        user-select: none;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-z {
+        font-family: 'Fredoka', 'Sniglet', 'Comfortaa', 'Nunito', 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', system-ui, cursive, sans-serif;
+        font-size: 13px;
+        font-weight: 900;
+        fill: rgb(206, 138, 0);
+        stroke: var(--color-white);
+        stroke-width: 1.5px;
+        paint-order: stroke fill;
+        stroke-linejoin: round;
+        stroke-linecap: round;
+        transform-box: fill-box;
+        transform-origin: center center;
+    }
+
+    html.dark.tido-mobilenav .tido-mobilenav-add-z {
+        fill: var(--color-primary-400);
+        stroke: var(--color-slate-800);
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-z--1 {
+        font-size: 11px;
+        animation: tido-mobilenav-z1-float 4s ease-in-out infinite;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-z--2 {
+        font-size: 15px;
+        animation: tido-mobilenav-z2-float 4s ease-in-out infinite;
+        animation-delay: 0.8s;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-btn--open .tido-mobilenav-add-z,
+    html.tido-mobilenav .tido-mobilenav-item--active .tido-mobilenav-add-z {
+        animation: none !important;
+        opacity: 0 !important;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-z {
+        animation-play-state: paused;
     }
 
     html.tido-mobilenav .tido-mobilenav-add-bg {
