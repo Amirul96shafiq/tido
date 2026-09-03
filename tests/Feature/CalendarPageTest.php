@@ -55,6 +55,7 @@ test('calendar page renders for primary user', function () {
         ->toContain('Recurring Dues')
         ->toContain('Birthdays')
         ->toContain('max-height: min(40vh, 20rem)')
+        ->toContain('tido-calendar__grid-wrap custom-scrollbar')
         ->not->toContain('Filter Events')
         ->not->toContain('Show All');
 });

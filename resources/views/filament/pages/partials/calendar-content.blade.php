@@ -59,7 +59,7 @@
         },
     }"
 >
-    <div class="tido-calendar__grid-wrap">
+    <div class="tido-calendar__grid-wrap custom-scrollbar">
         <div class="tido-calendar__grid-inner">
             <div wire:loading.flex wire:target="previousMonth,nextMonth,goToMonth,today,typeFilter,viewMonth,monthNavigation" class="tido-calendar__loading">
                 <x-filament::loading-indicator class="h-8 w-8 text-primary-500" />
