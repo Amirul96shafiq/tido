@@ -3144,7 +3144,7 @@ html.tido-reduce-motion
 
 @media (max-width: 1023px) {
     [id="global-search-modal::plugin"] .fi-gsm-toolbar {
-        @apply end-0 top-0 flex-row -translate-y-[calc(100%+var(--fi-gsm-gap))];
+        @apply inset-e-0 top-0 flex-row -translate-y-[calc(100%+var(--fi-gsm-gap))];
     }
 
     /*
@@ -4437,6 +4437,18 @@ html.tido-reduce-motion .tido-select-value-marquee .fi-select-input-value-ctn {
     white-space: nowrap;
 }
 
+/*
+ * The rule above matches (0,4,0) — same as the shared duplicate-hide rule —
+ * and comes later, so it was forcing the loop clone visible when the selected
+ * value still fit. Hide the duplicate again with higher specificity.
+ */
+.tido-select-value-marquee
+    .tido-text-marquee-track:not(.is-overflowing)
+    .tido-text-marquee-segment
+    + .tido-text-marquee-segment {
+    display: none;
+}
+
 .tido-select-value-marquee
     .fi-select-input-ctn-option-labels-not-wrapped
     .fi-select-input-option {
@@ -5599,7 +5611,7 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar {
-    @apply flex flex-col gap-3 h-[calc(100dvh-13.5rem)] sm:h-[calc(100dvh-14.5rem)] md:h-[calc(100dvh-15.5rem)] min-h-0 sm:min-h-[420px] md:min-h-[480px];
+    @apply flex flex-col gap-3 h-[calc(100dvh-13.5rem)] sm:h-[calc(100dvh-14.5rem)] md:h-[calc(100dvh-15.5rem)] min-h-0 sm:min-h-105 md:min-h-120;
 }
 
 .tido-calendar__nav {
@@ -5623,7 +5635,7 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__grid-inner {
-    @apply relative flex h-full min-w-[700px] flex-1 flex-col;
+    @apply relative flex h-full min-w-175 flex-1 flex-col;
 }
 
 .tido-calendar__loading {
@@ -6343,7 +6355,10 @@ html.tido-mobilenav {
     }
 
     html.tido-mobilenav .tido-mobilenav-add-z {
-        font-family: 'Fredoka', 'Sniglet', 'Comfortaa', 'Nunito', 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', system-ui, cursive, sans-serif;
+        font-family:
+            "Fredoka", "Sniglet", "Comfortaa", "Nunito", "Comic Sans MS",
+            "Chalkboard SE", "Arial Rounded MT Bold", system-ui, cursive,
+            sans-serif;
         font-size: 13px;
         font-weight: 900;
         fill: rgb(206, 138, 0);
@@ -6383,7 +6398,8 @@ html.tido-mobilenav {
     }
 
     @keyframes tido-mobilenav-blink {
-        0%, 100% {
+        0%,
+        100% {
             transform: rotate(55deg) scale(1, 1) rotate(-55deg);
         }
         50% {
@@ -6391,20 +6407,28 @@ html.tido-mobilenav {
         }
     }
 
-    html.tido-mobilenav .tido-mobilenav-add-svg--active .tido-mobilenav-add-eye {
+    html.tido-mobilenav
+        .tido-mobilenav-add-svg--active
+        .tido-mobilenav-add-eye {
         transform-box: fill-box;
         transform-origin: center center;
     }
 
-    html.tido-mobilenav .tido-mobilenav-add-svg--active.is-blinking-1 .tido-mobilenav-add-eye {
+    html.tido-mobilenav
+        .tido-mobilenav-add-svg--active.is-blinking-1
+        .tido-mobilenav-add-eye {
         animation: tido-mobilenav-blink 0.22s ease-in-out 1;
     }
 
-    html.tido-mobilenav .tido-mobilenav-add-svg--active.is-blinking-2 .tido-mobilenav-add-eye {
+    html.tido-mobilenav
+        .tido-mobilenav-add-svg--active.is-blinking-2
+        .tido-mobilenav-add-eye {
         animation: tido-mobilenav-blink 0.22s ease-in-out 2;
     }
 
-    html.tido-mobilenav .tido-mobilenav-add-svg--active.is-blinking-3 .tido-mobilenav-add-eye {
+    html.tido-mobilenav
+        .tido-mobilenav-add-svg--active.is-blinking-3
+        .tido-mobilenav-add-eye {
         animation: tido-mobilenav-blink 0.22s ease-in-out 3;
     }
 
@@ -6422,11 +6446,7 @@ html.tido-mobilenav {
     }
 
     html.dark.tido-mobilenav .tido-mobilenav-add-bg {
-        stroke: color-mix(
-            in srgb,
-            var(--color-slate-800) 88%,
-            transparent
-        );
+        stroke: color-mix(in srgb, var(--color-slate-800) 88%, transparent);
     }
 
     html.tido-mobilenav .tido-mobilenav-item--avatar {
