@@ -6407,9 +6407,7 @@ html.tido-mobilenav {
         }
     }
 
-    html.tido-mobilenav
-        .tido-mobilenav-add-svg--active
-        .tido-mobilenav-add-eye {
+    html.tido-mobilenav .tido-mobilenav-add-svg--active .tido-mobilenav-add-eye {
         transform-box: fill-box;
         transform-origin: center center;
     }
@@ -6447,6 +6445,42 @@ html.tido-mobilenav {
 
     html.dark.tido-mobilenav .tido-mobilenav-add-bg {
         stroke: color-mix(in srgb, var(--color-slate-800) 88%, transparent);
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-border-behind {
+        position: fixed;
+        bottom: calc(1.75rem + env(safe-area-inset-bottom, 0px));
+        left: 50%;
+        transform: translateX(-50%);
+        width: 6.4375rem;
+        height: 4.3125rem;
+        z-index: calc(var(--tido-mobilenav-z-chrome, 65) - 1);
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html.tido-mobilenav:has(.tido-mobilenav-add-btn:active) .tido-mobilenav-add-border-behind {
+        transform: translateX(-50%) scale(0.92);
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-border {
+        fill: none;
+        stroke: var(--color-gray-100);
+        stroke-width: 8px;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        pointer-events: none;
+    }
+
+    html.dark.tido-mobilenav .tido-mobilenav-add-border {
+        stroke: color-mix(
+            in srgb,
+            var(--color-slate-700) 60%,
+            transparent
+        );
     }
 
     html.tido-mobilenav .tido-mobilenav-item--avatar {
