@@ -45,3 +45,30 @@ test('text marquee css drives overflow motion on the compositor', function () {
         ->toContain('html.tido-reduce-motion .tido-text-marquee-segment')
         ->toContain('white-space: normal !important');
 });
+
+test('select value marquee css hides the duplicate segment when not overflowing', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    $segmentDisplayNeedle = <<<'CSS'
+.tido-select-value-marquee
+    .fi-select-input-ctn-option-labels-not-wrapped
+    .fi-select-input-value-ctn
+    .tido-text-marquee-segment {
+    display: inline-block;
+CSS;
+
+    $duplicateHideNeedle = <<<'CSS'
+.tido-select-value-marquee
+    .tido-text-marquee-track:not(.is-overflowing)
+    .tido-text-marquee-segment
+    + .tido-text-marquee-segment {
+    display: none;
+CSS;
+
+    $displayPos = strpos($css, $segmentDisplayNeedle);
+    $hidePos = strpos($css, $duplicateHideNeedle);
+
+    expect($displayPos)->not->toBeFalse()
+        ->and($hidePos)->not->toBeFalse()
+        ->and($hidePos)->toBeGreaterThan($displayPos);
+});
