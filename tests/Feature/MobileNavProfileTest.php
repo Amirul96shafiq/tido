@@ -377,6 +377,7 @@ test('mobile nav bottom bar uses active-state icons for home menu and add slots'
         ->toContain('tido-mobilenav-add-eye-sclera')
         ->toContain('tido-mobilenav-add-eye-pupil')
         ->toContain('tido-mobilenav-add-bg')
+        ->toContain('tido-mobilenav-add-border')
         ->toContain('tido-mobilenav-add-btn')
         ->toContain('tido-mobilenav-add-btn--open')
         ->toContain('tido-mobilenav-add-svg')
@@ -610,4 +611,27 @@ test('mobile nav active add svg runs blinking eye animation', function (): void 
         ->toContain('transform-origin: center center;')
         ->toContain('html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-eye')
         ->toContain('animation-play-state: paused;');
+});
+
+test('mobile nav add svgs apply 1px top border behind mobile nav bar matching mobile nav border in light and dark themes', function (): void {
+    $mobileNav = (string) file_get_contents(
+        resource_path('views/filament/livewire/mobile-nav.blade.php'),
+    );
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($mobileNav)
+        ->toContain('tido-mobilenav-add-border-behind')
+        ->toContain('tido-mobilenav-add-border')
+        ->toContain('tido-mobilenav-add-bg');
+
+    expect($css)
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-border-behind {')
+        ->toContain('z-index: calc(var(--tido-mobilenav-z-chrome, 65) - 1);')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-border {')
+        ->toContain('stroke: var(--color-gray-100);')
+        ->toContain('stroke-width: 8px;')
+        ->toContain('html.dark.tido-mobilenav .tido-mobilenav-add-border {')
+        ->toContain('var(--color-slate-700) 60%')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-bg {')
+        ->toContain('stroke-width: 6px;');
 });
