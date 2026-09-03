@@ -486,13 +486,7 @@ class AdminPanelProvider extends PanelProvider
                                         },
 
                                         isAddSheetOpen: function () {
-                                            if (this.addOpen) {
-                                                return true;
-                                            }
-
-                                            return this._isTransitioning(
-                                                document.querySelector('.tido-mobilenav-add-sheet'),
-                                            );
+                                            return this.addOpen;
                                         },
 
                                         isSearchModalOpen: function () {
