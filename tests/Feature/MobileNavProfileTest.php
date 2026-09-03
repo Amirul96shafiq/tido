@@ -370,10 +370,19 @@ test('mobile nav bottom bar uses active-state icons for home menu and add slots'
         ->toContain('Heroicon::OutlinedBars3')
         ->toContain('Heroicon::OutlinedBars3BottomLeft')
         ->toContain('x-show="! $store.sidebar.isOpen"')
-        ->toContain('x-show="$store.sidebar.isOpen"')
-        ->toContain('Heroicon::Plus')
+        ->toContain('tido-mobilenav-add-svg--default')
+        ->toContain('tido-mobilenav-add-svg--active')
+        ->toContain('tido-mobilenav-add-eye--right')
+        ->toContain('tido-mobilenav-add-eye--left')
+        ->toContain('tido-mobilenav-add-eye-sclera')
+        ->toContain('tido-mobilenav-add-eye-pupil')
+        ->toContain('tido-mobilenav-add-bg')
         ->toContain('tido-mobilenav-add-btn')
         ->toContain('tido-mobilenav-add-btn--open')
+        ->toContain('tido-mobilenav-add-svg')
+        ->toContain('tido-mobilenav-add-zzz')
+        ->toContain('tido-mobilenav-add-z--1')
+        ->toContain('tido-mobilenav-add-z--2')
         ->toContain('$store.tidoMobileChrome.addOpen ? closeAdd() : openAdd()')
         ->toContain('Home</span>')
         ->toContain('Menu</span>')
@@ -551,4 +560,54 @@ test('mobile nav css swaps home outline and solid icons on current dashboard lin
         ->toContain('.tido-mobilenav-icon--outline')
         ->toContain('.tido-mobilenav-item[data-current]')
         ->toContain('.tido-mobilenav-icon--solid');
+});
+
+test('mobile nav default add svg runs looping breathing animation with active state suppression', function (): void {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('@keyframes tido-mobilenav-add-breathe')
+        ->toContain('@keyframes tido-mobilenav-z1-float')
+        ->toContain('@keyframes tido-mobilenav-z2-float')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-svg--default')
+        ->toContain('animation: tido-mobilenav-add-breathe 4s ease-in-out infinite;')
+        ->toContain('transform-origin: center bottom;')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-z')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-z--1')
+        ->toContain('animation: tido-mobilenav-z1-float 4s ease-in-out infinite;')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-z--2')
+        ->toContain('animation: tido-mobilenav-z2-float 4s ease-in-out infinite;')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-btn--open .tido-mobilenav-add-svg')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-item--active .tido-mobilenav-add-svg')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-svg--active')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-btn--open .tido-mobilenav-add-z')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-item--active .tido-mobilenav-add-z')
+        ->toContain('animation: none !important;')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-svg')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-z')
+        ->toContain('animation-play-state: paused;');
+});
+
+test('mobile nav active add svg runs blinking eye animation', function (): void {
+    $mobileNav = (string) file_get_contents(
+        resource_path('views/filament/livewire/mobile-nav.blade.php'),
+    );
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($mobileNav)
+        ->toContain('scheduleBlink')
+        ->toContain('blinkCount = Math.floor(Math.random() * 3) + 1')
+        ->toContain("is-blinking-' + blinkCount");
+
+    expect($css)
+        ->toContain('@keyframes tido-mobilenav-blink')
+        ->toMatch('/@keyframes tido-mobilenav-blink\s*\{[^}]*rotate\(\s*-?\d+(\.\d+)?deg\)/')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-svg--active .tido-mobilenav-add-eye')
+        ->toContain('.is-blinking-1')
+        ->toContain('.is-blinking-2')
+        ->toContain('.is-blinking-3')
+        ->toContain('transform-box: fill-box;')
+        ->toContain('transform-origin: center center;')
+        ->toContain('html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-eye')
+        ->toContain('animation-play-state: paused;');
 });

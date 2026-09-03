@@ -2529,8 +2529,11 @@ html.tido-reduce-motion.tido-mobilenav
 html.tido-reduce-motion.tido-mobilenav
     .tido-mobilenav-add-sheet.fi-transition-leave,
 html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-btn,
-html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-icon {
+html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-svg,
+html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-z,
+html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-eye {
     transition: none !important;
+    animation: none !important;
 }
 
 html.tido-reduce-motion.tido-mobilenav
@@ -6223,26 +6226,21 @@ html.tido-mobilenav {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 6rem;
-        height: 4rem;
+        width: 6.4375rem;
+        height: 4.3125rem;
         position: absolute;
         bottom: 1.75rem;
         left: 50%;
         transform: translateX(-50%);
-        border-radius: 9999px;
-        background-color: var(--color-primary-500);
-        color: var(--color-white);
-        border: 3px solid var(--color-white);
+        border: 0;
+        background: transparent;
         box-shadow: none;
-        transition:
-            transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-            background-color 0.2s ease;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     html.dark.tido-mobilenav .tido-mobilenav-add-btn {
-        background-color: var(--color-primary-500);
-        color: var(--color-slate-950);
-        border-color: var(--color-slate-800);
+        background: transparent;
+        border: 0;
         box-shadow: none;
     }
 
@@ -6250,15 +6248,185 @@ html.tido-mobilenav {
         transform: translateX(-50%) scale(0.92);
     }
 
-    html.tido-mobilenav .tido-mobilenav-add-icon {
-        width: 1.625rem;
-        height: 1.625rem;
-        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        transform: rotate(0deg);
+    html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-svg {
+        animation-play-state: paused;
     }
 
-    html.tido-mobilenav .tido-mobilenav-add-btn--open .tido-mobilenav-add-icon {
-        transform: rotate(45deg);
+    @keyframes tido-mobilenav-add-breathe {
+        0% {
+            transform: scale(1, 1);
+        }
+        20% {
+            transform: scale(0.975, 1.055) translateY(-1px);
+        }
+        38% {
+            transform: scale(1.015, 0.985) translateY(0);
+        }
+        50% {
+            transform: scale(1, 1);
+        }
+        100% {
+            transform: scale(1, 1);
+        }
+    }
+
+    @keyframes tido-mobilenav-z1-float {
+        0% {
+            opacity: 0;
+            transform: translate(0, 3px) scale(0.6) rotate(-8deg);
+        }
+        18% {
+            opacity: 0.95;
+            transform: translate(1px, 0) scale(0.9) rotate(-4deg);
+        }
+        38% {
+            opacity: 0.95;
+            transform: translate(3px, -5px) scale(1) rotate(-10deg);
+        }
+        55% {
+            opacity: 0;
+            transform: translate(5px, -11px) scale(1.1) rotate(-14deg);
+        }
+        100% {
+            opacity: 0;
+            transform: translate(0, 3px) scale(0.6) rotate(-8deg);
+        }
+    }
+
+    @keyframes tido-mobilenav-z2-float {
+        0% {
+            opacity: 0;
+            transform: translate(0, 3px) scale(0.6) rotate(6deg);
+        }
+        18% {
+            opacity: 0.95;
+            transform: translate(2px, -1px) scale(0.95) rotate(10deg);
+        }
+        38% {
+            opacity: 0.95;
+            transform: translate(4px, -7px) scale(1.15) rotate(14deg);
+        }
+        55% {
+            opacity: 0;
+            transform: translate(7px, -14px) scale(1.25) rotate(18deg);
+        }
+        100% {
+            opacity: 0;
+            transform: translate(0, 3px) scale(0.6) rotate(6deg);
+        }
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-svg--default {
+        transform-origin: center bottom;
+        animation: tido-mobilenav-add-breathe 4s ease-in-out infinite;
+        will-change: transform;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-btn--open .tido-mobilenav-add-svg,
+    html.tido-mobilenav .tido-mobilenav-item--active .tido-mobilenav-add-svg,
+    html.tido-mobilenav .tido-mobilenav-add-svg--active {
+        animation: none !important;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-zzz {
+        pointer-events: none;
+        user-select: none;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-z {
+        font-family: 'Fredoka', 'Sniglet', 'Comfortaa', 'Nunito', 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', system-ui, cursive, sans-serif;
+        font-size: 13px;
+        font-weight: 900;
+        fill: rgb(206, 138, 0);
+        stroke: var(--color-white);
+        stroke-width: 1.5px;
+        paint-order: stroke fill;
+        stroke-linejoin: round;
+        stroke-linecap: round;
+        transform-box: fill-box;
+        transform-origin: center center;
+    }
+
+    html.dark.tido-mobilenav .tido-mobilenav-add-z {
+        fill: var(--color-primary-400);
+        stroke: var(--color-slate-800);
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-z--1 {
+        font-size: 11px;
+        animation: tido-mobilenav-z1-float 4s ease-in-out infinite;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-z--2 {
+        font-size: 15px;
+        animation: tido-mobilenav-z2-float 4s ease-in-out infinite;
+        animation-delay: 0.8s;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-btn--open .tido-mobilenav-add-z,
+    html.tido-mobilenav .tido-mobilenav-item--active .tido-mobilenav-add-z {
+        animation: none !important;
+        opacity: 0 !important;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-z {
+        animation-play-state: paused;
+    }
+
+    @keyframes tido-mobilenav-blink {
+        0%, 100% {
+            transform: rotate(55deg) scale(1, 1) rotate(-55deg);
+        }
+        50% {
+            transform: rotate(55deg) scale(1, 0.08) rotate(-55deg);
+        }
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-svg--active .tido-mobilenav-add-eye {
+        transform-box: fill-box;
+        transform-origin: center center;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-svg--active.is-blinking-1 .tido-mobilenav-add-eye {
+        animation: tido-mobilenav-blink 0.22s ease-in-out 1;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-svg--active.is-blinking-2 .tido-mobilenav-add-eye {
+        animation: tido-mobilenav-blink 0.22s ease-in-out 2;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-svg--active.is-blinking-3 .tido-mobilenav-add-eye {
+        animation: tido-mobilenav-blink 0.22s ease-in-out 3;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-btn:active .tido-mobilenav-add-eye {
+        animation-play-state: paused;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-bg {
+        stroke: var(--color-white);
+        stroke-width: 6px;
+        paint-order: stroke fill;
+        stroke-linejoin: round;
+        stroke-linecap: round;
+        transition: stroke 0.2s ease;
+    }
+
+    html.dark.tido-mobilenav .tido-mobilenav-add-bg {
+        stroke: color-mix(
+            in srgb,
+            var(--color-slate-800) 88%,
+            transparent
+        );
     }
 
     html.tido-mobilenav .tido-mobilenav-item--avatar {
