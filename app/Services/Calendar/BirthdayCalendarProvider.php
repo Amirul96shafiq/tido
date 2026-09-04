@@ -123,7 +123,7 @@ final class BirthdayCalendarProvider implements CalendarEventProvider
             module: CalendarModule::Household,
             type: 'birthday',
             date: $birthday,
-            title: $name,
+            title: $name."'s Birthday 🎉",
             subtitle: 'Turns '.$age,
             status: $isCurrentViewer ? 'Your birthday' : null,
             colorKey: $isCurrentViewer ? 'birthday-self' : 'birthday',
