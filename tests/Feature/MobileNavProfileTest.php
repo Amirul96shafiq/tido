@@ -200,7 +200,11 @@ test('primary mobile nav add sheet includes settings create links', function ():
         ->assertSee('Add Family Members', false)
         ->assertSee(LabelResource::getUrl('create'), false)
         ->assertSee(PaymentMethodResource::getUrl('create'), false)
-        ->assertSee(FamilyMemberResource::getUrl('create'), false);
+        ->assertSee(FamilyMemberResource::getUrl('create'), false)
+        ->assertSee('tido-text-marquee-clip', false)
+        ->assertSee('tido-text-marquee-track', false)
+        ->assertSee('x-ref="marqueeSegment"', false)
+        ->assertSee('x-ref="marqueeTrack"', false);
 
     $blade = (string) file_get_contents(
         resource_path('views/filament/livewire/mobile-nav.blade.php'),
@@ -210,7 +214,9 @@ test('primary mobile nav add sheet includes settings create links', function ():
         ->toContain('Heroicon::OutlinedTag')
         ->toContain('Heroicon::OutlinedCreditCard')
         ->toContain('Heroicon::OutlinedUserGroup')
-        ->toContain('canCreateSettings');
+        ->toContain('canCreateSettings')
+        ->toContain('x-tido.text-marquee')
+        ->toContain('text-class="inline-block whitespace-nowrap"');
 });
 
 test('mobile nav css hides topbar and offsets sticky chrome on small screens', function (): void {
