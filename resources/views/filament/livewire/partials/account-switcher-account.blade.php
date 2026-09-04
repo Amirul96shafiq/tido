@@ -14,6 +14,7 @@
     type="button"
     wire:loading.attr="disabled"
     wire:key="{{ $rowKey }}"
+    x-on:click="closeProfileMenu()"
     @if ($isPrimaryAccount)
         wire:click="mountAction('confirmSwitchBack')"
     @else

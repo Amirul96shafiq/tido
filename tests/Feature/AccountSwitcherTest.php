@@ -248,6 +248,49 @@ test('switching to a family member requires the native confirmation modal', func
     expect(auth()->id())->toBe($familyUser->id);
 });
 
+test('account switch confirmation modal teleports to the document body', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Sample Spouse',
+    ]);
+
+    $this->actingAs($primary);
+
+    Livewire::test(AccountSwitcher::class)
+        ->mountAction('confirmSwitchTo', ['familyMemberId' => $member->id])
+        ->assertActionMounted('confirmSwitchTo')
+        ->assertMountedActionModalSee('Switch account?');
+
+    $actionModal = file_get_contents(resource_path('views/vendor/filament-actions/action-modal.blade.php'));
+
+    expect($actionModal)
+        ->toContain('teleport="body"')
+        ->toContain('<x-filament::modal');
+});
+
+test('account switcher closes the profile menu when a switch row is chosen', function () {
+    $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
+    FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Sample Spouse',
+    ]);
+
+    $this->actingAs($primary);
+
+    $html = Livewire::test(AccountSwitcher::class)->html();
+    $partial = file_get_contents(resource_path('views/filament/livewire/partials/account-switcher-account.blade.php'));
+    $switcher = file_get_contents(resource_path('views/filament/livewire/account-switcher.blade.php'));
+
+    expect($html)
+        ->toContain('closeProfileMenu()')
+        ->toContain('fi-account-switcher-account');
+
+    expect($partial)->toContain('x-on:click="closeProfileMenu()"');
+
+    expect($switcher)
+        ->toContain('closeProfileMenu()')
+        ->toContain("Alpine.store('tidoMobileChrome')?.closeUserMenu?.()");
+});
+
 test('switched family member remains authenticated after redirect', function () {
     $primary = User::factory()->withWhatsAppPhone('60123456789')->create();
     $member = FamilyMember::factory()->loginEnabled()->create([
