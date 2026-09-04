@@ -30,7 +30,8 @@ test('primary user can update expense status inline and receives from-to notific
     $this->actingAs($user);
 
     Livewire::test(ListExpenses::class)
-        ->assertSeeHtml('fi-ta-col-lightweight-select')
+        ->assertSeeHtml('fi-ta-col-lightweight-select tido-expense-table-select px-3 py-4')
+        ->assertSeeHtml('width: 10.5rem')
         ->assertDontSeeHtml('selectTableColumn(')
         ->call('updateExpenseInlineSelect', 'status', (string) $expense->getKey(), 'reviewed')
         ->assertNotified(

@@ -16,7 +16,7 @@
 
 <div
     wire:key="lightweight-select-{{ $attribute }}-{{ $recordKey }}"
-    class="fi-ta-col-lightweight-select tido-expense-table-select"
+    class="fi-ta-col-lightweight-select tido-expense-table-select px-3 py-4"
     x-on:click.stop=""
 >
     <div @class([

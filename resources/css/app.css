@@ -5507,10 +5507,18 @@ html.tido-reduce-motion .tido-expense-status-pending .fi-badge {
 
 /*
  * Expenses table Status / Uploaded By lightweight native selects.
+ * Horizontal padding comes from Blade (px-3 py-4) to match Filament
+ * SelectColumn and create a gap between adjacent select fields.
+ * Column width is 10.5rem (9rem control + 1.5rem padding).
  */
 .fi-ta-col-lightweight-select.tido-expense-table-select {
-    max-width: 9rem;
+    max-width: 10.5rem;
     width: max-content;
+}
+
+.fi-ta-table-stacked-on-mobile
+    .fi-ta-col-lightweight-select.tido-expense-table-select {
+    @apply p-0 sm:px-3 sm:py-4;
 }
 
 .fi-ta-col-lightweight-select.tido-expense-table-select .fi-input-wrp,

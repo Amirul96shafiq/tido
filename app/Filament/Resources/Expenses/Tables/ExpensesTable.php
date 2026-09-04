@@ -125,7 +125,7 @@ class ExpensesTable
                     ->label('Uploaded By')
                     ->options($uploadedByOptions)
                     ->placeholder($primaryUsername)
-                    ->width('9rem')
+                    ->width('10.5rem')
                     ->disabled(fn (Expense $record): bool => HouseholdAccess::isFamilyMember()
                         || ! HouseholdAccess::canMutateExpense($record))
                     ->toggleable(isToggledHiddenByDefault: false),
@@ -133,7 +133,7 @@ class ExpensesTable
                 LightweightSelectColumn::make('status')
                     ->options($statusOptions)
                     ->selectablePlaceholder(false)
-                    ->width('9rem')
+                    ->width('10.5rem')
                     ->disabled(fn (Expense $record): bool => ! HouseholdAccess::canMutateExpense($record))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),

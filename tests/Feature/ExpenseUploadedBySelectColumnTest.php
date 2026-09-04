@@ -36,7 +36,7 @@ test('primary user can update uploaded by inline and receives from-to notificati
     $this->actingAs($user);
 
     Livewire::test(ListExpenses::class)
-        ->assertSeeHtml('fi-ta-col-lightweight-select')
+        ->assertSeeHtml('fi-ta-col-lightweight-select tido-expense-table-select px-3 py-4')
         ->call('updateExpenseInlineSelect', 'family_member_id', (string) $expense->getKey(), (string) $member->getKey())
         ->assertNotified(
             Notification::make()
