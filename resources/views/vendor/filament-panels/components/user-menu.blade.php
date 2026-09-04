@@ -118,6 +118,10 @@
                             return;
                         }
 
+                        // Keep menuOpen through enter/leave so the shared chrome overlay
+                        // does not flicker. Do not treat bare panel display as open —
+                        // Livewire action unmount morphs can flash display and resurrect
+                        // menuOpen after Sign out Cancel (overlay + Profile active stuck).
                         const isTransitioning = panel.classList.contains('fi-transition-enter')
                             || panel.classList.contains('fi-transition-enter-start')
                             || panel.classList.contains('fi-transition-enter-end')
@@ -126,9 +130,7 @@
                             || panel.classList.contains('fi-transition-leave-end');
 
                         Alpine.store('tidoNotifications').menuOpen =
-                            isTransitioning
-                            || window.getComputedStyle(panel).display !== 'none'
-                            || isExpanded;
+                            isExpanded || isTransitioning;
                     };
 
                     syncMenuOpen();

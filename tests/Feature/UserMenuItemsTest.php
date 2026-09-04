@@ -50,7 +50,7 @@ test('user menu orders profile changelogs notifications and logout', function ()
     expect($items['logout']->hasAction())->toBeTrue();
     expect($items['logout']->getUrl())->toBeNull();
     expect($items['logout']->getExtraAttributes())->toMatchArray([
-        'x-on:mousedown' => 'Alpine.$data($el.closest(\'.fi-dropdown\'))?.close?.(); $store.tidoMobileChrome?.closeUserMenu?.()',
+        'x-on:mousedown' => 'Alpine.$data($el.closest(\'.fi-dropdown\'))?.close?.(); $store.tidoMobileChrome?.closeUserMenu?.(); if ($store.tidoNotifications) { $store.tidoNotifications.menuOpen = false } $store.tidoMobileChrome?.dismissOverlay?.()',
     ]);
 });
 
@@ -82,6 +82,25 @@ test('user menu logout mounts confirmation without signing out', function () {
         ->assertMountedActionModalSee('Are you sure you want to sign out of your account?');
 
     $this->assertAuthenticatedAs($user);
+});
+
+test('user menu chrome resets after action confirmation modal closes', function () {
+    $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
+    $userMenu = (string) file_get_contents(
+        resource_path('views/vendor/filament-panels/components/user-menu.blade.php'),
+    );
+
+    expect($provider)
+        ->toContain('resetUserMenuChrome')
+        ->toContain("modalId.indexOf('-action-') === -1")
+        ->toContain('notifications.menuOpen = false')
+        ->toContain('chrome.dismissOverlay()')
+        ->toContain("Livewire.hook('commit'")
+        ->not->toContain('return window.getComputedStyle(panel).display !== \'none\'');
+
+    expect($userMenu)
+        ->toContain('isExpanded || isTransitioning')
+        ->not->toContain("window.getComputedStyle(panel).display !== 'none'");
 });
 
 test('user menu calendar label uses viewer timezone when date is omitted', function () {
