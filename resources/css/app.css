@@ -5506,37 +5506,17 @@ html.tido-reduce-motion .tido-expense-status-pending .fi-badge {
 }
 
 /*
- * Expenses table Status SelectColumn — keep the JS select + panel compact.
- * Longest label is "Requires Manual Review"; marquee handles overflow.
+ * Expenses table Status / Uploaded By lightweight native selects.
  */
-.fi-ta-select.tido-select-value-marquee {
+.fi-ta-col-lightweight-select.tido-expense-table-select {
     max-width: 9rem;
     width: max-content;
 }
 
-.fi-ta-select.tido-select-value-marquee .fi-input-wrp,
-.fi-ta-select.tido-select-value-marquee .fi-select-input,
-.fi-ta-select.tido-select-value-marquee .fi-select-input-btn {
+.fi-ta-col-lightweight-select.tido-expense-table-select .fi-input-wrp,
+.fi-ta-col-lightweight-select.tido-expense-table-select .fi-select-input {
     max-width: 9rem;
     width: 9rem;
-}
-
-.fi-ta-select.tido-select-value-marquee
-    .fi-select-input-ctn
-    > .fi-dropdown-panel {
-    max-width: 9rem !important;
-    width: 9rem !important;
-    min-width: 0 !important;
-}
-
-.fi-ta-select.tido-select-value-marquee .fi-select-input-search-ctn {
-    padding-inline: 0.5rem;
-    padding-block: 0.375rem;
-}
-
-.fi-ta-select.tido-select-value-marquee .fi-select-input-search-ctn .fi-input {
-    min-width: 0;
-    width: 100%;
 }
 
 @keyframes tido-status-pulse {

@@ -329,19 +329,27 @@ function enhanceRoot(root) {
  * @returns {void}
  */
 function observeRoot(root) {
-    enhanceRoot(root);
+    enhanceSelectedValue(root);
 
     if (root.dataset.tidoMarqueeMo) {
         return;
     }
 
     root.dataset.tidoMarqueeMo = "1";
+    let debounceId = 0;
+
     new MutationObserver(() => {
         if (root.dataset.tidoMarqueeBusy) {
             return;
         }
 
-        enhanceRoot(root);
+        window.clearTimeout(debounceId);
+        debounceId = window.setTimeout(() => {
+            root.dataset.tidoMarqueeBusy = "1";
+            enhanceSelectedValue(root);
+            enhanceOptionLabels(root);
+            delete root.dataset.tidoMarqueeBusy;
+        }, 50);
     }).observe(root, {
         childList: true,
         subtree: true,

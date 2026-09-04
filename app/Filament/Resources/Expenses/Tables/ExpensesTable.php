@@ -8,7 +8,7 @@ use App\Enums\HouseholdRole;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Support\RecordActionsGroup;
-use App\Filament\Support\SelectValueMarquee;
+use App\Filament\Tables\Columns\LightweightSelectColumn;
 use App\Helpers\FilenameDisplay;
 use App\Helpers\MoneyDisplay;
 use App\Models\Expense;
@@ -30,7 +30,6 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -38,15 +37,15 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 
 class ExpensesTable
 {
     public static function configure(Table $table): Table
     {
-        /** @var array<int|string, string> $previousStatuses */
-        $previousStatuses = [];
+        $statusOptions = self::statusOptions();
+        $uploadedByOptions = self::uploadedByOptions();
+        $primaryUsername = self::primaryUsername();
 
         return $table
             ->columns([
@@ -122,55 +121,20 @@ class ExpensesTable
                     })
                     ->toggleable(isToggledHiddenByDefault: false),
 
-                TextColumn::make('uploaded_by')
+                LightweightSelectColumn::make('family_member_id')
                     ->label('Uploaded By')
-                    ->state(function (Expense $record): string {
-                        $familyMember = $record->familyMember;
-
-                        if ($familyMember === null) {
-                            return self::primaryUsername();
-                        }
-
-                        return filled($familyMember->display_name)
-                            ? (string) $familyMember->display_name
-                            : (string) $familyMember->name;
-                    })
+                    ->options($uploadedByOptions)
+                    ->placeholder($primaryUsername)
+                    ->width('9rem')
+                    ->disabled(fn (Expense $record): bool => HouseholdAccess::isFamilyMember()
+                        || ! HouseholdAccess::canMutateExpense($record))
                     ->toggleable(isToggledHiddenByDefault: false),
 
-                SelectColumn::make('status')
-                    ->options(self::statusOptions())
-                    ->native(false)
-                    ->searchableOptions()
-                    ->wrapOptionLabels(false)
+                LightweightSelectColumn::make('status')
+                    ->options($statusOptions)
                     ->selectablePlaceholder(false)
-                    ->extraAttributes(SelectValueMarquee::extraAttributes())
-                    ->width('8rem')
-                    ->rules([
-                        'required',
-                        Rule::in(array_keys(self::statusOptions())),
-                    ])
+                    ->width('9rem')
                     ->disabled(fn (Expense $record): bool => ! HouseholdAccess::canMutateExpense($record))
-                    ->beforeStateUpdated(function (Expense $record) use (&$previousStatuses): void {
-                        $previousStatuses[$record->getKey()] = (string) $record->status;
-                    })
-                    ->afterStateUpdated(function (Expense $record, ?string $state) use (&$previousStatuses): void {
-                        $previousStatus = $previousStatuses[$record->getKey()] ?? null;
-                        unset($previousStatuses[$record->getKey()]);
-
-                        if (! is_string($previousStatus) || $previousStatus === $state) {
-                            return;
-                        }
-
-                        $options = self::statusOptions();
-                        $fromLabel = $options[$previousStatus] ?? $previousStatus;
-                        $toLabel = $options[$state] ?? (string) $state;
-
-                        Notification::make()
-                            ->title('Status Updated')
-                            ->body("Expense ID {$record->getKey()}'s status changed from {$fromLabel} to {$toLabel}.")
-                            ->success()
-                            ->send();
-                    })
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),
 
@@ -192,7 +156,7 @@ class ExpensesTable
             ->defaultSort('updated_at', 'desc')
             ->filters([
                 SelectFilter::make('status')
-                    ->options(self::statusOptions())
+                    ->options($statusOptions)
                     ->searchable(),
 
                 SelectFilter::make('source')
@@ -204,15 +168,7 @@ class ExpensesTable
 
                 SelectFilter::make('family_member_id')
                     ->label('Uploaded By')
-                    ->options(fn (): array => FamilyMember::query()
-                        ->orderBy('name')
-                        ->get(['id', 'name', 'display_name'])
-                        ->mapWithKeys(fn (FamilyMember $familyMember): array => [
-                            $familyMember->getKey() => filled($familyMember->display_name)
-                                ? (string) $familyMember->display_name
-                                : (string) $familyMember->name,
-                        ])
-                        ->all())
+                    ->options($uploadedByOptions)
                     ->searchable()
                     ->preload(),
 
@@ -315,7 +271,7 @@ class ExpensesTable
     /**
      * @return array<string, string>
      */
-    protected static function statusOptions(): array
+    public static function statusOptions(): array
     {
         return [
             'pending' => 'Pending Parsing',
@@ -326,24 +282,55 @@ class ExpensesTable
         ];
     }
 
-    protected static function primaryUsername(): string
+    /**
+     * @return array<int|string, string>
+     */
+    public static function uploadedByOptions(): array
     {
-        $primaryUser = User::query()
-            ->where(function (Builder $query): void {
-                $query
-                    ->where('household_role', HouseholdRole::Primary->value)
-                    ->orWhereNull('household_role');
-            })
-            ->orderBy('id')
-            ->first(['name', 'display_name']);
+        return once(static function (): array {
+            return FamilyMember::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'display_name'])
+                ->mapWithKeys(fn (FamilyMember $familyMember): array => [
+                    $familyMember->getKey() => filled($familyMember->display_name)
+                        ? (string) $familyMember->display_name
+                        : (string) $familyMember->name,
+                ])
+                ->all();
+        });
+    }
 
-        if (! $primaryUser instanceof User) {
-            return 'Primary username';
+    public static function uploadedByLabel(?int $familyMemberId): string
+    {
+        if ($familyMemberId === null) {
+            return self::primaryUsername();
         }
 
-        return filled($primaryUser->display_name)
-            ? (string) $primaryUser->display_name
-            : (string) $primaryUser->name;
+        $options = self::uploadedByOptions();
+
+        return $options[$familyMemberId] ?? (string) $familyMemberId;
+    }
+
+    public static function primaryUsername(): string
+    {
+        return once(static function (): string {
+            $primaryUser = User::query()
+                ->where(function (Builder $query): void {
+                    $query
+                        ->where('household_role', HouseholdRole::Primary->value)
+                        ->orWhereNull('household_role');
+                })
+                ->orderBy('id')
+                ->first(['name', 'display_name']);
+
+            if (! $primaryUser instanceof User) {
+                return 'Primary username';
+            }
+
+            return filled($primaryUser->display_name)
+                ? (string) $primaryUser->display_name
+                : (string) $primaryUser->name;
+        });
     }
 
     public static function familyMemberActionAuthorizationMessage(Expense $record): string

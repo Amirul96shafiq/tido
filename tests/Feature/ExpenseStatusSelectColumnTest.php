@@ -30,10 +30,9 @@ test('primary user can update expense status inline and receives from-to notific
     $this->actingAs($user);
 
     Livewire::test(ListExpenses::class)
-        ->assertSeeHtml('tido-select-value-marquee')
-        ->assertSeeHtml('isNative: false')
-        ->assertSeeHtml('canOptionLabelsWrap: false')
-        ->call('updateTableColumnState', 'status', (string) $expense->getKey(), 'reviewed')
+        ->assertSeeHtml('fi-ta-col-lightweight-select')
+        ->assertDontSeeHtml('selectTableColumn(')
+        ->call('updateExpenseInlineSelect', 'status', (string) $expense->getKey(), 'reviewed')
         ->assertNotified(
             Notification::make()
                 ->title('Status Updated')
@@ -64,7 +63,7 @@ test('family member cannot update status inline on a non-owned expense', functio
     $this->actingAs($user);
 
     Livewire::test(ListExpenses::class)
-        ->call('updateTableColumnState', 'status', (string) $primaryExpense->getKey(), 'reviewed')
+        ->call('updateExpenseInlineSelect', 'status', (string) $primaryExpense->getKey(), 'reviewed')
         ->assertNotNotified('Status Updated');
 
     expect($primaryExpense->fresh()->status)->toBe('parsed');
@@ -90,7 +89,7 @@ test('family member can update status inline on an owned expense', function (): 
     $this->actingAs($user);
 
     Livewire::test(ListExpenses::class)
-        ->call('updateTableColumnState', 'status', (string) $ownExpense->getKey(), 'reviewed')
+        ->call('updateExpenseInlineSelect', 'status', (string) $ownExpense->getKey(), 'reviewed')
         ->assertNotified(
             Notification::make()
                 ->title('Status Updated')
