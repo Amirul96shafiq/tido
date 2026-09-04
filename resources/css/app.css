@@ -5772,7 +5772,7 @@ html.tido-reduce-motion .tido-ping-pulse {
 }
 
 .tido-calendar__popover {
-    @apply fixed z-50 w-[calc(100vw-2rem)] max-h-[80vh] rounded-xl bg-white p-4 shadow-xl ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 sm:w-80;
+    @apply fixed z-50 w-[calc(100vw-2rem)] max-h-[80vh] rounded-xl bg-white p-4 ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 sm:w-80;
 }
 
 .tido-calendar__popover-header {
@@ -6407,7 +6407,9 @@ html.tido-mobilenav {
         }
     }
 
-    html.tido-mobilenav .tido-mobilenav-add-svg--active .tido-mobilenav-add-eye {
+    html.tido-mobilenav
+        .tido-mobilenav-add-svg--active
+        .tido-mobilenav-add-eye {
         transform-box: fill-box;
         transform-origin: center center;
     }
@@ -6462,7 +6464,8 @@ html.tido-mobilenav {
         transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    html.tido-mobilenav:has(.tido-mobilenav-add-btn:active) .tido-mobilenav-add-border-behind {
+    html.tido-mobilenav:has(.tido-mobilenav-add-btn:active)
+        .tido-mobilenav-add-border-behind {
         transform: translateX(-50%) scale(0.92);
     }
 
@@ -6476,11 +6479,7 @@ html.tido-mobilenav {
     }
 
     html.dark.tido-mobilenav .tido-mobilenav-add-border {
-        stroke: color-mix(
-            in srgb,
-            var(--color-slate-700) 60%,
-            transparent
-        );
+        stroke: color-mix(in srgb, var(--color-slate-700) 60%, transparent);
     }
 
     html.tido-mobilenav .tido-mobilenav-item--avatar {
