@@ -1,5 +1,6 @@
-# Launches one elevated Windows Terminal window with two Git Bash tabs.
-# The Git Bash profile has elevate:true; starting wt elevated keeps both tabs.
+# Launches one elevated Windows Terminal window with a single Git Bash tab
+# split left|right: left runs npm run dev:all, right is an empty standby shell.
+# The Git Bash profile has elevate:true; starting wt elevated keeps both panes.
 $ErrorActionPreference = 'Stop'
 
 $gitBash = 'G:\Apps\Git\bin\bash.exe'
@@ -17,9 +18,8 @@ $wtArgs = @(
     '--profile', $gitBashProfile, '--startingDirectory', $cwd,
     $gitBash, '-i', '-l', $devScript,
     ';',
-    'nt', '--profile', $gitBashProfile, '--startingDirectory', $cwd,
-    ';',
-    'ft', '-t', '0'
+    'sp', '-V',
+    '--profile', $gitBashProfile, '--startingDirectory', $cwd
 )
 
 Start-Process -FilePath 'wt.exe' -Verb RunAs -ArgumentList $wtArgs
