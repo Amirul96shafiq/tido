@@ -8,6 +8,7 @@ use App\Enums\HouseholdRole;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Support\RecordActionsGroup;
+use App\Filament\Support\SelectValueMarquee;
 use App\Helpers\FilenameDisplay;
 use App\Helpers\MoneyDisplay;
 use App\Models\Expense;
@@ -138,7 +139,12 @@ class ExpensesTable
 
                 SelectColumn::make('status')
                     ->options(self::statusOptions())
+                    ->native(false)
+                    ->searchableOptions()
+                    ->wrapOptionLabels(false)
                     ->selectablePlaceholder(false)
+                    ->extraAttributes(SelectValueMarquee::extraAttributes())
+                    ->width('8rem')
                     ->rules([
                         'required',
                         Rule::in(array_keys(self::statusOptions())),

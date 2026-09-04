@@ -65,10 +65,20 @@ CSS;
     display: none;
 CSS;
 
+    $optionMarqueeNeedle = <<<'CSS'
+.tido-select-value-marquee
+    .fi-select-input-ctn-option-labels-not-wrapped
+    .fi-select-input-option {
+    min-width: 0;
+    overflow: visible;
+    padding-inline: 0.75rem;
+CSS;
+
     $displayPos = strpos($css, $segmentDisplayNeedle);
     $hidePos = strpos($css, $duplicateHideNeedle);
 
     expect($displayPos)->not->toBeFalse()
         ->and($hidePos)->not->toBeFalse()
-        ->and($hidePos)->toBeGreaterThan($displayPos);
+        ->and($hidePos)->toBeGreaterThan($displayPos)
+        ->and($css)->toContain($optionMarqueeNeedle);
 });

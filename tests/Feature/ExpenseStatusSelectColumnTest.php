@@ -30,6 +30,9 @@ test('primary user can update expense status inline and receives from-to notific
     $this->actingAs($user);
 
     Livewire::test(ListExpenses::class)
+        ->assertSeeHtml('tido-select-value-marquee')
+        ->assertSeeHtml('isNative: false')
+        ->assertSeeHtml('canOptionLabelsWrap: false')
         ->call('updateTableColumnState', 'status', (string) $expense->getKey(), 'reviewed')
         ->assertNotified(
             Notification::make()
