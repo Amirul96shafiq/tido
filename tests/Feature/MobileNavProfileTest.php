@@ -3,9 +3,13 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
+use App\Filament\Resources\Labels\LabelResource;
+use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Models\FamilyMember;
 use App\Models\User;
 use App\Support\HouseholdAccess;
+use App\Support\MobileNav;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
@@ -157,7 +161,7 @@ test('mobile nav user menu opens upward from the bottom avatar', function (): vo
         ->toContain('Profile</span>');
 });
 
-test('family member mobile nav add sheet disables budget and recurring create links', function (): void {
+test('family member mobile nav add sheet disables budget recurring and settings create links', function (): void {
     $member = FamilyMember::factory()->loginEnabled()->create();
     $user = User::query()->where('family_member_id', $member->id)->first();
 
@@ -171,7 +175,65 @@ test('family member mobile nav add sheet disables budget and recurring create li
         ->assertSee('Add Receipt', false)
         ->assertSee('Add Budget', false)
         ->assertSee('Add Recurring', false)
-        ->assertSee(HouseholdAccess::createDeniedMessage(), false);
+        ->assertSee('Settings', false)
+        ->assertSee('Add Labels', false)
+        ->assertSee('Add Payment Methods', false)
+        ->assertSee('Add Family Members', false)
+        ->assertSee(HouseholdAccess::createDeniedMessage(), false)
+        ->assertDontSee(LabelResource::getUrl('create'), false)
+        ->assertDontSee(PaymentMethodResource::getUrl('create'), false)
+        ->assertDontSee(FamilyMemberResource::getUrl('create'), false);
+});
+
+test('primary mobile nav add sheet includes settings create links', function (): void {
+    $user = User::factory()->create([
+        'mobile_nav_enabled' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get('/admin');
+
+    $response->assertSuccessful()
+        ->assertSee('Settings', false)
+        ->assertSee('Add Labels', false)
+        ->assertSee('Add Payment Methods', false)
+        ->assertSee('Add Family Members', false)
+        ->assertSee(LabelResource::getUrl('create'), false)
+        ->assertSee(PaymentMethodResource::getUrl('create'), false)
+        ->assertSee(FamilyMemberResource::getUrl('create'), false)
+        ->assertSee('tido-text-marquee-clip', false)
+        ->assertSee('tido-text-marquee-track', false)
+        ->assertSee('x-ref="marqueeSegment"', false)
+        ->assertSee('x-ref="marqueeTrack"', false)
+        ->assertSee('fi-sidebar-group-label', false)
+        ->assertSee(MobileNav::ADD_MENU_COLLAPSED_GROUPS_KEY, false)
+        ->assertSee('toggleCollapsedGroup', false)
+        ->assertSee('groupIsCollapsed', false)
+        ->assertSee('x-collapse.duration.200ms', false);
+
+    $blade = (string) file_get_contents(
+        resource_path('views/filament/livewire/mobile-nav.blade.php'),
+    );
+
+    expect($blade)
+        ->toContain('Heroicon::OutlinedTag')
+        ->toContain('Heroicon::OutlinedCreditCard')
+        ->toContain('Heroicon::OutlinedUserGroup')
+        ->toContain('canCreateSettings')
+        ->toContain('x-tido.text-marquee')
+        ->toContain('text-class="inline-block whitespace-nowrap"')
+        ->toContain('fi-sidebar-group-label')
+        ->toContain("toggleCollapsedGroup('Finances')")
+        ->toContain("toggleCollapsedGroup('Settings')")
+        ->toContain('MobileNav::ADD_MENU_COLLAPSED_GROUPS_KEY')
+        ->toContain('tido-mobilenav-add-group--divided')
+        ->not->toContain('tracking-wide text-gray-500 uppercase')
+        ->not->toContain('border-t border-gray-200 px-4 py-3 dark:border-slate-700');
+});
+
+test('add menu collapsed groups storage key is stable', function (): void {
+    expect(MobileNav::ADD_MENU_COLLAPSED_GROUPS_KEY)->toBe('tidoAddMenuCollapsedGroups');
 });
 
 test('mobile nav css hides topbar and offsets sticky chrome on small screens', function (): void {
@@ -209,6 +271,9 @@ test('mobile nav css hides topbar and offsets sticky chrome on small screens', f
         ->toContain('--tido-mobilenav-menu-gap')
         ->toContain('.tido-mobilenav-add-sheet')
         ->toContain('var(--tido-mobilenav-menu-gap, 2rem)')
+        ->toContain('.tido-mobilenav-add-group--divided')
+        ->toContain('.tido-mobilenav-add-group--divided:hover')
+        ->toContain('border-color: var(--tido-border-color) !important')
         ->toContain('.tido-mobilenav-item--avatar')
         ->toContain('--sidebar-width: var(--tido-mobilenav-sidebar-width, 50vw)')
         ->toContain("html.tido-mobilenav .fi-sidebar {\n        inset-block-end: var(--tido-mobilenav-height, 4rem);\n        height: auto;\n        width: var(--tido-mobilenav-sidebar-width, 50vw) !important;\n        max-width: var(--tido-mobilenav-sidebar-width, 50vw);");

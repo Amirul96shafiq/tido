@@ -1,4 +1,5 @@
 @php
+    use App\Support\MobileNav;
     use Filament\Support\Icons\Heroicon;
 @endphp
 
@@ -125,22 +126,74 @@
         x-transition:enter-end="fi-transition-enter-end"
         x-transition:leave-start="fi-transition-leave-start"
         x-transition:leave-end="fi-transition-leave-end"
-        class="tido-mobilenav-add-sheet fixed inset-x-0 mx-auto max-w-3xs"
+        class="tido-mobilenav-add-sheet fixed inset-x-0 mx-auto min-w-0 max-w-3xs"
         role="dialog"
         aria-label="Add"
     >
-        <div class="tido-mobilenav-add-card overflow-hidden rounded-xl border border-gray-200 bg-white shadow-none dark:border-slate-700 dark:bg-slate-800">
-            <div class="px-4 py-3">
-                <p class="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                    Finances
-                </p>
+        <div
+            class="tido-mobilenav-add-card min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-none dark:border-slate-700 dark:bg-slate-800"
+            x-data="{
+                storageKey: @js(MobileNav::ADD_MENU_COLLAPSED_GROUPS_KEY),
+                collapsedGroups: [],
+                init() {
+                    try {
+                        const stored = JSON.parse(localStorage.getItem(this.storageKey));
+                        this.collapsedGroups = Array.isArray(stored) ? stored : [];
+                    } catch (error) {
+                        this.collapsedGroups = [];
+                    }
+                },
+                groupIsCollapsed(label) {
+                    return this.collapsedGroups.includes(label);
+                },
+                toggleCollapsedGroup(label) {
+                    if (this.groupIsCollapsed(label)) {
+                        this.collapsedGroups = this.collapsedGroups.filter((group) => group !== label);
+                    } else {
+                        this.collapsedGroups = [...this.collapsedGroups, label];
+                    }
 
-                <ul class="flex flex-col gap-1">
-                    <li>
+                    localStorage.setItem(this.storageKey, JSON.stringify(this.collapsedGroups));
+                },
+            }"
+        >
+            <div
+                class="tido-mobilenav-add-group min-w-0 px-4 py-3"
+                x-bind:class="{ 'is-collapsed': groupIsCollapsed('Finances') }"
+            >
+                <button
+                    type="button"
+                    class="tido-mobilenav-add-group-btn mb-1 flex w-full min-w-0 items-center gap-x-3 rounded-lg px-1 py-1 text-start"
+                    x-on:click="toggleCollapsedGroup('Finances')"
+                    x-bind:aria-expanded="! groupIsCollapsed('Finances')"
+                >
+                    <span class="fi-sidebar-group-label">
+                        Finances
+                    </span>
+                    <span
+                        class="tido-mobilenav-add-group-chevron shrink-0 text-gray-400 transition-transform dark:text-gray-500"
+                        x-bind:class="{ '-rotate-180': groupIsCollapsed('Finances') }"
+                        aria-hidden="true"
+                    >
+                        {{
+                            \Filament\Support\generate_icon_html(
+                                Heroicon::ChevronUp,
+                                attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5']),
+                            )
+                        }}
+                    </span>
+                </button>
+
+                <ul
+                    class="flex min-w-0 flex-col gap-1"
+                    x-show="! groupIsCollapsed('Finances')"
+                    x-collapse.duration.200ms
+                >
+                    <li class="min-w-0">
                         <a
                             href="{{ $receiptUrl }}"
                             wire:navigate
-                            class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                            class="flex min-w-0 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
                             x-on:click="closeAdd()"
                         >
                             {{
@@ -149,16 +202,19 @@
                                     attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0 text-primary-600 dark:text-primary-400']),
                                 )
                             }}
-                            <span>Add Receipt</span>
+                            <x-tido.text-marquee
+                                class="min-w-0 flex-1"
+                                text-class="inline-block whitespace-nowrap"
+                            >Add Receipt</x-tido.text-marquee>
                         </a>
                     </li>
 
-                    <li>
+                    <li class="min-w-0">
                         @if ($canCreateFinances)
                             <a
                                 href="{{ $budgetCreateUrl }}"
                                 wire:navigate
-                                class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                                class="flex min-w-0 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
                                 x-on:click="closeAdd()"
                             >
                                 {{
@@ -167,11 +223,14 @@
                                         attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0 text-primary-600 dark:text-primary-400']),
                                     )
                                 }}
-                                <span>Add Budget</span>
+                                <x-tido.text-marquee
+                                    class="min-w-0 flex-1"
+                                    text-class="inline-block whitespace-nowrap"
+                                >Add Budget</x-tido.text-marquee>
                             </a>
                         @else
                             <span
-                                class="flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
+                                class="flex w-full min-w-0 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
                                 aria-disabled="true"
                                 title="{{ $createDeniedMessage }}"
                             >
@@ -181,17 +240,20 @@
                                         attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0']),
                                     )
                                 }}
-                                <span>Add Budget</span>
+                                <x-tido.text-marquee
+                                    class="min-w-0 flex-1"
+                                    text-class="inline-block whitespace-nowrap"
+                                >Add Budget</x-tido.text-marquee>
                             </span>
                         @endif
                     </li>
 
-                    <li>
+                    <li class="min-w-0">
                         @if ($canCreateFinances)
                             <a
                                 href="{{ $recurringCreateUrl }}"
                                 wire:navigate
-                                class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                                class="flex min-w-0 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
                                 x-on:click="closeAdd()"
                             >
                                 {{
@@ -200,11 +262,14 @@
                                         attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0 text-primary-600 dark:text-primary-400']),
                                     )
                                 }}
-                                <span>Add Recurring</span>
+                                <x-tido.text-marquee
+                                    class="min-w-0 flex-1"
+                                    text-class="inline-block whitespace-nowrap"
+                                >Add Recurring</x-tido.text-marquee>
                             </a>
                         @else
                             <span
-                                class="flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
+                                class="flex w-full min-w-0 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
                                 aria-disabled="true"
                                 title="{{ $createDeniedMessage }}"
                             >
@@ -214,7 +279,161 @@
                                         attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0']),
                                     )
                                 }}
-                                <span>Add Recurring</span>
+                                <x-tido.text-marquee
+                                    class="min-w-0 flex-1"
+                                    text-class="inline-block whitespace-nowrap"
+                                >Add Recurring</x-tido.text-marquee>
+                            </span>
+                        @endif
+                    </li>
+                </ul>
+            </div>
+
+            <div
+                class="tido-mobilenav-add-group tido-mobilenav-add-group--divided min-w-0 px-4 py-3"
+                x-bind:class="{ 'is-collapsed': groupIsCollapsed('Settings') }"
+            >
+                <button
+                    type="button"
+                    class="tido-mobilenav-add-group-btn mb-1 flex w-full min-w-0 items-center gap-x-3 rounded-lg px-1 py-1 text-start"
+                    x-on:click="toggleCollapsedGroup('Settings')"
+                    x-bind:aria-expanded="! groupIsCollapsed('Settings')"
+                >
+                    <span class="fi-sidebar-group-label">
+                        Settings
+                    </span>
+                    <span
+                        class="tido-mobilenav-add-group-chevron shrink-0 text-gray-400 transition-transform dark:text-gray-500"
+                        x-bind:class="{ '-rotate-180': groupIsCollapsed('Settings') }"
+                        aria-hidden="true"
+                    >
+                        {{
+                            \Filament\Support\generate_icon_html(
+                                Heroicon::ChevronUp,
+                                attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5']),
+                            )
+                        }}
+                    </span>
+                </button>
+
+                <ul
+                    class="flex min-w-0 flex-col gap-1"
+                    x-show="! groupIsCollapsed('Settings')"
+                    x-collapse.duration.200ms
+                >
+                    <li class="min-w-0">
+                        @if ($canCreateSettings)
+                            <a
+                                href="{{ $labelCreateUrl }}"
+                                wire:navigate
+                                class="flex min-w-0 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                                x-on:click="closeAdd()"
+                            >
+                                {{
+                                    \Filament\Support\generate_icon_html(
+                                        Heroicon::OutlinedTag,
+                                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0 text-primary-600 dark:text-primary-400']),
+                                    )
+                                }}
+                                <x-tido.text-marquee
+                                    class="min-w-0 flex-1"
+                                    text-class="inline-block whitespace-nowrap"
+                                >Add Labels</x-tido.text-marquee>
+                            </a>
+                        @else
+                            <span
+                                class="flex w-full min-w-0 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
+                                aria-disabled="true"
+                                title="{{ $createDeniedMessage }}"
+                            >
+                                {{
+                                    \Filament\Support\generate_icon_html(
+                                        Heroicon::OutlinedTag,
+                                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0']),
+                                    )
+                                }}
+                                <x-tido.text-marquee
+                                    class="min-w-0 flex-1"
+                                    text-class="inline-block whitespace-nowrap"
+                                >Add Labels</x-tido.text-marquee>
+                            </span>
+                        @endif
+                    </li>
+
+                    <li class="min-w-0">
+                        @if ($canCreateSettings)
+                            <a
+                                href="{{ $paymentMethodCreateUrl }}"
+                                wire:navigate
+                                class="flex min-w-0 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                                x-on:click="closeAdd()"
+                            >
+                                {{
+                                    \Filament\Support\generate_icon_html(
+                                        Heroicon::OutlinedCreditCard,
+                                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0 text-primary-600 dark:text-primary-400']),
+                                    )
+                                }}
+                                <x-tido.text-marquee
+                                    class="min-w-0 flex-1"
+                                    text-class="inline-block whitespace-nowrap"
+                                >Add Payment Methods</x-tido.text-marquee>
+                            </a>
+                        @else
+                            <span
+                                class="flex w-full min-w-0 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
+                                aria-disabled="true"
+                                title="{{ $createDeniedMessage }}"
+                            >
+                                {{
+                                    \Filament\Support\generate_icon_html(
+                                        Heroicon::OutlinedCreditCard,
+                                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0']),
+                                    )
+                                }}
+                                <x-tido.text-marquee
+                                    class="min-w-0 flex-1"
+                                    text-class="inline-block whitespace-nowrap"
+                                >Add Payment Methods</x-tido.text-marquee>
+                            </span>
+                        @endif
+                    </li>
+
+                    <li class="min-w-0">
+                        @if ($canCreateSettings)
+                            <a
+                                href="{{ $familyMemberCreateUrl }}"
+                                wire:navigate
+                                class="flex min-w-0 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                                x-on:click="closeAdd()"
+                            >
+                                {{
+                                    \Filament\Support\generate_icon_html(
+                                        Heroicon::OutlinedUserGroup,
+                                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0 text-primary-600 dark:text-primary-400']),
+                                    )
+                                }}
+                                <x-tido.text-marquee
+                                    class="min-w-0 flex-1"
+                                    text-class="inline-block whitespace-nowrap"
+                                >Add Family Members</x-tido.text-marquee>
+                            </a>
+                        @else
+                            <span
+                                class="flex w-full min-w-0 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
+                                aria-disabled="true"
+                                title="{{ $createDeniedMessage }}"
+                            >
+                                {{
+                                    \Filament\Support\generate_icon_html(
+                                        Heroicon::OutlinedUserGroup,
+                                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0']),
+                                    )
+                                }}
+                                <x-tido.text-marquee
+                                    class="min-w-0 flex-1"
+                                    text-class="inline-block whitespace-nowrap"
+                                >Add Family Members</x-tido.text-marquee>
                             </span>
                         @endif
                     </li>
