@@ -552,11 +552,10 @@ class AdminPanelProvider extends PanelProvider
                                                 return true;
                                             }
 
-                                            if (notifications && notifications.menuOpen) {
-                                                return true;
-                                            }
-
-                                            return window.getComputedStyle(panel).display !== 'none';
+                                            // menuOpen only — bare panel display flashes during
+                                            // Livewire action unmount morphs and must not keep
+                                            // the chrome overlay stuck after Sign out Cancel.
+                                            return !!(notifications && notifications.menuOpen);
                                         },
 
                                         isChromeOpen: function () {
@@ -714,10 +713,64 @@ class AdminPanelProvider extends PanelProvider
                                     }
 
                                     window.addEventListener('modal-closed', function (event) {
-                                        if (event.detail && event.detail.id === 'global-search-modal::plugin') {
+                                        var modalId = event.detail && event.detail.id ? String(event.detail.id) : '';
+
+                                        if (modalId === 'global-search-modal::plugin') {
                                             chrome.searchOpen = false;
                                             chrome.dismissOverlay();
+
+                                            return;
                                         }
+
+                                        // Filament action confirmations (e.g. Sign out) call
+                                        // unmountAction on modal-closed. That Livewire morph can
+                                        // resurrect tidoNotifications.menuOpen and leave the
+                                        // chrome overlay + Profile tab active with no dropdown.
+                                        if (modalId.indexOf('-action-') === -1) {
+                                            return;
+                                        }
+
+                                        var resetUserMenuChrome = function () {
+                                            var notifications = Alpine.store('tidoNotifications');
+
+                                            if (notifications) {
+                                                notifications.menuOpen = false;
+                                            }
+
+                                            document.querySelectorAll('.fi-user-menu').forEach(function (menu) {
+                                                var data = Alpine.\$data(menu);
+
+                                                if (data && typeof data.close === 'function') {
+                                                    data.close();
+                                                }
+                                            });
+
+                                            chrome.dismissOverlay();
+                                        };
+
+                                        resetUserMenuChrome();
+
+                                        if (window.Livewire && typeof Livewire.hook === 'function') {
+                                            var removeCommitHook = Livewire.hook('commit', function (_payload) {
+                                                var succeed = _payload && _payload.succeed;
+
+                                                if (typeof succeed !== 'function') {
+                                                    return;
+                                                }
+
+                                                succeed(function () {
+                                                    if (typeof removeCommitHook === 'function') {
+                                                        removeCommitHook();
+                                                    }
+
+                                                    resetUserMenuChrome();
+                                                    requestAnimationFrame(resetUserMenuChrome);
+                                                });
+                                            });
+                                        }
+
+                                        setTimeout(resetUserMenuChrome, 300);
+                                        setTimeout(resetUserMenuChrome, 1200);
                                     });
 
                                     Alpine.effect(function () {
@@ -1103,7 +1156,7 @@ class AdminPanelProvider extends PanelProvider
                     ->extraAttributes([
                         // Use mousedown (not x-on:click): Filament seeds x-on:click as null,
                         // which blocks merge, and alpineClickHandler disables wire:click.
-                        'x-on:mousedown' => 'Alpine.$data($el.closest(\'.fi-dropdown\'))?.close?.(); $store.tidoMobileChrome?.closeUserMenu?.()',
+                        'x-on:mousedown' => 'Alpine.$data($el.closest(\'.fi-dropdown\'))?.close?.(); $store.tidoMobileChrome?.closeUserMenu?.(); if ($store.tidoNotifications) { $store.tidoNotifications.menuOpen = false } $store.tidoMobileChrome?.dismissOverlay?.()',
                     ])
                     ->action(function (Component $livewire): void {
                         FilamentAuthLogout::logoutToLogin($livewire);
