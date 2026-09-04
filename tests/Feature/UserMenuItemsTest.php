@@ -251,9 +251,23 @@ test('user menu profile preview shows email for primary user', function () {
         ->assertSee('fi-user-menu-profile-preview-identity', false)
         ->assertSee('fi-user-menu-profile-preview-details', false)
         ->assertSee('primary@tido.local', false)
+        ->assertSee('primaxxxxx@tido.local', false)
         ->assertSee('60123456789', false)
         ->assertSee('15/05/1990', false)
         ->assertSee('aria-hidden="true"> | </span>', false);
+});
+
+test('user menu profile preview masks email with first five characters and five x', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'email' => 'amirul96shafiq@gmail.com',
+    ]);
+
+    $this->actingAs($user);
+
+    $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee('amiruxxxxx@gmail.com', false)
+        ->assertSee('amirul96shafiq@gmail.com', false);
 });
 
 test('user menu profile preview hides email for family member', function () {

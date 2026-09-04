@@ -38,9 +38,9 @@
     if ($email !== null) {
         if (str_contains($email, '@')) {
             [$local, $domain] = explode('@', $email, 2);
-            $maskedEmail = str_repeat('x', max(5, strlen($local))) . '@' . $domain;
+            $maskedEmail = substr($local, 0, 5) . str_repeat('x', 5) . '@' . $domain;
         } else {
-            $maskedEmail = str_repeat('x', strlen($email));
+            $maskedEmail = substr($email, 0, 5) . str_repeat('x', 5);
         }
     }
 
