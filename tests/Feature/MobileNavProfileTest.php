@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
+use App\Filament\Resources\Labels\LabelResource;
+use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Models\FamilyMember;
 use App\Models\User;
 use App\Support\HouseholdAccess;
@@ -157,7 +160,7 @@ test('mobile nav user menu opens upward from the bottom avatar', function (): vo
         ->toContain('Profile</span>');
 });
 
-test('family member mobile nav add sheet disables budget and recurring create links', function (): void {
+test('family member mobile nav add sheet disables budget recurring and settings create links', function (): void {
     $member = FamilyMember::factory()->loginEnabled()->create();
     $user = User::query()->where('family_member_id', $member->id)->first();
 
@@ -171,7 +174,43 @@ test('family member mobile nav add sheet disables budget and recurring create li
         ->assertSee('Add Receipt', false)
         ->assertSee('Add Budget', false)
         ->assertSee('Add Recurring', false)
-        ->assertSee(HouseholdAccess::createDeniedMessage(), false);
+        ->assertSee('Settings', false)
+        ->assertSee('Add Labels', false)
+        ->assertSee('Add Payment Methods', false)
+        ->assertSee('Add Family Members', false)
+        ->assertSee(HouseholdAccess::createDeniedMessage(), false)
+        ->assertDontSee(LabelResource::getUrl('create'), false)
+        ->assertDontSee(PaymentMethodResource::getUrl('create'), false)
+        ->assertDontSee(FamilyMemberResource::getUrl('create'), false);
+});
+
+test('primary mobile nav add sheet includes settings create links', function (): void {
+    $user = User::factory()->create([
+        'mobile_nav_enabled' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get('/admin');
+
+    $response->assertSuccessful()
+        ->assertSee('Settings', false)
+        ->assertSee('Add Labels', false)
+        ->assertSee('Add Payment Methods', false)
+        ->assertSee('Add Family Members', false)
+        ->assertSee(LabelResource::getUrl('create'), false)
+        ->assertSee(PaymentMethodResource::getUrl('create'), false)
+        ->assertSee(FamilyMemberResource::getUrl('create'), false);
+
+    $blade = (string) file_get_contents(
+        resource_path('views/filament/livewire/mobile-nav.blade.php'),
+    );
+
+    expect($blade)
+        ->toContain('Heroicon::OutlinedTag')
+        ->toContain('Heroicon::OutlinedCreditCard')
+        ->toContain('Heroicon::OutlinedUserGroup')
+        ->toContain('canCreateSettings');
 });
 
 test('mobile nav css hides topbar and offsets sticky chrome on small screens', function (): void {

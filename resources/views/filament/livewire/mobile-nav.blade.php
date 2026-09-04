@@ -220,6 +220,113 @@
                     </li>
                 </ul>
             </div>
+
+            <div class="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
+                <p class="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                    Settings
+                </p>
+
+                <ul class="flex flex-col gap-1">
+                    <li>
+                        @if ($canCreateSettings)
+                            <a
+                                href="{{ $labelCreateUrl }}"
+                                wire:navigate
+                                class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                                x-on:click="closeAdd()"
+                            >
+                                {{
+                                    \Filament\Support\generate_icon_html(
+                                        Heroicon::OutlinedTag,
+                                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0 text-primary-600 dark:text-primary-400']),
+                                    )
+                                }}
+                                <span>Add Labels</span>
+                            </a>
+                        @else
+                            <span
+                                class="flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
+                                aria-disabled="true"
+                                title="{{ $createDeniedMessage }}"
+                            >
+                                {{
+                                    \Filament\Support\generate_icon_html(
+                                        Heroicon::OutlinedTag,
+                                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0']),
+                                    )
+                                }}
+                                <span>Add Labels</span>
+                            </span>
+                        @endif
+                    </li>
+
+                    <li>
+                        @if ($canCreateSettings)
+                            <a
+                                href="{{ $paymentMethodCreateUrl }}"
+                                wire:navigate
+                                class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                                x-on:click="closeAdd()"
+                            >
+                                {{
+                                    \Filament\Support\generate_icon_html(
+                                        Heroicon::OutlinedCreditCard,
+                                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0 text-primary-600 dark:text-primary-400']),
+                                    )
+                                }}
+                                <span>Add Payment Methods</span>
+                            </a>
+                        @else
+                            <span
+                                class="flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
+                                aria-disabled="true"
+                                title="{{ $createDeniedMessage }}"
+                            >
+                                {{
+                                    \Filament\Support\generate_icon_html(
+                                        Heroicon::OutlinedCreditCard,
+                                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0']),
+                                    )
+                                }}
+                                <span>Add Payment Methods</span>
+                            </span>
+                        @endif
+                    </li>
+
+                    <li>
+                        @if ($canCreateSettings)
+                            <a
+                                href="{{ $familyMemberCreateUrl }}"
+                                wire:navigate
+                                class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                                x-on:click="closeAdd()"
+                            >
+                                {{
+                                    \Filament\Support\generate_icon_html(
+                                        Heroicon::OutlinedUserGroup,
+                                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0 text-primary-600 dark:text-primary-400']),
+                                    )
+                                }}
+                                <span>Add Family Members</span>
+                            </a>
+                        @else
+                            <span
+                                class="flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
+                                aria-disabled="true"
+                                title="{{ $createDeniedMessage }}"
+                            >
+                                {{
+                                    \Filament\Support\generate_icon_html(
+                                        Heroicon::OutlinedUserGroup,
+                                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0']),
+                                    )
+                                }}
+                                <span>Add Family Members</span>
+                            </span>
+                        @endif
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 
