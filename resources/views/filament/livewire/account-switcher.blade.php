@@ -13,7 +13,19 @@
 
 <div
     wire:key="account-switcher"
-    x-data="{ allMembersOpen: false }"
+    x-data="{
+        allMembersOpen: false,
+        closeProfileMenu() {
+            const dropdown = this.$el.closest('.fi-dropdown');
+            const dropdownData = dropdown ? Alpine.$data(dropdown) : null;
+
+            if (dropdownData && typeof dropdownData.close === 'function') {
+                dropdownData.close();
+            }
+
+            Alpine.store('tidoMobileChrome')?.closeUserMenu?.();
+        },
+    }"
     x-on:click.outside="allMembersOpen = false"
     x-on:keydown.escape.window="allMembersOpen = false"
     x-on:livewire:navigate.window="allMembersOpen = false"
