@@ -6497,6 +6497,27 @@ html.tido-mobilenav {
         padding-inline: var(--tido-mobilenav-inset, 1rem);
     }
 
+    /*
+     * Add sheet Finances/Settings divider + card edge stay on the chrome token
+     * even while a group row is hovered/focused (global border-gray-* remap
+     * only applies when :not(:hover)).
+     */
+    html.tido-mobilenav .tido-mobilenav-add-card,
+    html.tido-mobilenav .tido-mobilenav-add-card:hover,
+    html.tido-mobilenav .tido-mobilenav-add-card:focus,
+    html.tido-mobilenav .tido-mobilenav-add-card:focus-within,
+    html.tido-mobilenav .tido-mobilenav-add-group--divided,
+    html.tido-mobilenav .tido-mobilenav-add-group--divided:hover,
+    html.tido-mobilenav .tido-mobilenav-add-group--divided:focus,
+    html.tido-mobilenav .tido-mobilenav-add-group--divided:focus-within {
+        border-color: var(--tido-border-color) !important;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-group--divided {
+        border-top-style: solid;
+        border-top-width: 1px;
+    }
+
     html.tido-mobilenav .fi-user-menu--mobilenav,
     html.tido-mobilenav .fi-user-menu--mobilenav .fi-dropdown,
     html.tido-mobilenav .fi-user-menu--mobilenav .fi-dropdown-trigger {

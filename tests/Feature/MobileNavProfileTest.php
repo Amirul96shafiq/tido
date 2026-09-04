@@ -227,7 +227,9 @@ test('primary mobile nav add sheet includes settings create links', function ():
         ->toContain("toggleCollapsedGroup('Finances')")
         ->toContain("toggleCollapsedGroup('Settings')")
         ->toContain('MobileNav::ADD_MENU_COLLAPSED_GROUPS_KEY')
-        ->not->toContain('tracking-wide text-gray-500 uppercase');
+        ->toContain('tido-mobilenav-add-group--divided')
+        ->not->toContain('tracking-wide text-gray-500 uppercase')
+        ->not->toContain('border-t border-gray-200 px-4 py-3 dark:border-slate-700');
 });
 
 test('add menu collapsed groups storage key is stable', function (): void {
@@ -269,6 +271,9 @@ test('mobile nav css hides topbar and offsets sticky chrome on small screens', f
         ->toContain('--tido-mobilenav-menu-gap')
         ->toContain('.tido-mobilenav-add-sheet')
         ->toContain('var(--tido-mobilenav-menu-gap, 2rem)')
+        ->toContain('.tido-mobilenav-add-group--divided')
+        ->toContain('.tido-mobilenav-add-group--divided:hover')
+        ->toContain('border-color: var(--tido-border-color) !important')
         ->toContain('.tido-mobilenav-item--avatar')
         ->toContain('--sidebar-width: var(--tido-mobilenav-sidebar-width, 50vw)')
         ->toContain("html.tido-mobilenav .fi-sidebar {\n        inset-block-end: var(--tido-mobilenav-height, 4rem);\n        height: auto;\n        width: var(--tido-mobilenav-sidebar-width, 50vw) !important;\n        max-width: var(--tido-mobilenav-sidebar-width, 50vw);");

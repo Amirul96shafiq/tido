@@ -290,7 +290,7 @@
             </div>
 
             <div
-                class="tido-mobilenav-add-group min-w-0 border-t border-gray-200 px-4 py-3 dark:border-slate-700"
+                class="tido-mobilenav-add-group tido-mobilenav-add-group--divided min-w-0 px-4 py-3"
                 x-bind:class="{ 'is-collapsed': groupIsCollapsed('Settings') }"
             >
                 <button
