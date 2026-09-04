@@ -1100,6 +1100,11 @@ class AdminPanelProvider extends PanelProvider
                     ->modalHeading('Sign out')
                     ->modalDescription('Are you sure you want to sign out of your account?')
                     ->modalSubmitActionLabel('Sign out')
+                    ->extraAttributes([
+                        // Use mousedown (not x-on:click): Filament seeds x-on:click as null,
+                        // which blocks merge, and alpineClickHandler disables wire:click.
+                        'x-on:mousedown' => 'Alpine.$data($el.closest(\'.fi-dropdown\'))?.close?.(); $store.tidoMobileChrome?.closeUserMenu?.()',
+                    ])
                     ->action(function (Component $livewire): void {
                         FilamentAuthLogout::logoutToLogin($livewire);
                     }),

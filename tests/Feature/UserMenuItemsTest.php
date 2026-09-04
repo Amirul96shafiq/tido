@@ -49,6 +49,9 @@ test('user menu orders profile changelogs notifications and logout', function ()
     expect($items['logout']->getModalSubmitActionLabel())->toBe('Sign out');
     expect($items['logout']->hasAction())->toBeTrue();
     expect($items['logout']->getUrl())->toBeNull();
+    expect($items['logout']->getExtraAttributes())->toMatchArray([
+        'x-on:mousedown' => 'Alpine.$data($el.closest(\'.fi-dropdown\'))?.close?.(); $store.tidoMobileChrome?.closeUserMenu?.()',
+    ]);
 });
 
 test('user menu logout confirmation signs out after confirm', function () {
