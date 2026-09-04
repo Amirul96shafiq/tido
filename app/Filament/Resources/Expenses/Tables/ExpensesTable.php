@@ -29,6 +29,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -36,12 +37,16 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 
 class ExpensesTable
 {
     public static function configure(Table $table): Table
     {
+        /** @var array<int|string, string> $previousStatuses */
+        $previousStatuses = [];
+
         return $table
             ->columns([
                 TextColumn::make('id')
@@ -131,19 +136,35 @@ class ExpensesTable
                     })
                     ->toggleable(isToggledHiddenByDefault: false),
 
-                TextColumn::make('status')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'pending' => 'gray',
-                        'parsed' => 'info',
-                        'reviewed' => 'success',
-                        'requires_manual_review' => 'warning',
-                        'failed' => 'danger',
-                        default => 'gray',
+                SelectColumn::make('status')
+                    ->options(self::statusOptions())
+                    ->selectablePlaceholder(false)
+                    ->rules([
+                        'required',
+                        Rule::in(array_keys(self::statusOptions())),
+                    ])
+                    ->disabled(fn (Expense $record): bool => ! HouseholdAccess::canMutateExpense($record))
+                    ->beforeStateUpdated(function (Expense $record) use (&$previousStatuses): void {
+                        $previousStatuses[$record->getKey()] = (string) $record->status;
                     })
-                    ->extraCellAttributes(fn (Expense $record): array => $record->status === 'pending'
-                        ? ['class' => 'tido-expense-status-pending']
-                        : [])
+                    ->afterStateUpdated(function (Expense $record, ?string $state) use (&$previousStatuses): void {
+                        $previousStatus = $previousStatuses[$record->getKey()] ?? null;
+                        unset($previousStatuses[$record->getKey()]);
+
+                        if (! is_string($previousStatus) || $previousStatus === $state) {
+                            return;
+                        }
+
+                        $options = self::statusOptions();
+                        $fromLabel = $options[$previousStatus] ?? $previousStatus;
+                        $toLabel = $options[$state] ?? (string) $state;
+
+                        Notification::make()
+                            ->title('Status Updated')
+                            ->body("Expense ID {$record->getKey()}'s status changed from {$fromLabel} to {$toLabel}.")
+                            ->success()
+                            ->send();
+                    })
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),
 
@@ -165,13 +186,7 @@ class ExpensesTable
             ->defaultSort('updated_at', 'desc')
             ->filters([
                 SelectFilter::make('status')
-                    ->options([
-                        'pending' => 'Pending Parsing',
-                        'parsed' => 'Parsed by AI',
-                        'reviewed' => 'Reviewed',
-                        'requires_manual_review' => 'Requires Manual Review',
-                        'failed' => 'Parsing Failed',
-                    ])
+                    ->options(self::statusOptions())
                     ->searchable(),
 
                 SelectFilter::make('source')
@@ -289,6 +304,20 @@ class ExpensesTable
                     ->url(ReceiptUploadPage::getUrl())
                     ->button(),
             ]);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected static function statusOptions(): array
+    {
+        return [
+            'pending' => 'Pending Parsing',
+            'parsed' => 'Parsed by AI',
+            'reviewed' => 'Reviewed',
+            'requires_manual_review' => 'Requires Manual Review',
+            'failed' => 'Parsing Failed',
+        ];
     }
 
     protected static function primaryUsername(): string
