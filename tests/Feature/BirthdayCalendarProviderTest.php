@@ -27,7 +27,7 @@ test('birthday provider maps user birthday onto viewed calendar year', function 
 
     expect($events)->toHaveCount(1)
         ->and($events->first()?->module)->toBe(CalendarModule::Household)
-        ->and($events->first()?->title)->toBe('May User')
+        ->and($events->first()?->title)->toBe("May User's Birthday 🎉")
         ->and($events->first()?->date->toDateString())->toBe('2026-05-15')
         ->and($events->first()?->colorKey)->toBe('birthday-self');
 });
@@ -50,7 +50,7 @@ test('birthday provider includes family member birthdays', function () {
         $user,
     );
 
-    expect($events->pluck('title')->all())->toContain('Family Birthday');
+    expect($events->pluck('title')->all())->toContain("Family Birthday's Birthday 🎉");
 });
 
 test('birthday provider does not duplicate login-enabled family member birthdays', function () {
@@ -77,6 +77,23 @@ test('birthday provider does not duplicate login-enabled family member birthdays
     );
 
     expect($events)->toHaveCount(1)
-        ->and($events->first()?->title)->toBe('Kopii')
+        ->and($events->first()?->title)->toBe("Kopii's Birthday 🎉")
         ->and($events->first()?->meta)->toHaveKey('user_id');
+});
+
+test('birthday provider formats titles as name possessive birthday', function () {
+    $user = User::factory()->create([
+        'date_of_birth' => '2022-09-19',
+        'display_name' => 'Ebeng',
+    ]);
+
+    $provider = new BirthdayCalendarProvider;
+    $events = $provider->eventsForRange(
+        Carbon::parse('2026-09-01'),
+        Carbon::parse('2026-09-30'),
+        $user,
+    );
+
+    expect($events->first()?->title)->toBe("Ebeng's Birthday 🎉")
+        ->and($events->first()?->subtitle)->toBe('Turns 4');
 });

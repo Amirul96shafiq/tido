@@ -141,7 +141,7 @@ test('calendar page shows household birthday in the viewed month', function () {
     $this->actingAs($user);
 
     Livewire::test(CalendarPage::class)
-        ->assertSee('Calendar Primary');
+        ->assertSee("Calendar Primary's Birthday");
 });
 
 test('calendar month navigation updates the viewed month', function () {
@@ -211,7 +211,7 @@ test('calendar type filter can hide birthdays', function () {
 
     Livewire::test(CalendarPage::class)
         ->set('typeFilter.birthdays', false)
-        ->assertDontSee('Only Birthday');
+        ->assertDontSee("Only Birthday's Birthday");
 });
 
 test('calendar type filter reset restores all event types', function () {
@@ -225,9 +225,9 @@ test('calendar type filter reset restores all event types', function () {
 
     Livewire::test(CalendarPage::class)
         ->set('typeFilter.birthdays', false)
-        ->assertDontSee('Only Birthday')
+        ->assertDontSee("Only Birthday's Birthday")
         ->call('resetTypeFilter')
-        ->assertSee('Only Birthday')
+        ->assertSee("Only Birthday's Birthday")
         ->assertSet('typeFilter.birthdays', true)
         ->assertSet('typeFilter.recurring_dues', true);
 });
