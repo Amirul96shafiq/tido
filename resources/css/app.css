@@ -2531,7 +2531,8 @@ html.tido-reduce-motion.tido-mobilenav
 html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-btn,
 html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-svg,
 html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-z,
-html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-eye {
+html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-eye,
+html.tido-reduce-motion.tido-mobilenav .tido-mobilenav-add-group-chevron {
     transition: none !important;
     animation: none !important;
 }

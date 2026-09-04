@@ -1,4 +1,5 @@
 @php
+    use App\Support\MobileNav;
     use Filament\Support\Icons\Heroicon;
 @endphp
 
@@ -129,13 +130,65 @@
         role="dialog"
         aria-label="Add"
     >
-        <div class="tido-mobilenav-add-card min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-none dark:border-slate-700 dark:bg-slate-800">
-            <div class="min-w-0 px-4 py-3">
-                <p class="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                    Finances
-                </p>
+        <div
+            class="tido-mobilenav-add-card min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-none dark:border-slate-700 dark:bg-slate-800"
+            x-data="{
+                storageKey: @js(MobileNav::ADD_MENU_COLLAPSED_GROUPS_KEY),
+                collapsedGroups: [],
+                init() {
+                    try {
+                        const stored = JSON.parse(localStorage.getItem(this.storageKey));
+                        this.collapsedGroups = Array.isArray(stored) ? stored : [];
+                    } catch (error) {
+                        this.collapsedGroups = [];
+                    }
+                },
+                groupIsCollapsed(label) {
+                    return this.collapsedGroups.includes(label);
+                },
+                toggleCollapsedGroup(label) {
+                    if (this.groupIsCollapsed(label)) {
+                        this.collapsedGroups = this.collapsedGroups.filter((group) => group !== label);
+                    } else {
+                        this.collapsedGroups = [...this.collapsedGroups, label];
+                    }
 
-                <ul class="flex min-w-0 flex-col gap-1">
+                    localStorage.setItem(this.storageKey, JSON.stringify(this.collapsedGroups));
+                },
+            }"
+        >
+            <div
+                class="tido-mobilenav-add-group min-w-0 px-4 py-3"
+                x-bind:class="{ 'is-collapsed': groupIsCollapsed('Finances') }"
+            >
+                <button
+                    type="button"
+                    class="tido-mobilenav-add-group-btn mb-1 flex w-full min-w-0 items-center gap-x-3 rounded-lg px-1 py-1 text-start"
+                    x-on:click="toggleCollapsedGroup('Finances')"
+                    x-bind:aria-expanded="! groupIsCollapsed('Finances')"
+                >
+                    <span class="fi-sidebar-group-label">
+                        Finances
+                    </span>
+                    <span
+                        class="tido-mobilenav-add-group-chevron shrink-0 text-gray-400 transition-transform dark:text-gray-500"
+                        x-bind:class="{ '-rotate-180': groupIsCollapsed('Finances') }"
+                        aria-hidden="true"
+                    >
+                        {{
+                            \Filament\Support\generate_icon_html(
+                                Heroicon::ChevronUp,
+                                attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5']),
+                            )
+                        }}
+                    </span>
+                </button>
+
+                <ul
+                    class="flex min-w-0 flex-col gap-1"
+                    x-show="! groupIsCollapsed('Finances')"
+                    x-collapse.duration.200ms
+                >
                     <li class="min-w-0">
                         <a
                             href="{{ $receiptUrl }}"
@@ -236,12 +289,38 @@
                 </ul>
             </div>
 
-            <div class="min-w-0 border-t border-gray-200 px-4 py-3 dark:border-slate-700">
-                <p class="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                    Settings
-                </p>
+            <div
+                class="tido-mobilenav-add-group min-w-0 border-t border-gray-200 px-4 py-3 dark:border-slate-700"
+                x-bind:class="{ 'is-collapsed': groupIsCollapsed('Settings') }"
+            >
+                <button
+                    type="button"
+                    class="tido-mobilenav-add-group-btn mb-1 flex w-full min-w-0 items-center gap-x-3 rounded-lg px-1 py-1 text-start"
+                    x-on:click="toggleCollapsedGroup('Settings')"
+                    x-bind:aria-expanded="! groupIsCollapsed('Settings')"
+                >
+                    <span class="fi-sidebar-group-label">
+                        Settings
+                    </span>
+                    <span
+                        class="tido-mobilenav-add-group-chevron shrink-0 text-gray-400 transition-transform dark:text-gray-500"
+                        x-bind:class="{ '-rotate-180': groupIsCollapsed('Settings') }"
+                        aria-hidden="true"
+                    >
+                        {{
+                            \Filament\Support\generate_icon_html(
+                                Heroicon::ChevronUp,
+                                attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5']),
+                            )
+                        }}
+                    </span>
+                </button>
 
-                <ul class="flex min-w-0 flex-col gap-1">
+                <ul
+                    class="flex min-w-0 flex-col gap-1"
+                    x-show="! groupIsCollapsed('Settings')"
+                    x-collapse.duration.200ms
+                >
                     <li class="min-w-0">
                         @if ($canCreateSettings)
                             <a

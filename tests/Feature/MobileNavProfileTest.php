@@ -9,6 +9,7 @@ use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Models\FamilyMember;
 use App\Models\User;
 use App\Support\HouseholdAccess;
+use App\Support\MobileNav;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
@@ -204,7 +205,12 @@ test('primary mobile nav add sheet includes settings create links', function ():
         ->assertSee('tido-text-marquee-clip', false)
         ->assertSee('tido-text-marquee-track', false)
         ->assertSee('x-ref="marqueeSegment"', false)
-        ->assertSee('x-ref="marqueeTrack"', false);
+        ->assertSee('x-ref="marqueeTrack"', false)
+        ->assertSee('fi-sidebar-group-label', false)
+        ->assertSee(MobileNav::ADD_MENU_COLLAPSED_GROUPS_KEY, false)
+        ->assertSee('toggleCollapsedGroup', false)
+        ->assertSee('groupIsCollapsed', false)
+        ->assertSee('x-collapse.duration.200ms', false);
 
     $blade = (string) file_get_contents(
         resource_path('views/filament/livewire/mobile-nav.blade.php'),
@@ -216,7 +222,16 @@ test('primary mobile nav add sheet includes settings create links', function ():
         ->toContain('Heroicon::OutlinedUserGroup')
         ->toContain('canCreateSettings')
         ->toContain('x-tido.text-marquee')
-        ->toContain('text-class="inline-block whitespace-nowrap"');
+        ->toContain('text-class="inline-block whitespace-nowrap"')
+        ->toContain('fi-sidebar-group-label')
+        ->toContain("toggleCollapsedGroup('Finances')")
+        ->toContain("toggleCollapsedGroup('Settings')")
+        ->toContain('MobileNav::ADD_MENU_COLLAPSED_GROUPS_KEY')
+        ->not->toContain('tracking-wide text-gray-500 uppercase');
+});
+
+test('add menu collapsed groups storage key is stable', function (): void {
+    expect(MobileNav::ADD_MENU_COLLAPSED_GROUPS_KEY)->toBe('tidoAddMenuCollapsedGroups');
 });
 
 test('mobile nav css hides topbar and offsets sticky chrome on small screens', function (): void {
