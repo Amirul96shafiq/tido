@@ -1,12 +1,14 @@
 /**
- * Apply the looping `.tido-text-marquee-track` to Filament JS select selected labels.
+ * Apply the looping `.tido-text-marquee-track` to Filament JS select labels.
  * Opt in with `.tido-select-value-marquee` (SelectValueMarquee::extraAttributes()).
+ * Covers the closed selected value and dropdown option rows when they overflow.
  * See docs/ui-text-marquee.md.
  *
  * Overflow measure stays in JS; motion is CSS animation (same contract as
  * x-tido.text-marquee) so the main thread is not writing transform every frame.
  */
 const ROOT_SELECTOR = ".tido-select-value-marquee";
+const OPTION_SELECTOR = ".fi-select-input-option";
 const SPEED = 40;
 
 /**
@@ -149,11 +151,10 @@ function syncDuplicate(track, label) {
 
 /**
  * @param {HTMLElement} clip
+ * @param {HTMLElement|null} label
  * @returns {{track: HTMLElement, segment: HTMLElement}|null}
  */
-function ensureTrack(clip) {
-    const label = clip.querySelector(".fi-select-input-value-label");
-
+function ensureTrack(clip, label) {
     if (!(label instanceof HTMLElement)) {
         return null;
     }
@@ -192,25 +193,63 @@ function ensureTrack(clip) {
 }
 
 /**
- * @param {HTMLElement} root
- * @returns {void}
+ * @param {HTMLElement} option
+ * @returns {HTMLElement}
  */
-function enhanceRoot(root) {
-    const clip = root.querySelector(".fi-select-input-value-ctn");
+function ensureOptionInnerClip(option) {
+    let clip = option.querySelector(":scope > .tido-option-marquee-clip");
 
-    if (!(clip instanceof HTMLElement)) {
-        return;
+    if (clip instanceof HTMLElement) {
+        return clip;
     }
 
-    clip.classList.add("tido-text-marquee-clip", "min-w-0", "overflow-hidden");
-    root.dataset.tidoMarqueeBusy = "1";
+    clip = document.createElement("span");
+    clip.className =
+        "tido-option-marquee-clip tido-text-marquee-clip min-w-0 overflow-hidden";
 
-    const wrapped = ensureTrack(clip);
+    while (option.firstChild) {
+        clip.append(option.firstChild);
+    }
+
+    option.append(clip);
+
+    return clip;
+}
+
+/**
+ * @param {HTMLElement} option
+ * @returns {HTMLElement|null}
+ */
+function findOptionLabel(option) {
+    const clip =
+        option.querySelector(":scope > .tido-option-marquee-clip") ?? option;
+
+    const tracked = clip.querySelector(
+        ':scope > .tido-text-marquee-track > .tido-text-marquee-segment:not([aria-hidden="true"])',
+    );
+
+    if (tracked instanceof HTMLElement) {
+        return tracked;
+    }
+
+    const direct = clip.querySelector(":scope > span");
+
+    return direct instanceof HTMLElement ? direct : null;
+}
+
+/**
+ * @param {HTMLElement} clip
+ * @param {() => HTMLElement|null} resolveLabel
+ * @returns {void}
+ */
+function enhanceClip(clip, resolveLabel) {
+    clip.classList.add("tido-text-marquee-clip", "min-w-0", "overflow-hidden");
+
+    const label = resolveLabel();
+    const wrapped = ensureTrack(clip, label);
     const state = getState(clip);
 
     if (!wrapped) {
-        delete root.dataset.tidoMarqueeBusy;
-
         return;
     }
 
@@ -225,7 +264,8 @@ function enhanceRoot(root) {
 
             state.rafMeasure = requestAnimationFrame(() => {
                 state.rafMeasure = null;
-                const current = ensureTrack(clip);
+                const currentLabel = resolveLabel();
+                const current = ensureTrack(clip, currentLabel);
 
                 if (!current) {
                     return;
@@ -237,6 +277,50 @@ function enhanceRoot(root) {
     }
 
     measure(clip, track, segment, state);
+}
+
+/**
+ * @param {HTMLElement} root
+ * @returns {void}
+ */
+function enhanceSelectedValue(root) {
+    const clip = root.querySelector(".fi-select-input-value-ctn");
+
+    if (!(clip instanceof HTMLElement)) {
+        return;
+    }
+
+    enhanceClip(clip, () => {
+        const label = clip.querySelector(".fi-select-input-value-label");
+
+        return label instanceof HTMLElement ? label : null;
+    });
+}
+
+/**
+ * @param {HTMLElement} root
+ * @returns {void}
+ */
+function enhanceOptionLabels(root) {
+    root.querySelectorAll(OPTION_SELECTOR).forEach((option) => {
+        if (!(option instanceof HTMLElement)) {
+            return;
+        }
+
+        const clip = ensureOptionInnerClip(option);
+
+        enhanceClip(clip, () => findOptionLabel(option));
+    });
+}
+
+/**
+ * @param {HTMLElement} root
+ * @returns {void}
+ */
+function enhanceRoot(root) {
+    root.dataset.tidoMarqueeBusy = "1";
+    enhanceSelectedValue(root);
+    enhanceOptionLabels(root);
     delete root.dataset.tidoMarqueeBusy;
 }
 
@@ -245,19 +329,27 @@ function enhanceRoot(root) {
  * @returns {void}
  */
 function observeRoot(root) {
-    enhanceRoot(root);
+    enhanceSelectedValue(root);
 
     if (root.dataset.tidoMarqueeMo) {
         return;
     }
 
     root.dataset.tidoMarqueeMo = "1";
+    let debounceId = 0;
+
     new MutationObserver(() => {
         if (root.dataset.tidoMarqueeBusy) {
             return;
         }
 
-        enhanceRoot(root);
+        window.clearTimeout(debounceId);
+        debounceId = window.setTimeout(() => {
+            root.dataset.tidoMarqueeBusy = "1";
+            enhanceSelectedValue(root);
+            enhanceOptionLabels(root);
+            delete root.dataset.tidoMarqueeBusy;
+        }, 50);
     }).observe(root, {
         childList: true,
         subtree: true,

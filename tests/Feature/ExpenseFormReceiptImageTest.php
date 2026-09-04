@@ -117,6 +117,9 @@ test('expense currency select uses looping text marquee markup', function () {
     expect(file_get_contents(resource_path('js/select-value-marquee.js')))
         ->toContain('tido-text-marquee-track')
         ->toContain('tido-text-marquee-segment')
+        ->toContain('.fi-select-input-option')
+        ->toContain('enhanceOptionLabels')
+        ->toContain('tido-option-marquee-clip')
         ->not->toContain('--tido-marquee-clip');
 });
 

@@ -8,6 +8,7 @@ use App\Enums\HouseholdRole;
 use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Support\RecordActionsGroup;
+use App\Filament\Tables\Columns\LightweightSelectColumn;
 use App\Helpers\FilenameDisplay;
 use App\Helpers\MoneyDisplay;
 use App\Models\Expense;
@@ -42,6 +43,10 @@ class ExpensesTable
 {
     public static function configure(Table $table): Table
     {
+        $statusOptions = self::statusOptions();
+        $uploadedByOptions = self::uploadedByOptions();
+        $primaryUsername = self::primaryUsername();
+
         return $table
             ->columns([
                 TextColumn::make('id')
@@ -116,34 +121,20 @@ class ExpensesTable
                     })
                     ->toggleable(isToggledHiddenByDefault: false),
 
-                TextColumn::make('uploaded_by')
+                LightweightSelectColumn::make('family_member_id')
                     ->label('Uploaded By')
-                    ->state(function (Expense $record): string {
-                        $familyMember = $record->familyMember;
-
-                        if ($familyMember === null) {
-                            return self::primaryUsername();
-                        }
-
-                        return filled($familyMember->display_name)
-                            ? (string) $familyMember->display_name
-                            : (string) $familyMember->name;
-                    })
+                    ->options($uploadedByOptions)
+                    ->placeholder($primaryUsername)
+                    ->width('10.5rem')
+                    ->disabled(fn (Expense $record): bool => HouseholdAccess::isFamilyMember()
+                        || ! HouseholdAccess::canMutateExpense($record))
                     ->toggleable(isToggledHiddenByDefault: false),
 
-                TextColumn::make('status')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'pending' => 'gray',
-                        'parsed' => 'info',
-                        'reviewed' => 'success',
-                        'requires_manual_review' => 'warning',
-                        'failed' => 'danger',
-                        default => 'gray',
-                    })
-                    ->extraCellAttributes(fn (Expense $record): array => $record->status === 'pending'
-                        ? ['class' => 'tido-expense-status-pending']
-                        : [])
+                LightweightSelectColumn::make('status')
+                    ->options($statusOptions)
+                    ->selectablePlaceholder(false)
+                    ->width('10.5rem')
+                    ->disabled(fn (Expense $record): bool => ! HouseholdAccess::canMutateExpense($record))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),
 
@@ -165,13 +156,7 @@ class ExpensesTable
             ->defaultSort('updated_at', 'desc')
             ->filters([
                 SelectFilter::make('status')
-                    ->options([
-                        'pending' => 'Pending Parsing',
-                        'parsed' => 'Parsed by AI',
-                        'reviewed' => 'Reviewed',
-                        'requires_manual_review' => 'Requires Manual Review',
-                        'failed' => 'Parsing Failed',
-                    ])
+                    ->options($statusOptions)
                     ->searchable(),
 
                 SelectFilter::make('source')
@@ -183,15 +168,7 @@ class ExpensesTable
 
                 SelectFilter::make('family_member_id')
                     ->label('Uploaded By')
-                    ->options(fn (): array => FamilyMember::query()
-                        ->orderBy('name')
-                        ->get(['id', 'name', 'display_name'])
-                        ->mapWithKeys(fn (FamilyMember $familyMember): array => [
-                            $familyMember->getKey() => filled($familyMember->display_name)
-                                ? (string) $familyMember->display_name
-                                : (string) $familyMember->name,
-                        ])
-                        ->all())
+                    ->options($uploadedByOptions)
                     ->searchable()
                     ->preload(),
 
@@ -291,24 +268,69 @@ class ExpensesTable
             ]);
     }
 
-    protected static function primaryUsername(): string
+    /**
+     * @return array<string, string>
+     */
+    public static function statusOptions(): array
     {
-        $primaryUser = User::query()
-            ->where(function (Builder $query): void {
-                $query
-                    ->where('household_role', HouseholdRole::Primary->value)
-                    ->orWhereNull('household_role');
-            })
-            ->orderBy('id')
-            ->first(['name', 'display_name']);
+        return [
+            'pending' => 'Pending Parsing',
+            'parsed' => 'Parsed by AI',
+            'reviewed' => 'Reviewed',
+            'requires_manual_review' => 'Requires Manual Review',
+            'failed' => 'Parsing Failed',
+        ];
+    }
 
-        if (! $primaryUser instanceof User) {
-            return 'Primary username';
+    /**
+     * @return array<int|string, string>
+     */
+    public static function uploadedByOptions(): array
+    {
+        return once(static function (): array {
+            return FamilyMember::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'display_name'])
+                ->mapWithKeys(fn (FamilyMember $familyMember): array => [
+                    $familyMember->getKey() => filled($familyMember->display_name)
+                        ? (string) $familyMember->display_name
+                        : (string) $familyMember->name,
+                ])
+                ->all();
+        });
+    }
+
+    public static function uploadedByLabel(?int $familyMemberId): string
+    {
+        if ($familyMemberId === null) {
+            return self::primaryUsername();
         }
 
-        return filled($primaryUser->display_name)
-            ? (string) $primaryUser->display_name
-            : (string) $primaryUser->name;
+        $options = self::uploadedByOptions();
+
+        return $options[$familyMemberId] ?? (string) $familyMemberId;
+    }
+
+    public static function primaryUsername(): string
+    {
+        return once(static function (): string {
+            $primaryUser = User::query()
+                ->where(function (Builder $query): void {
+                    $query
+                        ->where('household_role', HouseholdRole::Primary->value)
+                        ->orWhereNull('household_role');
+                })
+                ->orderBy('id')
+                ->first(['name', 'display_name']);
+
+            if (! $primaryUser instanceof User) {
+                return 'Primary username';
+            }
+
+            return filled($primaryUser->display_name)
+                ? (string) $primaryUser->display_name
+                : (string) $primaryUser->name;
+        });
     }
 
     public static function familyMemberActionAuthorizationMessage(Expense $record): string

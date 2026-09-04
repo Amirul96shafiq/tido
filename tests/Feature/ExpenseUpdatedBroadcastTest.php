@@ -185,7 +185,7 @@ test('expenses list listens for echo expense updates without polling', function 
     $component = Livewire::test(ListExpenses::class)
         ->assertSuccessful()
         ->assertDontSeeHtml('wire:poll.10s.visible')
-        ->assertSeeHtml('tido-expense-status-pending')
+        ->assertDontSeeHtml('tido-expense-status-pending')
         ->assertCanSeeTableRecords([$pending]);
 
     expect($component->instance()->getListeners())
