@@ -154,28 +154,18 @@
             >
                 @if ($anchor === 'mobilenav')
                     <span class="fi-user-menu-avatar-wrap">
-                        <span
-                            x-cloak
-                            x-show="! ($store.tidoNotifications?.menuOpen || @js(request()->routeIs('filament.admin.pages.auth.edit-profile') || request()->is('*/profile*')))"
-                        >
-                            {{
-                                \Filament\Support\generate_icon_html(
-                                    \Filament\Support\Icons\Heroicon::OutlinedUser,
-                                    attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon']),
-                                )
-                            }}
-                        </span>
-                        <span
-                            x-cloak
-                            x-show="$store.tidoNotifications?.menuOpen || @js(request()->routeIs('filament.admin.pages.auth.edit-profile') || request()->is('*/profile*'))"
-                        >
-                            {{
-                                \Filament\Support\generate_icon_html(
-                                    \Filament\Support\Icons\Heroicon::User,
-                                    attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon text-primary-600 dark:text-primary-400']),
-                                )
-                            }}
-                        </span>
+                        {{
+                            \Filament\Support\generate_icon_html(
+                                \Filament\Support\Icons\Heroicon::OutlinedUser,
+                                attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--outline']),
+                            )
+                        }}
+                        {{
+                            \Filament\Support\generate_icon_html(
+                                \Filament\Support\Icons\Heroicon::User,
+                                attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--solid text-primary-600 dark:text-primary-400']),
+                            )
+                        }}
 
                         <span
                             x-cloak

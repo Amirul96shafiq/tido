@@ -6259,6 +6259,12 @@ html.tido-mobilenav {
         .tido-mobilenav-icon--outline,
     html.tido-mobilenav
         .tido-mobilenav-item[data-current]
+        .tido-mobilenav-icon--outline,
+    html.tido-mobilenav
+        .tido-mobilenav-item--active
+        .tido-mobilenav-icon--outline,
+    html.tido-mobilenav
+        .fi-user-menu-trigger.tido-mobilenav-item--active
         .tido-mobilenav-icon--outline {
         display: none;
     }
@@ -6268,6 +6274,12 @@ html.tido-mobilenav {
         .tido-mobilenav-icon--solid,
     html.tido-mobilenav
         .tido-mobilenav-item[data-current]
+        .tido-mobilenav-icon--solid,
+    html.tido-mobilenav
+        .tido-mobilenav-item--active
+        .tido-mobilenav-icon--solid,
+    html.tido-mobilenav
+        .fi-user-menu-trigger.tido-mobilenav-item--active
         .tido-mobilenav-icon--solid {
         display: block;
     }
@@ -6379,6 +6391,18 @@ html.tido-mobilenav {
         overflow: visible;
         pointer-events: none;
         user-select: none;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-svg--active {
+        display: none;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-btn--open .tido-mobilenav-add-svg--default {
+        display: none;
+    }
+
+    html.tido-mobilenav .tido-mobilenav-add-btn--open .tido-mobilenav-add-svg--active {
+        display: block;
     }
 
     html.tido-mobilenav .tido-mobilenav-add-svg--default {
