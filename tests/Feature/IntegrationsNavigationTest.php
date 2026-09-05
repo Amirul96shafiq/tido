@@ -96,6 +96,8 @@ test('small sidebar flyouts close sibling integration menus', function (): void 
     expect($html)
         ->toContain('tido-sidebar-flyout-exclusive')
         ->toContain("window.matchMedia('(min-width: 1024px)').matches")
+        ->toContain("\$refs.panel.style.display = 'none'")
+        ->toContain('pointerdown.capture')
         ->and(substr_count($html, 'tido-sidebar-flyout-exclusive.window'))->toBe(3);
 });
 
@@ -110,13 +112,15 @@ test('small sidebar flyouts clamp to the viewport', function (): void {
 
     expect($html)
         ->toContain('tidoClampSidebarFlyout')
+        ->toContain('tido-sidebar-flyout-portal')
         ->toContain('document.body')
         ->toContain("\$watch('\$store.sidebar.isOpen'")
         ->toContain("document.addEventListener('pointerdown'")
         ->toContain('trigger.getBoundingClientRect')
         ->toContain("! \$store.sidebar.isOpen && window.matchMedia('(min-width: 1024px)').matches")
         ->and($css)->toContain('.tido-sidebar-flyout-panel')
-        ->and($css)->toContain('max-width: min(14rem, calc(100vw - 1rem))');
+        ->and($css)->toContain('max-width: min(14rem, calc(100vw - 1rem))')
+        ->and($css)->toContain('transition-property: opacity !important;');
 });
 
 test('integration flyout parent labels are left aligned', function (): void {
