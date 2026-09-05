@@ -233,3 +233,124 @@ test('extract receipt data job keeps a non-receipt PDF for manual review after m
 
     expect(Http::recorded())->toHaveCount(3);
 });
+
+test('extract receipt data job coerces myTNB payment receipt misclassified as not_receipt', function () {
+    Queue::fake();
+    Storage::fake('local');
+    Storage::put('receipts/mytnb.pdf', "%PDF-1.7\nmytnb payment receipt");
+
+    config([
+        'services.documents.pdfinfo_binary' => 'pdfinfo',
+        'services.documents.pdftocairo_binary' => 'pdftocairo',
+        'services.documents.pdftotext_binary' => 'pdftotext',
+        'services.ollama.host' => 'http://ollama.test',
+        'services.currencyapi.api_key' => 'test-key',
+        'services.currencyapi.base_url' => 'https://currencyapi.test',
+        'services.currencyapi.retry_delays' => [0, 0],
+    ]);
+
+    Process::preventStrayProcesses();
+    Process::fake(function (PendingProcess $process) {
+        if (is_array($process->command) && $process->command[0] === 'pdfinfo') {
+            return Process::result(output: "Pages: 2\n");
+        }
+
+        if (is_array($process->command) && $process->command[0] === 'pdftotext') {
+            return Process::result(output: "Payment Receipt\nThank you for using myTNB.\nonline payment via FPX is Successful\nREFERENCE NUMBER\nMYTN260953304682\nAMOUNT (RM)\n75.00\nTRANSACTION DATE\n5/9/2026 10:39:35 AM\n");
+        }
+
+        $outputPrefix = $process->command[array_key_last($process->command)];
+        File::put($outputPrefix.'-1.jpg', 'page-one-image');
+        File::put($outputPrefix.'-2.jpg', 'page-two-image');
+
+        return Process::result();
+    });
+
+    $pageOne = [
+        'document_classification' => 'not_receipt',
+        'merchant_name' => 'myTNB',
+        'invoice_number' => 'MYTN260953304682',
+        'date_time' => '2026-09-05 10:39:35',
+        'subtotal' => 0,
+        'total_tax' => 0,
+        'discount_total' => 0,
+        'rounding_amount' => 0,
+        'total_amount' => null,
+        'currency' => null,
+        'payment_method' => 'FPX',
+        'items' => [[
+            'description' => 'Online payment via FPX',
+            'quantity' => 1,
+            'unit_price' => 75,
+            'line_total' => 75,
+            'serial_number' => null,
+            'label' => 'Utilities & Bills',
+        ]],
+    ];
+    $pageTwo = [
+        'document_classification' => 'not_receipt',
+        'merchant_name' => null,
+        'invoice_number' => null,
+        'date_time' => null,
+        'subtotal' => 0,
+        'total_tax' => 0,
+        'discount_total' => 0,
+        'rounding_amount' => 0,
+        'total_amount' => 75,
+        'currency' => 'MYR',
+        'payment_method' => 'FPX',
+        'items' => [],
+    ];
+    $merged = [
+        'document_classification' => 'not_receipt',
+        'merchant_name' => null,
+        'invoice_number' => null,
+        'date_time' => null,
+        'subtotal' => 0,
+        'total_tax' => 0,
+        'discount_total' => 0,
+        'rounding_amount' => 0,
+        'total_amount' => 75,
+        'currency' => 'MYR',
+        'payment_method' => 'FPX',
+        'items' => [],
+    ];
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'http://ollama.test/api/generate' => Http::sequence()
+            ->push(['response' => json_encode($pageOne)])
+            ->push(['response' => json_encode($pageTwo)])
+            ->push(['response' => json_encode($merged)])
+            ->push(['response' => json_encode(['currency' => 'MYR'])]),
+    ]);
+
+    $this->seed(LabelSeeder::class);
+    $this->seed(PaymentMethodSeeder::class);
+
+    $expense = Expense::create([
+        'merchant_name' => 'Pending AI Extraction...',
+        'date_time' => now(),
+        'subtotal' => 0,
+        'total_tax' => 0,
+        'total_amount' => 0,
+        'currency' => 'MYR',
+        'source' => 'manual',
+        'status' => 'pending',
+        'image_path' => 'receipts/mytnb.pdf',
+        'original_filename' => 'Receipt-MYTN260953304682.pdf',
+        'file_mime_type' => 'application/pdf',
+        'file_page_count' => 2,
+    ]);
+
+    app()->call([new ExtractReceiptDataJob($expense->id), 'handle']);
+
+    $expense->refresh();
+
+    expect($expense->status)->toBe('parsed')
+        ->and($expense->document_classification)->toBe('receipt')
+        ->and($expense->invoice_number)->toBe('MYTN260953304682')
+        ->and($expense->total_amount)->toBe('75.00')
+        ->and($expense->currency)->toBe('MYR')
+        ->and($expense->merchant_name)->toBe('myTNB');
+});

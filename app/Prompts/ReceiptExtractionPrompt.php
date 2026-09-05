@@ -63,8 +63,9 @@ Please inspect this document image and extract financial information only when i
 You must respond with a raw JSON object only. Do not wrap it in markdown formatting (like ```json).
 
 Document classification rules (follow strictly):
-- Set document_classification to "receipt" only when the image contains a genuine purchase receipt, invoice, or bill with transaction information.
-- Set document_classification to "not_receipt" for photos, screenshots, menus, identity documents, forms, blank pages, unrelated documents, or images without receipt information.
+- Set document_classification to "receipt" when the image contains a genuine purchase receipt, invoice, bill, utility bill, or payment receipt / online payment confirmation with transaction information (including myTNB, FPX, bank, or e-wallet payment success pages).
+- Payment receipts that show a reference number, account, amount paid, and payment method are receipts even when they are not store checkout slips.
+- Set document_classification to "not_receipt" for photos, screenshots, menus, identity documents, forms, blank pages, unrelated documents, or images without receipt or payment information.
 - Never invent merchant, invoice, date, amount, currency, payment, or line-item data to make a document look like a receipt.
 - When document_classification is "not_receipt", return null for merchant_name, invoice_number, date_time, currency, and payment_method; return 0 for money fields; and return an empty items array.
 

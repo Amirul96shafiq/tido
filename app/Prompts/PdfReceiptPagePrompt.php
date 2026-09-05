@@ -24,8 +24,8 @@ final class PdfReceiptPagePrompt
                 'Use null for merchant, invoice number, date, payment method, or totals that are not visible.',
                 'Do not invent missing values or copy carried-forward totals into line items.',
                 'Preserve every genuine line item visible on this page.',
-                'Classify a page as receipt when it clearly belongs to a receipt, invoice, or bill, even if this page does not show the header or final total.',
-                'Classify a page as not_receipt when it contains no receipt, invoice, or bill information.',
+                'Classify a page as receipt when it clearly belongs to a receipt, invoice, bill, utility bill, or payment receipt / online payment confirmation (including myTNB or FPX success pages), even if this page does not show the header or final total.',
+                'Classify a page as not_receipt when it contains no receipt, invoice, bill, or payment information.',
             ]),
         ]);
     }

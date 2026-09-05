@@ -164,7 +164,7 @@ class ExtractReceiptDataJob implements ShouldBeUnique, ShouldQueue
 
         try {
             $parsed = $expense->file_mime_type === 'application/pdf'
-                ? $this->parsePdfDocument($ollama, $base64Pages)
+                ? $this->parsePdfDocument($ollama, $normalizer, $base64Pages)
                 : $ollama->parseReceipt($base64Pages[0], ReceiptExtractionPrompt::build());
 
             ReceiptPipelineLogger::completed('receipt.ollama.extract', $ollamaStartedAt, array_merge(
@@ -188,6 +188,7 @@ class ExtractReceiptDataJob implements ShouldBeUnique, ShouldQueue
         }
 
         $classificationStartedAt = ReceiptPipelineLogger::start();
+        $parsed = $normalizer->coerceToReceiptWhenEvidencePresent($parsed, $documentText);
         $documentClassification = $normalizer->normalizeDocumentClassification(
             $parsed['document_classification'] ?? null,
         );
@@ -422,8 +423,11 @@ class ExtractReceiptDataJob implements ShouldBeUnique, ShouldQueue
      * @param  list<string>  $base64Pages
      * @return array<string, mixed>|null
      */
-    protected function parsePdfDocument(OllamaService $ollama, array $base64Pages): ?array
-    {
+    protected function parsePdfDocument(
+        OllamaService $ollama,
+        ReceiptParseNormalizer $normalizer,
+        array $base64Pages,
+    ): ?array {
         $pageCount = count($base64Pages);
 
         if ($pageCount < 1) {
@@ -442,6 +446,8 @@ class ExtractReceiptDataJob implements ShouldBeUnique, ShouldQueue
                 return null;
             }
 
+            $pageResult = $normalizer->coerceToReceiptWhenEvidencePresent($pageResult);
+
             $pageResults[] = $pageResult;
         }
 
@@ -449,7 +455,16 @@ class ExtractReceiptDataJob implements ShouldBeUnique, ShouldQueue
             return $pageResults[0];
         }
 
-        return $ollama->generateJson(PdfReceiptMergePrompt::build($pageResults));
+        $merged = $ollama->generateJson(PdfReceiptMergePrompt::build($pageResults));
+
+        if ($merged === null) {
+            return null;
+        }
+
+        $merged = $normalizer->backfillMissingFieldsFromPageResults($merged, $pageResults);
+        $merged = $normalizer->coerceToReceiptWhenEvidencePresent($merged);
+
+        return $merged;
     }
 
     public function failed(\Throwable $exception): void

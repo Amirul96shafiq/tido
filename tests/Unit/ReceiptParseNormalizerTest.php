@@ -269,8 +269,96 @@ test('normalizes document classification and fails closed for missing values', f
 
     expect($normalizer->normalizeDocumentClassification('receipt'))
         ->toBe('receipt')
+        ->and($normalizer->normalizeDocumentClassification('payment_receipt'))
+        ->toBe('receipt')
         ->and($normalizer->normalizeDocumentClassification('non-receipt'))
         ->toBe('not_receipt')
         ->and($normalizer->normalizeDocumentClassification(null))
         ->toBe('not_receipt');
+});
+
+test('coerces not_receipt to receipt when financial payment evidence is present', function () {
+    $normalizer = new ReceiptParseNormalizer;
+
+    $coerced = $normalizer->coerceToReceiptWhenEvidencePresent([
+        'document_classification' => 'not_receipt',
+        'merchant_name' => null,
+        'invoice_number' => 'MYTN260953304682',
+        'total_amount' => 75,
+        'currency' => 'MYR',
+        'payment_method' => 'FPX',
+        'items' => [],
+    ]);
+
+    expect($coerced['document_classification'])->toBe('receipt')
+        ->and($normalizer->hasFinancialReceiptEvidence($coerced))->toBeTrue();
+});
+
+test('coerces not_receipt to receipt when pdf text looks like a payment receipt', function () {
+    $normalizer = new ReceiptParseNormalizer;
+
+    $coerced = $normalizer->coerceToReceiptWhenEvidencePresent([
+        'document_classification' => 'not_receipt',
+        'merchant_name' => null,
+        'invoice_number' => null,
+        'total_amount' => 0,
+        'currency' => null,
+        'payment_method' => null,
+        'items' => [],
+    ], "Payment Receipt\nThank you for using myTNB.\nonline payment via FPX is Successful");
+
+    expect($coerced['document_classification'])->toBe('receipt')
+        ->and($normalizer->documentTextSuggestsPaymentReceipt('Payment Receipt'))->toBeTrue();
+});
+
+test('does not coerce genuine empty non-receipt documents', function () {
+    $normalizer = new ReceiptParseNormalizer;
+
+    $coerced = $normalizer->coerceToReceiptWhenEvidencePresent([
+        'document_classification' => 'not_receipt',
+        'merchant_name' => null,
+        'invoice_number' => null,
+        'total_amount' => 0,
+        'currency' => null,
+        'payment_method' => null,
+        'items' => [],
+    ], 'Family photo album cover');
+
+    expect($coerced['document_classification'])->toBe('not_receipt');
+});
+
+test('backfills missing merged fields from page results', function () {
+    $normalizer = new ReceiptParseNormalizer;
+
+    $merged = $normalizer->backfillMissingFieldsFromPageResults([
+        'document_classification' => 'not_receipt',
+        'merchant_name' => null,
+        'invoice_number' => null,
+        'total_amount' => 75,
+        'subtotal' => 0,
+        'currency' => 'MYR',
+        'payment_method' => 'FPX',
+        'items' => [],
+    ], [
+        [
+            'invoice_number' => 'MYTN260953304682',
+            'payment_method' => 'FPX',
+            'total_amount' => null,
+            'items' => [[
+                'description' => 'Online payment via FPX',
+                'line_total' => 75,
+                'label' => 'Utilities & Bills',
+            ]],
+        ],
+        [
+            'total_amount' => 75,
+            'currency' => 'MYR',
+        ],
+    ]);
+
+    expect($merged['invoice_number'])->toBe('MYTN260953304682')
+        ->and($merged['total_amount'])->toBe(75)
+        ->and($merged['subtotal'])->toBe(75)
+        ->and($merged['currency'])->toBe('MYR')
+        ->and($merged['items'])->toHaveCount(1);
 });

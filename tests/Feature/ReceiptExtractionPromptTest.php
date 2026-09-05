@@ -20,6 +20,7 @@ test('receipt extraction prompt includes all finance labels with descriptions', 
     expect($prompt)
         ->toContain('document_classification')
         ->toContain('exactly receipt or not_receipt')
+        ->toContain('utility bill, or payment receipt / online payment confirmation')
         ->toContain('Never invent merchant, invoice, date, amount, currency, payment, or line-item data')
         ->toContain('"date_time": "String or null')
         ->toContain('Available labels')

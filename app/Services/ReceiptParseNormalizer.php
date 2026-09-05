@@ -22,10 +22,145 @@ class ReceiptParseNormalizer
         $classification = Str::lower(trim((string) $value));
 
         return match ($classification) {
-            'receipt', 'invoice', 'bill', 'true', 'yes' => Expense::DOCUMENT_CLASSIFICATION_RECEIPT,
+            'receipt', 'invoice', 'bill', 'payment_receipt', 'payment-receipt', 'true', 'yes' => Expense::DOCUMENT_CLASSIFICATION_RECEIPT,
             'not_receipt', 'non_receipt', 'non-receipt', 'notreceipt', 'false', 'no' => Expense::DOCUMENT_CLASSIFICATION_NOT_RECEIPT,
             default => Expense::DOCUMENT_CLASSIFICATION_NOT_RECEIPT,
         };
+    }
+
+    /**
+     * @param  array<string, mixed>  $parsed
+     */
+    public function hasFinancialReceiptEvidence(array $parsed): bool
+    {
+        $totalAmount = $this->toMoney($parsed['total_amount'] ?? 0);
+        $hasPaymentMethod = filled($parsed['payment_method'] ?? null);
+        $hasCurrency = $this->normalizeCurrency($parsed['currency'] ?? null) !== null;
+        $hasInvoiceNumber = is_string($parsed['invoice_number'] ?? null)
+            && trim((string) $parsed['invoice_number']) !== '';
+        $hasMerchantName = is_string($parsed['merchant_name'] ?? null)
+            && trim((string) $parsed['merchant_name']) !== '';
+
+        if ($totalAmount > 0.0 && ($hasPaymentMethod || $hasCurrency || $hasInvoiceNumber || $hasMerchantName)) {
+            return true;
+        }
+
+        return $hasInvoiceNumber && ($hasPaymentMethod || $hasMerchantName);
+    }
+
+    public function documentTextSuggestsPaymentReceipt(string $documentText): bool
+    {
+        $text = Str::lower($documentText);
+
+        foreach ([
+            'payment receipt',
+            'online payment',
+            'payment via fpx',
+            'mytnb',
+            'thank you for using mytnb',
+        ] as $needle) {
+            if (str_contains($text, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  array<string, mixed>  $parsed
+     * @return array<string, mixed>
+     */
+    public function coerceToReceiptWhenEvidencePresent(array $parsed, ?string $documentText = null): array
+    {
+        $classification = $this->normalizeDocumentClassification(
+            $parsed['document_classification'] ?? null,
+        );
+
+        if ($classification === Expense::DOCUMENT_CLASSIFICATION_RECEIPT) {
+            return $parsed;
+        }
+
+        $hasEvidence = $this->hasFinancialReceiptEvidence($parsed)
+            || ($documentText !== null && $documentText !== '' && $this->documentTextSuggestsPaymentReceipt($documentText));
+
+        if (! $hasEvidence) {
+            return $parsed;
+        }
+
+        $parsed['document_classification'] = Expense::DOCUMENT_CLASSIFICATION_RECEIPT;
+
+        return $parsed;
+    }
+
+    /**
+     * @param  array<string, mixed>  $merged
+     * @param  list<array<string, mixed>>  $pageResults
+     * @return array<string, mixed>
+     */
+    public function backfillMissingFieldsFromPageResults(array $merged, array $pageResults): array
+    {
+        foreach (['merchant_name', 'invoice_number', 'date_time', 'payment_method', 'currency'] as $field) {
+            if (filled($merged[$field] ?? null)) {
+                continue;
+            }
+
+            foreach ($pageResults as $pageResult) {
+                if (! is_array($pageResult) || blank($pageResult[$field] ?? null)) {
+                    continue;
+                }
+
+                $merged[$field] = $pageResult[$field];
+                break;
+            }
+        }
+
+        if ($this->toMoney($merged['total_amount'] ?? 0) <= 0.0) {
+            foreach (array_reverse($pageResults) as $pageResult) {
+                if (! is_array($pageResult) || $this->toMoney($pageResult['total_amount'] ?? 0) <= 0.0) {
+                    continue;
+                }
+
+                $merged['total_amount'] = $pageResult['total_amount'];
+
+                foreach (['subtotal', 'total_tax', 'discount_total', 'rounding_amount', 'currency', 'payment_method'] as $moneyField) {
+                    if (blank($merged[$moneyField] ?? null) && filled($pageResult[$moneyField] ?? null)) {
+                        $merged[$moneyField] = $pageResult[$moneyField];
+                    }
+                }
+
+                break;
+            }
+        }
+
+        if ($this->toMoney($merged['subtotal'] ?? 0) <= 0.0) {
+            foreach ($pageResults as $pageResult) {
+                if (! is_array($pageResult) || $this->toMoney($pageResult['subtotal'] ?? 0) <= 0.0) {
+                    continue;
+                }
+
+                $merged['subtotal'] = $pageResult['subtotal'];
+                break;
+            }
+        }
+
+        if ($this->toMoney($merged['subtotal'] ?? 0) <= 0.0 && $this->toMoney($merged['total_amount'] ?? 0) > 0.0) {
+            $merged['subtotal'] = $merged['total_amount'];
+        }
+
+        $mergedItems = $merged['items'] ?? null;
+        if ((! is_array($mergedItems) || $mergedItems === [])) {
+            foreach ($pageResults as $pageResult) {
+                if (! is_array($pageResult) || ! is_array($pageResult['items'] ?? null) || $pageResult['items'] === []) {
+                    continue;
+                }
+
+                $merged['items'] = $pageResult['items'];
+                break;
+            }
+        }
+
+        return $merged;
     }
 
     /**
