@@ -171,6 +171,18 @@ test('verify otp action renders loading indicator like send otp', function () {
         ->toContain('x-on:click');
 });
 
+test('login mode tabs render loading indicators for otp and password switches', function () {
+    $html = Livewire::test(Login::class)->html();
+
+    expect($html)
+        ->toContain('tido-auth-login-tabs')
+        ->toContain('wire:target="selectOtpLoginTab"')
+        ->toContain('wire:target="selectPasswordLoginTab"')
+        ->toContain('fi-loading-indicator')
+        ->toContain('aria-label="One-Time Password (OTP)"')
+        ->toContain('aria-label="Email & Password"');
+});
+
 test('send otp fails for unknown phone without revealing details', function () {
     Livewire::test(Login::class)
         ->set('data.phone', '0199999999')
