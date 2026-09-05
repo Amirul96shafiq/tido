@@ -127,7 +127,7 @@
         x-transition:enter-end="fi-transition-enter-end"
         x-transition:leave-start="fi-transition-leave-start"
         x-transition:leave-end="fi-transition-leave-end"
-        class="tido-mobilenav-add-sheet fixed inset-x-0 mx-auto min-w-0 max-w-3xs"
+        class="tido-mobilenav-add-sheet fixed inset-x-0 mx-auto min-w-0 max-w-2xs"
         role="dialog"
         aria-label="Add"
     >
@@ -190,11 +190,20 @@
                     x-show="! groupIsCollapsed('Finances')"
                     x-collapse.duration.200ms
                 >
+                    <li class="min-w-0 px-1 pt-1 pb-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                                Add Receipt
+                            </span>
+                            <div class="h-px flex-1 bg-gray-100 dark:bg-white/10"></div>
+                        </div>
+                    </li>
+
                     <li class="min-w-0">
                         <a
                             href="{{ $receiptUrl }}"
                             wire:navigate
-                            class="flex min-w-0 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                            class="flex min-w-0 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
                             x-on:click="closeAdd()"
                         >
                             {{
@@ -203,11 +212,101 @@
                                     attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0 text-primary-600 dark:text-primary-400']),
                                 )
                             }}
-                            <x-tido.text-marquee
-                                class="min-w-0 flex-1"
-                                text-class="inline-block whitespace-nowrap"
-                            >Add Receipt</x-tido.text-marquee>
+                            <div class="flex min-w-0 flex-1 flex-col gap-1">
+                                <x-tido.text-marquee
+                                    class="min-w-0"
+                                    text-class="inline-block whitespace-nowrap font-medium"
+                                >Via Admin Upload</x-tido.text-marquee>
+                                <div class="flex flex-nowrap items-center gap-1">
+                                    <x-filament::badge color="gray" size="sm">
+                                        Photo
+                                    </x-filament::badge>
+                                    <x-filament::badge color="gray" size="sm">
+                                        PDF
+                                    </x-filament::badge>
+                                </div>
+                            </div>
                         </a>
+                    </li>
+
+                    <li class="min-w-0">
+                        @if ($isWhatsAppConnected)
+                            <a
+                                href="{{ $whatsAppUrl }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="flex min-w-0 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-950 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                                x-on:click="closeAdd()"
+                            >
+                                <x-filament::icon
+                                    icon="icon-whatsapp"
+                                    class="size-5 shrink-0 text-primary-600 dark:text-primary-400"
+                                />
+                                <div class="flex min-w-0 flex-1 flex-col gap-1">
+                                    <x-tido.text-marquee
+                                        class="min-w-0"
+                                        text-class="inline-block whitespace-nowrap font-medium"
+                                    >Via WhatsApp Upload</x-tido.text-marquee>
+                                    <div class="flex flex-nowrap items-center gap-1">
+                                        <x-filament::badge color="primary" size="sm">
+                                            Text
+                                        </x-filament::badge>
+                                        <x-filament::badge color="gray" size="sm">
+                                            Photo
+                                        </x-filament::badge>
+                                        <x-filament::badge color="gray" size="sm">
+                                            PDF
+                                        </x-filament::badge>
+                                    </div>
+                                </div>
+                                <x-filament::icon
+                                    icon="heroicon-m-arrow-top-right-on-square"
+                                    class="size-3.5 shrink-0 text-gray-400 dark:text-gray-500"
+                                />
+                            </a>
+                        @else
+                            <span
+                                class="flex w-full min-w-0 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
+                                aria-disabled="true"
+                                aria-label="{{ $whatsAppDisconnectedMessage }}"
+                                x-tooltip="{
+                                    content: @js($whatsAppDisconnectedMessage),
+                                    theme: $store.theme,
+                                    zIndex: 100000,
+                                }"
+                            >
+                                <x-filament::icon
+                                    icon="icon-whatsapp"
+                                    class="size-5 shrink-0 text-gray-400 dark:text-gray-500"
+                                />
+                                <div class="flex min-w-0 flex-1 flex-col gap-1">
+                                    <x-tido.text-marquee
+                                        class="min-w-0"
+                                        text-class="inline-block whitespace-nowrap font-medium"
+                                    >Via WhatsApp Upload</x-tido.text-marquee>
+                                    <div class="flex flex-nowrap items-center gap-1">
+                                        <x-filament::badge color="gray" size="sm">
+                                            Text
+                                        </x-filament::badge>
+                                        <x-filament::badge color="gray" size="sm">
+                                            Photo
+                                        </x-filament::badge>
+                                        <x-filament::badge color="gray" size="sm">
+                                            PDF
+                                        </x-filament::badge>
+                                    </div>
+                                </div>
+                            </span>
+                        @endif
+                    </li>
+
+                    <li class="min-w-0 px-1 pt-2 pb-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                                Management
+                            </span>
+                            <div class="h-px flex-1 bg-gray-100 dark:bg-white/10"></div>
+                        </div>
                     </li>
 
                     <li class="min-w-0">
@@ -224,16 +323,20 @@
                                         attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0 text-primary-600 dark:text-primary-400']),
                                     )
                                 }}
-                                <x-tido.text-marquee
-                                    class="min-w-0 flex-1"
-                                    text-class="inline-block whitespace-nowrap"
-                                >Add Budget</x-tido.text-marquee>
+                                <span class="min-w-0 flex-1">
+                                    Add Budget
+                                </span>
                             </a>
                         @else
                             <span
                                 class="flex w-full min-w-0 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
                                 aria-disabled="true"
-                                title="{{ $createDeniedMessage }}"
+                                aria-label="{{ $createDeniedMessage }}"
+                                x-tooltip="{
+                                    content: @js($createDeniedMessage),
+                                    theme: $store.theme,
+                                    zIndex: 100000,
+                                }"
                             >
                                 {{
                                     \Filament\Support\generate_icon_html(
@@ -241,10 +344,9 @@
                                         attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0']),
                                     )
                                 }}
-                                <x-tido.text-marquee
-                                    class="min-w-0 flex-1"
-                                    text-class="inline-block whitespace-nowrap"
-                                >Add Budget</x-tido.text-marquee>
+                                <span class="min-w-0 flex-1">
+                                    Add Budget
+                                </span>
                             </span>
                         @endif
                     </li>
@@ -263,16 +365,20 @@
                                         attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0 text-primary-600 dark:text-primary-400']),
                                     )
                                 }}
-                                <x-tido.text-marquee
-                                    class="min-w-0 flex-1"
-                                    text-class="inline-block whitespace-nowrap"
-                                >Add Recurring</x-tido.text-marquee>
+                                <span class="min-w-0 flex-1">
+                                    Add Recurring
+                                </span>
                             </a>
                         @else
                             <span
                                 class="flex w-full min-w-0 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
                                 aria-disabled="true"
-                                title="{{ $createDeniedMessage }}"
+                                aria-label="{{ $createDeniedMessage }}"
+                                x-tooltip="{
+                                    content: @js($createDeniedMessage),
+                                    theme: $store.theme,
+                                    zIndex: 100000,
+                                }"
                             >
                                 {{
                                     \Filament\Support\generate_icon_html(
@@ -280,10 +386,9 @@
                                         attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0']),
                                     )
                                 }}
-                                <x-tido.text-marquee
-                                    class="min-w-0 flex-1"
-                                    text-class="inline-block whitespace-nowrap"
-                                >Add Recurring</x-tido.text-marquee>
+                                <span class="min-w-0 flex-1">
+                                    Add Recurring
+                                </span>
                             </span>
                         @endif
                     </li>
@@ -336,16 +441,20 @@
                                         attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0 text-primary-600 dark:text-primary-400']),
                                     )
                                 }}
-                                <x-tido.text-marquee
-                                    class="min-w-0 flex-1"
-                                    text-class="inline-block whitespace-nowrap"
-                                >Add Labels</x-tido.text-marquee>
+                                <span class="min-w-0 flex-1">
+                                    Add Labels
+                                </span>
                             </a>
                         @else
                             <span
                                 class="flex w-full min-w-0 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
                                 aria-disabled="true"
-                                title="{{ $createDeniedMessage }}"
+                                aria-label="{{ $createDeniedMessage }}"
+                                x-tooltip="{
+                                    content: @js($createDeniedMessage),
+                                    theme: $store.theme,
+                                    zIndex: 100000,
+                                }"
                             >
                                 {{
                                     \Filament\Support\generate_icon_html(
@@ -353,10 +462,9 @@
                                         attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['size-5 shrink-0']),
                                     )
                                 }}
-                                <x-tido.text-marquee
-                                    class="min-w-0 flex-1"
-                                    text-class="inline-block whitespace-nowrap"
-                                >Add Labels</x-tido.text-marquee>
+                                <span class="min-w-0 flex-1">
+                                    Add Labels
+                                </span>
                             </span>
                         @endif
                     </li>
@@ -384,7 +492,12 @@
                             <span
                                 class="flex w-full min-w-0 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
                                 aria-disabled="true"
-                                title="{{ $createDeniedMessage }}"
+                                aria-label="{{ $createDeniedMessage }}"
+                                x-tooltip="{
+                                    content: @js($createDeniedMessage),
+                                    theme: $store.theme,
+                                    zIndex: 100000,
+                                }"
                             >
                                 {{
                                     \Filament\Support\generate_icon_html(
@@ -423,7 +536,12 @@
                             <span
                                 class="flex w-full min-w-0 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60 dark:text-gray-500"
                                 aria-disabled="true"
-                                title="{{ $createDeniedMessage }}"
+                                aria-label="{{ $createDeniedMessage }}"
+                                x-tooltip="{
+                                    content: @js($createDeniedMessage),
+                                    theme: $store.theme,
+                                    zIndex: 100000,
+                                }"
                             >
                                 {{
                                     \Filament\Support\generate_icon_html(
