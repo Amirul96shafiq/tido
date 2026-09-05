@@ -6701,6 +6701,91 @@ html.tido-mobilenav {
     }
 
     /*
+     * Menu drawer is off-canvas when closed — not an icon rail. Keep full
+     * labels / logo painted while closed so opening Menu reveals content
+     * immediately (no delayed expand-chrome pop-in).
+     */
+    html.tido-mobilenav
+        .fi-sidebar:not(.fi-sidebar-open)
+        .fi-sidebar-item-label,
+    html.tido-mobilenav
+        .fi-sidebar:not(.fi-sidebar-open)
+        .fi-sidebar-item-badge-ctn,
+    html.tido-mobilenav
+        .fi-sidebar:not(.fi-sidebar-open)
+        .fi-sidebar-group-label,
+    html.tido-mobilenav
+        .fi-sidebar:not(.fi-sidebar-open)
+        .fi-sidebar-group-collapse-btn {
+        position: static;
+        inset-inline-start: auto;
+        flex: initial;
+        width: auto;
+        min-width: 0;
+        max-width: 14rem;
+        margin: unset;
+        padding: unset;
+        opacity: 1;
+        visibility: visible;
+        overflow: hidden;
+        pointer-events: auto;
+    }
+
+    html.tido-mobilenav
+        .fi-sidebar:not(.fi-sidebar-open)
+        .fi-sidebar-group-btn {
+        opacity: 1;
+        pointer-events: auto;
+        visibility: visible;
+    }
+
+    html.tido-mobilenav
+        .fi-sidebar:not(.fi-sidebar-open)
+        .fi-sidebar-logo-full {
+        display: block;
+    }
+
+    html.tido-mobilenav
+        .fi-sidebar:not(.fi-sidebar-open)
+        .fi-sidebar-logo-compact,
+    html.tido-mobilenav
+        .fi-sidebar:not(.fi-sidebar-open)
+        .fi-sidebar-group-collapsed-label {
+        display: none;
+        opacity: 0;
+        pointer-events: none;
+        visibility: hidden;
+    }
+
+    html.tido-mobilenav
+        .fi-sidebar.fi-sidebar-animating.fi-sidebar-open
+        .fi-sidebar-item-label,
+    html.tido-mobilenav
+        .fi-sidebar.fi-sidebar-animating.fi-sidebar-open
+        .fi-sidebar-item-badge-ctn,
+    html.tido-mobilenav
+        .fi-sidebar.fi-sidebar-animating.fi-sidebar-open
+        .fi-sidebar-group-label,
+    html.tido-mobilenav
+        .fi-sidebar.fi-sidebar-animating.fi-sidebar-open
+        .fi-sidebar-group-collapse-btn,
+    html.tido-mobilenav
+        .fi-sidebar.fi-sidebar-animating.fi-sidebar-open
+        .fi-sidebar-group-btn,
+    html.tido-mobilenav
+        .fi-sidebar.fi-sidebar-animating.fi-sidebar-open
+        .fi-sidebar-item-btn,
+    html.tido-mobilenav
+        .fi-sidebar.fi-sidebar-animating.fi-sidebar-open
+        .fi-sidebar-group-dropdown-trigger-btn,
+    html.tido-mobilenav
+        .fi-sidebar.fi-sidebar-animating.fi-sidebar-open
+        .fi-sidebar-logo-full {
+        animation: none !important;
+        opacity: 1;
+    }
+
+    /*
      * Menu slot already closes the drawer. Beat .fi-sidebar.fi-sidebar-open
      * .fi-sidebar-collapse-footer { display: flex !important }.
      */

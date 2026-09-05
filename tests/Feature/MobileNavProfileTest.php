@@ -276,7 +276,11 @@ test('mobile nav css hides topbar and offsets sticky chrome on small screens', f
         ->toContain('border-color: var(--tido-border-color) !important')
         ->toContain('.tido-mobilenav-item--avatar')
         ->toContain('--sidebar-width: var(--tido-mobilenav-sidebar-width, 50vw)')
-        ->toContain("html.tido-mobilenav .fi-sidebar {\n        inset-block-end: var(--tido-mobilenav-height, 4rem);\n        height: auto;\n        width: var(--tido-mobilenav-sidebar-width, 50vw) !important;\n        max-width: var(--tido-mobilenav-sidebar-width, 50vw);");
+        ->toContain("html.tido-mobilenav .fi-sidebar {\n        inset-block-end: var(--tido-mobilenav-height, 4rem);\n        height: auto;\n        width: var(--tido-mobilenav-sidebar-width, 50vw) !important;\n        max-width: var(--tido-mobilenav-sidebar-width, 50vw);")
+        ->toContain('html.tido-mobilenav .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-label')
+        ->toContain('html.tido-mobilenav .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-logo-full')
+        ->toMatch('/html\.tido-mobilenav\s+\.fi-sidebar:not\(\.fi-sidebar-open\)\s+\.fi-sidebar-group-collapsed-label/')
+        ->toMatch('/html\.tido-mobilenav\s+\.fi-sidebar\.fi-sidebar-animating\.fi-sidebar-open\s+\.fi-sidebar-item-label[\s\S]*?\.fi-sidebar-item-btn[\s\S]*?animation:\s*none\s*!important/');
 
     $collapseFooterHide = Str::between(
         $css,
@@ -587,11 +591,13 @@ test('mobile sidebar expands all navigation groups when menu opens', function ()
     $provider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
     $vite = (string) file_get_contents(base_path('vite.config.js'));
     $docs = (string) file_get_contents(base_path('docs/ui-mobile-nav.md'));
+    $css = (string) file_get_contents(resource_path('css/app.css'));
 
     expect($mobileNav)
         ->toContain('expandAllSidebarGroups()')
         ->toContain('this.$store.sidebar.collapsedGroups = []')
-        ->toContain('this.expandAllSidebarGroups()');
+        ->toContain('this.expandAllSidebarGroups()')
+        ->toContain("this.expandAllSidebarGroups();\n            this.\$store.tidoMobileChrome.syncOverlay();");
 
     expect($sidebar)
         ->toContain('window.innerWidth < 1024')
@@ -601,8 +607,15 @@ test('mobile sidebar expands all navigation groups when menu opens', function ()
     expect($provider)->not->toContain('sidebar-group-accordion');
     expect($vite)->not->toContain('sidebar-group-accordion.js');
 
+    expect($css)
+        ->toContain('html.tido-mobilenav .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-label')
+        ->toContain('html.tido-mobilenav .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-logo-full')
+        ->toMatch('/html\.tido-mobilenav\s+\.fi-sidebar\.fi-sidebar-animating\.fi-sidebar-open\s+\.fi-sidebar-item-label[\s\S]*?animation:\s*none\s*!important/')
+        ->toMatch('/html\.tido-mobilenav\s+\.fi-sidebar\.fi-sidebar-animating\.fi-sidebar-open\s+\.fi-sidebar-item-btn/');
+
     expect($docs)
-        ->toContain('start fully expanded when the Menu drawer opens')
+        ->toContain('pre-expanded while the Menu drawer is closed')
+        ->toContain('keeps full labels and the logo painted while the drawer is closed')
         ->not->toContain('sidebar-group-accordion.js');
 });
 
@@ -668,7 +681,7 @@ test('mobile nav active add svg runs blinking eye animation', function (): void 
     expect($css)
         ->toContain('@keyframes tido-mobilenav-blink')
         ->toMatch('/@keyframes tido-mobilenav-blink\s*\{[^}]*rotate\(\s*-?\d+(\.\d+)?deg\)/')
-        ->toContain('html.tido-mobilenav .tido-mobilenav-add-svg--active .tido-mobilenav-add-eye')
+        ->toMatch('/html\.tido-mobilenav\s+\.tido-mobilenav-add-svg--active\s+\.tido-mobilenav-add-eye/')
         ->toContain('.is-blinking-1')
         ->toContain('.is-blinking-2')
         ->toContain('.is-blinking-3')

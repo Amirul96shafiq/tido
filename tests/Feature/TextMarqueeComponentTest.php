@@ -20,6 +20,8 @@ test('text marquee component renders the looping track contract', function () {
         ->toContain('ResizeObserver')
         ->toContain('prefersReducedMotion()')
         ->toContain('tidoPrefersReducedMotion')
+        ->toContain('closest(\'.fi-sidebar\')')
+        ->toContain('fi-sidebar-animating')
         ->toContain('--tido-marquee-distance')
         ->toContain('--tido-marquee-duration')
         ->toContain('font-semibold')

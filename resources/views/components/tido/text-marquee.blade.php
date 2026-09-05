@@ -25,6 +25,7 @@
         init() {
             const track = this.$refs.marqueeTrack;
             const clip = this.$el;
+            const sidebar = clip.closest('.fi-sidebar');
 
             const readGap = () => {
                 const styles = window.getComputedStyle(track);
@@ -55,10 +56,26 @@
                 track.style.removeProperty('--tido-marquee-duration');
             };
 
+            const sidebarAllowsMarquee = () => {
+                if (! sidebar) {
+                    return true;
+                }
+
+                // Closed / expanding icon-rail widths falsely overflow every label.
+                return sidebar.classList.contains('fi-sidebar-open')
+                    && ! sidebar.classList.contains('fi-sidebar-animating');
+            };
+
             const measure = () => {
                 const segment = this.$refs.marqueeSegment;
 
                 if (! segment || ! track.isConnected) {
+                    return;
+                }
+
+                if (! sidebarAllowsMarquee()) {
+                    applyMotion(false, 0);
+
                     return;
                 }
 
@@ -88,12 +105,23 @@
             };
 
             new ResizeObserver(debouncedMeasure).observe(clip);
+
+            if (sidebar) {
+                const sidebarClassObserver = new MutationObserver(debouncedMeasure);
+                sidebarClassObserver.observe(sidebar, {
+                    attributes: true,
+                    attributeFilter: ['class'],
+                });
+                this._sidebarClassObserver = sidebarClassObserver;
+            }
+
             this._onReduceMotionChanged = () => debouncedMeasure();
             window.addEventListener('tido-reduce-motion-changed', this._onReduceMotionChanged);
 
             if (typeof this.$cleanup === 'function') {
                 this.$cleanup(() => {
                     window.removeEventListener('tido-reduce-motion-changed', this._onReduceMotionChanged);
+                    this._sidebarClassObserver?.disconnect();
                 });
             }
 

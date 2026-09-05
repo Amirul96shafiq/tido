@@ -85,7 +85,8 @@ Shared chrome overlay uses `z-index: 29` under `html.tido-mobilenav` (above `.fi
 - Table inner-scroll caps (`.fi-ta-ctn`, `.fi-ta-content-ctn`) subtract `--tido-mobilenav-height` so horizontal overflow thumbs stay above the bar
 - Open sidebar is half the viewport (`50vw` / `--tido-mobilenav-sidebar-width`); `inset-block-end` + `height: auto` sits above the bar
 - Collapse footer and Collapse Sidebar CTA are hidden; the Menu slot closes the drawer
-- Navigation groups below `lg` start fully expanded when the Menu drawer opens (`collapsedGroups = []`); multiple groups may stay open; users can still collapse individual groups
+- Navigation groups below `lg` are pre-expanded while the Menu drawer is closed (`collapsedGroups = []` on mobile-nav init and again when Menu opens); multiple groups may stay open; users can still collapse individual groups
+- Menu drawer keeps full labels / logo painted while closed (not icon-rail); open skips delayed expand-chrome label enter so nav content is already visible when the drawer slides in
 - Sticky form CTAs pin at `0.25rem` above the `.fi-main-ctn` bottom (do not add `--tido-mobilenav-height` — sticky is relative to the already-shortened scrollport). The `position: fixed` blur veil still uses `inset-block-end: var(--tido-mobilenav-height)`
 - Top sticky bars pin at `0.25rem` (no topbar offset)
 - Hash / section-nav scroll margins drop the 71px topbar offset
@@ -93,7 +94,7 @@ Shared chrome overlay uses `z-index: 29` under `html.tido-mobilenav` (above `.fi
 
 ## Sidebar groups (mobile)
 
-Below `lg`, the published sidebar preload in [`sidebar.blade.php`](../resources/views/vendor/filament-panels/livewire/sidebar.blade.php) expands every navigation group before Alpine mounts. The Menu slot in [`mobile-nav.blade.php`](../resources/views/filament/livewire/mobile-nav.blade.php) clears `$store.sidebar.collapsedGroups` each time the drawer opens so Finances / Settings / Integrations / Tools all start expanded. Filament’s native per-group collapse toggle still works; multiple groups may stay open at once.
+Below `lg`, the published sidebar preload in [`sidebar.blade.php`](../resources/views/vendor/filament-panels/livewire/sidebar.blade.php) expands every navigation group before Alpine mounts. The Menu slot in [`mobile-nav.blade.php`](../resources/views/filament/livewire/mobile-nav.blade.php) clears `$store.sidebar.collapsedGroups` on init and each time the drawer opens so Finances / Settings / Integrations / Tools stay expanded in the off-screen DOM. CSS under `html.tido-mobilenav` keeps full labels and the logo painted while the drawer is closed and disables delayed expand-chrome enter on open. Filament’s native per-group collapse toggle still works; multiple groups may stay open at once.
 
 ## Tests
 

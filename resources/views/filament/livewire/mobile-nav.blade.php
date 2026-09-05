@@ -28,6 +28,7 @@
                 this.$store.tidoMobileChrome.syncOverlay();
             });
 
+            this.expandAllSidebarGroups();
             this.$store.tidoMobileChrome.syncOverlay();
         },
         closeUserMenu() {
