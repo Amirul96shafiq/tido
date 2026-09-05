@@ -131,6 +131,53 @@ test('shared recurring matches any household expense', function () {
     expect($matched?->id)->toBe($occurrence->id);
 });
 
+test('observer rematches when reviewed expense date_time is corrected into due window', function () {
+    Expense::setEventDispatcher(app('events'));
+
+    $label = Label::factory()->create();
+    $recurring = Recurring::factory()->create([
+        'title' => 'TNB Electricity',
+        'label_id' => $label->id,
+        'merchant_aliases' => ['myTNB', 'TNB'],
+        'family_member_id' => null,
+        'is_shared' => false,
+    ]);
+
+    $occurrence = RecurringOccurrence::factory()->create([
+        'recurring_id' => $recurring->id,
+        'due_on' => '2026-09-05',
+        'status' => RecurringOccurrenceStatus::Due,
+        'expected_amount' => 75,
+    ]);
+
+    $expense = Expense::factory()->create([
+        'merchant_name' => 'myTNB',
+        'total_amount' => 75,
+        'date_time' => '2026-05-09 10:39:00',
+        'status' => 'reviewed',
+        'family_member_id' => null,
+        'document_classification' => Expense::DOCUMENT_CLASSIFICATION_RECEIPT,
+    ]);
+
+    ExpenseItem::factory()->create([
+        'expense_id' => $expense->id,
+        'label_id' => $label->id,
+        'line_total' => 75,
+    ]);
+
+    expect(app(RecurringMatchService::class)->matchExpense($expense))->toBeNull()
+        ->and($occurrence->fresh()->expense_id)->toBeNull();
+
+    $expense->date_time = '2026-09-05 10:39:00';
+    $expense->save();
+
+    $occurrence->refresh();
+
+    expect($occurrence->expense_id)->toBe($expense->id)
+        ->and($occurrence->status)->toBe(RecurringOccurrenceStatus::Completed)
+        ->and((float) $occurrence->actual_amount)->toBe(75.0);
+});
+
 test('completing occurrence does not double complete', function () {
     $recurring = Recurring::factory()->create([
         'merchant_aliases' => ['Cursor'],

@@ -62,24 +62,30 @@ class ExpenseObserver
             $this->broadcastExpense($expense);
         }
 
-        if (! $expense->wasChanged('status')) {
-            return;
-        }
+        $shouldMatchRecurring = in_array($expense->status, ['parsed', 'reviewed'], true)
+            && (
+                $expense->wasChanged('status')
+                || $expense->wasChanged('date_time')
+                || $expense->wasChanged('merchant_name')
+                || $expense->wasChanged('document_classification')
+                || $expense->wasChanged('family_member_id')
+            );
 
-        if (in_array($expense->status, ['parsed', 'reviewed'], true)) {
+        if ($shouldMatchRecurring) {
             // WhatsApp "parsed" alerts run after document parsed/needs-review replies
             // (and after any remaining pending OCR for the same sender).
             $deferForWhatsAppParsed = $expense->source === 'whatsapp'
-                && $expense->status === 'parsed';
+                && $expense->status === 'parsed'
+                && $expense->wasChanged('status');
 
-            if (! $deferForWhatsAppParsed) {
+            if ($expense->wasChanged('status') && ! $deferForWhatsAppParsed) {
                 app(BudgetAlertService::class)->checkAlertsForExpense($expense);
             }
 
             app(RecurringMatchService::class)->matchExpense($expense);
         }
 
-        if ($expense->status === 'requires_manual_review') {
+        if ($expense->wasChanged('status') && $expense->status === 'requires_manual_review') {
             app(ReceiptManualReviewNotifier::class)->notify($expense);
         }
     }
