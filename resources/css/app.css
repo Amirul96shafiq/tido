@@ -2894,6 +2894,7 @@ html.tido-reduce-motion
     .tido-sidebar-flyout-panel {
         max-width: min(14rem, calc(100vw - 1rem)) !important;
         z-index: 60;
+        transition-property: opacity !important;
     }
 }
 

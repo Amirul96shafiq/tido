@@ -85,15 +85,22 @@
                     }
                     const isDesktopMq = window.matchMedia('(min-width: 1024px)')
                     const placePanel = () => {
-                        const dest = isDesktopMq.matches ? sidebar : document.body
+                        let portalContainer = document.getElementById('tido-sidebar-flyout-portal')
+                        if (! portalContainer) {
+                            portalContainer = document.createElement('div')
+                            portalContainer.id = 'tido-sidebar-flyout-portal'
+                            portalContainer.setAttribute('x-data', '{}')
+                            document.body.appendChild(portalContainer)
+                        }
+                        const dest = isDesktopMq.matches ? sidebar : portalContainer
                         if (panel.parentElement !== dest) {
                             dest.appendChild(panel)
                         }
                     }
                     placePanel()
                     isDesktopMq.addEventListener('change', placePanel)
-                    const tidoClampSidebarFlyout = () => {
-                        if (isDesktopMq.matches || panel.style.display !== 'block' || ! sidebar.classList.contains('fi-sidebar-open')) {
+                    const tidoClampSidebarFlyout = (force = false) => {
+                        if (isDesktopMq.matches || (! force && panel.style.display !== 'block') || ! sidebar.classList.contains('fi-sidebar-open')) {
                             return
                         }
                         const trigger = $el.querySelector('.fi-sidebar-item-btn')
@@ -113,17 +120,30 @@
                             top = Math.max(pad, window.innerHeight - pad - height)
                         }
                         top = Math.max(pad, top)
-                        panel.style.position = 'fixed'
-                        panel.style.left = left + 'px'
-                        panel.style.top = top + 'px'
-                        panel.style.right = 'auto'
-                        panel.style.transform = 'none'
+                        if (panel.style.position !== 'fixed') {
+                            panel.style.position = 'fixed'
+                        }
+                        const leftPx = left + 'px'
+                        if (panel.style.left !== leftPx) {
+                            panel.style.left = leftPx
+                        }
+                        const topPx = top + 'px'
+                        if (panel.style.top !== topPx) {
+                            panel.style.top = topPx
+                        }
+                        if (panel.style.right !== 'auto') {
+                            panel.style.right = 'auto'
+                        }
+                        if (panel.style.transform !== 'none') {
+                            panel.style.transform = 'none'
+                        }
                     }
+                    panel._tidoClamp = tidoClampSidebarFlyout
                     if (! panel._tidoClampBound) {
                         panel._tidoClampBound = true
                         new MutationObserver(() => {
                             if (panel.style.display === 'block') {
-                                requestAnimationFrame(() => tidoClampSidebarFlyout())
+                                tidoClampSidebarFlyout()
                             }
                         }).observe(panel, { attributes: true, attributeFilter: ['style'] })
                     }
@@ -138,6 +158,10 @@
                             const insideTrigger = $el.contains(target)
                             if (insidePanel || insideTrigger) {
                                 return
+                            }
+                            const isOtherFlyoutTrigger = target.closest && target.closest('.fi-sidebar-item-flyout')
+                            if (isOtherFlyoutTrigger) {
+                                panel.style.display = 'none'
                             }
                             close(event)
                         }
@@ -171,24 +195,44 @@
                     $el._hideT = setTimeout(() => close($event), 180)
                 }
             "
+            x-on:pointerdown.capture="
+                if (! window.matchMedia('(min-width: 1024px)').matches) {
+                    if ($refs.panel && $refs.panel._tidoClamp) {
+                        $refs.panel._tidoClamp(true)
+                    }
+                    window.dispatchEvent(new CustomEvent('tido-sidebar-flyout-exclusive', { detail: { source: $el } }))
+                }
+            "
             x-on:mousedown="
                 if (! window.matchMedia('(min-width: 1024px)').matches) {
+                    if ($refs.panel && $refs.panel._tidoClamp) {
+                        $refs.panel._tidoClamp(true)
+                    }
                     window.dispatchEvent(new CustomEvent('tido-sidebar-flyout-exclusive', { detail: { source: $el } }))
                 }
             "
             x-on:keyup.enter="
                 if (! window.matchMedia('(min-width: 1024px)').matches) {
+                    if ($refs.panel && $refs.panel._tidoClamp) {
+                        $refs.panel._tidoClamp(true)
+                    }
                     window.dispatchEvent(new CustomEvent('tido-sidebar-flyout-exclusive', { detail: { source: $el } }))
                 }
             "
             x-on:keyup.space="
                 if (! window.matchMedia('(min-width: 1024px)').matches) {
+                    if ($refs.panel && $refs.panel._tidoClamp) {
+                        $refs.panel._tidoClamp(true)
+                    }
                     window.dispatchEvent(new CustomEvent('tido-sidebar-flyout-exclusive', { detail: { source: $el } }))
                 }
             "
             x-on:tido-sidebar-flyout-exclusive.window="
                 if ($event.detail.source === $el || window.matchMedia('(min-width: 1024px)').matches) {
                     return
+                }
+                if ($refs.panel) {
+                    $refs.panel.style.display = 'none'
                 }
                 close($event)
             "
