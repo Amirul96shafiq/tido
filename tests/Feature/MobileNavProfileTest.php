@@ -277,8 +277,8 @@ test('mobile nav css hides topbar and offsets sticky chrome on small screens', f
         ->toContain('.tido-mobilenav-item--avatar')
         ->toContain('--sidebar-width: var(--tido-mobilenav-sidebar-width, 50vw)')
         ->toContain("html.tido-mobilenav .fi-sidebar {\n        inset-block-end: var(--tido-mobilenav-height, 4rem);\n        height: auto;\n        width: var(--tido-mobilenav-sidebar-width, 50vw) !important;\n        max-width: var(--tido-mobilenav-sidebar-width, 50vw);")
-        ->toContain('html.tido-mobilenav .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-label')
-        ->toContain('html.tido-mobilenav .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-logo-full')
+        ->toMatch('/html\.tido-mobilenav\s+\.fi-sidebar:not\(\.fi-sidebar-open\)\s+\.fi-sidebar-item-label/')
+        ->toMatch('/html\.tido-mobilenav\s+\.fi-sidebar:not\(\.fi-sidebar-open\)\s+\.fi-sidebar-logo-full/')
         ->toMatch('/html\.tido-mobilenav\s+\.fi-sidebar:not\(\.fi-sidebar-open\)\s+\.fi-sidebar-group-collapsed-label/')
         ->toMatch('/html\.tido-mobilenav\s+\.fi-sidebar\.fi-sidebar-animating\.fi-sidebar-open\s+\.fi-sidebar-item-label[\s\S]*?\.fi-sidebar-item-btn[\s\S]*?animation:\s*none\s*!important/');
 
@@ -429,6 +429,10 @@ test('mobile nav bottom bar uses active-state icons for home menu and add slots'
     $mobileNav = (string) file_get_contents(
         resource_path('views/filament/livewire/mobile-nav.blade.php'),
     );
+    $userMenu = (string) file_get_contents(
+        resource_path('views/vendor/filament-panels/components/user-menu.blade.php'),
+    );
+    $css = (string) file_get_contents(resource_path('css/app.css'));
 
     expect($mobileNav)
         ->toContain('wire:current.exact="tido-mobilenav-item--current"')
@@ -438,9 +442,13 @@ test('mobile nav bottom bar uses active-state icons for home menu and add slots'
         ->toContain('tido-mobilenav-icon--solid')
         ->toContain('Heroicon::OutlinedBars3')
         ->toContain('Heroicon::OutlinedBars3BottomLeft')
-        ->toContain('x-show="! $store.sidebar.isOpen"')
+        ->not->toContain('x-show="! $store.sidebar.isOpen"')
+        ->not->toContain('x-show="$store.sidebar.isOpen"')
+        ->not->toContain('x-show="! $store.tidoMobileChrome.addOpen"')
         ->toContain('tido-mobilenav-add-svg--default')
         ->toContain('tido-mobilenav-add-svg--active')
+        ->not->toMatch('/tido-mobilenav-add-svg--default"[^>]*\bx-cloak\b/')
+        ->not->toMatch('/tido-mobilenav-add-svg--active"[^>]*\bx-cloak\b/')
         ->toContain('tido-mobilenav-add-eye--right')
         ->toContain('tido-mobilenav-add-eye--left')
         ->toContain('tido-mobilenav-add-eye-sclera')
@@ -460,6 +468,18 @@ test('mobile nav bottom bar uses active-state icons for home menu and add slots'
         ->toContain('Search</span>')
         ->toContain("x-bind:class=\"{ 'tido-mobilenav-item--active text-primary-600 dark:text-primary-400': \$store.sidebar.isOpen }\"")
         ->toContain("x-bind:class=\"{ 'tido-mobilenav-item--active text-primary-600 dark:text-primary-400': isSearchOpen() }\"");
+
+    expect($userMenu)
+        ->toContain('tido-mobilenav-icon--outline')
+        ->toContain('tido-mobilenav-icon--solid')
+        ->not->toContain("x-show=\"! (\$store.tidoNotifications?.menuOpen")
+        ->not->toContain("x-show=\"\$store.tidoNotifications?.menuOpen ||");
+
+    expect($css)
+        ->toContain('.tido-mobilenav-item--active')
+        ->toContain('.tido-mobilenav-add-svg--active')
+        ->toContain('.tido-mobilenav-add-btn--open .tido-mobilenav-add-svg--default')
+        ->toContain('.tido-mobilenav-add-btn--open .tido-mobilenav-add-svg--active');
 });
 
 test('mobile nav add sheet sits flush on the bottom bar', function (): void {
@@ -608,8 +628,8 @@ test('mobile sidebar expands all navigation groups when menu opens', function ()
     expect($vite)->not->toContain('sidebar-group-accordion.js');
 
     expect($css)
-        ->toContain('html.tido-mobilenav .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-label')
-        ->toContain('html.tido-mobilenav .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-logo-full')
+        ->toMatch('/html\.tido-mobilenav\s+\.fi-sidebar:not\(\.fi-sidebar-open\)\s+\.fi-sidebar-item-label/')
+        ->toMatch('/html\.tido-mobilenav\s+\.fi-sidebar:not\(\.fi-sidebar-open\)\s+\.fi-sidebar-logo-full/')
         ->toMatch('/html\.tido-mobilenav\s+\.fi-sidebar\.fi-sidebar-animating\.fi-sidebar-open\s+\.fi-sidebar-item-label[\s\S]*?animation:\s*none\s*!important/')
         ->toMatch('/html\.tido-mobilenav\s+\.fi-sidebar\.fi-sidebar-animating\.fi-sidebar-open\s+\.fi-sidebar-item-btn/');
 

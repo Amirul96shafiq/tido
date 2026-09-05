@@ -452,8 +452,6 @@
             xmlns="http://www.w3.org/2000/svg"
             viewBox="-4 -4 111 77"
             class="tido-mobilenav-add-svg tido-mobilenav-add-svg--default"
-            x-cloak
-            x-show="! $store.tidoMobileChrome.addOpen"
             overflow="visible"
         >
             <path
@@ -467,8 +465,6 @@
             xmlns="http://www.w3.org/2000/svg"
             viewBox="-4 -4 111 77"
             class="tido-mobilenav-add-svg tido-mobilenav-add-svg--active"
-            x-cloak
-            x-show="$store.tidoMobileChrome.addOpen"
             overflow="visible"
         >
             <path
@@ -514,22 +510,18 @@
             x-on:click="toggleSidebar()"
         >
             <span class="tido-mobilenav-icon-wrap">
-                <span x-cloak x-show="! $store.sidebar.isOpen">
-                    {{
-                        \Filament\Support\generate_icon_html(
-                            Heroicon::OutlinedBars3,
-                            attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon']),
-                        )
-                    }}
-                </span>
-                <span x-cloak x-show="$store.sidebar.isOpen">
-                    {{
-                        \Filament\Support\generate_icon_html(
-                            Heroicon::OutlinedBars3BottomLeft,
-                            attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon text-primary-600 dark:text-primary-400']),
-                        )
-                    }}
-                </span>
+                {{
+                    \Filament\Support\generate_icon_html(
+                        Heroicon::OutlinedBars3,
+                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--outline']),
+                    )
+                }}
+                {{
+                    \Filament\Support\generate_icon_html(
+                        Heroicon::OutlinedBars3BottomLeft,
+                        attributes: (new \Illuminate\View\ComponentAttributeBag)->class(['tido-mobilenav-icon tido-mobilenav-icon--solid text-primary-600 dark:text-primary-400']),
+                    )
+                }}
             </span>
             <span
                 class="tido-mobilenav-label"
@@ -553,8 +545,6 @@
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="-4 -4 111 77"
                     class="tido-mobilenav-add-svg tido-mobilenav-add-svg--default"
-                    x-cloak
-                    x-show="! $store.tidoMobileChrome.addOpen"
                     overflow="visible"
                     aria-hidden="true"
                 >
@@ -576,8 +566,6 @@
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="-4 -4 111 77"
                     class="tido-mobilenav-add-svg tido-mobilenav-add-svg--active"
-                    x-cloak
-                    x-show="$store.tidoMobileChrome.addOpen"
                     x-data="{
                         blinking: false,
                         blinkCount: 1,
