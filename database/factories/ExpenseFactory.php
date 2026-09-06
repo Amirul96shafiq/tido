@@ -25,6 +25,7 @@ class ExpenseFactory extends Factory
         $dateTime = $this->faker->dateTimeThisYear();
 
         return [
+            'household_id' => 1,
             'merchant_name' => FieldCharacterLimits::truncate(
                 $this->faker->company(),
                 FieldCharacterLimits::MERCHANT_NAME,

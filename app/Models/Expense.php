@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToHousehold;
 use App\Models\Concerns\TracksResourceEdits;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,6 +20,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Expense extends Model
 {
+    use BelongsToHousehold;
     use HasFactory, LogsActivity, SoftDeletes, TracksResourceEdits;
 
     public const CURRENCY_MYR = 'MYR';

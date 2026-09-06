@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Support\CurrentHousehold;
 use App\Support\EvolutionCredential;
+use App\Support\EvolutionWebhookHousehold;
 use App\Support\WhatsAppJid;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
@@ -16,14 +18,27 @@ class WhatsAppWebhookRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $authorization = $this->header('Authorization');
+        $authorization = (string) $this->header('Authorization');
         $apiKey = trim((string) config('services.evolution.api_key'));
-        $webhookSecret = trim((string) config('services.evolution.webhook_secret'));
 
-        if (! EvolutionCredential::areDistinct($apiKey, $webhookSecret)
-            || ! hash_equals('Bearer '.$webhookSecret, (string) $authorization)) {
+        if (! str_starts_with($authorization, 'Bearer ')) {
             throw new HttpResponseException(response()->json(['error' => 'Unauthorized'], 401));
         }
+
+        $presentedSecret = trim(substr($authorization, strlen('Bearer ')));
+
+        if ($presentedSecret === ''
+            || ! EvolutionCredential::areDistinct($apiKey, $presentedSecret)) {
+            throw new HttpResponseException(response()->json(['error' => 'Unauthorized'], 401));
+        }
+
+        $household = EvolutionWebhookHousehold::findByWebhookSecret($presentedSecret);
+
+        if ($household === null) {
+            throw new HttpResponseException(response()->json(['error' => 'Unauthorized'], 401));
+        }
+
+        CurrentHousehold::set((int) $household->id);
 
         return true;
     }

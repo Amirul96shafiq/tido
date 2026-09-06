@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Enums\HouseholdRole;
 use App\Models\FamilyMember;
 use App\Models\User;
 use Filament\AvatarProviders\UiAvatarsProvider;
@@ -103,16 +104,52 @@ final class PhoneNumber
     }
 
     /**
-     * Owner account for Profile WhatsApp (always user id 1).
+     * Primary account for the current household (Profile WhatsApp / allowlist owner).
+     * Falls back to household #1 when no household context is set (CLI / early boot).
      */
     public static function primaryUser(): ?User
     {
-        return User::query()->whereKey(1)->first();
+        $householdId = CurrentHousehold::id()
+            ?? (auth()->user() instanceof User ? auth()->user()->household_id : null)
+            ?? 1;
+
+        $user = User::query()
+            ->withoutGlobalScope('household')
+            ->where('household_id', $householdId)
+            ->where(function ($query): void {
+                $query->where('household_role', HouseholdRole::Primary)
+                    ->orWhereNull('household_role');
+            })
+            ->orderBy('id')
+            ->first();
+
+        // #region agent log
+        file_put_contents(base_path('debug-304ce6.log'), json_encode([
+            'sessionId' => '304ce6',
+            'runId' => 'post-fix',
+            'hypothesisId' => 'A',
+            'location' => 'PhoneNumber.php:primaryUser',
+            'message' => 'primaryUser lookup',
+            'data' => [
+                'found' => $user !== null,
+                'foundUserId' => $user?->getKey(),
+                'foundHouseholdId' => $user?->household_id,
+                'resolvedHouseholdId' => $householdId,
+                'currentHouseholdId' => CurrentHousehold::id(),
+                'authUserId' => auth()->id(),
+                'authHouseholdId' => auth()->user()?->household_id,
+                'authHasPhone' => filled(auth()->user()?->phone),
+            ],
+            'timestamp' => (int) round(microtime(true) * 1000),
+        ], JSON_UNESCAPED_SLASHES)."\n", FILE_APPEND);
+        // #endregion
+
+        return $user;
     }
 
     /**
      * Owner outbound target for ping, welcome, and budget WhatsApp alerts.
-     * Profile phone on user id 1.
+     * Profile phone on the current household Primary.
      */
     public static function primaryWhatsAppNumber(): ?string
     {
@@ -127,7 +164,7 @@ final class PhoneNumber
 
     /**
      * Numbers allowed to trigger WhatsApp bot replies / receipt import.
-     * User id 1 Profile phone plus Family Members with allowlist enabled.
+     * Current household Primary Profile phone plus Family Members with allowlist enabled.
      *
      * @return list<string>
      */
@@ -154,7 +191,28 @@ final class PhoneNumber
             }
         }
 
-        return array_values(array_unique($numbers));
+        $result = array_values(array_unique($numbers));
+
+        // #region agent log
+        file_put_contents(base_path('debug-304ce6.log'), json_encode([
+            'sessionId' => '304ce6',
+            'runId' => 'post-fix',
+            'hypothesisId' => 'A',
+            'location' => 'PhoneNumber.php:allowedWhatsAppSenders',
+            'message' => 'Allowlist numbers resolved',
+            'data' => [
+                'primaryPresent' => $primary !== null,
+                'familyCount' => count($familyPhones),
+                'resultCount' => count($result),
+                'currentHouseholdId' => CurrentHousehold::id(),
+                'authUserId' => auth()->id(),
+                'authHasPhone' => filled(auth()->user()?->phone),
+            ],
+            'timestamp' => (int) round(microtime(true) * 1000),
+        ], JSON_UNESCAPED_SLASHES)."\n", FILE_APPEND);
+        // #endregion
+
+        return $result;
     }
 
     /**

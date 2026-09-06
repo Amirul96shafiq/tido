@@ -7,8 +7,10 @@ use App\Filament\Support\IntegrationNavigation;
 use App\Models\FamilyMember;
 use App\Models\GoogleOAuthLoginLog;
 use App\Models\GoogleOAuthSetting;
+use App\Models\Household;
 use App\Models\User;
 use App\Services\GoogleOAuth\GoogleOAuthSettings;
+use App\Support\CurrentHousehold;
 use Filament\Actions\ActionGroup;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -18,18 +20,23 @@ uses(RefreshDatabase::class);
 
 function enableGoogleOAuthInDatabase(): void
 {
-    GoogleOAuthSetting::singleton()->update([
+    GoogleOAuthSetting::platform()->update([
         'client_id' => 'test-google-client-id',
         'client_secret' => 'test-google-client-secret',
         'enabled' => true,
         'setup_completed_at' => now(),
     ]);
 
-    app(GoogleOAuthSettings::class)->forgetCache();
+    GoogleOAuthSettings::platform()->forgetCache();
 }
 
 beforeEach(function (): void {
-    $this->actingAs(User::factory()->create());
+    CurrentHousehold::clear();
+    $this->actingAs(User::factory()->create(['household_id' => 1]));
+});
+
+afterEach(function (): void {
+    CurrentHousehold::clear();
 });
 
 test('google oauth page renders for primary household', function (): void {
@@ -62,21 +69,32 @@ test('family members cannot access google oauth page', function (): void {
         ->assertRedirect();
 });
 
-test('configure modal saves encrypted client secret', function (): void {
+test('configure modal saves encrypted client secret for platform household', function (): void {
     Livewire::test(GoogleOAuthPage::class)
         ->callAction('configureSetup', data: [
             'client_id' => 'saved-client-id',
             'client_secret' => 'saved-client-secret',
             'has_saved_secret' => false,
-            'enabled' => true,
         ])
         ->assertNotified('Google OAuth settings saved');
 
-    $raw = GoogleOAuthSetting::query()->first()?->getRawOriginal('client_secret');
+    $raw = GoogleOAuthSetting::platform()->getRawOriginal('client_secret');
 
     expect($raw)->not->toBe('saved-client-secret')
-        ->and(app(GoogleOAuthSettings::class)->clientSecret())->toBe('saved-client-secret')
-        ->and(app(GoogleOAuthSettings::class)->enabled())->toBeTrue();
+        ->and(GoogleOAuthSettings::platform()->clientSecret())->toBe('saved-client-secret')
+        ->and(GoogleOAuthSettings::platform()->isSignInAvailable())->toBeTrue();
+});
+
+test('household two cannot save platform credentials', function (): void {
+    $householdTwo = Household::factory()->create();
+    $user = User::factory()->create(['household_id' => $householdTwo->id]);
+
+    $this->actingAs($user);
+    CurrentHousehold::set($householdTwo->id);
+
+    Livewire::test(GoogleOAuthPage::class)
+        ->assertSuccessful()
+        ->assertActionHidden('configureSetup');
 });
 
 test('test connection uses google token endpoint', function (): void {
@@ -95,11 +113,14 @@ test('test connection uses google token endpoint', function (): void {
     expect(GoogleOAuthLoginLog::query()->count())->toBe(0);
 });
 
-test('unlink google account clears primary google id', function (): void {
-    $user = User::factory()->create([
+test('unlink google account clears current primary google id', function (): void {
+    $user = auth()->user();
+    assert($user instanceof User);
+
+    $user->forceFill([
         'google_id' => 'google-sub-123',
         'google_linked_at' => now(),
-    ]);
+    ])->save();
 
     Livewire::test(GoogleOAuthPage::class)
         ->callAction('unlinkGoogleAccount')
@@ -110,10 +131,12 @@ test('unlink google account clears primary google id', function (): void {
         ->google_linked_at->toBeNull();
 });
 
-test('reset credentials clears settings and linked google account', function (): void {
+test('reset credentials clears shared settings without clearing other household links', function (): void {
     enableGoogleOAuthInDatabase();
 
-    $user = User::factory()->create([
+    $householdTwo = Household::factory()->create();
+    $other = User::factory()->create([
+        'household_id' => $householdTwo->id,
         'google_id' => 'google-sub-456',
         'google_linked_at' => now(),
     ]);
@@ -122,8 +145,8 @@ test('reset credentials clears settings and linked google account', function ():
         ->callAction('resetCredentials')
         ->assertNotified('Google OAuth credentials reset');
 
-    expect(app(GoogleOAuthSettings::class)->hasCredentials())->toBeFalse()
-        ->and($user->fresh()->google_id)->toBeNull();
+    expect(GoogleOAuthSettings::platform()->hasCredentials())->toBeFalse()
+        ->and($other->fresh()->google_id)->toBe('google-sub-456');
 });
 
 test('header overflow uses the same gray button as other integration pages', function (): void {

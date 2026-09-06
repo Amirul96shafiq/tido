@@ -8,7 +8,6 @@ use App\Enums\GoogleOAuthLoginEvent;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
-use Illuminate\Support\Str;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
 
 final class GoogleOAuthAuthenticator
@@ -17,12 +16,14 @@ final class GoogleOAuthAuthenticator
         private readonly GoogleOAuthLoginLogService $loginLogService,
     ) {}
 
+    /**
+     * Login: only Primaries already linked by google_id.
+     */
     public function resolveUser(SocialiteUser $googleUser): ?User
     {
         $googleId = $googleUser->getId();
-        $email = $googleUser->getEmail();
 
-        if (! filled($googleId) || ! filled($email)) {
+        if (! filled($googleId)) {
             return null;
         }
 
@@ -32,42 +33,63 @@ final class GoogleOAuthAuthenticator
             return null;
         }
 
-        $byGoogleId = User::query()
+        $user = User::query()
             ->where('google_id', $googleId)
             ->first();
 
-        if ($byGoogleId instanceof User) {
-            return $this->authorizePrimary($byGoogleId) ? $byGoogleId : null;
-        }
-
-        $byEmail = User::query()
-            ->whereRaw('LOWER(email) = ?', [Str::lower($email)])
-            ->whereNull('google_id')
-            ->first();
-
-        if (! $byEmail instanceof User) {
+        if (! $user instanceof User) {
             return null;
         }
 
-        if (! $this->authorizePrimary($byEmail)) {
-            return null;
+        return $this->authorizePrimary($user) ? $user : null;
+    }
+
+    /**
+     * Link while authenticated: attach google_id to the acting Primary.
+     */
+    public function linkToUser(User $user, SocialiteUser $googleUser): bool
+    {
+        if (! $this->authorizePrimary($user)) {
+            return false;
         }
 
-        $byEmail->forceFill([
+        $googleId = $googleUser->getId();
+
+        if (! filled($googleId)) {
+            return false;
+        }
+
+        $emailVerified = data_get($googleUser->user, 'email_verified', true);
+
+        if ($emailVerified === false || $emailVerified === 'false' || $emailVerified === 0) {
+            return false;
+        }
+
+        $taken = User::query()
+            ->where('google_id', $googleId)
+            ->whereKeyNot($user->getKey())
+            ->exists();
+
+        if ($taken) {
+            return false;
+        }
+
+        $user->forceFill([
             'google_id' => $googleId,
             'google_linked_at' => now(),
         ])->save();
 
-        return $byEmail->fresh();
+        return true;
     }
 
-    public function logFailure(?string $message = null): void
+    public function logFailure(?string $message = null, ?int $householdId = null): void
     {
         $this->loginLogService->log(
             GoogleOAuthLoginEvent::Failed,
             'failed',
             null,
             $message ?? 'Google sign-in is not available for this account.',
+            $householdId,
         );
     }
 
@@ -78,6 +100,18 @@ final class GoogleOAuthAuthenticator
             'success',
             $user,
             'Signed in via Google.',
+            $user->household_id,
+        );
+    }
+
+    public function logLinked(User $user): void
+    {
+        $this->loginLogService->log(
+            GoogleOAuthLoginEvent::SignIn,
+            'success',
+            $user,
+            'Google account linked.',
+            $user->household_id,
         );
     }
 

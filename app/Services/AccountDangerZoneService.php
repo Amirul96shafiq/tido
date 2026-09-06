@@ -14,6 +14,7 @@ use App\Models\PaymentMethod;
 use App\Models\Recurring;
 use App\Models\User;
 use App\Support\CreatedBackup;
+use App\Support\CurrentHousehold;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\Models\Activity;
@@ -54,47 +55,56 @@ class AccountDangerZoneService
 
     public function wipeSharedAppData(User $user): void
     {
-        DB::transaction(function () use ($user): void {
-            foreach ($this->domainWipeCallbacks($user) as $callback) {
-                $callback();
+        $householdId = (int) $user->household_id;
+
+        DB::transaction(function () use ($user, $householdId): void {
+            CurrentHousehold::set($householdId);
+
+            try {
+                foreach ($this->domainWipeCallbacks($user, $householdId) as $callback) {
+                    $callback();
+                }
+            } finally {
+                CurrentHousehold::clear();
             }
         });
     }
 
     /**
-     * Ordered wipe callbacks for domain data. Add future domain resources here.
+     * Ordered wipe callbacks for domain data within one household.
      *
      * @return list<callable(): void>
      */
-    protected function domainWipeCallbacks(User $user): array
+    protected function domainWipeCallbacks(User $user, int $householdId): array
     {
         return [
-            function (): void {
-                $this->wipeExpenses();
+            function () use ($householdId): void {
+                $this->wipeExpenses($householdId);
             },
-            function (): void {
-                $this->wipeRecurrings();
+            function () use ($householdId): void {
+                $this->wipeRecurrings($householdId);
             },
-            function (): void {
-                $this->wipeBudgets();
+            function () use ($householdId): void {
+                $this->wipeBudgets($householdId);
             },
-            function (): void {
-                $this->wipeUserCreatedLabels();
+            function () use ($householdId): void {
+                $this->wipeUserCreatedLabels($householdId);
             },
-            function (): void {
-                $this->wipeUserCreatedPaymentMethods();
+            function () use ($householdId): void {
+                $this->wipeUserCreatedPaymentMethods($householdId);
             },
-            fn (): mixed => EvolutionApiConnectionLog::query()->delete(),
+            fn (): mixed => EvolutionApiConnectionLog::query()->where('household_id', $householdId)->delete(),
             fn (): mixed => Activity::query()->delete(),
             fn (): mixed => $user->notifications()->delete(),
             fn (): mixed => ContentDraft::query()->where('user_id', $user->getKey())->delete(),
         ];
     }
 
-    protected function wipeExpenses(): void
+    protected function wipeExpenses(int $householdId): void
     {
         Expense::query()
             ->withTrashed()
+            ->where('household_id', $householdId)
             ->cursor()
             ->each(function (Expense $expense): void {
                 if (filled($expense->image_path) && Storage::exists($expense->image_path)) {
@@ -105,35 +115,39 @@ class AccountDangerZoneService
             });
     }
 
-    protected function wipeBudgets(): void
+    protected function wipeBudgets(int $householdId): void
     {
         Budget::query()
             ->withTrashed()
+            ->where('household_id', $householdId)
             ->cursor()
             ->each(fn (Budget $budget): mixed => $budget->forceDelete());
     }
 
-    protected function wipeRecurrings(): void
+    protected function wipeRecurrings(int $householdId): void
     {
         Recurring::query()
             ->withTrashed()
+            ->where('household_id', $householdId)
             ->cursor()
             ->each(fn (Recurring $recurring): mixed => $recurring->forceDelete());
     }
 
-    protected function wipeUserCreatedLabels(): void
+    protected function wipeUserCreatedLabels(int $householdId): void
     {
         Label::query()
             ->withTrashed()
+            ->where('household_id', $householdId)
             ->where('is_system', false)
             ->cursor()
             ->each(fn (Label $label): mixed => $label->forceDelete());
     }
 
-    protected function wipeUserCreatedPaymentMethods(): void
+    protected function wipeUserCreatedPaymentMethods(int $householdId): void
     {
         PaymentMethod::query()
             ->withTrashed()
+            ->where('household_id', $householdId)
             ->where('is_system', false)
             ->cursor()
             ->each(fn (PaymentMethod $paymentMethod): mixed => $paymentMethod->forceDelete());
@@ -141,8 +155,11 @@ class AccountDangerZoneService
 
     protected function deleteUserAccount(User $user): void
     {
-        // Single-tenant: remove every account so OTP/password login cannot succeed via leftover users.
+        $householdId = (int) $user->household_id;
+
+        // Multi-household: remove only accounts in this household.
         User::query()
+            ->where('household_id', $householdId)
             ->orderBy('id')
             ->cursor()
             ->each(function (User $account): void {

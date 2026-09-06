@@ -18,7 +18,7 @@ class RecurringPolicy
 
     public function view(User $user, Recurring $recurring): bool
     {
-        return true;
+        return HouseholdAccess::belongsToSameHousehold($recurring->household_id);
     }
 
     public function create(User $user): bool|Response

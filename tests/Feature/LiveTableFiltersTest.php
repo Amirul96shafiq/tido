@@ -25,7 +25,7 @@ test('table filters and column manager apply live without deferred apply action'
         ->assertCanSeeTableRecords([$pending, $parsed]);
 
     expect($component->instance()->getListeners())
-        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+        ->toHaveKey('echo-private:household.1.expenses,.ExpenseUpdated');
 
     expect($component->instance()->getTable()->hasDeferredFilters())->toBeFalse()
         ->and($component->instance()->getTable()->hasDeferredColumnManager())->toBeFalse();

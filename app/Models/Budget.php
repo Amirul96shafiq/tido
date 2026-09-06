@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToHousehold;
 use App\Models\Concerns\TracksResourceEdits;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,6 +19,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Budget extends Model
 {
+    use BelongsToHousehold;
     use HasFactory, LogsActivity, SoftDeletes, TracksResourceEdits;
 
     protected $attributes = [

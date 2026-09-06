@@ -327,7 +327,7 @@ test('snapshot widget listens for echo expense updates without polling', functio
         ->assertDontSeeHtml('wire:poll.5s');
 
     expect($component->instance()->getListeners())
-        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+        ->toHaveKey('echo-private:household.1.expenses,.ExpenseUpdated');
 });
 
 test('snapshot widget refreshes when an expense broadcast arrives', function () {

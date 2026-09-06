@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureWhatsAppWebhookBodySize;
 use App\Http\Middleware\EnsureWhatsAppWebhookSource;
+use App\Http\Middleware\SetCurrentHousehold;
 use App\Http\Middleware\SetUserPreferences;
 use App\Support\ApplicationStoragePath;
 use Illuminate\Foundation\Application;
@@ -33,6 +34,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             SetUserPreferences::class,
+            SetCurrentHousehold::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

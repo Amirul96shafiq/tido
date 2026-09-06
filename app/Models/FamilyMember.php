@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\FamilyRelationship;
+use App\Models\Concerns\BelongsToHousehold;
 use App\Models\Concerns\TracksResourceEdits;
 use App\Support\PhoneNumber;
 use Database\Factories\FamilyMemberFactory;
@@ -20,6 +21,8 @@ use Illuminate\Support\Facades\Storage;
 class FamilyMember extends Model
 {
     /** @use HasFactory<FamilyMemberFactory> */
+    use BelongsToHousehold;
+
     use HasFactory, SoftDeletes, TracksResourceEdits;
 
     protected $attributes = [

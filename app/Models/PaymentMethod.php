@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToHousehold;
 use App\Models\Concerns\TracksResourceEdits;
 use Database\Factories\PaymentMethodFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,6 +19,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class PaymentMethod extends Model
 {
     /** @use HasFactory<PaymentMethodFactory> */
+    use BelongsToHousehold;
+
     use HasFactory, LogsActivity, SoftDeletes, TracksResourceEdits;
 
     protected $attributes = [

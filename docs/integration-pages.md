@@ -16,7 +16,7 @@ Integrations
     Ollama (Local)         live (Active pill when latest ollama health sample is operational)
     OpenAI                 coming soon
   Google
-    Google OAuth           live (Active pill when enabled with saved credentials)
+    Google OAuth           live (Active pill when shared credentials exist and this Primary is linked)
 ```
 
 Constants live in `App\Filament\Support\IntegrationNavigation`. Parent visibility matches `HouseholdAccess::canManageHouseholdSettings()`.
@@ -25,10 +25,10 @@ Coming-soon children are thin pages (`PrependsHomeBreadcrumb` + `RequiresPrimary
 
 Live pages:
 
-| Page | Parent | Slug | Sort |
-|------|--------|------|------|
-| `EvolutionApiPage` | WhatsApp | `evolution-api` | 10 |
-| `OllamaPage` | AI Parsing Engine | `ollama` | 20 |
+| Page               | Parent            | Slug            | Sort |
+| ------------------ | ----------------- | --------------- | ---- |
+| `EvolutionApiPage` | WhatsApp          | `evolution-api` | 10   |
+| `OllamaPage`       | AI Parsing Engine | `ollama`        | 20   |
 
 Placeholder pages: `WhatsAppOfficialApiPage` (sort 20), `GeminiPage` (sort 10), `OpenAiPage` (sort 30).
 
@@ -67,11 +67,11 @@ The custom SVG icon must live in `resources/svg/` and be registered in `AppServi
 
 The Blade content layer reads these reactive Livewire properties directly. Every integration page **must** expose all of them.
 
-| Property | Type | Values / purpose |
-|---|---|---|
+| Property            | Type     | Values / purpose                                                               |
+| ------------------- | -------- | ------------------------------------------------------------------------------ |
 | `$connectionStatus` | `string` | `'unknown'` · `'operational'` / `'open'` · `'degraded'` · `'down'` / `'close'` |
-| `$statusMessage` | `string` | Human-readable one-liner matching the status |
-| `$latencyMs` | `int` | Last measured round-trip latency (ms); `0` when unknown |
+| `$statusMessage`    | `string` | Human-readable one-liner matching the status                                   |
+| `$latencyMs`        | `int`    | Last measured round-trip latency (ms); `0` when unknown                        |
 
 Add service-specific config properties (host/URL, API key, timeouts, binary paths, etc.) as plain public properties. Their initial values come from the settings class or `.env` via `mount()`.
 
@@ -88,16 +88,16 @@ These drive `settingsSourceLabel()` (see §10).
 
 ## 3. Required methods
 
-| Method | Contract |
-|---|---|
-| `mount()` | Inject settings/detector services via constructor or method injection; call the load/detect/refresh methods; do not trigger side effects (notifications, mutations) during mount |
-| `content(Schema $schema)` | Return the Blade partial wrapped in section nav scope — see §4 |
-| `sectionNavItems(): array` | Return 3–4 `SectionNavItem` objects matching the `#id` anchors in the content partial |
-| `sectionNavAriaLabel(): string` | Return `'<Service> sections'` |
-| `getHeaderActions(): array` | Return Refresh + primary CTA + overflow `ActionGroup` — see §6 |
-| `refreshStatus(bool $allowSideEffects = false)` | Idempotent poller; re-probe the service; only trigger notifications/mutations when `$allowSideEffects` is `true` |
-| `testConnection(?string $host = null)` | Probe once; emit a `success` or `danger` notification with the result |
-| `settingsSourceLabel(): string` | Return one of `'Setup complete'` / `'Using saved settings'` / `'Using environment defaults'` |
+| Method                                          | Contract                                                                                                                                                                         |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mount()`                                       | Inject settings/detector services via constructor or method injection; call the load/detect/refresh methods; do not trigger side effects (notifications, mutations) during mount |
+| `content(Schema $schema)`                       | Return the Blade partial wrapped in section nav scope — see §4                                                                                                                   |
+| `sectionNavItems(): array`                      | Return 3–4 `SectionNavItem` objects matching the `#id` anchors in the content partial                                                                                            |
+| `sectionNavAriaLabel(): string`                 | Return `'<Service> sections'`                                                                                                                                                    |
+| `getHeaderActions(): array`                     | Return Refresh + primary CTA + overflow `ActionGroup` — see §6                                                                                                                   |
+| `refreshStatus(bool $allowSideEffects = false)` | Idempotent poller; re-probe the service; only trigger notifications/mutations when `$allowSideEffects` is `true`                                                                 |
+| `testConnection(?string $host = null)`          | Probe once; emit a `success` or `danger` notification with the result                                                                                                            |
+| `settingsSourceLabel(): string`                 | Return one of `'Setup complete'` / `'Using saved settings'` / `'Using environment defaults'`                                                                                     |
 
 ---
 
@@ -124,17 +124,21 @@ Top two sections sit in a two-column grid on `xl` screens; bottom sections span 
 
 ```html
 <div class="flex flex-col gap-6">
-
     {{-- Top row: 2-col on xl --}}
     <div class="grid gap-6 xl:grid-cols-2">
-        <div id="<slug>-status" ...>   <!-- Status card -->
-        <div id="<slug>-config" ...>   <!-- Config / connection card -->
+        <div id="<slug>-status" ...>
+            <!-- Status card -->
+            <div id="<slug>-config" ...><!-- Config / connection card --></div>
+
+            {{-- Full-width sections --}}
+            <div id="<slug>-pipeline" ...>
+                <!-- Readiness / details -->
+                <div id="<slug>-activity" ...>
+                    <!-- Activity / history log -->
+                </div>
+            </div>
+        </div>
     </div>
-
-    {{-- Full-width sections --}}
-    <div id="<slug>-pipeline" ...>   <!-- Readiness / details -->
-    <div id="<slug>-activity" ...>   <!-- Activity / history log -->
-
 </div>
 ```
 
@@ -142,12 +146,12 @@ Some integrations swap the column order (Evolution API puts the interactive "Lin
 
 ### Mandatory section IDs and their contents
 
-| # | `id` | Width | Content |
-|---|---|---|---|
-| 1 | `<slug>-status` | Half (top-left or top-right) | Animated status icon, status label + `$statusMessage`, 3 `<x-tido.detail-row>` summary rows, "View details" slide-over button |
-| 2 | `<slug>-config` | Half (complementary to status) | Connection config (host, instance, API URL), current state badge, step-by-step usage instructions, QR / pairing UI when applicable |
-| 3 | `<slug>-pipeline` | Full width | Readiness checks grid (4 cards with `Ready` / `Needs attention` badges), or a linked-entity list with inline actions |
-| 4 | `<slug>-activity` | Full width | Stat cards with sparkline data **or** a Filament `InteractsWithTable` history/log table |
+| #   | `id`              | Width                          | Content                                                                                                                            |
+| --- | ----------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `<slug>-status`   | Half (top-left or top-right)   | Animated status icon, status label + `$statusMessage`, 3 `<x-tido.detail-row>` summary rows, "View details" slide-over button      |
+| 2   | `<slug>-config`   | Half (complementary to status) | Connection config (host, instance, API URL), current state badge, step-by-step usage instructions, QR / pairing UI when applicable |
+| 3   | `<slug>-pipeline` | Full width                     | Readiness checks grid (4 cards with `Ready` / `Needs attention` badges), or a linked-entity list with inline actions               |
+| 4   | `<slug>-activity` | Full width                     | Stat cards with sparkline data **or** a Filament `InteractsWithTable` history/log table                                            |
 
 Always include a `wire:poll.5s.keep-alive="refreshStatus"` attribute on the outermost element during transient states (QR on-screen, connecting); remove it (return `null` from `getPollingInterval()`) when the service is stable. See §8.
 
@@ -167,13 +171,13 @@ Triggered by the primary header action ("Start Configure" / "Edit…"):
 
 Number fieldset labels as `01 – Step name`, `02 – …`, etc. Gate each step with `->visible(fn () => ...)` based on live reactive state so users only see steps relevant to the current setup progress.
 
-| Step | Fieldset label | Always shown | Content |
-|---|---|---|---|
-| 01 | Detect `<Service>` | Yes | Detection status partial; Download / Start / Recheck actions |
-| 02 | `<Service>` connection | Yes | `TextInput host` (or API URL + key); "Test connection" inline action |
-| 03 | Install prerequisite | Only when running but missing | CLI command (read-only, with copy suffix); "I've done it — Recheck" action |
-| 04 | Choose / activate | Only when running and prerequisite met | `Select` or `TextInput` to pick/activate the model, instance, or resource |
-| 05 | Advanced settings | Only when running | Timeouts, context window, limits, binary paths; 2–3 column grid |
+| Step | Fieldset label         | Always shown                           | Content                                                                    |
+| ---- | ---------------------- | -------------------------------------- | -------------------------------------------------------------------------- |
+| 01   | Detect `<Service>`     | Yes                                    | Detection status partial; Download / Start / Recheck actions               |
+| 02   | `<Service>` connection | Yes                                    | `TextInput host` (or API URL + key); "Test connection" inline action       |
+| 03   | Install prerequisite   | Only when running but missing          | CLI command (read-only, with copy suffix); "I've done it — Recheck" action |
+| 04   | Choose / activate      | Only when running and prerequisite met | `Select` or `TextInput` to pick/activate the model, instance, or resource  |
+| 05   | Advanced settings      | Only when running                      | Timeouts, context window, limits, binary paths; 2–3 column grid            |
 
 Optional steps: if a service has no prerequisite step (no model to install, no binary to configure), omit steps 03 and 05 and re-number visible fieldsets accordingly.
 
@@ -215,25 +219,25 @@ Always contains, in this order:
 
 Use `$connectionStatus` to drive all visual status indicators.
 
-| Status value | Meaning | Pulse icon color | Badge token |
-|---|---|---|---|
-| `'operational'` / `'open'` / `'connected'` | Healthy | `text-emerald-500` + `animate-pulse` | `success` |
-| `'degraded'` | Reachable but impaired | `text-amber-500` + `animate-pulse` | `warning` |
-| `'down'` / `'close'` / `'closed'` / `'disconnected'` | Unreachable | `text-red-500` | `danger` |
-| `'unknown'` / `'unconfigured'` | Not yet probed or not configured | `text-gray-400` | `gray` |
+| Status value                                         | Meaning                          | Pulse icon color                     | Badge token |
+| ---------------------------------------------------- | -------------------------------- | ------------------------------------ | ----------- |
+| `'operational'` / `'open'` / `'connected'`           | Healthy                          | `text-emerald-500` + `animate-pulse` | `success`   |
+| `'degraded'`                                         | Reachable but impaired           | `text-amber-500` + `animate-pulse`   | `warning`   |
+| `'down'` / `'close'` / `'closed'` / `'disconnected'` | Unreachable                      | `text-red-500`                       | `danger`    |
+| `'unknown'` / `'unconfigured'`                       | Not yet probed or not configured | `text-gray-400`                      | `gray`      |
 
 Status label copy (the text beside the pulsing icon):
 
-| Status | Label |
-|---|---|
-| `operational` | `Operational` |
-| `open` / `connected` | `Connected` |
-| `degraded` | `Degraded` |
-| `down` / `close` | `Down` / `Disconnected` |
-| `unknown` | `Unknown` |
-| `unconfigured` | `Not configured` |
+| Status               | Label                   |
+| -------------------- | ----------------------- |
+| `operational`        | `Operational`           |
+| `open` / `connected` | `Connected`             |
+| `degraded`           | `Degraded`              |
+| `down` / `close`     | `Down` / `Disconnected` |
+| `unknown`            | `Unknown`               |
+| `unconfigured`       | `Not configured`        |
 
-Follow `docs/ui-copy-style.md`: impersonal voice; no *we* / *you* in headings or status messages.
+Follow `docs/ui-copy-style.md`: impersonal voice; no _we_ / _you_ in headings or status messages.
 
 ---
 
@@ -254,11 +258,10 @@ public function getPollingInterval(): ?string
 Apply polling in the Blade partial conditionally:
 
 ```html
-<div
-    @if ($this->getPollingInterval())
-        wire:poll.{{ $this->getPollingInterval() }}.keep-alive="refreshStatus"
-    @endif
->
+<div @if ($this->
+    getPollingInterval()) wire:poll.{{ $this->getPollingInterval()
+    }}.keep-alive="refreshStatus" @endif >
+</div>
 ```
 
 Never poll at a fixed interval unconditionally — it wastes resources when the service is already stable.
@@ -269,12 +272,12 @@ Never poll at a fixed interval unconditionally — it wastes resources when the 
 
 For each integration, create the following partial files under `resources/views/filament/pages/partials/`:
 
-| File | Purpose |
-|---|---|
-| `<slug>-content.blade.php` | Main content container — all 4 sections |
-| `<slug>-details.blade.php` | "View details" slide-over content (config snapshot, stats) |
+| File                                | Purpose                                                                     |
+| ----------------------------------- | --------------------------------------------------------------------------- |
+| `<slug>-content.blade.php`          | Main content container — all 4 sections                                     |
+| `<slug>-details.blade.php`          | "View details" slide-over content (config snapshot, stats)                  |
 | `<slug>-detection-status.blade.php` | Detection / health state indicator used inside the setup wizard fieldset 01 |
-| `<slug>-<feature>.blade.php` | Any additional sub-partials (e.g. allowlist, poppler guide) |
+| `<slug>-<feature>.blade.php`        | Any additional sub-partials (e.g. allowlist, poppler guide)                 |
 
 Keep sub-partials small and single-purpose. Reference them in the main content partial using `@include` or Livewire's `View::make()`. Do not embed large blocks of conditional HTML directly in a partial that already has other concerns.
 
@@ -317,12 +320,12 @@ This label appears in the status section and in the "View details" slide-over.
 
 Every integration ops doc (`docs/<service>-*.md`) must include a reference table of all env vars:
 
-| Variable | Type | Default | Description |
-|---|---|---|---|
-| `SERVICE_HOST` | `string` | `http://127.0.0.1:<port>` | Base URL of the service |
-| `SERVICE_API_KEY` | `string` | — | Authentication key |
-| `SERVICE_TIMEOUT` | `int` | `30` | HTTP timeout in seconds |
-| … | | | |
+| Variable          | Type     | Default                   | Description             |
+| ----------------- | -------- | ------------------------- | ----------------------- |
+| `SERVICE_HOST`    | `string` | `http://127.0.0.1:<port>` | Base URL of the service |
+| `SERVICE_API_KEY` | `string` | —                         | Authentication key      |
+| `SERVICE_TIMEOUT` | `int`    | `30`                      | HTTP timeout in seconds |
+| …                 |          |                           |                         |
 
 Document every variable consumed by the Settings class and by any service/job that calls the integration. Include minimum and maximum values where applicable (e.g. timeout 5–600 s).
 

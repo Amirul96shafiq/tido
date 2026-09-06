@@ -48,7 +48,7 @@ test('receipt upload page listens for echo expense updates without polling', fun
         ->assertCanSeeTableRecords([$pending]);
 
     expect($component->instance()->getListeners())
-        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+        ->toHaveKey('echo-private:household.1.expenses,.ExpenseUpdated');
 });
 
 test('filename links to file in a new tab', function () {

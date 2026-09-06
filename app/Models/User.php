@@ -6,8 +6,10 @@ namespace App\Models;
 
 use App\Enums\HouseholdRole;
 use App\Enums\UserDateFormat;
+use App\Models\Concerns\BelongsToHousehold;
 use App\Support\PhoneNumber;
 use Carbon\CarbonInterface;
+use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
@@ -21,6 +23,9 @@ use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocalePreference
 {
+    /** @use HasFactory<UserFactory> */
+    use BelongsToHousehold;
+
     use HasFactory, Notifiable;
 
     protected $fillable = [

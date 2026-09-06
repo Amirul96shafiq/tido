@@ -7,6 +7,7 @@ namespace App\Services\GoogleOAuth;
 use App\Enums\GoogleOAuthLoginEvent;
 use App\Models\GoogleOAuthLoginLog;
 use App\Models\User;
+use App\Support\CurrentHousehold;
 
 final class GoogleOAuthLoginLogService
 {
@@ -15,8 +16,13 @@ final class GoogleOAuthLoginLogService
         string $status,
         ?User $user = null,
         ?string $message = null,
+        ?int $householdId = null,
     ): GoogleOAuthLoginLog {
-        return GoogleOAuthLoginLog::query()->create([
+        $householdId ??= $user?->household_id
+            ?? CurrentHousehold::id();
+
+        return GoogleOAuthLoginLog::query()->withoutGlobalScopes()->create([
+            'household_id' => $householdId,
             'event' => $event,
             'status' => $status,
             'user_id' => $user?->getKey(),

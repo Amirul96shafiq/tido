@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Enums\LabelType;
 use App\Models\Label;
+use App\Support\CurrentHousehold;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -79,6 +80,7 @@ class LabelSeeder extends Seeder
         foreach ($labels as $label) {
             Label::updateOrCreate(
                 [
+                    'household_id' => CurrentHousehold::id() ?? 1,
                     'type' => LabelType::Finance,
                     'slug' => Str::slug($label['name']),
                 ],

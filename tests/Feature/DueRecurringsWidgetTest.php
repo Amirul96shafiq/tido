@@ -754,7 +754,7 @@ test('due recurrings widget listens for echo expense updates without polling', f
         ->assertDontSeeHtml('wire:poll.5s');
 
     expect($component->instance()->getListeners())
-        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+        ->toHaveKey('echo-private:household.1.expenses,.ExpenseUpdated');
 });
 
 test('due recurrings widget refreshes when an expense broadcast arrives', function () {

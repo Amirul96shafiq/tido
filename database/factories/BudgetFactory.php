@@ -22,6 +22,7 @@ class BudgetFactory extends Factory
         $quarter = ($period === 'quarterly') ? $this->faker->numberBetween(1, 4) : null;
 
         return [
+            'household_id' => 1,
             'title' => null,
             'icon' => null,
             'label_id' => $this->faker->boolean(80) ? Label::factory() : null,

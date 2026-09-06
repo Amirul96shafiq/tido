@@ -19,11 +19,12 @@
         'unconfigured' => 'Not configured',
         default => 'Unknown',
     };
-    $signInButtonLabel = $this->enabled && filled($this->clientId) && $this->hasSavedSecret ? 'Visible' : 'Hidden';
+    $signInButtonLabel = $this->enabled ? 'Visible' : 'Hidden';
     $linkedPrimary = $this->linkedPrimaryEmail ?? 'Not linked';
     $lastSignIn = $this->lastSuccessfulSignIn
         ? \Illuminate\Support\Carbon::parse($this->lastSuccessfulSignIn)->timezone(config('app.timezone'))->diffForHumans()
         : 'Never';
+    $showCredentials = $this->canManagePlatformCredentials();
 @endphp
 
 <div class="flex flex-col gap-6">
@@ -159,7 +160,11 @@
                 <div>
                     <dt class="font-medium text-gray-500 dark:text-gray-400">Client ID</dt>
                     <dd class="mt-1 font-mono break-all text-gray-950 dark:text-white">
-                        {{ filled($this->clientId) ? $this->clientId : '—' }}
+                        @if ($showCredentials)
+                            {{ filled($this->clientId) ? $this->clientId : '—' }}
+                        @else
+                            {{ $this->enabled ? 'Configured by platform' : '—' }}
+                        @endif
                     </dd>
                 </div>
                 <div>
@@ -172,21 +177,23 @@
                     <dt class="font-medium text-gray-500 dark:text-gray-400">Redirect URI</dt>
                     <dd class="mt-1 flex flex-col gap-2">
                         <span class="font-mono break-all text-gray-950 dark:text-white">{{ $this->redirectUri() }}</span>
-                        <x-filament::button
-                            color="gray"
-                            size="sm"
-                            type="button"
-                            x-on:click="{{ \App\Support\ClipboardCopy::alpineClickHandler($this->redirectUri(), 'Redirect URI copied.') }}"
-                        >
-                            Copy URI
-                        </x-filament::button>
+                        @if ($showCredentials)
+                            <x-filament::button
+                                color="gray"
+                                size="sm"
+                                type="button"
+                                x-on:click="{{ \App\Support\ClipboardCopy::alpineClickHandler($this->redirectUri(), 'Redirect URI copied.') }}"
+                            >
+                                Copy URI
+                            </x-filament::button>
+                        @endif
                     </dd>
                 </div>
                 <div>
-                    <dt class="font-medium text-gray-500 dark:text-gray-400">Sign-In Enabled</dt>
+                    <dt class="font-medium text-gray-500 dark:text-gray-400">Continue with Google</dt>
                     <dd class="mt-1">
                         <x-filament::badge :color="$this->enabled ? 'success' : 'gray'">
-                            {{ $this->enabled ? 'Enabled' : 'Disabled' }}
+                            {{ $this->enabled ? 'Available on login' : 'Unavailable' }}
                         </x-filament::badge>
                     </dd>
                 </div>
@@ -197,12 +204,18 @@
             </dl>
 
             <div class="mt-6 space-y-2 text-sm text-gray-500 dark:text-gray-400">
-                <p>
-                    1. Open Google Cloud Console and configure the OAuth consent screen.<br />
-                    2. Create a Web application OAuth client.<br />
-                    3. Add the redirect URI shown above to Authorized redirect URIs.<br />
-                    4. Paste the Client ID and Client Secret in <strong>Start Configure</strong>, then enable sign-in.
-                </p>
+                @if ($showCredentials)
+                    <p>
+                        1. Open Google Cloud Console and configure the OAuth consent screen.<br />
+                        2. Create a Web application OAuth client for tido.<br />
+                        3. Add the redirect URI shown above to Authorized redirect URIs.<br />
+                        4. Paste the Client ID and Client Secret in <strong>Start Configure</strong>. Every household shares this client; each Primary links their own Gmail.
+                    </p>
+                @else
+                    <p>
+                        This install uses one shared Google OAuth client. Link your Primary Gmail with <strong>Link Google account</strong> to use Continue with Google on the login page.
+                    </p>
+                @endif
             </div>
         </x-filament::section>
     </div>

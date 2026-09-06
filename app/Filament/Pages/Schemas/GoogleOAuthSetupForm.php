@@ -8,7 +8,6 @@ use App\Filament\Pages\GoogleOAuthPage;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Fieldset;
@@ -26,7 +25,6 @@ class GoogleOAuthSetupForm
         return [
             self::cloudConsoleFieldset(),
             self::oauthClientFieldset(),
-            self::enableSignInFieldset(),
         ];
     }
 
@@ -84,17 +82,6 @@ class GoogleOAuthSetupForm
                             );
                         }),
                 ])->columnSpanFull(),
-            ]);
-    }
-
-    private static function enableSignInFieldset(): Fieldset
-    {
-        return Fieldset::make('03: Enable Sign-In')
-            ->schema([
-                Toggle::make('enabled')
-                    ->label('Show Continue with Google on the login page')
-                    ->inline(false)
-                    ->default(false),
             ]);
     }
 }

@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class GoogleOAuthSetting extends Model
 {
-    public const SINGLETON_ID = 1;
+    public const PLATFORM_HOUSEHOLD_ID = 1;
 
     protected $table = 'google_oauth_settings';
 
     protected $fillable = [
+        'household_id',
         'client_id',
         'client_secret',
         'enabled',
@@ -31,10 +32,23 @@ class GoogleOAuthSetting extends Model
         ];
     }
 
-    public static function singleton(): self
+    /**
+     * Canonical platform credentials row (household #1).
+     */
+    public static function platform(): self
     {
         /** @var self $setting */
-        $setting = self::query()->firstOrCreate(['id' => self::SINGLETON_ID]);
+        $setting = self::query()
+            ->withoutGlobalScopes()
+            ->firstOrCreate(
+                ['household_id' => self::PLATFORM_HOUSEHOLD_ID],
+                [
+                    'client_id' => null,
+                    'client_secret' => null,
+                    'enabled' => false,
+                    'setup_completed_at' => null,
+                ],
+            );
 
         return $setting;
     }

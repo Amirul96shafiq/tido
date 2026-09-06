@@ -22,7 +22,7 @@
                         :color="match (strtolower($this->connectionStatus)) {
                             'open', 'connected' => 'success',
                             'connecting', 'close', 'closed' => 'warning',
-                            'unconfigured', 'unreachable', 'error' => 'danger',
+                            'unconfigured', 'unreachable', 'error', 'disabled' => 'danger',
                             default => 'gray',
                         }"
                     >

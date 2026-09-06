@@ -28,6 +28,11 @@ Route::middleware(['throttle:google-oauth'])->group(function (): void {
         ->name('filament.admin.auth.google.complete');
 });
 
+Route::middleware(['web', 'auth', 'throttle:google-oauth'])->group(function (): void {
+    Route::get('/admin/auth/google/link', [GoogleOAuthController::class, 'link'])
+        ->name('filament.admin.auth.google.link');
+});
+
 Route::get('/changelog', function () {
     try {
         $changelog = ChangelogHelper::getPaginatedChangelog(10, (int) request('page', 1));

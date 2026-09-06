@@ -16,10 +16,12 @@ use App\Filament\Support\IntegrationHealthBadge;
 use App\Filament\Support\IntegrationNavigation;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
 use App\Models\EvolutionApiConnectionLog;
+use App\Models\EvolutionApiSetting;
 use App\Models\User;
 use App\Services\EvolutionApiConnectionLogService;
 use App\Services\EvolutionInstanceService;
 use App\Services\WhatsAppNotificationService;
+use App\Support\CurrentHousehold;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppLid;
 use App\Support\WhatsAppMessage;
@@ -64,11 +66,19 @@ class EvolutionApiPage extends Page implements HasTable
 
     public static function getNavigationBadge(): ?string
     {
+        if (! EvolutionApiSetting::isWhatsappEnabledForHousehold()) {
+            return null;
+        }
+
         return IntegrationHealthBadge::label(MonitoredService::Evolution);
     }
 
     public static function getNavigationBadgeColor(): string|array|null
     {
+        if (! EvolutionApiSetting::isWhatsappEnabledForHousehold()) {
+            return null;
+        }
+
         return IntegrationHealthBadge::color(MonitoredService::Evolution);
     }
 
@@ -164,7 +174,21 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function refreshStatus(bool $allowConnectSideEffects = true): void
     {
+        $skipHealthSync = false;
+
         try {
+            $whatsappEnabled = EvolutionApiSetting::isWhatsappEnabledForHousehold();
+
+            if (! $whatsappEnabled) {
+                $this->connectionStatus = 'disabled';
+                $this->statusMessage = 'WhatsApp is not enabled for this household. Evolution stays available only for households with WhatsApp enabled.';
+                $this->clearConnectDisplay();
+                $this->clearConnectedInstanceDetails();
+                $skipHealthSync = true;
+
+                return;
+            }
+
             $evolution = app(EvolutionInstanceService::class);
             $wasOpen = $this->isConnectionOpen();
 
@@ -240,6 +264,10 @@ class EvolutionApiPage extends Page implements HasTable
                 $this->syncPairingCodeFromEvolution($allowConnectSideEffects);
             }
         } finally {
+            if ($skipHealthSync) {
+                return;
+            }
+
             $wrote = IntegrationHealthBadge::syncFromLiveStatus(
                 MonitoredService::Evolution,
                 $this->connectionStatus,
@@ -255,6 +283,10 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function generateQr(): void
     {
+        if (! $this->ensureWhatsappEnabledForHousehold()) {
+            return;
+        }
+
         if (! $this->hasContactAllowlist()) {
             $this->notifyMissingContactAllowlist();
 
@@ -303,6 +335,10 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function generatePairingCode(string $number): void
     {
+        if (! $this->ensureWhatsappEnabledForHousehold()) {
+            return;
+        }
+
         if (! $this->hasContactAllowlist()) {
             $this->notifyMissingContactAllowlist();
 
@@ -401,6 +437,10 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function logoutSession(): void
     {
+        if (! $this->ensureWhatsappEnabledForHousehold()) {
+            return;
+        }
+
         $evolution = app(EvolutionInstanceService::class);
         $wasOpen = $this->isConnectionOpen();
         $connectedNumber = $this->connectedNumber;
@@ -477,6 +517,10 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function registerWebhook(): void
     {
+        if (! $this->ensureWhatsappEnabledForHousehold()) {
+            return;
+        }
+
         $result = $this->registerWebhookQuietly(notify: true);
 
         if ($result['ok']) {
@@ -486,6 +530,10 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function sendPing(): void
     {
+        if (! $this->ensureWhatsappEnabledForHousehold()) {
+            return;
+        }
+
         $number = PhoneNumber::primaryWhatsAppNumber();
 
         if ($number === null) {
@@ -606,6 +654,16 @@ class EvolutionApiPage extends Page implements HasTable
 
     private function connectHeaderAction(): Action|ActionGroup
     {
+        if (! EvolutionApiSetting::isWhatsappEnabledForHousehold()) {
+            return Action::make('connect')
+                ->label('Connect')
+                ->icon('heroicon-o-link')
+                ->button()
+                ->disabled()
+                ->tooltip('WhatsApp is not enabled for this household')
+                ->extraAttributes(['wire:key' => 'wa-action-connect-household-disabled']);
+        }
+
         if ($this->isConnectionOpen()) {
             // ActionGroup dropdown ignores `disabled` on its trigger button — render a
             // plain disabled action instead so the menu cannot open while connected.
@@ -1210,7 +1268,62 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function hasContactAllowlist(): bool
     {
-        return $this->allowedSenderNumbers() !== [];
+        $has = $this->allowedSenderNumbers() !== [];
+
+        // #region agent log
+        file_put_contents(base_path('debug-304ce6.log'), json_encode([
+            'sessionId' => '304ce6',
+            'runId' => 'pre-fix',
+            'hypothesisId' => 'B',
+            'location' => 'EvolutionApiPage.php:hasContactAllowlist',
+            'message' => 'hasContactAllowlist evaluated',
+            'data' => [
+                'has' => $has,
+                'userId' => auth()->id(),
+                'householdId' => auth()->user()?->household_id,
+                'currentHouseholdId' => CurrentHousehold::id(),
+                'whatsappEnabled' => EvolutionApiSetting::isWhatsappEnabledForHousehold(),
+            ],
+            'timestamp' => (int) round(microtime(true) * 1000),
+        ], JSON_UNESCAPED_SLASHES)."\n", FILE_APPEND);
+        // #endregion
+
+        return $has;
+    }
+
+    private function ensureWhatsappEnabledForHousehold(): bool
+    {
+        $enabled = EvolutionApiSetting::isWhatsappEnabledForHousehold();
+
+        // #region agent log
+        file_put_contents(base_path('debug-304ce6.log'), json_encode([
+            'sessionId' => '304ce6',
+            'runId' => 'pre-fix',
+            'hypothesisId' => 'A',
+            'location' => 'EvolutionApiPage.php:ensureWhatsappEnabledForHousehold',
+            'message' => 'Connect guard evaluated',
+            'data' => [
+                'enabled' => $enabled,
+                'userId' => auth()->id(),
+                'householdId' => auth()->user()?->household_id,
+                'currentHouseholdId' => CurrentHousehold::id(),
+                'hasAllowlist' => $this->hasContactAllowlist(),
+                'configured' => app(EvolutionInstanceService::class)->isConfigured(),
+            ],
+            'timestamp' => (int) round(microtime(true) * 1000),
+        ], JSON_UNESCAPED_SLASHES)."\n", FILE_APPEND);
+        // #endregion
+
+        if ($enabled) {
+            return true;
+        }
+
+        Notification::make()
+            ->title('WhatsApp is not enabled for this household')
+            ->warning()
+            ->send();
+
+        return false;
     }
 
     public function profileEditUrl(): string

@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\EvolutionApiConnectionEvent;
 use App\Enums\EvolutionApiConnectMethod;
+use App\Models\Concerns\BelongsToHousehold;
 use Database\Factories\EvolutionApiConnectionLogFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
 class EvolutionApiConnectionLog extends Model
 {
     /** @use HasFactory<EvolutionApiConnectionLogFactory> */
+    use BelongsToHousehold;
+
     use HasFactory;
 
     protected $table = 'evolution_api_connection_logs';

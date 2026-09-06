@@ -1,6 +1,6 @@
 # Household access (attribution + family login)
 
-Single-tenant hub with **household roles**: one **Primary** user owns settings; optional **Family Members** can send WhatsApp receipts and (when enabled) sign in to `/admin` with limited Finances access. Not multi-tenancy — one panel, one household.
+Single-tenant hub with **household roles** today: one **Primary** user owns settings; optional **Family Members** can send WhatsApp receipts and (when enabled) sign in to `/admin` with limited Finances access. Multi-household isolation (`household_id`) is the tenancy-phase boundary — see [multi-household-change-checklist.md](multi-household-change-checklist.md). This document covers **in-household** ACL only.
 
 ## Source of truth
 
@@ -137,7 +137,7 @@ Finance Home filter `spender` (`DashboardSpenderScope`):
 1. Primary enables **Allow panel login via WhatsApp OTP** on the Family Member.
 2. Member opens `/admin/login`, enters their WhatsApp number, receives OTP (Evolution).
 3. Email/password login remains **primary only**.
-4. Google OAuth sign-in remains **primary only** when enabled — see `docs/google-oauth-setup.md`.
+4. Google OAuth sign-in remains **primary only** (shared Client ID; linked `google_id`) — see `docs/google-oauth-setup.md`.
 
 **Local / testing without a second phone:**
 
@@ -163,7 +163,7 @@ Account rows use `display_name`, falling back to `name`, and display the current
 1. Gate new Settings / Tools / Integrations pages with `RequiresPrimaryHouseholdAccess` (or explicit `HouseholdAccess::isPrimary()`).
 2. Attribute new WhatsApp image/PDF/text and upload expense creates via `ExpenseSenderAttribution` or the acting user’s `family_member_id`.
 3. Expense, Budget, and Recurring mutate UI must respect `HouseholdAccess::canMutateExpense()` / `canMutateBudget()` / `canMutateRecurring()` and the matching policies — do not hide View for family members. Create stays primary-only (visible disabled CTA).
-4. Do not invent Spatie roles/tenancy — household role is a column + helpers only.
+4. Do not invent Spatie roles/tenancy packages — household role is a column + helpers; cross-household isolation uses `household_id` per [multi-household-change-checklist.md](multi-household-change-checklist.md).
 5. Tests: `FamilyMember::factory()->loginEnabled()`, `Http::fake` / `Queue::fake` for OTP/WhatsApp.
 6. Treat a WhatsApp LID as unresolved until `WhatsAppLid` maps it to an allowlisted contact; never use the raw LID as a phone number.
 7. Keep resource edit attribution separate from household spender attribution; use `TracksResourceEdits` for supported model changes and `HouseholdAccess` / resource policies for authorization.

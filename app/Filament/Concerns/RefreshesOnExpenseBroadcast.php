@@ -30,8 +30,14 @@ trait RefreshesOnExpenseBroadcast
      */
     protected function expenseBroadcastListeners(): array
     {
+        $householdId = auth()->user()?->household_id;
+
+        if ($householdId === null) {
+            return [];
+        }
+
         return [
-            'echo-private:household.expenses,.ExpenseUpdated' => 'refreshOnExpenseBroadcast',
+            'echo-private:household.'.$householdId.'.expenses,.ExpenseUpdated' => 'refreshOnExpenseBroadcast',
         ];
     }
 

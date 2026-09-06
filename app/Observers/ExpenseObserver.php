@@ -102,6 +102,10 @@ class ExpenseObserver
 
     private function broadcastExpense(Expense $expense): void
     {
-        ExpenseUpdated::dispatch($expense->id, (string) $expense->status);
+        ExpenseUpdated::dispatch(
+            $expense->id,
+            (string) $expense->status,
+            (int) $expense->household_id,
+        );
     }
 }

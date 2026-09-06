@@ -12,6 +12,7 @@ use App\Models\Recurring;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
 final class HouseholdAccess
@@ -60,17 +61,40 @@ final class HouseholdAccess
 
     public static function canMutateExpense(Expense $expense): bool
     {
+        if (! self::belongsToSameHousehold($expense->household_id)) {
+            return false;
+        }
+
         return self::canMutateAssigned($expense->family_member_id);
     }
 
     public static function canMutateBudget(Budget $budget): bool
     {
+        if (! self::belongsToSameHousehold($budget->household_id)) {
+            return false;
+        }
+
         return self::canMutateAssigned($budget->family_member_id);
     }
 
     public static function canMutateRecurring(Recurring $recurring): bool
     {
+        if (! self::belongsToSameHousehold($recurring->household_id)) {
+            return false;
+        }
+
         return self::canMutateAssigned($recurring->family_member_id);
+    }
+
+    public static function belongsToSameHousehold(?int $householdId): bool
+    {
+        $user = self::user();
+
+        if ($user === null || $householdId === null || $user->household_id === null) {
+            return false;
+        }
+
+        return (int) $householdId === (int) $user->household_id;
     }
 
     public static function primaryDisplayName(): string
@@ -128,8 +152,8 @@ final class HouseholdAccess
      * Limit budgets/recurrings to owned-or-shared rows for a family sender.
      * Primary senders (null) see all rows.
      *
-     * @param  Builder<\Illuminate\Database\Eloquent\Model>  $query
-     * @return Builder<\Illuminate\Database\Eloquent\Model>
+     * @param  Builder<Model>  $query
+     * @return Builder<Model>
      */
     public static function constrainSharedOwnership(Builder $query, ?int $familyMemberId): Builder
     {

@@ -10,7 +10,7 @@ Activate the relevant skill when the task matches your domain.
 
 ## 1. What you are building
 
-**tido** is a single-tenant **personal hub** in a **Filament v5** admin at `/admin`. The Home dashboard switches modules via icon tabs (see [`dashboard-views.md`](dashboard-views.md)):
+**tido** is a **personal hub** (multi-household isolation via `household_id`; see [`multi-household-change-checklist.md`](multi-household-change-checklist.md)) in a **Filament v5** admin at `/admin`. The Home dashboard switches modules via icon tabs (see [`dashboard-views.md`](dashboard-views.md)):
 
 | Dashboard view | Status                                     |
 | -------------- | ------------------------------------------ |
@@ -40,7 +40,7 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 1. This file
 2. Active agent workflow: root `AGENTS.md` + `.codex/CODEX_WORKFLOW.md` (Codex), `.cursorrules` (Cursor), or `.agents/AGENTS.md` (Antigravity)
 3. `docs/system-architecture.md` — product blueprint (note: some version numbers are outdated; trust Laravel 12 / PG 17 / stack in `AGENTS.md`)
-4. Future SaaS only (do not implement yet): `docs/saas-prd.md` — household isolation between signups; live contract remains single-tenant until architecture is updated
+4. Multi-household: `docs/saas-prd.md` (product intent) and `docs/multi-household-change-checklist.md` (phased `MH-*` register — one item at a time). Architecture tenancy phase is authorized; implement only the top Open `MH-*` row. Billing / Free/Pro remains unauthorized until an explicit later phase
 5. Dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md`. Parked Training design (do not implement until requested): `docs/training.md`
 6. Domain skill: activate the `tido-domain` skill surfaced by the active agent (+ its `pipeline.md` when touching OCR/webhooks) — Finances domain
 7. Framework skills surfaced by the active agent: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
@@ -93,7 +93,7 @@ routes/
   web.php           / → /admin, changelog JSON, backup download / guest restore
   api.php           WhatsApp webhook
   console.php       schedules (backups, health:probe / health:prune)
-  channels.php      private Reverb channels (`household.expenses`, `App.Models.User.{id}`)
+  channels.php      private Reverb channels (`household.{householdId}.expenses`, `App.Models.User.{id}`)
 database/
   migrations|factories|seeders
 docs/               architecture + integration setup + this file
@@ -229,7 +229,7 @@ php artisan test --compact --filter=YourTest
 - Calling categories “Category” in new code — use **Label** / **Labels**
 - Hitting live Ollama or Reverb in Pest — use `Http::fake()` / `Event::fake()`; phpunit sets `BROADCAST_CONNECTION=null`
 - Forgetting `ExpenseObserver` side effects when creating expenses in tests — use `Queue::fake()` or `unsetEventDispatcher()` when appropriate
-- Assuming multi-tenancy or Spatie roles — single household; use `HouseholdAccess` / `HouseholdRole` — see `docs/household-access.md`
+- Skipping the `MH-*` register or inventing Spatie tenancy — use `household_id` + `HouseholdAccess` / `HouseholdRole` per `docs/multi-household-change-checklist.md` and `docs/household-access.md`
 - Letting family members mutate expenses, budgets, or recurrings they do not own — gate with `HouseholdAccess::canMutateExpense()` / `canMutateBudget()` / `canMutateRecurring()` and the matching policies
 - Editing architecture (new ingestion channel, schema) without checking `docs/system-architecture.md`
 - Horizon `viewHorizon` gate empty allowlist — configure before relying on `/horizon` in prod
