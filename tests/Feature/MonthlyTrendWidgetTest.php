@@ -36,6 +36,8 @@ test('monthly trend widget renders with enriched chart data', function () {
         ->assertSee('pointStyleWidth: 14', false)
         ->assertSee('boxHeight: 10', false)
         ->assertSee('font: { size: 10 }', false)
+        ->assertSee("matchMedia('(max-width: 639px)')", false)
+        ->assertSee('? 45 : 0', false)
         ->assertSee("'Top 3 Labels'", false);
 });
 

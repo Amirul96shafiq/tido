@@ -119,111 +119,127 @@ class MonthlyTrend extends ChartWidget
     protected function getOptions(): RawJs
     {
         return RawJs::make(<<<'JS'
-            {
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: {
-                            usePointStyle: true,
-                            pointStyle: 'circle',
-                            pointStyleWidth: 14,
-                            boxWidth: 16,
-                            boxHeight: 10,
-                        },
+            (() => {
+                const monthLabelRotation = () => window.matchMedia('(max-width: 639px)').matches ? 45 : 0;
+
+                return {
+                    maintainAspectRatio: false,
+                    onResize: (chart) => {
+                        const rotation = monthLabelRotation();
+                        const ticks = chart.options?.scales?.x?.ticks;
+
+                        if (!ticks || (ticks.maxRotation === rotation && ticks.minRotation === rotation)) {
+                            return;
+                        }
+
+                        ticks.maxRotation = rotation;
+                        ticks.minRotation = rotation;
+                        chart.update('none');
                     },
-                    tooltip: {
-                        callbacks: {
-                            label: (item) => {
-                                const value = item.parsed?.y ?? item.raw ?? 0;
-
-                                return `Spent: RM ${window.tidoFormatMoney(value)}`;
+                    plugins: {
+                        legend: {
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                pointStyleWidth: 14,
+                                boxWidth: 16,
+                                boxHeight: 10,
                             },
-                            afterTitle: (items) => {
-                                const item = items[0];
-                                const index = item?.dataIndex;
-                                const dataset = item?.dataset;
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (item) => {
+                                    const value = item.parsed?.y ?? item.raw ?? 0;
 
-                                if (index === undefined || !dataset) {
-                                    return '';
-                                }
+                                    return `Spent: RM ${window.tidoFormatMoney(value)}`;
+                                },
+                                afterTitle: (items) => {
+                                    const item = items[0];
+                                    const index = item?.dataIndex;
+                                    const dataset = item?.dataset;
 
-                                const parts = [];
-
-                                if (index > 0) {
-                                    const delta = dataset.momDeltas?.[index];
-                                    const percent = dataset.momPercents?.[index];
-                                    const priorLabel = item.chart?.data?.labels?.[index - 1];
-
-                                    if (delta !== undefined && delta !== null) {
-                                        const sign = delta >= 0 ? '+' : '-';
-                                        let momText = `${sign}RM ${window.tidoFormatMoney(Math.abs(delta))}`;
-
-                                        if (percent !== undefined && percent !== null) {
-                                            momText += ` (${sign}${Math.abs(percent).toFixed(1)}% vs ${priorLabel ?? 'prior month'})`;
-                                        } else if (priorLabel) {
-                                            momText += ` vs ${priorLabel}`;
-                                        }
-
-                                        parts.push(momText);
+                                    if (index === undefined || !dataset) {
+                                        return '';
                                     }
-                                }
 
-                                const receipts = dataset.receiptCounts?.[index];
+                                    const parts = [];
 
-                                if (receipts !== undefined) {
-                                    parts.push(`${receipts} receipt${receipts === 1 ? '' : 's'}`);
-                                }
+                                    if (index > 0) {
+                                        const delta = dataset.momDeltas?.[index];
+                                        const percent = dataset.momPercents?.[index];
+                                        const priorLabel = item.chart?.data?.labels?.[index - 1];
 
-                                const share = dataset.periodShares?.[index];
+                                        if (delta !== undefined && delta !== null) {
+                                            const sign = delta >= 0 ? '+' : '-';
+                                            let momText = `${sign}RM ${window.tidoFormatMoney(Math.abs(delta))}`;
 
-                                if (share !== undefined) {
-                                    parts.push(`${share.toFixed(1)}% of 12-mo total`);
-                                }
+                                            if (percent !== undefined && percent !== null) {
+                                                momText += ` (${sign}${Math.abs(percent).toFixed(1)}% vs ${priorLabel ?? 'prior month'})`;
+                                            } else if (priorLabel) {
+                                                momText += ` vs ${priorLabel}`;
+                                            }
 
-                                return parts;
-                            },
-                            afterBody: (items) => {
-                                const item = items[0];
-                                const index = item?.dataIndex;
-                                const dataset = item?.dataset;
+                                            parts.push(momText);
+                                        }
+                                    }
 
-                                if (index === undefined || !dataset) {
-                                    return [];
-                                }
+                                    const receipts = dataset.receiptCounts?.[index];
 
-                                const names = dataset.topLabelNames?.[index];
-                                const totals = dataset.topLabelTotals?.[index];
+                                    if (receipts !== undefined) {
+                                        parts.push(`${receipts} receipt${receipts === 1 ? '' : 's'}`);
+                                    }
 
-                                if (!Array.isArray(names) || names.length === 0) {
-                                    return ['Top 3 Labels', 'No labeled spending'];
-                                }
+                                    const share = dataset.periodShares?.[index];
 
-                                return [
-                                    'Top 3 Labels',
-                                    ...names.map((name, labelIndex) => {
-                                        const total = totals?.[labelIndex] ?? 0;
+                                    if (share !== undefined) {
+                                        parts.push(`${share.toFixed(1)}% of 12-mo total`);
+                                    }
 
-                                        return `${name} RM ${window.tidoFormatMoney(total)}`;
-                                    }),
-                                ];
+                                    return parts;
+                                },
+                                afterBody: (items) => {
+                                    const item = items[0];
+                                    const index = item?.dataIndex;
+                                    const dataset = item?.dataset;
+
+                                    if (index === undefined || !dataset) {
+                                        return [];
+                                    }
+
+                                    const names = dataset.topLabelNames?.[index];
+                                    const totals = dataset.topLabelTotals?.[index];
+
+                                    if (!Array.isArray(names) || names.length === 0) {
+                                        return ['Top 3 Labels', 'No labeled spending'];
+                                    }
+
+                                    return [
+                                        'Top 3 Labels',
+                                        ...names.map((name, labelIndex) => {
+                                            const total = totals?.[labelIndex] ?? 0;
+
+                                            return `${name} RM ${window.tidoFormatMoney(total)}`;
+                                        }),
+                                    ];
+                                },
                             },
                         },
                     },
-                },
-                scales: {
-                    x: {
-                        ticks: {
-                            maxRotation: 0,
-                            minRotation: 0,
-                            autoSkip: false,
-                            font: { size: 10 },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxRotation: monthLabelRotation(),
+                                minRotation: monthLabelRotation(),
+                                autoSkip: false,
+                                font: { size: 10 },
+                            },
+                        },
+                        y: {
+                            beginAtZero: true,
                         },
                     },
-                    y: {
-                        beginAtZero: true,
-                    },
-                },
-            }
+                };
+            })()
         JS);
     }
 }
