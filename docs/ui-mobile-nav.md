@@ -15,19 +15,19 @@ When enabled, the panel adds `html.tido-mobilenav` and hides `.fi-topbar-ctn` be
 
 ## Bottom bar slots
 
-| Slot    | Label   | Action                                                                                                                        | Icon (idle)               | Icon (active)                                      |
-| ------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------- | -------------------------------------------------- |
-| Home    | Home    | Dashboard (`wire:navigate`)                                                                                                   | `OutlinedHome`            | solid `Home` on any dashboard view (`/admin`)      |
-| Menu    | Menu    | Toggle `$store.sidebar` (mobile sidebar)                                                                                      | `OutlinedBars3`           | `OutlinedBars3BottomLeft` while sidebar open       |
-| Add     | Add     | Sheet above the bar — Finances: Add Receipt, Add Budget, Add Recurring (tap again to close)                                   | Custom SVG (`tido_add_default.svg`) | Custom SVG (`tido_add_active.svg`) while Add sheet open |
-| Search  | Search  | `open-global-search-modal` event (Global Search Modal)                                                                        | `OutlinedMagnifyingGlass` | —                                                  |
-| Profile | Profile | Dedicated user menu instance (`instance="mobilenav"`) — Profile, Notifications, Logout, switcher, theme, calendar, changelogs | `OutlinedUser`            | solid `User` while user menu open or on Profile    |
+| Slot    | Label   | Action                                                                                                                                                                                   | Icon (idle)                         | Icon (active)                                           |
+| ------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------- |
+| Home    | Home    | Dashboard (`wire:navigate`)                                                                                                                                                              | `OutlinedHome`                      | solid `Home` on any dashboard view (`/admin`)           |
+| Menu    | Menu    | Toggle `$store.sidebar` (mobile sidebar)                                                                                                                                                 | `OutlinedBars3`                     | `OutlinedBars3BottomLeft` while sidebar open            |
+| Add     | Add     | Sheet above the bar — Finances (Via Admin Upload, Via WhatsApp Upload, Add Budget, Add Recurring) and Settings (Add Labels, Add Payment Methods, Add Family Members); tap again to close | Custom SVG (`tido_add_default.svg`) | Custom SVG (`tido_add_active.svg`) while Add sheet open |
+| Search  | Search  | `open-global-search-modal` event (Global Search Modal)                                                                                                                                   | `OutlinedMagnifyingGlass`           | —                                                       |
+| Profile | Profile | Dedicated user menu instance (`instance="mobilenav"`) — Profile, Notifications, Logout, switcher, theme, calendar, changelogs                                                            | `OutlinedUser`                      | solid `User` while user menu open or on Profile         |
 
 Each slot includes a text label (`.tido-mobilenav-label`) positioned below its icon, horizontally aligned straight across all 5 slots from the bottom edge of the bar (`padding-bottom: 0.5rem`). Home active state uses `wire:current.exact` on the dashboard link (path `/admin`; query `?view=` does not affect match). Menu / Profile idle icons paint immediately (no `x-cloak`); CSS swaps outline→solid via `.tido-mobilenav-item--active` / `.tido-mobilenav-item--current` the same way Home does. Add idle SVG also paints immediately; CSS swaps to the active SVG when `.tido-mobilenav-add-btn--open` is set from Alpine `$store.tidoMobileChrome.addOpen`. Do not gate idle Menu / Add / Profile icons behind `x-cloak` + `x-show` — that leaves empty slots until Alpine/Livewire finish hydrating.
 
 In the idle state, the default Add SVG (`.tido-mobilenav-add-svg--default`) runs a continuous 4s breathing keyframe loop (`tido-mobilenav-add-breathe`) that gently stretches vertically with a 2s rest pause between breath cycles, accompanied by two cartoon "z" characters (`.tido-mobilenav-add-z`) floating and drifting up from the top-right corner (`tido-mobilenav-z1-float`, `tido-mobilenav-z2-float`). When the Add sheet opens (`$store.tidoMobileChrome.addOpen` / `.tido-mobilenav-add-btn--open`), the default sleep animations stop and the active awake SVG (`.tido-mobilenav-add-svg--active`) dynamically triggers randomized eye blinks (`.tido-mobilenav-add-eye` / `tido-mobilenav-blink` with randomized 1.8s–5s intervals and randomized 1 to 3 blinks per cycle via `is-blinking-1|2|3`). Tapping/pressing the button pauses active animations immediately (`animation-play-state: paused`), and enabling Reduce Motion (`html.tido-reduce-motion.tido-mobilenav` / `prefers-reduced-motion`) suppresses all animations.
 
-Family members: Add Receipt stays available; Add Budget / Add Recurring render disabled with the primary-only CTA message.
+Family members: Via Admin Upload stays available; Via WhatsApp Upload follows connection state; Add Budget / Add Recurring / Settings create rows render disabled with Tippy + `aria-label` for the primary-only CTA message (`docs/ui-tooltips.md`). Receipt channel capability chips use Filament `<x-filament::badge>`. Longer labels use `x-tido.text-marquee`; short create labels stay plain text (`docs/ui-text-marquee.md`).
 
 ## User menu anchor
 
@@ -104,5 +104,6 @@ Below `lg`, the published sidebar preload in [`sidebar.blade.php`](../resources/
 
 - [ui-reduce-motion.md](ui-reduce-motion.md) — sibling Profile preference pattern
 - [ui-sticky-blur.md](ui-sticky-blur.md) — bottom sticky form CTAs
-- [ui-tooltips.md](ui-tooltips.md) — `aria-label` on icon slots (Tippy off below `sm`)
-- [household-access.md](household-access.md) — family member Add Budget / Recurring ACL
+- [ui-tooltips.md](ui-tooltips.md) — `aria-label` on icon slots; Tippy on disabled Add rows (Tippy off below `sm`)
+- [ui-text-marquee.md](ui-text-marquee.md) — overflow labels in the Add sheet
+- [household-access.md](household-access.md) — family member Add Budget / Recurring / Settings ACL

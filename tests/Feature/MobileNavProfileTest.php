@@ -6,6 +6,7 @@ use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
+use App\Models\EvolutionApiConnectionLog;
 use App\Models\FamilyMember;
 use App\Models\User;
 use App\Support\HouseholdAccess;
@@ -173,6 +174,8 @@ test('family member mobile nav add sheet disables budget recurring and settings 
 
     $response->assertSuccessful()
         ->assertSee('Add Receipt', false)
+        ->assertSee('Via Admin Upload', false)
+        ->assertSee('Via WhatsApp Upload', false)
         ->assertSee('Add Budget', false)
         ->assertSee('Add Recurring', false)
         ->assertSee('Settings', false)
@@ -223,11 +226,27 @@ test('primary mobile nav add sheet includes settings create links', function ():
         ->toContain('canCreateSettings')
         ->toContain('x-tido.text-marquee')
         ->toContain('text-class="inline-block whitespace-nowrap"')
+        ->toContain('>Add Payment Methods</x-tido.text-marquee>')
+        ->toContain('>Add Family Members</x-tido.text-marquee>')
+        ->toContain('>Via Admin Upload</x-tido.text-marquee>')
+        ->toContain('>Via WhatsApp Upload</x-tido.text-marquee>')
+        ->toContain('<x-filament::badge color="gray" size="sm">')
+        ->toContain('<x-filament::badge color="primary" size="sm">')
+        ->toContain('x-tooltip="{')
+        ->toContain('zIndex: 100000')
+        ->toContain('content: @js($createDeniedMessage)')
+        ->toContain('content: @js($whatsAppDisconnectedMessage)')
         ->toContain('fi-sidebar-group-label')
         ->toContain("toggleCollapsedGroup('Finances')")
         ->toContain("toggleCollapsedGroup('Settings')")
         ->toContain('MobileNav::ADD_MENU_COLLAPSED_GROUPS_KEY')
         ->toContain('tido-mobilenav-add-group--divided')
+        ->not->toContain('>Add Budget</x-tido.text-marquee>')
+        ->not->toContain('>Add Recurring</x-tido.text-marquee>')
+        ->not->toContain('>Add Labels</x-tido.text-marquee>')
+        ->not->toContain('title="{{ $createDeniedMessage }}"')
+        ->not->toContain('title="{{ $whatsAppDisconnectedMessage }}"')
+        ->not->toContain('inline-flex items-center rounded px-1.5 py-0.5 text-[10px]')
         ->not->toContain('tracking-wide text-gray-500 uppercase')
         ->not->toContain('border-t border-gray-200 px-4 py-3 dark:border-slate-700');
 });
@@ -472,8 +491,8 @@ test('mobile nav bottom bar uses active-state icons for home menu and add slots'
     expect($userMenu)
         ->toContain('tido-mobilenav-icon--outline')
         ->toContain('tido-mobilenav-icon--solid')
-        ->not->toContain("x-show=\"! (\$store.tidoNotifications?.menuOpen")
-        ->not->toContain("x-show=\"\$store.tidoNotifications?.menuOpen ||");
+        ->not->toContain('x-show="! ($store.tidoNotifications?.menuOpen')
+        ->not->toContain('x-show="$store.tidoNotifications?.menuOpen ||');
 
     expect($css)
         ->toContain('.tido-mobilenav-item--active')
@@ -732,4 +751,69 @@ test('mobile nav add svgs apply 1px top border behind mobile nav bar matching mo
         ->toContain('var(--color-slate-700) 60%')
         ->toContain('html.tido-mobilenav .tido-mobilenav-add-bg {')
         ->toContain('stroke-width: 6px;');
+});
+
+test('mobile nav add sheet renders active whatsapp upload cta with prefilled url when connected', function (): void {
+    config([
+        'services.evolution.api_url' => 'http://evolution.test',
+        'services.evolution.api_key' => 'test-key-0123456789abcdef0123456789abcdef',
+        'services.evolution.webhook_secret' => 'test-secret-0123456789abcdef0123456789abcdef',
+    ]);
+
+    EvolutionApiConnectionLog::factory()->connected()->create([
+        'connected_number' => '601115666887',
+    ]);
+
+    $user = User::factory()->create([
+        'mobile_nav_enabled' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get('/admin');
+
+    $response->assertSuccessful()
+        ->assertSee('Via Admin Upload', false)
+        ->assertSee('Via WhatsApp Upload', false)
+        ->assertSee('https://api.whatsapp.com/send?phone=%2B601115666887', false)
+        ->assertSee('target="_blank"', false)
+        ->assertSee('Photo', false)
+        ->assertSee('PDF', false)
+        ->assertSee('Text', false)
+        ->assertSee('fi-badge', false)
+        ->assertSee('Add Receipt', false)
+        ->assertSee('Management', false);
+});
+
+test('mobile nav add sheet renders disabled whatsapp upload cta when disconnected', function (): void {
+    config([
+        'services.evolution.api_url' => 'http://evolution.test',
+        'services.evolution.api_key' => 'test-key-0123456789abcdef0123456789abcdef',
+        'services.evolution.webhook_secret' => 'test-secret-0123456789abcdef0123456789abcdef',
+    ]);
+
+    $user = User::factory()->create([
+        'mobile_nav_enabled' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get('/admin');
+
+    $response->assertSuccessful()
+        ->assertSee('Via WhatsApp Upload', false)
+        ->assertSee('WhatsApp is not connected. Configure in Integrations → WhatsApp.', false)
+        ->assertSee('aria-disabled="true"', false)
+        ->assertSee('aria-label="WhatsApp is not connected. Configure in Integrations → WhatsApp."', false)
+        ->assertDontSee('title="WhatsApp is not connected. Configure in Integrations → WhatsApp."', false)
+        ->assertDontSee('https://api.whatsapp.com/send', false);
+
+    $blade = (string) file_get_contents(
+        resource_path('views/filament/livewire/mobile-nav.blade.php'),
+    );
+
+    expect($blade)
+        ->toContain('content: @js($whatsAppDisconnectedMessage)')
+        ->toContain('zIndex: 100000')
+        ->not->toContain('title="{{ $whatsAppDisconnectedMessage }}"');
 });
