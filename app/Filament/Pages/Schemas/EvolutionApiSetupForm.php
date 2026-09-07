@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Str;
 
 final class EvolutionApiSetupForm
 {
@@ -53,7 +57,16 @@ final class EvolutionApiSetupForm
                         ->dehydrated(fn (?string $state): bool => filled($state))
                         ->helperText(fn (Get $get): ?string => (bool) $get('has_saved_webhook_secret')
                             ? 'Leave blank to keep the saved secret.'
-                            : null),
+                            : null)
+                        ->prefixAction(
+                            Action::make('generateWebhookSecret')
+                                ->label('Generate webhook secret')
+                                ->tooltip('Generate webhook secret')
+                                ->icon(Heroicon::OutlinedKey)
+                                ->action(function (Set $set): void {
+                                    $set('webhook_secret', Str::random(32));
+                                }),
+                        ),
                     Hidden::make('whatsapp_enabled')
                         ->dehydrated(false),
                     Hidden::make('has_saved_api_key'),

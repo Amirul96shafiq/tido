@@ -13,6 +13,7 @@ use App\Models\EvolutionApiConnectionLog;
 use App\Models\EvolutionApiSetting;
 use App\Models\FamilyMember;
 use App\Models\User;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -147,6 +148,19 @@ test('first-time valid setup enables WhatsApp when an allowlist exists', functio
         ]);
 
     expect($setting->refresh()->whatsapp_enabled)->toBeTrue();
+});
+
+test('webhook secret field provides a generate action', function () {
+    $component = Livewire::test(EvolutionApiPage::class)
+        ->mountAction('configureSetup');
+
+    $field = $component->instance()->getSchema('mountedActionSchema0')?->getComponent('webhook_secret');
+    $generateAction = $field instanceof TextInput
+        ? ($field->getSuffixActions()['generateWebhookSecret'] ?? null)
+        : null;
+
+    expect($generateAction)->not->toBeNull()
+        ->and($generateAction?->getLabel())->toBe('Generate webhook secret');
 });
 
 test('editing credentials preserves a disabled WhatsApp setting', function () {
