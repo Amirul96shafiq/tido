@@ -85,7 +85,7 @@ final class EvolutionSettingsService
     {
         $setting = $this->forHousehold($householdId);
         $apiUrl = trim((string) ($attributes['api_url'] ?? $setting->api_url));
-        $instanceName = trim((string) ($attributes['instance_name'] ?? $setting->instance_name));
+        $instanceName = $this->generatedInstanceName($householdId);
 
         if (! $this->isValidApiUrl($apiUrl)) {
             throw ValidationException::withMessages([
@@ -137,6 +137,11 @@ final class EvolutionSettingsService
         $setting->save();
 
         return $setting->fresh();
+    }
+
+    public function generatedInstanceName(int $householdId): string
+    {
+        return 'tido-hh-'.$householdId;
     }
 
     public function isValidApiUrl(string $url): bool

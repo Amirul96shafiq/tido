@@ -30,6 +30,9 @@ final class EvolutionApiSetupForm
                         ->label('Instance name')
                         ->required()
                         ->maxLength(64)
+                        ->readOnly()
+                        ->dehydrated(false)
+                        ->helperText('System-generated from the household ID.')
                         ->extraInputAttributes(['class' => 'font-mono']),
                     TextInput::make('api_key')
                         ->label('API key')

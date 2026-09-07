@@ -270,7 +270,7 @@ test('connected status shows linked number and instance details', function () {
         ->assertActionEnabled('sendPing');
 
     Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/fetchInstances'));
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/webhook/find/tido'));
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/webhook/find/tido-hh-1'));
 });
 
 test('connected allowlist shows only three newest family members with more link', function () {
@@ -388,7 +388,7 @@ test('generate qr prefers connect for a fresh code when instance exists', functi
         ->assertSet('connectionStatus', 'connecting')
         ->assertNotified();
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/tido')
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/tido-hh-1')
         && ! str_contains($request->url(), 'number='));
     Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/instance/create'));
 });
@@ -429,7 +429,7 @@ test('pair with code requests evolution connect with submitted number', function
         ->assertSee('Copy code')
         ->assertNotified();
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/tido')
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/tido-hh-1')
         && str_contains($request->url(), 'number=601115666887'));
 });
 
@@ -555,7 +555,7 @@ test('cancel connecting logs out evolution and clears pairing display', function
         ->assertSet('connectionStatus', 'close')
         ->assertNotified();
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/logout/tido')
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/logout/tido-hh-1')
         && $request->method() === 'DELETE');
 });
 
@@ -601,7 +601,7 @@ test('pair with code polls connect when evolution is connecting without a code y
     // One logout to clear stale creds before pairing — not a mid-flight retry.
     expect(
         collect(Http::recorded())
-            ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), '/instance/logout/tido')
+            ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), '/instance/logout/tido-hh-1')
                 && $pair[0]->method() === 'DELETE')
             ->count()
     )->toBe(1);
@@ -710,7 +710,7 @@ test('logout session calls evolution logout endpoint', function () {
         ->assertSet('qrBase64', null)
         ->assertNotified();
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/logout/tido')
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/logout/tido-hh-1')
         && $request->method() === 'DELETE');
 });
 
@@ -730,7 +730,7 @@ test('register webhook posts nested webhook payload', function () {
         ->assertNotified();
 
     Http::assertSent(function (Request $request) {
-        return str_contains($request->url(), '/webhook/set/tido')
+        return str_contains($request->url(), '/webhook/set/tido-hh-1')
             && data_get($request->data(), 'webhook.url') === 'http://127.0.0.1:2000/api/webhooks/whatsapp'
             && data_get($request->data(), 'webhook.headers.Authorization') === 'Bearer '.config('services.evolution.webhook_secret')
             && data_get($request->data(), 'webhook.events.0') === 'MESSAGES_UPSERT';
@@ -865,7 +865,7 @@ test('auto-registers webhook and queues welcome when status becomes open', funct
         ->assertNotified();
 
     Http::assertSent(function (Request $request) {
-        return str_contains($request->url(), '/webhook/set/tido')
+        return str_contains($request->url(), '/webhook/set/tido-hh-1')
             && data_get($request->data(), 'webhook.url') === 'http://127.0.0.1:2000/api/webhooks/whatsapp';
     });
 
