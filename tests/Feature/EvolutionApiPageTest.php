@@ -10,6 +10,7 @@ use App\Filament\Pages\EvolutionApiPage;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
 use App\Models\EvolutionApiConnectionLog;
+use App\Models\EvolutionApiSetting;
 use App\Models\FamilyMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -63,6 +64,7 @@ beforeEach(function () {
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.webhook_secret' => 'test-evolution-webhook-secret-0123456789abcdef0123456789abcdef',
         'services.evolution.instance_name' => 'tido',
+        'services.evolution.allowed_api_hosts' => ['127.0.0.1', 'localhost', '::1'],
         'services.evolution.device_label' => 'tido App (Evolution API)',
     ]);
 
@@ -113,6 +115,100 @@ test('evolution api page loads for authenticated user', function () {
         ->assertSee('Connect')
         ->assertSee('Connection History')
         ->assertSee('No connection events yet');
+});
+
+test('first-time valid setup enables WhatsApp when an allowlist exists', function () {
+    $setting = EvolutionApiSetting::query()
+        ->where('household_id', 1)
+        ->firstOrFail();
+
+    $setting->forceFill([
+        'api_key' => 'old-invalid-api-key',
+        'webhook_secret' => 'old-invalid-webhook-secret',
+        'instance_name' => 'tido',
+        'api_url' => 'http://127.0.0.1:8080',
+        'whatsapp_enabled' => false,
+        'setup_completed_at' => null,
+    ])->save();
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'close'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    Livewire::test(EvolutionApiPage::class)
+        ->callAction('configureSetup', data: [
+            'api_url' => 'http://127.0.0.1:8080',
+            'instance_name' => 'tido',
+            'api_key' => 'new-valid-api-key-0123456789abcdef0123456789abcdef',
+            'webhook_secret' => 'new-valid-webhook-secret-0123456789abcdef0123456789abcdef',
+        ]);
+
+    expect($setting->refresh()->whatsapp_enabled)->toBeTrue();
+});
+
+test('editing credentials preserves a disabled WhatsApp setting', function () {
+    $setting = EvolutionApiSetting::query()
+        ->where('household_id', 1)
+        ->firstOrFail();
+
+    $setting->forceFill([
+        'api_key' => 'saved-valid-api-key-0123456789abcdef0123456789abcdef',
+        'webhook_secret' => 'saved-valid-webhook-secret-0123456789abcdef0123456789abcdef',
+        'instance_name' => 'tido',
+        'api_url' => 'http://127.0.0.1:8080',
+        'whatsapp_enabled' => false,
+        'setup_completed_at' => now(),
+    ])->save();
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'close'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    Livewire::test(EvolutionApiPage::class)
+        ->callAction('configureSetup', data: [
+            'api_url' => 'http://127.0.0.1:8080',
+            'instance_name' => 'tido',
+            'api_key' => '',
+            'webhook_secret' => '',
+        ]);
+
+    expect($setting->refresh()->whatsapp_enabled)->toBeFalse();
+});
+
+test('Primary can disable WhatsApp without logging out Evolution', function () {
+    $setting = EvolutionApiSetting::query()
+        ->where('household_id', 1)
+        ->firstOrFail();
+
+    $setting->forceFill([
+        'api_key' => 'saved-valid-api-key-0123456789abcdef0123456789abcdef',
+        'webhook_secret' => 'saved-valid-webhook-secret-0123456789abcdef0123456789abcdef',
+        'instance_name' => 'tido',
+        'api_url' => 'http://127.0.0.1:8080',
+        'whatsapp_enabled' => true,
+        'setup_completed_at' => now(),
+    ])->save();
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+        '*/webhook/find/*' => Http::response([]),
+    ]);
+
+    Livewire::test(EvolutionApiPage::class)
+        ->assertActionVisible('disableWhatsApp')
+        ->callAction('disableWhatsApp')
+        ->assertActionVisible('enableWhatsApp');
+
+    expect($setting->refresh()->whatsapp_enabled)->toBeFalse();
 });
 
 test('connected status shows linked number and instance details', function () {

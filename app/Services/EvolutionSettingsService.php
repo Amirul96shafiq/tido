@@ -56,6 +56,22 @@ final class EvolutionSettingsService
             && EvolutionCredential::areDistinct($effective['api_key'], $effective['webhook_secret']);
     }
 
+    public function setEnabled(int $householdId, bool $enabled): EvolutionApiSetting
+    {
+        $setting = $this->forHousehold($householdId);
+
+        if ($enabled && ! $this->isConfigured($setting)) {
+            throw ValidationException::withMessages([
+                'whatsapp_enabled' => 'Complete a valid Evolution API setup before enabling WhatsApp.',
+            ]);
+        }
+
+        $setting->whatsapp_enabled = $enabled;
+        $setting->save();
+
+        return $setting->fresh();
+    }
+
     /**
      * @param array{
      *     api_url?: string,

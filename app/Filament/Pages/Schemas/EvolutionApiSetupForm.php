@@ -6,7 +6,6 @@ namespace App\Filament\Pages\Schemas;
 
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Utilities\Get;
@@ -52,10 +51,8 @@ final class EvolutionApiSetupForm
                         ->helperText(fn (Get $get): ?string => (bool) $get('has_saved_webhook_secret')
                             ? 'Leave blank to keep the saved secret.'
                             : null),
-                    Toggle::make('whatsapp_enabled')
-                        ->label('Enable WhatsApp for this household')
-                        ->helperText('Disabled households do not process webhooks or send messages.')
-                        ->columnSpanFull(),
+                    Hidden::make('whatsapp_enabled')
+                        ->dehydrated(false),
                     Hidden::make('has_saved_api_key'),
                     Hidden::make('has_saved_webhook_secret'),
                 ])
