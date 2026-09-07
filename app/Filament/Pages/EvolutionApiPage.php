@@ -742,6 +742,9 @@ class EvolutionApiPage extends Page implements HasTable
             ->modalHeading('Household WhatsApp setup')
             ->modalDescription('These settings apply only to the current household. Secrets are encrypted and never displayed.')
             ->modalSubmitActionLabel('Save')
+            ->modalSubmitAction(fn (Action $action): Action => $action->disabled(
+                fn (): bool => $this->isConnectionOpen(),
+            ))
             ->modalWidth(Width::ThreeExtraLarge)
             ->fillForm(fn (): array => $this->setupFormState())
             ->schema(EvolutionApiSetupForm::components())
