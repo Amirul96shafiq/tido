@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\HasHouseholdContext;
+use App\Jobs\Middleware\SetCurrentHousehold;
 use App\Services\WhatsAppNotificationService;
 use App\Support\DashboardSpenderScope;
 use App\Support\ExpenseSenderAttribution;
@@ -27,6 +29,7 @@ use RuntimeException;
 class ProcessWhatsAppTextReplyJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use HasHouseholdContext;
 
     public int $tries = 3;
 
@@ -38,7 +41,9 @@ class ProcessWhatsAppTextReplyJob implements ShouldBeUnique, ShouldQueue
         public string $senderNumber,
         public string $originalText,
         public string $messageId,
+        ?int $householdId = null,
     ) {
+        $this->householdId = $this->resolveHouseholdId($householdId);
         $this->onQueue('whatsapp');
         $this->timeout = max(1, (int) config('services.evolution.timeout', 15)) + 15;
         $this->uniqueFor = WhatsAppProcessingJobKey::uniqueForSeconds();
@@ -46,7 +51,7 @@ class ProcessWhatsAppTextReplyJob implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return WhatsAppProcessingJobKey::forMessage($this->messageId, 'text-reply');
+        return WhatsAppProcessingJobKey::forMessage($this->messageId, 'text-reply', $this->householdId);
     }
 
     /**
@@ -63,6 +68,7 @@ class ProcessWhatsAppTextReplyJob implements ShouldBeUnique, ShouldQueue
     public function middleware(): array
     {
         return [
+            new SetCurrentHousehold,
             (new WithoutOverlapping($this->uniqueId()))
                 ->expireAfter($this->timeout + 60)
                 ->releaseAfter(10),
@@ -72,7 +78,7 @@ class ProcessWhatsAppTextReplyJob implements ShouldBeUnique, ShouldQueue
 
     public function handle(WhatsAppNotificationService $waService): void
     {
-        if (Cache::has(WhatsAppProcessingJobKey::textReplySentCacheKey($this->messageId))) {
+        if (Cache::has(WhatsAppProcessingJobKey::textReplySentCacheKey($this->messageId, $this->householdId))) {
             Log::info('ProcessWhatsAppTextReplyJob skipped duplicate reply', [
                 'message_id' => $this->messageId,
                 'sender' => explode('@', $this->senderNumber)[0] ?: $this->senderNumber,
@@ -97,7 +103,7 @@ class ProcessWhatsAppTextReplyJob implements ShouldBeUnique, ShouldQueue
         }
 
         Cache::put(
-            WhatsAppProcessingJobKey::textReplySentCacheKey($this->messageId),
+            WhatsAppProcessingJobKey::textReplySentCacheKey($this->messageId, $this->householdId),
             true,
             WhatsAppProcessingJobKey::uniqueForSeconds(),
         );

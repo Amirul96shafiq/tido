@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\HasHouseholdContext;
+use App\Jobs\Middleware\SetCurrentHousehold;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppManualExpenseReceivedDebouncer;
 use App\Support\WhatsAppMessage;
@@ -18,14 +20,25 @@ use Illuminate\Support\Facades\Cache;
 class SendWhatsAppManualExpenseReceivedAckJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use HasHouseholdContext;
 
     public int $tries = 3;
 
     public function __construct(
         public string $senderNumber,
         public string $token,
+        ?int $householdId = null,
     ) {
+        $this->householdId = $this->resolveHouseholdId($householdId);
         $this->onQueue('default');
+    }
+
+    /**
+     * @return list<object>
+     */
+    public function middleware(): array
+    {
+        return [new SetCurrentHousehold];
     }
 
     /**
@@ -38,12 +51,12 @@ class SendWhatsAppManualExpenseReceivedAckJob implements ShouldQueue
 
     public function handle(WhatsAppNotificationService $waService): void
     {
-        $key = WhatsAppManualExpenseReceivedDebouncer::cacheKey($this->senderNumber);
+        $key = WhatsAppManualExpenseReceivedDebouncer::cacheKey($this->senderNumber, $this->householdId);
         $count = 0;
         /** @var list<int> $expenseIds */
         $expenseIds = [];
 
-        Cache::lock(WhatsAppManualExpenseReceivedDebouncer::lockKey($this->senderNumber), 5)
+        Cache::lock(WhatsAppManualExpenseReceivedDebouncer::lockKey($this->senderNumber, $this->householdId), 5)
             ->block(5, function () use ($key, &$count, &$expenseIds): void {
                 $payload = Cache::get($key);
 
@@ -71,7 +84,7 @@ class SendWhatsAppManualExpenseReceivedAckJob implements ShouldQueue
         foreach ($expenseIds as $expenseId) {
             if ($expenseId > 0) {
                 WhatsAppTypingCoordinator::handoffSenderToExpense($expenseId, $this->senderNumber);
-                ParseManualWhatsAppExpenseJob::dispatch($expenseId);
+                ParseManualWhatsAppExpenseJob::dispatch($expenseId, $this->householdId);
             }
         }
     }

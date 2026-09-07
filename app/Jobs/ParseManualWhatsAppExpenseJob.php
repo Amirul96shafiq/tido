@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\HasHouseholdContext;
+use App\Jobs\Middleware\SetCurrentHousehold;
 use App\Models\Expense;
 use App\Prompts\ManualExpenseLabelPrompt;
 use App\Services\LabelMatcher;
@@ -22,20 +24,22 @@ use Illuminate\Support\Facades\Log;
 class ParseManualWhatsAppExpenseJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use HasHouseholdContext;
 
     public int $tries = 3;
 
     public int $uniqueFor;
 
-    public function __construct(public int $expenseId)
+    public function __construct(public int $expenseId, ?int $householdId = null)
     {
+        $this->householdId = $this->resolveHouseholdId($householdId);
         $this->onQueue('receipts');
         $this->uniqueFor = WhatsAppProcessingJobKey::uniqueForSeconds();
     }
 
     public function uniqueId(): string
     {
-        return WhatsAppProcessingJobKey::forExpense($this->expenseId, 'manual-labels');
+        return WhatsAppProcessingJobKey::forExpense($this->expenseId, 'manual-labels', $this->householdId);
     }
 
     /**
@@ -46,6 +50,7 @@ class ParseManualWhatsAppExpenseJob implements ShouldBeUnique, ShouldQueue
         $ollamaTimeout = max(1, (int) config('services.ollama.timeout', 120));
 
         return [
+            new SetCurrentHousehold,
             (new WithoutOverlapping($this->uniqueId()))
                 ->expireAfter($ollamaTimeout + 120)
                 ->releaseAfter(30),
@@ -144,7 +149,7 @@ class ParseManualWhatsAppExpenseJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        SendWhatsAppManualExpenseParsedJob::dispatch($expense->id);
+        SendWhatsAppManualExpenseParsedJob::dispatch($expense->id, $this->householdId);
     }
 
     /**

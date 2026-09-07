@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Enums\EvolutionApiConnectMethod;
+use App\Jobs\Concerns\HasHouseholdContext;
+use App\Jobs\Middleware\SetCurrentHousehold;
 use App\Services\WhatsAppNotificationService;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppMessage;
@@ -19,14 +21,25 @@ use RuntimeException;
 class SendEvolutionApiConnectedAlertJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use HasHouseholdContext;
 
     public int $tries = 3;
 
     public function __construct(
         public ?string $connectedNumber = null,
         public ?EvolutionApiConnectMethod $connectMethod = null,
+        ?int $householdId = null,
     ) {
+        $this->householdId = $this->resolveHouseholdId($householdId);
         $this->onQueue('whatsapp');
+    }
+
+    /**
+     * @return list<object>
+     */
+    public function middleware(): array
+    {
+        return [new SetCurrentHousehold];
     }
 
     /**

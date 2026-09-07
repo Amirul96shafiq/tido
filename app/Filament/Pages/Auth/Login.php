@@ -788,11 +788,13 @@ class Login extends BaseLogin
     {
         $localForm = '0'.substr($normalizedPhone, 2);
 
-        return User::query()
+        $users = User::query()
             ->where('phone', $normalizedPhone)
             ->orWhere('phone', '+'.$normalizedPhone)
             ->orWhere('phone', $localForm)
-            ->first();
+            ->get();
+
+        return $users->count() === 1 ? $users->first() : null;
     }
 
     protected function throwFailureValidationException(): never

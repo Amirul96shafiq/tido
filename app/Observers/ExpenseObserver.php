@@ -52,7 +52,7 @@ class ExpenseObserver
 
         // WhatsApp receipts wait for the batched "Document received" ack before OCR starts.
         if ($expense->status === 'pending' && $expense->source !== 'whatsapp') {
-            ExtractReceiptDataJob::dispatch($expense->id);
+            ExtractReceiptDataJob::dispatch($expense->id, $expense->household_id);
         }
     }
 

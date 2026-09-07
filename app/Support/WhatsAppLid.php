@@ -11,10 +11,6 @@ use InvalidArgumentException;
 
 final class WhatsAppLid
 {
-    private const PENDING_INDEX_KEY = 'wa:unlinked-lids:index';
-
-    private const PENDING_ITEM_PREFIX = 'wa:unlinked-lid:';
-
     private const PENDING_TTL_DAYS = 30;
 
     /**
@@ -124,18 +120,18 @@ final class WhatsAppLid
 
         $ttl = now()->addDays(self::PENDING_TTL_DAYS);
 
-        Cache::put(self::PENDING_ITEM_PREFIX.$lid, [
+        Cache::put(self::pendingItemKey($lid), [
             'lid' => $lid,
             'push_name' => filled($pushName) ? trim((string) $pushName) : null,
             'seen_at' => now()->toIso8601String(),
         ], $ttl);
 
         /** @var list<string> $index */
-        $index = Cache::get(self::PENDING_INDEX_KEY, []);
+        $index = Cache::get(self::pendingIndexKey(), []);
 
         if (! in_array($lid, $index, true)) {
             $index[] = $lid;
-            Cache::put(self::PENDING_INDEX_KEY, array_values($index), $ttl);
+            Cache::put(self::pendingIndexKey(), array_values($index), $ttl);
         }
     }
 
@@ -145,19 +141,19 @@ final class WhatsAppLid
     public static function pendingUnlinked(): array
     {
         /** @var list<string> $index */
-        $index = Cache::get(self::PENDING_INDEX_KEY, []);
+        $index = Cache::get(self::pendingIndexKey(), []);
         $pending = [];
         $alive = [];
 
         foreach ($index as $lid) {
             if (self::isLinked($lid)) {
-                Cache::forget(self::PENDING_ITEM_PREFIX.$lid);
+                Cache::forget(self::pendingItemKey($lid));
 
                 continue;
             }
 
             /** @var array{lid?: string, push_name?: string|null, seen_at?: string|null}|null $item */
-            $item = Cache::get(self::PENDING_ITEM_PREFIX.$lid);
+            $item = Cache::get(self::pendingItemKey($lid));
 
             if (! is_array($item)) {
                 continue;
@@ -175,7 +171,7 @@ final class WhatsAppLid
             ];
         }
 
-        Cache::put(self::PENDING_INDEX_KEY, $alive, now()->addDays(self::PENDING_TTL_DAYS));
+        Cache::put(self::pendingIndexKey(), $alive, now()->addDays(self::PENDING_TTL_DAYS));
 
         return $pending;
     }
@@ -188,15 +184,15 @@ final class WhatsAppLid
             return;
         }
 
-        Cache::forget(self::PENDING_ITEM_PREFIX.$normalizedLid);
+        Cache::forget(self::pendingItemKey($normalizedLid));
 
         /** @var list<string> $index */
-        $index = Cache::get(self::PENDING_INDEX_KEY, []);
+        $index = Cache::get(self::pendingIndexKey(), []);
         $index = array_values(array_filter(
             $index,
             static fn (string $entry): bool => $entry !== $normalizedLid,
         ));
-        Cache::put(self::PENDING_INDEX_KEY, $index, now()->addDays(self::PENDING_TTL_DAYS));
+        Cache::put(self::pendingIndexKey(), $index, now()->addDays(self::PENDING_TTL_DAYS));
     }
 
     /**
@@ -269,5 +265,15 @@ final class WhatsAppLid
         FamilyMember::query()
             ->where('whatsapp_lid', $normalizedLid)
             ->update(['whatsapp_lid' => null]);
+    }
+
+    private static function pendingIndexKey(): string
+    {
+        return 'wa:unlinked-lids:'.(CurrentHousehold::id() ?? 0).':index';
+    }
+
+    private static function pendingItemKey(string $lid): string
+    {
+        return 'wa:unlinked-lid:'.(CurrentHousehold::id() ?? 0).':'.$lid;
     }
 }

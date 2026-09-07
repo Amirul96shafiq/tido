@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\HasHouseholdContext;
+use App\Jobs\Middleware\SetCurrentHousehold;
 use App\Models\Expense;
 use App\Services\BudgetAlertService;
 use App\Services\RecurringMatchService;
@@ -16,14 +18,25 @@ use Illuminate\Queue\SerializesModels;
 class SendDeferredWhatsAppBudgetAlertJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use HasHouseholdContext;
 
     public int $tries = 60;
 
     public function __construct(
         public string $senderNumber,
         public int $expenseId,
+        ?int $householdId = null,
     ) {
+        $this->householdId = $this->resolveHouseholdId($householdId);
         $this->onQueue('whatsapp');
+    }
+
+    /**
+     * @return list<object>
+     */
+    public function middleware(): array
+    {
+        return [new SetCurrentHousehold];
     }
 
     /**

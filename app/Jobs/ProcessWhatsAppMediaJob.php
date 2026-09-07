@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\HasHouseholdContext;
+use App\Jobs\Middleware\SetCurrentHousehold;
 use App\Models\Expense;
+use App\Services\EvolutionInstanceService;
 use App\Services\PdfInspectionException;
 use App\Services\PdfPageInspector;
 use App\Services\WhatsAppNotificationService;
-use App\Support\EvolutionCredential;
 use App\Support\ExpenseSenderAttribution;
 use App\Support\ReceiptPipelineLogger;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
@@ -34,6 +36,7 @@ use Throwable;
 class ProcessWhatsAppMediaJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use HasHouseholdContext;
 
     public int $tries = 3;
 
@@ -49,7 +52,9 @@ class ProcessWhatsAppMediaJob implements ShouldBeUnique, ShouldQueue
         public string $mediaType = 'image',
         public ?string $declaredMimeType = null,
         public ?string $originalFilename = null,
+        ?int $householdId = null,
     ) {
+        $this->householdId = $this->resolveHouseholdId($householdId);
         $this->onQueue('whatsapp');
         $this->timeout = max(1, (int) config('services.evolution.timeout', 15))
             + max(1, (int) config('services.evolution.connect_timeout', 5))
@@ -59,7 +64,7 @@ class ProcessWhatsAppMediaJob implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return WhatsAppProcessingJobKey::forMessage($this->messageId, 'media');
+        return WhatsAppProcessingJobKey::forMessage($this->messageId, 'media', $this->householdId);
     }
 
     /**
@@ -68,6 +73,7 @@ class ProcessWhatsAppMediaJob implements ShouldBeUnique, ShouldQueue
     public function middleware(): array
     {
         return [
+            new SetCurrentHousehold,
             (new WithoutOverlapping($this->uniqueId()))
                 ->expireAfter($this->timeout + 60)
                 ->releaseAfter(10),
@@ -232,7 +238,7 @@ class ProcessWhatsAppMediaJob implements ShouldBeUnique, ShouldQueue
         };
         $originalFilename = $this->safeOriginalFilename($extension);
         $filename = $this->storedFilename($extension);
-        $localPath = 'receipts/'.$filename;
+        $localPath = 'receipts/'.$this->householdId.'/'.$filename;
 
         $storageStartedAt = ReceiptPipelineLogger::start();
 
@@ -304,7 +310,7 @@ class ProcessWhatsAppMediaJob implements ShouldBeUnique, ShouldQueue
             'page_count' => $pageCount,
             'status' => 'accepted',
             'reason' => null,
-        ]);
+        ], $this->householdId);
 
         Log::info('WhatsApp receipt media processed', [
             'expense_id' => $expense->id,
@@ -377,7 +383,7 @@ class ProcessWhatsAppMediaJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        (new SendWhatsAppDocumentReceivedAckJob($this->senderNumber, $token))
+        (new SendWhatsAppDocumentReceivedAckJob($this->senderNumber, $token, $this->householdId))
             ->failed($exception);
     }
 
@@ -398,7 +404,7 @@ class ProcessWhatsAppMediaJob implements ShouldBeUnique, ShouldQueue
 
         $expectedExtension = $this->mediaType === 'pdf' ? 'pdf' : 'jpg';
 
-        return Storage::exists('receipts/'.$this->storedFilename($expectedExtension));
+        return Storage::exists('receipts/'.$this->householdId.'/'.$this->storedFilename($expectedExtension));
     }
 
     protected function safeOriginalFilename(?string $fallbackExtension = null): string
@@ -475,7 +481,7 @@ class ProcessWhatsAppMediaJob implements ShouldBeUnique, ShouldQueue
             'page_count' => $pageCount,
             'status' => $status,
             'reason' => $reason,
-        ]);
+        ], $this->householdId);
 
         Cache::put($this->rejectedMessageCacheKey(), true, now()->addDays(7));
 
@@ -499,17 +505,18 @@ class ProcessWhatsAppMediaJob implements ShouldBeUnique, ShouldQueue
 
     protected function rejectedMessageCacheKey(): string
     {
-        return 'wa:rejected-media:'.$this->messageId;
+        return 'wa:rejected-media:'.$this->householdId.':'.$this->messageId;
     }
 
     protected function downloadMedia(): ?string
     {
         $startedAt = ReceiptPipelineLogger::start();
-        $instanceName = (string) config('services.evolution.instance_name');
-        $apiUrl = rtrim((string) config('services.evolution.api_url'), '/');
-        $apiKey = (string) config('services.evolution.api_key');
+        $evolution = app(EvolutionInstanceService::class);
+        $instanceName = $evolution->instanceName();
+        $apiUrl = $evolution->apiUrl();
+        $apiKey = $evolution->apiKey();
 
-        if ($apiUrl === '' || ! EvolutionCredential::isValid($apiKey)) {
+        if ($apiUrl === '' || $apiKey === '') {
             Log::error('Failed to retrieve media from Evolution API because the API credential is not configured', [
                 'message_id' => $this->messageId,
             ]);

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Filament\Resources\Expenses\ExpenseResource;
+use App\Jobs\Concerns\HasHouseholdContext;
+use App\Jobs\Middleware\SetCurrentHousehold;
 use App\Models\Expense;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppManualExpenseReceivedDebouncer;
@@ -22,12 +24,22 @@ use RuntimeException;
 class SendWhatsAppManualExpenseParsedJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use HasHouseholdContext;
 
     public int $tries = 60;
 
-    public function __construct(public int $expenseId)
+    public function __construct(public int $expenseId, ?int $householdId = null)
     {
+        $this->householdId = $this->resolveHouseholdId($householdId);
         $this->onQueue('whatsapp');
+    }
+
+    /**
+     * @return list<object>
+     */
+    public function middleware(): array
+    {
+        return [new SetCurrentHousehold];
     }
 
     /**
@@ -51,7 +63,7 @@ class SendWhatsAppManualExpenseParsedJob implements ShouldQueue
         }
 
         $sender = (string) $expense->whatsapp_sender;
-        $pendingAck = Cache::get(WhatsAppManualExpenseReceivedDebouncer::cacheKey($sender));
+        $pendingAck = Cache::get(WhatsAppManualExpenseReceivedDebouncer::cacheKey($sender, $this->householdId));
 
         if (is_array($pendingAck)) {
             $this->release(1);

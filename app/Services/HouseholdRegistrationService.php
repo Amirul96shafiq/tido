@@ -32,6 +32,8 @@ final class HouseholdRegistrationService
             CurrentHousehold::set((int) $household->id);
 
             try {
+                app(EvolutionSettingsService::class)->forHousehold((int) $household->id);
+
                 $user = new User;
                 $user->forceFill([
                     'household_id' => $household->id,

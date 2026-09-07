@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\HasHouseholdContext;
+use App\Jobs\Middleware\SetCurrentHousehold;
 use App\Models\Expense;
 use App\Models\ExpenseItem;
 use App\Support\ExpenseSenderAttribution;
@@ -23,6 +25,7 @@ use Illuminate\Support\Facades\Log;
 class ProcessManualWhatsAppExpenseJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use HasHouseholdContext;
 
     public int $tries = 3;
 
@@ -32,14 +35,16 @@ class ProcessManualWhatsAppExpenseJob implements ShouldBeUnique, ShouldQueue
         public string $senderNumber,
         public string $text,
         public string $messageId,
+        ?int $householdId = null,
     ) {
+        $this->householdId = $this->resolveHouseholdId($householdId);
         $this->onQueue('whatsapp');
         $this->uniqueFor = WhatsAppProcessingJobKey::uniqueForSeconds();
     }
 
     public function uniqueId(): string
     {
-        return WhatsAppProcessingJobKey::forMessage($this->messageId, 'manual-expense');
+        return WhatsAppProcessingJobKey::forMessage($this->messageId, 'manual-expense', $this->householdId);
     }
 
     /**
@@ -48,6 +53,7 @@ class ProcessManualWhatsAppExpenseJob implements ShouldBeUnique, ShouldQueue
     public function middleware(): array
     {
         return [
+            new SetCurrentHousehold,
             (new WithoutOverlapping($this->uniqueId()))
                 ->expireAfter(120)
                 ->releaseAfter(10),
@@ -135,7 +141,7 @@ class ProcessManualWhatsAppExpenseJob implements ShouldBeUnique, ShouldQueue
                     ]);
                 }
 
-                WhatsAppManualExpenseReceivedDebouncer::register($this->senderNumber, $expense->id);
+                WhatsAppManualExpenseReceivedDebouncer::register($this->senderNumber, $expense->id, $this->householdId);
 
                 Log::info('Manual WhatsApp expense created', [
                     'expense_id' => $expense->id,

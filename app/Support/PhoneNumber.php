@@ -105,13 +105,16 @@ final class PhoneNumber
 
     /**
      * Primary account for the current household (Profile WhatsApp / allowlist owner).
-     * Falls back to household #1 when no household context is set (CLI / early boot).
+     * Returns no owner when no household context is set.
      */
     public static function primaryUser(): ?User
     {
         $householdId = CurrentHousehold::id()
-            ?? (auth()->user() instanceof User ? auth()->user()->household_id : null)
-            ?? 1;
+            ?? (auth()->user() instanceof User ? auth()->user()->household_id : null);
+
+        if ($householdId === null) {
+            return null;
+        }
 
         $user = User::query()
             ->withoutGlobalScope('household')
@@ -122,27 +125,6 @@ final class PhoneNumber
             })
             ->orderBy('id')
             ->first();
-
-        // #region agent log
-        file_put_contents(base_path('debug-304ce6.log'), json_encode([
-            'sessionId' => '304ce6',
-            'runId' => 'post-fix',
-            'hypothesisId' => 'A',
-            'location' => 'PhoneNumber.php:primaryUser',
-            'message' => 'primaryUser lookup',
-            'data' => [
-                'found' => $user !== null,
-                'foundUserId' => $user?->getKey(),
-                'foundHouseholdId' => $user?->household_id,
-                'resolvedHouseholdId' => $householdId,
-                'currentHouseholdId' => CurrentHousehold::id(),
-                'authUserId' => auth()->id(),
-                'authHouseholdId' => auth()->user()?->household_id,
-                'authHasPhone' => filled(auth()->user()?->phone),
-            ],
-            'timestamp' => (int) round(microtime(true) * 1000),
-        ], JSON_UNESCAPED_SLASHES)."\n", FILE_APPEND);
-        // #endregion
 
         return $user;
     }
@@ -192,25 +174,6 @@ final class PhoneNumber
         }
 
         $result = array_values(array_unique($numbers));
-
-        // #region agent log
-        file_put_contents(base_path('debug-304ce6.log'), json_encode([
-            'sessionId' => '304ce6',
-            'runId' => 'post-fix',
-            'hypothesisId' => 'A',
-            'location' => 'PhoneNumber.php:allowedWhatsAppSenders',
-            'message' => 'Allowlist numbers resolved',
-            'data' => [
-                'primaryPresent' => $primary !== null,
-                'familyCount' => count($familyPhones),
-                'resultCount' => count($result),
-                'currentHouseholdId' => CurrentHousehold::id(),
-                'authUserId' => auth()->id(),
-                'authHasPhone' => filled(auth()->user()?->phone),
-            ],
-            'timestamp' => (int) round(microtime(true) * 1000),
-        ], JSON_UNESCAPED_SLASHES)."\n", FILE_APPEND);
-        // #endregion
 
         return $result;
     }

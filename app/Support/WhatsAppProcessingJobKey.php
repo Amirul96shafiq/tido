@@ -13,14 +13,14 @@ final class WhatsAppProcessingJobKey
         return max(60, (int) config('services.evolution.webhook_idempotency_ttl_seconds', 604800));
     }
 
-    public static function forMessage(string $messageId, string $jobType): string
+    public static function forMessage(string $messageId, string $jobType, ?int $householdId = null): string
     {
-        return 'wa:job:'.$jobType.':'.hash('sha256', $messageId);
+        return 'wa:job:'.$jobType.':'.($householdId ?? CurrentHousehold::id() ?? 0).':'.hash('sha256', $messageId);
     }
 
-    public static function forExpense(int $expenseId, string $jobType): string
+    public static function forExpense(int $expenseId, string $jobType, ?int $householdId = null): string
     {
-        return 'wa:job:'.$jobType.':expense:'.$expenseId;
+        return 'wa:job:'.$jobType.':'.($householdId ?? CurrentHousehold::id() ?? 0).':expense:'.$expenseId;
     }
 
     public static function messageIdForManualBlock(string $messageId, int $blockIndex): string
@@ -32,9 +32,9 @@ final class WhatsAppProcessingJobKey
         return $messageId.':'.$blockIndex;
     }
 
-    public static function textReplySentCacheKey(string $messageId): string
+    public static function textReplySentCacheKey(string $messageId, ?int $householdId = null): string
     {
-        return 'wa:text-reply-sent:'.hash('sha256', $messageId);
+        return 'wa:text-reply-sent:'.($householdId ?? CurrentHousehold::id() ?? 0).':'.hash('sha256', $messageId);
     }
 
     public static function manualExpenseAlreadyCreated(string $messageId): bool

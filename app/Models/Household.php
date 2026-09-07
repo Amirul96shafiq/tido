@@ -8,6 +8,7 @@ use Database\Factories\HouseholdFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Household extends Model
 {
@@ -26,6 +27,11 @@ class Household extends Model
     public function familyMembers(): HasMany
     {
         return $this->hasMany(FamilyMember::class);
+    }
+
+    public function evolutionApiSetting(): HasOne
+    {
+        return $this->hasOne(EvolutionApiSetting::class);
     }
 
     public function expenses(): HasMany

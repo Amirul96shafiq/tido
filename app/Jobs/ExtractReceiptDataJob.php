@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\HasHouseholdContext;
+use App\Jobs\Middleware\SetCurrentHousehold;
 use App\Models\Expense;
 use App\Models\ExpenseItem;
 use App\Prompts\PdfReceiptMergePrompt;
@@ -36,20 +38,22 @@ use RuntimeException;
 class ExtractReceiptDataJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use HasHouseholdContext;
 
     public int $tries = 3;
 
     public int $uniqueFor;
 
-    public function __construct(public int $expenseId)
+    public function __construct(public int $expenseId, ?int $householdId = null)
     {
+        $this->householdId = $this->resolveHouseholdId($householdId);
         $this->onQueue('receipts');
         $this->uniqueFor = WhatsAppProcessingJobKey::uniqueForSeconds();
     }
 
     public function uniqueId(): string
     {
-        return WhatsAppProcessingJobKey::forExpense($this->expenseId, 'extract');
+        return WhatsAppProcessingJobKey::forExpense($this->expenseId, 'extract', $this->householdId);
     }
 
     /**
@@ -60,6 +64,7 @@ class ExtractReceiptDataJob implements ShouldBeUnique, ShouldQueue
         $ollamaTimeout = max(1, (int) config('services.ollama.timeout', 120));
 
         return [
+            new SetCurrentHousehold,
             (new WithoutOverlapping($this->uniqueId()))
                 ->expireAfter($ollamaTimeout + 120)
                 ->releaseAfter(30),
@@ -503,7 +508,7 @@ class ExtractReceiptDataJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        SendWhatsAppDocumentParsedJob::dispatch($expense->id);
+        SendWhatsAppDocumentParsedJob::dispatch($expense->id, $this->householdId);
     }
 
     protected function startWhatsAppTypingIndicator(Expense $expense): void

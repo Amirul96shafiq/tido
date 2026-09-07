@@ -10,30 +10,30 @@ use Illuminate\Support\Str;
 
 final class WhatsAppDocumentReceivedDebouncer
 {
-    public static function cacheKey(string $senderNumber): string
+    public static function cacheKey(string $senderNumber, ?int $householdId = null): string
     {
-        return 'wa:doc-received:'.$senderNumber;
+        return 'wa:doc-received:'.($householdId ?? CurrentHousehold::id() ?? 0).':'.$senderNumber;
     }
 
-    public static function lockKey(string $senderNumber): string
+    public static function lockKey(string $senderNumber, ?int $householdId = null): string
     {
-        return self::cacheKey($senderNumber).':lock';
+        return self::cacheKey($senderNumber, $householdId).':lock';
     }
 
-    public static function sentCacheKey(string $senderNumber, string $token): string
+    public static function sentCacheKey(string $senderNumber, string $token, ?int $householdId = null): string
     {
-        return self::cacheKey($senderNumber).':sent:'.$token;
+        return self::cacheKey($senderNumber, $householdId).':sent:'.$token;
     }
 
-    public static function wasSent(string $senderNumber, string $token): bool
+    public static function wasSent(string $senderNumber, string $token, ?int $householdId = null): bool
     {
-        return Cache::has(self::sentCacheKey($senderNumber, $token));
+        return Cache::has(self::sentCacheKey($senderNumber, $token, $householdId));
     }
 
-    public static function markSent(string $senderNumber, string $token): bool
+    public static function markSent(string $senderNumber, string $token, ?int $householdId = null): bool
     {
         return Cache::add(
-            self::sentCacheKey($senderNumber, $token),
+            self::sentCacheKey($senderNumber, $token, $householdId),
             true,
             now()->addMinutes(5),
         );
@@ -44,12 +44,12 @@ final class WhatsAppDocumentReceivedDebouncer
      *
      * @param  list<string>  $messageIds
      */
-    public static function consume(string $senderNumber, string $token, array $messageIds): void
+    public static function consume(string $senderNumber, string $token, array $messageIds, ?int $householdId = null): void
     {
-        $key = self::cacheKey($senderNumber);
+        $key = self::cacheKey($senderNumber, $householdId);
         $messageIds = array_values(array_unique($messageIds));
 
-        Cache::lock(self::lockKey($senderNumber), 5)->block(5, function () use ($key, $token, $messageIds): void {
+        Cache::lock(self::lockKey($senderNumber, $householdId), 5)->block(5, function () use ($key, $token, $messageIds): void {
             $current = Cache::get($key);
 
             if (! is_array($current) || ($current['token'] ?? null) === $token) {
@@ -104,7 +104,7 @@ final class WhatsAppDocumentReceivedDebouncer
      *     reason: string|null
      * }  $document
      */
-    public static function register(string $senderNumber, array $document): void
+    public static function register(string $senderNumber, array $document, ?int $householdId = null): void
     {
         $senderNumber = trim($senderNumber);
 
@@ -112,13 +112,13 @@ final class WhatsAppDocumentReceivedDebouncer
             return;
         }
 
-        $key = self::cacheKey($senderNumber);
+        $key = self::cacheKey($senderNumber, $householdId);
         $token = (string) Str::uuid();
         $ttl = now()->addMinutes(5);
         $seconds = max(1, (int) config('services.evolution.document_received_debounce_seconds', 3));
         $documentCount = 0;
 
-        Cache::lock(self::lockKey($senderNumber), 5)->block(5, function () use ($key, $token, $ttl, $document, &$documentCount): void {
+        Cache::lock(self::lockKey($senderNumber, $householdId), 5)->block(5, function () use ($key, $token, $ttl, $document, &$documentCount): void {
             $current = Cache::get($key, ['count' => 0, 'token' => null, 'documents' => []]);
             $currentDocuments = is_array($current) && is_array($current['documents'] ?? null)
                 ? $current['documents']
@@ -151,7 +151,7 @@ final class WhatsAppDocumentReceivedDebouncer
             ], $ttl);
         });
 
-        SendWhatsAppDocumentReceivedAckJob::dispatch($senderNumber, $token)
+        SendWhatsAppDocumentReceivedAckJob::dispatch($senderNumber, $token, $householdId)
             ->delay(now()->addSeconds($seconds));
     }
 }

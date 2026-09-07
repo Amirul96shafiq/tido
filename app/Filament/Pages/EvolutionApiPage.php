@@ -11,6 +11,7 @@ use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Pages\Schemas\EvolutionApiSetupForm;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Filament\Support\IntegrationHealthBadge;
 use App\Filament\Support\IntegrationNavigation;
@@ -20,8 +21,8 @@ use App\Models\EvolutionApiSetting;
 use App\Models\User;
 use App\Services\EvolutionApiConnectionLogService;
 use App\Services\EvolutionInstanceService;
+use App\Services\EvolutionSettingsService;
 use App\Services\WhatsAppNotificationService;
-use App\Support\CurrentHousehold;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppLid;
 use App\Support\WhatsAppMessage;
@@ -42,6 +43,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Js;
+use Illuminate\Validation\ValidationException;
 
 class EvolutionApiPage extends Page implements HasTable
 {
@@ -95,6 +97,12 @@ class EvolutionApiPage extends Page implements HasTable
     public bool $welcomePingSent = false;
 
     public bool $webhookRegistered = false;
+
+    public bool $setupComplete = false;
+
+    public bool $hasSavedApiKey = false;
+
+    public bool $hasSavedWebhookSecret = false;
 
     public ?string $connectedNumber = null;
 
@@ -165,8 +173,9 @@ class EvolutionApiPage extends Page implements HasTable
             ]);
     }
 
-    public function mount(EvolutionInstanceService $evolution): void
+    public function mount(EvolutionInstanceService $evolution, EvolutionSettingsService $settings): void
     {
+        $this->loadSettings($settings);
         $this->webhookUrl = $evolution->defaultWebhookUrl();
         // Skip side effects when opening the page while already connected/disconnected.
         $this->refreshStatus(allowConnectSideEffects: false);
@@ -194,7 +203,7 @@ class EvolutionApiPage extends Page implements HasTable
 
             if (! $evolution->isConfigured()) {
                 $this->connectionStatus = 'unconfigured';
-                $this->statusMessage = 'Set EVOLUTION_API_URL, EVOLUTION_API_KEY, and EVOLUTION_WEBHOOK_SECRET in .env with distinct 32+ character values, then start Evolution.';
+                $this->statusMessage = 'Complete the household Evolution API setup with distinct credentials, then start Evolution.';
 
                 return;
             }
@@ -599,6 +608,7 @@ class EvolutionApiPage extends Page implements HasTable
     protected function getHeaderActions(): array
     {
         return [
+            $this->configureSetupAction(),
             Action::make('refreshStatus')
                 ->label('Refresh status')
                 ->icon(Heroicon::OutlinedArrowPath)
@@ -650,6 +660,94 @@ class EvolutionApiPage extends Page implements HasTable
                 ->color('gray')
                 ->button(),
         ];
+    }
+
+    private function configureSetupAction(): Action
+    {
+        return Action::make('configureSetup')
+            ->label($this->setupComplete ? 'Edit WhatsApp setup' : 'Configure WhatsApp')
+            ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
+            ->modalHeading('Household WhatsApp setup')
+            ->modalDescription('These settings apply only to the current household. Secrets are encrypted and never displayed.')
+            ->modalSubmitActionLabel('Save')
+            ->modalWidth(Width::ThreeExtraLarge)
+            ->fillForm(fn (): array => $this->setupFormState())
+            ->schema(EvolutionApiSetupForm::components())
+            ->action(function (array $data, EvolutionSettingsService $settings, Action $action): void {
+                if (! $this->saveSettingsFromState($data, $settings)) {
+                    $action->halt();
+                }
+            });
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function setupFormState(): array
+    {
+        $settings = app(EvolutionSettingsService::class);
+        $setting = $settings->forHousehold((int) auth()->user()->household_id);
+
+        return [
+            'api_url' => $setting->api_url ?? config('services.evolution.api_url'),
+            'instance_name' => $setting->instance_name,
+            'api_key' => '',
+            'webhook_secret' => '',
+            'whatsapp_enabled' => (bool) $setting->whatsapp_enabled,
+            'has_saved_api_key' => $this->hasSavedApiKey,
+            'has_saved_webhook_secret' => $this->hasSavedWebhookSecret,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function saveSettingsFromState(array $data, EvolutionSettingsService $settings): bool
+    {
+        try {
+            if ((bool) ($data['whatsapp_enabled'] ?? false) && ! $this->hasContactAllowlist()) {
+                throw ValidationException::withMessages([
+                    'whatsapp_enabled' => 'Add an allowlisted WhatsApp contact before enabling WhatsApp.',
+                ]);
+            }
+
+            $settings->save((int) auth()->user()->household_id, [
+                'api_url' => (string) ($data['api_url'] ?? ''),
+                'instance_name' => (string) ($data['instance_name'] ?? ''),
+                'api_key' => isset($data['api_key']) ? (string) $data['api_key'] : null,
+                'webhook_secret' => isset($data['webhook_secret']) ? (string) $data['webhook_secret'] : null,
+                'whatsapp_enabled' => (bool) ($data['whatsapp_enabled'] ?? false),
+            ]);
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (\Throwable $exception) {
+            Notification::make()
+                ->title('Could not save WhatsApp setup')
+                ->body($exception->getMessage())
+                ->danger()
+                ->send();
+
+            return false;
+        }
+
+        $this->loadSettings($settings);
+        $this->refreshStatus(allowConnectSideEffects: false);
+
+        Notification::make()
+            ->title('WhatsApp settings saved')
+            ->success()
+            ->send();
+
+        return true;
+    }
+
+    private function loadSettings(EvolutionSettingsService $settings): void
+    {
+        $setting = $settings->forHousehold((int) auth()->user()->household_id);
+        $effective = $settings->effective($setting);
+        $this->setupComplete = $setting->setup_completed_at !== null;
+        $this->hasSavedApiKey = filled($effective['api_key']);
+        $this->hasSavedWebhookSecret = filled($effective['webhook_secret']);
     }
 
     private function connectHeaderAction(): Action|ActionGroup
@@ -1268,51 +1366,12 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function hasContactAllowlist(): bool
     {
-        $has = $this->allowedSenderNumbers() !== [];
-
-        // #region agent log
-        file_put_contents(base_path('debug-304ce6.log'), json_encode([
-            'sessionId' => '304ce6',
-            'runId' => 'pre-fix',
-            'hypothesisId' => 'B',
-            'location' => 'EvolutionApiPage.php:hasContactAllowlist',
-            'message' => 'hasContactAllowlist evaluated',
-            'data' => [
-                'has' => $has,
-                'userId' => auth()->id(),
-                'householdId' => auth()->user()?->household_id,
-                'currentHouseholdId' => CurrentHousehold::id(),
-                'whatsappEnabled' => EvolutionApiSetting::isWhatsappEnabledForHousehold(),
-            ],
-            'timestamp' => (int) round(microtime(true) * 1000),
-        ], JSON_UNESCAPED_SLASHES)."\n", FILE_APPEND);
-        // #endregion
-
-        return $has;
+        return $this->allowedSenderNumbers() !== [];
     }
 
     private function ensureWhatsappEnabledForHousehold(): bool
     {
         $enabled = EvolutionApiSetting::isWhatsappEnabledForHousehold();
-
-        // #region agent log
-        file_put_contents(base_path('debug-304ce6.log'), json_encode([
-            'sessionId' => '304ce6',
-            'runId' => 'pre-fix',
-            'hypothesisId' => 'A',
-            'location' => 'EvolutionApiPage.php:ensureWhatsappEnabledForHousehold',
-            'message' => 'Connect guard evaluated',
-            'data' => [
-                'enabled' => $enabled,
-                'userId' => auth()->id(),
-                'householdId' => auth()->user()?->household_id,
-                'currentHouseholdId' => CurrentHousehold::id(),
-                'hasAllowlist' => $this->hasContactAllowlist(),
-                'configured' => app(EvolutionInstanceService::class)->isConfigured(),
-            ],
-            'timestamp' => (int) round(microtime(true) * 1000),
-        ], JSON_UNESCAPED_SLASHES)."\n", FILE_APPEND);
-        // #endregion
 
         if ($enabled) {
             return true;
@@ -1490,7 +1549,11 @@ class EvolutionApiPage extends Page implements HasTable
         $connectMethod = $this->pendingConnectMethod;
         $this->pendingConnectMethod = null;
 
-        SendEvolutionApiConnectedAlertJob::dispatch($this->connectedNumber, $connectMethod)
+        SendEvolutionApiConnectedAlertJob::dispatch(
+            $this->connectedNumber,
+            $connectMethod,
+            (int) auth()->user()->household_id,
+        )
             ->delay(now()->addSeconds(5));
 
         Notification::make()
