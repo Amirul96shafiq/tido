@@ -612,28 +612,28 @@ class EvolutionApiPage extends Page implements HasTable
     protected function getHeaderActions(): array
     {
         return [
-            $this->configureSetupAction(),
-            $this->enableWhatsAppAction(),
-            $this->disableWhatsAppAction(),
             Action::make('refreshStatus')
                 ->label('Refresh status')
                 ->icon(Heroicon::OutlinedArrowPath)
                 ->action('refreshStatus'),
-            Action::make('cancelConnecting')
-                ->label('Cancel connecting')
-                ->icon('heroicon-o-x-mark')
-                ->color('warning')
-                ->extraAttributes(['wire:key' => 'wa-action-cancel-connecting'])
-                ->visible(fn (): bool => $this->isConnectingAttempt())
-                ->requiresConfirmation()
-                ->modalHeading('Cancel connecting?')
-                ->modalDescription('Stops the current QR or pairing attempt and closes the Evolution connecting session.')
-                ->modalSubmitActionLabel('Cancel connecting')
-                ->action(function (): void {
-                    $this->cancelConnecting();
-                }),
+            $this->configureSetupAction(),
             $this->connectHeaderAction(),
             ActionGroup::make([
+                $this->enableWhatsAppAction(),
+                $this->disableWhatsAppAction(),
+                Action::make('cancelConnecting')
+                    ->label('Cancel connecting')
+                    ->icon('heroicon-o-x-mark')
+                    ->color('warning')
+                    ->extraAttributes(['wire:key' => 'wa-action-cancel-connecting'])
+                    ->visible(fn (): bool => $this->isConnectingAttempt())
+                    ->requiresConfirmation()
+                    ->modalHeading('Cancel connecting?')
+                    ->modalDescription('Stops the current QR or pairing attempt and closes the Evolution connecting session.')
+                    ->modalSubmitActionLabel('Cancel connecting')
+                    ->action(function (): void {
+                        $this->cancelConnecting();
+                    }),
                 Action::make('registerWebhook')
                     ->label('Register Webhook')
                     ->icon('heroicon-o-globe-alt')
