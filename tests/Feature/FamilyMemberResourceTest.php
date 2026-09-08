@@ -15,6 +15,7 @@ use App\Support\PhoneNumber;
 use Filament\Actions\Testing\TestAction;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -433,5 +434,6 @@ test('family member duplicate action is available on the edit header', function 
     $member = FamilyMember::factory()->create();
 
     Livewire::test(EditFamilyMember::class, ['record' => $member->getRouteKey()])
-        ->assertActionVisible('duplicate');
+        ->assertActionVisible('duplicate')
+        ->assertActionHasIcon('duplicate', Heroicon::Square2Stack);
 });
