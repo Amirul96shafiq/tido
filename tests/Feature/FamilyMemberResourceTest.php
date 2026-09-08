@@ -13,6 +13,7 @@ use App\Models\FamilyMember;
 use App\Models\User;
 use App\Support\PhoneNumber;
 use Filament\Actions\Testing\TestAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -185,6 +186,47 @@ test('user can replace a family member profile photo on edit', function () {
     Storage::disk('public')->assertExists($member->avatar_url);
 });
 
+test('user can upload a family member profile banner on edit', function () {
+    Storage::fake('public');
+
+    $member = FamilyMember::factory()->create([
+        'name' => 'Spouse',
+        'phone' => '60116330788',
+        'profile_banner' => null,
+    ]);
+
+    $banner = UploadedFile::fake()->image('family-banner.webp', 2350, 1000);
+
+    Livewire::test(EditFamilyMember::class, ['record' => $member->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSchemaComponentExists(
+            'profile_banner',
+            checkComponentUsing: function (FileUpload $component): bool {
+                expect($component->getLabel())->toBe('Profile Banner')
+                    ->and($component->getAcceptedFileTypes())->toBe([
+                        'image/png',
+                        'image/jpeg',
+                        'image/webp',
+                    ])
+                    ->and($component->getMaxSize())->toBe(2048)
+                    ->and($component->getImageAspectRatio())->toBe('2.35:1');
+
+                return true;
+            },
+        )
+        ->fillForm([
+            'profile_banner' => [$banner],
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $member->refresh();
+
+    expect($member->profile_banner)->not->toBeNull();
+
+    Storage::disk('public')->assertExists($member->profile_banner);
+});
+
 test('editing a family member dispatches an account switcher refresh event', function () {
     $member = FamilyMember::factory()->loginEnabled()->create([
         'name' => 'Spouse',
@@ -242,7 +284,7 @@ test('family members table configures columns, row padding, and fixed pagination
 
     expect($component->html())->toContain('tido-family-members-table')
         ->and($css)->toContain('.tido-family-members-table .fi-ta-table > tbody > tr > td.fi-ta-cell')
-        ->toContain('@apply py-4;')
+        ->toContain('@apply py-10;')
         ->and($component->instance()->getTableRecordsPerPage())->toBe(5)
         ->and($component->instance()->getTable()->getPaginationPageOptions())->toBe([5])
         ->and($component->instance()->getTable()->getDefaultPaginationPageOption())->toBe(5)
@@ -305,18 +347,18 @@ test('trashed family member edit page exposes the restore action', function () {
         ->assertActionExists('forceDelete');
 });
 
-test('family member form uses details plus profile photo sidebar layout', function () {
+test('family member form uses details plus appearances sidebar layout', function () {
     $schema = FamilyMemberForm::configure(Schema::make()->columns(2));
     $components = $schema->getComponents();
 
     expect($schema->getColumns('lg'))->toBe(10)
         ->and($components)->toHaveCount(2)
         ->and($components[0])->toBeInstanceOf(Grid::class)
-        ->and($components[0]->getColumnSpan('lg'))->toBe(7)
+        ->and($components[0]->getColumnSpan('lg'))->toBe(5)
         ->and($components[1])->toBeInstanceOf(Grid::class)
-        ->and($components[1]->getColumnSpan('lg'))->toBe(3)
+        ->and($components[1]->getColumnSpan('lg'))->toBe(5)
         ->and(FamilyMemberForm::sectionNavItems())->toBe([
-            ['label' => 'Profile Photo', 'id' => 'profile-photo'],
+            ['label' => 'Family Member Appearances', 'id' => 'profile-photo'],
             ['label' => 'Family Member Details', 'id' => 'family-member-details'],
         ]);
 });
@@ -381,6 +423,7 @@ test('primary can duplicate a family member with a new WhatsApp number', functio
         ->and($replica->relationship?->value)->toBe('sibling')
         ->and($replica->date_of_birth?->toDateString())->toBe('1991-05-15')
         ->and($replica->avatar_url)->toBeNull()
+        ->and($replica->profile_banner)->toBeNull()
         ->and($replica->whatsapp_lid)->toBeNull()
         ->and($replica->allowlist_enabled)->toBeFalse()
         ->and($replica->login_enabled)->toBeFalse()

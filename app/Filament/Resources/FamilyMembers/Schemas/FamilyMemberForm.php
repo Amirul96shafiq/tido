@@ -23,13 +23,21 @@ use Livewire\Component as LivewireComponent;
 
 class FamilyMemberForm
 {
+    private const PROFILE_IMAGE_MAX_SIZE_KB = 2048;
+
+    private const PROFILE_BANNER_ASPECT_RATIO = '2.35:1';
+
+    private const PROFILE_BANNER_WIDTH = '940';
+
+    private const PROFILE_BANNER_HEIGHT = '400';
+
     /**
      * @return list<array{label: string, id: string}>
      */
     public static function sectionNavItems(): array
     {
         return [
-            ['label' => 'Profile Photo', 'id' => 'profile-photo'],
+            ['label' => 'Family Member Appearances', 'id' => 'profile-photo'],
             ['label' => 'Family Member Details', 'id' => 'family-member-details'],
         ];
     }
@@ -40,7 +48,7 @@ class FamilyMemberForm
             ->columns(10)
             ->components([
                 Grid::make(1)
-                    ->columnSpan(7)
+                    ->columnSpan(5)
                     ->columnOrder([
                         'default' => 2,
                         'lg' => 1,
@@ -128,20 +136,20 @@ class FamilyMemberForm
                     ]),
 
                 Grid::make(1)
-                    ->columnSpan(3)
+                    ->columnSpan(5)
                     ->columnOrder([
                         'default' => 1,
                         'lg' => 2,
                     ])
                     ->extraAttributes(['class' => 'fi-family-member-sidebar-sticky'])
                     ->schema([
-                        Section::make('Profile Photo')
+                        Section::make('Family Member Appearances')
                             ->id('profile-photo')
                             ->extraAttributes(['class' => 'fi-profile-photo-section'])
                             ->schema([
                                 Flex::make([
                                     FileUpload::make('avatar_url')
-                                        ->hiddenLabel()
+                                        ->label('Profile Photo')
                                         ->fieldWrapperView('filament-forms::plain-field-wrapper')
                                         ->extraFieldWrapperAttributes(['class' => 'fi-profile-photo-field'])
                                         ->avatar()
@@ -149,9 +157,31 @@ class FamilyMemberForm
                                         ->directory('avatars')
                                         ->image()
                                         ->imageEditor()
-                                        ->maxSize(2048)
+                                        ->maxSize(self::PROFILE_IMAGE_MAX_SIZE_KB)
                                         ->circleCropper(),
                                 ])->alignCenter(),
+
+                                FileUpload::make('profile_banner')
+                                    ->label('Profile Banner')
+                                    ->disk('public')
+                                    ->directory('banners')
+                                    ->image()
+                                    ->acceptedFileTypes([
+                                        'image/png',
+                                        'image/jpeg',
+                                        'image/webp',
+                                    ])
+                                    ->maxSize(self::PROFILE_IMAGE_MAX_SIZE_KB)
+                                    ->imageEditor()
+                                    ->imageEditorAspectRatioOptions([
+                                        null,
+                                        self::PROFILE_BANNER_ASPECT_RATIO,
+                                    ])
+                                    ->imageAspectRatio(self::PROFILE_BANNER_ASPECT_RATIO)
+                                    ->automaticallyOpenImageEditorForAspectRatio()
+                                    ->automaticallyResizeImagesToWidth(self::PROFILE_BANNER_WIDTH)
+                                    ->automaticallyResizeImagesToHeight(self::PROFILE_BANNER_HEIGHT)
+                                    ->automaticallyResizeImagesMode('cover'),
                             ]),
                     ]),
             ]);
