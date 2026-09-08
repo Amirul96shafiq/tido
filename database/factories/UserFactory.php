@@ -33,6 +33,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
+            'household_id' => 1,
             'name' => FieldCharacterLimits::truncate(fake()->name(), FieldCharacterLimits::USER_NAME),
             'display_name' => fake()->optional()->passthrough(
                 FieldCharacterLimits::truncate(fake()->firstName(), FieldCharacterLimits::DISPLAY_NAME),

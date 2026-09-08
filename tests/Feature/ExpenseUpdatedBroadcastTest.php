@@ -36,7 +36,7 @@ test('creating an expense broadcasts id and status only', function (): void {
                 'status' => 'pending',
             ]
             && $event->broadcastAs() === 'ExpenseUpdated'
-            && $event->broadcastOn()[0]->name === 'private-household.expenses';
+            && $event->broadcastOn()[0]->name === 'private-household.1.expenses';
     });
 });
 
@@ -189,5 +189,5 @@ test('expenses list listens for echo expense updates without polling', function 
         ->assertCanSeeTableRecords([$pending]);
 
     expect($component->instance()->getListeners())
-        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+        ->toHaveKey('echo-private:household.1.expenses,.ExpenseUpdated');
 });

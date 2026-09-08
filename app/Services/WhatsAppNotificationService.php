@@ -25,9 +25,9 @@ class WhatsAppNotificationService
     public function __construct(
         private readonly EvolutionInstanceService $evolution,
     ) {
-        $this->apiUrl = rtrim((string) config('services.evolution.api_url'), '/');
-        $this->apiKey = (string) config('services.evolution.api_key');
-        $this->instanceName = (string) config('services.evolution.instance_name');
+        $this->apiUrl = $evolution->apiUrl();
+        $this->apiKey = $evolution->apiKey();
+        $this->instanceName = $evolution->instanceName();
     }
 
     public function sendMessage(
@@ -48,6 +48,13 @@ class WhatsAppNotificationService
         $startedAt = ReceiptPipelineLogger::start();
 
         try {
+            if (! $this->evolution->isEnabled()) {
+                return WhatsAppSendResult::failure(
+                    reason: 'whatsapp_disabled',
+                    detail: 'WhatsApp is disabled for this household.',
+                );
+            }
+
             if (! PhoneNumber::isAllowedWhatsAppSender($number)) {
                 $normalized = PhoneNumber::normalize(explode('@', $number, 2)[0]) ?? $number;
 
@@ -150,6 +157,13 @@ class WhatsAppNotificationService
         $startedAt = ReceiptPipelineLogger::start();
 
         try {
+            if (! $this->evolution->isEnabled()) {
+                return WhatsAppSendResult::failure(
+                    reason: 'whatsapp_disabled',
+                    detail: 'WhatsApp is disabled for this household.',
+                );
+            }
+
             if (! PhoneNumber::isAllowedWhatsAppSender($number)) {
                 $normalized = PhoneNumber::normalize(explode('@', $number, 2)[0]) ?? $number;
 
@@ -244,6 +258,10 @@ class WhatsAppNotificationService
         }
 
         try {
+            if (! $this->evolution->isEnabled()) {
+                return null;
+            }
+
             $response = $this->client()
                 ->post("{$this->apiUrl}/chat/whatsappNumbers/{$this->instanceName}", [
                     'numbers' => [$digits],
@@ -273,7 +291,7 @@ class WhatsAppNotificationService
 
     protected function client(): PendingRequest
     {
-        if ($this->apiUrl === '' || ! EvolutionCredential::isValid($this->apiKey)) {
+        if ($this->apiUrl === '' || $this->apiKey === '') {
             throw new RuntimeException('Evolution API is not configured. Set EVOLUTION_API_URL and EVOLUTION_API_KEY with a 32+ character value.');
         }
 
@@ -412,7 +430,11 @@ class WhatsAppNotificationService
         ?int $expenseId,
         int $startedAt,
     ): ?WhatsAppSendResult {
-        $lockAcquired = Cache::add('evolution:restore-session-socket', 1, 15);
+        $lockAcquired = Cache::add(
+            'evolution:restore-session-socket:'.$this->evolution->householdId().':'.$this->instanceName,
+            1,
+            15,
+        );
         $restored = false;
 
         if ($lockAcquired) {

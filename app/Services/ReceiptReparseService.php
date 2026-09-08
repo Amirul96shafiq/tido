@@ -30,6 +30,6 @@ class ReceiptReparseService
             'currency_conversion_fetched_at' => null,
         ]);
 
-        ExtractReceiptDataJob::dispatch($expense->id);
+        ExtractReceiptDataJob::dispatch($expense->id, $expense->household_id);
     }
 }

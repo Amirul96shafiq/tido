@@ -12,9 +12,9 @@ final class GoogleOAuthCredentialTester
     /**
      * @return array{ok: bool, message: string, latencyMs: int}
      */
-    public function test(?string $clientId = null, ?string $clientSecret = null): array
+    public function test(?string $clientId = null, ?string $clientSecret = null, ?GoogleOAuthSettings $settings = null): array
     {
-        $settings = app(GoogleOAuthSettings::class);
+        $settings ??= GoogleOAuthSettings::platform();
         $clientId = filled($clientId) ? $clientId : $settings->clientId();
         $clientSecret = filled($clientSecret) ? $clientSecret : $settings->clientSecret();
 

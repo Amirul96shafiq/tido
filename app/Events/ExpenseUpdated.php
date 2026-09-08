@@ -17,6 +17,7 @@ class ExpenseUpdated implements ShouldBroadcast
     public function __construct(
         public int $expenseId,
         public string $status,
+        public int $householdId,
     ) {}
 
     /**
@@ -25,7 +26,7 @@ class ExpenseUpdated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('household.expenses'),
+            new PrivateChannel('household.'.$this->householdId.'.expenses'),
         ];
     }
 

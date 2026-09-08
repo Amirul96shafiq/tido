@@ -24,6 +24,7 @@ class RecurringFactory extends Factory
         $title = $this->faker->words(2, true);
 
         return [
+            'household_id' => 1,
             'title' => FieldCharacterLimits::truncate(ucfirst($title), FieldCharacterLimits::RECURRING_TITLE),
             'notes' => null,
             'type' => RecurringType::Subscription,

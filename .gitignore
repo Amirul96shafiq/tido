@@ -38,3 +38,6 @@ Thumbs.db
 /.repowise/
 .mcp.json
 /start-tido.bat
+
+# Pre-migration / local DB safety copies (MH-003)
+/database/backups/

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Models\PaymentMethod;
+use App\Support\CurrentHousehold;
 use Illuminate\Database\Seeder;
 
 class PaymentMethodSeeder extends Seeder
@@ -65,7 +66,10 @@ class PaymentMethodSeeder extends Seeder
 
         foreach ($methods as $method) {
             PaymentMethod::updateOrCreate(
-                ['slug' => $method['slug']],
+                [
+                    'household_id' => CurrentHousehold::id() ?? 1,
+                    'slug' => $method['slug'],
+                ],
                 [
                     'name' => $method['name'],
                     'aliases' => $method['aliases'],

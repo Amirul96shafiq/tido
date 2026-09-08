@@ -233,7 +233,7 @@ test('budget status widget listens for echo expense updates without polling', fu
         ->assertDontSeeHtml('wire:poll.30s');
 
     expect($component->instance()->getListeners())
-        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+        ->toHaveKey('echo-private:household.1.expenses,.ExpenseUpdated');
 });
 
 test('budget status widget hides other members personal budgets from family users', function () {

@@ -70,12 +70,25 @@ class Login extends BaseLogin
 
     public function googleSignInAvailable(): bool
     {
-        return app(GoogleOAuthSettings::class)->isSignInAvailable();
+        return in_array($this->loginMode, ['phone', 'otp', 'password'], true)
+            && GoogleOAuthSettings::platform()->isSignInAvailable();
     }
 
-    public function googleRedirectUrl(): string
+    public function continueWithGoogle(): void
     {
-        return app(GoogleOAuthSettings::class)->authorizeUrl();
+        $settings = GoogleOAuthSettings::platform();
+
+        if (! $settings->isSignInAvailable()) {
+            Notification::make()
+                ->title('Google sign-in failed')
+                ->body('Google sign-in is not available for this account.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $this->redirect($settings->authorizeUrl());
     }
 
     public function getHeading(): string|Htmlable|null
@@ -206,6 +219,7 @@ class Login extends BaseLogin
             ->label(__('filament-panels::auth/pages/login.form.email.label'))
             ->email()
             ->autocomplete('username')
+            ->live(debounce: 400)
             ->required(fn (): bool => $this->loginMode === 'password')
             ->visible(fn (): bool => $this->loginMode === 'password');
     }
@@ -413,12 +427,25 @@ class Login extends BaseLogin
     {
         return Html::make(fn (): HtmlString => new HtmlString(
             Blade::render(
-                '<x-auth-google-sign-in :redirect-url="$redirectUrl" />',
-                ['redirectUrl' => $this->googleRedirectUrl()],
+                <<<'BLADE'
+                <div class="tido-auth-google-sign-in-wrap">
+                    <div class="tido-auth-google-divider" aria-hidden="true">
+                        <span>or</span>
+                    </div>
+
+                    <button
+                        type="button"
+                        wire:click="continueWithGoogle"
+                        class="tido-auth-google-sign-in-btn fi-btn fi-size-md fi-color-gray"
+                    >
+                        <x-filament::icon icon="icon-google-oauth" class="h-5 w-5 shrink-0" />
+                        <span>Continue with Google</span>
+                    </button>
+                </div>
+                BLADE
             )
         ))
             ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
-                && $this->loginMode !== 'otp'
                 && $this->googleSignInAvailable());
     }
 
@@ -761,11 +788,13 @@ class Login extends BaseLogin
     {
         $localForm = '0'.substr($normalizedPhone, 2);
 
-        return User::query()
+        $users = User::query()
             ->where('phone', $normalizedPhone)
             ->orWhere('phone', '+'.$normalizedPhone)
             ->orWhere('phone', $localForm)
-            ->first();
+            ->get();
+
+        return $users->count() === 1 ? $users->first() : null;
     }
 
     protected function throwFailureValidationException(): never

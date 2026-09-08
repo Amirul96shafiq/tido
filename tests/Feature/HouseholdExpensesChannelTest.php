@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\FamilyMember;
+use App\Models\Household;
 use App\Models\User;
 use Illuminate\Contracts\Broadcasting\Factory as BroadcastFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -33,7 +34,7 @@ function householdExpensesAuthPayload(): array
 {
     return [
         'socket_id' => '1234.5678',
-        'channel_name' => 'private-household.expenses',
+        'channel_name' => 'private-household.1.expenses',
     ];
 }
 
@@ -57,8 +58,13 @@ test('login-enabled family members can subscribe to household expenses', functio
         ->assertSuccessful();
 });
 
-test('users without panel access cannot subscribe to household expenses', function (): void {
-    $this->actingAs(User::factory()->familyMember()->create())
-        ->postJson('/broadcasting/auth', householdExpensesAuthPayload())
+test('users cannot subscribe to another household expenses channel', function (): void {
+    $other = Household::factory()->create();
+
+    $this->actingAs(User::factory()->create(['household_id' => 1]))
+        ->postJson('/broadcasting/auth', [
+            'socket_id' => '1234.5678',
+            'channel_name' => 'private-household.'.$other->id.'.expenses',
+        ])
         ->assertForbidden();
 });

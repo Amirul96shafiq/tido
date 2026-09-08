@@ -23,6 +23,7 @@ class EvolutionApiConnectionLogFactory extends Factory
         $event = fake()->randomElement(EvolutionApiConnectionEvent::cases());
 
         return [
+            'household_id' => 1,
             'event' => $event,
             'status' => match ($event) {
                 EvolutionApiConnectionEvent::Connected => 'open',

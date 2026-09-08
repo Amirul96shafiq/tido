@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Support\EvolutionCredential;
+use App\Support\CurrentHousehold;
 use App\Support\PhoneNumber;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
@@ -14,6 +14,8 @@ use RuntimeException;
 
 class EvolutionInstanceService
 {
+    private int $householdId;
+
     private string $apiUrl;
 
     private string $apiKey;
@@ -22,12 +24,21 @@ class EvolutionInstanceService
 
     private string $instanceName;
 
-    public function __construct()
-    {
-        $this->apiUrl = rtrim((string) config('services.evolution.api_url'), '/');
-        $this->apiKey = trim((string) config('services.evolution.api_key'));
-        $this->webhookSecret = trim((string) config('services.evolution.webhook_secret'));
-        $this->instanceName = (string) config('services.evolution.instance_name', 'tido');
+    public function __construct(
+        private readonly EvolutionSettingsService $settings,
+    ) {
+        $householdId = CurrentHousehold::id() ?? auth()->user()?->household_id;
+
+        if ($householdId === null) {
+            throw new RuntimeException('A household is required for Evolution API requests.');
+        }
+
+        $this->householdId = (int) $householdId;
+        $effective = $settings->effective($settings->forHousehold((int) $householdId));
+        $this->apiUrl = rtrim($effective['api_url'], '/');
+        $this->apiKey = trim((string) $effective['api_key']);
+        $this->webhookSecret = trim((string) $effective['webhook_secret']);
+        $this->instanceName = $effective['instance_name'];
     }
 
     public function instanceName(): string
@@ -35,10 +46,31 @@ class EvolutionInstanceService
         return $this->instanceName;
     }
 
+    public function householdId(): int
+    {
+        return $this->householdId;
+    }
+
+    public function apiUrl(): string
+    {
+        return $this->apiUrl;
+    }
+
+    public function apiKey(): string
+    {
+        return $this->apiKey;
+    }
+
     public function isConfigured(): bool
     {
-        return $this->apiUrl !== ''
-            && EvolutionCredential::areDistinct($this->apiKey, $this->webhookSecret);
+        $setting = $this->settings->forHousehold($this->householdId);
+
+        return $this->settings->isConfigured($setting);
+    }
+
+    public function isEnabled(): bool
+    {
+        return (bool) $this->settings->forHousehold($this->householdId)->whatsapp_enabled;
     }
 
     /**

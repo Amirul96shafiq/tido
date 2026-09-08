@@ -10,8 +10,10 @@ use App\Filament\Pages\EvolutionApiPage;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Jobs\SendEvolutionApiConnectedAlertJob;
 use App\Models\EvolutionApiConnectionLog;
+use App\Models\EvolutionApiSetting;
 use App\Models\FamilyMember;
 use App\Models\User;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -63,6 +65,7 @@ beforeEach(function () {
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.webhook_secret' => 'test-evolution-webhook-secret-0123456789abcdef0123456789abcdef',
         'services.evolution.instance_name' => 'tido',
+        'services.evolution.allowed_api_hosts' => ['127.0.0.1', 'localhost', '::1'],
         'services.evolution.device_label' => 'tido App (Evolution API)',
     ]);
 
@@ -113,6 +116,113 @@ test('evolution api page loads for authenticated user', function () {
         ->assertSee('Connect')
         ->assertSee('Connection History')
         ->assertSee('No connection events yet');
+});
+
+test('first-time valid setup enables WhatsApp when an allowlist exists', function () {
+    $setting = EvolutionApiSetting::query()
+        ->where('household_id', 1)
+        ->firstOrFail();
+
+    $setting->forceFill([
+        'api_key' => 'old-invalid-api-key',
+        'webhook_secret' => 'old-invalid-webhook-secret',
+        'instance_name' => 'tido',
+        'api_url' => 'http://127.0.0.1:8080',
+        'whatsapp_enabled' => false,
+        'setup_completed_at' => null,
+    ])->save();
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'close'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    Livewire::test(EvolutionApiPage::class)
+        ->callAction('configureSetup', data: [
+            'api_url' => 'http://127.0.0.1:8080',
+            'instance_name' => 'tido',
+            'api_key' => 'new-valid-api-key-0123456789abcdef0123456789abcdef',
+            'webhook_secret' => 'new-valid-webhook-secret-0123456789abcdef0123456789abcdef',
+        ]);
+
+    expect($setting->refresh()->whatsapp_enabled)->toBeTrue();
+});
+
+test('webhook secret field provides a generate action', function () {
+    $component = Livewire::test(EvolutionApiPage::class)
+        ->mountAction('configureSetup');
+
+    $field = $component->instance()->getSchema('mountedActionSchema0')?->getComponent('webhook_secret');
+    $generateAction = $field instanceof TextInput
+        ? ($field->getSuffixActions()['generateWebhookSecret'] ?? null)
+        : null;
+
+    expect($generateAction)->not->toBeNull()
+        ->and($generateAction?->getLabel())->toBe('Generate webhook secret');
+});
+
+test('editing credentials preserves a disabled WhatsApp setting', function () {
+    $setting = EvolutionApiSetting::query()
+        ->where('household_id', 1)
+        ->firstOrFail();
+
+    $setting->forceFill([
+        'api_key' => 'saved-valid-api-key-0123456789abcdef0123456789abcdef',
+        'webhook_secret' => 'saved-valid-webhook-secret-0123456789abcdef0123456789abcdef',
+        'instance_name' => 'tido',
+        'api_url' => 'http://127.0.0.1:8080',
+        'whatsapp_enabled' => false,
+        'setup_completed_at' => now(),
+    ])->save();
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'close'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+    ]);
+
+    Livewire::test(EvolutionApiPage::class)
+        ->callAction('configureSetup', data: [
+            'api_url' => 'http://127.0.0.1:8080',
+            'instance_name' => 'tido',
+            'api_key' => '',
+            'webhook_secret' => '',
+        ]);
+
+    expect($setting->refresh()->whatsapp_enabled)->toBeFalse();
+});
+
+test('Primary can disable WhatsApp without logging out Evolution', function () {
+    $setting = EvolutionApiSetting::query()
+        ->where('household_id', 1)
+        ->firstOrFail();
+
+    $setting->forceFill([
+        'api_key' => 'saved-valid-api-key-0123456789abcdef0123456789abcdef',
+        'webhook_secret' => 'saved-valid-webhook-secret-0123456789abcdef0123456789abcdef',
+        'instance_name' => 'tido',
+        'api_url' => 'http://127.0.0.1:8080',
+        'whatsapp_enabled' => true,
+        'setup_completed_at' => now(),
+    ])->save();
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([]),
+        '*/webhook/find/*' => Http::response([]),
+    ]);
+
+    Livewire::test(EvolutionApiPage::class)
+        ->assertActionVisible('disableWhatsApp')
+        ->callAction('disableWhatsApp')
+        ->assertActionVisible('enableWhatsApp');
+
+    expect($setting->refresh()->whatsapp_enabled)->toBeFalse();
 });
 
 test('connected status shows linked number and instance details', function () {
@@ -174,7 +284,7 @@ test('connected status shows linked number and instance details', function () {
         ->assertActionEnabled('sendPing');
 
     Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/fetchInstances'));
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/webhook/find/tido'));
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/webhook/find/tido-hh-1'));
 });
 
 test('connected allowlist shows only three newest family members with more link', function () {
@@ -292,7 +402,7 @@ test('generate qr prefers connect for a fresh code when instance exists', functi
         ->assertSet('connectionStatus', 'connecting')
         ->assertNotified();
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/tido')
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/tido-hh-1')
         && ! str_contains($request->url(), 'number='));
     Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/instance/create'));
 });
@@ -333,7 +443,7 @@ test('pair with code requests evolution connect with submitted number', function
         ->assertSee('Copy code')
         ->assertNotified();
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/tido')
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/connect/tido-hh-1')
         && str_contains($request->url(), 'number=601115666887'));
 });
 
@@ -459,7 +569,7 @@ test('cancel connecting logs out evolution and clears pairing display', function
         ->assertSet('connectionStatus', 'close')
         ->assertNotified();
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/logout/tido')
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/logout/tido-hh-1')
         && $request->method() === 'DELETE');
 });
 
@@ -505,7 +615,7 @@ test('pair with code polls connect when evolution is connecting without a code y
     // One logout to clear stale creds before pairing — not a mid-flight retry.
     expect(
         collect(Http::recorded())
-            ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), '/instance/logout/tido')
+            ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), '/instance/logout/tido-hh-1')
                 && $pair[0]->method() === 'DELETE')
             ->count()
     )->toBe(1);
@@ -614,7 +724,7 @@ test('logout session calls evolution logout endpoint', function () {
         ->assertSet('qrBase64', null)
         ->assertNotified();
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/logout/tido')
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/instance/logout/tido-hh-1')
         && $request->method() === 'DELETE');
 });
 
@@ -634,7 +744,7 @@ test('register webhook posts nested webhook payload', function () {
         ->assertNotified();
 
     Http::assertSent(function (Request $request) {
-        return str_contains($request->url(), '/webhook/set/tido')
+        return str_contains($request->url(), '/webhook/set/tido-hh-1')
             && data_get($request->data(), 'webhook.url') === 'http://127.0.0.1:2000/api/webhooks/whatsapp'
             && data_get($request->data(), 'webhook.headers.Authorization') === 'Bearer '.config('services.evolution.webhook_secret')
             && data_get($request->data(), 'webhook.events.0') === 'MESSAGES_UPSERT';
@@ -769,7 +879,7 @@ test('auto-registers webhook and queues welcome when status becomes open', funct
         ->assertNotified();
 
     Http::assertSent(function (Request $request) {
-        return str_contains($request->url(), '/webhook/set/tido')
+        return str_contains($request->url(), '/webhook/set/tido-hh-1')
             && data_get($request->data(), 'webhook.url') === 'http://127.0.0.1:2000/api/webhooks/whatsapp';
     });
 

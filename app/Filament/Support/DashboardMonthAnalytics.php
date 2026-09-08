@@ -7,6 +7,7 @@ namespace App\Filament\Support;
 use App\Models\Expense;
 use App\Models\ExpenseItem;
 use App\Models\PaymentMethod;
+use App\Support\CurrentHousehold;
 use App\Support\DashboardSpenderScope;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -61,6 +62,7 @@ final class DashboardMonthAnalytics
             $bounds['previous_start']->format('c'),
             $bounds['previous_end']->format('c'),
             $spenderScope?->value() ?? '',
+            (string) (CurrentHousehold::id() ?? auth()->user()?->household_id ?? ''),
         ]);
     }
 
@@ -639,6 +641,14 @@ final class DashboardMonthAnalytics
             })
             ->where('expenses.currency', Expense::CURRENCY_MYR)
             ->whereIn('expenses.currency_conversion_status', Expense::CANONICAL_CONVERSION_STATUSES);
+
+        $householdId = CurrentHousehold::id() ?? auth()->user()?->household_id;
+
+        if ($householdId !== null) {
+            $query
+                ->where('expenses.household_id', $householdId)
+                ->where('labels.household_id', $householdId);
+        }
 
         if ($this->spenderScope instanceof DashboardSpenderScope) {
             $query = $this->spenderScope->applyToExpensesJoin($query);

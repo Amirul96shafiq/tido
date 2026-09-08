@@ -27,6 +27,7 @@ class BackupFactory extends Factory
         $filename = 'tido-app-local-'.$timestamp.'-manual.zip';
 
         return [
+            'household_id' => 1,
             'type' => BackupType::Manual,
             'disk' => 'local',
             'path' => config('backup.backup.name', 'laravel-backup').'/'.$filename,

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Filament\Resources\Expenses\ExpenseResource;
+use App\Jobs\Concerns\HasHouseholdContext;
+use App\Jobs\Middleware\SetCurrentHousehold;
 use App\Models\Expense;
 use App\Services\WhatsAppNotificationService;
 use App\Support\ReceiptPipelineLogger;
@@ -24,12 +26,22 @@ use Throwable;
 class SendWhatsAppDocumentParsedJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use HasHouseholdContext;
 
     public int $tries = 60;
 
-    public function __construct(public int $expenseId)
+    public function __construct(public int $expenseId, ?int $householdId = null)
     {
+        $this->householdId = $this->resolveHouseholdId($householdId);
         $this->onQueue('default');
+    }
+
+    /**
+     * @return list<object>
+     */
+    public function middleware(): array
+    {
+        return [new SetCurrentHousehold];
     }
 
     /**
@@ -57,7 +69,7 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
         }
 
         $sender = (string) $expense->whatsapp_sender;
-        $pendingAck = Cache::get(WhatsAppDocumentReceivedDebouncer::cacheKey($sender));
+        $pendingAck = Cache::get(WhatsAppDocumentReceivedDebouncer::cacheKey($sender, $this->householdId));
 
         if (is_array($pendingAck)) {
             $this->release(1);
@@ -131,7 +143,7 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
         WhatsAppTypingSession::deactivate($this->expenseId);
 
         if ($expense->status === 'parsed') {
-            SendDeferredWhatsAppBudgetAlertJob::dispatch($sender, $expense->id)
+            SendDeferredWhatsAppBudgetAlertJob::dispatch($sender, $expense->id, $this->householdId)
                 ->delay(now()->addSeconds(2));
         }
 
@@ -163,6 +175,6 @@ class SendWhatsAppDocumentParsedJob implements ShouldQueue
 
     protected function sentCacheKey(): string
     {
-        return 'wa:document-parsed:sent:'.$this->expenseId;
+        return 'wa:document-parsed:sent:'.$this->householdId.':'.$this->expenseId;
     }
 }

@@ -9,6 +9,7 @@ use App\Http\Requests\WhatsAppWebhookRequest;
 use App\Jobs\ProcessManualWhatsAppExpenseJob;
 use App\Jobs\ProcessWhatsAppMediaJob;
 use App\Jobs\ProcessWhatsAppTextReplyJob;
+use App\Support\CurrentHousehold;
 use App\Support\ManualWhatsAppExpenseParser;
 use App\Support\ReceiptPipelineLogger;
 use App\Support\WhatsAppJid;
@@ -26,11 +27,17 @@ class WhatsAppWebhookController extends Controller
         // Bearer auth is enforced in WhatsAppWebhookRequest::authorize() before schema validation.
         $validated = $request->validated();
         $event = (string) ($validated['event'] ?? '');
+        $householdId = CurrentHousehold::id();
+        $setting = $request->resolvedSetting();
 
         Log::info('WhatsApp Webhook received', ['event' => $event !== '' ? $event : 'unknown']);
 
         if ($event !== 'messages.upsert') {
             return response()->json(['status' => 'ignored_event']);
+        }
+
+        if ($householdId === null || $setting === null || ! $setting->whatsapp_enabled) {
+            return response()->json(['status' => 'ignored_disabled_household']);
         }
 
         /** @var array<string, mixed> $data */
@@ -47,7 +54,7 @@ class WhatsAppWebhookController extends Controller
             return response()->json(['error' => 'Invalid payload'], 422);
         }
 
-        if (! WhatsAppWebhookIdempotency::claim($messageId)) {
+        if (! WhatsAppWebhookIdempotency::claim($messageId, $householdId)) {
             return response()->json(['status' => 'duplicate']);
         }
 
@@ -68,7 +75,7 @@ class WhatsAppWebhookController extends Controller
             return response()->json(['status' => 'ignored_sender']);
         }
 
-        if ($this->senderThrottleExceeded($senderPhone)) {
+        if ($this->senderThrottleExceeded($senderPhone, $householdId)) {
             return response()->json(['error' => 'Too many requests. Try again later.'], 429);
         }
 
@@ -85,6 +92,8 @@ class WhatsAppWebhookController extends Controller
                 $senderPhone,
                 'image',
                 (string) ($image['mimetype'] ?? 'image/jpeg'),
+                null,
+                $householdId,
             );
         }
 
@@ -108,6 +117,7 @@ class WhatsAppWebhookController extends Controller
                 'pdf',
                 $mimeType,
                 basename($filename),
+                $householdId,
             );
         }
 
@@ -117,16 +127,16 @@ class WhatsAppWebhookController extends Controller
                     ? ($message['extendedTextMessage']['text'] ?? '')
                     : '');
 
-            return $this->handleTextMessage((string) $text, $senderPhone, $messageId);
+            return $this->handleTextMessage((string) $text, $senderPhone, $messageId, $householdId);
         }
 
         return response()->json(['status' => 'ignored_type']);
     }
 
-    protected function senderThrottleExceeded(string $senderPhone): bool
+    protected function senderThrottleExceeded(string $senderPhone, ?int $householdId): bool
     {
         $max = max(1, (int) config('services.evolution.webhook_per_sender_attempts_per_minute', 20));
-        $key = 'whatsapp-webhook:sender:'.$senderPhone;
+        $key = 'whatsapp-webhook:sender:'.$householdId.':'.$senderPhone;
 
         if (RateLimiter::tooManyAttempts($key, $max)) {
             return true;
@@ -146,6 +156,7 @@ class WhatsAppWebhookController extends Controller
         string $mediaType,
         string $mimeType,
         ?string $originalFilename = null,
+        ?int $householdId = null,
     ): JsonResponse {
         $startedAt = ReceiptPipelineLogger::start();
         $key = is_array($data['key'] ?? null) ? $data['key'] : [];
@@ -163,6 +174,7 @@ class WhatsAppWebhookController extends Controller
             $mediaType,
             $mimeType,
             $originalFilename,
+            $householdId,
         );
 
         ReceiptPipelineLogger::completed('receipt.webhook.accepted', $startedAt, [
@@ -175,18 +187,18 @@ class WhatsAppWebhookController extends Controller
         return response()->json(['status' => 'accepted']);
     }
 
-    protected function handleTextMessage(string $text, string $senderNumber, string $messageId): JsonResponse
+    protected function handleTextMessage(string $text, string $senderNumber, string $messageId, ?int $householdId = null): JsonResponse
     {
         $originalText = trim($text);
 
         if (ManualWhatsAppExpenseParser::looksLike($originalText)) {
             WhatsAppTypingCoordinator::startSenderTyping($senderNumber);
-            ProcessManualWhatsAppExpenseJob::dispatch($senderNumber, $originalText, $messageId);
+            ProcessManualWhatsAppExpenseJob::dispatch($senderNumber, $originalText, $messageId, $householdId);
 
             return response()->json(['status' => 'accepted']);
         }
 
-        ProcessWhatsAppTextReplyJob::dispatch($senderNumber, $originalText, $messageId);
+        ProcessWhatsAppTextReplyJob::dispatch($senderNumber, $originalText, $messageId, $householdId);
 
         return response()->json(['status' => 'accepted']);
     }

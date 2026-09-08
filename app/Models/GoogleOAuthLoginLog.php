@@ -5,14 +5,18 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\GoogleOAuthLoginEvent;
+use App\Models\Concerns\BelongsToHousehold;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GoogleOAuthLoginLog extends Model
 {
+    use BelongsToHousehold;
+
     protected $table = 'google_oauth_login_logs';
 
     protected $fillable = [
+        'household_id',
         'event',
         'status',
         'user_id',

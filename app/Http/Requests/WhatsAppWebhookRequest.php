@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\EvolutionApiSetting;
+use App\Services\EvolutionSettingsService;
+use App\Support\CurrentHousehold;
 use App\Support\EvolutionCredential;
+use App\Support\EvolutionWebhookHousehold;
 use App\Support\WhatsAppJid;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
@@ -14,18 +18,44 @@ use Illuminate\Validation\Rule;
 
 class WhatsAppWebhookRequest extends FormRequest
 {
+    private ?EvolutionApiSetting $resolvedSetting = null;
+
     public function authorize(): bool
     {
-        $authorization = $this->header('Authorization');
-        $apiKey = trim((string) config('services.evolution.api_key'));
-        $webhookSecret = trim((string) config('services.evolution.webhook_secret'));
-
-        if (! EvolutionCredential::areDistinct($apiKey, $webhookSecret)
-            || ! hash_equals('Bearer '.$webhookSecret, (string) $authorization)) {
+        $authorization = (string) $this->header('Authorization');
+        if (! str_starts_with($authorization, 'Bearer ')) {
             throw new HttpResponseException(response()->json(['error' => 'Unauthorized'], 401));
         }
 
+        $presentedSecret = trim(substr($authorization, strlen('Bearer ')));
+
+        if ($presentedSecret === trim((string) config('services.evolution.api_key'))) {
+            throw new HttpResponseException(response()->json(['error' => 'Unauthorized'], 401));
+        }
+
+        $setting = EvolutionWebhookHousehold::findSettingByWebhookSecret($presentedSecret);
+
+        if ($setting === null) {
+            throw new HttpResponseException(response()->json(['error' => 'Unauthorized'], 401));
+        }
+
+        $effectiveApiKey = app(EvolutionSettingsService::class)
+            ->effective($setting)['api_key'];
+
+        if (! is_string($effectiveApiKey)
+            || ! EvolutionCredential::areDistinct($effectiveApiKey, $presentedSecret)) {
+            throw new HttpResponseException(response()->json(['error' => 'Unauthorized'], 401));
+        }
+
+        $this->resolvedSetting = $setting;
+        CurrentHousehold::set((int) $setting->household_id);
+
         return true;
+    }
+
+    public function resolvedSetting(): ?EvolutionApiSetting
+    {
+        return $this->resolvedSetting;
     }
 
     /**
@@ -43,7 +73,7 @@ class WhatsAppWebhookRequest extends FormRequest
                 'sometimes',
                 'string',
                 'max:64',
-                Rule::in([(string) config('services.evolution.instance_name', 'tido')]),
+                Rule::in([(string) ($this->resolvedSetting?->instance_name ?? '')]),
             ],
         ];
 

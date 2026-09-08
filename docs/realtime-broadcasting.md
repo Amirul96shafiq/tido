@@ -46,7 +46,7 @@ Expense created, important field changed, deleted, or restored
   (ExpenseItem label / amount / quantity also pings the parent)
   → ExpenseObserver / ExpenseItemObserver
   → App\Events\ExpenseUpdated (queued on default)
-  → private channel household.expenses
+  → private channel household.{householdId}.expenses
   → Filament EchoFactory (window.Echo)
   → ListExpenses / ReceiptUploadPage / RecentReceipts refreshExpensesTable() → resetTable()
   → MonthlySpendingOverview / BudgetStatus refreshOnExpenseBroadcast() (current month only)

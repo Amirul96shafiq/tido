@@ -17,7 +17,7 @@ class ExpensePolicy
 
     public function view(User $user, Expense $expense): bool
     {
-        return true;
+        return HouseholdAccess::belongsToSameHousehold($expense->household_id);
     }
 
     public function create(User $user): bool

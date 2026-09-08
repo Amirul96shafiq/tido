@@ -15,8 +15,10 @@ use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Filament\Resources\Recurrings\RecurringResource;
 use App\Models\EvolutionApiConnectionLog;
+use App\Models\EvolutionApiSetting;
 use App\Models\ServiceHealthSample;
 use App\Services\EvolutionInstanceService;
+use App\Support\CurrentHousehold;
 use App\Support\HouseholdAccess;
 use App\Support\PhoneNumber;
 use Filament\Actions\Concerns\InteractsWithActions;
@@ -87,7 +89,15 @@ class MobileNav extends Component implements HasActions, HasSchemas
 
     public static function getConnectedWhatsAppNumber(): ?string
     {
-        if (! app(EvolutionInstanceService::class)->isConfigured()) {
+        $householdId = CurrentHousehold::id() ?? auth()->user()?->household_id;
+
+        if ($householdId === null || ! EvolutionApiSetting::isWhatsappEnabledForHousehold($householdId)) {
+            return null;
+        }
+
+        $evolution = app(EvolutionInstanceService::class);
+
+        if (! $evolution->isConfigured()) {
             return null;
         }
 
@@ -110,18 +120,22 @@ class MobileNav extends Component implements HasActions, HasSchemas
             return null;
         }
 
-        return Cache::remember('tido.mobile_nav_connected_whatsapp_number', 30, function (): ?string {
-            try {
-                $details = app(EvolutionInstanceService::class)->fetchInstanceDetails();
+        return Cache::remember(
+            'tido.mobile_nav_connected_whatsapp_number.'.$householdId.'.'.$evolution->instanceName(),
+            30,
+            function () use ($evolution): ?string {
+                try {
+                    $details = $evolution->fetchInstanceDetails();
 
-                if ($details['ok'] && in_array(strtolower((string) $details['connectionStatus']), ['open', 'connected'], true)) {
-                    return PhoneNumber::normalize($details['connectedNumber']);
+                    if ($details['ok'] && in_array(strtolower((string) $details['connectionStatus']), ['open', 'connected'], true)) {
+                        return PhoneNumber::normalize($details['connectedNumber']);
+                    }
+                } catch (\Throwable) {
+                    // Ignore fallback exceptions
                 }
-            } catch (\Throwable) {
-                // Ignore fallback exceptions
-            }
 
-            return null;
-        });
+                return null;
+            },
+        );
     }
 }

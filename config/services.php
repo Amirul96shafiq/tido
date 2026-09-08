@@ -86,11 +86,14 @@ return [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
-        'enabled' => filter_var(env('GOOGLE_OAUTH_ENABLED', false), FILTER_VALIDATE_BOOL),
     ],
 
     'evolution' => [
         'api_url' => env('EVOLUTION_API_URL', 'http://127.0.0.1:8080'),
+        'allowed_api_hosts' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('EVOLUTION_ALLOWED_API_HOSTS', '127.0.0.1,localhost,::1')),
+        ))),
         'api_key' => env('EVOLUTION_API_KEY'),
         'webhook_secret' => env('EVOLUTION_WEBHOOK_SECRET'),
         'instance_name' => env('EVOLUTION_INSTANCE_NAME', 'tido'),

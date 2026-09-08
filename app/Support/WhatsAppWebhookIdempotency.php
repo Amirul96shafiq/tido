@@ -12,15 +12,15 @@ final class WhatsAppWebhookIdempotency
      * Atomically claim a WhatsApp message ID for webhook processing.
      * Returns true when this is the first claim; false on replay.
      */
-    public static function claim(string $messageId): bool
+    public static function claim(string $messageId, ?int $householdId = null): bool
     {
         $ttl = max(60, (int) config('services.evolution.webhook_idempotency_ttl_seconds', 604800));
 
-        return Cache::add(self::cacheKey($messageId), true, $ttl);
+        return Cache::add(self::cacheKey($messageId, $householdId), true, $ttl);
     }
 
-    public static function cacheKey(string $messageId): string
+    public static function cacheKey(string $messageId, ?int $householdId = null): string
     {
-        return 'wa:webhook:msg:'.hash('sha256', $messageId);
+        return 'wa:webhook:msg:'.($householdId ?? CurrentHousehold::id() ?? 0).':'.hash('sha256', $messageId);
     }
 }

@@ -2,7 +2,7 @@
 
 > **Status:** Parked design (not implemented). Home **Training** remains a coming-soon shell ([dashboard-views.md](dashboard-views.md)).  
 > **Do not implement from this file** until an explicit Agent-mode request. This document is the settled product shape so household athletes and a later SaaS wrap stay compatible.  
-> Live contract remains single-tenant ([system-architecture.md](system-architecture.md)). Tenancy / Register / `household_id` stay in [saas-prd.md](saas-prd.md) and are **not** authorized here.
+> Live contract is in the tenancy phase ([system-architecture.md](system-architecture.md)). Implement `household_id` only via [multi-household-change-checklist.md](multi-household-change-checklist.md). Tenancy / Register stay out of this Training design file.
 
 **tido** only. Training sport types are not Finances **Labels**.
 
@@ -82,7 +82,7 @@ Scheduled poll walks **all** `intervals_icu_connections`. No monthly fee to Inte
 - `family_member_id` nullable unique (`null` = Primary) — same convention as expenses
 - encrypted `api_key`, `athlete_id` (`0` = key owner on Intervals)
 - `last_synced_at`, list cursor, `setup_completed_at`
-- Do **not** use a household-wide singleton like `OllamaSetting` / `GoogleOAuthSetting`
+- Do **not** use a household-wide singleton like `OllamaSetting` (Google OAuth uses one platform Client ID; identity is per-user `google_id`)
 - Optional `.env` fallback only for **Primary** local dev, never as the only store
 
 ### `workouts`

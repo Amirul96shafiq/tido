@@ -12,16 +12,12 @@ use Laravel\Socialite\Two\AbstractProvider;
 
 final class GoogleOAuthSocialite
 {
-    public function __construct(
-        private readonly GoogleOAuthSettings $settings,
-    ) {}
-
-    public function driver(): AbstractProvider|FakeProvider
+    public function driver(GoogleOAuthSettings $settings): AbstractProvider|FakeProvider
     {
         config([
             'services.google' => array_merge(
                 (array) config('services.google', []),
-                $this->settings->socialiteConfig(),
+                $settings->socialiteConfig(),
             ),
         ]);
 

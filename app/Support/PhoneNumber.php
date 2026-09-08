@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Enums\HouseholdRole;
 use App\Models\FamilyMember;
 use App\Models\User;
 use Filament\AvatarProviders\UiAvatarsProvider;
@@ -103,16 +104,34 @@ final class PhoneNumber
     }
 
     /**
-     * Owner account for Profile WhatsApp (always user id 1).
+     * Primary account for the current household (Profile WhatsApp / allowlist owner).
+     * Returns no owner when no household context is set.
      */
     public static function primaryUser(): ?User
     {
-        return User::query()->whereKey(1)->first();
+        $householdId = CurrentHousehold::id()
+            ?? (auth()->user() instanceof User ? auth()->user()->household_id : null);
+
+        if ($householdId === null) {
+            return null;
+        }
+
+        $user = User::query()
+            ->withoutGlobalScope('household')
+            ->where('household_id', $householdId)
+            ->where(function ($query): void {
+                $query->where('household_role', HouseholdRole::Primary)
+                    ->orWhereNull('household_role');
+            })
+            ->orderBy('id')
+            ->first();
+
+        return $user;
     }
 
     /**
      * Owner outbound target for ping, welcome, and budget WhatsApp alerts.
-     * Profile phone on user id 1.
+     * Profile phone on the current household Primary.
      */
     public static function primaryWhatsAppNumber(): ?string
     {
@@ -127,7 +146,7 @@ final class PhoneNumber
 
     /**
      * Numbers allowed to trigger WhatsApp bot replies / receipt import.
-     * User id 1 Profile phone plus Family Members with allowlist enabled.
+     * Current household Primary Profile phone plus Family Members with allowlist enabled.
      *
      * @return list<string>
      */
@@ -154,7 +173,9 @@ final class PhoneNumber
             }
         }
 
-        return array_values(array_unique($numbers));
+        $result = array_values(array_unique($numbers));
+
+        return $result;
     }
 
     /**

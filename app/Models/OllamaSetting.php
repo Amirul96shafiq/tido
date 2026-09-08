@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToHousehold;
+use App\Support\CurrentHousehold;
 use Illuminate\Database\Eloquent\Model;
 
 class OllamaSetting extends Model
 {
-    public const SINGLETON_ID = 1;
+    use BelongsToHousehold;
 
     protected $fillable = [
         'host',
@@ -29,11 +31,24 @@ class OllamaSetting extends Model
         'setup_completed_at' => 'datetime',
     ];
 
-    public static function singleton(): self
+    /**
+     * Settings row for the current or given household (replaces install-wide singleton).
+     */
+    public static function forHousehold(?int $householdId = null): self
     {
+        $householdId ??= CurrentHousehold::id() ?? 1;
+
         /** @var self $setting */
-        $setting = self::query()->firstOrCreate(['id' => self::SINGLETON_ID]);
+        $setting = self::query()->firstOrCreate(['household_id' => $householdId]);
 
         return $setting;
+    }
+
+    /**
+     * @deprecated Use forHousehold(); retained for call-site compatibility during MH-004.
+     */
+    public static function singleton(): self
+    {
+        return self::forHousehold(CurrentHousehold::id() ?? 1);
     }
 }

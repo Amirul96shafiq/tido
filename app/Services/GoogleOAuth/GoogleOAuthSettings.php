@@ -8,9 +8,17 @@ use App\Models\GoogleOAuthSetting;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Platform-global Google OAuth app credentials (one Client ID for the install).
+ */
 final class GoogleOAuthSettings
 {
     private ?GoogleOAuthSetting $cachedRecord = null;
+
+    public static function platform(): self
+    {
+        return new self;
+    }
 
     public function record(): GoogleOAuthSetting
     {
@@ -19,10 +27,12 @@ final class GoogleOAuthSettings
         }
 
         if (! Schema::hasTable('google_oauth_settings')) {
-            return $this->cachedRecord = new GoogleOAuthSetting(['id' => GoogleOAuthSetting::SINGLETON_ID]);
+            return $this->cachedRecord = new GoogleOAuthSetting([
+                'household_id' => GoogleOAuthSetting::PLATFORM_HOUSEHOLD_ID,
+            ]);
         }
 
-        return $this->cachedRecord = GoogleOAuthSetting::singleton();
+        return $this->cachedRecord = GoogleOAuthSetting::platform();
     }
 
     public function clientId(): ?string
@@ -51,15 +61,6 @@ final class GoogleOAuthSettings
         return is_string($env) && $env !== '' ? $env : null;
     }
 
-    public function enabled(): bool
-    {
-        if ($this->record()->enabled) {
-            return true;
-        }
-
-        return (bool) config('services.google.enabled', false);
-    }
-
     public function redirectUrl(): string
     {
         $configured = config('services.google.redirect');
@@ -82,6 +83,41 @@ final class GoogleOAuthSettings
         return route('filament.admin.auth.google.redirect');
     }
 
+    /**
+     * Link starts on the current host (auth cookie), then may hand off to the
+     * redirect-URI host so Socialite state survives the Google round-trip.
+     */
+    public function linkAuthorizeUrl(): string
+    {
+        return route('filament.admin.auth.google.link');
+    }
+
+    /**
+     * Absolute link URL on the same host as GOOGLE_REDIRECT_URI / callback.
+     */
+    public function linkUrlOnRedirectHost(): string
+    {
+        $callback = $this->redirectUrl();
+
+        if (str_ends_with($callback, '/callback')) {
+            return substr($callback, 0, -strlen('callback')).'link';
+        }
+
+        return route('filament.admin.auth.google.link');
+    }
+
+    public function requestHostMatchesRedirectHost(?string $host = null): bool
+    {
+        $redirectHost = parse_url($this->redirectUrl(), PHP_URL_HOST);
+        $requestHost = $host ?? request()->getHost();
+
+        if (! is_string($redirectHost) || ! is_string($requestHost) || $redirectHost === '' || $requestHost === '') {
+            return false;
+        }
+
+        return strcasecmp($redirectHost, $requestHost) === 0;
+    }
+
     public function usesCrossHostRedirect(): bool
     {
         $redirectHost = parse_url($this->redirectUrl(), PHP_URL_HOST);
@@ -99,9 +135,12 @@ final class GoogleOAuthSettings
         return filled($this->clientId()) && filled($this->clientSecret());
     }
 
+    /**
+     * Login CTA appears when the platform OAuth client is configured.
+     */
     public function isSignInAvailable(): bool
     {
-        return $this->enabled() && $this->hasCredentials();
+        return $this->hasCredentials();
     }
 
     public function isSetupComplete(): bool
@@ -115,7 +154,6 @@ final class GoogleOAuthSettings
 
         return filled($record->client_id)
             || filled($record->client_secret)
-            || $record->enabled
             || $record->setup_completed_at !== null;
     }
 
@@ -141,7 +179,12 @@ final class GoogleOAuthSettings
      */
     public function save(array $attributes): GoogleOAuthSetting
     {
-        $record = GoogleOAuthSetting::singleton();
+        $record = GoogleOAuthSetting::platform();
+
+        if (! array_key_exists('enabled', $attributes)) {
+            $attributes['enabled'] = true;
+        }
+
         $record->fill($attributes);
         $record->save();
 
@@ -150,7 +193,7 @@ final class GoogleOAuthSettings
 
     public function reset(): void
     {
-        $record = GoogleOAuthSetting::singleton();
+        $record = GoogleOAuthSetting::platform();
         $record->fill([
             'client_id' => null,
             'client_secret' => null,

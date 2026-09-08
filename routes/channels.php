@@ -10,6 +10,10 @@ Broadcast::channel('App.Models.User.{id}', function (User $user, string $id): bo
     return (int) $user->id === (int) $id;
 });
 
-Broadcast::channel('household.expenses', function (User $user): bool {
+Broadcast::channel('household.{householdId}.expenses', function (User $user, int|string $householdId): bool {
+    if ((int) $user->household_id !== (int) $householdId) {
+        return false;
+    }
+
     return $user->canAccessPanel(Filament::getPanel('admin'));
 });

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\HasHouseholdContext;
+use App\Jobs\Middleware\SetCurrentHousehold;
 use App\Services\WhatsAppNotificationService;
 use App\Support\WhatsAppTypingSession;
 use Illuminate\Bus\Queueable;
@@ -16,11 +18,13 @@ use Illuminate\Queue\SerializesModels;
 class MaintainWhatsAppSenderTypingIndicatorJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use HasHouseholdContext;
 
     public int $tries = 1;
 
-    public function __construct(public string $senderNumber)
+    public function __construct(public string $senderNumber, ?int $householdId = null)
     {
+        $this->householdId = $this->resolveHouseholdId($householdId);
         $this->onQueue('whatsapp');
     }
 
@@ -29,7 +33,7 @@ class MaintainWhatsAppSenderTypingIndicatorJob implements ShouldQueue
      */
     public function middleware(): array
     {
-        return [new RateLimited('evolution-send')];
+        return [new SetCurrentHousehold, new RateLimited('evolution-send')];
     }
 
     public function handle(WhatsAppNotificationService $waService): void
@@ -53,7 +57,7 @@ class MaintainWhatsAppSenderTypingIndicatorJob implements ShouldQueue
         $refreshSeconds = max(1, (int) config('services.evolution.whatsapp_typing_refresh_seconds', 15));
 
         if (WhatsAppTypingSession::isSenderActive($this->senderNumber)) {
-            self::dispatch($this->senderNumber)
+            self::dispatch($this->senderNumber, $this->householdId)
                 ->delay(now()->addSeconds($refreshSeconds));
         }
 

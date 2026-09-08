@@ -1,8 +1,8 @@
 # SaaS PRD — Future Product (Companion)
 
-> **Status:** Draft / future-state  
-> **Do not implement from this file** while [system-architecture.md](system-architecture.md) defines a **single-tenant** personal hub.  
-> Tenancy, public registration, Free/Pro billing, and schema changes require an explicit later phase that **updates the architecture document** first. This PRD is product intent only.
+> **Status:** Companion PRD + phased implementation  
+> Tenancy kernel, Register, and related schema follow [multi-household-change-checklist.md](multi-household-change-checklist.md) (`MH-*`, one item at a time) after [system-architecture.md](system-architecture.md) authorizes the tenancy phase (**MH-002**).  
+> **Free/Pro billing remains unauthorized** until an explicit later phase. Do not implement billing, quotas, or Stripe from this file.
 
 Product name remains **tido**. Expense tags remain **Label** / **Labels** (never Category).
 
@@ -132,18 +132,18 @@ Before a public SaaS deploy:
 
 ---
 
-## 10. Out of scope for this PRD
+## 10. Out of scope until later phases
 
 This document does **not** authorize:
 
-- Migrations or `household_id` / `owner_user_id` columns
-- Stripe or any billing integration
-- Public Register UI
-- Changes to Evolution / Ollama pages for multi-account
-- New top-level `app/` folders
-- Rewriting [system-architecture.md](system-architecture.md) as SaaS (that is a later, explicit phase)
+- Stripe or any billing integration / Free/Pro entitlements
+- Skipping the `MH-*` order in [multi-household-change-checklist.md](multi-household-change-checklist.md)
+- New top-level `app/` folders without approval
+- Spatie multi-tenancy or permissions packages
 
-When the tenancy phase starts: update [system-architecture.md](system-architecture.md) first, then implement against that contract.
+Schema, Register, Evolution tenancy, and household-scoped backups are authorized only through the matching **Verified** `MH-*` prerequisites in the checklist (architecture unlock is **MH-002**).
+
+When implementing: follow [system-architecture.md](system-architecture.md) and the active `MH-*` row only.
 
 ---
 
@@ -151,7 +151,8 @@ When the tenancy phase starts: update [system-architecture.md](system-architectu
 
 | Doc | Role |
 |-----|------|
-| [system-architecture.md](system-architecture.md) | **Live** product blueprint (single-tenant) |
+| [system-architecture.md](system-architecture.md) | **Live** product blueprint (tenancy phase authorized; implement via MH-*) |
+| [multi-household-change-checklist.md](multi-household-change-checklist.md) | Phased `MH-*` implementation register |
 | [household-access.md](household-access.md) | Family ACL inside a household |
 | [security-audit.md](security-audit.md) | Pre-public security register |
 | [security-hardening-playbook.md](security-hardening-playbook.md) | How to close SEC-* items |

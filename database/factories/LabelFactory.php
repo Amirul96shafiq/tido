@@ -22,6 +22,7 @@ class LabelFactory extends Factory
         $name = FieldCharacterLimits::truncate($this->faker->unique()->words(2, true), FieldCharacterLimits::LABEL_NAME);
 
         return [
+            'household_id' => 1,
             'type' => LabelType::Finance,
             'name' => $name,
             'slug' => Str::slug($name),

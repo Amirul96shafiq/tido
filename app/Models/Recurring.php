@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\RecurringFrequency;
 use App\Enums\RecurringOccurrenceStatus;
 use App\Enums\RecurringType;
+use App\Models\Concerns\BelongsToHousehold;
 use App\Models\Concerns\TracksResourceEdits;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -21,6 +22,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Recurring extends Model
 {
+    use BelongsToHousehold;
     use HasFactory, LogsActivity, SoftDeletes, TracksResourceEdits;
 
     protected $attributes = [

@@ -233,6 +233,12 @@ If Evolution is down, use **Sign in with email & password** (primary user only).
 
 ---
 
+## Household instances (MH-008)
+
+Each household Primary configures its own API URL, instance name, API key, and webhook secret from Integrations → WhatsApp. New households are disabled until configured and enabled; household #1 is migrated from the existing environment values into encrypted settings.
+
+Use distinct instance names and credential pairs for each Evolution session. Both instances may register the same `POST /api/webhooks/whatsapp` callback URL. The bearer webhook secret and instance name select the household before allowlist, LID, idempotency, or queue processing. Never put credentials in this document or in query parameters.
+
 ## Troubleshooting
 
 | Issue                                                                                                           | Check                                                                                                                                                                                                                                                                                                   |

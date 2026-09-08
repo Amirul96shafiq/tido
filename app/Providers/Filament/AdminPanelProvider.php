@@ -20,6 +20,7 @@ use App\Filament\Pages\ReceiptUploadPage;
 use App\Filament\Resources\Expenses\Pages\CreateExpense;
 use App\Filament\Resources\Expenses\Pages\EditExpense;
 use App\Filament\Support\IntegrationNavigation;
+use App\Http\Middleware\SetCurrentHousehold;
 use App\Http\Middleware\SetUserPreferences;
 use App\Support\Calendar\UserMenuCalendarLabel;
 use App\Support\FilamentAuthLogout;
@@ -1317,6 +1318,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                SetCurrentHousehold::class,
             ]);
     }
 

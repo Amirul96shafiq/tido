@@ -11,9 +11,11 @@ use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
 use App\Filament\Pages\Schemas\GoogleOAuthSetupForm;
 use App\Filament\Support\IntegrationNavigation;
 use App\Models\GoogleOAuthLoginLog;
+use App\Models\GoogleOAuthSetting;
 use App\Models\User;
 use App\Services\GoogleOAuth\GoogleOAuthCredentialTester;
 use App\Services\GoogleOAuth\GoogleOAuthSettings;
+use App\Support\CurrentHousehold;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Notifications\Notification;
@@ -79,14 +81,22 @@ class GoogleOAuthPage extends Page implements HasTable
 
     public static function getNavigationBadge(): ?string
     {
-        $settings = app(GoogleOAuthSettings::class);
+        $platformReady = GoogleOAuthSettings::platform()->isSignInAvailable();
+        $linked = filled(auth()->user()?->google_id);
 
-        return $settings->isSignInAvailable() ? 'Active' : null;
+        return ($platformReady && $linked) ? 'Active' : null;
     }
 
     public static function getNavigationBadgeColor(): string|array|null
     {
-        return app(GoogleOAuthSettings::class)->isSignInAvailable() ? 'success' : null;
+        return static::getNavigationBadge() !== null ? 'success' : null;
+    }
+
+    public function canManagePlatformCredentials(): bool
+    {
+        $householdId = CurrentHousehold::id() ?? auth()->user()?->household_id;
+
+        return $householdId === GoogleOAuthSetting::PLATFORM_HOUSEHOLD_ID;
     }
 
     /**
@@ -127,15 +137,34 @@ class GoogleOAuthPage extends Page implements HasTable
             ]);
     }
 
-    public function mount(GoogleOAuthSettings $settings): void
+    public function mount(): void
     {
-        $this->loadFromSettings($settings);
+        if (request()->boolean('google_oauth_linked') || session()->pull('google_oauth_linked')) {
+            Notification::make()
+                ->title('Google account linked')
+                ->success()
+                ->send();
+        }
+
+        if (request()->boolean('google_oauth_link_error') || session()->pull('google_oauth_link_error')) {
+            Notification::make()
+                ->title('Could not link Google account')
+                ->body('Sign in with the Google account you want to use, or try again.')
+                ->danger()
+                ->send();
+        }
+
+        $this->loadFromSettings($this->settings());
         $this->refreshStatus(false);
         $this->loadReadinessChecks();
     }
 
     public function settingsSourceLabel(): string
     {
+        if (! $this->canManagePlatformCredentials()) {
+            return 'Platform-managed (shared Client ID)';
+        }
+
         if ($this->setupComplete) {
             return 'Setup complete';
         }
@@ -149,11 +178,15 @@ class GoogleOAuthPage extends Page implements HasTable
 
     public function redirectUri(): string
     {
-        return app(GoogleOAuthSettings::class)->redirectUrl();
+        return $this->settings()->redirectUrl();
     }
 
     public function maskedClientSecret(): string
     {
+        if (! $this->canManagePlatformCredentials()) {
+            return $this->hasSavedSecret || $this->settings()->hasCredentials() ? '••••••••••••' : '—';
+        }
+
         if (! $this->hasSavedSecret) {
             return '—';
         }
@@ -163,32 +196,32 @@ class GoogleOAuthPage extends Page implements HasTable
 
     public function refreshStatus(bool $allowSideEffects = false): void
     {
-        $settings = app(GoogleOAuthSettings::class);
+        $settings = $this->settings();
+        $this->loadLinkedPrimary();
+        $this->loadLastSuccessfulSignIn();
+
+        $linked = $this->linkedPrimaryEmail !== null;
 
         if (! $settings->hasCredentials()) {
             $this->connectionStatus = 'unconfigured';
-            $this->statusMessage = 'Client ID and Client Secret are not configured.';
+            $this->statusMessage = $this->canManagePlatformCredentials()
+                ? 'Configure the shared Client ID and Client Secret to enable Continue with Google.'
+                : 'Google sign-in is not configured on this install yet.';
             $this->latencyMs = 0;
-        } elseif (! $settings->enabled()) {
+        } elseif (! $linked) {
             $this->connectionStatus = 'degraded';
-            $this->statusMessage = 'Credentials saved. Sign-in is disabled on the login page.';
+            $this->statusMessage = 'Platform Google OAuth is ready. Link this Primary’s Gmail to use Continue with Google.';
             $this->latencyMs = 0;
         } elseif ($this->lastTestMessage !== null && str_contains(strtolower($this->lastTestMessage), 'rejected')) {
             $this->connectionStatus = 'down';
             $this->statusMessage = $this->lastTestMessage;
         } else {
             $this->connectionStatus = 'operational';
-            $this->statusMessage = 'Google OAuth is enabled for Primary sign-in.';
+            $this->statusMessage = 'This Primary can sign in with the linked Google account.';
             $this->latencyMs = 0;
         }
 
-        $this->loadLinkedPrimary();
-        $this->loadLastSuccessfulSignIn();
         $this->loadReadinessChecks();
-
-        if ($allowSideEffects) {
-            // No side effects required for Google OAuth status polling.
-        }
     }
 
     public function testConnection(): void
@@ -198,7 +231,16 @@ class GoogleOAuthPage extends Page implements HasTable
 
     public function testCredentials(): void
     {
-        $result = app(GoogleOAuthCredentialTester::class)->test();
+        if (! $this->canManagePlatformCredentials()) {
+            Notification::make()
+                ->title('Only the platform household can test credentials')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $result = app(GoogleOAuthCredentialTester::class)->test(settings: $this->settings());
 
         $this->latencyMs = $result['latencyMs'];
         $this->lastTestMessage = $result['message'];
@@ -222,10 +264,14 @@ class GoogleOAuthPage extends Page implements HasTable
 
     public function testCredentialsFromForm(string $clientId, string $clientSecret): void
     {
-        $settings = app(GoogleOAuthSettings::class);
+        if (! $this->canManagePlatformCredentials()) {
+            return;
+        }
+
+        $settings = $this->settings();
         $secret = filled($clientSecret) ? $clientSecret : $settings->clientSecret();
 
-        $result = app(GoogleOAuthCredentialTester::class)->test($clientId, $secret);
+        $result = app(GoogleOAuthCredentialTester::class)->test($clientId, $secret, $settings);
 
         $this->latencyMs = $result['latencyMs'];
         $this->lastTestMessage = $result['message'];
@@ -251,8 +297,9 @@ class GoogleOAuthPage extends Page implements HasTable
             ->label(fn (): string => $this->setupComplete ? 'Edit Google OAuth' : 'Start Configure')
             ->color('primary')
             ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
+            ->visible(fn (): bool => $this->canManagePlatformCredentials())
             ->modalHeading('Edit Google OAuth settings')
-            ->modalDescription('Configure Google OAuth credentials and enable Primary sign-in.')
+            ->modalDescription('Configure the shared Google OAuth client used by every household for Primary sign-in.')
             ->modalSubmitActionLabel('Save')
             ->modalWidth(Width::ThreeExtraLarge)
             ->fillForm(fn (): array => $this->setupFormState())
@@ -266,6 +313,8 @@ class GoogleOAuthPage extends Page implements HasTable
 
     protected function getHeaderActions(): array
     {
+        $platformReady = fn (): bool => $this->settings()->isSignInAvailable();
+
         return [
             Action::make('refresh')
                 ->label('Refresh status')
@@ -278,12 +327,23 @@ class GoogleOAuthPage extends Page implements HasTable
                         ->success()
                         ->send();
                 }),
+            Action::make('linkGoogleAccount')
+                ->label('Link Google account')
+                ->icon(Heroicon::OutlinedLink)
+                ->color('primary')
+                ->visible(fn (): bool => $this->linkedPrimaryEmail === null)
+                ->disabled(fn (): bool => ! $platformReady())
+                ->action(function (): void {
+                    // Full browser navigation — wire:navigate cannot follow Socialite → Google.
+                    $this->redirect($this->settings()->linkAuthorizeUrl(), navigate: false);
+                }),
             $this->configureSetupAction(),
             ActionGroup::make([
                 Action::make('testConnection')
                     ->label('Test connection')
                     ->icon('heroicon-o-signal')
-                    ->disabled(fn (): bool => ! app(GoogleOAuthSettings::class)->hasCredentials())
+                    ->visible(fn (): bool => $this->canManagePlatformCredentials())
+                    ->disabled(fn (): bool => ! $this->settings()->hasCredentials())
                     ->action(function (): void {
                         $this->testConnection();
                     }),
@@ -293,7 +353,7 @@ class GoogleOAuthPage extends Page implements HasTable
                     ->color('danger')
                     ->requiresConfirmation()
                     ->modalHeading('Unlink Google account?')
-                    ->modalDescription('The Primary account will need to sign in with Google again to re-link.')
+                    ->modalDescription('This Primary will need to link Google again before Continue with Google will work.')
                     ->disabled(fn (): bool => $this->linkedPrimaryEmail === null)
                     ->action(function (): void {
                         $this->unlinkGoogleAccount();
@@ -302,9 +362,10 @@ class GoogleOAuthPage extends Page implements HasTable
                     ->label('Reset credentials')
                     ->icon(Heroicon::OutlinedTrash)
                     ->color('danger')
+                    ->visible(fn (): bool => $this->canManagePlatformCredentials())
                     ->requiresConfirmation()
                     ->modalHeading('Reset Google OAuth credentials?')
-                    ->modalDescription('Saved credentials, sign-in toggle, and the linked Google account will be cleared.')
+                    ->modalDescription('Clears the shared Client ID/Secret for the whole install. Linked Google accounts are kept.')
                     ->action(function (): void {
                         $this->resetCredentials();
                     }),
@@ -318,8 +379,17 @@ class GoogleOAuthPage extends Page implements HasTable
 
     public function table(Table $table): Table
     {
+        $householdId = CurrentHousehold::id() ?? auth()->user()?->household_id;
+
         return $table
-            ->query(GoogleOAuthLoginLog::query())
+            ->query(
+                GoogleOAuthLoginLog::query()
+                    ->when(
+                        $householdId !== null,
+                        fn ($query) => $query->where('household_id', $householdId),
+                        fn ($query) => $query->whereRaw('0 = 1'),
+                    )
+            )
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('event')
@@ -365,16 +435,23 @@ class GoogleOAuthPage extends Page implements HasTable
             'client_id' => $this->clientId,
             'client_secret' => '',
             'has_saved_secret' => $this->hasSavedSecret,
-            'enabled' => $this->enabled,
         ];
     }
 
     private function saveSettingsFromState(array $data): bool
     {
-        $settings = app(GoogleOAuthSettings::class);
+        if (! $this->canManagePlatformCredentials()) {
+            Notification::make()
+                ->title('Only the platform household can edit credentials')
+                ->warning()
+                ->send();
+
+            return false;
+        }
+
+        $settings = $this->settings();
         $clientId = trim((string) ($data['client_id'] ?? ''));
         $clientSecret = trim((string) ($data['client_secret'] ?? ''));
-        $enabled = (bool) ($data['enabled'] ?? false);
 
         if ($clientId === '') {
             Notification::make()
@@ -396,7 +473,7 @@ class GoogleOAuthPage extends Page implements HasTable
 
         $attributes = [
             'client_id' => $clientId,
-            'enabled' => $enabled,
+            'enabled' => true,
             'setup_completed_at' => now(),
         ];
 
@@ -416,10 +493,17 @@ class GoogleOAuthPage extends Page implements HasTable
         return true;
     }
 
+    private function settings(): GoogleOAuthSettings
+    {
+        return GoogleOAuthSettings::platform();
+    }
+
     private function loadFromSettings(GoogleOAuthSettings $settings): void
     {
-        $this->clientId = (string) ($settings->clientId() ?? '');
-        $this->enabled = $settings->enabled();
+        $this->clientId = $this->canManagePlatformCredentials()
+            ? (string) ($settings->clientId() ?? '')
+            : ($settings->hasCredentials() ? 'Configured by platform' : '');
+        $this->enabled = $settings->isSignInAvailable();
         $this->usingSavedSettings = $settings->usesSavedSettings();
         $this->setupComplete = $settings->isSetupComplete();
         $this->hasSavedSecret = filled($settings->clientSecret());
@@ -427,22 +511,28 @@ class GoogleOAuthPage extends Page implements HasTable
 
     private function loadLinkedPrimary(): void
     {
-        $user = User::query()
-            ->whereNotNull('google_id')
-            ->where(function ($query): void {
-                $query->where('household_role', 'primary')
-                    ->orWhereNull('household_role');
-            })
-            ->first();
+        $user = auth()->user();
 
-        $this->linkedPrimaryEmail = $user?->email;
+        if ($user instanceof User && filled($user->google_id)) {
+            $this->linkedPrimaryEmail = $user->email;
+
+            return;
+        }
+
+        $this->linkedPrimaryEmail = null;
     }
 
     private function loadLastSuccessfulSignIn(): void
     {
+        $householdId = CurrentHousehold::id() ?? auth()->user()?->household_id;
+
         $log = GoogleOAuthLoginLog::query()
             ->where('event', GoogleOAuthLoginEvent::SignIn)
             ->where('status', 'success')
+            ->when(
+                $householdId !== null,
+                fn ($query) => $query->where('household_id', $householdId),
+            )
             ->orderByDesc('created_at')
             ->first();
 
@@ -453,44 +543,44 @@ class GoogleOAuthPage extends Page implements HasTable
 
     private function loadReadinessChecks(): void
     {
-        $settings = app(GoogleOAuthSettings::class);
+        $settings = $this->settings();
         $linked = $this->linkedPrimaryEmail !== null;
 
         $this->readinessChecks = [
             [
-                'label' => 'Client ID saved',
-                'status' => filled($this->clientId) ? 'ready' : 'attention',
-                'detail' => filled($this->clientId) ? 'Ready' : 'Needs attention',
-            ],
-            [
-                'label' => 'Client Secret saved',
-                'status' => $this->hasSavedSecret ? 'ready' : 'attention',
-                'detail' => $this->hasSavedSecret ? 'Ready' : 'Needs attention',
-            ],
-            [
-                'label' => 'Sign-in enabled on login page',
-                'status' => $this->enabled && $settings->hasCredentials() ? 'ready' : 'attention',
-                'detail' => $this->enabled && $settings->hasCredentials() ? 'Ready' : 'Needs attention',
+                'label' => 'Shared Client ID configured',
+                'status' => $settings->hasCredentials() ? 'ready' : 'attention',
+                'detail' => $settings->hasCredentials() ? 'Ready' : 'Needs platform setup',
             ],
             [
                 'label' => 'Primary Google account linked',
                 'status' => $linked ? 'ready' : 'attention',
-                'detail' => $linked ? 'Linked' : 'Ready to link on next sign-in',
+                'detail' => $linked ? 'Linked' : 'Link from this page',
+            ],
+            [
+                'label' => 'Continue with Google on login',
+                'status' => $settings->isSignInAvailable() ? 'ready' : 'attention',
+                'detail' => $settings->isSignInAvailable() ? 'Visible when credentials exist' : 'Needs credentials',
             ],
         ];
     }
 
     private function unlinkGoogleAccount(): void
     {
-        User::query()
-            ->whereNotNull('google_id')
-            ->update([
-                'google_id' => null,
-                'google_linked_at' => null,
-            ]);
+        $user = auth()->user();
+
+        if (! $user instanceof User) {
+            return;
+        }
+
+        $user->forceFill([
+            'google_id' => null,
+            'google_linked_at' => null,
+        ])->save();
 
         $this->loadLinkedPrimary();
         $this->loadReadinessChecks();
+        $this->refreshStatus(false);
 
         Notification::make()
             ->title('Google account unlinked')
@@ -500,15 +590,19 @@ class GoogleOAuthPage extends Page implements HasTable
 
     private function resetCredentials(): void
     {
-        app(GoogleOAuthSettings::class)->reset();
-        User::query()
-            ->whereNotNull('google_id')
-            ->update([
-                'google_id' => null,
-                'google_linked_at' => null,
-            ]);
+        if (! $this->canManagePlatformCredentials()) {
+            Notification::make()
+                ->title('Only the platform household can reset credentials')
+                ->warning()
+                ->send();
 
-        $this->loadFromSettings(app(GoogleOAuthSettings::class));
+            return;
+        }
+
+        $settings = $this->settings();
+        $settings->reset();
+
+        $this->loadFromSettings($settings);
         $this->lastTestMessage = null;
         $this->refreshStatus(false);
 

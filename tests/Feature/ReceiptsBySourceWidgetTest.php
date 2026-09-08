@@ -78,5 +78,5 @@ test('receipts by source widget listens for echo expense updates without polling
         ->assertDontSeeHtml('wire:poll.5s');
 
     expect($component->instance()->getListeners())
-        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+        ->toHaveKey('echo-private:household.1.expenses,.ExpenseUpdated');
 });

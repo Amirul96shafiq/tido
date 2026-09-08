@@ -5,7 +5,7 @@ alwaysApply: true
 
 # tido — Project Overview
 
-Single-tenant personal hub. **Finances** is shipped (MYR expense & receipt tracking). **Training**, **Health**, and **Task** are planned dashboard modules (coming-soon placeholders). See `docs/dashboard-views.md`.
+Personal hub migrating to multi-household isolation. **Finances** is shipped (MYR expense & receipt tracking). **Training**, **Health**, and **Task** are planned dashboard modules (coming-soon placeholders). See `docs/dashboard-views.md`.
 
 Finances today: ingest receipts (WhatsApp image or text manual expense, Filament upload), parse with local Ollama, categorize line items, detect duplicates, show budgets/analytics.
 
@@ -20,9 +20,9 @@ Laravel 12 · Filament v5 · Livewire 4 · Tailwind v4 · SQLite (local) / Postg
 
 Prefer this over older version numbers in `docs/system-architecture.md`.
 
-## Single-tenant household
+## Household isolation (tenancy phase)
 
-No multi-tenancy package. One Filament panel with **household roles** (`primary` vs `family_member`): Primary owns settings; login-enabled Family Members get limited Finances access. Receipts are attributed via `expenses.family_member_id` (**Uploaded By**). See `docs/household-access.md`.
+No Spatie multi-tenancy package. Isolation key = `household_id` ([docs/multi-household-change-checklist.md](docs/multi-household-change-checklist.md) — one `MH-*` at a time). Inside each household: Primary vs Family Member roles; receipts via `expenses.family_member_id` (**Uploaded By**). See `docs/household-access.md`.
 
 ## Agent entry points
 
@@ -48,6 +48,7 @@ No multi-tenancy package. One Filament panel with **household roles** (`primary`
 20. Household access / family login / attribution — `docs/household-access.md`
 21. WhatsApp text manual expenses — `docs/whatsapp-manual-expense.md`
 22. WhatsApp bot commands / keywords — `docs/whatsapp-bot-commands.md`
+23. Multi-household `MH-*` register — `docs/multi-household-change-checklist.md`
 
 ## Do not
 
@@ -57,3 +58,4 @@ No multi-tenancy package. One Filament panel with **household roles** (`primary`
 - Treat stock `README.md` as product docs
 - Call the product anything other than **tido**
 - Develop features directly on `main` (use `feature/*` or `fix/*` → PR → `main`)
+- Skip ahead in the `MH-*` register or implement Free/Pro billing without an explicit phase

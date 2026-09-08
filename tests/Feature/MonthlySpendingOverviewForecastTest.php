@@ -266,5 +266,5 @@ test('monthly spending overview listens for echo expense updates without polling
         ->assertDontSeeHtml('wire:poll.30s');
 
     expect($component->instance()->getListeners())
-        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+        ->toHaveKey('echo-private:household.1.expenses,.ExpenseUpdated');
 });

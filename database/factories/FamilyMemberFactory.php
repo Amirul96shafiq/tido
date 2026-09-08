@@ -21,6 +21,7 @@ class FamilyMemberFactory extends Factory
         $local = $this->faker->unique()->numerify('1########');
 
         return [
+            'household_id' => 1,
             'name' => FieldCharacterLimits::truncate($this->faker->name(), FieldCharacterLimits::USER_NAME),
             'display_name' => $this->faker->optional()->passthrough(
                 FieldCharacterLimits::truncate($this->faker->firstName(), FieldCharacterLimits::DISPLAY_NAME),

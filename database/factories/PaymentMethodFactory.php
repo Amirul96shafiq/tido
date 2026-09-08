@@ -24,6 +24,7 @@ class PaymentMethodFactory extends Factory
         );
 
         return [
+            'household_id' => 1,
             'name' => $name,
             'slug' => Str::slug($name),
             'aliases' => [],

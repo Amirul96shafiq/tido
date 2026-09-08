@@ -25,6 +25,7 @@ use App\Services\Calendar\CalendarEventAggregator;
 use App\Services\Calendar\RecurringDueCalendarProvider;
 use App\Services\Currency\CurrencyApiExchangeRateProvider;
 use App\Services\Currency\ExchangeRateProvider;
+use App\Services\GoogleOAuth\GoogleOAuthSettings;
 use App\Support\FieldCharacterLimits;
 use App\Support\ProductionEnvironmentBaseline;
 use App\View\Components\ButtonComponent;
@@ -63,6 +64,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(LogoutResponseContract::class, LogoutResponse::class);
         $this->app->bind(ExchangeRateProvider::class, CurrencyApiExchangeRateProvider::class);
         $this->app->bind(SearchEngine::class, TidoSearchEngine::class);
+        $this->app->bind(GoogleOAuthSettings::class, fn (): GoogleOAuthSettings => GoogleOAuthSettings::platform());
 
         $this->app->singleton(CalendarEventAggregator::class, function (): CalendarEventAggregator {
             $aggregator = new CalendarEventAggregator;

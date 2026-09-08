@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\HasHouseholdContext;
+use App\Jobs\Middleware\SetCurrentHousehold;
 use App\Services\WhatsAppNotificationService;
 use App\Support\ReceiptPipelineLogger;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
@@ -22,13 +24,16 @@ use Throwable;
 class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use HasHouseholdContext;
 
     public int $tries = 3;
 
     public function __construct(
         public string $senderNumber,
         public string $token,
+        ?int $householdId = null,
     ) {
+        $this->householdId = $this->resolveHouseholdId($householdId);
         $this->onQueue('default');
     }
 
@@ -38,6 +43,14 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
     public function backoff(): array
     {
         return [10, 30];
+    }
+
+    /**
+     * @return list<object>
+     */
+    public function middleware(): array
+    {
+        return [new SetCurrentHousehold];
     }
 
     public function handle(WhatsAppNotificationService $waService): void
@@ -69,7 +82,7 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
     protected function sendPendingAcknowledgement(WhatsAppNotificationService $waService): void
     {
         $startedAt = ReceiptPipelineLogger::start();
-        $key = WhatsAppDocumentReceivedDebouncer::cacheKey($this->senderNumber);
+        $key = WhatsAppDocumentReceivedDebouncer::cacheKey($this->senderNumber, $this->householdId);
         $count = 0;
         $alreadySent = false;
         /** @var list<int> $expenseIds */
@@ -79,7 +92,7 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
         /** @var list<string> $messageIds */
         $messageIds = [];
 
-        Cache::lock(WhatsAppDocumentReceivedDebouncer::lockKey($this->senderNumber), 5)
+        Cache::lock(WhatsAppDocumentReceivedDebouncer::lockKey($this->senderNumber, $this->householdId), 5)
             ->block(5, function () use ($key, &$count, &$alreadySent, &$expenseIds, &$documents, &$messageIds): void {
                 $payload = Cache::get($key);
 
@@ -100,6 +113,7 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
                 $alreadySent = WhatsAppDocumentReceivedDebouncer::wasSent(
                     $this->senderNumber,
                     $this->token,
+                    $this->householdId,
                 );
                 $messageIds = array_values(array_filter(
                     array_map(
@@ -148,6 +162,7 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
             WhatsAppDocumentReceivedDebouncer::markSent(
                 $this->senderNumber,
                 $this->token,
+                $this->householdId,
             );
         }
 
@@ -155,7 +170,7 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
             if ($queuedExpenseId > 0) {
                 WhatsAppTypingCoordinator::startExpenseTyping($queuedExpenseId, $this->senderNumber);
 
-                ExtractReceiptDataJob::dispatch($queuedExpenseId);
+                ExtractReceiptDataJob::dispatch($queuedExpenseId, $this->householdId);
             }
         }
 
@@ -163,6 +178,7 @@ class SendWhatsAppDocumentReceivedAckJob implements ShouldQueue
             $this->senderNumber,
             $this->token,
             $messageIds,
+            $this->householdId,
         );
 
         ReceiptPipelineLogger::completed('receipt.received_ack', $startedAt, [

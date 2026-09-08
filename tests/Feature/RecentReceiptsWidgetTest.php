@@ -67,7 +67,7 @@ test('recent receipts widget listens for echo expense updates without polling', 
         ->assertCanSeeTableRecords([$pending]);
 
     expect($component->instance()->getListeners())
-        ->toHaveKey('echo-private:household.expenses,.ExpenseUpdated');
+        ->toHaveKey('echo-private:household.1.expenses,.ExpenseUpdated');
 });
 
 test('recent receipts widget shows a primary link to recent uploads without table controls', function () {

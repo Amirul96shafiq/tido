@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\EvolutionApiConnectionEvent;
 use App\Models\EvolutionApiConnectionLog;
+use App\Support\CurrentHousehold;
 use App\Support\PhoneNumber;
 
 class EvolutionApiConnectionLogService
@@ -23,10 +24,10 @@ class EvolutionApiConnectionLogService
     public function log(EvolutionApiConnectionEvent $event, array $context = []): EvolutionApiConnectionLog
     {
         $instanceName = $context['instance_name']
-            ?? config('services.evolution.instance_name', 'tido');
+            ?? $this->instanceNameForCurrentHousehold();
 
         if (! is_string($instanceName) || $instanceName === '') {
-            $instanceName = 'tido';
+            $instanceName = 'unknown';
         }
 
         $connectedNumber = PhoneNumber::normalize(
@@ -60,6 +61,19 @@ class EvolutionApiConnectionLogService
             'message' => $message !== '' ? $message : null,
             'meta' => $meta,
         ]);
+    }
+
+    private function instanceNameForCurrentHousehold(): ?string
+    {
+        $householdId = CurrentHousehold::id() ?? auth()->user()?->household_id;
+
+        if ($householdId === null) {
+            return null;
+        }
+
+        return app(EvolutionSettingsService::class)
+            ->forHousehold((int) $householdId)
+            ->instance_name;
     }
 
     private function defaultMessage(EvolutionApiConnectionEvent $event, ?string $connectedNumber): string

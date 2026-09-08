@@ -34,6 +34,7 @@ Before any repository mutation, test/build/service execution, or Git write, read
 
 - Product and directory map: **[docs/agent-onboarding.md](docs/agent-onboarding.md)**
 - Architecture gate: **[docs/system-architecture.md](docs/system-architecture.md)** — surface contradictions before proceeding
+- Multi-household phases: **[docs/multi-household-change-checklist.md](docs/multi-household-change-checklist.md)** — one `MH-*` at a time
 - Git workflow: **[docs/git-workflow.md](docs/git-workflow.md)** — short-lived `feature/*` / `fix/*` branches into `main`
 - Documentation index: **[docs/README.md](docs/README.md)**
 - Dashboard modules: **[docs/dashboard-views.md](docs/dashboard-views.md)** — Finances shipped; Training / Health / Task planned

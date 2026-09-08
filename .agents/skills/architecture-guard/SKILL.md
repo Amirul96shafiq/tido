@@ -25,9 +25,9 @@ Prevent changes that contradict the product blueprint or established patterns.
 ## Product identity
 
 - **tido** only — never rename the product
-- Single-tenant personal MYR expense hub (Finances shipped; Training / Health / Task planned)
-- No multi-tenancy, no Spatie Permission packages
-- Household roles: Primary (full panel) vs login-enabled Family Member (limited Finances) — `docs/household-access.md`
+- Personal MYR expense hub migrating to multi-household isolation (Finances shipped; Training / Health / Task planned)
+- No Spatie tenancy / permissions packages; isolation via `household_id` per `docs/multi-household-change-checklist.md`
+- Household roles inside each household: Primary (full panel) vs login-enabled Family Member (limited Finances) — `docs/household-access.md`
 - Expense categories: **Label** model (UI: Label/Labels) — not Category
 
 ## Ingestion channels (existing)
@@ -57,7 +57,7 @@ Never put Ollama or budget alerts inside Filament Resource classes.
 ## Database conventions
 
 - Money: `decimal(12,2)`, MYR, cast `decimal:2`
-- `receipt_hash` unique for duplicate detection
+- `receipt_hash` unique per household for duplicate detection (composite with `household_id` after MH-004)
 - JSON columns where appropriate (PostgreSQL 17 prod)
 - Foreign keys with cascade rules; index frequently queried columns
 - Migrations must specify all column attributes when modifying
@@ -77,8 +77,9 @@ Never put Ollama or budget alerts inside Filament Resource classes.
 
 - New top-level `app/` folders (requires approval)
 - New dependencies (requires approval)
-- Multi-user isolation or tenancy
-- Public registration, Free/Pro billing, or `household_id` / `owner_user_id` scoping — **HALT** unless `docs/system-architecture.md` has been updated for the tenancy phase; `docs/saas-prd.md` is future intent only and does not authorize implementation
+- No multi-tenancy **package** (no Spatie tenancy/permissions). Isolation key = `household_id` per [docs/multi-household-change-checklist.md](docs/multi-household-change-checklist.md). Implement only the top Open `MH-*` item.
+- Public registration / Free/Pro billing — **HALT** unless the matching `MH-*` row is active and prerequisites are Verified; billing remains unauthorized until an explicit later phase
+- `household_id` / household scoping — **APPROVE** when following the Verified `MH-*` order in the checklist after architecture unlock (**MH-002**); `docs/saas-prd.md` alone does not authorize skipping phases
 - Calling categories "Category" in code
 - Dedicated Filament View pages (slide-over only)
 - Hitting live Ollama/Evolution in tests
