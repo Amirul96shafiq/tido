@@ -5029,45 +5029,54 @@ html.tido-reduce-motion
     background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
-    border-block-color: rgba(255, 255, 255, 0.1) !important;
+    border-block-color: rgba(0, 0, 0, 0.08) !important;
     transition: background-image 0.2s ease;
 }
 
 .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner > td.fi-ta-cell {
     background-color: transparent !important;
+}
+
+/* Dark mode text contrast & shadows */
+.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner {
+    border-block-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner > td.fi-ta-cell {
     color: #f8fafc;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-text-item,
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-text-item-label,
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-text-item-description {
+.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-text-item,
+.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-text-item-label,
+.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-text-item-description {
     color: #f8fafc !important;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-phone .fi-ta-text-item,
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-relationship .fi-ta-text-item,
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-date-of-birth .fi-ta-text-item,
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-edited-by-name .fi-ta-text-item,
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-updated-at .fi-ta-text-item {
+.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-phone .fi-ta-text-item,
+.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-relationship .fi-ta-text-item,
+.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-date-of-birth .fi-ta-text-item,
+.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-edited-by-name .fi-ta-text-item,
+.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-updated-at .fi-ta-text-item {
     color: #e2e8f0 !important;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-actions .fi-icon-btn {
+.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-actions .fi-icon-btn {
     color: #f1f5f9;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));
 }
 
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-actions .fi-icon-btn:hover {
+.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-actions .fi-icon-btn:hover {
     color: var(--color-primary-400, #fbbf24);
 }
 
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-checkbox-input {
+.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-checkbox-input {
     border-color: rgba(255, 255, 255, 0.5);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
+
 
 
 /* Keep the Active Sessions header below the profile's sticky section tabs. */

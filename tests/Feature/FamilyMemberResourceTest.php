@@ -515,12 +515,15 @@ test('family members table applies profile banner row background and overlay for
     expect($html)->toContain('has-profile-banner')
         ->toContain('family-member-banner-'.$withBanner->id)
         ->toContain('no-profile-banner')
+        ->toContain('rgba(255, 255, 255, 0.88)')
+        ->toContain('rgba(15, 23, 42, 0.78)')
         ->toContain('url(\''.Storage::disk('public')->url('banners/custom-banner.png').'\') !important')
         ->not->toContain('family-member-banner-'.$withoutBanner->id);
 
     expect($css)->toContain('.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner')
         ->toContain('background-size: cover !important;')
         ->toContain('background-position: center !important;')
+        ->toContain('.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner')
         ->toContain('text-shadow:')
         ->not->toContain('.fi-ta-cell-avatar-url img,');
 });

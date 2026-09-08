@@ -54,18 +54,34 @@ class FamilyMembersTable
                         $escapedUrl = addcslashes($bannerUrl, "'\\");
                         $style = sprintf(
                             '<style>'
+                            /* Light theme overlay (lighter color white overlay bg) */
                             .'.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.family-member-banner-%d,'
                             .'.tido-family-members-table .fi-ta-row.family-member-banner-%d {'
-                            .'    background-image: linear-gradient(90deg, rgba(15, 23, 42, 0.78) 0%%, rgba(15, 23, 42, 0.50) 35%%, rgba(15, 23, 42, 0.50) 65%%, rgba(15, 23, 42, 0.78) 100%%), url(\'%s\') !important;'
+                            .'    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.88) 0%%, rgba(255, 255, 255, 0.72) 35%%, rgba(255, 255, 255, 0.72) 65%%, rgba(255, 255, 255, 0.88) 100%%), url(\'%s\') !important;'
                             .'    background-size: cover !important;'
                             .'    background-position: center !important;'
                             .'    background-repeat: no-repeat !important;'
                             .'}'
                             .'.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.family-member-banner-%d:hover,'
                             .'.tido-family-members-table .fi-ta-row.family-member-banner-%d:hover {'
+                            .'    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.78) 0%%, rgba(255, 255, 255, 0.58) 35%%, rgba(255, 255, 255, 0.58) 65%%, rgba(255, 255, 255, 0.78) 100%%), url(\'%s\') !important;'
+                            .'}'
+                            /* Dark theme overlay */
+                            .'.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.family-member-banner-%d,'
+                            .'.dark .tido-family-members-table .fi-ta-row.family-member-banner-%d {'
+                            .'    background-image: linear-gradient(90deg, rgba(15, 23, 42, 0.78) 0%%, rgba(15, 23, 42, 0.50) 35%%, rgba(15, 23, 42, 0.50) 65%%, rgba(15, 23, 42, 0.78) 100%%), url(\'%s\') !important;'
+                            .'}'
+                            .'.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.family-member-banner-%d:hover,'
+                            .'.dark .tido-family-members-table .fi-ta-row.family-member-banner-%d:hover {'
                             .'    background-image: linear-gradient(90deg, rgba(15, 23, 42, 0.65) 0%%, rgba(15, 23, 42, 0.38) 35%%, rgba(15, 23, 42, 0.38) 65%%, rgba(15, 23, 42, 0.65) 100%%), url(\'%s\') !important;'
                             .'}'
                             .'</style>',
+                            $record->id,
+                            $record->id,
+                            $escapedUrl,
+                            $record->id,
+                            $record->id,
+                            $escapedUrl,
                             $record->id,
                             $record->id,
                             $escapedUrl,
