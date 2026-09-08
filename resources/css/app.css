@@ -5023,6 +5023,15 @@ html.tido-reduce-motion
     @apply py-10;
 }
 
+/* Avatar profile circular border */
+.tido-family-members-table .fi-ta-cell-avatar-url img {
+    border: 3px solid var(--color-white, #ffffff);
+}
+
+.dark .tido-family-members-table .fi-ta-cell-avatar-url img {
+    border: 3px solid var(--color-gray-900, #111827);
+}
+
 /* Family Members Table Profile Banner Row & Overlay */
 .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner {
     position: relative;

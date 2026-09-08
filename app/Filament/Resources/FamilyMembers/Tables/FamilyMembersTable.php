@@ -97,6 +97,7 @@ class FamilyMembersTable
                     ->label('')
                     ->disk('public')
                     ->circular()
+                    ->imageSize(64)
                     ->defaultImageUrl(fn (FamilyMember $record): string => app(UiAvatarsProvider::class)->get($record)),
 
                 TextColumn::make('name')
