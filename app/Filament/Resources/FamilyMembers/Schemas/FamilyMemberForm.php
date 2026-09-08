@@ -150,7 +150,6 @@ class FamilyMemberForm
                                 Flex::make([
                                     FileUpload::make('avatar_url')
                                         ->label('Profile Photo')
-                                        ->fieldWrapperView('filament-forms::plain-field-wrapper')
                                         ->extraFieldWrapperAttributes(['class' => 'fi-profile-photo-field'])
                                         ->avatar()
                                         ->disk('public')

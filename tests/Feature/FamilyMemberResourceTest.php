@@ -123,6 +123,16 @@ test('user can upload a family member profile photo', function () {
     $file = UploadedFile::fake()->image('spouse-avatar.jpg');
 
     Livewire::test(CreateFamilyMember::class)
+        ->assertSchemaComponentExists(
+            'avatar_url',
+            checkComponentUsing: function (FileUpload $component): bool {
+                expect($component->getLabel())->toBe('Profile Photo')
+                    ->and($component->getFieldWrapperView())->toBe('filament-forms::field-wrapper')
+                    ->and($component->isLabelHidden())->toBeFalse();
+
+                return true;
+            },
+        )
         ->fillForm([
             'name' => 'Spouse',
             'phone' => '+60116330786',

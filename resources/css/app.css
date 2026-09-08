@@ -3476,7 +3476,7 @@ body:has([id="global-search-modal::plugin"].fi-modal-open) [data-tippy-root] {
 }
 
 .fi-profile-photo-section .fi-profile-photo-field {
-    @apply flex w-auto justify-center;
+    @apply w-full;
 }
 
 .fi-profile-photo-section .fi-fo-file-upload.fi-fo-file-upload-avatar {
