@@ -525,5 +525,9 @@ test('family members table applies profile banner row background and overlay for
         ->toContain('background-position: center !important;')
         ->toContain('.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner')
         ->toContain('text-shadow:')
+        ->toContain('.tido-family-members-table .fi-ta-table > tbody > tr > td.fi-ta-cell:has(.fi-ta-actions)')
+        ->toContain('background-color: var(--color-white, #ffffff) !important;')
+        ->toContain('.dark .tido-family-members-table .fi-ta-table > tbody > tr > td.fi-ta-cell:has(.fi-ta-actions)')
+        ->toContain('background-color: var(--color-gray-900, #111827) !important;')
         ->not->toContain('.fi-ta-cell-avatar-url img,');
 });
