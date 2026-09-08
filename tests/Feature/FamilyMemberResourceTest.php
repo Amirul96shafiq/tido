@@ -490,3 +490,37 @@ test('family member duplicate action is available on the edit header', function 
         ->assertActionVisible('duplicate')
         ->assertActionHasIcon('duplicate', Heroicon::Square2Stack);
 });
+
+test('family members table applies profile banner row background and overlay for members with banners', function () {
+    $withBanner = FamilyMember::factory()->create([
+        'name' => 'Has Banner Member',
+        'display_name' => 'BannerMember',
+        'profile_banner' => 'banners/custom-banner.png',
+    ]);
+
+    $withoutBanner = FamilyMember::factory()->create([
+        'name' => 'No Banner Member',
+        'display_name' => 'PlainMember',
+        'profile_banner' => null,
+    ]);
+
+    $component = Livewire::test(ListFamilyMembers::class)
+        ->assertSuccessful()
+        ->assertSee('BannerMember')
+        ->assertSee('PlainMember');
+
+    $html = $component->html();
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($html)->toContain('has-profile-banner')
+        ->toContain('family-member-banner-'.$withBanner->id)
+        ->toContain('no-profile-banner')
+        ->toContain('url(\''.Storage::disk('public')->url('banners/custom-banner.png').'\') !important')
+        ->not->toContain('family-member-banner-'.$withoutBanner->id);
+
+    expect($css)->toContain('.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner')
+        ->toContain('background-size: cover !important;')
+        ->toContain('background-position: center !important;')
+        ->toContain('text-shadow:')
+        ->not->toContain('.fi-ta-cell-avatar-url img,');
+});

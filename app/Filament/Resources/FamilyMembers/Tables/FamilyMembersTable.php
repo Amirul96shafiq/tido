@@ -26,6 +26,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 
 class FamilyMembersTable
 {
@@ -33,11 +34,48 @@ class FamilyMembersTable
     {
         return $table
             ->extraAttributes(['class' => 'tido-family-members-table'])
+            ->recordClasses(fn (FamilyMember $record): array => array_values(array_filter([
+                'tido-family-member-row',
+                $record->profile_banner ? 'has-profile-banner' : 'no-profile-banner',
+                $record->profile_banner ? ('family-member-banner-'.$record->id) : null,
+            ])))
             ->columns([
                 TextColumn::make('id')
                     ->label('ID')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->formatStateUsing(function (int|string $state, FamilyMember $record): HtmlString {
+                        $bannerUrl = $record->getProfileBannerUrl();
+
+                        if (! $bannerUrl) {
+                            return new HtmlString(e((string) $state));
+                        }
+
+                        $escapedUrl = addcslashes($bannerUrl, "'\\");
+                        $style = sprintf(
+                            '<style>'
+                            .'.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.family-member-banner-%d,'
+                            .'.tido-family-members-table .fi-ta-row.family-member-banner-%d {'
+                            .'    background-image: linear-gradient(90deg, rgba(15, 23, 42, 0.78) 0%%, rgba(15, 23, 42, 0.50) 35%%, rgba(15, 23, 42, 0.50) 65%%, rgba(15, 23, 42, 0.78) 100%%), url(\'%s\') !important;'
+                            .'    background-size: cover !important;'
+                            .'    background-position: center !important;'
+                            .'    background-repeat: no-repeat !important;'
+                            .'}'
+                            .'.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.family-member-banner-%d:hover,'
+                            .'.tido-family-members-table .fi-ta-row.family-member-banner-%d:hover {'
+                            .'    background-image: linear-gradient(90deg, rgba(15, 23, 42, 0.65) 0%%, rgba(15, 23, 42, 0.38) 35%%, rgba(15, 23, 42, 0.38) 65%%, rgba(15, 23, 42, 0.65) 100%%), url(\'%s\') !important;'
+                            .'}'
+                            .'</style>',
+                            $record->id,
+                            $record->id,
+                            $escapedUrl,
+                            $record->id,
+                            $record->id,
+                            $escapedUrl,
+                        );
+
+                        return new HtmlString($style.e((string) $state));
+                    }),
 
                 ImageColumn::make('avatar_url')
                     ->label('')

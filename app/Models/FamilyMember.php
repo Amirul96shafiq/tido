@@ -83,6 +83,13 @@ class FamilyMember extends Model
             : null;
     }
 
+    public function getProfileBannerUrl(): ?string
+    {
+        return $this->profile_banner
+            ? Storage::disk('public')->url($this->profile_banner)
+            : null;
+    }
+
     /**
      * @param  Builder<self>  $query
      * @return Builder<self>
