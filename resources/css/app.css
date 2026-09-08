@@ -5023,8 +5023,16 @@ html.tido-reduce-motion
     @apply py-10;
 }
 
+.tido-primary-member-table .fi-ta-table > tbody > tr > td.fi-ta-cell {
+    @apply py-10;
+}
+
 /* Avatar profile circular border */
 .tido-family-members-table .fi-ta-cell-avatar-url img {
+    border: 3px solid var(--color-white, #ffffff);
+}
+
+.tido-primary-member-table .fi-ta-cell-avatar-url img {
     border: 3px solid var(--color-white, #ffffff);
 }
 
@@ -5032,8 +5040,15 @@ html.tido-reduce-motion
     border: 3px solid var(--color-gray-900, #111827);
 }
 
+.dark .tido-primary-member-table .fi-ta-cell-avatar-url img {
+    border: 3px solid var(--color-gray-900, #111827);
+}
+
 /* Family Members Table Profile Banner Row & Overlay */
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner {
+.tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner {
     position: relative;
     background-size: cover !important;
     background-position: center !important;
@@ -5042,32 +5057,90 @@ html.tido-reduce-motion
     transition: background-image 0.2s ease;
 }
 
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner > td.fi-ta-cell:not(:has(.fi-ta-actions)) {
+.tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    > td.fi-ta-cell:not(:has(.fi-ta-actions)) {
     background-color: transparent !important;
 }
 
 /* CTA action buttons cell: default solid background color for light & dark themes */
-.tido-family-members-table .fi-ta-table > tbody > tr > td.fi-ta-cell:has(.fi-ta-actions),
-.tido-family-members-table .fi-ta-table > tbody > tr.has-profile-banner > td.fi-ta-cell:has(.fi-ta-actions) {
+.tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.has-profile-banner
+    > td.fi-ta-cell:has(.fi-ta-actions) {
     background-color: var(--color-white, #ffffff) !important;
 }
 
-.dark .tido-family-members-table .fi-ta-table > tbody > tr > td.fi-ta-cell:has(.fi-ta-actions),
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.has-profile-banner > td.fi-ta-cell:has(.fi-ta-actions) {
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.has-profile-banner
+    > td.fi-ta-cell:has(.fi-ta-actions) {
     background-color: var(--color-gray-900, #111827) !important;
 }
 
-.tido-family-members-table .fi-ta-table > tbody > tr:hover > td.fi-ta-cell:has(.fi-ta-actions),
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-clickable:hover > td.fi-ta-cell:has(.fi-ta-actions),
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-selected > td.fi-ta-cell:has(.fi-ta-actions),
-.tido-family-members-table .fi-ta-table > tbody > tr.fi-striped > td.fi-ta-cell:has(.fi-ta-actions) {
+.tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr:hover
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-clickable:hover
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-selected
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-striped
+    > td.fi-ta-cell:has(.fi-ta-actions) {
     background-color: var(--color-gray-50, #f9fafb) !important;
 }
 
-.dark .tido-family-members-table .fi-ta-table > tbody > tr:hover > td.fi-ta-cell:has(.fi-ta-actions),
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-clickable:hover > td.fi-ta-cell:has(.fi-ta-actions),
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-selected > td.fi-ta-cell:has(.fi-ta-actions),
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-striped > td.fi-ta-cell:has(.fi-ta-actions) {
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr:hover
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-clickable:hover
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-selected
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-striped
+    > td.fi-ta-cell:has(.fi-ta-actions) {
     background-color: color-mix(
         in srgb,
         white 5%,
@@ -5076,37 +5149,94 @@ html.tido-reduce-motion
 }
 
 /* Dark mode text contrast & shadows */
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner {
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner {
     border-block-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner > td.fi-ta-cell:not(:has(.fi-ta-actions)) {
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    > td.fi-ta-cell:not(:has(.fi-ta-actions)) {
     color: #f8fafc;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-text-item,
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-text-item-label,
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-text-item-description {
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-text-item,
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-text-item-label,
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-text-item-description {
     color: #f8fafc !important;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-phone .fi-ta-text-item,
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-relationship .fi-ta-text-item,
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-date-of-birth .fi-ta-text-item,
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-edited-by-name .fi-ta-text-item,
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-ta-cell-updated-at .fi-ta-text-item {
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-cell-phone
+    .fi-ta-text-item,
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-cell-relationship
+    .fi-ta-text-item,
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-cell-date-of-birth
+    .fi-ta-text-item,
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-cell-edited-by-name
+    .fi-ta-text-item,
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-cell-updated-at
+    .fi-ta-text-item {
     color: #e2e8f0 !important;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
-.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner .fi-checkbox-input {
+.dark
+    .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-checkbox-input {
     border-color: rgba(255, 255, 255, 0.5);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
-
-
 
 /* Keep the Active Sessions header below the profile's sticky section tabs. */
 .fi-profile-page #active-sessions .fi-ta-table > thead {

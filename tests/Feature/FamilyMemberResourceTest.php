@@ -9,6 +9,7 @@ use App\Filament\Resources\FamilyMembers\Pages\CreateFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\EditFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\ListFamilyMembers;
 use App\Filament\Resources\FamilyMembers\Schemas\FamilyMemberForm;
+use App\Filament\Resources\FamilyMembers\Widgets\PrimaryMemberTableWidget;
 use App\Models\FamilyMember;
 use App\Models\User;
 use App\Support\PhoneNumber;
@@ -275,6 +276,59 @@ test('family members table has view slide-over action', function () {
     Livewire::test(ListFamilyMembers::class)
         ->assertSuccessful()
         ->assertActionExists(TestAction::make('view')->table($member));
+});
+
+test('family members list shows primary member table above family members table', function () {
+    $this->admin->update([
+        'display_name' => 'Household Lead',
+        'phone' => '60198765432',
+    ]);
+
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    Livewire::test(ListFamilyMembers::class)
+        ->assertSuccessful()
+        ->assertSee('Primary Member')
+        ->assertSee('Family Members')
+        ->assertSeeHtml('tido-primary-member-table')
+        ->assertSeeHtml('tido-family-members-table')
+        ->assertSee('Household Lead');
+
+    expect($css)->toContain('.tido-primary-member-table .fi-ta-table > tbody > tr > td.fi-ta-cell')
+        ->toContain('.tido-primary-member-table .fi-ta-cell-avatar-url img');
+});
+
+test('primary member table lists authenticated primary without search filters or pagination', function () {
+    $this->admin->update([
+        'display_name' => 'Household Lead',
+        'phone' => '60198765432',
+        'date_of_birth' => '1990-01-15',
+    ]);
+
+    $editAction = TestAction::make('edit')->table($this->admin);
+
+    $component = Livewire::test(PrimaryMemberTableWidget::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$this->admin])
+        ->assertSee('Household Lead')
+        ->assertSee('60198765432')
+        ->assertTableColumnExists('id')
+        ->assertTableColumnExists('avatar_url')
+        ->assertTableColumnExists('display_name')
+        ->assertTableColumnExists('phone')
+        ->assertTableColumnExists('date_of_birth')
+        ->assertTableColumnExists('updated_at')
+        ->assertActionExists($editAction)
+        ->assertActionHasUrl($editAction, EditProfile::getUrl());
+
+    $table = $component->instance()->getTable();
+
+    expect($table->isSearchable())->toBeFalse()
+        ->and($table->isFilterable())->toBeFalse()
+        ->and($table->isPaginated())->toBeFalse()
+        ->and($table->hasColumnManager())->toBeFalse()
+        ->and($table->getQueryStringIdentifier())->toBe('primaryMember')
+        ->and($table->isSelectionEnabled())->toBeTrue();
 });
 
 test('family members table configures columns, row padding, and fixed pagination', function () {
