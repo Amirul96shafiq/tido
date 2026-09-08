@@ -5019,6 +5019,10 @@ html.tido-reduce-motion
     z-index: 10;
 }
 
+.tido-family-members-table .fi-ta-table > tbody > tr > td.fi-ta-cell {
+    @apply py-10;
+}
+
 /* Keep the Active Sessions header below the profile's sticky section tabs. */
 .fi-profile-page #active-sessions .fi-ta-table > thead {
     z-index: 5;

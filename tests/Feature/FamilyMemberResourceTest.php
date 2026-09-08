@@ -15,6 +15,7 @@ use App\Support\PhoneNumber;
 use Filament\Actions\Testing\TestAction;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\Column;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,7 +39,10 @@ test('family members resource is under settings navigation', function () {
 });
 
 test('authenticated user can list family members', function () {
-    FamilyMember::factory()->create(['name' => 'Spouse']);
+    FamilyMember::factory()->create([
+        'name' => 'Full Name',
+        'display_name' => 'Spouse',
+    ]);
 
     $this->get(FamilyMemberResource::getUrl('index'))
         ->assertSuccessful()
@@ -218,6 +222,30 @@ test('family members table has view slide-over action', function () {
     Livewire::test(ListFamilyMembers::class)
         ->assertSuccessful()
         ->assertActionExists(TestAction::make('view')->table($member));
+});
+
+test('family members table configures columns, row padding, and fixed pagination', function () {
+    FamilyMember::factory()->count(6)->create();
+
+    $component = Livewire::test(ListFamilyMembers::class)
+        ->assertSuccessful()
+        ->assertTableColumnExists('name', fn (Column $column): bool => $column->isToggleable()
+            && $column->isToggledHiddenByDefault())
+        ->assertTableColumnExists('display_name', fn (Column $column): bool => ! $column->isToggleable())
+        ->assertTableColumnExists('allowlist_enabled', fn (Column $column): bool => $column->isToggleable()
+            && $column->isToggledHiddenByDefault())
+        ->assertTableColumnExists('login_enabled', fn (Column $column): bool => $column->isToggleable()
+            && $column->isToggledHiddenByDefault());
+
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($component->html())->toContain('tido-family-members-table')
+        ->and($css)->toContain('.tido-family-members-table .fi-ta-table > tbody > tr > td.fi-ta-cell')
+        ->toContain('@apply py-4;')
+        ->and($component->instance()->getTableRecordsPerPage())->toBe(5)
+        ->and($component->instance()->getTable()->getPaginationPageOptions())->toBe([5])
+        ->and($component->instance()->getTable()->getDefaultPaginationPageOption())->toBe(5)
+        ->and($component->html())->not->toContain('fi-pagination-records-per-page-select');
 });
 
 test('family members table filters by contact allowlist and panel login status', function () {

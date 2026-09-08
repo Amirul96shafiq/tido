@@ -32,6 +32,7 @@ class FamilyMembersTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->extraAttributes(['class' => 'tido-family-members-table'])
             ->columns([
                 TextColumn::make('id')
                     ->label('ID')
@@ -55,7 +56,8 @@ class FamilyMembersTable
                         }
 
                         return (string) $state;
-                    }),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('display_name')
                     ->label('Display Name')
@@ -69,8 +71,7 @@ class FamilyMembersTable
                         }
 
                         return (string) $state;
-                    })
-                    ->toggleable(isToggledHiddenByDefault: false),
+                    }),
 
                 TextColumn::make('phone')
                     ->label('WhatsApp')
@@ -96,13 +97,13 @@ class FamilyMembersTable
                     ->label('Contact Allowlist')
                     ->boolean()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: false),
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 IconColumn::make('login_enabled')
                     ->label('Panel Login')
                     ->boolean()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: false),
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('editedBy.name')
                     ->label('Edited By')
@@ -120,6 +121,7 @@ class FamilyMembersTable
                     ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->defaultSort('updated_at', 'desc')
+            ->paginated([5])
             ->filters([
                 TernaryFilter::make('allowlist_enabled')
                     ->label('Contact Allowlist')
