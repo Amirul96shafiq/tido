@@ -188,8 +188,7 @@ class EditProfile extends BaseEditProfile implements HasTable
     protected function getAvatarFormComponent(): Component
     {
         return FileUpload::make('avatar_url')
-            ->hiddenLabel()
-            ->fieldWrapperView('filament-forms::plain-field-wrapper')
+            ->label('Profile Photo')
             ->extraFieldWrapperAttributes(['class' => 'fi-profile-photo-field'])
             ->avatar()
             ->disk('public')
