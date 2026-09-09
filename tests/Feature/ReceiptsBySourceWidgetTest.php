@@ -70,6 +70,23 @@ test('receipts by source widget shows empty channels when only whatsapp has rece
         ->assertDontSee('No receipts');
 });
 
+test('receipts by source widget uses single-line heading marquee markup', function () {
+    $component = Livewire::test(ReceiptsBySource::class)
+        ->assertSuccessful()
+        ->assertSee('Receipts by Upload Source')
+        ->assertSee('fi-wi-chart-heading-marquee', false)
+        ->assertSee('tido-text-marquee-clip', false)
+        ->assertSee('tido-text-marquee-track', false)
+        ->assertSee('x-ref="marqueeSegment"', false)
+        ->assertSee('x-ref="marqueeTrack"', false);
+
+    $html = $component->html();
+
+    expect(substr_count($html, 'tido-text-marquee-clip'))->toBe(1)
+        ->and(substr_count($html, 'tido-text-marquee-track'))->toBe(1)
+        ->and(substr_count($html, 'x-ref="marqueeSegment"'))->toBe(1);
+});
+
 test('receipts by source widget listens for echo expense updates without polling', function () {
     $component = Livewire::test(ReceiptsBySource::class)
         ->assertSuccessful()

@@ -7,17 +7,18 @@ namespace App\Filament\Widgets;
 use App\Filament\Concerns\RefreshesOnExpenseBroadcast;
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\HasChartEmptyState;
+use App\Filament\Widgets\Concerns\HasChartWidgetHeadingMarquee;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\HasDashboardWidgetPlaceholder;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Str;
 
 class TopMerchants extends ChartWidget
 {
     use HasChartEmptyState;
+    use HasChartWidgetHeadingMarquee;
     use HasDashboardSectionId;
     use HasDashboardWidgetPlaceholder;
     use InteractsWithDashboardMonth;
@@ -46,9 +47,9 @@ class TopMerchants extends ChartWidget
         return 'top-merchants';
     }
 
-    public function getHeading(): string|Htmlable|null
+    protected function chartWidgetHeadingLabel(): string
     {
-        return 'Top Merchants ('.$this->formatSelectedMonth('F Y').')';
+        return 'Top Merchants';
     }
 
     public function getType(): string

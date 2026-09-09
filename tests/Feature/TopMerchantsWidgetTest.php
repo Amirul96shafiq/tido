@@ -85,6 +85,23 @@ test('top merchants widget renders empty state', function () {
         ->assertSee('Add Receipts');
 });
 
+test('top merchants widget uses single-line heading marquee markup', function () {
+    $component = Livewire::test(TopMerchants::class)
+        ->assertSuccessful()
+        ->assertSee('Top Merchants')
+        ->assertSee('fi-wi-chart-heading-marquee', false)
+        ->assertSee('tido-text-marquee-clip', false)
+        ->assertSee('tido-text-marquee-track', false)
+        ->assertSee('x-ref="marqueeSegment"', false)
+        ->assertSee('x-ref="marqueeTrack"', false);
+
+    $html = $component->html();
+
+    expect(substr_count($html, 'tido-text-marquee-clip'))->toBe(1)
+        ->and(substr_count($html, 'tido-text-marquee-track'))->toBe(1)
+        ->and(substr_count($html, 'x-ref="marqueeSegment"'))->toBe(1);
+});
+
 test('top merchants widget listens for echo expense updates without polling', function () {
     $component = Livewire::test(TopMerchants::class)
         ->assertSuccessful()

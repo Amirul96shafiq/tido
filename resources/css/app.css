@@ -4662,6 +4662,20 @@ html.tido-reduce-motion
     white-space: nowrap;
 }
 
+/* Chart widgets: let section headings shrink for x-tido.text-marquee */
+.fi-wi-chart-heading-marquee .fi-section-header {
+    min-width: 0;
+}
+
+.fi-wi-chart-heading-marquee .fi-section-header-text-ctn {
+    min-width: 0;
+}
+
+.fi-wi-chart-heading-marquee .fi-section-header-heading {
+    min-width: 0;
+    overflow: visible;
+}
+
 /*
  * Dashboard analytics widgets (Filament v5 schema grid uses .fi-sc.fi-grid).
  * Stretch the visible .fi-section card (not just the outer widget wrapper).

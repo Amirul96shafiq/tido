@@ -38,6 +38,23 @@ test('spending by payment method widget renders with axis labels', function () {
         ->assertDontSeeHtml('wire:poll.30s');
 });
 
+test('spending by payment method widget uses single-line heading marquee markup', function () {
+    $component = Livewire::test(SpendingByPaymentMethod::class)
+        ->assertSuccessful()
+        ->assertSee('Spending by Payment Method')
+        ->assertSee('fi-wi-chart-heading-marquee', false)
+        ->assertSee('tido-text-marquee-clip', false)
+        ->assertSee('tido-text-marquee-track', false)
+        ->assertSee('x-ref="marqueeSegment"', false)
+        ->assertSee('x-ref="marqueeTrack"', false);
+
+    $html = $component->html();
+
+    expect(substr_count($html, 'tido-text-marquee-clip'))->toBe(1)
+        ->and(substr_count($html, 'tido-text-marquee-track'))->toBe(1)
+        ->and(substr_count($html, 'x-ref="marqueeSegment"'))->toBe(1);
+});
+
 test('spending by payment method widget listens for echo expense updates without polling', function () {
     $component = Livewire::test(SpendingByPaymentMethod::class)
         ->assertSuccessful()

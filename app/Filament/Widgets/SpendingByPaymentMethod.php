@@ -7,16 +7,17 @@ namespace App\Filament\Widgets;
 use App\Filament\Concerns\RefreshesOnExpenseBroadcast;
 use App\Filament\Support\DashboardWidgetHeights;
 use App\Filament\Widgets\Concerns\HasChartEmptyState;
+use App\Filament\Widgets\Concerns\HasChartWidgetHeadingMarquee;
 use App\Filament\Widgets\Concerns\HasDashboardSectionId;
 use App\Filament\Widgets\Concerns\HasDashboardWidgetPlaceholder;
 use App\Filament\Widgets\Concerns\InteractsWithDashboardMonth;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Contracts\Support\Htmlable;
 
 class SpendingByPaymentMethod extends ChartWidget
 {
     use HasChartEmptyState;
+    use HasChartWidgetHeadingMarquee;
     use HasDashboardSectionId;
     use HasDashboardWidgetPlaceholder;
     use InteractsWithDashboardMonth;
@@ -43,9 +44,9 @@ class SpendingByPaymentMethod extends ChartWidget
         return 'spending-by-payment-method';
     }
 
-    public function getHeading(): string|Htmlable|null
+    protected function chartWidgetHeadingLabel(): string
     {
-        return 'Spending by Payment Method ('.$this->formatSelectedMonth('F Y').')';
+        return 'Spending by Payment Method';
     }
 
     public function getType(): string

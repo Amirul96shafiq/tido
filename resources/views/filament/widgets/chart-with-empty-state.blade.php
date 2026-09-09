@@ -14,6 +14,7 @@
     $hasMaxHeight = filled($maxHeight) && $maxHeight !== '100%';
     $selectedMonth = method_exists($this, 'formatSelectedMonth') ? $this->formatSelectedMonth('Y-m') : 'unknown';
     $resolvedPollingInterval = $this->getPollingInterval();
+    $usesHeadingMarquee = method_exists($this, 'usesHeadingMarquee') && $this->usesHeadingMarquee();
     $chartAccessibleLabel = trim(implode('. ', array_filter([
         $heading instanceof Htmlable ? strip_tags($heading->toHtml()) : $heading,
         $description instanceof Htmlable ? strip_tags($description->toHtml()) : $description,
@@ -26,7 +27,10 @@
             ->merge([
                 'id' => method_exists($this, 'getDashboardSectionId') ? $this->getDashboardSectionId() : null,
             ])
-            ->class(['fi-wi-chart'])
+            ->class([
+                'fi-wi-chart',
+                'fi-wi-chart-heading-marquee' => $usesHeadingMarquee,
+            ])
     "
 >
     <x-filament::section :description="$description" :heading="$heading" :collapsible="$isCollapsible">
