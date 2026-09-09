@@ -5,6 +5,10 @@
 @php
     use App\Models\User;
 
+    if ($user instanceof User) {
+        $user->loadMissing('familyMember');
+    }
+
     $name = filament()->getUserName($user);
     $username = $user->display_name ?? $name;
     $fullName = filled($user->name ?? null) ? (string) $user->name : null;
@@ -15,6 +19,9 @@
         : null;
     $dateOfBirth = $user instanceof User && $user->date_of_birth !== null
         ? $user->formatDate($user->date_of_birth)
+        : null;
+    $profileBannerUrl = $user instanceof User
+        ? $user->getMenuProfileBannerUrl()
         : null;
 
     $maskedPhone = null;
@@ -59,6 +66,23 @@
     }"
     {{ $attributes->class(['fi-user-menu-profile-preview', 'relative']) }}
 >
+    <div
+        @class([
+            'fi-user-menu-profile-preview-banner',
+            'fi-user-menu-profile-preview-banner--placeholder' => blank($profileBannerUrl),
+        ])
+    >
+        @if (filled($profileBannerUrl))
+            <img
+                src="{{ $profileBannerUrl }}"
+                alt=""
+                aria-hidden="true"
+                class="fi-user-menu-profile-preview-banner-image"
+                loading="lazy"
+            />
+        @endif
+    </div>
+
     @if ($phone || $email || $dateOfBirth)
         <button
             type="button"
@@ -68,7 +92,7 @@
                 theme: $store.theme,
             }"
             aria-label="Toggle profile details visibility"
-            class="absolute left-2.5 top-2.5 flex size-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-slate-700/60 dark:hover:text-gray-300"
+            class="fi-user-menu-profile-preview-toggle"
         >
             <x-filament::icon
                 icon="heroicon-o-eye"
