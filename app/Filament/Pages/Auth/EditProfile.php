@@ -113,6 +113,7 @@ class EditProfile extends BaseEditProfile implements HasTable
     public static function sectionNavItems(): array
     {
         $items = [
+            ['label' => 'Personal Details', 'id' => 'personal-details'],
             ['label' => 'Personalize & Appearance', 'id' => 'personalize-appearance'],
             ['label' => 'Account & Security', 'id' => 'account-security'],
             ['label' => 'Active Sessions', 'id' => 'active-sessions'],

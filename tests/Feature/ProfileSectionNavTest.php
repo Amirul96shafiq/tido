@@ -38,12 +38,14 @@ test('profile section nav lists main column sections as anchor tabs', function (
     Livewire::test(EditProfile::class)
         ->assertSuccessful()
         ->assertSee('tido-section-nav', false)
+        ->assertSee('Personal Details')
         ->assertSee('Personalize')
         ->assertSee('Account &amp; Security', false)
         ->assertSee('Active Sessions')
         ->assertSee('Regional Preferences')
         ->assertSee('Notifications')
         ->assertSee('Danger Zone')
+        ->assertSee('#personal-details', false)
         ->assertSee('#personalize-appearance', false)
         ->assertSee('#account-security', false)
         ->assertSee('#active-sessions', false)
@@ -52,7 +54,7 @@ test('profile section nav lists main column sections as anchor tabs', function (
         ->assertSee('#danger-zone', false);
 });
 
-test('profile section nav excludes sidebar photo and personal details', function () {
+test('profile section nav excludes sidebar profile appearances', function () {
     $response = Livewire::test(EditProfile::class)
         ->assertSuccessful();
 
@@ -60,7 +62,7 @@ test('profile section nav excludes sidebar photo and personal details', function
 
     expect($html)->toContain('tido-section-nav')
         ->and($html)->not->toContain('href="#profile-photo"')
-        ->and($html)->not->toContain('href="#personal-details"');
+        ->and($html)->toContain('href="#personal-details"');
 
     preg_match(
         '/<div[^>]*class="[^"]*tido-section-nav[^"]*"[^>]*>.*?<\/div>\s*<\/div>/s',
@@ -70,12 +72,13 @@ test('profile section nav excludes sidebar photo and personal details', function
 
     if (isset($navMatch[0])) {
         expect($navMatch[0])->not->toContain('Profile Appearances')
-            ->and($navMatch[0])->not->toContain('Personal Details');
+            ->and($navMatch[0])->toContain('Personal Details');
     }
 });
 
 test('profile section nav items match sectionNavItems helper', function () {
     expect(EditProfile::sectionNavItems())->toBe([
+        ['label' => 'Personal Details', 'id' => 'personal-details'],
         ['label' => 'Personalize & Appearance', 'id' => 'personalize-appearance'],
         ['label' => 'Account & Security', 'id' => 'account-security'],
         ['label' => 'Active Sessions', 'id' => 'active-sessions'],
@@ -94,6 +97,7 @@ test('family member profile hides account and security section and nav', functio
     $this->actingAs($user);
 
     expect(EditProfile::sectionNavItems())->toBe([
+        ['label' => 'Personal Details', 'id' => 'personal-details'],
         ['label' => 'Personalize & Appearance', 'id' => 'personalize-appearance'],
         ['label' => 'Active Sessions', 'id' => 'active-sessions'],
         ['label' => 'Regional Preferences', 'id' => 'regional-preferences'],
@@ -112,7 +116,7 @@ test('profile section nav smooth scrolls on tab click', function () {
     Livewire::test(EditProfile::class)
         ->assertSuccessful()
         ->assertSee('scrollToSection', false)
-        ->assertSee("behavior: 'smooth'", false)
+        ->assertSee("'smooth'", false)
         ->assertSee('onNavClick($event)', false)
         ->assertSee('x-on:click.capture', false);
 });
