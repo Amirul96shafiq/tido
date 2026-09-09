@@ -545,6 +545,38 @@ test('family member duplicate action is available on the edit header', function 
         ->assertActionHasIcon('duplicate', Heroicon::Square2Stack);
 });
 
+test('primary member table applies profile banner row background and overlay when banner is set', function () {
+    Storage::fake('public');
+
+    $this->admin->update([
+        'display_name' => 'Banner Primary',
+        'profile_banner' => 'banners/primary-banner.png',
+    ]);
+
+    $component = Livewire::test(PrimaryMemberTableWidget::class)
+        ->assertSuccessful()
+        ->assertSee('Banner Primary');
+
+    $html = $component->html();
+    $css = preg_replace('/\s+/', ' ', (string) file_get_contents(resource_path('css/app.css'))) ?? '';
+
+    expect($html)->toContain('has-profile-banner')
+        ->toContain('primary-member-banner-'.$this->admin->id)
+        ->toContain('rgba(255, 255, 255, 0.88)')
+        ->toContain('rgba(15, 23, 42, 0.78)')
+        ->toContain('url(\''.Storage::disk('public')->url('banners/primary-banner.png').'\') !important');
+
+    expect($css)->toContain('.tido-primary-member-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner')
+        ->toContain('background-size: cover !important;')
+        ->toContain('background-position: center !important;')
+        ->toContain('.dark .tido-primary-member-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner')
+        ->toContain('text-shadow:')
+        ->toContain('.tido-primary-member-table .fi-ta-table > tbody > tr > td.fi-ta-cell:has(.fi-ta-actions)')
+        ->toContain('background-color: var(--color-white, #ffffff) !important;')
+        ->toContain('.dark .tido-primary-member-table .fi-ta-table > tbody > tr > td.fi-ta-cell:has(.fi-ta-actions)')
+        ->toContain('background-color: var(--color-gray-900, #111827) !important;');
+});
+
 test('family members table applies profile banner row background and overlay for members with banners', function () {
     $withBanner = FamilyMember::factory()->create([
         'name' => 'Has Banner Member',

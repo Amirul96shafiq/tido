@@ -78,6 +78,14 @@ class EditProfile extends BaseEditProfile implements HasTable
 
     private const DELETE_CONFIRMATION_PHRASE = 'CONFIRM DELETE ACCOUNT';
 
+    private const PROFILE_IMAGE_MAX_SIZE_KB = 2048;
+
+    private const PROFILE_BANNER_ASPECT_RATIO = '2.35:1';
+
+    private const PROFILE_BANNER_WIDTH = '940';
+
+    private const PROFILE_BANNER_HEIGHT = '400';
+
     public ?string $pendingRestoreToken = null;
 
     public ?int $pendingDeleteBackupId = null;
@@ -105,6 +113,7 @@ class EditProfile extends BaseEditProfile implements HasTable
     public static function sectionNavItems(): array
     {
         $items = [
+            ['label' => 'Personal Details', 'id' => 'personal-details'],
             ['label' => 'Personalize & Appearance', 'id' => 'personalize-appearance'],
             ['label' => 'Account & Security', 'id' => 'account-security'],
             ['label' => 'Active Sessions', 'id' => 'active-sessions'],
@@ -141,6 +150,7 @@ class EditProfile extends BaseEditProfile implements HasTable
         return [
             'image_path',
             'avatar_url',
+            'profile_banner',
             'password',
             'passwordConfirmation',
             'currentPassword',
@@ -178,16 +188,41 @@ class EditProfile extends BaseEditProfile implements HasTable
     protected function getAvatarFormComponent(): Component
     {
         return FileUpload::make('avatar_url')
-            ->hiddenLabel()
-            ->fieldWrapperView('filament-forms::plain-field-wrapper')
+            ->label('Profile Photo')
             ->extraFieldWrapperAttributes(['class' => 'fi-profile-photo-field'])
             ->avatar()
             ->disk('public')
             ->directory('avatars')
             ->image()
             ->imageEditor()
-            ->maxSize(2048)
+            ->maxSize(self::PROFILE_IMAGE_MAX_SIZE_KB)
             ->circleCropper();
+    }
+
+    protected function getProfileBannerFormComponent(): Component
+    {
+        return FileUpload::make('profile_banner')
+            ->label('Profile Banner')
+            ->disk('public')
+            ->directory('banners')
+            ->image()
+            ->acceptedFileTypes([
+                'image/png',
+                'image/jpeg',
+                'image/webp',
+            ])
+            ->maxSize(self::PROFILE_IMAGE_MAX_SIZE_KB)
+            ->imageEditor()
+            ->imageEditorAspectRatioOptions([
+                null,
+                self::PROFILE_BANNER_ASPECT_RATIO,
+            ])
+            ->imageAspectRatio(self::PROFILE_BANNER_ASPECT_RATIO)
+            ->automaticallyOpenImageEditorForAspectRatio()
+            ->automaticallyResizeImagesToWidth(self::PROFILE_BANNER_WIDTH)
+            ->automaticallyResizeImagesToHeight(self::PROFILE_BANNER_HEIGHT)
+            ->automaticallyResizeImagesMode('cover')
+            ->visible(fn (): bool => HouseholdAccess::isPrimary());
     }
 
     protected function getNameFormComponent(): Component
@@ -217,6 +252,34 @@ class EditProfile extends BaseEditProfile implements HasTable
                     ])
                     ->extraAttributes(['class' => 'fi-profile-main-column'])
                     ->schema([
+                        Section::make('Personal Details')
+                            ->id('personal-details')
+                            ->schema([
+                                $this->getNameFormComponent(),
+                                TextInput::make('display_name')
+                                    ->label('Display Name')
+                                    ->characterLimit(FieldCharacterLimits::DISPLAY_NAME)
+                                    ->placeholder('Display name'),
+
+                                TextInput::make('phone')
+                                    ->label('WhatsApp Number')
+                                    ->tel()
+                                    ->required()
+                                    ->placeholder('+60123456789')
+                                    ->maxLength(20)
+                                    ->rule(fn (): \Closure => function (string $attribute, mixed $value, \Closure $fail): void {
+                                        if (blank($value)) {
+                                            return;
+                                        }
+
+                                        if (PhoneNumber::normalize(is_string($value) ? $value : null) === null) {
+                                            $fail('Enter a valid Malaysian WhatsApp number (e.g. +60123456789, 60123456789, or 0123456789).');
+                                        }
+                                    })
+                                    ->dehydrateStateUsing(fn (?string $state): ?string => PhoneNumber::normalize($state)),
+                                DateOfBirthPicker::make(),
+                            ]),
+
                         Section::make('Personalize & Appearance')
                             ->id('personalize-appearance')
                             ->schema([
@@ -447,41 +510,15 @@ class EditProfile extends BaseEditProfile implements HasTable
                     ])
                     ->extraAttributes(['class' => 'fi-profile-sidebar-sticky'])
                     ->schema([
-                        Section::make('Profile Photo')
+                        Section::make('Profile Appearances')
                             ->id('profile-photo')
                             ->extraAttributes(['class' => 'fi-profile-photo-section'])
                             ->schema([
                                 Flex::make([
                                     $this->getAvatarFormComponent(),
                                 ])->alignCenter(),
-                            ]),
 
-                        Section::make('Personal Details')
-                            ->id('personal-details')
-                            ->schema([
-                                $this->getNameFormComponent(),
-                                TextInput::make('display_name')
-                                    ->label('Display Name')
-                                    ->characterLimit(FieldCharacterLimits::DISPLAY_NAME)
-                                    ->placeholder('Display name'),
-
-                                TextInput::make('phone')
-                                    ->label('WhatsApp Number')
-                                    ->tel()
-                                    ->required()
-                                    ->placeholder('+60123456789')
-                                    ->maxLength(20)
-                                    ->rule(fn (): \Closure => function (string $attribute, mixed $value, \Closure $fail): void {
-                                        if (blank($value)) {
-                                            return;
-                                        }
-
-                                        if (PhoneNumber::normalize(is_string($value) ? $value : null) === null) {
-                                            $fail('Enter a valid Malaysian WhatsApp number (e.g. +60123456789, 60123456789, or 0123456789).');
-                                        }
-                                    })
-                                    ->dehydrateStateUsing(fn (?string $state): ?string => PhoneNumber::normalize($state)),
-                                DateOfBirthPicker::make(),
+                                $this->getProfileBannerFormComponent(),
                             ]),
                     ]),
             ]);
@@ -898,6 +935,7 @@ class EditProfile extends BaseEditProfile implements HasTable
         $oldName = $record->name;
         $oldDisplayName = $record->display_name;
         $oldAvatar = $record->avatar_url;
+        $oldProfileBanner = $record->profile_banner;
         $oldEmail = $record->email;
         $oldPhone = $record->phone;
         $oldDateOfBirth = $record->date_of_birth?->format('Y-m-d');
@@ -950,6 +988,9 @@ class EditProfile extends BaseEditProfile implements HasTable
         }
         if ($oldAvatar !== $updatedRecord->avatar_url) {
             $changes[] = 'Profile photo';
+        }
+        if ($oldProfileBanner !== $updatedRecord->profile_banner) {
+            $changes[] = 'Profile banner';
         }
         if (array_key_exists('email', $data) && $oldEmail !== $data['email']) {
             $changes[] = 'Email';
