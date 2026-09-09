@@ -14,6 +14,8 @@ use Filament\Facades\Filament;
 use Filament\Livewire\Topbar;
 use Filament\Notifications\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
@@ -292,6 +294,108 @@ test('user menu profile preview masks email with first five characters and five 
         ->assertSee('amirul96shafiq@gmail.com', false);
 });
 
+test('user menu profile preview shows primary profile banner when set', function () {
+    if (! Schema::hasColumn('users', 'profile_banner')) {
+        $this->markTestSkipped('users.profile_banner column is required.');
+    }
+
+    Storage::fake('public');
+    Storage::disk('public')->put('banners/primary-menu-banner.png', 'banner');
+
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'profile_banner' => 'banners/primary-menu-banner.png',
+    ]);
+
+    $this->actingAs($user);
+
+    $bannerUrl = Storage::disk('public')->url('banners/primary-menu-banner.png');
+
+    $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee('fi-user-menu-profile-preview-banner', false)
+        ->assertSee('fi-user-menu-profile-preview-banner-image', false)
+        ->assertSee($bannerUrl, false)
+        ->assertDontSee('fi-user-menu-profile-preview-banner--placeholder', false);
+});
+
+test('user menu profile preview shows placeholder when primary has no banner', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $this->actingAs($user);
+
+    $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee('fi-user-menu-profile-preview-banner', false)
+        ->assertSee('fi-user-menu-profile-preview-banner--placeholder', false)
+        ->assertDontSee('fi-user-menu-profile-preview-banner-image', false);
+});
+
+test('user menu profile preview shows user id chip on banner', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $this->actingAs($user);
+
+    $html = (string) $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee('fi-user-menu-profile-preview-user-id', false)
+        ->getContent();
+
+    expect($html)->toMatch(
+        '/fi-user-menu-profile-preview-user-id">\s*'.$user->id.'\s*<\/span>/',
+    );
+});
+
+test('user menu profile preview shows family member banner for family login', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('banners/family-menu-banner.png', 'banner');
+
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'phone' => '60199888777',
+        'name' => 'Family Banner Member',
+        'profile_banner' => 'banners/family-menu-banner.png',
+    ]);
+    $user = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    if (Schema::hasColumn('users', 'profile_banner')) {
+        $user->update(['profile_banner' => 'banners/ignored-user-banner.png']);
+        Storage::disk('public')->put('banners/ignored-user-banner.png', 'ignored');
+    }
+
+    $this->actingAs($user->fresh());
+
+    $familyBannerUrl = Storage::disk('public')->url('banners/family-menu-banner.png');
+
+    $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee('fi-user-menu-profile-preview-banner-image', false)
+        ->assertSee($familyBannerUrl, false)
+        ->assertDontSee('fi-user-menu-profile-preview-banner--placeholder', false);
+
+    if (Schema::hasColumn('users', 'profile_banner')) {
+        $this->get(Dashboard::getUrl())
+            ->assertDontSee(
+                Storage::disk('public')->url('banners/ignored-user-banner.png'),
+                false,
+            );
+    }
+});
+
+test('user menu profile preview shows placeholder when family member has no banner', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'phone' => '60188777666',
+        'name' => 'Family No Banner',
+        'profile_banner' => null,
+    ]);
+    $user = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    $this->actingAs($user);
+
+    $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee('fi-user-menu-profile-preview-banner--placeholder', false)
+        ->assertDontSee('fi-user-menu-profile-preview-banner-image', false);
+});
+
 test('user menu profile preview hides email for family member', function () {
     $member = FamilyMember::factory()->loginEnabled()->create([
         'phone' => '60111222333',
@@ -346,7 +450,17 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
     $profilePreviewBlock = Str::between(
         $css,
         '.fi-user-menu-profile-preview {',
-        '.fi-user-menu-profile-preview-avatar {',
+        '.fi-user-menu-profile-preview-banner {',
+    );
+    $profileBannerBlock = Str::between(
+        $css,
+        '.fi-user-menu-profile-preview-banner {',
+        '.fi-user-menu-profile-preview-banner--placeholder {',
+    );
+    $profileBannerPlaceholderBlock = Str::between(
+        $css,
+        '.fi-user-menu-profile-preview-banner--placeholder {',
+        '.fi-user-menu-profile-preview-banner-image {',
     );
     $profileAvatarBlock = Str::between(
         $css,
@@ -356,7 +470,7 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
     $profileAvatarSizeBlock = Str::between(
         $css,
         '.fi-user-menu-profile-preview-avatar .fi-avatar {',
-        '.fi-user-menu-profile-preview-name {',
+        '.fi-user-menu-profile-preview-identity,',
     );
     $accountSwitcherSectionBlock = Str::between(
         $css,
@@ -423,11 +537,24 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->and($profilePreviewBlock)
         ->toContain('items-center')
         ->toContain('gap-2')
+        ->toContain('pb-3')
+        ->and($profileBannerBlock)
+        ->toContain('aspect-ratio: 2.35 / 1')
+        ->toContain('w-full')
+        ->and($profileBannerPlaceholderBlock)
+        ->toContain('bg-gray-100')
+        ->toContain('dark:bg-slate-700')
         ->and($profileAvatarBlock)
         ->toContain('justify-center')
+        ->toContain('-mt-8')
         ->and($profileAvatarSizeBlock)
         ->toContain('size-16')
+        ->toContain('border-white')
+        ->toContain('dark:border-slate-800')
         ->and($css)
+        ->toContain('.fi-user-menu-profile-preview-user-id {')
+        ->toContain('right-2.5')
+        ->not->toContain('.fi-user-menu-profile-preview-user-id:hover')
         ->toContain('.fi-user-menu-profile-preview-identity,')
         ->toContain('text-base/5')
         ->toContain('text-xs/4')

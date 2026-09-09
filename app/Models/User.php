@@ -174,6 +174,17 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
             : null;
     }
 
+    public function getMenuProfileBannerUrl(): ?string
+    {
+        if ($this->isFamilyMember()) {
+            $this->loadMissing('familyMember');
+
+            return $this->familyMember?->getProfileBannerUrl();
+        }
+
+        return $this->getProfileBannerUrl();
+    }
+
     public function preferredLocale(): string
     {
         return $this->locale ?? 'en';
