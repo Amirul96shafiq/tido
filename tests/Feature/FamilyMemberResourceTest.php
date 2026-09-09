@@ -564,7 +564,7 @@ test('family members table applies profile banner row background and overlay for
         ->assertSee('PlainMember');
 
     $html = $component->html();
-    $css = (string) file_get_contents(resource_path('css/app.css'));
+    $css = preg_replace('/\s+/', ' ', (string) file_get_contents(resource_path('css/app.css'))) ?? '';
 
     expect($html)->toContain('has-profile-banner')
         ->toContain('family-member-banner-'.$withBanner->id)
