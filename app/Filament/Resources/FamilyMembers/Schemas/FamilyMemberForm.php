@@ -45,10 +45,10 @@ class FamilyMemberForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
-            ->columns(10)
+            ->columns(3)
             ->components([
                 Grid::make(1)
-                    ->columnSpan(5)
+                    ->columnSpan(2)
                     ->columnOrder([
                         'default' => 2,
                         'lg' => 1,
@@ -136,7 +136,7 @@ class FamilyMemberForm
                     ]),
 
                 Grid::make(1)
-                    ->columnSpan(5)
+                    ->columnSpan(1)
                     ->columnOrder([
                         'default' => 1,
                         'lg' => 2,

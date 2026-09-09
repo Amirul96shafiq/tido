@@ -415,12 +415,12 @@ test('family member form uses details plus appearances sidebar layout', function
     $schema = FamilyMemberForm::configure(Schema::make()->columns(2));
     $components = $schema->getComponents();
 
-    expect($schema->getColumns('lg'))->toBe(10)
+    expect($schema->getColumns('lg'))->toBe(3)
         ->and($components)->toHaveCount(2)
         ->and($components[0])->toBeInstanceOf(Grid::class)
-        ->and($components[0]->getColumnSpan('lg'))->toBe(5)
+        ->and($components[0]->getColumnSpan('lg'))->toBe(2)
         ->and($components[1])->toBeInstanceOf(Grid::class)
-        ->and($components[1]->getColumnSpan('lg'))->toBe(5)
+        ->and($components[1]->getColumnSpan('lg'))->toBe(1)
         ->and(FamilyMemberForm::sectionNavItems())->toBe([
             ['label' => 'Family Member Appearances', 'id' => 'profile-photo'],
             ['label' => 'Family Member Details', 'id' => 'family-member-details'],
