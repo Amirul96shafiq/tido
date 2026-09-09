@@ -330,6 +330,21 @@ test('user menu profile preview shows placeholder when primary has no banner', f
         ->assertDontSee('fi-user-menu-profile-preview-banner-image', false);
 });
 
+test('user menu profile preview shows user id chip on banner', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create();
+
+    $this->actingAs($user);
+
+    $html = (string) $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee('fi-user-menu-profile-preview-user-id', false)
+        ->getContent();
+
+    expect($html)->toMatch(
+        '/fi-user-menu-profile-preview-user-id">\s*'.$user->id.'\s*<\/span>/',
+    );
+});
+
 test('user menu profile preview shows family member banner for family login', function () {
     Storage::fake('public');
     Storage::disk('public')->put('banners/family-menu-banner.png', 'banner');
@@ -537,6 +552,9 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->toContain('border-white')
         ->toContain('dark:border-slate-800')
         ->and($css)
+        ->toContain('.fi-user-menu-profile-preview-user-id {')
+        ->toContain('right-2.5')
+        ->not->toContain('.fi-user-menu-profile-preview-user-id:hover')
         ->toContain('.fi-user-menu-profile-preview-identity,')
         ->toContain('text-base/5')
         ->toContain('text-xs/4')

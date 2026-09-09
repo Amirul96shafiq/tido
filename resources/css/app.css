@@ -3387,9 +3387,18 @@ body:has([id="global-search-modal::plugin"].fi-modal-open) [data-tippy-root] {
     @apply size-full object-cover object-center;
 }
 
-.fi-user-menu-profile-preview-toggle {
-    @apply absolute left-2.5 top-2.5 z-20 flex size-7 items-center justify-center rounded-lg text-gray-600 transition-colors;
+.fi-user-menu-profile-preview-toggle,
+.fi-user-menu-profile-preview-user-id {
+    @apply absolute top-2.5 z-20 flex h-7 items-center justify-center rounded-lg text-gray-600;
     background-color: color-mix(in srgb, var(--color-white) 85%, transparent);
+}
+
+.fi-user-menu-profile-preview-toggle {
+    @apply left-2.5 size-7 transition-colors;
+}
+
+.fi-user-menu-profile-preview-user-id {
+    @apply right-2.5 min-w-7 px-1.5 text-[10px] leading-none font-medium tabular-nums;
 }
 
 .fi-user-menu-profile-preview-toggle:hover {
@@ -3397,14 +3406,23 @@ body:has([id="global-search-modal::plugin"].fi-modal-open) [data-tippy-root] {
     background-color: color-mix(in srgb, var(--color-white) 95%, transparent);
 }
 
-.dark .fi-user-menu-profile-preview-toggle {
+.dark .fi-user-menu-profile-preview-toggle,
+.dark .fi-user-menu-profile-preview-user-id {
     @apply text-gray-300;
-    background-color: color-mix(in srgb, var(--color-slate-800) 85%, transparent);
+    background-color: color-mix(
+        in srgb,
+        var(--color-slate-800) 85%,
+        transparent
+    );
 }
 
 .dark .fi-user-menu-profile-preview-toggle:hover {
     @apply text-white;
-    background-color: color-mix(in srgb, var(--color-slate-800) 95%, transparent);
+    background-color: color-mix(
+        in srgb,
+        var(--color-slate-800) 95%,
+        transparent
+    );
 }
 
 .fi-user-menu-profile-preview-avatar {

@@ -23,6 +23,9 @@
     $profileBannerUrl = $user instanceof User
         ? $user->getMenuProfileBannerUrl()
         : null;
+    $userId = $user instanceof User
+        ? (string) $user->getKey()
+        : null;
 
     $maskedPhone = null;
     if ($phone !== null) {
@@ -82,6 +85,12 @@
             />
         @endif
     </div>
+
+    @if (filled($userId))
+        <span class="fi-user-menu-profile-preview-user-id">
+            {{ $userId }}
+        </span>
+    @endif
 
     @if ($phone || $email || $dateOfBirth)
         <button
