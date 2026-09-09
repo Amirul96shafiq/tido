@@ -174,7 +174,24 @@ test('mobile nav user menu has sticky header and footer with scrollable content 
         ->toContain('fi-user-menu-mobilenav-content')
         ->toContain('fi-user-menu-mobilenav-footer')
         ->toContain("'mobilenav' ? 'tido-mobilenav-profile-menu-panel' : null")
-        ->toContain('applyMobilenavProfileMenuWidth');
+        ->toContain('applyMobilenavProfileMenuWidth')
+        ->toContain('fi-user-menu-mobilenav-content custom-scrollbar')
+        ->toContain("key('account-switcher-'.\$userMenuInstanceKey)")
+        ->not->toContain('fi-user-menu-mobilenav-account-switcher');
+
+    $accountSwitcher = (string) file_get_contents(
+        resource_path('views/filament/livewire/account-switcher.blade.php'),
+    );
+
+    expect($accountSwitcher)
+        ->toContain('fi-account-switcher--all-members-open')
+        ->toContain('positionMobilenavExpandedUpward')
+        ->toContain('captureMobilenavAnchor')
+        ->toContain('mobilenavAnchor')
+        ->toContain('fi-account-switcher-nav-overlay')
+        ->toContain('fi-account-switcher-expanded-cta')
+        ->not->toContain('positionMobilenavExpandedFromCta')
+        ->not->toContain('anchorMobilenavExpandedFromCta');
 
     expect($css)
         ->toContain('--tido-mobilenav-profile-menu-max-width: 18rem;')
@@ -182,11 +199,17 @@ test('mobile nav user menu has sticky header and footer with scrollable content 
         ->toContain('width: var(--tido-mobilenav-profile-menu-max-width, 18rem) !important;')
         ->toContain('max-width: calc(')
         ->toContain('100vw - var(--tido-mobilenav-inset, 1rem)')
-        ->toContain('.fi-user-menu-mobilenav-header')
+        ->toContain('.fi-user-menu-mobilenav-content:has(')
+        ->toContain('.fi-account-switcher--all-members-open')
+        ->toContain('.fi-user-menu-mobilenav-container:has(')
+        ->toContain('.fi-account-switcher-menu')
         ->toContain('.fi-user-menu-mobilenav-content')
+        ->toContain('.fi-account-switcher-expanded')
+        ->toContain('.fi-user-menu-mobilenav-header')
         ->toContain('.fi-user-menu-mobilenav-footer')
         ->not->toContain('width: 100vw !important;')
-        ->not->toContain('--tido-mobilenav-profile-menu-width:');
+        ->not->toContain('--tido-mobilenav-profile-menu-width:')
+        ->not->toContain('.fi-user-menu-mobilenav-account-switcher');
 
     $user = User::factory()->create([
         'mobile_nav_enabled' => true,

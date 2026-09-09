@@ -7091,6 +7091,13 @@ html.tido-mobilenav {
         z-index: calc(var(--tido-mobilenav-z-chrome, 65) + 1) !important;
     }
 
+    html.tido-mobilenav
+        .fi-dropdown-panel.tido-mobilenav-profile-menu-panel:has(
+            .fi-account-switcher--all-members-open
+        ) {
+        overflow: visible !important;
+    }
+
     /*
      * Mobile responsive profile menu: sticky header, scrollable content, sticky footer
      */
@@ -7151,8 +7158,120 @@ html.tido-mobilenav {
         border-width: 3px !important;
     }
 
+    /*
+     * Swap Account stays in the scroll region; View All Family Members expands
+     * upward from the CTA (see positionMobilenavExpandedUpward in account-switcher).
+     */
+    html.tido-mobilenav
+        .fi-user-menu-mobilenav-content:has(
+            .fi-account-switcher--all-members-open
+        ) {
+        overflow: visible;
+    }
+
+    html.tido-mobilenav
+        .fi-user-menu-mobilenav-container:has(
+            .fi-account-switcher--all-members-open
+        ) {
+        overflow: visible;
+    }
+
+    html.tido-mobilenav
+        .fi-user-menu-mobilenav-content:has(
+            .fi-account-switcher--all-members-open
+        )
+        > .fi-user-menu-mobilenav-theme-list,
+    html.tido-mobilenav
+        .fi-user-menu-mobilenav-content:has(
+            .fi-account-switcher--all-members-open
+        )
+        > .fi-user-menu-mobilenav-nav-list {
+        position: relative;
+        z-index: 0;
+    }
+
+    html.tido-mobilenav
+        .fi-user-menu-mobilenav-content
+        .fi-account-switcher-menu {
+        position: relative;
+        z-index: 30;
+        overflow: visible;
+    }
+
+    html.tido-mobilenav
+        .fi-user-menu-mobilenav-content
+        .fi-account-switcher--all-members-open
+        .fi-account-switcher-menu {
+        position: static;
+    }
+
+    html.tido-mobilenav
+        .fi-user-menu-mobilenav-content
+        .fi-account-switcher-expanded {
+        inset-inline: auto;
+        top: auto;
+        bottom: auto;
+        z-index: 50;
+    }
+
+    html.tido-mobilenav
+        .fi-account-switcher--all-members-open
+        .fi-account-switcher-preview {
+        display: none;
+    }
+
+    html.tido-mobilenav
+        .fi-account-switcher--all-members-open
+        .fi-account-switcher-expanded {
+        display: flex;
+        flex-direction: column;
+        margin-inline: 0;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    html.tido-mobilenav
+        .fi-account-switcher--all-members-open
+        .fi-account-switcher-expanded-list {
+        border-bottom: 0;
+    }
+
+    html.tido-mobilenav
+        .fi-account-switcher--all-members-open
+        .fi-account-switcher-expanded-cta {
+        border-top: 1px solid var(--color-gray-100);
+    }
+
+    html.dark.tido-mobilenav
+        .fi-account-switcher--all-members-open
+        .fi-account-switcher-expanded-cta {
+        border-top-color: color-mix(
+            in srgb,
+            var(--color-slate-700) 60%,
+            transparent
+        );
+    }
+
+    html.tido-mobilenav .fi-account-switcher-nav-overlay {
+        flex-shrink: 0;
+        pointer-events: none;
+        background-color: var(--color-white);
+        border-inline: 1px solid var(--color-gray-100);
+    }
+
+    html.dark.tido-mobilenav .fi-account-switcher-nav-overlay {
+        background-color: var(--color-gray-900);
+        border-inline-color: color-mix(
+            in srgb,
+            var(--color-slate-700) 60%,
+            transparent
+        );
+    }
+
     .fi-user-menu-mobilenav-content,
     html.tido-mobilenav .fi-user-menu-mobilenav-content {
+        position: relative;
+        z-index: 1;
         flex: 1 1 auto;
         overflow-y: auto;
         overflow-x: hidden;
