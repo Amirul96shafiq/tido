@@ -162,6 +162,46 @@ test('mobile nav user menu opens upward from the bottom avatar', function (): vo
         ->toContain('Profile</span>');
 });
 
+test('mobile nav user menu has sticky header and footer with scrollable content and 80% max-height', function (): void {
+    $userMenu = (string) file_get_contents(
+        resource_path('views/vendor/filament-panels/components/user-menu.blade.php'),
+    );
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($userMenu)
+        ->toContain('fi-user-menu-mobilenav-container')
+        ->toContain('fi-user-menu-mobilenav-header')
+        ->toContain('fi-user-menu-mobilenav-content')
+        ->toContain('fi-user-menu-mobilenav-footer')
+        ->toContain("'mobilenav' ? 'tido-mobilenav-profile-menu-panel' : null")
+        ->toContain('applyMobilenavProfileMenuWidth');
+
+    expect($css)
+        ->toContain('--tido-mobilenav-profile-menu-max-width: 18rem;')
+        ->toContain('.fi-dropdown-panel.tido-mobilenav-profile-menu-panel')
+        ->toContain('width: var(--tido-mobilenav-profile-menu-max-width, 18rem) !important;')
+        ->toContain('max-width: calc(')
+        ->toContain('100vw - var(--tido-mobilenav-inset, 1rem)')
+        ->toContain('.fi-user-menu-mobilenav-header')
+        ->toContain('.fi-user-menu-mobilenav-content')
+        ->toContain('.fi-user-menu-mobilenav-footer')
+        ->not->toContain('width: 100vw !important;')
+        ->not->toContain('--tido-mobilenav-profile-menu-width:');
+
+    $user = User::factory()->create([
+        'mobile_nav_enabled' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get('/admin');
+
+    $response->assertSuccessful()
+        ->assertSee('fi-user-menu-mobilenav-header', false)
+        ->assertSee('fi-user-menu-mobilenav-content', false)
+        ->assertSee('fi-user-menu-mobilenav-footer', false);
+});
+
 test('family member mobile nav add sheet disables budget recurring and settings create links', function (): void {
     $member = FamilyMember::factory()->loginEnabled()->create();
     $user = User::query()->where('family_member_id', $member->id)->first();
