@@ -470,6 +470,11 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
     $profileAvatarSizeBlock = Str::between(
         $css,
         '.fi-user-menu-profile-preview-avatar .fi-avatar {',
+        '@media (max-width: 639px) {',
+    );
+    $profileAvatarMobileBlock = Str::between(
+        $css,
+        '@media (max-width: 639px) {',
         '.fi-user-menu-profile-preview-identity,',
     );
     $accountSwitcherSectionBlock = Str::between(
@@ -551,6 +556,10 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->toContain('size-16')
         ->toContain('border-white')
         ->toContain('dark:border-slate-800')
+        ->and($profileAvatarMobileBlock)
+        ->toContain('.fi-user-menu-profile-preview-avatar {')
+        ->toContain('-mt-12')
+        ->toContain('size-24')
         ->and($css)
         ->toContain('.fi-user-menu-profile-preview-user-id {')
         ->toContain('right-2.5')

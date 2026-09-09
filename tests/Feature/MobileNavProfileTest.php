@@ -357,7 +357,7 @@ test('mobile nav avatar notification badge overlays the wrap like the topbar', f
     $avatarChrome = Str::between(
         $css,
         'html.tido-mobilenav .fi-user-menu--mobilenav .fi-user-menu-avatar-wrap {',
-        'html.tido-mobilenav .fi-user-menu--mobilenav .fi-avatar {',
+        'html.tido-mobilenav .fi-user-menu--mobilenav .fi-dropdown-panel {',
     );
 
     expect($avatarChrome)

@@ -3433,6 +3433,16 @@ body:has([id="global-search-modal::plugin"].fi-modal-open) [data-tippy-root] {
     @apply size-16 border-4 border-white dark:border-slate-800;
 }
 
+@media (max-width: 639px) {
+    .fi-user-menu-profile-preview-avatar {
+        @apply -mt-12;
+    }
+
+    .fi-user-menu-profile-preview-avatar .fi-avatar {
+        @apply size-18;
+    }
+}
+
 .fi-user-menu-profile-preview-identity,
 .fi-user-menu-profile-preview-details {
     @apply flex w-full flex-col items-center px-4;
@@ -7055,11 +7065,6 @@ html.tido-mobilenav {
         .fi-user-menu--mobilenav
         .fi-user-menu-notifications-badge {
         @apply pointer-events-none absolute top-0 right-0 z-10 translate-x-2 -translate-y-1;
-    }
-
-    html.tido-mobilenav .fi-user-menu--mobilenav .fi-avatar {
-        width: 2.5rem !important;
-        height: 2.5rem !important;
     }
 
     html.tido-mobilenav .fi-user-menu--mobilenav .fi-dropdown-panel {
