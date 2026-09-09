@@ -34,6 +34,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
         'email',
         'password',
         'avatar_url',
+        'profile_banner',
         'phone',
         'whatsapp_lid',
         'household_role',
@@ -163,6 +164,13 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
     {
         return $this->avatar_url
             ? Storage::disk('public')->url($this->avatar_url)
+            : null;
+    }
+
+    public function getProfileBannerUrl(): ?string
+    {
+        return $this->profile_banner
+            ? Storage::disk('public')->url($this->profile_banner)
             : null;
     }
 

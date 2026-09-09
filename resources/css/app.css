@@ -5058,8 +5058,12 @@ html.tido-reduce-motion
     border: 3px solid var(--color-gray-900, #111827);
 }
 
-/* Family Members Table Profile Banner Row & Overlay */
+/* Family Members & Primary Member Table Profile Banner Row & Overlay */
 .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner,
+.tido-primary-member-table
     .fi-ta-table
     > tbody
     > tr.fi-ta-row.has-profile-banner {
@@ -5072,6 +5076,11 @@ html.tido-reduce-motion
 }
 
 .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    > td.fi-ta-cell:not(:has(.fi-ta-actions)),
+.tido-primary-member-table
     .fi-ta-table
     > tbody
     > tr.fi-ta-row.has-profile-banner
@@ -5089,6 +5098,16 @@ html.tido-reduce-motion
     .fi-ta-table
     > tbody
     > tr.has-profile-banner
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr.has-profile-banner
     > td.fi-ta-cell:has(.fi-ta-actions) {
     background-color: var(--color-white, #ffffff) !important;
 }
@@ -5101,6 +5120,18 @@ html.tido-reduce-motion
     > td.fi-ta-cell:has(.fi-ta-actions),
 .dark
     .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.has-profile-banner
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.dark
+    .tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.dark
+    .tido-primary-member-table
     .fi-ta-table
     > tbody
     > tr.has-profile-banner
@@ -5124,6 +5155,26 @@ html.tido-reduce-motion
     > tr.fi-selected
     > td.fi-ta-cell:has(.fi-ta-actions),
 .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-striped
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr:hover
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-clickable:hover
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-selected
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.tido-primary-member-table
     .fi-ta-table
     > tbody
     > tr.fi-striped
@@ -5154,6 +5205,30 @@ html.tido-reduce-motion
     .fi-ta-table
     > tbody
     > tr.fi-striped
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.dark
+    .tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr:hover
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.dark
+    .tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-clickable:hover
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.dark
+    .tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-selected
+    > td.fi-ta-cell:has(.fi-ta-actions),
+.dark
+    .tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-striped
     > td.fi-ta-cell:has(.fi-ta-actions) {
     background-color: color-mix(
         in srgb,
@@ -5167,12 +5242,23 @@ html.tido-reduce-motion
     .tido-family-members-table
     .fi-ta-table
     > tbody
+    > tr.fi-ta-row.has-profile-banner,
+.dark
+    .tido-primary-member-table
+    .fi-ta-table
+    > tbody
     > tr.fi-ta-row.has-profile-banner {
     border-block-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 .dark
     .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    > td.fi-ta-cell:not(:has(.fi-ta-actions)),
+.dark
+    .tido-primary-member-table
     .fi-ta-table
     > tbody
     > tr.fi-ta-row.has-profile-banner
@@ -5195,6 +5281,24 @@ html.tido-reduce-motion
     .fi-ta-text-item-label,
 .dark
     .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-text-item-description,
+.dark
+    .tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-text-item,
+.dark
+    .tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-text-item-label,
+.dark
+    .tido-primary-member-table
     .fi-ta-table
     > tbody
     > tr.fi-ta-row.has-profile-banner
@@ -5237,6 +5341,34 @@ html.tido-reduce-motion
     > tbody
     > tr.fi-ta-row.has-profile-banner
     .fi-ta-cell-updated-at
+    .fi-ta-text-item,
+.dark
+    .tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-cell-phone
+    .fi-ta-text-item,
+.dark
+    .tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-cell-display-name
+    .fi-ta-text-item,
+.dark
+    .tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-cell-date-of-birth
+    .fi-ta-text-item,
+.dark
+    .tido-primary-member-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-ta-cell-updated-at
     .fi-ta-text-item {
     color: #e2e8f0 !important;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
@@ -5244,6 +5376,12 @@ html.tido-reduce-motion
 
 .dark
     .tido-family-members-table
+    .fi-ta-table
+    > tbody
+    > tr.fi-ta-row.has-profile-banner
+    .fi-checkbox-input,
+.dark
+    .tido-primary-member-table
     .fi-ta-table
     > tbody
     > tr.fi-ta-row.has-profile-banner

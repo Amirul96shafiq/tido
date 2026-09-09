@@ -167,6 +167,10 @@ class AccountDangerZoneService
                     Storage::disk('public')->delete($account->avatar_url);
                 }
 
+                if (filled($account->profile_banner) && Storage::disk('public')->exists($account->profile_banner)) {
+                    Storage::disk('public')->delete($account->profile_banner);
+                }
+
                 $account->delete();
             });
     }

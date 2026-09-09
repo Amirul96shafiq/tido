@@ -5,9 +5,11 @@ declare(strict_types=1);
 use App\Filament\Pages\Auth\EditProfile;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
+use Filament\Forms\Components\FileUpload;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Js;
 use Livewire\Livewire;
 
@@ -35,6 +37,70 @@ test('updating profile name triggers database notification', function () {
     expect($notification->data['body'])->toContain('Full Name');
     expect($notification->data['actions'][0]['url'])->toBe(EditProfile::getUrl());
     expect($notification->data['actions'][0]['shouldOpenUrlInNewTab'])->toBeTrue();
+});
+
+test('primary user can upload a profile banner on edit profile', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'profile_banner' => null,
+    ]);
+
+    $this->actingAs($user);
+
+    $banner = UploadedFile::fake()->image('primary-banner.webp', 2350, 1000);
+
+    Livewire::test(EditProfile::class)
+        ->assertSuccessful()
+        ->assertSchemaComponentExists(
+            'profile_banner',
+            checkComponentUsing: function (FileUpload $component): bool {
+                expect($component->getLabel())->toBe('Profile Banner')
+                    ->and($component->getAcceptedFileTypes())->toBe([
+                        'image/png',
+                        'image/jpeg',
+                        'image/webp',
+                    ])
+                    ->and($component->getMaxSize())->toBe(2048)
+                    ->and($component->getImageAspectRatio())->toBe('2.35:1');
+
+                return true;
+            },
+        )
+        ->set('data.profile_banner', [$banner])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $user->refresh();
+
+    expect($user->profile_banner)->not->toBeNull();
+
+    Storage::disk('public')->assertExists($user->profile_banner);
+});
+
+test('updating profile banner triggers database notification', function () {
+    $user = User::factory()->withWhatsAppPhone('60123456789')->create([
+        'profile_banner' => null,
+        'notify_profile_updates' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    $banner = UploadedFile::fake()->image('primary-banner.webp', 2350, 1000);
+
+    Livewire::test(EditProfile::class)
+        ->set('data.profile_banner', [$banner])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $user->refresh();
+
+    expect($user->notifications()->count())->toBe(1);
+
+    $notification = $user->notifications()->first();
+    expect($notification->data['body'])->toContain('Profile banner');
 });
 
 test('updating profile photo triggers database notification', function () {

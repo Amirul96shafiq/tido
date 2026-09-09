@@ -69,7 +69,7 @@ test('profile section nav excludes sidebar photo and personal details', function
     );
 
     if (isset($navMatch[0])) {
-        expect($navMatch[0])->not->toContain('Profile Photo')
+        expect($navMatch[0])->not->toContain('Profile Appearances')
             ->and($navMatch[0])->not->toContain('Personal Details');
     }
 });

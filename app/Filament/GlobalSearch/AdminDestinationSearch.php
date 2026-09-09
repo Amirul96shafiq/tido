@@ -306,8 +306,8 @@ final class AdminDestinationSearch
                 'details' => ['Page' => 'Profile'],
             ],
             [
-                'title' => 'Profile Photo',
-                'keywords' => ['profile', 'photo', 'avatar', 'picture', 'image'],
+                'title' => 'Profile Appearances',
+                'keywords' => ['profile', 'appearances', 'photo', 'avatar', 'banner', 'picture', 'image'],
                 'group' => 'Sections',
                 'url' => $profileUrl.'#profile-photo',
                 'details' => ['Page' => 'Profile'],
