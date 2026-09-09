@@ -26,22 +26,79 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 
 class FamilyMembersTable
 {
     public static function configure(Table $table): Table
     {
         return $table
+            ->heading('Family Members')
+            ->extraAttributes(['class' => 'tido-family-members-table'])
+            ->recordClasses(fn (FamilyMember $record): array => array_values(array_filter([
+                'tido-family-member-row',
+                $record->profile_banner ? 'has-profile-banner' : 'no-profile-banner',
+                $record->profile_banner ? ('family-member-banner-'.$record->id) : null,
+            ])))
             ->columns([
                 TextColumn::make('id')
                     ->label('ID')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->formatStateUsing(function (int|string $state, FamilyMember $record): HtmlString {
+                        $bannerUrl = $record->getProfileBannerUrl();
+
+                        if (! $bannerUrl) {
+                            return new HtmlString(e((string) $state));
+                        }
+
+                        $escapedUrl = addcslashes($bannerUrl, "'\\");
+                        $style = sprintf(
+                            '<style>'
+                            /* Light theme overlay (lighter color white overlay bg) */
+                            .'.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.family-member-banner-%d,'
+                            .'.tido-family-members-table .fi-ta-row.family-member-banner-%d {'
+                            .'    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.88) 0%%, rgba(255, 255, 255, 0.72) 35%%, rgba(255, 255, 255, 0.72) 65%%, rgba(255, 255, 255, 0.88) 100%%), url(\'%s\') !important;'
+                            .'    background-size: cover !important;'
+                            .'    background-position: center !important;'
+                            .'    background-repeat: no-repeat !important;'
+                            .'}'
+                            .'.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.family-member-banner-%d:hover,'
+                            .'.tido-family-members-table .fi-ta-row.family-member-banner-%d:hover {'
+                            .'    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.78) 0%%, rgba(255, 255, 255, 0.58) 35%%, rgba(255, 255, 255, 0.58) 65%%, rgba(255, 255, 255, 0.78) 100%%), url(\'%s\') !important;'
+                            .'}'
+                            /* Dark theme overlay */
+                            .'.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.family-member-banner-%d,'
+                            .'.dark .tido-family-members-table .fi-ta-row.family-member-banner-%d {'
+                            .'    background-image: linear-gradient(90deg, rgba(15, 23, 42, 0.78) 0%%, rgba(15, 23, 42, 0.50) 35%%, rgba(15, 23, 42, 0.50) 65%%, rgba(15, 23, 42, 0.78) 100%%), url(\'%s\') !important;'
+                            .'}'
+                            .'.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.family-member-banner-%d:hover,'
+                            .'.dark .tido-family-members-table .fi-ta-row.family-member-banner-%d:hover {'
+                            .'    background-image: linear-gradient(90deg, rgba(15, 23, 42, 0.65) 0%%, rgba(15, 23, 42, 0.38) 35%%, rgba(15, 23, 42, 0.38) 65%%, rgba(15, 23, 42, 0.65) 100%%), url(\'%s\') !important;'
+                            .'}'
+                            .'</style>',
+                            $record->id,
+                            $record->id,
+                            $escapedUrl,
+                            $record->id,
+                            $record->id,
+                            $escapedUrl,
+                            $record->id,
+                            $record->id,
+                            $escapedUrl,
+                            $record->id,
+                            $record->id,
+                            $escapedUrl,
+                        );
+
+                        return new HtmlString($style.e((string) $state));
+                    }),
 
                 ImageColumn::make('avatar_url')
                     ->label('')
                     ->disk('public')
                     ->circular()
+                    ->imageSize(64)
                     ->defaultImageUrl(fn (FamilyMember $record): string => app(UiAvatarsProvider::class)->get($record)),
 
                 TextColumn::make('name')
@@ -55,7 +112,8 @@ class FamilyMembersTable
                         }
 
                         return (string) $state;
-                    }),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('display_name')
                     ->label('Display Name')
@@ -69,8 +127,7 @@ class FamilyMembersTable
                         }
 
                         return (string) $state;
-                    })
-                    ->toggleable(isToggledHiddenByDefault: false),
+                    }),
 
                 TextColumn::make('phone')
                     ->label('WhatsApp')
@@ -96,13 +153,13 @@ class FamilyMembersTable
                     ->label('Contact Allowlist')
                     ->boolean()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: false),
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 IconColumn::make('login_enabled')
                     ->label('Panel Login')
                     ->boolean()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: false),
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('editedBy.name')
                     ->label('Edited By')
@@ -120,6 +177,7 @@ class FamilyMembersTable
                     ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->defaultSort('updated_at', 'desc')
+            ->paginated([5])
             ->filters([
                 TernaryFilter::make('allowlist_enabled')
                     ->label('Contact Allowlist')

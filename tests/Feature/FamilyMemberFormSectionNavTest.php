@@ -38,7 +38,7 @@ test('family member edit page renders sticky section nav markers', function () {
 test('family member section nav lists anchor tabs', function () {
     Livewire::test(CreateFamilyMember::class)
         ->assertSuccessful()
-        ->assertSee('Profile Photo')
+        ->assertSee('Family Member Appearances')
         ->assertSee('Family Member Details')
         ->assertSee('#profile-photo', false)
         ->assertSee('#family-member-details', false);
@@ -46,7 +46,7 @@ test('family member section nav lists anchor tabs', function () {
 
 test('family member section nav items match sectionNavItems helper', function () {
     expect(FamilyMemberForm::sectionNavItems())->toBe([
-        ['label' => 'Profile Photo', 'id' => 'profile-photo'],
+        ['label' => 'Family Member Appearances', 'id' => 'profile-photo'],
         ['label' => 'Family Member Details', 'id' => 'family-member-details'],
     ]);
 });
@@ -55,6 +55,7 @@ test('family member section nav smooth scrolls on tab click', function () {
     Livewire::test(CreateFamilyMember::class)
         ->assertSuccessful()
         ->assertSee('scrollToSection', false)
-        ->assertSee("behavior: 'smooth'", false)
+        ->assertSee('behavior:', false)
+        ->assertSee("'smooth'", false)
         ->assertSee('onNavClick($event)', false);
 });

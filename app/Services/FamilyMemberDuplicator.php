@@ -34,6 +34,7 @@ class FamilyMemberDuplicator
                 'phone' => $data['phone'],
                 'whatsapp_lid' => null,
                 'avatar_url' => null,
+                'profile_banner' => null,
                 'allowlist_enabled' => $data['allowlist_enabled'],
                 'login_enabled' => $data['login_enabled'],
             ]);

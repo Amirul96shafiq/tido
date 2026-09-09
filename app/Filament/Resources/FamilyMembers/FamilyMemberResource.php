@@ -21,6 +21,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -80,8 +81,9 @@ class FamilyMemberResource extends Resource
     {
         return Action::make('duplicate')
             ->label('Duplicate')
+            ->icon(Heroicon::Square2Stack)
             ->modalHeading(fn (FamilyMember $record): string => 'Duplicate '.$record->name)
-            ->modalDescription('A new WhatsApp number is required. Login, allowlist access, WhatsApp identity, and profile photo are not copied.')
+            ->modalDescription('A new WhatsApp number is required. Login, allowlist access, WhatsApp identity, profile photo, and profile banner are not copied.')
             ->modalSubmitActionLabel('Duplicate')
             ->schema([
                 TextInput::make('phone')

@@ -9,12 +9,16 @@ use App\Filament\Resources\FamilyMembers\Pages\CreateFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\EditFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\ListFamilyMembers;
 use App\Filament\Resources\FamilyMembers\Schemas\FamilyMemberForm;
+use App\Filament\Resources\FamilyMembers\Widgets\PrimaryMemberTableWidget;
 use App\Models\FamilyMember;
 use App\Models\User;
 use App\Support\PhoneNumber;
 use Filament\Actions\Testing\TestAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\Column;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,7 +42,10 @@ test('family members resource is under settings navigation', function () {
 });
 
 test('authenticated user can list family members', function () {
-    FamilyMember::factory()->create(['name' => 'Spouse']);
+    FamilyMember::factory()->create([
+        'name' => 'Full Name',
+        'display_name' => 'Spouse',
+    ]);
 
     $this->get(FamilyMemberResource::getUrl('index'))
         ->assertSuccessful()
@@ -117,6 +124,16 @@ test('user can upload a family member profile photo', function () {
     $file = UploadedFile::fake()->image('spouse-avatar.jpg');
 
     Livewire::test(CreateFamilyMember::class)
+        ->assertSchemaComponentExists(
+            'avatar_url',
+            checkComponentUsing: function (FileUpload $component): bool {
+                expect($component->getLabel())->toBe('Profile Photo')
+                    ->and($component->getFieldWrapperView())->toBe('filament-forms::field-wrapper')
+                    ->and($component->isLabelHidden())->toBeFalse();
+
+                return true;
+            },
+        )
         ->fillForm([
             'name' => 'Spouse',
             'phone' => '+60116330786',
@@ -180,6 +197,47 @@ test('user can replace a family member profile photo on edit', function () {
     Storage::disk('public')->assertExists($member->avatar_url);
 });
 
+test('user can upload a family member profile banner on edit', function () {
+    Storage::fake('public');
+
+    $member = FamilyMember::factory()->create([
+        'name' => 'Spouse',
+        'phone' => '60116330788',
+        'profile_banner' => null,
+    ]);
+
+    $banner = UploadedFile::fake()->image('family-banner.webp', 2350, 1000);
+
+    Livewire::test(EditFamilyMember::class, ['record' => $member->getRouteKey()])
+        ->assertSuccessful()
+        ->assertSchemaComponentExists(
+            'profile_banner',
+            checkComponentUsing: function (FileUpload $component): bool {
+                expect($component->getLabel())->toBe('Profile Banner')
+                    ->and($component->getAcceptedFileTypes())->toBe([
+                        'image/png',
+                        'image/jpeg',
+                        'image/webp',
+                    ])
+                    ->and($component->getMaxSize())->toBe(2048)
+                    ->and($component->getImageAspectRatio())->toBe('2.35:1');
+
+                return true;
+            },
+        )
+        ->fillForm([
+            'profile_banner' => [$banner],
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $member->refresh();
+
+    expect($member->profile_banner)->not->toBeNull();
+
+    Storage::disk('public')->assertExists($member->profile_banner);
+});
+
 test('editing a family member dispatches an account switcher refresh event', function () {
     $member = FamilyMember::factory()->loginEnabled()->create([
         'name' => 'Spouse',
@@ -218,6 +276,83 @@ test('family members table has view slide-over action', function () {
     Livewire::test(ListFamilyMembers::class)
         ->assertSuccessful()
         ->assertActionExists(TestAction::make('view')->table($member));
+});
+
+test('family members list shows primary member table above family members table', function () {
+    $this->admin->update([
+        'display_name' => 'Household Lead',
+        'phone' => '60198765432',
+    ]);
+
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    Livewire::test(ListFamilyMembers::class)
+        ->assertSuccessful()
+        ->assertSee('Primary Member')
+        ->assertSee('Family Members')
+        ->assertSeeHtml('tido-primary-member-table')
+        ->assertSeeHtml('tido-family-members-table')
+        ->assertSee('Household Lead');
+
+    expect($css)->toContain('.tido-primary-member-table .fi-ta-table > tbody > tr > td.fi-ta-cell')
+        ->toContain('.tido-primary-member-table .fi-ta-cell-avatar-url img');
+});
+
+test('primary member table lists authenticated primary without search filters or pagination', function () {
+    $this->admin->update([
+        'display_name' => 'Household Lead',
+        'phone' => '60198765432',
+        'date_of_birth' => '1990-01-15',
+    ]);
+
+    $editAction = TestAction::make('edit')->table($this->admin);
+
+    $component = Livewire::test(PrimaryMemberTableWidget::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$this->admin])
+        ->assertSee('Household Lead')
+        ->assertSee('60198765432')
+        ->assertTableColumnExists('id')
+        ->assertTableColumnExists('avatar_url')
+        ->assertTableColumnExists('display_name')
+        ->assertTableColumnExists('phone')
+        ->assertTableColumnExists('date_of_birth')
+        ->assertTableColumnExists('updated_at')
+        ->assertActionExists($editAction)
+        ->assertActionHasUrl($editAction, EditProfile::getUrl());
+
+    $table = $component->instance()->getTable();
+
+    expect($table->isSearchable())->toBeFalse()
+        ->and($table->isFilterable())->toBeFalse()
+        ->and($table->isPaginated())->toBeFalse()
+        ->and($table->hasColumnManager())->toBeFalse()
+        ->and($table->getQueryStringIdentifier())->toBe('primaryMember')
+        ->and($table->isSelectionEnabled())->toBeTrue();
+});
+
+test('family members table configures columns, row padding, and fixed pagination', function () {
+    FamilyMember::factory()->count(6)->create();
+
+    $component = Livewire::test(ListFamilyMembers::class)
+        ->assertSuccessful()
+        ->assertTableColumnExists('name', fn (Column $column): bool => $column->isToggleable()
+            && $column->isToggledHiddenByDefault())
+        ->assertTableColumnExists('display_name', fn (Column $column): bool => ! $column->isToggleable())
+        ->assertTableColumnExists('allowlist_enabled', fn (Column $column): bool => $column->isToggleable()
+            && $column->isToggledHiddenByDefault())
+        ->assertTableColumnExists('login_enabled', fn (Column $column): bool => $column->isToggleable()
+            && $column->isToggledHiddenByDefault());
+
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($component->html())->toContain('tido-family-members-table')
+        ->and($css)->toContain('.tido-family-members-table .fi-ta-table > tbody > tr > td.fi-ta-cell')
+        ->toContain('@apply py-10;')
+        ->and($component->instance()->getTableRecordsPerPage())->toBe(5)
+        ->and($component->instance()->getTable()->getPaginationPageOptions())->toBe([5])
+        ->and($component->instance()->getTable()->getDefaultPaginationPageOption())->toBe(5)
+        ->and($component->html())->not->toContain('fi-pagination-records-per-page-select');
 });
 
 test('family members table filters by contact allowlist and panel login status', function () {
@@ -276,18 +411,18 @@ test('trashed family member edit page exposes the restore action', function () {
         ->assertActionExists('forceDelete');
 });
 
-test('family member form uses details plus profile photo sidebar layout', function () {
+test('family member form uses details plus appearances sidebar layout', function () {
     $schema = FamilyMemberForm::configure(Schema::make()->columns(2));
     $components = $schema->getComponents();
 
     expect($schema->getColumns('lg'))->toBe(10)
         ->and($components)->toHaveCount(2)
         ->and($components[0])->toBeInstanceOf(Grid::class)
-        ->and($components[0]->getColumnSpan('lg'))->toBe(7)
+        ->and($components[0]->getColumnSpan('lg'))->toBe(5)
         ->and($components[1])->toBeInstanceOf(Grid::class)
-        ->and($components[1]->getColumnSpan('lg'))->toBe(3)
+        ->and($components[1]->getColumnSpan('lg'))->toBe(5)
         ->and(FamilyMemberForm::sectionNavItems())->toBe([
-            ['label' => 'Profile Photo', 'id' => 'profile-photo'],
+            ['label' => 'Family Member Appearances', 'id' => 'profile-photo'],
             ['label' => 'Family Member Details', 'id' => 'family-member-details'],
         ]);
 });
@@ -352,6 +487,7 @@ test('primary can duplicate a family member with a new WhatsApp number', functio
         ->and($replica->relationship?->value)->toBe('sibling')
         ->and($replica->date_of_birth?->toDateString())->toBe('1991-05-15')
         ->and($replica->avatar_url)->toBeNull()
+        ->and($replica->profile_banner)->toBeNull()
         ->and($replica->whatsapp_lid)->toBeNull()
         ->and($replica->allowlist_enabled)->toBeFalse()
         ->and($replica->login_enabled)->toBeFalse()
@@ -405,5 +541,47 @@ test('family member duplicate action is available on the edit header', function 
     $member = FamilyMember::factory()->create();
 
     Livewire::test(EditFamilyMember::class, ['record' => $member->getRouteKey()])
-        ->assertActionVisible('duplicate');
+        ->assertActionVisible('duplicate')
+        ->assertActionHasIcon('duplicate', Heroicon::Square2Stack);
+});
+
+test('family members table applies profile banner row background and overlay for members with banners', function () {
+    $withBanner = FamilyMember::factory()->create([
+        'name' => 'Has Banner Member',
+        'display_name' => 'BannerMember',
+        'profile_banner' => 'banners/custom-banner.png',
+    ]);
+
+    $withoutBanner = FamilyMember::factory()->create([
+        'name' => 'No Banner Member',
+        'display_name' => 'PlainMember',
+        'profile_banner' => null,
+    ]);
+
+    $component = Livewire::test(ListFamilyMembers::class)
+        ->assertSuccessful()
+        ->assertSee('BannerMember')
+        ->assertSee('PlainMember');
+
+    $html = $component->html();
+    $css = preg_replace('/\s+/', ' ', (string) file_get_contents(resource_path('css/app.css'))) ?? '';
+
+    expect($html)->toContain('has-profile-banner')
+        ->toContain('family-member-banner-'.$withBanner->id)
+        ->toContain('no-profile-banner')
+        ->toContain('rgba(255, 255, 255, 0.88)')
+        ->toContain('rgba(15, 23, 42, 0.78)')
+        ->toContain('url(\''.Storage::disk('public')->url('banners/custom-banner.png').'\') !important')
+        ->not->toContain('family-member-banner-'.$withoutBanner->id);
+
+    expect($css)->toContain('.tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner')
+        ->toContain('background-size: cover !important;')
+        ->toContain('background-position: center !important;')
+        ->toContain('.dark .tido-family-members-table .fi-ta-table > tbody > tr.fi-ta-row.has-profile-banner')
+        ->toContain('text-shadow:')
+        ->toContain('.tido-family-members-table .fi-ta-table > tbody > tr > td.fi-ta-cell:has(.fi-ta-actions)')
+        ->toContain('background-color: var(--color-white, #ffffff) !important;')
+        ->toContain('.dark .tido-family-members-table .fi-ta-table > tbody > tr > td.fi-ta-cell:has(.fi-ta-actions)')
+        ->toContain('background-color: var(--color-gray-900, #111827) !important;')
+        ->not->toContain('.fi-ta-cell-avatar-url img,');
 });

@@ -34,6 +34,7 @@ class FamilyMember extends Model
         'name',
         'display_name',
         'avatar_url',
+        'profile_banner',
         'phone',
         'whatsapp_lid',
         'relationship',
@@ -79,6 +80,13 @@ class FamilyMember extends Model
     {
         return $this->avatar_url
             ? Storage::disk('public')->url($this->avatar_url)
+            : null;
+    }
+
+    public function getProfileBannerUrl(): ?string
+    {
+        return $this->profile_banner
+            ? Storage::disk('public')->url($this->profile_banner)
             : null;
     }
 
