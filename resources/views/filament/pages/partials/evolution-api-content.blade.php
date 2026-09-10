@@ -386,8 +386,11 @@
                             <x-filament::button
                                 color="gray"
                                 size="sm"
-                                wire:click="unlinkWhatsAppLid({{ \Illuminate\Support\Js::from($entry['whatsapp_lid']) }})"
-                                wire:confirm="Unlink this WhatsApp LID from the allowlist contact?"
+                                wire:click="mountAction('unlinkWhatsAppLid', { lid: {{ \Illuminate\Support\Js::from($entry['whatsapp_lid']) }} })"
+                                :disabled="! \App\Support\HouseholdAccess::canManageHouseholdSettings()"
+                                @class([
+                                    'tido-primary-only-action' => ! \App\Support\HouseholdAccess::canManageHouseholdSettings(),
+                                ])
                             >
                                 Unlink
                             </x-filament::button>
@@ -423,7 +426,11 @@
                             <x-filament::button
                                 color="gray"
                                 size="sm"
-                                wire:click="dismissPendingWhatsAppLid({{ \Illuminate\Support\Js::from($pending['lid']) }})"
+                                wire:click="mountAction('dismissPendingWhatsAppLid', { lid: {{ \Illuminate\Support\Js::from($pending['lid']) }} })"
+                                :disabled="! \App\Support\HouseholdAccess::canManageHouseholdSettings()"
+                                @class([
+                                    'tido-primary-only-action' => ! \App\Support\HouseholdAccess::canManageHouseholdSettings(),
+                                ])
                             >
                                 Dismiss
                             </x-filament::button>

@@ -118,7 +118,9 @@ The resource tables show the editor’s username as `User.display_name`, falling
 
 WhatsApp may identify a chat with a Linked ID (`@lid`) instead of a phone-number JID. LIDs are opaque identifiers and cannot be normalized as Malaysian phone numbers. A linked LID is stored on either `users.whatsapp_lid` (Primary) or `family_members.whatsapp_lid` (Family Member), and inbound messages resolve to the existing allowlisted phone before bot routing and expense attribution.
 
-An unlinked LID is ignored by the webhook and remembered as a pending identity, including its optional push name, for up to 30 days. A Primary user can open **Integrations → Evolution API → WhatsApp LID**, link it to the Primary contact or an allowlisted Family Member, or dismiss it. Unlinking removes the mapping and causes later messages from that LID to become pending again.
+An unlinked LID is ignored by the webhook and remembered as a pending identity, including its optional push name, for up to 30 days. A Primary user can open **Integrations → Evolution API → WhatsApp LID**, link it to the Primary contact or an allowlisted Family Member, or dismiss it. Unlinking removes the mapping and causes later messages from that LID to become pending again. **Link LID**, **Unlink**, and **Dismiss** stay Primary-only; family members see those CTAs disabled.
+
+On **Integrations → Evolution API → Connection** (and the Connection details slide-over), contact allowlist card suffixes and destinations are viewer-relative: Primary sees `(You)` on the household lead and relationship labels on family cards; a signed-in family member sees `(Primary Member)` on the lead, `(You)` on their own card, and relationship labels on other members. Primary card links to Profile for Primary sessions and to **Settings → Family Members** for family sessions; the signed-in family member’s own card links to Profile; other family cards link to Family Member edit for Primary sessions and to the Family Members list for family sessions.
 
 ## Dashboard spender filter
 

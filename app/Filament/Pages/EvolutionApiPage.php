@@ -24,6 +24,7 @@ use App\Services\EvolutionApiConnectionLogService;
 use App\Services\EvolutionInstanceService;
 use App\Services\EvolutionSettingsService;
 use App\Services\WhatsAppNotificationService;
+use App\Support\HouseholdAccess;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppLid;
 use App\Support\WhatsAppMessage;
@@ -1339,13 +1340,51 @@ class EvolutionApiPage extends Page implements HasTable
 
     /**
      * @return array{
-     *     primary: list<array{name: string, display_name: string|null, phone: string, whatsapp_lid: string|null, avatar_url: string}>,
-     *     family: list<array{id: int, name: string, display_name: string|null, relationship_label: string|null, phone: string, whatsapp_lid: string|null, avatar_url: string}>
+     *     primary: list<array{name: string, display_name: string|null, phone: string, whatsapp_lid: string|null, avatar_url: string, context_label: string|null, url: string}>,
+     *     family: list<array{id: int, name: string, display_name: string|null, relationship_label: string|null, phone: string, whatsapp_lid: string|null, avatar_url: string, context_label: string|null, url: string}>
      * }
      */
     public function allowedSenderEntries(): array
     {
-        return PhoneNumber::allowedWhatsAppSenderEntries();
+        $entries = PhoneNumber::allowedWhatsAppSenderEntries();
+
+        $entries['primary'] = array_map(
+            fn (array $entry): array => $entry + [
+                'context_label' => HouseholdAccess::isFamilyMember() ? 'Primary Member' : 'You',
+                'url' => HouseholdAccess::isFamilyMember()
+                    ? $this->familyMembersUrl()
+                    : $this->profileEditUrl(),
+            ],
+            $entries['primary'],
+        );
+
+        $currentFamilyMemberId = HouseholdAccess::user()?->family_member_id;
+
+        $entries['family'] = array_map(
+            function (array $entry) use ($currentFamilyMemberId): array {
+                $isCurrentMember = $currentFamilyMemberId !== null
+                    && (int) $entry['id'] === (int) $currentFamilyMemberId;
+
+                if (HouseholdAccess::isFamilyMember()) {
+                    return $entry + [
+                        'context_label' => $isCurrentMember
+                            ? 'You'
+                            : ($entry['relationship_label'] ?? null),
+                        'url' => $isCurrentMember
+                            ? $this->profileEditUrl()
+                            : $this->familyMembersUrl(),
+                    ];
+                }
+
+                return $entry + [
+                    'context_label' => $entry['relationship_label'] ?? null,
+                    'url' => FamilyMemberResource::getUrl('edit', ['record' => $entry['id']]),
+                ];
+            },
+            $entries['family'],
+        );
+
+        return $entries;
     }
 
     /**
@@ -1431,7 +1470,45 @@ class EvolutionApiPage extends Page implements HasTable
             ->visible(fn (): bool => $this->pendingWhatsAppLids() !== []));
     }
 
-    public function unlinkWhatsAppLid(string $lid): void
+    public function unlinkWhatsAppLidAction(): Action
+    {
+        return $this->primaryOnlyAction(Action::make('unlinkWhatsAppLid')
+            ->label('Unlink')
+            ->color('gray')
+            ->size('sm')
+            ->requiresConfirmation()
+            ->modalHeading('Unlink WhatsApp LID?')
+            ->modalDescription('Unlink this WhatsApp LID from the allowlist contact?')
+            ->modalSubmitActionLabel('Unlink')
+            ->action(function (array $arguments): void {
+                $lid = (string) ($arguments['lid'] ?? '');
+
+                if ($lid === '') {
+                    return;
+                }
+
+                $this->performUnlinkWhatsAppLid($lid);
+            }));
+    }
+
+    public function dismissPendingWhatsAppLidAction(): Action
+    {
+        return $this->primaryOnlyAction(Action::make('dismissPendingWhatsAppLid')
+            ->label('Dismiss')
+            ->color('gray')
+            ->size('sm')
+            ->action(function (array $arguments): void {
+                $lid = (string) ($arguments['lid'] ?? '');
+
+                if ($lid === '') {
+                    return;
+                }
+
+                $this->performDismissPendingWhatsAppLid($lid);
+            }));
+    }
+
+    private function performUnlinkWhatsAppLid(string $lid): void
     {
         $this->ensurePrimaryHouseholdMutation();
         WhatsAppLid::unlink($lid);
@@ -1442,7 +1519,7 @@ class EvolutionApiPage extends Page implements HasTable
             ->send();
     }
 
-    public function dismissPendingWhatsAppLid(string $lid): void
+    private function performDismissPendingWhatsAppLid(string $lid): void
     {
         $this->ensurePrimaryHouseholdMutation();
         WhatsAppLid::forgetPending($lid);
