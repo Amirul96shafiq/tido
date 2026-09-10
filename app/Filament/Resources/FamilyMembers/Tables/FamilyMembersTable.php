@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Filament\Resources\FamilyMembers\Tables;
 
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
+use App\Filament\Support\PrimaryOnlyMutationAuthorization;
 use App\Filament\Support\RecordActionsGroup;
 use App\Models\FamilyMember;
+use App\Support\HouseholdAccess;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -194,34 +196,53 @@ class FamilyMembersTable
                 TrashedFilter::make()
                     ->searchable(),
             ])
+            ->checkIfRecordIsSelectableUsing(
+                fn (FamilyMember $record): bool => HouseholdAccess::canManageHouseholdSettings(),
+            )
+            ->recordUrl(fn (FamilyMember $record): ?string => FamilyMemberResource::canEdit($record)
+                ? FamilyMemberResource::getUrl('edit', ['record' => $record])
+                : null)
             ->recordActions([
                 ViewAction::make()
                     ->slideOver()
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
                 RecordActionsGroup::make([
-                    EditAction::make(),
+                    EditAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage()),
                     FamilyMemberResource::duplicateAction(),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                    DeleteAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage()),
+                    RestoreAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage()),
+                    ForceDeleteAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage()),
                 ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete'),
+                    ForceDeleteBulkAction::make()
+                        ->authorizeIndividualRecords('forceDelete'),
+                    RestoreBulkAction::make()
+                        ->authorizeIndividualRecords('restore'),
                 ]),
             ])
             ->emptyStateHeading('No family members yet')
             ->emptyStateDescription('Add family WhatsApp numbers to include them in the bot contact allowlist.')
             ->emptyStateIcon('heroicon-o-user-group')
             ->emptyStateActions([
-                Action::make('create')
-                    ->label('New family member')
-                    ->icon(Heroicon::Plus)
-                    ->url(FamilyMemberResource::getUrl('create'))
-                    ->button(),
+                PrimaryOnlyMutationAuthorization::apply(
+                    Action::make('create')
+                        ->label('New family member')
+                        ->icon(Heroicon::Plus)
+                        ->url(FamilyMemberResource::getUrl('create'))
+                        ->button(),
+                ),
             ]);
     }
 }

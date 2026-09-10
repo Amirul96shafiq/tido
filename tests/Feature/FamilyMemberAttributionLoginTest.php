@@ -251,7 +251,7 @@ test('family member without login enabled cannot access panel', function () {
     expect($user->canAccessPanel(Filament::getCurrentOrDefaultPanel()))->toBeFalse();
 });
 
-test('family member user cannot access evolution api page', function () {
+test('family member user can view evolution api page', function () {
     $member = FamilyMember::factory()->loginEnabled()->create([
         'phone' => '60118887777',
     ]);
@@ -260,10 +260,10 @@ test('family member user cannot access evolution api page', function () {
 
     $this->actingAs($user)
         ->get(EvolutionApiPage::getUrl())
-        ->assertRedirect(route('filament.admin.auth.forbidden'));
+        ->assertSuccessful();
 });
 
-test('family member user cannot access family members resource', function () {
+test('family member user can list family members resource', function () {
     $member = FamilyMember::factory()->loginEnabled()->create([
         'phone' => '60117776666',
     ]);
@@ -272,7 +272,7 @@ test('family member user cannot access family members resource', function () {
 
     $this->actingAs($user)
         ->get(FamilyMemberResource::getUrl('index'))
-        ->assertRedirect(route('filament.admin.auth.forbidden'));
+        ->assertSuccessful();
 });
 
 test('dev otp service stores fixed code without evolution send', function () {

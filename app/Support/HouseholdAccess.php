@@ -43,6 +43,11 @@ final class HouseholdAccess
         return self::isPrimary();
     }
 
+    public static function ensureCanManageHouseholdSettings(): void
+    {
+        abort_unless(self::canManageHouseholdSettings(), 403);
+    }
+
     public static function canMutateAssigned(?int $familyMemberId): bool
     {
         $user = self::user();

@@ -24,7 +24,6 @@ use App\Http\Middleware\SetCurrentHousehold;
 use App\Http\Middleware\SetUserPreferences;
 use App\Support\Calendar\UserMenuCalendarLabel;
 use App\Support\FilamentAuthLogout;
-use App\Support\HouseholdAccess;
 use App\Support\MobileNav;
 use App\Support\ReduceMotion;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
@@ -1268,18 +1267,15 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make(IntegrationNavigation::WHATSAPP)
                     ->group(IntegrationNavigation::GROUP)
                     ->icon('icon-whatsapp')
-                    ->sort(10)
-                    ->extraAttributes(fn (): array => self::primaryOnlyNavigationAttributes()),
+                    ->sort(10),
                 NavigationItem::make(IntegrationNavigation::AI_PARSING_ENGINE)
                     ->group(IntegrationNavigation::GROUP)
                     ->icon(Heroicon::OutlinedCpuChip)
-                    ->sort(20)
-                    ->extraAttributes(fn (): array => self::primaryOnlyNavigationAttributes()),
+                    ->sort(20),
                 NavigationItem::make(IntegrationNavigation::GOOGLE)
                     ->group(IntegrationNavigation::GROUP)
                     ->icon('icon-google')
-                    ->sort(30)
-                    ->extraAttributes(fn (): array => self::primaryOnlyNavigationAttributes()),
+                    ->sort(30),
             ])
             ->routes(function (): void {
                 Route::name('auth.')->group(function (): void {
@@ -1320,21 +1316,5 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
                 SetCurrentHousehold::class,
             ]);
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private static function primaryOnlyNavigationAttributes(): array
-    {
-        if (! HouseholdAccess::isFamilyMember()) {
-            return [];
-        }
-
-        return [
-            'class' => 'tido-primary-only-navigation',
-            'x-data' => '{ tooltip: false }',
-            'x-tooltip' => '{ content: \''.HouseholdAccess::primaryOnlyAccessMessage().'\', theme: $store.theme }',
-        ];
     }
 }

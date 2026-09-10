@@ -14,6 +14,7 @@ use App\Filament\Resources\FamilyMembers\Tables\FamilyMembersTable;
 use App\Models\FamilyMember;
 use App\Models\User;
 use App\Services\FamilyMemberDuplicator;
+use App\Support\HouseholdAccess;
 use App\Support\PhoneNumber;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
@@ -133,7 +134,10 @@ class FamilyMemberResource extends Resource
                 ]);
 
                 $action->successRedirectUrl(static::getUrl('edit', ['record' => $replica]));
-            });
+            })
+            ->authorize('create')
+            ->authorizationTooltip()
+            ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage());
     }
 
     /**
@@ -168,6 +172,18 @@ class FamilyMemberResource extends Resource
         }
 
         return $details;
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        if (static::canEdit($record)) {
+            return static::getUrl('edit', ['record' => $record]);
+        }
+
+        return static::getUrl('index', [
+            'tableAction' => 'view',
+            'tableActionRecord' => $record->getRouteKey(),
+        ]);
     }
 
     public static function getRecordRouteBindingEloquentQuery(): Builder

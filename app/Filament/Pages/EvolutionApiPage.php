@@ -7,6 +7,7 @@ namespace App\Filament\Pages;
 use App\Enums\EvolutionApiConnectionEvent;
 use App\Enums\EvolutionApiConnectMethod;
 use App\Enums\MonitoredService;
+use App\Filament\Concerns\EnsuresPrimaryHouseholdMutation;
 use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
@@ -47,6 +48,7 @@ use Illuminate\Validation\ValidationException;
 
 class EvolutionApiPage extends Page implements HasTable
 {
+    use EnsuresPrimaryHouseholdMutation;
     use HasSectionNav;
     use InteractsWithTable;
     use PrependsHomeBreadcrumb;
@@ -296,6 +298,7 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function generateQr(): void
     {
+        $this->ensurePrimaryHouseholdMutation();
         if (! $this->ensureWhatsappEnabledForHousehold()) {
             return;
         }
@@ -348,6 +351,7 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function generatePairingCode(string $number): void
     {
+        $this->ensurePrimaryHouseholdMutation();
         if (! $this->ensureWhatsappEnabledForHousehold()) {
             return;
         }
@@ -450,6 +454,7 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function logoutSession(): void
     {
+        $this->ensurePrimaryHouseholdMutation();
         if (! $this->ensureWhatsappEnabledForHousehold()) {
             return;
         }
@@ -498,6 +503,7 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function cancelConnecting(): void
     {
+        $this->ensurePrimaryHouseholdMutation();
         if ($this->isConnectionOpen() || ! $this->isConnectingAttempt()) {
             Notification::make()
                 ->title('Nothing to cancel')
@@ -530,6 +536,7 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function registerWebhook(): void
     {
+        $this->ensurePrimaryHouseholdMutation();
         if (! $this->ensureWhatsappEnabledForHousehold()) {
             return;
         }
@@ -543,6 +550,7 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function sendPing(): void
     {
+        $this->ensurePrimaryHouseholdMutation();
         if (! $this->ensureWhatsappEnabledForHousehold()) {
             return;
         }
@@ -616,12 +624,12 @@ class EvolutionApiPage extends Page implements HasTable
                 ->label('Refresh status')
                 ->icon(Heroicon::OutlinedArrowPath)
                 ->action('refreshStatus'),
-            $this->configureSetupAction(),
+            $this->primaryOnlyAction($this->configureSetupAction()),
             $this->connectHeaderAction(),
             ActionGroup::make([
-                $this->enableWhatsAppAction(),
-                $this->disableWhatsAppAction(),
-                Action::make('cancelConnecting')
+                $this->primaryOnlyAction($this->enableWhatsAppAction()),
+                $this->primaryOnlyAction($this->disableWhatsAppAction()),
+                $this->primaryOnlyAction(Action::make('cancelConnecting')
                     ->label('Cancel connecting')
                     ->icon('heroicon-o-x-mark')
                     ->color('warning')
@@ -633,24 +641,24 @@ class EvolutionApiPage extends Page implements HasTable
                     ->modalSubmitActionLabel('Cancel connecting')
                     ->action(function (): void {
                         $this->cancelConnecting();
-                    }),
-                Action::make('registerWebhook')
+                    })),
+                $this->primaryOnlyAction(Action::make('registerWebhook')
                     ->label('Register Webhook')
                     ->icon('heroicon-o-globe-alt')
                     ->extraAttributes(['wire:key' => 'wa-action-register-webhook'])
                     ->disabled(fn (): bool => ! $this->isConnectionOpen() || $this->webhookRegistered)
                     ->action(function (): void {
                         $this->registerWebhook();
-                    }),
-                Action::make('sendPing')
+                    })),
+                $this->primaryOnlyAction(Action::make('sendPing')
                     ->label('Send Test Ping')
                     ->icon('heroicon-o-paper-airplane')
                     ->extraAttributes(['wire:key' => 'wa-action-send-ping'])
                     ->disabled(fn (): bool => ! $this->isConnectionOpen())
                     ->action(function (): void {
                         $this->sendPing();
-                    }),
-                Action::make('logoutSession')
+                    })),
+                $this->primaryOnlyAction(Action::make('logoutSession')
                     ->label('Sign out Current Session')
                     ->icon('heroicon-o-arrow-right-start-on-rectangle')
                     ->color('danger')
@@ -659,7 +667,7 @@ class EvolutionApiPage extends Page implements HasTable
                     ->requiresConfirmation()
                     ->action(function (): void {
                         $this->logoutSession();
-                    }),
+                    })),
             ])
                 ->label('')
                 ->icon('heroicon-m-ellipsis-vertical')
@@ -779,6 +787,8 @@ class EvolutionApiPage extends Page implements HasTable
      */
     private function saveSettingsFromState(array $data, EvolutionSettingsService $settings): bool
     {
+        $this->ensurePrimaryHouseholdMutation();
+
         try {
             $wasConfigured = $settings->isConfigured(
                 $settings->forHousehold((int) auth()->user()->household_id),
@@ -861,14 +871,14 @@ class EvolutionApiPage extends Page implements HasTable
         }
 
         return ActionGroup::make([
-            Action::make('generateQr')
+            $this->primaryOnlyAction(Action::make('generateQr')
                 ->label('Scan QR code')
                 ->icon('heroicon-o-qr-code')
                 ->extraAttributes(['wire:key' => 'wa-action-generate-qr'])
                 ->action(function (): void {
                     $this->generateQr();
-                }),
-            Action::make('pairWithCode')
+                })),
+            $this->primaryOnlyAction(Action::make('pairWithCode')
                 ->label('Pair with code')
                 ->icon('heroicon-o-device-phone-mobile')
                 ->extraAttributes(['wire:key' => 'wa-action-pair-with-code'])
@@ -891,7 +901,7 @@ class EvolutionApiPage extends Page implements HasTable
                 ->modalSubmitActionLabel('Generate code')
                 ->action(function (array $data): void {
                     $this->generatePairingCode((string) ($data['number'] ?? ''));
-                }),
+                })),
         ])
             ->label('Connect')
             ->icon('heroicon-o-link')
@@ -1371,7 +1381,7 @@ class EvolutionApiPage extends Page implements HasTable
     {
         $targets = $this->whatsAppLidLinkTargets();
 
-        return Action::make('linkWhatsAppLid')
+        return $this->primaryOnlyAction(Action::make('linkWhatsAppLid')
             ->label('Link LID')
             ->icon('heroicon-o-link')
             ->modalHeading('Link WhatsApp LID')
@@ -1418,11 +1428,12 @@ class EvolutionApiPage extends Page implements HasTable
                     ->send();
             })
             ->disabled(fn (): bool => $this->pendingWhatsAppLids() === [] || $targets === [])
-            ->visible(fn (): bool => $this->pendingWhatsAppLids() !== []);
+            ->visible(fn (): bool => $this->pendingWhatsAppLids() !== []));
     }
 
     public function unlinkWhatsAppLid(string $lid): void
     {
+        $this->ensurePrimaryHouseholdMutation();
         WhatsAppLid::unlink($lid);
 
         Notification::make()
@@ -1433,6 +1444,7 @@ class EvolutionApiPage extends Page implements HasTable
 
     public function dismissPendingWhatsAppLid(string $lid): void
     {
+        $this->ensurePrimaryHouseholdMutation();
         WhatsAppLid::forgetPending($lid);
 
         Notification::make()

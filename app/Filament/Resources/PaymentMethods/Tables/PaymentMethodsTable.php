@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Filament\Resources\PaymentMethods\Tables;
 
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
+use App\Filament\Support\PrimaryOnlyMutationAuthorization;
 use App\Filament\Support\RecordActionsGroup;
 use App\Models\PaymentMethod;
+use App\Support\HouseholdAccess;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -128,43 +130,62 @@ class PaymentMethodsTable
                 TrashedFilter::make()
                     ->searchable(),
             ])
+            ->checkIfRecordIsSelectableUsing(
+                fn (PaymentMethod $record): bool => HouseholdAccess::canManageHouseholdSettings(),
+            )
+            ->recordUrl(fn (PaymentMethod $record): ?string => PaymentMethodResource::canEdit($record)
+                ? PaymentMethodResource::getUrl('edit', ['record' => $record])
+                : null)
             ->recordActions([
                 ViewAction::make()
                     ->slideOver()
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
                 RecordActionsGroup::make([
-                    EditAction::make(),
+                    EditAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage()),
                     PaymentMethodResource::duplicateAction(),
                     DeleteAction::make()
-                        ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false)),
-                    RestoreAction::make(),
+                        ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false))
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage()),
+                    RestoreAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage()),
                     ForceDeleteAction::make()
-                        ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false) && $record->trashed()),
+                        ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false) && $record->trashed())
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage()),
                 ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     PaymentMethodResource::duplicateBulkAction(),
                     DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete')
                         ->action(function (Collection $records) {
                             $records->reject(fn ($record) => (bool) $record->is_system)->each->delete();
                         }),
                     ForceDeleteBulkAction::make()
+                        ->authorizeIndividualRecords('forceDelete')
                         ->action(function (Collection $records) {
                             $records->reject(fn ($record) => (bool) $record->is_system)->each->forceDelete();
                         }),
-                    RestoreBulkAction::make(),
+                    RestoreBulkAction::make()
+                        ->authorizeIndividualRecords('restore'),
                 ]),
             ])
             ->emptyStateHeading('No payment methods yet')
             ->emptyStateDescription('Create a payment method for receipts and analytics.')
             ->emptyStateIcon('heroicon-o-credit-card')
             ->emptyStateActions([
-                Action::make('create')
-                    ->label('New payment method')
-                    ->icon(Heroicon::Plus)
-                    ->url(PaymentMethodResource::getUrl('create'))
-                    ->button(),
+                PrimaryOnlyMutationAuthorization::apply(
+                    Action::make('create')
+                        ->label('New payment method')
+                        ->icon(Heroicon::Plus)
+                        ->url(PaymentMethodResource::getUrl('create'))
+                        ->button(),
+                ),
             ]);
     }
 }

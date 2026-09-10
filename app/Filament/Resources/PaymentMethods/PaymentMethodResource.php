@@ -13,6 +13,7 @@ use App\Filament\Resources\PaymentMethods\Schemas\PaymentMethodForm;
 use App\Filament\Resources\PaymentMethods\Tables\PaymentMethodsTable;
 use App\Models\PaymentMethod;
 use App\Services\PaymentMethodDuplicator;
+use App\Support\HouseholdAccess;
 use Filament\Actions\BulkAction;
 use Filament\Actions\ReplicateAction;
 use Filament\Resources\Resource;
@@ -78,6 +79,7 @@ class PaymentMethodResource extends Resource
     {
         return ReplicateAction::make()
             ->label('Duplicate')
+            ->authorize('create')
             ->requiresConfirmation()
             ->modalHeading(fn (PaymentMethod $record): string => 'Duplicate '.$record->name)
             ->modalDescription('Creates a user payment method with the same appearance, aliases, and notes. Expenses are not copied.')
@@ -90,7 +92,9 @@ class PaymentMethodResource extends Resource
             })
             ->successRedirectUrl(fn (Model $replica): string => static::getUrl('edit', [
                 'record' => $replica,
-            ]));
+            ]))
+            ->authorizationTooltip()
+            ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage());
     }
 
     public static function duplicateBulkAction(): BulkAction
@@ -98,6 +102,9 @@ class PaymentMethodResource extends Resource
         return BulkAction::make('duplicate')
             ->label('Duplicate')
             ->icon(Heroicon::Square2Stack)
+            ->authorize('create')
+            ->authorizationTooltip()
+            ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage())
             ->requiresConfirmation()
             ->modalHeading('Duplicate selected payment methods')
             ->modalDescription('Creates user payment methods with the same appearance, aliases, and notes. Expenses are not copied.')
@@ -140,6 +147,18 @@ class PaymentMethodResource extends Resource
         return [
             'Slug' => (string) $record->slug,
         ];
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        if (static::canEdit($record)) {
+            return static::getUrl('edit', ['record' => $record]);
+        }
+
+        return static::getUrl('index', [
+            'tableAction' => 'view',
+            'tableActionRecord' => $record->getRouteKey(),
+        ]);
     }
 
     public static function getRecordRouteBindingEloquentQuery(): Builder

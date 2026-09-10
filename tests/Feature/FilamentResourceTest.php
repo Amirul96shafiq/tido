@@ -26,7 +26,6 @@ use App\Models\FamilyMember;
 use App\Models\Label;
 use App\Models\PaymentMethod;
 use App\Models\User;
-use App\Support\HouseholdAccess;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\Testing\TestAction;
 use Filament\Support\Icons\Heroicon;
@@ -65,7 +64,7 @@ test('authenticated user can load labels list', function () {
         ->assertSuccessful();
 });
 
-test('family members see primary-only resource navigation as restricted', function () {
+test('family members can open settings navigation and list labels', function () {
     $familyMember = FamilyMember::factory()->loginEnabled()->create();
     $familyMemberUser = User::query()
         ->where('family_member_id', $familyMember->getKey())
@@ -76,18 +75,11 @@ test('family members see primary-only resource navigation as restricted', functi
     $this->get(Dashboard::getUrl())
         ->assertSuccessful()
         ->assertSee('Labels', false)
-        ->assertSee('tido-primary-only-navigation', false)
-        ->assertSee('tido-primary-only-navigation-lock', false)
-        ->assertSee(HouseholdAccess::primaryOnlyAccessMessage(), false)
-        ->assertSeeHtml('aria-disabled="true"')
-        ->assertDontSeeHtml('href="'.e(LabelResource::getUrl('index')).'"');
+        ->assertDontSee('tido-primary-only-navigation-lock', false)
+        ->assertSeeHtml('href="'.e(LabelResource::getUrl('index')).'"');
 
     $this->get(LabelResource::getUrl('index'))
-        ->assertForbidden();
-
-    expect(file_get_contents(resource_path('css/app.css')))
-        ->toContain('.tido-primary-only-navigation')
-        ->toContain('opacity: 0.5;');
+        ->assertSuccessful();
 });
 
 test('authenticated user can load expenses list', function () {
