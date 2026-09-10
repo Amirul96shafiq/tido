@@ -298,7 +298,7 @@ test('family members list shows primary member table above family members table'
         ->toContain('.tido-primary-member-table .fi-ta-cell-avatar-url img');
 });
 
-test('primary member table lists authenticated primary without search filters or pagination', function () {
+test('primary member table lists household primary without search filters or pagination', function () {
     $this->admin->update([
         'display_name' => 'Household Lead',
         'phone' => '60198765432',
@@ -329,6 +329,30 @@ test('primary member table lists authenticated primary without search filters or
         ->and($table->hasColumnManager())->toBeFalse()
         ->and($table->getQueryStringIdentifier())->toBe('primaryMember')
         ->and($table->isSelectionEnabled())->toBeTrue();
+});
+
+test('primary member table lists household primary for a family member session', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Logged In Member',
+        'display_name' => 'Along',
+    ]);
+    $familyUser = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    $this->admin->update([
+        'display_name' => 'Household Lead',
+    ]);
+
+    $this->actingAs($familyUser);
+
+    $editAction = TestAction::make('edit')->table($this->admin);
+
+    Livewire::test(PrimaryMemberTableWidget::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$this->admin])
+        ->assertCanNotSeeTableRecords([$familyUser])
+        ->assertSee('Household Lead')
+        ->assertDontSee('Along')
+        ->assertActionDisabled($editAction);
 });
 
 test('family members table configures columns, row padding, and fixed pagination', function () {
