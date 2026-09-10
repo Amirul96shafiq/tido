@@ -143,6 +143,18 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
     }
 
     /**
+     * Profile-menu ID chip: Primary Member table uses users.id; Family Members table uses family_members.id.
+     */
+    public function householdDisplayId(): int
+    {
+        if ($this->isFamilyMember() && $this->family_member_id !== null) {
+            return (int) $this->family_member_id;
+        }
+
+        return (int) $this->getKey();
+    }
+
+    /**
      * @return BelongsTo<FamilyMember, $this>
      */
     public function familyMember(): BelongsTo
