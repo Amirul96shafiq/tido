@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Filament\Resources\Backups\BackupResource;
 use App\Filament\Resources\Backups\Pages\ListBackups;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
+use App\Filament\Resources\FamilyMembers\Pages\EditFamilyMember;
 use App\Filament\Resources\FamilyMembers\Pages\ListFamilyMembers;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\Labels\Pages\EditLabel;
@@ -105,6 +106,19 @@ test('family member can list family members and view but cannot create', functio
         ->assertSuccessful();
 
     $this->get(FamilyMemberResource::getUrl('create'))
+        ->assertRedirect(route('filament.admin.auth.forbidden'));
+});
+
+test('family member cannot open family member edit page for own or other members', function () {
+    $fixtures = settingsFamilyMemberUser();
+    $otherMember = FamilyMember::factory()->create(['name' => 'Sibling Member']);
+
+    $this->actingAs($fixtures['user']);
+
+    Livewire::test(EditFamilyMember::class, ['record' => $fixtures['member']->getRouteKey()])
+        ->assertRedirect(route('filament.admin.auth.forbidden'));
+
+    Livewire::test(EditFamilyMember::class, ['record' => $otherMember->getRouteKey()])
         ->assertRedirect(route('filament.admin.auth.forbidden'));
 });
 

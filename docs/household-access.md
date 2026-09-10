@@ -12,8 +12,8 @@ Single-tenant hub with **household roles** today: one **Primary** user owns sett
 | WhatsApp attribution | `app/Support/ExpenseSenderAttribution.php`                                                                                                                                                                              |
 | WhatsApp LID mapping | `app/Support/WhatsAppLid.php` — links opaque `@lid` identities to allowlisted contacts                                                                                                                                  |
 | Login sync           | `app/Services/FamilyMemberLoginService.php` + `app/Observers/FamilyMemberObserver.php`                                                                                                                                  |
-| Primary-only gate    | `app/Filament/Concerns/RequiresPrimaryHouseholdAccess.php` (navigation marker; pages are household-readable)                                                                                                          |
-| Settings mutate ACL  | `app/Policies/LabelPolicy.php`, `PaymentMethodPolicy.php`, `FamilyMemberPolicy.php`, `BackupPolicy.php` → Primary-only mutate; family list/view                                                                               |
+| Primary-only gate    | `app/Filament/Concerns/RequiresPrimaryHouseholdAccess.php` (navigation marker; pages are household-readable)                                                                                                            |
+| Settings mutate ACL  | `app/Policies/LabelPolicy.php`, `PaymentMethodPolicy.php`, `FamilyMemberPolicy.php`, `BackupPolicy.php` → Primary-only mutate; family list/view                                                                         |
 | Expense mutate ACL   | `app/Policies/ExpensePolicy.php` → `HouseholdAccess::canMutateExpense()`                                                                                                                                                |
 | Budget mutate ACL    | `app/Policies/BudgetPolicy.php` → `HouseholdAccess::canMutateBudget()`                                                                                                                                                  |
 | Recurring mutate ACL | `app/Policies/RecurringPolicy.php` → `HouseholdAccess::canMutateRecurring()`                                                                                                                                            |
@@ -25,14 +25,14 @@ Single-tenant hub with **household roles** today: one **Primary** user owns sett
 
 ## Roles
 
-| Role              | How set                                                              | Panel access                                                                    |
-| ----------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| **Primary**       | `users.household_role = primary` (default / null treated as primary) | Full `/admin`                                                                   |
+| Role              | How set                                                              | Panel access                                                                                                                             |
+| ----------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Primary**       | `users.household_role = primary` (default / null treated as primary) | Full `/admin`                                                                                                                            |
 | **Family member** | Linked `User` created when Family Member has **login enabled**       | Full sidebar navigation with view-only Settings / Integrations / Tools (see below); `canAccessPanel` requires `login_enabled` still true |
 
 **Household-readable, Primary-only mutate** (list + View slide-over; Create / Edit / Delete / Duplicate / restore actions stay visible but disabled with `Only {primary} able to use this CTA button.`):
 
-- Settings: Labels, Payment Methods, Family Members
+- Settings: Labels, Payment Methods, Family Members (exception: on Family Members, a signed-in family member’s **own** row **Edit** action and row click open **Profile** instead of Family Member Settings CRUD; Duplicate / Delete / restore stay primary-only)
 - Integrations: Evolution API, Ollama, Google OAuth, coming-soon integration pages
 - Tools: Backups, Service Status (manual health check stays Primary-only)
 

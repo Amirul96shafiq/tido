@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\FamilyMembers\Tables;
 
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Filament\Support\PrimaryOnlyMutationAuthorization;
 use App\Filament\Support\RecordActionsGroup;
@@ -199,15 +200,16 @@ class FamilyMembersTable
             ->checkIfRecordIsSelectableUsing(
                 fn (FamilyMember $record): bool => HouseholdAccess::canManageHouseholdSettings(),
             )
-            ->recordUrl(fn (FamilyMember $record): ?string => FamilyMemberResource::canEdit($record)
-                ? FamilyMemberResource::getUrl('edit', ['record' => $record])
-                : null)
+            ->recordUrl(fn (FamilyMember $record): ?string => self::recordEditUrl($record))
             ->recordActions([
                 ViewAction::make()
                     ->slideOver()
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
                 RecordActionsGroup::make([
                     EditAction::make()
+                        ->url(fn (FamilyMember $record): ?string => self::recordEditUrl($record))
+                        ->authorize(fn (FamilyMember $record): bool => HouseholdAccess::canManageHouseholdSettings()
+                            || HouseholdAccess::isCurrentFamilyMemberRecord($record))
                         ->authorizationTooltip()
                         ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage()),
                     FamilyMemberResource::duplicateAction(),
@@ -244,5 +246,18 @@ class FamilyMembersTable
                         ->button(),
                 ),
             ]);
+    }
+
+    private static function recordEditUrl(FamilyMember $record): ?string
+    {
+        if (HouseholdAccess::isCurrentFamilyMemberRecord($record)) {
+            return EditProfile::getUrl();
+        }
+
+        if (FamilyMemberResource::canEdit($record)) {
+            return FamilyMemberResource::getUrl('edit', ['record' => $record]);
+        }
+
+        return null;
     }
 }

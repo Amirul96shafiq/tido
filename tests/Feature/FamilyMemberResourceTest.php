@@ -355,6 +355,50 @@ test('primary member table lists household primary for a family member session',
         ->assertActionDisabled($editAction);
 });
 
+test('family member own row edit action links to profile', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Logged In Member',
+        'display_name' => 'Along',
+    ]);
+    $otherMember = FamilyMember::factory()->create(['name' => 'Sibling Member']);
+    $familyUser = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    $this->actingAs($familyUser);
+
+    $ownEditAction = TestAction::make('edit')->table($member);
+    $otherEditAction = TestAction::make('edit')->table($otherMember);
+
+    $component = Livewire::test(ListFamilyMembers::class)
+        ->assertSuccessful()
+        ->assertActionVisible($ownEditAction)
+        ->assertActionEnabled($ownEditAction)
+        ->assertActionHasUrl($ownEditAction, EditProfile::getUrl())
+        ->assertActionVisible($otherEditAction)
+        ->assertActionDisabled($otherEditAction);
+
+    $table = $component->instance()->getTable();
+
+    expect($table->getRecordUrl($member))->toBe(EditProfile::getUrl())
+        ->and($table->getRecordUrl($otherMember))->toBeNull();
+});
+
+test('primary user family members table edit links to family member edit page', function () {
+    $member = FamilyMember::factory()->create(['name' => 'Household Sibling']);
+
+    $editAction = TestAction::make('edit')->table($member);
+
+    $component = Livewire::test(ListFamilyMembers::class)
+        ->assertSuccessful()
+        ->assertActionVisible($editAction)
+        ->assertActionEnabled($editAction)
+        ->assertActionHasUrl($editAction, FamilyMemberResource::getUrl('edit', ['record' => $member]));
+
+    $table = $component->instance()->getTable();
+
+    expect($table->getRecordUrl($member))
+        ->toBe(FamilyMemberResource::getUrl('edit', ['record' => $member]));
+});
+
 test('family members table configures columns, row padding, and fixed pagination', function () {
     FamilyMember::factory()->count(6)->create();
 

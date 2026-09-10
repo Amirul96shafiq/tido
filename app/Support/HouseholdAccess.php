@@ -43,6 +43,17 @@ final class HouseholdAccess
         return self::isPrimary();
     }
 
+    public static function isCurrentFamilyMemberRecord(FamilyMember $record): bool
+    {
+        $user = self::user();
+
+        if ($user === null || ! $user->isFamilyMember() || $user->family_member_id === null) {
+            return false;
+        }
+
+        return (int) $user->family_member_id === (int) $record->getKey();
+    }
+
     public static function ensureCanManageHouseholdSettings(): void
     {
         abort_unless(self::canManageHouseholdSettings(), 403);
