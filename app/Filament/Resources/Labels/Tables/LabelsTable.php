@@ -6,8 +6,10 @@ namespace App\Filament\Resources\Labels\Tables;
 
 use App\Enums\LabelType;
 use App\Filament\Resources\Labels\LabelResource;
+use App\Filament\Support\PrimaryOnlyMutationAuthorization;
 use App\Filament\Support\RecordActionsGroup;
 use App\Models\Label;
+use App\Support\HouseholdAccess;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -96,43 +98,62 @@ class LabelsTable
                 TrashedFilter::make()
                     ->searchable(),
             ])
+            ->checkIfRecordIsSelectableUsing(
+                fn (Label $record): bool => HouseholdAccess::canManageHouseholdSettings(),
+            )
+            ->recordUrl(fn (Label $record): ?string => LabelResource::canEdit($record)
+                ? LabelResource::getUrl('edit', ['record' => $record])
+                : null)
             ->recordActions([
                 ViewAction::make()
                     ->slideOver()
                     ->extraModalOverlayAttributes(['class' => 'fi-modal-overlay-blur'], merge: true),
                 RecordActionsGroup::make([
-                    EditAction::make(),
+                    EditAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage()),
                     LabelResource::duplicateAction(),
                     DeleteAction::make()
-                        ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false)),
-                    RestoreAction::make(),
+                        ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false))
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage()),
+                    RestoreAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage()),
                     ForceDeleteAction::make()
-                        ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false) && $record->trashed()),
+                        ->visible(fn ($record) => ! (bool) ($record?->is_system ?? false) && $record->trashed())
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage()),
                 ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     LabelResource::duplicateBulkAction(),
                     DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete')
                         ->action(function (Collection $records) {
                             $records->reject(fn ($record) => (bool) $record->is_system)->each->delete();
                         }),
                     ForceDeleteBulkAction::make()
+                        ->authorizeIndividualRecords('forceDelete')
                         ->action(function (Collection $records) {
                             $records->reject(fn ($record) => (bool) $record->is_system)->each->forceDelete();
                         }),
-                    RestoreBulkAction::make(),
+                    RestoreBulkAction::make()
+                        ->authorizeIndividualRecords('restore'),
                 ]),
             ])
             ->emptyStateHeading('No labels yet')
             ->emptyStateDescription('Create a label to categorize expenses.')
             ->emptyStateIcon('heroicon-o-tag')
             ->emptyStateActions([
-                Action::make('create')
-                    ->label('New label')
-                    ->icon(Heroicon::Plus)
-                    ->url(LabelResource::getUrl('create'))
-                    ->button(),
+                PrimaryOnlyMutationAuthorization::apply(
+                    Action::make('create')
+                        ->label('New label')
+                        ->icon(Heroicon::Plus)
+                        ->url(LabelResource::getUrl('create'))
+                        ->button(),
+                ),
             ]);
     }
 }

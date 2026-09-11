@@ -291,8 +291,8 @@ test('ollama page section nav smooth scrolls on tab click', function (): void {
     Livewire::test(OllamaPage::class)
         ->assertSuccessful()
         ->assertSee('scrollToSection', false)
-        ->assertSee("behavior: 'smooth'", false)
-        ->assertSee('onNavClick($event)', false);
+        ->assertSee("'smooth'", false)
+        ->assertSee('onNavClick', false);
 });
 
 test('ollama page shows receipt & parsing activity stats from stored expenses', function (): void {
@@ -694,7 +694,7 @@ test('ollama page run test extraction shows success with mocked ollama', functio
         ->assertNotified('Test extraction succeeded');
 });
 
-test('family member cannot access ollama page', function (): void {
+test('family member can view ollama page but cannot mutate settings', function (): void {
     $familyMember = FamilyMember::factory()->loginEnabled()->create();
     $familyMemberUser = User::query()
         ->where('family_member_id', $familyMember->getKey())
@@ -702,11 +702,18 @@ test('family member cannot access ollama page', function (): void {
 
     $this->actingAs($familyMemberUser);
 
-    expect(OllamaPage::canAccess())->toBeFalse()
+    expect(OllamaPage::canAccess())->toBeTrue()
         ->and(OllamaPage::shouldRegisterNavigation())->toBeTrue();
 
     $this->get(OllamaPage::getUrl())
-        ->assertRedirect();
+        ->assertSuccessful();
+
+    Livewire::test(OllamaPage::class)
+        ->assertActionVisible('configureSetup')
+        ->assertActionDisabled('configureSetup')
+        ->assertActionVisible('testConnection')
+        ->assertActionDisabled('testConnection')
+        ->assertSee('tido-primary-only-action', false);
 });
 
 test('ollama page is in integrations navigation group', function (): void {

@@ -1,11 +1,11 @@
 ---
 name: tido-domain
 description: >-
-  tido domain knowledge for expense receipts, expenses, labels, budgets,
-  family members / household access, Ollama OCR, and WhatsApp Evolution webhooks.
-  Use when working on Expense/ExpenseItem/Label/Budget/FamilyMember models,
-  receipt parsing, ExtractReceiptDataJob, OllamaService, WhatsApp webhooks,
-  budget alerts, dashboard analytics, household roles, or any MYR spending feature.
+    tido domain knowledge for expense receipts, expenses, labels, budgets,
+    family members / household access, Ollama OCR, and WhatsApp Evolution webhooks.
+    Use when working on Expense/ExpenseItem/Label/Budget/FamilyMember models,
+    receipt parsing, ExtractReceiptDataJob, OllamaService, WhatsApp webhooks,
+    budget alerts, dashboard analytics, household roles, or any MYR spending feature.
 ---
 
 # tido Domain
@@ -18,17 +18,17 @@ This skill covers the **Finances** module. Home also has Training / Health / Tas
 
 ## Domain model (9 Finances-facing models)
 
-| Model | Role |
-|-------|------|
-| `Expense` | Receipt header: merchant, amounts, status, image/PDF document, `raw_ai_response`, `receipt_hash`; `payment_method_id`; optional `family_member_id` (**Uploaded By**); WhatsApp message and file metadata |
-| `ExpenseItem` | Line item → `belongsTo` Expense + Label; optional warranty/serial |
-| `Label` | Expense category (`LabelType` enum); system-seeded + user-created |
-| `PaymentMethod` | Payment rail (Settings CRUD); system-seeded + user-created; aliases for OCR/WhatsApp |
-| `Budget` | Cap per label/period (daily…yearly); threshold alerts |
-| `Recurring` | Reminder template: type, cadence, ownership, merchant aliases, optional goal |
-| `RecurringOccurrence` | Period instance: due/overdue/completed; links `expense_id` when paid |
-| `FamilyMember` | Household contact: WhatsApp allowlist + optional panel login; expenses attributed via `family_member_id` |
-| `User` | Filament admin; `household_role` primary \| family_member; locale/timezone/notification prefs |
+| Model                 | Role                                                                                                                                                                                                     |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Expense`             | Receipt header: merchant, amounts, status, image/PDF document, `raw_ai_response`, `receipt_hash`; `payment_method_id`; optional `family_member_id` (**Uploaded By**); WhatsApp message and file metadata |
+| `ExpenseItem`         | Line item → `belongsTo` Expense + Label; optional warranty/serial                                                                                                                                        |
+| `Label`               | Expense category (`LabelType` enum); system-seeded + user-created                                                                                                                                        |
+| `PaymentMethod`       | Payment rail (Settings CRUD); system-seeded + user-created; aliases for OCR/WhatsApp                                                                                                                     |
+| `Budget`              | Cap per label/period (daily…yearly); threshold alerts                                                                                                                                                    |
+| `Recurring`           | Reminder template: type, cadence, ownership, merchant aliases, optional goal                                                                                                                             |
+| `RecurringOccurrence` | Period instance: due/overdue/completed; links `expense_id` when paid                                                                                                                                     |
+| `FamilyMember`        | Household contact: WhatsApp allowlist + optional panel login; expenses attributed via `family_member_id`                                                                                                 |
+| `User`                | Filament admin; `household_role` primary \| family_member; locale/timezone/notification prefs                                                                                                            |
 
 Money is always **MYR** (`decimal(12,2)`). Display as `RM …`.
 
@@ -64,31 +64,32 @@ Attribution: `family_member_id` null = Primary; set from WhatsApp sender (`Expen
 
 ## Key classes
 
-| Concern | Class |
-|---------|-------|
-| OCR HTTP | `App\Services\OllamaService` |
-| PDF preparation | `App\Services\PdfPageInspector`, `App\Services\PdfPageRenderer`, `App\Services\ReceiptDocumentPreparer` |
-| Prompt JSON schema | `App\Prompts\ReceiptExtractionPrompt` |
-| Manual text labels | `App\Prompts\ManualExpenseLabelPrompt` + `ParseManualWhatsAppExpenseJob` |
-| Manual text parser | `App\Support\ManualWhatsAppExpenseParser` |
-| Parse job (vision) | `App\Jobs\ExtractReceiptDataJob` |
-| Hash + dispatch + alerts | `App\Observers\ExpenseObserver` |
-| WhatsApp in | `App\Http\Controllers\Api\WhatsAppWebhookController` |
-| WhatsApp LID mapping | `App\Support\WhatsAppLid` |
-| WhatsApp out | `App\Services\WhatsAppNotificationService` |
-| Budget breach | `App\Services\BudgetAlertService` |
-| Recurring generate/match/remind | `App\Services\RecurringOccurrenceGenerator`, `RecurringMatchService`, `RecurringReminderService` |
-| Forecast widget | `App\Services\SpendingForecastService` |
-| Matcher | `App\Services\LabelMatcher`, `App\Services\PaymentMethodMatcher` |
-| Family login sync | `App\Services\FamilyMemberLoginService` + `FamilyMemberObserver` |
-| Household ACL | `App\Support\HouseholdAccess`, `App\Policies\ExpensePolicy`, `BudgetPolicy`, `RecurringPolicy` |
-| Attribution / spender | `App\Support\ExpenseSenderAttribution`, `App\Support\DashboardSpenderScope` |
+| Concern                         | Class                                                                                                   |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| OCR HTTP                        | `App\Services\OllamaService`                                                                            |
+| PDF preparation                 | `App\Services\PdfPageInspector`, `App\Services\PdfPageRenderer`, `App\Services\ReceiptDocumentPreparer` |
+| Prompt JSON schema              | `App\Prompts\ReceiptExtractionPrompt`                                                                   |
+| Manual text labels              | `App\Prompts\ManualExpenseLabelPrompt` + `ParseManualWhatsAppExpenseJob`                                |
+| Manual text parser              | `App\Support\ManualWhatsAppExpenseParser`                                                               |
+| Parse job (vision)              | `App\Jobs\ExtractReceiptDataJob`                                                                        |
+| Hash + dispatch + alerts        | `App\Observers\ExpenseObserver`                                                                         |
+| WhatsApp in                     | `App\Http\Controllers\Api\WhatsAppWebhookController`                                                    |
+| WhatsApp LID mapping            | `App\Support\WhatsAppLid`                                                                               |
+| WhatsApp out                    | `App\Services\WhatsAppNotificationService`                                                              |
+| Budget breach                   | `App\Services\BudgetAlertService`                                                                       |
+| Recurring generate/match/remind | `App\Services\RecurringOccurrenceGenerator`, `RecurringMatchService`, `RecurringReminderService`        |
+| Forecast widget                 | `App\Services\SpendingForecastService`                                                                  |
+| Matcher                         | `App\Services\LabelMatcher`, `App\Services\PaymentMethodMatcher`                                        |
+| Family login sync               | `App\Services\FamilyMemberLoginService` + `FamilyMemberObserver`                                        |
+| Household ACL                   | `App\Support\HouseholdAccess`, `App\Policies\ExpensePolicy`, `BudgetPolicy`, `RecurringPolicy`          |
+| Attribution / spender           | `App\Support\ExpenseSenderAttribution`, `App\Support\DashboardSpenderScope`                             |
 
 ## Filament map
 
 - Resources: Add Receipts, Expenses, Budgets, Recurrings (Finances); Labels, Payment Methods, Family Members (Settings); Evolution API (Integrations); Backups, Service Status (Tools) — models `Label`, `PaymentMethod`, `FamilyMember`, `Backup`, `Recurring`
-- Primary-only: Labels, Payment Methods, Family Members, Evolution, Backups (`RequiresPrimaryHouseholdAccess`); Service Status is household-readable with primary-only manual probes
+- Household-readable / Primary-only mutate: Labels, Payment Methods, Family Members, Evolution, Backups, integration pages (`RequiresPrimaryHouseholdAccess`); Service Status is household-readable with primary-only manual probes
 - Family Finances ACL: Expenses, Budgets, and Recurrings are listable; mutate assigned records only; create for Budgets/Recurrings stays primary-only (visible disabled CTA)
+- Settings resources: family members list + View slide-over; all mutate CTAs visible but disabled (`LabelPolicy`, `PaymentMethodPolicy`, `FamilyMemberPolicy`, `BackupPolicy`)
 - Recurrings docs: `docs/recurrings.md`
 - View records: always `ViewAction::make()->slideOver()` — never dedicated View pages; use the disabled form schema (no custom `infolist()` / `*Infolist.php`)
 - Upload UI: `ReceiptUploadPage` → creates pending expenses (stamps `family_member_id` for family users)

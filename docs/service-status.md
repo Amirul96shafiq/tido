@@ -4,28 +4,28 @@ Filament **Tools → Service Status** (`/admin/service-status`) monitors critica
 
 ## Source of truth
 
-| Layer | Path |
-|-------|------|
-| Filament page | `app/Filament/Pages/ServiceStatusPage.php` |
-| Blade UI | `resources/views/filament/pages/service-status.blade.php` |
-| Aggregator | `app/Services/Health/ServiceHealthAggregator.php` |
-| Recorder | `app/Services/Health/ServiceHealthRecorder.php` |
-| Probes | `app/Services/Health/Probes/*` |
-| Enums | `app/Enums/MonitoredService.php`, `app/Enums/ServiceHealthStatus.php` |
-| Model / table | `app/Models/ServiceHealthSample.php` → `service_health_samples` |
-| Commands | `health:probe`, `health:prune` (`app/Console/Commands/`) |
-| Schedule | `routes/console.php` — probe every 15m, prune daily at 04:00 |
+| Layer         | Path                                                                  |
+| ------------- | --------------------------------------------------------------------- |
+| Filament page | `app/Filament/Pages/ServiceStatusPage.php`                            |
+| Blade UI      | `resources/views/filament/pages/service-status.blade.php`             |
+| Aggregator    | `app/Services/Health/ServiceHealthAggregator.php`                     |
+| Recorder      | `app/Services/Health/ServiceHealthRecorder.php`                       |
+| Probes        | `app/Services/Health/Probes/*`                                        |
+| Enums         | `app/Enums/MonitoredService.php`, `app/Enums/ServiceHealthStatus.php` |
+| Model / table | `app/Models/ServiceHealthSample.php` → `service_health_samples`       |
+| Commands      | `health:probe`, `health:prune` (`app/Console/Commands/`)              |
+| Schedule      | `routes/console.php` — probe every 15m, prune daily at 04:00          |
 
 ## Monitored services
 
-| Key | Label | When included |
-|-----|-------|----------------|
-| `app` | Application | Always |
-| `database` | Database | Always |
-| `ollama` | Ollama | Always (`GET {OLLAMA_HOST}/api/tags`) |
-| `evolution` | Evolution API | Always (`EvolutionInstanceService::connectionState()`) |
-| `queue` | Queue | Always (DB connection + failed-job threshold; Redis ping when driver is `redis`) |
-| `reverb` | Reverb | When `BROADCAST_CONNECTION=reverb` (`GET {REVERB_SCHEME}://{REVERB_HOST}:{REVERB_PORT}/apps`) |
+| Key         | Label         | When included                                                                                 |
+| ----------- | ------------- | --------------------------------------------------------------------------------------------- |
+| `app`       | Application   | Always                                                                                        |
+| `database`  | Database      | Always                                                                                        |
+| `ollama`    | Ollama        | Always (`GET {OLLAMA_HOST}/api/tags`)                                                         |
+| `evolution` | Evolution API | Always (`EvolutionInstanceService::connectionState()`)                                        |
+| `queue`     | Queue         | Always (DB connection + failed-job threshold; Redis ping when driver is `redis`)              |
+| `reverb`    | Reverb        | When `BROADCAST_CONNECTION=reverb` (`GET {REVERB_SCHEME}://{REVERB_HOST}:{REVERB_PORT}/apps`) |
 
 Status values: `operational`, `degraded`, `down` (UI-only `unknown` for empty history pieces).
 
@@ -33,10 +33,10 @@ Status values: `operational`, `degraded`, `down` (UI-only `unknown` for empty hi
 
 Two-column page (stacks on small screens):
 
-| Column | Content |
-|--------|---------|
-| Left (40%) | **Summary Report (date)** — Evolution “Link Device”-style status card, monitored/operational/degraded/down counts. On `lg+`, the card is content-height (`align-self: start`) and sticky below the section tabs while Status scrolls. |
-| Right (60%) | **Status (date)** — per-service current status, uptime %, 30-day barcode (60 × 12h pieces) |
+| Column      | Content                                                                                                                                                                                                                               |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Left (40%)  | **Summary Report (date)** — Evolution “Link Device”-style status card, monitored/operational/degraded/down counts. On `lg+`, the card is content-height (`align-self: start`) and sticky below the section tabs while Status scrolls. |
+| Right (60%) | **Status (date)** — per-service current status, uptime %, 30-day barcode (60 × 12h pieces)                                                                                                                                            |
 
 Section titles use dashboard widget date format: `Summary Report (24 Jun 2026 – 23 Jul 2026)` — no separate description line.
 
@@ -46,7 +46,7 @@ Section titles use dashboard widget date format: `Summary Report (24 Jun 2026 �
 
 **Header action:** Run check now — calls `ServiceHealthRecorder::recordAll()` and refreshes the report.
 
-Primary and family-member users can view Service Status. **Run check now** remains primary-only because it performs external probes and records health samples.
+Primary and family-member users can view Service Status and use **Run check now** to record fresh probe samples and refresh the report.
 
 **Section navigation:** Sticky in-page tabs jump between `#service-summary-report` and `#service-status` (see [ui-section-nav.md](ui-section-nav.md)).
 
@@ -57,7 +57,7 @@ Primary and family-member users can view Service Status. **Run check now** remai
 - **Uptime %:** operational samples ÷ all samples in the window (one decimal).
 - **Historical piece color:** worst status in that 12h window.
 - **Current in-progress piece** (ends in the future): latest sample status + message (so a recovered service shows green while uptime % still reflects earlier failures).
-- **Summary banner:** worst *current* status across configured services.
+- **Summary banner:** worst _current_ status across configured services.
 
 ## Scheduler & manual use
 
@@ -72,14 +72,14 @@ Automatic polling requires an active Laravel scheduler process, such as `php art
 
 `ServiceHealthRecorder::recordAll()` (scheduled `health:probe` and Service Status **Run check now**) compares each service to its previous sample and may send a Filament inbox summary.
 
-| Rule | Behaviour |
-|------|-----------|
-| Recipients | Primary login users with Profile → Notifications → **Service Status** on |
-| Channel | Filament inbox only |
-| First sample | No alert (no previous status to compare) |
-| Transitions | Alert when a service becomes degraded or down, or recovers to operational |
-| Unchanged | No second alert while the status stays the same |
-| Copy | Service names and status only — no probe payload |
+| Rule         | Behaviour                                                                 |
+| ------------ | ------------------------------------------------------------------------- |
+| Recipients   | Primary login users with Profile → Notifications → **Service Status** on  |
+| Channel      | Filament inbox only                                                       |
+| First sample | No alert (no previous status to compare)                                  |
+| Transitions  | Alert when a service becomes degraded or down, or recovers to operational |
+| Unchanged    | No second alert while the status stays the same                           |
+| Copy         | Service names and status only — no probe payload                          |
 
 The preference defaults on. Family login users do not receive these alerts.
 

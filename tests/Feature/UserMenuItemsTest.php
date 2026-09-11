@@ -345,6 +345,31 @@ test('user menu profile preview shows user id chip on banner', function () {
     );
 });
 
+test('user menu profile preview shows family member id chip for family login', function () {
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'phone' => '60199888776',
+        'name' => 'Family Id Chip',
+    ]);
+    $user = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    $this->actingAs($user);
+
+    $html = (string) $this->get(Dashboard::getUrl())
+        ->assertSuccessful()
+        ->assertSee('fi-user-menu-profile-preview-user-id', false)
+        ->getContent();
+
+    expect($html)->toMatch(
+        '/fi-user-menu-profile-preview-user-id">\s*'.$member->id.'\s*<\/span>/',
+    );
+
+    if ((int) $user->id !== (int) $member->id) {
+        expect($html)->not->toMatch(
+            '/fi-user-menu-profile-preview-user-id">\s*'.$user->id.'\s*<\/span>/',
+        );
+    }
+});
+
 test('user menu profile preview shows family member banner for family login', function () {
     Storage::fake('public');
     Storage::disk('public')->put('banners/family-menu-banner.png', 'banner');

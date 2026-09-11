@@ -7,13 +7,15 @@ namespace App\Services\Health\Probes;
 use App\Enums\MonitoredService;
 use App\Enums\ServiceHealthStatus;
 use App\Services\EvolutionInstanceService;
+use App\Services\EvolutionSettingsService;
 use App\Services\Health\ServiceHealthProbe;
 use App\Services\Health\ServiceHealthResult;
+use RuntimeException;
 
 class EvolutionProbe implements ServiceHealthProbe
 {
     public function __construct(
-        private readonly EvolutionInstanceService $evolution,
+        private readonly EvolutionSettingsService $settings,
     ) {}
 
     public function service(): MonitoredService
@@ -23,14 +25,23 @@ class EvolutionProbe implements ServiceHealthProbe
 
     public function probe(): ServiceHealthResult
     {
-        if (! $this->evolution->isConfigured()) {
+        try {
+            $evolution = new EvolutionInstanceService($this->settings);
+        } catch (RuntimeException $exception) {
+            return new ServiceHealthResult(
+                status: ServiceHealthStatus::Down,
+                meta: ['message' => $exception->getMessage()],
+            );
+        }
+
+        if (! $evolution->isConfigured()) {
             return new ServiceHealthResult(
                 status: ServiceHealthStatus::Degraded,
                 meta: ['message' => 'Evolution API is not configured.'],
             );
         }
 
-        $state = $this->evolution->connectionState();
+        $state = $evolution->connectionState();
 
         if (! $state['ok']) {
             return new ServiceHealthResult(

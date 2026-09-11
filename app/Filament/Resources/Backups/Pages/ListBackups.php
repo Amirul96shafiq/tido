@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Backups\Pages;
 use App\Enums\BackupType;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Resources\Backups\BackupResource;
+use App\Filament\Support\PrimaryOnlyMutationAuthorization;
 use App\Models\User;
 use App\Services\BackupNotificationService;
 use App\Services\BackupService;
@@ -24,30 +25,32 @@ class ListBackups extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('createBackup')
-                ->label('Create backup')
-                ->icon(Heroicon::Plus)
-                ->action(function (BackupService $backupService, BackupNotificationService $backupNotificationService): void {
-                    $user = auth()->user();
+            PrimaryOnlyMutationAuthorization::apply(
+                Action::make('createBackup')
+                    ->label('Create backup')
+                    ->icon(Heroicon::Plus)
+                    ->action(function (BackupService $backupService, BackupNotificationService $backupNotificationService): void {
+                        $user = auth()->user();
 
-                    if (! $user instanceof User) {
-                        return;
-                    }
+                        if (! $user instanceof User) {
+                            return;
+                        }
 
-                    $created = $backupService->create(
-                        BackupType::Manual,
-                        $user,
-                    );
+                        $created = $backupService->create(
+                            BackupType::Manual,
+                            $user,
+                        );
 
-                    $backupNotificationService->notifyCreated($user, $created->backup);
-                    $backupNotificationService->notifyRestoreToken($created->restoreToken);
+                        $backupNotificationService->notifyCreated($user, $created->backup);
+                        $backupNotificationService->notifyRestoreToken($created->restoreToken);
 
-                    Notification::make()
-                        ->title('Backup created')
-                        ->body('A new database backup has been saved.')
-                        ->success()
-                        ->send();
-                }),
+                        Notification::make()
+                            ->title('Backup created')
+                            ->body('A new database backup has been saved.')
+                            ->success()
+                            ->send();
+                    }),
+            ),
         ];
     }
 }

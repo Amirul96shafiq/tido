@@ -62,7 +62,7 @@ test('coming soon integration pages render for the primary household', function 
         ->assertSee($description, false);
 })->with('comingSoonIntegrationPages');
 
-test('family members cannot access coming soon integration pages', function (string $page, string $_parent, string $_label, int $_sort, string $_description, string $_icon): void {
+test('family members can access coming soon integration pages', function (string $page, string $_parent, string $_label, int $_sort, string $_description, string $_icon): void {
     $familyMember = FamilyMember::factory()->loginEnabled()->create();
     $familyMemberUser = User::query()
         ->where('family_member_id', $familyMember->getKey())
@@ -70,9 +70,14 @@ test('family members cannot access coming soon integration pages', function (str
 
     $this->actingAs($familyMemberUser);
 
-    expect($page::canAccess())->toBeFalse()
+    expect($page::canAccess())->toBeTrue()
         ->and($page::shouldRegisterNavigation())->toBeTrue();
 
     $this->get($page::getUrl())
-        ->assertRedirect();
+        ->assertSuccessful();
+
+    Livewire::test($page)
+        ->assertSuccessful()
+        ->assertSee('Coming soon')
+        ->assertSee($_description, false);
 })->with('comingSoonIntegrationPages');

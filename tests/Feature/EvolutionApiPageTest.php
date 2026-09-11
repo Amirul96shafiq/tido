@@ -1228,3 +1228,103 @@ test('connection history section lists previous logs', function () {
     expect($tooltip)->toBeString()->not->toBeEmpty()
         ->and($tooltip)->not->toBe($relative);
 });
+
+test('family member session shows viewer-aware allowlist labels and urls when connected', function () {
+    $loginMember = FamilyMember::factory()->loginEnabled()->create([
+        'name' => 'Along Full Name',
+        'display_name' => 'Along',
+        'phone' => '60111222333',
+        'relationship' => FamilyRelationship::Sibling,
+        'allowlist_enabled' => true,
+    ]);
+
+    $familyUser = User::query()->where('family_member_id', $loginMember->id)->firstOrFail();
+
+    EvolutionApiConnectionLog::factory()->connected()->create([
+        'connected_number' => '601115666887',
+        'meta' => [
+            'source' => 'page',
+            'connect_method' => 'pairing_code',
+        ],
+    ]);
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/webhook/find/*' => Http::response(fakeRegisteredWebhook()),
+    ]);
+
+    $this->actingAs($familyUser);
+
+    Livewire::test(EvolutionApiPage::class)
+        ->assertSet('connectionStatus', 'open')
+        ->assertSeeHtml('<span class="text-xs font-normal text-gray-500 dark:text-gray-400">(Primary Member)</span>')
+        ->assertSeeHtml('href="'.e(FamilyMemberResource::getUrl('index')).'"')
+        ->assertSeeHtml('<span class="text-xs font-normal text-gray-500 dark:text-gray-400">(You)</span>')
+        ->assertSeeHtml('href="'.e(EditProfile::getUrl()).'"')
+        ->assertSeeHtml('<span class="text-xs font-normal text-gray-500 dark:text-gray-400">(Sibling)</span>')
+        ->assertSee('Along')
+        ->assertSee('Spouse')
+        ->assertSee('Connection details')
+        ->assertDontSeeHtml('href="'.e(FamilyMemberResource::getUrl('edit', ['record' => $this->familyMember])).'"');
+});
+
+test('primary can unlink whatsapp lid from evolution page', function () {
+    User::query()->whereKey(1)->update(['whatsapp_lid' => '3693839708391']);
+
+    EvolutionApiConnectionLog::factory()->connected()->create([
+        'connected_number' => '601115666887',
+    ]);
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/webhook/find/*' => Http::response(fakeRegisteredWebhook()),
+    ]);
+
+    Livewire::test(EvolutionApiPage::class)
+        ->assertSee('Unlink')
+        ->assertActionEnabled('unlinkWhatsAppLid')
+        ->mountAction('unlinkWhatsAppLid', ['lid' => '3693839708391'])
+        ->callMountedAction()
+        ->assertNotified('WhatsApp LID unlinked');
+
+    expect(User::query()->whereKey(1)->value('whatsapp_lid'))->toBeNull();
+});
+
+test('family member cannot unlink whatsapp lid on evolution page', function () {
+    User::query()->whereKey(1)->update(['whatsapp_lid' => '3693839708391']);
+
+    $member = FamilyMember::factory()->loginEnabled()->create([
+        'phone' => '60118887777',
+        'allowlist_enabled' => true,
+    ]);
+
+    $familyUser = User::query()->where('family_member_id', $member->id)->firstOrFail();
+
+    EvolutionApiConnectionLog::factory()->connected()->create([
+        'connected_number' => '601115666887',
+    ]);
+
+    Http::fake([
+        '*/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+        '*/instance/fetchInstances*' => Http::response([fakeConnectedInstance()]),
+        '*/webhook/find/*' => Http::response(fakeRegisteredWebhook()),
+    ]);
+
+    $this->actingAs($familyUser);
+
+    Livewire::test(EvolutionApiPage::class)
+        ->assertSee('Unlink')
+        ->assertSee('tido-primary-only-action', false)
+        ->assertActionDisabled('unlinkWhatsAppLid')
+        ->assertActionDisabled('dismissPendingWhatsAppLid');
+
+    expect(User::query()->whereKey(1)->value('whatsapp_lid'))->toBe('3693839708391');
+});

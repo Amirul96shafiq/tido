@@ -77,7 +77,7 @@ function makeNewHealthSamples(array $statuses): array
 test('first health probe does not send an inbox alert', function (): void {
     Http::fake([
         'http://ollama.test/api/tags' => Http::response(['models' => [['name' => 'qwen2.5vl:7b']]]),
-        'http://evolution.test/instance/connectionState/tido' => Http::response([
+        'http://evolution.test/instance/connectionState/*' => Http::response([
             'instance' => ['state' => 'open'],
         ]),
     ]);

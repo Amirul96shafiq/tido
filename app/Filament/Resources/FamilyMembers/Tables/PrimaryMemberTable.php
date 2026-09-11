@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Filament\Resources\FamilyMembers\Tables;
 
 use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Support\PrimaryOnlyMutationAuthorization;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Filament\Actions\Action;
 use Filament\AvatarProviders\UiAvatarsProvider;
 use Filament\Support\Enums\FontFamily;
@@ -13,7 +15,6 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\HtmlString;
 
 class PrimaryMemberTable
@@ -25,7 +26,7 @@ class PrimaryMemberTable
             ->extraAttributes(['class' => 'tido-primary-member-table'])
             ->queryStringIdentifier('primaryMember')
             ->query(
-                User::query()->whereKey(Auth::id()),
+                User::query()->whereKey(PhoneNumber::primaryUser()?->id),
             )
             ->recordClasses(fn (User $record): array => array_values(array_filter([
                 'tido-primary-member-row',
@@ -124,10 +125,12 @@ class PrimaryMemberTable
             ->selectable()
             ->paginated(false)
             ->recordActions([
-                Action::make('edit')
-                    ->label('Edit')
-                    ->icon(Heroicon::PencilSquare)
-                    ->url(EditProfile::getUrl()),
+                PrimaryOnlyMutationAuthorization::apply(
+                    Action::make('edit')
+                        ->label('Edit')
+                        ->icon(Heroicon::PencilSquare)
+                        ->url(EditProfile::getUrl()),
+                ),
             ]);
     }
 }

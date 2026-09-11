@@ -14,6 +14,7 @@ use App\Filament\Resources\Labels\Schemas\LabelForm;
 use App\Filament\Resources\Labels\Tables\LabelsTable;
 use App\Models\Label;
 use App\Services\LabelDuplicator;
+use App\Support\HouseholdAccess;
 use Filament\Actions\BulkAction;
 use Filament\Actions\ReplicateAction;
 use Filament\Resources\Resource;
@@ -79,6 +80,7 @@ class LabelResource extends Resource
     {
         return ReplicateAction::make()
             ->label('Duplicate')
+            ->authorize('create')
             ->requiresConfirmation()
             ->modalHeading(fn (Label $record): string => 'Duplicate '.$record->name)
             ->modalDescription('Creates a user label with the same appearance and notes. Expenses and budgets are not copied.')
@@ -91,7 +93,9 @@ class LabelResource extends Resource
             })
             ->successRedirectUrl(fn (Model $replica): string => static::getUrl('edit', [
                 'record' => $replica,
-            ]));
+            ]))
+            ->authorizationTooltip()
+            ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage());
     }
 
     public static function duplicateBulkAction(): BulkAction
@@ -99,6 +103,9 @@ class LabelResource extends Resource
         return BulkAction::make('duplicate')
             ->label('Duplicate')
             ->icon(Heroicon::Square2Stack)
+            ->authorize('create')
+            ->authorizationTooltip()
+            ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage())
             ->requiresConfirmation()
             ->modalHeading('Duplicate selected labels')
             ->modalDescription('Creates user labels with the same appearance and notes. Expenses and budgets are not copied.')
@@ -142,6 +149,18 @@ class LabelResource extends Resource
             'Type' => $record->type instanceof LabelType ? $record->type->label() : (string) $record->type,
             'Slug' => $record->slug,
         ];
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        if (static::canEdit($record)) {
+            return static::getUrl('edit', ['record' => $record]);
+        }
+
+        return static::getUrl('index', [
+            'tableAction' => 'view',
+            'tableActionRecord' => $record->getRouteKey(),
+        ]);
     }
 
     public static function getRecordRouteBindingEloquentQuery(): Builder

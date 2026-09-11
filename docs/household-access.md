@@ -12,7 +12,8 @@ Single-tenant hub with **household roles** today: one **Primary** user owns sett
 | WhatsApp attribution | `app/Support/ExpenseSenderAttribution.php`                                                                                                                                                                              |
 | WhatsApp LID mapping | `app/Support/WhatsAppLid.php` — links opaque `@lid` identities to allowlisted contacts                                                                                                                                  |
 | Login sync           | `app/Services/FamilyMemberLoginService.php` + `app/Observers/FamilyMemberObserver.php`                                                                                                                                  |
-| Primary-only gate    | `app/Filament/Concerns/RequiresPrimaryHouseholdAccess.php`                                                                                                                                                              |
+| Primary-only gate    | `app/Filament/Concerns/RequiresPrimaryHouseholdAccess.php` (navigation marker; pages are household-readable)                                                                                                            |
+| Settings mutate ACL  | `app/Policies/LabelPolicy.php`, `PaymentMethodPolicy.php`, `FamilyMemberPolicy.php`, `BackupPolicy.php` → Primary-only mutate; family list/view                                                                         |
 | Expense mutate ACL   | `app/Policies/ExpensePolicy.php` → `HouseholdAccess::canMutateExpense()`                                                                                                                                                |
 | Budget mutate ACL    | `app/Policies/BudgetPolicy.php` → `HouseholdAccess::canMutateBudget()`                                                                                                                                                  |
 | Recurring mutate ACL | `app/Policies/RecurringPolicy.php` → `HouseholdAccess::canMutateRecurring()`                                                                                                                                            |
@@ -24,21 +25,23 @@ Single-tenant hub with **household roles** today: one **Primary** user owns sett
 
 ## Roles
 
-| Role              | How set                                                              | Panel access                                                                    |
-| ----------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| **Primary**       | `users.household_role = primary` (default / null treated as primary) | Full `/admin`                                                                   |
-| **Family member** | Linked `User` created when Family Member has **login enabled**       | Finances only (see below); `canAccessPanel` requires `login_enabled` still true |
+| Role              | How set                                                              | Panel access                                                                                                                             |
+| ----------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Primary**       | `users.household_role = primary` (default / null treated as primary) | Full `/admin`                                                                                                                            |
+| **Family member** | Linked `User` created when Family Member has **login enabled**       | Full sidebar navigation with view-only Settings / Integrations / Tools (see below); `canAccessPanel` requires `login_enabled` still true |
 
-Primary-only surfaces use `RequiresPrimaryHouseholdAccess` (`canAccess` + restricted family navigation):
+**Household-readable, Primary-only mutate** (list + View slide-over; Create / Edit / Delete / Duplicate / restore actions stay visible but disabled with `Only {primary} able to use this CTA button.`):
 
-- Settings: Labels, Payment Methods, Family Members
-- Integrations: Evolution API
-- Tools: Backups
-- Profile: household / WhatsApp allowlist sections that are primary-only
-- Family members see restricted entries at 50% opacity with an access tooltip; direct access remains forbidden
-- Global search destinations filtered for non-primary users (Budgets and Recurrings stay visible)
+- Settings: Labels, Payment Methods, Family Members (exception: on Family Members, a signed-in family member’s **own** row **Edit** action and row click open **Profile** instead of Family Member Settings CRUD; Duplicate / Delete / restore stay primary-only)
+- Integrations: Evolution API, Ollama, Google OAuth, coming-soon integration pages
+- Tools: Backups; Service Status (view + **Run check now** for all household logins)
 
-Family members **can** use: Home (Finance dashboard), Add Receipts, Expenses, Budgets, Recurrings, Service Status (read-only), Profile (own account), WhatsApp OTP login.
+**Primary-only** (hidden or blocked for family members):
+
+- Profile: household / WhatsApp allowlist sections, Danger Zone, Account & Security
+- Global search: Danger Zone and Account & Security destinations remain filtered for non-primary users
+
+Family members **can** use: Home (Finance dashboard), Add Receipts, Expenses, Budgets, Recurrings, all household-readable pages above, Profile (own account), WhatsApp OTP login.
 
 ## Budgets (owner + share)
 
@@ -115,7 +118,9 @@ The resource tables show the editor’s username as `User.display_name`, falling
 
 WhatsApp may identify a chat with a Linked ID (`@lid`) instead of a phone-number JID. LIDs are opaque identifiers and cannot be normalized as Malaysian phone numbers. A linked LID is stored on either `users.whatsapp_lid` (Primary) or `family_members.whatsapp_lid` (Family Member), and inbound messages resolve to the existing allowlisted phone before bot routing and expense attribution.
 
-An unlinked LID is ignored by the webhook and remembered as a pending identity, including its optional push name, for up to 30 days. A Primary user can open **Integrations → Evolution API → WhatsApp LID**, link it to the Primary contact or an allowlisted Family Member, or dismiss it. Unlinking removes the mapping and causes later messages from that LID to become pending again.
+An unlinked LID is ignored by the webhook and remembered as a pending identity, including its optional push name, for up to 30 days. A Primary user can open **Integrations → Evolution API → WhatsApp LID**, link it to the Primary contact or an allowlisted Family Member, or dismiss it. Unlinking removes the mapping and causes later messages from that LID to become pending again. **Link LID**, **Unlink**, and **Dismiss** stay Primary-only; family members see those CTAs disabled.
+
+On **Integrations → Evolution API → Connection** (and the Connection details slide-over), contact allowlist card suffixes and destinations are viewer-relative: Primary sees `(You)` on the household lead and relationship labels on family cards; a signed-in family member sees `(Primary Member)` on the lead, `(You)` on their own card, and relationship labels on other members. Primary card links to Profile for Primary sessions and to **Settings → Family Members** for family sessions; the signed-in family member’s own card links to Profile; other family cards link to Family Member edit for Primary sessions and to the Family Members list for family sessions.
 
 ## Dashboard spender filter
 
@@ -160,9 +165,9 @@ Account rows use `display_name`, falling back to `name`, and display the current
 
 ## Agent rules
 
-1. Gate new Settings / Tools / Integrations pages with `RequiresPrimaryHouseholdAccess` (or explicit `HouseholdAccess::isPrimary()`).
+1. Register new Settings / Tools / Integrations pages with `RequiresPrimaryHouseholdAccess` for navigation grouping; keep pages household-readable and gate write actions with `HouseholdAccess::canManageHouseholdSettings()` / `PrimaryOnlyMutationAuthorization`.
 2. Attribute new WhatsApp image/PDF/text and upload expense creates via `ExpenseSenderAttribution` or the acting user’s `family_member_id`.
-3. Expense, Budget, and Recurring mutate UI must respect `HouseholdAccess::canMutateExpense()` / `canMutateBudget()` / `canMutateRecurring()` and the matching policies — do not hide View for family members. Create stays primary-only (visible disabled CTA).
+3. Expense, Budget, Recurring, and Settings resource mutate UI must respect the matching policies — do not hide View for family members. Create stays primary-only (visible disabled CTA) on Settings resources and Budgets/Recurrings.
 4. Do not invent Spatie roles/tenancy packages — household role is a column + helpers; cross-household isolation uses `household_id` per [multi-household-change-checklist.md](multi-household-change-checklist.md).
 5. Tests: `FamilyMember::factory()->loginEnabled()`, `Http::fake` / `Queue::fake` for OTP/WhatsApp.
 6. Treat a WhatsApp LID as unresolved until `WhatsAppLid` maps it to an allowlisted contact; never use the raw LID as a phone number.

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Pages;
 
 use App\Enums\GoogleOAuthLoginEvent;
+use App\Filament\Concerns\EnsuresPrimaryHouseholdMutation;
 use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
@@ -33,6 +34,7 @@ use Illuminate\Support\Carbon;
 
 class GoogleOAuthPage extends Page implements HasTable
 {
+    use EnsuresPrimaryHouseholdMutation;
     use HasSectionNav;
     use InteractsWithTable;
     use PrependsHomeBreadcrumb;
@@ -231,6 +233,8 @@ class GoogleOAuthPage extends Page implements HasTable
 
     public function testCredentials(): void
     {
+        $this->ensurePrimaryHouseholdMutation();
+
         if (! $this->canManagePlatformCredentials()) {
             Notification::make()
                 ->title('Only the platform household can test credentials')
@@ -264,6 +268,8 @@ class GoogleOAuthPage extends Page implements HasTable
 
     public function testCredentialsFromForm(string $clientId, string $clientSecret): void
     {
+        $this->ensurePrimaryHouseholdMutation();
+
         if (! $this->canManagePlatformCredentials()) {
             return;
         }
@@ -327,7 +333,7 @@ class GoogleOAuthPage extends Page implements HasTable
                         ->success()
                         ->send();
                 }),
-            Action::make('linkGoogleAccount')
+            $this->primaryOnlyAction(Action::make('linkGoogleAccount')
                 ->label('Link Google account')
                 ->icon(Heroicon::OutlinedLink)
                 ->color('primary')
@@ -336,18 +342,18 @@ class GoogleOAuthPage extends Page implements HasTable
                 ->action(function (): void {
                     // Full browser navigation — wire:navigate cannot follow Socialite → Google.
                     $this->redirect($this->settings()->linkAuthorizeUrl(), navigate: false);
-                }),
-            $this->configureSetupAction(),
+                })),
+            $this->primaryOnlyAction($this->configureSetupAction()),
             ActionGroup::make([
-                Action::make('testConnection')
+                $this->primaryOnlyAction(Action::make('testConnection')
                     ->label('Test connection')
                     ->icon('heroicon-o-signal')
                     ->visible(fn (): bool => $this->canManagePlatformCredentials())
                     ->disabled(fn (): bool => ! $this->settings()->hasCredentials())
                     ->action(function (): void {
                         $this->testConnection();
-                    }),
-                Action::make('unlinkGoogleAccount')
+                    })),
+                $this->primaryOnlyAction(Action::make('unlinkGoogleAccount')
                     ->label('Unlink Google account')
                     ->icon(Heroicon::OutlinedLinkSlash)
                     ->color('danger')
@@ -357,8 +363,8 @@ class GoogleOAuthPage extends Page implements HasTable
                     ->disabled(fn (): bool => $this->linkedPrimaryEmail === null)
                     ->action(function (): void {
                         $this->unlinkGoogleAccount();
-                    }),
-                Action::make('resetCredentials')
+                    })),
+                $this->primaryOnlyAction(Action::make('resetCredentials')
                     ->label('Reset credentials')
                     ->icon(Heroicon::OutlinedTrash)
                     ->color('danger')
@@ -368,7 +374,7 @@ class GoogleOAuthPage extends Page implements HasTable
                     ->modalDescription('Clears the shared Client ID/Secret for the whole install. Linked Google accounts are kept.')
                     ->action(function (): void {
                         $this->resetCredentials();
-                    }),
+                    })),
             ])
                 ->label('')
                 ->icon('heroicon-m-ellipsis-vertical')
@@ -440,6 +446,8 @@ class GoogleOAuthPage extends Page implements HasTable
 
     private function saveSettingsFromState(array $data): bool
     {
+        $this->ensurePrimaryHouseholdMutation();
+
         if (! $this->canManagePlatformCredentials()) {
             Notification::make()
                 ->title('Only the platform household can edit credentials')
@@ -567,6 +575,8 @@ class GoogleOAuthPage extends Page implements HasTable
 
     private function unlinkGoogleAccount(): void
     {
+        $this->ensurePrimaryHouseholdMutation();
+
         $user = auth()->user();
 
         if (! $user instanceof User) {
@@ -590,6 +600,8 @@ class GoogleOAuthPage extends Page implements HasTable
 
     private function resetCredentials(): void
     {
+        $this->ensurePrimaryHouseholdMutation();
+
         if (! $this->canManagePlatformCredentials()) {
             Notification::make()
                 ->title('Only the platform household can reset credentials')

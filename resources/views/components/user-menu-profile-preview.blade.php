@@ -24,7 +24,7 @@
         ? $user->getMenuProfileBannerUrl()
         : null;
     $userId = $user instanceof User
-        ? (string) $user->getKey()
+        ? (string) $user->householdDisplayId()
         : null;
 
     $maskedPhone = null;

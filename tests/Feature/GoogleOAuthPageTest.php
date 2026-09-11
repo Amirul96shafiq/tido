@@ -55,7 +55,7 @@ test('google oauth page navigation is registered under google parent', function 
         ->and(GoogleOAuthPage::getNavigationSort())->toBe(10);
 });
 
-test('family members cannot access google oauth page', function (): void {
+test('family members can view google oauth page but cannot link account', function (): void {
     $familyMember = FamilyMember::factory()->loginEnabled()->create();
     $familyMemberUser = User::query()
         ->where('family_member_id', $familyMember->getKey())
@@ -63,10 +63,14 @@ test('family members cannot access google oauth page', function (): void {
 
     $this->actingAs($familyMemberUser);
 
-    expect(GoogleOAuthPage::canAccess())->toBeFalse();
+    expect(GoogleOAuthPage::canAccess())->toBeTrue();
 
     $this->get(GoogleOAuthPage::getUrl())
-        ->assertRedirect();
+        ->assertSuccessful();
+
+    Livewire::test(GoogleOAuthPage::class)
+        ->assertActionVisible('linkGoogleAccount')
+        ->assertActionDisabled('linkGoogleAccount');
 });
 
 test('configure modal saves encrypted client secret for platform household', function (): void {

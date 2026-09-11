@@ -12,7 +12,6 @@ use App\Filament\Support\IntegrationNavigation;
 use App\Models\FamilyMember;
 use App\Models\ServiceHealthSample;
 use App\Models\User;
-use App\Support\HouseholdAccess;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
@@ -240,7 +239,7 @@ test('live ollama down clears a stale Active pill', function (): void {
     ]);
 });
 
-test('family members see restricted integration navigation with access tooltip', function (): void {
+test('family members see integration navigation with working links', function (): void {
     $familyMember = FamilyMember::factory()->loginEnabled()->create();
     $familyMemberUser = User::query()
         ->where('family_member_id', $familyMember->getKey())
@@ -254,8 +253,7 @@ test('family members see restricted integration navigation with access tooltip',
         ->assertSee(IntegrationNavigation::AI_PARSING_ENGINE, false)
         ->assertSee(IntegrationNavigation::GOOGLE, false)
         ->assertSee('Ollama (Local)', false)
-        ->assertSee('tido-primary-only-navigation', false)
-        ->assertSee(HouseholdAccess::primaryOnlyAccessMessage(), false)
-        ->assertDontSeeHtml('href="'.e(EvolutionApiPage::getUrl()).'"')
-        ->assertDontSeeHtml('href="'.e(OllamaPage::getUrl()).'"');
+        ->assertDontSee('tido-primary-only-navigation-lock', false)
+        ->assertSeeHtml('href="'.e(EvolutionApiPage::getUrl()).'"')
+        ->assertSeeHtml('href="'.e(OllamaPage::getUrl()).'"');
 });

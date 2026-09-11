@@ -6,6 +6,7 @@ namespace App\Filament\Pages;
 
 use App\Enums\MonitoredService;
 use App\Enums\OllamaDetectionState;
+use App\Filament\Concerns\EnsuresPrimaryHouseholdMutation;
 use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Filament\Concerns\RequiresPrimaryHouseholdAccess;
@@ -35,6 +36,7 @@ use Throwable;
 
 class OllamaPage extends Page
 {
+    use EnsuresPrimaryHouseholdMutation;
     use HasSectionNav;
     use PrependsHomeBreadcrumb;
     use RequiresPrimaryHouseholdAccess;
@@ -235,39 +237,39 @@ class OllamaPage extends Page
                         ->success()
                         ->send();
                 }),
-            $this->configureSetupAction(),
+            $this->primaryOnlyAction($this->configureSetupAction()),
             ActionGroup::make([
-                Action::make('testConnection')
+                $this->primaryOnlyAction(Action::make('testConnection')
                     ->label('Test Connection')
                     ->icon('heroicon-o-signal')
                     ->extraAttributes(['wire:key' => 'ollama-action-test-connection'])
                     ->action(function (): void {
                         $this->testConnection();
-                    }),
-                Action::make('runTestExtraction')
+                    })),
+                $this->primaryOnlyAction(Action::make('runTestExtraction')
                     ->label('Run Test Extraction')
                     ->icon('heroicon-o-beaker')
                     ->extraAttributes(['wire:key' => 'ollama-action-run-test-extraction'])
                     ->disabled(fn (): bool => $this->connectionStatus !== 'operational')
                     ->action(function (): void {
                         $this->runTestExtraction();
-                    }),
-                Action::make('tryStartOllama')
+                    })),
+                $this->primaryOnlyAction(Action::make('tryStartOllama')
                     ->label('Try Start Ollama')
                     ->icon('heroicon-o-play')
                     ->extraAttributes(['wire:key' => 'ollama-action-try-start'])
                     ->disabled(fn (): bool => $this->connectionStatus === 'operational')
                     ->action(function (): void {
                         $this->tryStartOllama();
-                    }),
-                Action::make('recheckPoppler')
+                    })),
+                $this->primaryOnlyAction(Action::make('recheckPoppler')
                     ->label('Recheck Poppler')
                     ->icon('heroicon-o-document-magnifying-glass')
                     ->extraAttributes(['wire:key' => 'ollama-action-recheck-poppler'])
                     ->disabled(fn (): bool => filled($this->pdfInfoBinary) && filled($this->pdfToCairoBinary) && filled($this->pdfToTextBinary))
                     ->action(function (): void {
                         $this->detectPopplerBinaries();
-                    }),
+                    })),
             ])
                 ->label('')
                 ->icon('heroicon-m-ellipsis-vertical')
@@ -278,6 +280,8 @@ class OllamaPage extends Page
 
     public function applyHostFromForm(string $host): void
     {
+        $this->ensurePrimaryHouseholdMutation();
+
         if (filled($host)) {
             $this->host = rtrim($host, '/');
         }
@@ -298,6 +302,8 @@ class OllamaPage extends Page
 
     public function tryStartOllama(): void
     {
+        $this->ensurePrimaryHouseholdMutation();
+
         $started = app(OllamaDetector::class)->tryStart();
 
         if ($started) {
@@ -335,6 +341,7 @@ class OllamaPage extends Page
 
     public function handleModelSelection(string $modelName): void
     {
+        $this->ensurePrimaryHouseholdMutation();
         $this->applySelectedModel($modelName, syncForm: false);
 
         if (! OllamaVisionModel::isLikelyVisionModel($modelName)) {
@@ -362,6 +369,7 @@ class OllamaPage extends Page
 
     public function skipPoppler(): void
     {
+        $this->ensurePrimaryHouseholdMutation();
         $this->popplerSkipped = true;
 
         Notification::make()
@@ -373,6 +381,7 @@ class OllamaPage extends Page
 
     public function detectPopplerBinaries(): void
     {
+        $this->ensurePrimaryHouseholdMutation();
         $result = app(PopplerDetector::class)->probe();
 
         if ($result['pdfinfo'] !== null) {
@@ -423,6 +432,7 @@ class OllamaPage extends Page
 
     public function runTestExtraction(): void
     {
+        $this->ensurePrimaryHouseholdMutation();
         $this->testExtractionRunning = true;
         $this->testExtractionResult = null;
 
@@ -504,6 +514,7 @@ class OllamaPage extends Page
      */
     public function saveSettingsFromState(array $state): bool
     {
+        $this->ensurePrimaryHouseholdMutation();
         $this->applySetupFormState($state);
 
         $host = rtrim($this->host, '/');

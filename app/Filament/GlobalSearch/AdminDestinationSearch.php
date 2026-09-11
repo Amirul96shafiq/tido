@@ -400,20 +400,6 @@ final class AdminDestinationSearch
 
         if (! HouseholdAccess::isPrimary()) {
             $blockedTitles = [
-                'Family Members',
-                'Labels',
-                'Payment Methods',
-                'Backups',
-                'Ollama (Local)',
-                'Ollama Setup',
-                'Ollama Status',
-                'Ollama Pipeline Readiness',
-                'Ollama Receipt & Parsing Activity',
-                'Gemini',
-                'OpenAI',
-                'Evolution API',
-                'Official API',
-                'Service Status',
                 'Danger Zone',
                 'Account & Security',
                 'Budget Performance',

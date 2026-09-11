@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Backups\Tables;
 
 use App\Enums\BackupType;
+use App\Filament\Support\PrimaryOnlyMutationAuthorization;
 use App\Filament\Support\RecordActionsGroup;
 use App\Models\Backup;
 use App\Models\User;
 use App\Services\BackupNotificationService;
 use App\Services\BackupService;
 use App\Support\FilamentAuthLogout;
+use App\Support\HouseholdAccess;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Facades\Filament;
@@ -88,41 +90,50 @@ class BackupsTable
                             );
                     }),
             ])
+            ->checkIfRecordIsSelectableUsing(
+                fn (Backup $record): bool => HouseholdAccess::canManageHouseholdSettings(),
+            )
             ->recordActions([
                 RecordActionsGroup::make([
-                    Action::make('download')
-                        ->label('Download')
-                        ->icon('heroicon-o-arrow-down-tray')
-                        ->color('gray')
-                        ->url(fn (Backup $record, BackupService $backupService): string => $backupService->temporaryDownloadUrl($record)),
-                    Action::make('restore')
-                        ->label('Restore')
-                        ->icon('heroicon-o-arrow-path')
-                        ->color('warning')
-                        ->requiresConfirmation()
-                        ->modalHeading('Restore backup')
-                        ->modalDescription('This will replace all current database data with this backup. You will be signed out after restore completes.')
-                        ->modalSubmitActionLabel('Restore backup')
-                        ->action(function (Backup $record, BackupService $backupService, BackupNotificationService $backupNotificationService) {
-                            $user = auth()->user();
+                    PrimaryOnlyMutationAuthorization::apply(
+                        Action::make('download')
+                            ->label('Download')
+                            ->icon('heroicon-o-arrow-down-tray')
+                            ->color('gray')
+                            ->url(fn (Backup $record, BackupService $backupService): string => $backupService->temporaryDownloadUrl($record)),
+                    ),
+                    PrimaryOnlyMutationAuthorization::apply(
+                        Action::make('restore')
+                            ->label('Restore')
+                            ->icon('heroicon-o-arrow-path')
+                            ->color('warning')
+                            ->requiresConfirmation()
+                            ->modalHeading('Restore backup')
+                            ->modalDescription('This will replace all current database data with this backup. You will be signed out after restore completes.')
+                            ->modalSubmitActionLabel('Restore backup')
+                            ->action(function (Backup $record, BackupService $backupService, BackupNotificationService $backupNotificationService) {
+                                $user = auth()->user();
 
-                            if ($user instanceof User) {
-                                $backupNotificationService->notifyRestored($user, $record);
-                            }
+                                if ($user instanceof User) {
+                                    $backupNotificationService->notifyRestored($user, $record);
+                                }
 
-                            $backupService->restore($record);
+                                $backupService->restore($record);
 
-                            Notification::make()
-                                ->title('Backup restored')
-                                ->body('Database restored successfully. Please sign in again.')
-                                ->success()
-                                ->send();
+                                Notification::make()
+                                    ->title('Backup restored')
+                                    ->body('Database restored successfully. Please sign in again.')
+                                    ->success()
+                                    ->send();
 
-                            FilamentAuthLogout::logoutToLogin();
+                                FilamentAuthLogout::logoutToLogin();
 
-                            return redirect()->to(Filament::getLoginUrl());
-                        }),
+                                return redirect()->to(Filament::getLoginUrl());
+                            }),
+                    ),
                     DeleteAction::make()
+                        ->authorizationTooltip()
+                        ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage())
                         ->modalHeading('Delete backup')
                         ->modalDescription('This removes the backup file and catalog entry. It cannot be undone.')
                         ->successNotificationTitle('Backup deleted')
@@ -142,31 +153,33 @@ class BackupsTable
             ->emptyStateDescription('Create a backup to save a restore point.')
             ->emptyStateIcon('heroicon-o-circle-stack')
             ->emptyStateActions([
-                Action::make('createBackup')
-                    ->label('Create backup')
-                    ->icon(Heroicon::Plus)
-                    ->button()
-                    ->action(function (BackupService $backupService, BackupNotificationService $backupNotificationService): void {
-                        $user = auth()->user();
+                PrimaryOnlyMutationAuthorization::apply(
+                    Action::make('createBackup')
+                        ->label('Create backup')
+                        ->icon(Heroicon::Plus)
+                        ->button()
+                        ->action(function (BackupService $backupService, BackupNotificationService $backupNotificationService): void {
+                            $user = auth()->user();
 
-                        if (! $user instanceof User) {
-                            return;
-                        }
+                            if (! $user instanceof User) {
+                                return;
+                            }
 
-                        $created = $backupService->create(
-                            BackupType::Manual,
-                            $user,
-                        );
+                            $created = $backupService->create(
+                                BackupType::Manual,
+                                $user,
+                            );
 
-                        $backupNotificationService->notifyCreated($user, $created->backup);
-                        $backupNotificationService->notifyRestoreToken($created->restoreToken);
+                            $backupNotificationService->notifyCreated($user, $created->backup);
+                            $backupNotificationService->notifyRestoreToken($created->restoreToken);
 
-                        Notification::make()
-                            ->title('Backup created')
-                            ->body('A new database backup has been saved.')
-                            ->success()
-                            ->send();
-                    }),
+                            Notification::make()
+                                ->title('Backup created')
+                                ->body('A new database backup has been saved.')
+                                ->success()
+                                ->send();
+                        }),
+                ),
             ]);
     }
 }
