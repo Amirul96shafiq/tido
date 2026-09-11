@@ -5,10 +5,10 @@ declare(strict_types=1);
 use App\Enums\MonitoredService;
 use App\Enums\ServiceHealthStatus;
 use App\Filament\Pages\ServiceStatusPage;
+use App\Models\EvolutionApiSetting;
 use App\Models\FamilyMember;
 use App\Models\ServiceHealthSample;
 use App\Models\User;
-use App\Support\HouseholdAccess;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
@@ -21,7 +21,12 @@ beforeEach(function (): void {
         'services.evolution.api_url' => 'http://evolution.test',
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.instance_name' => 'tido',
+        'services.evolution.allowed_api_hosts' => ['127.0.0.1', 'localhost', '::1', 'evolution.test'],
         'broadcasting.default' => 'null',
+    ]);
+
+    EvolutionApiSetting::query()->update([
+        'api_url' => 'http://evolution.test',
     ]);
 
     $this->actingAs(User::factory()->create());
@@ -96,11 +101,21 @@ test('family member can navigate to and view service status', function (): void 
         ->assertSuccessful()
         ->assertSee('Service Status');
 
+    Http::fake([
+        'http://ollama.test/api/tags' => Http::response(['models' => []]),
+        'http://evolution.test/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+    ]);
+
+    expect(ServiceHealthSample::query()->count())->toBe(0);
+
     Livewire::test(ServiceStatusPage::class)
         ->assertSee('Summary Report')
         ->assertSee('Status')
         ->assertActionVisible('runCheck')
-        ->assertActionDisabled('runCheck')
-        ->assertSee(HouseholdAccess::primaryOnlyAccessMessage(), false)
-        ->assertSee('tido-primary-only-action', false);
+        ->callAction('runCheck')
+        ->assertNotified();
+
+    expect(ServiceHealthSample::query()->count())->toBeGreaterThan(0);
 });

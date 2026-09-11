@@ -34,7 +34,7 @@ Single-tenant hub with **household roles** today: one **Primary** user owns sett
 
 - Settings: Labels, Payment Methods, Family Members (exception: on Family Members, a signed-in family member’s **own** row **Edit** action and row click open **Profile** instead of Family Member Settings CRUD; Duplicate / Delete / restore stay primary-only)
 - Integrations: Evolution API, Ollama, Google OAuth, coming-soon integration pages
-- Tools: Backups, Service Status (manual health check stays Primary-only)
+- Tools: Backups; Service Status (view + **Run check now** for all household logins)
 
 **Primary-only** (hidden or blocked for family members):
 

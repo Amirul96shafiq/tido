@@ -9,7 +9,6 @@ use App\Filament\Concerns\HasSectionNav;
 use App\Filament\Concerns\PrependsHomeBreadcrumb;
 use App\Services\Health\ServiceHealthAggregator;
 use App\Services\Health\ServiceHealthRecorder;
-use App\Support\HouseholdAccess;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -86,12 +85,6 @@ class ServiceStatusPage extends Page
             Action::make('runCheck')
                 ->label('Run check now')
                 ->icon(Heroicon::OutlinedArrowPath)
-                ->authorize(fn (): bool => HouseholdAccess::canManageHouseholdSettings())
-                ->authorizationTooltip()
-                ->authorizationMessage(fn (): string => HouseholdAccess::createDeniedMessage())
-                ->extraAttributes(fn (): array => HouseholdAccess::isFamilyMember()
-                    ? ['class' => 'tido-primary-only-action']
-                    : [])
                 ->action(function (ServiceHealthRecorder $recorder, ServiceHealthAggregator $aggregator): void {
                     $recorder->recordAll();
                     $this->loadReport($aggregator);
