@@ -282,9 +282,9 @@ class ServiceHealthAggregator
         if ($worstStatus === ServiceHealthStatus::Operational) {
             return [
                 'status' => ServiceHealthStatus::Operational,
-                'title' => "All services fully operational",
+                'title' => 'All services fully operational',
                 'message' => 'No issues are currently affecting monitored services.',
-           
+
             ];
         }
 

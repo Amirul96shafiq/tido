@@ -61,7 +61,7 @@ test('service status page lists reverb when broadcasting uses reverb', function 
 test('service status page run check now records samples', function (): void {
     Http::fake([
         'http://ollama.test/api/tags' => Http::response(['models' => []]),
-        'http://evolution.test/instance/connectionState/tido' => Http::response([
+        'http://evolution.test/instance/connectionState/*' => Http::response([
             'instance' => ['state' => 'open'],
         ]),
     ]);

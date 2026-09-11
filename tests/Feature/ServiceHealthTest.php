@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 use App\Enums\MonitoredService;
 use App\Enums\ServiceHealthStatus;
+use App\Models\EvolutionApiSetting;
+use App\Models\FamilyMember;
 use App\Models\ServiceHealthSample;
+use App\Models\User;
 use App\Services\Health\Probes\OllamaProbe;
 use App\Services\Health\Probes\ReverbProbe;
 use App\Services\Health\ServiceHealthAggregator;
@@ -21,7 +24,12 @@ beforeEach(function (): void {
         'services.evolution.api_url' => 'http://evolution.test',
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
         'services.evolution.instance_name' => 'tido',
+        'services.evolution.allowed_api_hosts' => ['127.0.0.1', 'localhost', '::1', 'evolution.test'],
         'broadcasting.default' => 'null',
+    ]);
+
+    EvolutionApiSetting::query()->update([
+        'api_url' => 'http://evolution.test',
     ]);
 });
 
@@ -69,7 +77,7 @@ test('ollama probe returns down when tags endpoint fails', function (): void {
 test('health recorder stores one sample per configured service', function (): void {
     Http::fake([
         'http://ollama.test/api/tags' => Http::response(['models' => []]),
-        'http://evolution.test/instance/connectionState/tido' => Http::response([
+        'http://evolution.test/instance/connectionState/*' => Http::response([
             'instance' => ['state' => 'open'],
         ]),
     ]);
@@ -182,7 +190,7 @@ test('aggregator uses latest sample for in progress piece instead of worst', fun
 test('aggregator summary reports fully operational when latest samples are healthy', function (): void {
     Http::fake([
         'http://ollama.test/api/tags' => Http::response(['models' => []]),
-        'http://evolution.test/instance/connectionState/tido' => Http::response([
+        'http://evolution.test/instance/connectionState/*' => Http::response([
             'instance' => ['state' => 'open'],
         ]),
     ]);
@@ -262,7 +270,7 @@ test('health recorder stores a reverb sample when broadcasting uses reverb', fun
 
     Http::fake([
         'http://ollama.test/api/tags' => Http::response(['models' => []]),
-        'http://evolution.test/instance/connectionState/tido' => Http::response([
+        'http://evolution.test/instance/connectionState/*' => Http::response([
             'instance' => ['state' => 'open'],
         ]),
         'http://reverb.test:8081/apps' => Http::response('', 401),
@@ -274,4 +282,60 @@ test('health recorder stores a reverb sample when broadcasting uses reverb', fun
         ->all();
 
     expect($services)->toContain(MonitoredService::Reverb->value);
+});
+
+test('health probe command records samples without an authenticated user', function (): void {
+    Http::fake([
+        'http://ollama.test/api/tags' => Http::response(['models' => []]),
+        'http://evolution.test/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+    ]);
+
+    $this->artisan('health:probe')
+        ->assertSuccessful();
+
+    $services = ServiceHealthSample::query()
+        ->pluck('service')
+        ->map(static fn (MonitoredService $service): string => $service->value)
+        ->all();
+
+    expect($services)->toContain(MonitoredService::App->value)
+        ->and($services)->toContain(MonitoredService::Database->value)
+        ->and($services)->toContain(MonitoredService::Ollama->value)
+        ->and($services)->toContain(MonitoredService::Evolution->value)
+        ->and($services)->toContain(MonitoredService::Queue->value);
+});
+
+test('family member service status includes samples recorded without a login session', function (): void {
+    Http::fake([
+        'http://ollama.test/api/tags' => Http::response(['models' => []]),
+        'http://evolution.test/instance/connectionState/*' => Http::response([
+            'instance' => ['state' => 'open'],
+        ]),
+    ]);
+
+    $familyMember = FamilyMember::factory()->loginEnabled()->create();
+    $familyMemberUser = User::query()
+        ->where('family_member_id', $familyMember->getKey())
+        ->firstOrFail();
+
+    Carbon::setTestNow(Carbon::parse('2026-09-11 16:05:00', 'Asia/Kuala_Lumpur'));
+
+    $this->artisan('health:probe')->assertSuccessful();
+
+    $this->actingAs($familyMemberUser);
+
+    $report = app(ServiceHealthAggregator::class)->report($familyMemberUser->preferredTimezone());
+    $app = collect($report['services'])->firstWhere(
+        static fn (array $service): bool => $service['service'] === MonitoredService::App,
+    );
+
+    $currentPiece = collect($app['pieces'])->first(
+        static fn (array $piece): bool => $piece['endsAt']->isFuture(),
+    );
+
+    expect($currentPiece)->not->toBeNull()
+        ->and($currentPiece['status'])->toBe(ServiceHealthStatus::Operational)
+        ->and($currentPiece['detail'])->not->toBe('No health samples recorded for this period.');
 });

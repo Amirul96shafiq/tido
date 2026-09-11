@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services\Health;
 
 use App\Enums\MonitoredService;
+use App\Enums\ServiceHealthStatus;
+use App\Models\Household;
 use App\Models\ServiceHealthSample;
 use App\Services\Health\Probes\AppProbe;
 use App\Services\Health\Probes\DatabaseProbe;
@@ -12,6 +14,8 @@ use App\Services\Health\Probes\EvolutionProbe;
 use App\Services\Health\Probes\OllamaProbe;
 use App\Services\Health\Probes\QueueProbe;
 use App\Services\Health\Probes\ReverbProbe;
+use App\Support\CurrentHousehold;
+use Throwable;
 
 class ServiceHealthRecorder
 {
@@ -48,20 +52,34 @@ class ServiceHealthRecorder
         $checkedAt = now();
         $samples = [];
 
-        foreach ($this->probes as $probe) {
-            if (! $probe->service()->isConfigured()) {
-                continue;
+        $previousHouseholdId = CurrentHousehold::id();
+        $this->ensureHouseholdContext();
+
+        try {
+            foreach ($this->probes as $probe) {
+                if (! $probe->service()->isConfigured()) {
+                    continue;
+                }
+
+                try {
+                    $result = $probe->probe();
+                } catch (Throwable $throwable) {
+                    $result = new ServiceHealthResult(
+                        status: ServiceHealthStatus::Down,
+                        meta: ['message' => $throwable->getMessage()],
+                    );
+                }
+
+                $samples[] = ServiceHealthSample::query()->create([
+                    'service' => $probe->service(),
+                    'status' => $result->status,
+                    'checked_at' => $checkedAt,
+                    'latency_ms' => $result->latencyMs,
+                    'meta' => $result->meta,
+                ]);
             }
-
-            $result = $probe->probe();
-
-            $samples[] = ServiceHealthSample::query()->create([
-                'service' => $probe->service(),
-                'status' => $result->status,
-                'checked_at' => $checkedAt,
-                'latency_ms' => $result->latencyMs,
-                'meta' => $result->meta,
-            ]);
+        } finally {
+            CurrentHousehold::set($previousHouseholdId);
         }
 
         $this->alertService->notifyTransitions($previousByService, $samples);
@@ -106,6 +124,27 @@ class ServiceHealthRecorder
         }
 
         return $latest;
+    }
+
+    private function ensureHouseholdContext(): void
+    {
+        if (CurrentHousehold::id() !== null) {
+            return;
+        }
+
+        $householdId = auth()->user()?->household_id;
+
+        if ($householdId !== null) {
+            CurrentHousehold::set((int) $householdId);
+
+            return;
+        }
+
+        $householdId = Household::query()->orderBy('id')->value('id');
+
+        if ($householdId !== null) {
+            CurrentHousehold::set((int) $householdId);
+        }
     }
 
     public function pruneOlderThanDays(int $days = 30): int
