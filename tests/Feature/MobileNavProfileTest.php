@@ -497,8 +497,8 @@ test('mobile nav bottom bar uses active-state icons for home menu and add slots'
     expect($css)
         ->toContain('.tido-mobilenav-item--active')
         ->toContain('.tido-mobilenav-add-svg--active')
-        ->toContain('.tido-mobilenav-add-btn--open .tido-mobilenav-add-svg--default')
-        ->toContain('.tido-mobilenav-add-btn--open .tido-mobilenav-add-svg--active');
+        ->toMatch('/html\.tido-mobilenav\s+\.tido-mobilenav-add-btn--open\s+\.tido-mobilenav-add-svg--default/')
+        ->toMatch('/html\.tido-mobilenav\s+\.tido-mobilenav-add-btn--open\s+\.tido-mobilenav-add-svg--active/');
 });
 
 test('mobile nav add sheet sits flush on the bottom bar', function (): void {

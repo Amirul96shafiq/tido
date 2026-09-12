@@ -7,7 +7,7 @@ test('sidebar nav active and hover styles use theme switcher tokens', function (
 
     $sidebarNavBlock = Str::between(
         $css,
-        '/* Sidebar navigation — match user-menu profile active / theme-switcher tokens */',
+        '/* Sidebar navigation icons */',
         '.fi-sidebar-item-btn {',
     );
 

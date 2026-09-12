@@ -32,9 +32,15 @@
             </span>
         </div>
 
-        <div class="fi-wi-stats-overview-stat-value">
-            {!! \Xplodman\CountUp\Facades\CountUpStat::animate($getValue()) !!}
-        </div>
+        @if (filled($value = $getValue()))
+            <div class="fi-wi-stats-overview-stat-value">
+                {!! \Xplodman\CountUp\Facades\CountUpStat::animate($value) !!}
+            </div>
+        @else
+            <div class="fi-wi-stats-overview-stat-placeholder">
+                {{ $getPlaceholder() }}
+            </div>
+        @endif
 
         @if ($description = $getDescription())
             <div
@@ -73,11 +79,13 @@
                 <canvas x-ref="canvas" aria-hidden="true"></canvas>
 
                 <span
+                    aria-hidden="true"
                     x-ref="backgroundColorElement"
                     class="fi-wi-stats-overview-stat-chart-bg-color"
                 ></span>
 
                 <span
+                    aria-hidden="true"
                     x-ref="borderColorElement"
                     class="fi-wi-stats-overview-stat-chart-border-color"
                 ></span>
