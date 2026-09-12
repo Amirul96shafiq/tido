@@ -282,48 +282,53 @@ class EditProfile extends BaseEditProfile implements HasTable
 
                         Section::make('Personalize & Appearance')
                             ->id('personalize-appearance')
-                            ->schema([
-                                Fieldset::make('APPEARANCES')
-                                    ->schema([
-                                        View::make('filament.schemas.components.theme-mode-field')
-                                            ->columnSpanFull(),
+                            ->key('personalizeAppearance')
+                            ->schema(
+                                Schema::make()
+                                    ->components([
+                                        Fieldset::make('APPEARANCES')
+                                            ->schema([
+                                                View::make('filament.schemas.components.theme-mode-field')
+                                                    ->columnSpanFull(),
 
-                                        View::make('filament.schemas.components.sidebar-mode-field')
-                                            ->columnSpanFull(),
+                                                View::make('filament.schemas.components.sidebar-mode-field')
+                                                    ->columnSpanFull(),
 
-                                        Hidden::make('stylized_background_enabled'),
+                                                Hidden::make('stylized_background_enabled'),
 
-                                        View::make('filament.schemas.components.stylized-background-field')
-                                            ->viewData(fn (Get $get): array => [
-                                                'enabled' => (bool) $get('stylized_background_enabled'),
-                                            ])
-                                            ->columnSpanFull(),
+                                                View::make('filament.schemas.components.stylized-background-field')
+                                                    ->viewData(fn (Get $get): array => [
+                                                        'enabled' => (bool) $get('stylized_background_enabled'),
+                                                    ])
+                                                    ->columnSpanFull(),
 
-                                        Hidden::make('mobile_nav_enabled'),
+                                                Hidden::make('mobile_nav_enabled'),
 
-                                        View::make('filament.schemas.components.mobile-nav-field')
-                                            ->viewData(fn (Get $get): array => [
-                                                'mobileNavEnabled' => (bool) $get('mobile_nav_enabled'),
-                                            ])
-                                            ->columnSpanFull(),
-                                    ]),
+                                                View::make('filament.schemas.components.mobile-nav-field')
+                                                    ->viewData(fn (Get $get): array => [
+                                                        'mobileNavEnabled' => (bool) $get('mobile_nav_enabled'),
+                                                    ])
+                                                    ->columnSpanFull(),
+                                            ]),
 
-                                Fieldset::make('PREFERENCES')
-                                    ->key('personalize-preferences', isInheritable: false)
-                                    ->columns(1)
-                                    ->schema([
-                                        Toggle::make('reduce_motion')
-                                            ->label('Reduce Motion')
-                                            ->helperText('Disable count-up, marquee, and other decorative animation. Save to keep this preference for future sign-ins.')
-                                            ->live()
-                                            ->columnSpanFull()
-                                            ->fieldWrapperView('profile-toggle-field-wrapper')
-                                            ->extraFieldWrapperAttributes(['class' => 'fi-profile-toggle-field'])
-                                            ->afterStateUpdated(function (bool $state): void {
-                                                $this->js('window.tidoSetReduceMotion('.Js::from($state).')');
-                                            }),
-                                    ]),
-                            ]),
+                                        Fieldset::make('PREFERENCES')
+                                            ->key('personalize-preferences', isInheritable: false)
+                                            ->columns(1)
+                                            ->schema([
+                                                Toggle::make('reduce_motion')
+                                                    ->label('Reduce Motion')
+                                                    ->helperText('Disable count-up, marquee, and other decorative animation. Save to keep this preference for future sign-ins.')
+                                                    ->live()
+                                                    ->columnSpanFull()
+                                                    ->fieldWrapperView('profile-toggle-field-wrapper')
+                                                    ->extraFieldWrapperAttributes(['class' => 'fi-profile-toggle-field'])
+                                                    ->afterStateUpdated(function (bool $state): void {
+                                                        $this->js('window.tidoSetReduceMotion('.Js::from($state).')');
+                                                    }),
+                                            ]),
+                                    ])
+                                    ->deferLoading(),
+                            ),
 
                         Section::make('Account & Security')
                             ->id('account-security')
@@ -527,6 +532,7 @@ class EditProfile extends BaseEditProfile implements HasTable
     public function table(Table $table): Table
     {
         return $table
+            ->deferLoading()
             ->queryStringIdentifier('activeSessions')
             ->records(fn (): array => app(ActiveSessionService::class)->recordsForTable(
                 $this->getUser(),

@@ -388,6 +388,7 @@ class GoogleOAuthPage extends Page implements HasTable
         $householdId = CurrentHousehold::id() ?? auth()->user()?->household_id;
 
         return $table
+            ->deferLoading()
             ->query(
                 GoogleOAuthLoginLog::query()
                     ->when(

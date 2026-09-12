@@ -1204,7 +1204,7 @@ test('connection history section lists previous logs', function () {
         '*/instance/fetchInstances*' => Http::response([]),
     ]);
 
-    $component = Livewire::test(EvolutionApiPage::class)
+    $component = livewireDeferredTablePage(EvolutionApiPage::class)
         ->assertSee('Connection History')
         ->assertSee('Connected via')
         ->assertSee('QR code')

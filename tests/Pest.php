@@ -73,6 +73,11 @@ function livewireDeferredListPage(string $pageClass): Testable
     return Livewire::test($pageClass)->loadTable();
 }
 
+function livewireDeferredTablePage(string $pageClass): Testable
+{
+    return Livewire::test($pageClass)->loadTable();
+}
+
 function deferredFormSchemaKey(string $sectionKey): string
 {
     return "form.{$sectionKey}";
