@@ -118,7 +118,11 @@ test('profile section nav smooth scrolls on tab click', function () {
         ->assertSee('scrollToSection', false)
         ->assertSee("'smooth'", false)
         ->assertSee('onNavClick($event)', false)
-        ->assertSee('x-on:click.capture', false);
+        ->assertSee('x-on:click.capture', false)
+        ->assertSee('pageScroller', false)
+        ->assertSee('scrollElementIntoView', false)
+        ->assertSee('scroller.scrollTop = nextTop', false)
+        ->assertDontSee('agent log', false);
 });
 
 test('profile section nav exposes horizontal scroll hint affordances', function () {

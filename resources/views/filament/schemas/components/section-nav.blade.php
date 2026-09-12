@@ -17,6 +17,60 @@
         dragScrollLeft: 0,
         dragThreshold: 6,
         scrollSyncFrame: null,
+        pageScroller() {
+            const main = document.querySelector('.fi-main-ctn');
+
+            if (! main) {
+                return null;
+            }
+
+            const overflowY = getComputedStyle(main).overflowY;
+
+            if (overflowY === 'auto' || overflowY === 'scroll') {
+                return main;
+            }
+
+            return null;
+        },
+        pageScrollY() {
+            const scroller = this.pageScroller();
+
+            if (scroller) {
+                return scroller.scrollTop;
+            }
+
+            return window.scrollY || document.documentElement.scrollTop || 0;
+        },
+        scrollElementIntoView(element) {
+            const scroller = this.pageScroller();
+
+            if (! scroller) {
+                if (typeof window.tidoPrefersReducedMotion === 'function' && window.tidoPrefersReducedMotion()) {
+                    element.scrollIntoView({
+                        behavior: 'auto',
+                        block: 'start',
+                    });
+                } else {
+                    element.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                    });
+                }
+
+                return;
+            }
+
+            const elementRect = element.getBoundingClientRect();
+            const scrollerRect = scroller.getBoundingClientRect();
+            const scrollMarginTop = parseFloat(getComputedStyle(element).scrollMarginTop) || 0;
+            const nextTop = Math.max(
+                0,
+                scroller.scrollTop + (elementRect.top - scrollerRect.top) - scrollMarginTop,
+            );
+
+            // Nested .fi-main-ctn ignores Element.scrollTo({ behavior: 'smooth' }).
+            scroller.scrollTop = nextTop;
+        },
         syncActiveSection() {
             if (this.sectionIds.length === 0) {
                 return;
@@ -56,7 +110,7 @@
                 return;
             }
 
-            const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+            const scrollY = this.pageScrollY();
 
             if (scrollY > 8 || tabs.scrollLeft <= 0) {
                 return;
@@ -83,12 +137,7 @@
                 history.replaceState(null, '', '#' + encodeURIComponent(id));
             }
 
-            element.scrollIntoView({
-                behavior: typeof window.tidoPrefersReducedMotion === 'function' && window.tidoPrefersReducedMotion()
-                    ? 'auto'
-                    : 'smooth',
-                block: 'start',
-            });
+            this.scrollElementIntoView(element);
             this.$nextTick(() => this.scrollActiveTabIntoView());
         },
         onNavClick(event) {
@@ -141,10 +190,16 @@
             const isFirstSection = this.activeId === this.sectionIds[0];
 
             if (isFirstSection) {
-                // nearest leaves a leftover offset when the first tab is already mostly visible
                 tabs.scrollLeft = 0;
             } else if (activeTab) {
-                activeTab.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+                const tabRect = activeTab.getBoundingClientRect();
+                const tabsRect = tabs.getBoundingClientRect();
+
+                if (tabRect.left < tabsRect.left) {
+                    tabs.scrollLeft += tabRect.left - tabsRect.left;
+                } else if (tabRect.right > tabsRect.right) {
+                    tabs.scrollLeft += tabRect.right - tabsRect.right;
+                }
             }
 
             this.updateScrollHints();
@@ -240,6 +295,12 @@
 
                 if (! tabs) {
                     return;
+                }
+
+                const pageScroller = this.pageScroller();
+
+                if (pageScroller) {
+                    pageScroller.addEventListener('scroll', () => this.scheduleActiveSectionSync(), { passive: true });
                 }
 
                 tabs.addEventListener('scroll', () => this.updateScrollHints(), { passive: true });

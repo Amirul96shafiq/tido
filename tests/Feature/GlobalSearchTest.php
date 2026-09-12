@@ -273,6 +273,8 @@ test('hash scroll highlights searchable filament sections', function () {
         ->toContain("classList.contains('fi-section')")
         ->toContain("classList.contains('fi-sc-section')")
         ->toContain(':scope > .fi-section')
+        ->toContain('pageScrollRoot')
+        ->toContain('scroller.scrollTop = top')
         ->not->toContain("closest('.fi-section')");
 
     $nav = (string) file_get_contents(resource_path('views/filament/schemas/components/section-nav.blade.php'));
@@ -280,7 +282,9 @@ test('hash scroll highlights searchable filament sections', function () {
     expect($nav)
         ->toContain('tidoClearSearchHighlights')
         ->toContain('tido-suppress-search-highlight')
-        ->toContain('scrollToSection(id)');
+        ->toContain('scrollToSection(id)')
+        ->toContain('pageScroller')
+        ->toContain('scroller.scrollTop = nextTop');
 });
 
 test('destination search personalize section uses the appearance anchor', function () {

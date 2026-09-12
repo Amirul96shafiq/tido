@@ -18,6 +18,53 @@
                 : 'smooth'
         );
 
+        const pageScrollRoot = () => {
+            const main = document.querySelector('.fi-main-ctn');
+
+            if (!main) {
+                return null;
+            }
+
+            const overflowY = getComputedStyle(main).overflowY;
+
+            if (overflowY === 'auto' || overflowY === 'scroll') {
+                return main;
+            }
+
+            return null;
+        };
+
+        const scrollElementIntoView = (scrollTarget) => {
+            const behavior = scrollBehavior();
+            const scroller = pageScrollRoot();
+
+            if (!scroller) {
+                if (behavior === 'auto') {
+                    scrollTarget.scrollIntoView({
+                        behavior: 'auto',
+                        block: 'start',
+                    });
+                } else {
+                    scrollTarget.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                    });
+                }
+
+                return;
+            }
+
+            const elementRect = scrollTarget.getBoundingClientRect();
+            const scrollerRect = scroller.getBoundingClientRect();
+            const scrollMarginTop = parseFloat(getComputedStyle(scrollTarget).scrollMarginTop) || 0;
+            const top = Math.max(
+                0,
+                scroller.scrollTop + (elementRect.top - scrollerRect.top) - scrollMarginTop,
+            );
+
+            scroller.scrollTop = top;
+        };
+
         const clearSearchHighlights = () => {
             document.querySelectorAll(`.${expenseHighlightClass}, .${sectionHighlightClass}`)
                 .forEach((element) => {
@@ -105,10 +152,7 @@
             applySearchHighlight(target);
 
             requestAnimationFrame(() => {
-                scrollTarget.scrollIntoView({
-                    behavior: scrollBehavior(),
-                    block: 'start',
-                });
+                scrollElementIntoView(scrollTarget);
             });
         };
 
