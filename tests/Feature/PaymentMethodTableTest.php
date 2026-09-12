@@ -21,7 +21,7 @@ beforeEach(function () {
 });
 
 test('payment methods table shows aliases as comma separated text', function () {
-    Livewire::test(ListPaymentMethods::class)
+    livewireDeferredListPage(ListPaymentMethods::class)
         ->assertSuccessful()
         ->assertSee('master + 3 more')
         ->assertSee('qr + 4 more')
@@ -38,7 +38,7 @@ test('expense table shows payment method labels for qr and touch n go', function
         'merchant_name' => 'TNG Merchant',
     ]);
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->toggleAllTableColumns()
         ->assertCanSeeTableRecords([$qrExpense, $tngExpense])

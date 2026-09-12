@@ -22,6 +22,7 @@ class PrimaryMemberTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->deferLoading()
             ->heading('Primary Member')
             ->extraAttributes(['class' => 'tido-primary-member-table'])
             ->queryStringIdentifier('primaryMember')

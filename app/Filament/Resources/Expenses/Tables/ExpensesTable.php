@@ -48,6 +48,7 @@ class ExpensesTable
         $primaryUsername = self::primaryUsername();
 
         return $table
+            ->deferLoading()
             ->columns([
                 TextColumn::make('id')
                     ->label('ID')

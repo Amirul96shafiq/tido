@@ -86,16 +86,17 @@ test('create budget page saves assignee and shared flag', function () {
 });
 
 test('budget form uses rich editor for notes', function () {
-    Livewire::test(CreateBudget::class)
-        ->assertSuccessful()
-        ->assertSchemaComponentExists(
-            'notes',
-            checkComponentUsing: function (NotesRichEditor $component): bool {
-                expect($component->getExtraAttributes()['class'])->toContain(NotesRichEditor::EXTRA_CLASS);
+    loadDeferredFormSchemas(
+        Livewire::test(CreateBudget::class),
+        'budgetNotes',
+    )->assertSchemaComponentExists(
+        deferredFormComponentKey('budgetNotes', 'notes'),
+        checkComponentUsing: function (NotesRichEditor $component): bool {
+            expect($component->getExtraAttributes()['class'])->toContain(NotesRichEditor::EXTRA_CLASS);
 
-                return true;
-            },
-        );
+            return true;
+        },
+    );
 });
 
 test('create budget page shows performance empty state until amount is set', function () {

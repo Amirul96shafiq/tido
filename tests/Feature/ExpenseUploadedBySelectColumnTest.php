@@ -9,7 +9,6 @@ use App\Models\User;
 use Filament\Notifications\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
-use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -35,7 +34,7 @@ test('primary user can update uploaded by inline and receives from-to notificati
 
     $this->actingAs($user);
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->assertSeeHtml('fi-ta-col-lightweight-select tido-expense-table-select px-3 py-4')
         ->call('updateExpenseInlineSelect', 'family_member_id', (string) $expense->getKey(), (string) $member->getKey())
         ->assertNotified(
@@ -70,7 +69,7 @@ test('family member cannot update uploaded by inline on an owned expense', funct
 
     $this->actingAs($user);
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->call('updateExpenseInlineSelect', 'family_member_id', (string) $ownExpense->getKey(), (string) $other->getKey())
         ->assertNotNotified('Uploaded By Updated');
 

@@ -39,6 +39,7 @@ class RecurringsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->deferLoading()
             ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('id')

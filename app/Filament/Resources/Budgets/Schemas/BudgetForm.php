@@ -8,6 +8,7 @@ use App\Enums\HouseholdRole;
 use App\Enums\LabelType;
 use App\Filament\Forms\Components\IconPicker;
 use App\Filament\Forms\Components\NotesRichEditor;
+use App\Filament\Support\FormSchemaDeferral;
 use App\Models\Budget;
 use App\Models\FamilyMember;
 use App\Models\Label;
@@ -213,12 +214,17 @@ class BudgetForm
 
                         Section::make('Budget Notes')
                             ->id('budget-notes')
-                            ->schema([
-                                NotesRichEditor::make('notes')
-                                    ->label('Budget Notes')
-                                    ->hiddenLabel()
-                                    ->columnSpanFull(),
-                            ]),
+                            ->key('budgetNotes')
+                            ->schema(
+                                Schema::make()
+                                    ->components([
+                                        NotesRichEditor::make('notes')
+                                            ->label('Budget Notes')
+                                            ->hiddenLabel()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->deferLoading(FormSchemaDeferral::unlessViewSlideOver()),
+                            ),
                     ]),
 
                 Grid::make(1)

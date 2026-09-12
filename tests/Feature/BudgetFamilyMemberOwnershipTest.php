@@ -90,7 +90,7 @@ test('family member can list every household budget', function () {
     $this->get(BudgetResource::getUrl('index'))
         ->assertOk();
 
-    Livewire::test(ListBudgets::class)
+    livewireDeferredListPage(ListBudgets::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([
             $fixtures['own'],
@@ -137,7 +137,7 @@ test('family member sees create budget action visible and disabled', function ()
 
     $this->actingAs($fixtures['user']);
 
-    Livewire::test(ListBudgets::class)
+    livewireDeferredListPage(ListBudgets::class)
         ->assertSuccessful()
         ->assertActionVisible('create')
         ->assertActionDisabled('create');
@@ -148,7 +148,7 @@ test('family member sees duplicate actions visible and disabled', function () {
 
     $this->actingAs($fixtures['user']);
 
-    Livewire::test(ListBudgets::class)
+    livewireDeferredListPage(ListBudgets::class)
         ->assertSuccessful()
         ->assertActionVisible(TestAction::make('replicate')->table($fixtures['own']))
         ->assertActionDisabled(TestAction::make('replicate')->table($fixtures['own']))
@@ -162,7 +162,7 @@ test('family member sees duplicate actions visible and disabled', function () {
 
     expect(Budget::query()->count())->toBe(4);
 
-    Livewire::test(ListBudgets::class)
+    livewireDeferredListPage(ListBudgets::class)
         ->callAction(TestAction::make('replicate')->table($fixtures['own']));
 
     expect(Budget::query()->count())->toBe(4);
@@ -173,7 +173,7 @@ test('family member cannot select non-assigned budgets for bulk actions', functi
 
     $this->actingAs($fixtures['user']);
 
-    $table = Livewire::test(ListBudgets::class)
+    $table = livewireDeferredListPage(ListBudgets::class)
         ->assertSuccessful()
         ->instance()
         ->getTable();
@@ -191,7 +191,7 @@ test('family member sees mutation actions disabled on non-assigned budgets', fun
 
     $this->actingAs($fixtures['user']);
 
-    Livewire::test(ListBudgets::class)
+    livewireDeferredListPage(ListBudgets::class)
         ->assertSuccessful()
         ->assertActionVisible(TestAction::make('edit')->table($fixtures['own']))
         ->assertActionEnabled(TestAction::make('edit')->table($fixtures['own']))
@@ -211,7 +211,7 @@ test('family member cannot restore or force delete non-assigned budgets', functi
     $fixtures['own']->delete();
     $fixtures['primary']->delete();
 
-    Livewire::test(ListBudgets::class)
+    livewireDeferredListPage(ListBudgets::class)
         ->filterTable('trashed', false)
         ->assertSuccessful()
         ->assertActionEnabled(TestAction::make('restore')->table($fixtures['own']))
@@ -225,7 +225,7 @@ test('family member cannot follow a row edit link for non-assigned budgets', fun
 
     $this->actingAs($fixtures['user']);
 
-    $table = Livewire::test(ListBudgets::class)
+    $table = livewireDeferredListPage(ListBudgets::class)
         ->assertSuccessful()
         ->instance()
         ->getTable();

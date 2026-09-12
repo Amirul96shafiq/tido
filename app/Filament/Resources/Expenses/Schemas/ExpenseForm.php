@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Expenses\Schemas;
 use App\Enums\HouseholdRole;
 use App\Enums\LabelType;
 use App\Filament\Forms\Components\NotesRichEditor;
+use App\Filament\Support\FormSchemaDeferral;
 use App\Filament\Support\SelectValueMarquee;
 use App\Helpers\MoneyDisplay;
 use App\Helpers\UserDateDisplay;
@@ -300,84 +301,93 @@ class ExpenseForm
 
                         Section::make('Expense Notes')
                             ->id('expense-notes')
-                            ->schema([
-                                NotesRichEditor::make('notes')
-                                    ->label('Expense Notes')
-                                    ->hiddenLabel()
-                                    ->columnSpanFull(),
-                            ]),
+                            ->key('expenseNotes')
+                            ->schema(
+                                Schema::make()
+                                    ->components([
+                                        NotesRichEditor::make('notes')
+                                            ->label('Expense Notes')
+                                            ->hiddenLabel()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->deferLoading(FormSchemaDeferral::unlessViewSlideOver()),
+                            ),
 
                         Section::make('Line Items')
                             ->id('line-items')
                             ->schema([
                                 Repeater::make('expenseItems')
                                     ->relationship('expenseItems')
-                                    ->schema([
-                                        Hidden::make('id'),
-                                        TextInput::make('description')
-                                            ->required()
-                                            ->default('Item name')
-                                            ->characterLimit(FieldCharacterLimits::LINE_ITEM_DESCRIPTION)
-                                            ->live(onBlur: true)
-                                            ->afterStateUpdated(function (TextInput $component, mixed $state): void {
-                                                if (blank($state)) {
-                                                    $component->state('Item name');
-                                                }
-                                            })
-                                            ->extraAttributes(fn (Get $get): array => filled($get('id'))
-                                                ? ['id' => 'expense-item-'.$get('id')]
-                                                : [])
-                                            ->columnSpanFull(),
-
-                                        Grid::make(4)
-                                            ->schema([
-                                                Select::make('label_id')
-                                                    ->label('Label')
-                                                    ->relationship(
-                                                        name: 'label',
-                                                        titleAttribute: 'name',
-                                                        modifyQueryUsing: fn ($query) => $query->where('type', LabelType::Finance)->orderBy('name'),
-                                                    )
-                                                    ->searchable()
-                                                    ->preload()
+                                    ->schema(
+                                        Schema::make()
+                                            ->components([
+                                                Hidden::make('id'),
+                                                TextInput::make('description')
                                                     ->required()
-                                                    ->columnSpan(2),
-
-                                                TextInput::make('quantity')
-                                                    ->numeric()
-                                                    ->step(0.01)
-                                                    ->default(1)
-                                                    ->required()
-                                                    ->helperText('Supports kg / litres')
-                                                    ->columnSpan(1),
-
-                                                TextInput::make('unit_price')
-                                                    ->myr()
-                                                    ->required()
-                                                    ->columnSpan(1),
-                                            ]),
-
-                                        Grid::make(6)
-                                            ->schema([
-                                                TextInput::make('line_total')
-                                                    ->myr()
-                                                    ->required()
-                                                    ->default('0.00')
+                                                    ->default('Item name')
+                                                    ->characterLimit(FieldCharacterLimits::LINE_ITEM_DESCRIPTION)
                                                     ->live(onBlur: true)
                                                     ->afterStateUpdated(function (TextInput $component, mixed $state): void {
                                                         if (blank($state)) {
-                                                            $component->state('0.00');
+                                                            $component->state('Item name');
                                                         }
                                                     })
-                                                    ->columnSpan(2),
+                                                    ->extraAttributes(fn (Get $get): array => filled($get('id'))
+                                                        ? ['id' => 'expense-item-'.$get('id')]
+                                                        : [])
+                                                    ->columnSpanFull(),
 
-                                                DatePicker::make('warranty_expiry_date')
-                                                    ->columnSpan(2),
+                                                Grid::make(4)
+                                                    ->schema([
+                                                        Select::make('label_id')
+                                                            ->label('Label')
+                                                            ->relationship(
+                                                                name: 'label',
+                                                                titleAttribute: 'name',
+                                                                modifyQueryUsing: fn ($query) => $query->where('type', LabelType::Finance)->orderBy('name'),
+                                                            )
+                                                            ->searchable()
+                                                            ->preload()
+                                                            ->required()
+                                                            ->columnSpan(2),
 
-                                                TextInput::make('serial_number')
-                                                    ->columnSpan(2),
-                                            ]),
-                                    ])
+                                                        TextInput::make('quantity')
+                                                            ->numeric()
+                                                            ->step(0.01)
+                                                            ->default(1)
+                                                            ->required()
+                                                            ->helperText('Supports kg / litres')
+                                                            ->columnSpan(1),
+
+                                                        TextInput::make('unit_price')
+                                                            ->myr()
+                                                            ->required()
+                                                            ->columnSpan(1),
+                                                    ]),
+
+                                                Grid::make(6)
+                                                    ->schema([
+                                                        TextInput::make('line_total')
+                                                            ->myr()
+                                                            ->required()
+                                                            ->default('0.00')
+                                                            ->live(onBlur: true)
+                                                            ->afterStateUpdated(function (TextInput $component, mixed $state): void {
+                                                                if (blank($state)) {
+                                                                    $component->state('0.00');
+                                                                }
+                                                            })
+                                                            ->columnSpan(2),
+
+                                                        DatePicker::make('warranty_expiry_date')
+                                                            ->columnSpan(2),
+
+                                                        TextInput::make('serial_number')
+                                                            ->columnSpan(2),
+                                                    ]),
+                                            ])
+                                            ->deferLoading(FormSchemaDeferral::unlessViewSlideOver()),
+                                    )
                                     ->itemLabel(function (array $state): ?string {
                                         $description = $state['description'] ?? null;
 
@@ -399,20 +409,25 @@ class ExpenseForm
 
                         Section::make('Expense Status')
                             ->id('expense-status')
-                            ->schema([
-                                Select::make('status')
-                                    ->hiddenLabel()
-                                    ->options([
-                                        'pending' => 'Pending Parsing',
-                                        'parsed' => 'Parsed by AI',
-                                        'reviewed' => 'Reviewed',
-                                        'requires_manual_review' => 'Requires Manual Review',
-                                        'failed' => 'Parsing Failed',
+                            ->key('expenseStatus')
+                            ->schema(
+                                Schema::make()
+                                    ->components([
+                                        Select::make('status')
+                                            ->hiddenLabel()
+                                            ->options([
+                                                'pending' => 'Pending Parsing',
+                                                'parsed' => 'Parsed by AI',
+                                                'reviewed' => 'Reviewed',
+                                                'requires_manual_review' => 'Requires Manual Review',
+                                                'failed' => 'Parsing Failed',
+                                            ])
+                                            ->default('pending')
+                                            ->searchable()
+                                            ->required(),
                                     ])
-                                    ->default('pending')
-                                    ->searchable()
-                                    ->required(),
-                            ]),
+                                    ->deferLoading(FormSchemaDeferral::unlessViewSlideOver()),
+                            ),
                     ]),
 
                 Grid::make(1)

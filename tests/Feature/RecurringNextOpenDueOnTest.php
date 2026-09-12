@@ -89,7 +89,7 @@ test('recurrings list shows earliest open due not october cursor', function (): 
         'status' => RecurringOccurrenceStatus::Upcoming,
     ]);
 
-    Livewire::test(ListRecurrings::class)
+    livewireDeferredListPage(ListRecurrings::class)
         ->assertOk()
         ->assertTableColumnStateSet('next_due_on', '2026-09-17', $recurring)
         ->assertTableColumnStateNotSet('next_due_on', '2026-10-17', $recurring)

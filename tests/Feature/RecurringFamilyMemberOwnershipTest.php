@@ -86,7 +86,7 @@ test('family member can list every household recurring', function () {
     $this->get(RecurringResource::getUrl('index'))
         ->assertOk();
 
-    Livewire::test(ListRecurrings::class)
+    livewireDeferredListPage(ListRecurrings::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([
             $fixtures['own'],
@@ -133,7 +133,7 @@ test('family member sees create recurring action visible and disabled', function
 
     $this->actingAs($fixtures['user']);
 
-    Livewire::test(ListRecurrings::class)
+    livewireDeferredListPage(ListRecurrings::class)
         ->assertSuccessful()
         ->assertActionVisible('create')
         ->assertActionDisabled('create');
@@ -144,7 +144,7 @@ test('family member sees duplicate actions visible and disabled', function () {
 
     $this->actingAs($fixtures['user']);
 
-    Livewire::test(ListRecurrings::class)
+    livewireDeferredListPage(ListRecurrings::class)
         ->assertSuccessful()
         ->assertActionVisible(TestAction::make('replicate')->table($fixtures['own']))
         ->assertActionDisabled(TestAction::make('replicate')->table($fixtures['own']))
@@ -158,7 +158,7 @@ test('family member sees duplicate actions visible and disabled', function () {
 
     expect(Recurring::query()->count())->toBe(4);
 
-    Livewire::test(ListRecurrings::class)
+    livewireDeferredListPage(ListRecurrings::class)
         ->callAction(TestAction::make('replicate')->table($fixtures['own']));
 
     expect(Recurring::query()->count())->toBe(4);
@@ -169,7 +169,7 @@ test('family member cannot select non-assigned recurrings for bulk actions', fun
 
     $this->actingAs($fixtures['user']);
 
-    $table = Livewire::test(ListRecurrings::class)
+    $table = livewireDeferredListPage(ListRecurrings::class)
         ->assertSuccessful()
         ->instance()
         ->getTable();
@@ -187,7 +187,7 @@ test('family member sees mutation actions disabled on non-assigned recurrings', 
 
     $this->actingAs($fixtures['user']);
 
-    Livewire::test(ListRecurrings::class)
+    livewireDeferredListPage(ListRecurrings::class)
         ->assertSuccessful()
         ->assertActionVisible(TestAction::make('edit')->table($fixtures['own']))
         ->assertActionEnabled(TestAction::make('edit')->table($fixtures['own']))
@@ -207,7 +207,7 @@ test('family member cannot restore or force delete non-assigned recurrings', fun
     $fixtures['own']->delete();
     $fixtures['primary']->delete();
 
-    Livewire::test(ListRecurrings::class)
+    livewireDeferredListPage(ListRecurrings::class)
         ->filterTable('trashed', false)
         ->assertSuccessful()
         ->assertActionEnabled(TestAction::make('restore')->table($fixtures['own']))
@@ -221,7 +221,7 @@ test('family member cannot follow a row edit link for non-assigned recurrings', 
 
     $this->actingAs($fixtures['user']);
 
-    $table = Livewire::test(ListRecurrings::class)
+    $table = livewireDeferredListPage(ListRecurrings::class)
         ->assertSuccessful()
         ->instance()
         ->getTable();

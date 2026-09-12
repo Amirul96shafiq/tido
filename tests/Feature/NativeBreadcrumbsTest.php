@@ -60,7 +60,7 @@ test('list expenses page shows home expenses list breadcrumbs', function () {
     $indexUrl = ExpenseResource::getUrl('index');
     $homeUrl = Dashboard::getUrl();
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->assertSee('fi-breadcrumbs', false)
         ->assertSee('Home')
         ->assertSee($homeUrl, false)

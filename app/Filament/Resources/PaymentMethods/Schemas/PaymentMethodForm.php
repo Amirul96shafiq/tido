@@ -6,6 +6,7 @@ namespace App\Filament\Resources\PaymentMethods\Schemas;
 
 use App\Filament\Forms\Components\IconPicker;
 use App\Filament\Forms\Components\NotesRichEditor;
+use App\Filament\Support\FormSchemaDeferral;
 use App\Support\FieldCharacterLimits;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\TagsInput;
@@ -75,12 +76,17 @@ class PaymentMethodForm
 
                         Section::make('Payment Method Notes')
                             ->id('payment-method-notes')
-                            ->schema([
-                                NotesRichEditor::make('notes')
-                                    ->label('Payment Method Notes')
-                                    ->hiddenLabel()
-                                    ->columnSpanFull(),
-                            ]),
+                            ->key('paymentMethodNotes')
+                            ->schema(
+                                Schema::make()
+                                    ->components([
+                                        NotesRichEditor::make('notes')
+                                            ->label('Payment Method Notes')
+                                            ->hiddenLabel()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->deferLoading(FormSchemaDeferral::unlessViewSlideOver()),
+                            ),
                     ]),
 
                 Grid::make(1)

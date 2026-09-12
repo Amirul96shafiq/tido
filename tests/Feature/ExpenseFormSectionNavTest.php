@@ -8,6 +8,7 @@ use App\Filament\Resources\Expenses\Schemas\ExpenseForm;
 use App\Models\Expense;
 use App\Models\ExpenseItem;
 use App\Models\User;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -70,9 +71,17 @@ test('expense edit page renders line item anchors for global search', function (
             'description' => 'Anchor Test Item',
         ]);
 
-    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
-        ->assertSuccessful()
-        ->assertSee('id="expense-item-'.$item->getKey().'"', false);
+    loadDeferredExpenseItemSchema(
+        Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()]),
+        $item->getKey(),
+    )->assertSchemaComponentExists(
+        deferredFormComponentKey(deferredExpenseItemSchemaKey($item->getKey()), 'description'),
+        checkComponentUsing: function (TextInput $component) use ($item): bool {
+            expect($component->getExtraAttributes())->toHaveKey('id', 'expense-item-'.$item->getKey());
+
+            return true;
+        },
+    );
 });
 
 test('expense section nav smooth scrolls on tab click', function () {

@@ -6,7 +6,6 @@ use App\Filament\Resources\Expenses\Pages\ListExpenses;
 use App\Models\Expense;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -19,7 +18,7 @@ test('table filters and column manager apply live without deferred apply action'
     $pending = Expense::factory()->create(['status' => 'pending']);
     $parsed = Expense::factory()->create(['status' => 'parsed']);
 
-    $component = Livewire::test(ListExpenses::class)
+    $component = livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->assertDontSeeHtml('wire:poll.10s.visible')
         ->assertCanSeeTableRecords([$pending, $parsed]);

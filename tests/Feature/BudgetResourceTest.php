@@ -37,7 +37,7 @@ test('list page renders label badge, quarter placeholder, and overall default', 
         'quarter' => 2,
     ]);
 
-    Livewire::test(ListBudgets::class)
+    livewireDeferredListPage(ListBudgets::class)
         ->assertOk()
         ->assertCanSeeTableRecords(Budget::all())
         ->assertTableColumnExists('label.name', function (TextColumn $column): bool {
@@ -84,7 +84,7 @@ test('list page shows primary username when assigned to primary', function () {
         'quarter' => null,
     ]);
 
-    Livewire::test(ListBudgets::class)
+    livewireDeferredListPage(ListBudgets::class)
         ->assertOk()
         ->assertSee('Assigned to')
         ->assertTableColumnStateSet('assigned_to', 'admin', $primaryBudget)
@@ -111,7 +111,7 @@ test('primary can duplicate a budget from the list', function () {
         'notes' => '<p>Weekly shop</p>',
     ]);
 
-    $page = Livewire::test(ListBudgets::class)
+    $page = livewireDeferredListPage(ListBudgets::class)
         ->callAction(TestAction::make('replicate')->table($source))
         ->assertNotified('Budget duplicated');
 
@@ -144,7 +144,7 @@ test('primary can bulk duplicate budgets from the list', function () {
 
     expect(Budget::query()->count())->toBe(2);
 
-    Livewire::test(ListBudgets::class)
+    livewireDeferredListPage(ListBudgets::class)
         ->selectTableRecords([$first->getKey(), $second->getKey()])
         ->callAction(TestAction::make('duplicate')->table()->bulk())
         ->assertNotified('2 budgets duplicated')
@@ -164,7 +164,7 @@ test('budgets table supports deleted records filter and soft delete actions', fu
     $trashed = Budget::factory()->create(['title' => 'Trashed Budget']);
     $trashed->delete();
 
-    Livewire::test(ListBudgets::class)
+    livewireDeferredListPage(ListBudgets::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$active])
         ->assertCanNotSeeTableRecords([$trashed])

@@ -28,7 +28,7 @@ test('primary can duplicate a payment method from the list', function () {
         'color' => '#f59e0b',
     ]);
 
-    $page = Livewire::test(ListPaymentMethods::class)
+    $page = livewireDeferredListPage(ListPaymentMethods::class)
         ->callAction(TestAction::make('replicate')->table($source))
         ->assertNotified('Payment method duplicated');
 
@@ -61,7 +61,7 @@ test('primary can bulk duplicate payment methods from the list', function () {
 
     $initialCount = PaymentMethod::query()->count();
 
-    Livewire::test(ListPaymentMethods::class)
+    livewireDeferredListPage(ListPaymentMethods::class)
         ->selectTableRecords([$first->getKey(), $second->getKey()])
         ->callAction(TestAction::make('duplicate')->table()->bulk())
         ->assertNotified('2 payment methods duplicated')
@@ -82,7 +82,7 @@ test('duplicating a system payment method creates a user method with a unique sl
         'slug' => 'corporate-visa-copy',
     ]);
 
-    Livewire::test(ListPaymentMethods::class)
+    livewireDeferredListPage(ListPaymentMethods::class)
         ->callAction(TestAction::make('replicate')->table($systemMethod));
 
     $replica = PaymentMethod::query()
@@ -106,7 +106,7 @@ test('payment methods table supports deleted records filter and soft delete acti
     $trashed = PaymentMethod::factory()->create(['name' => 'Trashed Method']);
     $trashed->delete();
 
-    Livewire::test(ListPaymentMethods::class)
+    livewireDeferredListPage(ListPaymentMethods::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$active])
         ->assertCanNotSeeTableRecords([$trashed])

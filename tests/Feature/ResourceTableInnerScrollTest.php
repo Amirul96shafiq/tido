@@ -11,7 +11,6 @@ use App\Filament\Resources\PaymentMethods\Pages\ListPaymentMethods;
 use App\Models\Expense;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -55,12 +54,12 @@ test('app.css freezes resource table record actions on the right', function () {
 test('resource list pages render table containers properly', function () {
     $this->actingAs($this->admin);
 
-    Livewire::test(ListExpenses::class)->assertSuccessful();
-    Livewire::test(ListLabels::class)->assertSuccessful();
-    Livewire::test(ListBudgets::class)->assertSuccessful();
-    Livewire::test(ListPaymentMethods::class)->assertSuccessful();
-    Livewire::test(ListFamilyMembers::class)->assertSuccessful();
-    Livewire::test(ListBackups::class)->assertSuccessful();
+    livewireDeferredListPage(ListExpenses::class)->assertSuccessful();
+    livewireDeferredListPage(ListLabels::class)->assertSuccessful();
+    livewireDeferredListPage(ListBudgets::class)->assertSuccessful();
+    livewireDeferredListPage(ListPaymentMethods::class)->assertSuccessful();
+    livewireDeferredListPage(ListFamilyMembers::class)->assertSuccessful();
+    livewireDeferredListPage(ListBackups::class)->assertSuccessful();
 });
 
 test('expenses list renders sticky record actions with teleported kebab', function () {
@@ -68,7 +67,7 @@ test('expenses list renders sticky record actions with teleported kebab', functi
 
     Expense::factory()->create();
 
-    $html = Livewire::test(ListExpenses::class)
+    $html = livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->html();
 

@@ -119,7 +119,7 @@ test('family member cannot select non-owned expenses for bulk actions', function
 
     $this->actingAs($fixtures['user']);
 
-    $table = Livewire::test(ListExpenses::class)
+    $table = livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->instance()
         ->getTable();
@@ -142,7 +142,7 @@ test('family member sees mutation actions disabled on non-owned expenses', funct
 
     $this->actingAs($fixtures['user']);
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->assertActionVisible(TestAction::make('edit')->table($fixtures['own']))
         ->assertActionEnabled(TestAction::make('edit')->table($fixtures['own']))
@@ -169,7 +169,7 @@ test('family member cannot follow a row edit link for non-owned expenses', funct
 
     $this->actingAs($fixtures['user']);
 
-    $table = Livewire::test(ListExpenses::class)
+    $table = livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->instance()
         ->getTable();
@@ -192,7 +192,7 @@ test('primary user keeps mutation actions enabled for every expense', function (
 
     $this->actingAs(User::factory()->create());
 
-    $component = Livewire::test(ListExpenses::class)
+    $component = livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful();
 
     foreach (['own', 'primary', 'otherOwned'] as $fixtureKey) {
