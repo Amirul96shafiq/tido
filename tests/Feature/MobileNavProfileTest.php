@@ -419,6 +419,10 @@ test('admin panel mobile nav script syncs preference across spa navigation', fun
         ->toContain('isSidebarOpen')
         ->toContain('PanelsRenderHook::BODY_END')
         ->not->toContain('PanelsRenderHook::LAYOUT_START')
+        ->toContain('forceHideForSpa')
+        ->toContain('_hideSharedOverlayDom')
+        ->toContain('_suppressOverlay')
+        ->toContain('hideMobileChromeForSpa')
         ->toContain('livewire:navigated')
         ->toContain('livewire:navigating');
 });
@@ -535,6 +539,7 @@ test('mobile chrome overlays match the sidebar close overlay', function (): void
         ->toContain('html.tido-mobilenav')
         ->toContain('.tido-mobilenav-shared-chrome-overlay')
         ->toContain('.fi-sidebar-close-overlay:not(.tido-mobilenav-shared-chrome-overlay)')
+        ->toContain('body:has(.tido-mobilenav-root)')
         ->toContain('display: none !important')
         ->toContain('backdrop-filter: none !important')
         ->toContain('.fi-layout:has(.fi-modal.fi-modal-open')
@@ -571,6 +576,9 @@ test('mobile chrome overlays match the sidebar close overlay', function (): void
     expect($css)
         ->toContain('html.tido-mobilenav .tido-mobilenav-shared-chrome-overlay')
         ->toContain('z-index: 29 !important')
+        ->toContain('.tido-mobilenav-shared-chrome-overlay.tido-chrome-overlay-shown')
+        ->toContain('opacity: 0 !important')
+        ->toContain('visibility: hidden')
         ->toContain('@media (min-width: 1024px)')
         ->toContain('html.tido-mobilenav .tido-mobilenav-shared-chrome-overlay')
         ->toContain('pointer-events: none !important');
@@ -595,8 +603,11 @@ test('mobile chrome overlays match the sidebar close overlay', function (): void
         ->toContain('x-effect')
         ->toContain('mobilenavActive')
         ->toContain('$store.tidoMobileChrome?.overlayShown')
+        ->toContain("style.display = (mobilenav && shown) ? 'block' : 'none'")
         ->toContain("classList.toggle('opacity-0'")
         ->toContain("classList.toggle('pointer-events-none'")
+        ->toContain("setProperty('opacity', shown ? '1' : '0', 'important')")
+        ->toContain("setProperty('visibility', shown ? 'visible' : 'hidden', 'important')")
         ->toContain('closeActiveChrome()')
         ->not->toContain('x-transition.opacity.300ms');
 

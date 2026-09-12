@@ -6430,8 +6430,20 @@ html.tido-mobilenav .tido-mobilenav-shared-chrome-overlay {
      * Below .fi-sidebar (z-30) so the drawer stays bright; above .fi-main-ctn (z-1).
      * Below chrome sheets / bottom bar (--tido-mobilenav-z-chrome: 65).
      * Opacity fade inherits from .tido-chrome-overlay (transition-opacity duration-300).
+     * Hide with !important — Filament .fi-sidebar-close-overlay transitions opacity
+     * and a dynamic Tailwind opacity-0 class never compiled, so the dim stayed at 1.
      */
     z-index: 29 !important;
+    opacity: 0 !important;
+    visibility: hidden;
+    pointer-events: none !important;
+}
+
+html.tido-mobilenav
+    .tido-mobilenav-shared-chrome-overlay.tido-chrome-overlay-shown {
+    opacity: 1 !important;
+    visibility: visible;
+    pointer-events: auto !important;
 }
 
 @media (min-width: 1024px) {
@@ -6454,10 +6466,12 @@ html.tido-mobilenav .tido-mobilenav-shared-chrome-overlay {
     }
 
     html.tido-mobilenav
-        .fi-sidebar-close-overlay:not(.tido-mobilenav-shared-chrome-overlay) {
+        .fi-sidebar-close-overlay:not(.tido-mobilenav-shared-chrome-overlay),
+    body:has(.tido-mobilenav-root) .fi-layout > .fi-sidebar-close-overlay {
         display: none !important;
-        opacity: 0;
-        pointer-events: none;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
     }
 
     html.tido-mobilenav
