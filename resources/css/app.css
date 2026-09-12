@@ -5042,6 +5042,59 @@ html.tido-reduce-motion
 }
 
 /*
+ * Deferred schema/table placeholders — match Finance widget lazy-placeholder
+ * (size-6 primary spinner + loading-section pulse).
+ */
+.fi-sc.fi-sc-loading {
+    @apply text-primary-500 motion-safe:animate-pulse;
+}
+
+.fi-ta.fi-loading {
+    animation: none !important;
+}
+
+.fi-ta-table-loading-ctn {
+    @apply motion-safe:animate-pulse;
+}
+
+.fi-sc.fi-sc-loading > .fi-loading-indicator,
+.fi-ta-table-loading-ctn > .fi-loading-indicator,
+.fi-loading-section .fi-loading-indicator,
+.fi-wi-loading-section .fi-loading-indicator {
+    @apply size-6 text-primary-500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fi-sc.fi-sc-loading,
+    .fi-ta-table-loading-ctn,
+    .fi-loading-section,
+    .fi-wi-loading-section {
+        animation: none !important;
+    }
+
+    .fi-sc.fi-sc-loading > .fi-loading-indicator,
+    .fi-ta-table-loading-ctn > .fi-loading-indicator,
+    .fi-loading-section .fi-loading-indicator,
+    .fi-wi-loading-section .fi-loading-indicator {
+        animation: none !important;
+    }
+}
+
+html.tido-reduce-motion .fi-sc.fi-sc-loading,
+html.tido-reduce-motion .fi-ta-table-loading-ctn,
+html.tido-reduce-motion .fi-loading-section,
+html.tido-reduce-motion .fi-wi-loading-section {
+    animation: none !important;
+}
+
+html.tido-reduce-motion .fi-sc.fi-sc-loading > .fi-loading-indicator,
+html.tido-reduce-motion .fi-ta-table-loading-ctn > .fi-loading-indicator,
+html.tido-reduce-motion .fi-loading-section .fi-loading-indicator,
+html.tido-reduce-motion .fi-wi-loading-section .fi-loading-indicator {
+    animation: none !important;
+}
+
+/*
  * Resource Tables Capped Height & Inner Scrolling.
  * Caps resource table container to ~90% available viewport region (max-height ~70vh for content container),
  * enabling vertical inner scrolling specifically for table record rows while keeping search/filters header

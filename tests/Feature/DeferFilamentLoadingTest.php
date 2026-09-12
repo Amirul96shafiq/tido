@@ -23,6 +23,8 @@ test('expenses list defers table records until loadTable is called', function ()
         ->assertSuccessful();
 
     expect($component->html())
+        ->toContain('fi-ta-table-loading-ctn')
+        ->toContain('fi-loading-indicator')
         ->not->toContain('wire:key="'.$component->instance()->getId().'.table.records.'.$expense->getKey().'"');
 
     $component
@@ -44,6 +46,7 @@ test('expense edit defers notes schema until loadDeferredSchema', function (): v
 
     expect($component->html())
         ->toContain('fi-sc-loading')
+        ->toContain('fi-loading-indicator')
         ->not->toContain('fi-notes-rich-editor');
 
     loadDeferredFormSchemas($component, 'expenseNotes')

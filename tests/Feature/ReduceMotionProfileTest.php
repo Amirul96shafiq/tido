@@ -111,6 +111,21 @@ test('admin panel reduce motion script syncs preference across spa navigation', 
         ->toContain('scheduleMarqueeSync');
 });
 
+test('reduce motion css disables deferred and widget loading placeholder animations', function (): void {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.fi-sc.fi-sc-loading')
+        ->toContain('.fi-ta-table-loading-ctn')
+        ->toContain('.fi-wi-loading-section')
+        ->toContain('html.tido-reduce-motion .fi-sc.fi-sc-loading')
+        ->toContain('html.tido-reduce-motion .fi-ta-table-loading-ctn')
+        ->toContain('html.tido-reduce-motion .fi-loading-section')
+        ->toContain('html.tido-reduce-motion .fi-wi-loading-section')
+        ->toContain('html.tido-reduce-motion .fi-sc.fi-sc-loading > .fi-loading-indicator')
+        ->toContain('html.tido-reduce-motion .fi-ta-table-loading-ctn > .fi-loading-indicator');
+});
+
 test('reduce motion css disables ping pulse animations', function (): void {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
