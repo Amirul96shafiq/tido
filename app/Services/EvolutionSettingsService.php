@@ -118,7 +118,13 @@ final class EvolutionSettingsService
             $value = $attributes[$credential] ?? null;
 
             if (is_string($value) && trim($value) !== '') {
-                $setting->{$credential} = trim($value);
+                $trimmed = trim($value);
+
+                if ($credential === 'webhook_secret') {
+                    $this->assertWebhookSecretAvailable($householdId, $setting, $trimmed);
+                }
+
+                $setting->{$credential} = $trimmed;
             }
         }
 
@@ -159,6 +165,29 @@ final class EvolutionSettingsService
         $allowedHosts = config('services.evolution.allowed_api_hosts', []);
 
         return is_array($allowedHosts) && in_array(strtolower((string) $parts['host']), array_map('strtolower', $allowedHosts), true);
+    }
+
+    private function assertWebhookSecretAvailable(int $householdId, EvolutionApiSetting $setting, string $secret): void
+    {
+        $environmentSecret = $this->configuredValue('services.evolution.webhook_secret');
+
+        if ($householdId !== 1 && $environmentSecret !== null && hash_equals($environmentSecret, $secret)) {
+            throw ValidationException::withMessages([
+                'webhook_secret' => 'That webhook secret is already in use.',
+            ]);
+        }
+
+        $duplicate = EvolutionApiSetting::query()
+            ->withoutGlobalScopes()
+            ->where('webhook_secret_hash', EvolutionApiSetting::secretHash($secret))
+            ->where($setting->getKeyName(), '!=', $setting->getKey())
+            ->exists();
+
+        if ($duplicate) {
+            throw ValidationException::withMessages([
+                'webhook_secret' => 'That webhook secret is already in use.',
+            ]);
+        }
     }
 
     private function configuredValue(string $key): ?string

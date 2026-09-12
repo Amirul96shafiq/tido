@@ -61,10 +61,10 @@ expect()->extend('toBeOne', function () {
 /**
  * @return array{Authorization: string}
  */
-function evolutionWebhookHeaders(): array
+function evolutionWebhookHeaders(?string $secret = null): array
 {
     return [
-        'Authorization' => 'Bearer '.(string) config('services.evolution.webhook_secret'),
+        'Authorization' => 'Bearer '.($secret ?? (string) config('services.evolution.webhook_secret')),
     ];
 }
 

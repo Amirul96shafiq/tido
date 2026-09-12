@@ -10,7 +10,7 @@ Product name remains **tido**. Expense tags remain **Label** / **Labels** (never
 
 ## 1. Problem
 
-**Today (tenancy kernel shipped):** tido supports **many households on one deploy** via `household_id` isolation (MH-001–MH-007 **Verified** in [multi-household-change-checklist.md](multi-household-change-checklist.md)). Inside each household: Primary + optional Family Members, per-household Labels/Payment Methods/Ollama prefs, and household-scoped panel data. Evolution/WhatsApp per-household isolation (**MH-008**) and household-scoped backup ZIPs (**MH-009**) remain in progress.
+**Today (tenancy kernel shipped):** tido supports **many households on one deploy** via `household_id` isolation (MH-001–MH-007 **Verified** in [multi-household-change-checklist.md](multi-household-change-checklist.md)). Inside each household: Primary + optional Family Members, per-household Labels/Payment Methods/Ollama prefs, and household-scoped panel data. Evolution/WhatsApp per-household isolation (**MH-008**) is Implemented (owner smoke remaining). Household-scoped backup ZIPs (**MH-009**) remain partial.
 
 **Future (this PRD):** public **Free / Pro** signups, billing, and quotas. That revenue layer is **not** authorized yet. The tenancy **kernel** is authorized only through the phased `MH-*` register — implement the active row only.
 
@@ -51,7 +51,7 @@ If every query were `where user_id = auth()->id()`:
 | Expenses / budgets / recurrings | Per household; family ACL inside | Same; no cross-household reads |
 | Labels / payment methods | Per household | Same |
 | `OllamaSetting` | Per household row (shared **process/GPU** OK) | Same + per-household quotas |
-| Evolution API | Per-household settings row; HH#1 env fallback; HH#2 E2E in MH-008 | Fully isolated instances + secrets per household |
+| Evolution API | Per-household settings row; HH#1 env fallback; HH#2 Pest isolation (MH-008 Implemented) | Fully isolated instances + secrets per household |
 | WhatsApp allowlist | Per household | Same |
 | Backups / Danger Zone | Catalog + wipe scoped; ZIP still full-DB (MH-009) | Per-household ZIP create/restore |
 | Registration | `HouseholdRegistrationService` (no public Filament Register yet) | Public Register → **new** household + Primary |
@@ -107,7 +107,7 @@ Implementation order is the `MH-*` register — not this section. Status summary
 1. **Kernel quality** — Ongoing via [security-audit.md](security-audit.md); Evolution / Ollama setup.
 2. **Household / account scope** — **Verified** (MH-004–MH-006): `household_id`, scopes, isolation tests.
 3. **Register** — **Verified** at service layer (MH-007): `HouseholdRegistrationService`; public Filament Register deferred.
-4. **Evolution / WhatsApp** — **In progress** (MH-008): per-household instances and HH#2 E2E.
+4. **Evolution / WhatsApp** — **Implemented** (MH-008): per-household instances and HH#2 Pest isolation; live second-phone connect is owner smoke.
 5. **Backups** — **Implemented** partial (MH-009): catalog + wipe scoped; ZIP still full-DB.
 6. **Plans / billing** — **Deferred** until an explicit later phase.
 

@@ -39,7 +39,7 @@ Repository workflow, branch, approval, and verification rules remain authoritati
 | **MH-005** | Critical | Verified    | MH-004 Verified | User id 1 smoke + isolation  | Login as user id 1; pre-migration data visible; two-household Pest isolation green                                                                     |
 | **MH-006** | Critical | Verified    | MH-005 Verified | Panel / policies / broadcast | Cross-household deny; widgets/analytics scoped; `household.{id}.expenses` channel                                                                      |
 | **MH-007** | High     | Verified    | MH-006 Verified | Register                     | `HouseholdRegistrationService` creates **new** Household + Primary; seeds Labels/Payment Methods; public Filament Register deferred                    |
-| **MH-008** | High     | In Progress | MH-007 Verified | Evolution / WhatsApp         | Each household may enable and connect its own WhatsApp instance; credentials, instance identity, and webhook routing stay household-scoped             |
+| **MH-008** | High     | Implemented | MH-007 Verified | Evolution / WhatsApp         | Each household may enable and connect its own WhatsApp instance; credentials, instance identity, and webhook routing stay household-scoped             |
 | **MH-009** | High     | Implemented | MH-008 Verified | Backups / Danger Zone        | Catalog + Danger Zone wipe scoped to household; ZIP create/restore still full-DB until verified                                                        |
 
 **Deferred (not `MH-*` until requested):** Free/Pro billing, quotas, Stripe, Training / Health / Task schemas, new multi-tenancy Composer packages.
@@ -123,12 +123,12 @@ Use these checklists inside the active `MH-*` item. Tick boxes when the owning `
 - [x] Register creates new `Household` + Primary (never joins household #1 by accident) — via `HouseholdRegistrationService`
 - [x] Per-household Label / PaymentMethod seed on Register
 - [ ] Email/password + optional Google: Primary of that household — public Filament Register deferred
-- [ ] WhatsApp OTP: login-enabled Family Members of that household only — household-scoped in code; HH#2 isolation tests pending (MH-008)
+- [x] WhatsApp OTP: login-enabled Family Members of that household only — household-scoped keys/instance; HH#2 Pest isolation green
 
 ### WhatsApp / Evolution / Ollama
 
 - [x] Per-household Evolution credentials, unique instance name, and webhook secret
-- [ ] Primary can enable WhatsApp for the household and connect its own phone number — HH#2 connect/E2E pending (MH-008)
+- [ ] Primary can enable WhatsApp for the household and connect its own phone number — Pest covers HH#2 enable + QR instance URL; live second-phone connect remains owner smoke
 - [x] Evolution services select the current household settings rather than global `.env` instance credentials — via `EvolutionSettingsService::effective()` (HH#1 API key/webhook secret and all households’ `api_url` still fall back to env when unset)
 - [x] Webhook resolves household before allowlist / [`ExpenseSenderAttribution`](../app/Support/ExpenseSenderAttribution.php) / [`WhatsAppLid`](../app/Support/WhatsAppLid.php)
 - [x] Jobs carry `household_id` and set CurrentHousehold
@@ -301,17 +301,19 @@ Use these checklists inside the active `MH-*` item. Tick boxes when the owning `
 
 | Field                 | Content                                                                                                                                        |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status                | **In Progress**                                                                                                                                |
+| Status                | **Implemented**                                                                                                                                |
 | Required end state    | Every household Primary can enable WhatsApp, configure/select its household Evolution instance, and connect that household's own phone number. |
 | Verification boundary | Household #1 and household #2 connect separate phone numbers; webhook, allowlist, OTP, logs, and Evolution state remain isolated.              |
 
 ### MH-008 verification note
 
-- `evolution_api_settings` table + `EvolutionApiSetting` model; `EvolutionWebhookHousehold` resolves secret → household (env secret falls back to household #1).
+- `evolution_api_settings` table + `EvolutionApiSetting` model; `EvolutionWebhookHousehold` resolves the env webhook secret to household #1 first, then other households by stored secret hash.
 - `WhatsAppWebhookRequest` sets `CurrentHousehold` after secret resolution.
-- `EvolutionInstanceService` routes through `EvolutionSettingsService::effective()` — not raw `.env` reads. Household #1 still falls back to env for API key/webhook secret; all households fall back to env `api_url` when the row is empty.
+- `EvolutionInstanceService` routes through `EvolutionSettingsService::effective()` — not raw `.env` reads. Household #1 still falls back to env for API key/webhook secret; all households fall back to env `api_url` when the row is empty. Other households cannot save the env webhook secret.
 - `HouseholdRegistrationService` creates an `EvolutionApiSetting` row per new household; `whatsapp_enabled` defaults to `false`, so Connect stays disabled until Primary completes setup and enables WhatsApp.
-- `WhatsAppWebhookTest` passes for household #1 (env webhook secret path). **Remaining before Verified:** household #2 setup → enable → connect separate phone; webhook auth with that household’s own `webhook_secret` (not env fallback); OTP/allowlist/connection-log isolation; Pest coverage for two-household webhook/OTP/page flows (`Http::fake` / `Queue::fake`).
+- Family Member login users stamp `household_id` from the member (not the SQLite default of household #1).
+- Pest: `HouseholdWhatsAppIsolationTest` covers HH#2 webhook secret routing, allowlist, OTP, Evolution enable/QR connect URL, and connection-log isolation (`Http::fake` / `Queue::fake`).
+- **Remaining before Verified:** owner smoke — household #2 setup → enable → connect a separate live phone; confirm a webhook with that household’s own `webhook_secret` never writes household #1 books.
 
 ### MH-009 — Backups / Danger Zone
 

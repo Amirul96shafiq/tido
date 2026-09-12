@@ -9,6 +9,7 @@ use App\Jobs\ProcessWhatsAppMediaJob;
 use App\Jobs\SendWhatsAppDocumentReceivedAckJob;
 use App\Models\Expense;
 use App\Models\User;
+use App\Support\CurrentHousehold;
 use App\Support\WhatsAppDocumentReceivedDebouncer;
 use App\Support\WhatsAppTypingSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -32,6 +33,7 @@ beforeEach(function () {
     ]);
 
     Cache::flush();
+    CurrentHousehold::set(1);
 
     User::factory()->create(['phone' => '60123456789']);
 });
@@ -146,7 +148,7 @@ test('process whatsapp media job skips duplicate message processing', function (
     Queue::fake();
 
     $filename = 'wa_MSG-DUP.jpg';
-    Storage::put('receipts/'.$filename, 'existing-image');
+    Storage::put('receipts/1/'.$filename, 'existing-image');
 
     Http::fake();
 

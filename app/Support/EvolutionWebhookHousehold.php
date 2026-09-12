@@ -18,6 +18,19 @@ final class EvolutionWebhookHousehold
             return null;
         }
 
+        $secret = trim($secret);
+        $environmentSecret = config('services.evolution.webhook_secret');
+
+        if (is_string($environmentSecret) && $environmentSecret !== '' && hash_equals(trim($environmentSecret), $secret)) {
+            /** @var EvolutionApiSetting|null $householdOneSetting */
+            $householdOneSetting = EvolutionApiSetting::query()
+                ->withoutGlobalScopes()
+                ->where('household_id', 1)
+                ->first();
+
+            return $householdOneSetting;
+        }
+
         $hash = EvolutionApiSetting::secretHash($secret);
 
         /** @var EvolutionApiSetting|null $setting */
@@ -28,18 +41,6 @@ final class EvolutionWebhookHousehold
 
         if ($setting !== null && $setting->resolvesWebhookSecret($secret)) {
             return $setting;
-        }
-
-        $environmentSecret = config('services.evolution.webhook_secret');
-
-        if (is_string($environmentSecret) && $environmentSecret !== '' && hash_equals($environmentSecret, $secret)) {
-            /** @var EvolutionApiSetting|null $householdOneSetting */
-            $householdOneSetting = EvolutionApiSetting::query()
-                ->withoutGlobalScopes()
-                ->where('household_id', 1)
-                ->first();
-
-            return $householdOneSetting;
         }
 
         return null;
