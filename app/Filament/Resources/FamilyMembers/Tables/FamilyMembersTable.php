@@ -37,7 +37,6 @@ class FamilyMembersTable
     {
         return $table
             ->deferLoading()
-            ->heading('Family Members')
             ->extraAttributes(['class' => 'tido-family-members-table'])
             ->recordClasses(fn (FamilyMember $record): array => array_values(array_filter([
                 'tido-family-member-row',

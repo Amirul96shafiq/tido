@@ -23,7 +23,6 @@ class PrimaryMemberTable
     {
         return $table
             ->deferLoading()
-            ->heading('Primary Member')
             ->extraAttributes(['class' => 'tido-primary-member-table'])
             ->queryStringIdentifier('primaryMember')
             ->query(

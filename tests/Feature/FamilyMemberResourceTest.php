@@ -290,8 +290,13 @@ test('family members list shows primary member table above family members table'
         ->assertSuccessful()
         ->assertSee('Primary Member')
         ->assertSee('Family Members')
+        ->assertSeeHtml('tido-table-section-heading')
+        ->assertSeeHtml('tido-primary-member-widget')
         ->assertSeeHtml('tido-primary-member-table')
-        ->assertSeeHtml('tido-family-members-table');
+        ->assertSeeHtml('tido-family-members-table')
+        ->assertDontSee('Primary Member Table')
+        ->assertDontSeeHtml('<h3 class="fi-ta-header-heading">Primary Member</h3>')
+        ->assertDontSeeHtml('<h3 class="fi-ta-header-heading">Family Members</h3>');
 
     expect($css)->toContain('.tido-primary-member-table .fi-ta-table > tbody > tr > td.fi-ta-cell')
         ->toContain('.tido-primary-member-table .fi-ta-cell-avatar-url img');
@@ -309,6 +314,7 @@ test('primary member table lists household primary without search filters or pag
     $component = Livewire::test(PrimaryMemberTableWidget::class)
         ->assertSuccessful()
         ->loadTable()
+        ->assertDontSee('Primary Member Table')
         ->assertCanSeeTableRecords([$this->admin])
         ->assertSee('Household Lead')
         ->assertSee('60198765432')
