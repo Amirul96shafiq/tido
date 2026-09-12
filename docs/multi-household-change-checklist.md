@@ -8,12 +8,13 @@ Product name remains **tido**. Expense tags remain **Label** / **Labels** (never
 
 ## How to use this register
 
-- Select **exactly one** `MH-*` item for a change (the topmost **Open** row), unless one item is an unavoidable prerequisite of the selected item.
+- Select **exactly one** `MH-*` item for a change (the topmost **Open or In progress** row), unless one item is an unavoidable prerequisite of the selected item.
 - Do **not** start the next `MH-*` while the current one is Open, In progress, or Implemented.
 - Re-read the current source at linked paths before editing.
 - After the change lands, run that item’s verification boundary (focused Pest + owner smoke-test).
 - Update the selected row’s **Status** only after the implementation exists; mark **Verified** only after focused tests **and** owner smoke-test pass.
-- Tick / **Verified** unlocks the next Open item. Agents must re-read this register and pick only that next top Open item.
+- Tick inventory boxes when the owning `MH-*` row reaches **Verified** (or **Implemented** for known-partial items). Do not tick future phases ahead of the register.
+- **Verified** unlocks the next Open item. Agents must re-read this register and pick only the next top **Open or In progress** row.
 - Never place restore tokens, archive passwords, secrets, session identifiers, raw receipt content, full webhook payloads, or database dumps in this document, tests, or git.
 
 Repository workflow, branch, approval, and verification rules remain authoritative in [AGENTS.md](../AGENTS.md), [git-workflow.md](git-workflow.md), and agent onboarding.
@@ -37,9 +38,9 @@ Repository workflow, branch, approval, and verification rules remain authoritati
 | **MH-004** | Critical | Verified    | MH-003 Verified | Schema + scopes + backfill   | `Household` model; `household_id` on domain tables; composite uniques; `BelongsToHousehold`; all existing rows → household #1; user id 1 stays Primary |
 | **MH-005** | Critical | Verified    | MH-004 Verified | User id 1 smoke + isolation  | Login as user id 1; pre-migration data visible; two-household Pest isolation green                                                                     |
 | **MH-006** | Critical | Verified    | MH-005 Verified | Panel / policies / broadcast | Cross-household deny; widgets/analytics scoped; `household.{id}.expenses` channel                                                                      |
-| **MH-007** | High     | Verified    | MH-006 Verified | Register                     | Signup creates **new** Household + Primary; seed labels/payment methods per household                                                                  |
+| **MH-007** | High     | Verified    | MH-006 Verified | Register                     | `HouseholdRegistrationService` creates **new** Household + Primary; seeds Labels/Payment Methods; public Filament Register deferred                    |
 | **MH-008** | High     | In Progress | MH-007 Verified | Evolution / WhatsApp         | Each household may enable and connect its own WhatsApp instance; credentials, instance identity, and webhook routing stay household-scoped             |
-| **MH-009** | High     | Verified    | MH-008 Verified | Backups / Danger Zone        | Backup/restore/wipe scoped to household; never wipe another household                                                                                  |
+| **MH-009** | High     | Implemented | MH-008 Verified | Backups / Danger Zone        | Catalog + Danger Zone wipe scoped to household; ZIP create/restore still full-DB until verified                                                        |
 
 **Deferred (not `MH-*` until requested):** Free/Pro billing, quotas, Stripe, Training / Health / Task schemas, new multi-tenancy Composer packages.
 
@@ -79,82 +80,82 @@ If a migration fails: stop; restore via catalog ZIP (`BackupService`) or replace
 
 ## Change inventory (by surface)
 
-Use these checklists inside the active `MH-*` item. Do not tick inventory boxes for future phases ahead of the register.
+Use these checklists inside the active `MH-*` item. Tick boxes when the owning `MH-*` row reaches **Verified** (or **Implemented** for known-partial items). Do not tick future phases ahead of the register.
 
 ### Schema / models
 
-- [ ] `households` table + `App\Models\Household`
-- [ ] `users.household_id` (FK, required after backfill)
-- [ ] `family_members.household_id`
-- [ ] `expenses.household_id`
-- [ ] `labels.household_id`
-- [ ] `payment_methods.household_id`
-- [ ] `budgets.household_id`
-- [ ] `recurrings.household_id`
-- [ ] `backups.household_id`
-- [ ] `ollama_settings.household_id` (retire singleton-only assumption)
-- [ ] `google_oauth_settings` platform credentials (canonical `household_id = 1`; shared Client ID)
-- [ ] `google_oauth_login_logs.household_id`
-- [ ] `evolution_api_connection_logs.household_id` (when Evolution is tenanted)
-- [ ] `expense_items` / `recurring_occurrences` via parent FK (or denormalized `household_id` if needed for query speed)
-- [ ] `content_drafts` — ensure owning user ∈ household
-- [ ] Composite uniques: `(household_id, receipt_hash)`, `(household_id, whatsapp_message_id)`, family/user phone & whatsapp_lid per household, label `(household_id, type, slug)`, payment_method `(household_id, slug)`
-- [ ] Factories / seeders stamp `household_id`; `admin@tido.local` → household #1
+- [x] `households` table + `App\Models\Household`
+- [x] `users.household_id` (FK, required after backfill)
+- [x] `family_members.household_id`
+- [x] `expenses.household_id`
+- [x] `labels.household_id`
+- [x] `payment_methods.household_id`
+- [x] `budgets.household_id`
+- [x] `recurrings.household_id`
+- [x] `backups.household_id`
+- [x] `ollama_settings.household_id` (retire singleton-only assumption)
+- [x] `google_oauth_settings` platform credentials (canonical `household_id = 1`; shared Client ID)
+- [x] `google_oauth_login_logs.household_id`
+- [x] `evolution_api_connection_logs.household_id` (when Evolution is tenanted)
+- [x] `expense_items` / `recurring_occurrences` via parent FK (or denormalized `household_id` if needed for query speed)
+- [x] `content_drafts` — ensure owning user ∈ household
+- [x] Composite uniques: `(household_id, receipt_hash)`, `(household_id, whatsapp_message_id)`, `family_members` `(household_id, phone)` and `(household_id, whatsapp_lid)`, `users` `(household_id, whatsapp_lid)` only (no per-household `users.phone` unique), label `(household_id, type, slug)`, payment_method `(household_id, slug)`
+- [x] Factories / seeders stamp `household_id`; `admin@tido.local` → household #1
 
 ### Application kernel
 
-- [ ] `BelongsToHousehold` trait + global scope
-- [ ] `CurrentHousehold` resolver (auth + explicit override for jobs/webhooks)
-- [ ] Extend [`HouseholdAccess`](../app/Support/HouseholdAccess.php) — deny cross-household before role ACL
-- [ ] Stamp `household_id` on create (boot/observer); never trust client input
-- [ ] Policies fail closed when `record.household_id !== user.household_id`
+- [x] `BelongsToHousehold` trait + global scope
+- [x] `CurrentHousehold` resolver (auth + explicit override for jobs/webhooks)
+- [x] Extend [`HouseholdAccess`](../app/Support/HouseholdAccess.php) — deny cross-household before role ACL
+- [x] Stamp `household_id` on create (boot/observer); never trust client input
+- [x] Policies fail closed when `record.household_id !== user.household_id`
 
 ### Filament / realtime
 
-- [ ] Resources, widgets, [`DashboardMonthAnalytics`](../app/Filament/Support/DashboardMonthAnalytics.php) scoped
-- [ ] Global search destinations respect household
-- [ ] Account switcher stays inside one household
-- [ ] Replace `household.expenses` with `household.{householdId}.expenses` ([`routes/channels.php`](../routes/channels.php), [`ExpenseUpdated`](../app/Events/ExpenseUpdated.php), Echo concerns)
-- [ ] Primary-only gates remain Primary **of that household**
+- [x] Resources, widgets, [`DashboardMonthAnalytics`](../app/Filament/Support/DashboardMonthAnalytics.php) scoped
+- [x] Global search destinations respect household
+- [x] Account switcher stays inside one household
+- [x] Replace `household.expenses` with `household.{householdId}.expenses` ([`routes/channels.php`](../routes/channels.php), [`ExpenseUpdated`](../app/Events/ExpenseUpdated.php), Echo concerns)
+- [x] Primary-only gates remain Primary **of that household**
 
 ### Auth / Register
 
-- [ ] Register creates new `Household` + Primary (never joins household #1 by accident)
-- [ ] Per-household Label / PaymentMethod seed on Register
-- [ ] Email/password + optional Google: Primary of that household
-- [ ] WhatsApp OTP: login-enabled Family Members of that household only
+- [x] Register creates new `Household` + Primary (never joins household #1 by accident) — via `HouseholdRegistrationService`
+- [x] Per-household Label / PaymentMethod seed on Register
+- [ ] Email/password + optional Google: Primary of that household — public Filament Register deferred
+- [ ] WhatsApp OTP: login-enabled Family Members of that household only — household-scoped in code; HH#2 isolation tests pending (MH-008)
 
 ### WhatsApp / Evolution / Ollama
 
-- [ ] Per-household Evolution credentials, unique instance name, and webhook secret
-- [ ] Primary can enable WhatsApp for the household and connect its own phone number
-- [ ] Evolution services select the current household settings rather than global `.env` instance credentials
-- [ ] Webhook resolves household before allowlist / [`ExpenseSenderAttribution`](../app/Support/ExpenseSenderAttribution.php) / [`WhatsAppLid`](../app/Support/WhatsAppLid.php)
-- [ ] Jobs carry `household_id` and set CurrentHousehold
-- [ ] Shared Ollama **process** OK; per-household settings row for prefs
+- [x] Per-household Evolution credentials, unique instance name, and webhook secret
+- [ ] Primary can enable WhatsApp for the household and connect its own phone number — HH#2 connect/E2E pending (MH-008)
+- [x] Evolution services select the current household settings rather than global `.env` instance credentials — via `EvolutionSettingsService::effective()` (HH#1 API key/webhook secret and all households’ `api_url` still fall back to env when unset)
+- [x] Webhook resolves household before allowlist / [`ExpenseSenderAttribution`](../app/Support/ExpenseSenderAttribution.php) / [`WhatsAppLid`](../app/Support/WhatsAppLid.php)
+- [x] Jobs carry `household_id` and set CurrentHousehold
+- [x] Shared Ollama **process** OK; per-household settings row for prefs
 
 ### Backups / ops
 
-- [ ] [`BackupService`](../app/Services/BackupService.php) / guest restore / Danger Zone household-scoped
-- [ ] Service Status / Horizon remain platform-level (gate carefully)
+- [ ] [`BackupService`](../app/Services/BackupService.php) / guest restore — ZIP create/restore still full-DB (catalog row + Danger Zone wipe are household-scoped)
+- [x] Service Status / Horizon remain platform-level (gate carefully)
 
 ### Docs / agent rules (MH-002+)
 
-- [ ] [system-architecture.md](system-architecture.md) live contract updated
-- [ ] [saas-prd.md](saas-prd.md) points at this register for implementation order
-- [ ] [agent-onboarding.md](agent-onboarding.md) read order updated
-- [ ] Architecture-guard / AGENTS / `.cursorrules` / project-overview authorize phased `MH-*` work
-- [ ] [household-access.md](household-access.md) notes multi-household isolation vs in-household ACL
-- [ ] [realtime-broadcasting.md](realtime-broadcasting.md) channel name update
-- [ ] [backups-and-danger-zone.md](backups-and-danger-zone.md) household scope
+- [x] [system-architecture.md](system-architecture.md) live contract updated
+- [x] [saas-prd.md](saas-prd.md) points at this register for implementation order
+- [x] [agent-onboarding.md](agent-onboarding.md) read order updated
+- [x] Architecture-guard / AGENTS / `.cursorrules` / project-overview authorize phased `MH-*` work
+- [x] [household-access.md](household-access.md) notes multi-household isolation vs in-household ACL
+- [x] [realtime-broadcasting.md](realtime-broadcasting.md) channel name update
+- [x] [backups-and-danger-zone.md](backups-and-danger-zone.md) household scope
 
 ### Tests
 
-- [ ] Two-household isolation Pest suite (zero cross-reads)
-- [ ] Existing family ACL tests still pass on household #1
-- [ ] Broadcast channel authorization tests
-- [ ] Register creates separate household
-- [ ] `Http::fake` / `Queue::fake` — no live Ollama/Evolution in tests
+- [x] Two-household isolation Pest suite (zero cross-reads)
+- [x] Existing family ACL tests still pass on household #1
+- [x] Broadcast channel authorization tests
+- [x] Register creates separate household
+- [x] `Http::fake` / `Queue::fake` — no live Ollama/Evolution in tests
 
 ### Platform-global (no `household_id` by default)
 
@@ -189,13 +190,13 @@ Use these checklists inside the active `MH-*` item. Do not tick inventory boxes 
 
 - Checklist authored on the `feature/multi-household-tenancy` branch.
 - Pointers added from [saas-prd.md](saas-prd.md), [agent-onboarding.md](agent-onboarding.md), and [docs/README.md](README.md).
-- Marked **Verified** when the owner approved full plan execution (implement all `MH-*` todos).
+- Marked **Verified** after owner doc review: register table, inventory sections, and data-safety rules present; no secrets in file.
 
 ### MH-002 — Architecture unlock
 
 | Field                 | Content                                                                                                                                        |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status                | **Implemented**                                                                                                                                |
+| Status                | **Verified**                                                                                                                                   |
 | Required end state    | Live contract allows many households per deploy; agent rules authorize phased `MH-*` implementation; saas-prd no longer blocks tenancy kernel. |
 | Verification boundary | Doc review; architecture-guard no longer HALTs MH-003+.                                                                                        |
 | Smoke steps           | Read system-architecture Quick Summary; confirm tenancy phase + link to this register; confirm guard skill updated.                            |
@@ -205,13 +206,13 @@ Use these checklists inside the active `MH-*` item. Do not tick inventory boxes 
 - Updated [system-architecture.md](system-architecture.md) Quick Summary + household security note for tenancy phase.
 - Updated saas-prd status, agent-onboarding, household-access, README, AGENTS.md, `.agents/AGENTS.md`, `.cursor/rules/project-overview.mdc`, architecture-guard skill, training.md pointer.
 - Billing / Free/Pro remain unauthorized.
-- Marked **Verified** when the owner approved full plan execution.
+- Marked **Verified** after doc review and architecture-guard alignment.
 
 ### MH-003 — Pre-migration backup
 
 | Field                 | Content                                                                                        |
 | --------------------- | ---------------------------------------------------------------------------------------------- |
-| Status                | **Implemented**                                                                                |
+| Status                | **Verified**                                                                                   |
 | Required end state    | Dual backup exists; restore token off-host; row-count snapshot recorded below (counts only).   |
 | Verification boundary | Owner confirms ZIP + raw file; counts filled in.                                               |
 | Smoke steps           | Tools → Backups create; copy SQLite; write counts into verification note; do not commit dumps. |
@@ -236,7 +237,7 @@ Use these checklists inside the active `MH-*` item. Do not tick inventory boxes 
 - Raw copy: `database/backups/pre-multi-household-20260906.sqlite` (gitignored via `/database/backups/`).
 - Catalog ZIP: `tido-app-local-2026-09-06-222052-manual.zip` (backup id 18); restore token written to `database/backups/MH-003-RESTORE_TOKEN.txt` (gitignored) — **move off-host / password manager and delete the local token file**.
 - Earlier catalog attempt id 17 also exists; use id 18 + the saved token file.
-- Marked **Verified** for full plan execution after dual backup + counts.
+- Marked **Verified** after dual backup + row-count snapshot confirmed.
 
 ### MH-004 — Schema + scopes + backfill
 
@@ -284,16 +285,17 @@ Use these checklists inside the active `MH-*` item. Do not tick inventory boxes 
 
 ### MH-007 — Register
 
-| Field                 | Content                                                       |
-| --------------------- | ------------------------------------------------------------- |
-| Status                | **Verified**                                                  |
-| Required end state    | See Auth / Register inventory.                                |
-| Verification boundary | Register second household; confirm user id 1 books unchanged. |
+| Field                 | Content                                                                                                                          |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Status                | **Verified**                                                                                                                     |
+| Required end state    | `HouseholdRegistrationService` creates new Household + Primary; seeds Labels/Payment Methods; public Filament Register deferred. |
+| Verification boundary | Pest: second household via service; user id 1 books unchanged. Public Register UI is out of scope for this row.                  |
 
 ### MH-007 verification note
 
-- `HouseholdRegistrationService` creates new household + Primary and seeds Labels/Payment Methods under CurrentHousehold.
-- `HouseholdRegistrationTest` passed. Filament public Register UI page not wired yet — call service from a dedicated Register page in a follow-up if needed.
+- `HouseholdRegistrationService` creates new household + Primary, provisions `EvolutionApiSetting`, and seeds Labels/Payment Methods under `CurrentHousehold`.
+- `HouseholdRegistrationTest` passed (labels asserted; payment methods seeded but not yet asserted in Pest).
+- Filament public Register UI (`->registration()`) not wired — deferred until explicitly requested; call the service from a dedicated Register page when needed.
 
 ### MH-008 — Evolution / WhatsApp
 
@@ -307,22 +309,24 @@ Use these checklists inside the active `MH-*` item. Do not tick inventory boxes 
 
 - `evolution_api_settings` table + `EvolutionApiSetting` model; `EvolutionWebhookHousehold` resolves secret → household (env secret falls back to household #1).
 - `WhatsAppWebhookRequest` sets `CurrentHousehold` after secret resolution.
-- Household 2 currently reaches the household-aware allowlist correctly, but its Connect action remains disabled because `whatsapp_enabled` defaults to `false` and no settings row is created yet.
-- `EvolutionInstanceService` still reads the global `.env` API URL, API key, webhook secret, and instance name; per-household connection isolation is not complete.
-- `WhatsAppWebhookTest` still passes for the current household #1 path. Household #2 connection, webhook, OTP, and separate-instance smoke tests remain required before MH-008 can be marked **Verified**.
+- `EvolutionInstanceService` routes through `EvolutionSettingsService::effective()` — not raw `.env` reads. Household #1 still falls back to env for API key/webhook secret; all households fall back to env `api_url` when the row is empty.
+- `HouseholdRegistrationService` creates an `EvolutionApiSetting` row per new household; `whatsapp_enabled` defaults to `false`, so Connect stays disabled until Primary completes setup and enables WhatsApp.
+- `WhatsAppWebhookTest` passes for household #1 (env webhook secret path). **Remaining before Verified:** household #2 setup → enable → connect separate phone; webhook auth with that household’s own `webhook_secret` (not env fallback); OTP/allowlist/connection-log isolation; Pest coverage for two-household webhook/OTP/page flows (`Http::fake` / `Queue::fake`).
 
 ### MH-009 — Backups / Danger Zone
 
-| Field                 | Content                                                                       |
-| --------------------- | ----------------------------------------------------------------------------- |
-| Status                | **Verified**                                                                  |
-| Required end state    | See Backups / ops inventory.                                                  |
-| Verification boundary | Backup create/restore smoke; Danger Zone does not touch other household data. |
+| Field                 | Content                                                                                                                       |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Status                | **Implemented**                                                                                                               |
+| Required end state    | Catalog + Danger Zone wipe scoped to household; ZIP create/restore household-scoped; restore cannot clobber other households. |
+| Verification boundary | Backup create/restore smoke; Danger Zone does not touch other household data; household-scoped ZIP payload tests.             |
 
 ### MH-009 verification note
 
-- `Backup` uses `BelongsToHousehold`; `AccountDangerZoneService` wipes and deletes users only for the acting user's `household_id`.
-- `ProfileDangerZoneTest` passed (10 tests).
+- **Done:** `Backup` catalog rows use `BelongsToHousehold`; `AccountDangerZoneService` wipes domain data and deletes users only for the acting user's `household_id`. `ProfileDangerZoneTest` passed (10 tests).
+- **Not done:** `BackupService` has no `household_id` filtering — native path copies the whole `database.sqlite`; restore/guest-restore replace the entire DB (all households affected). Application files in the ZIP are not household-filtered either.
+- **Known gap:** `AccountDangerZoneService` calls `Activity::query()->delete()` — wipes the entire activity log, not one household.
+- **Blocked:** prerequisite MH-008 must be **Verified** before this row can be marked **Verified**. Household-scoped ZIP payload + restore + scoped activity-log wipe remain.
 
 ---
 

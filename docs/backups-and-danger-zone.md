@@ -2,6 +2,8 @@
 
 Cataloged ZIP backups, restore tokens, guest restore, and profile account deletion. Complements Spatie’s scheduled backup package with a Filament-managed catalog.
 
+Multi-household scope is tracked in [multi-household-change-checklist.md](multi-household-change-checklist.md) (**MH-009**). Today: catalog rows and Danger Zone **wipe** are household-scoped; ZIP **create/restore** still captures and replaces the **entire** database (all households on a shared deploy).
+
 ## Source of truth
 
 | Layer | Path |
@@ -26,7 +28,7 @@ Cataloged ZIP backups, restore tokens, guest restore, and profile account deleti
 - **Archive encryption:** Every backup ZIP is AES-256 encrypted with `BACKUP_ARCHIVE_PASSWORD` (32+ characters). Create and restore fail closed when the key is missing, weak, or a placeholder. The restore token is not the archive password.
 - **Restore token:** Plain token is `{16-hex-selector}.{32-hex-secret}` (49 characters), shown once in a session notification (Create backup) or the Danger Zone kit modal (delete account). The session notification includes a **Copy token** action that copies the plain token to the clipboard. The catalog stores `restore_token_lookup` (public selector, unique index) and `restore_token_hash` (bcrypt of the full token). The token is never written into the ZIP, database notifications, or logs. Required for guest restore. Pre-change hash-only rows fail closed; re-issue a token from Backups while a user still exists.
 - **Guest restore:** When no users exist (post Danger Zone wipe), auth menu exposes Restore Backup → Filament modal → `GuestRestoreBackupRequest` validation → `BackupService` restore. Upload the encrypted zip and the one-time token shown when the backup was created. Restore errors and status messages render as small text under the recovery token field, not as toasts. `POST /restore-backup` uses the named `guest-restore` limiter: 5 attempts/minute per IP and 10/minute globally (config under `backup.backup.restore`).
-- **Danger Zone (Edit Profile):** Creates a final backup, shows the restore token in a blocking modal with a download CTA, then deletes account data after confirm. Single-tenant — wiping the only user leaves the app in guest-restore mode.
+- **Danger Zone (Edit Profile):** Creates a final backup, shows the restore token in a blocking modal with a download CTA, then deletes account data after confirm. `AccountDangerZoneService` wipes domain data and deletes users only for the acting user's `household_id`. When the last user on the install is removed, the app enters guest-restore mode. **Restore blast radius:** catalog restore and guest restore still replace the **entire** database file — not just one household (see MH-009).
 - **Download:** Tools → Backups Download and Danger Zone both use `BackupService::temporaryDownloadUrl()` (`URL::temporarySignedRoute` to `backups.download`, 10 minutes). The browser hits the signed GET route and streams from disk. Do not return the ZIP from a Livewire/Filament `->action()`; Livewire buffers the whole file and large archives exhaust PHP memory. The download URL is listed in Filament `spaUrlExceptions` so panel SPA mode does not `wire:navigate` into the ZIP bytes.
 
 ## Guest restore upload boundary
@@ -106,8 +108,22 @@ A copied `database.sqlite` file alone is not a complete rollback because it rest
 9. Verify catalog content hash and manifest MAC before restore writes; hold the exclusive restore lock; snapshot and roll back on failure; consume the guest token only after a successful import.
 10. Keep the `guest-restore` rate limiter (per-IP and global). On consume, clear both `restore_token_lookup` and `restore_token_hash`.
 
+## Multi-household scope (MH-009)
+
+| Layer | Scoped today? | Notes |
+| --- | --- | --- |
+| `backups` catalog row (`household_id`) | Yes | `BelongsToHousehold`; Filament listing scoped to current household |
+| Danger Zone wipe (`AccountDangerZoneService`) | Yes | Expenses, budgets, recurrings, labels, users for acting `household_id` only |
+| `BackupService` ZIP payload | **No** | Native path copies whole `database.sqlite`; Spatie path dumps full DB |
+| Catalog / guest restore | **No** | `importSqliteFile` replaces entire DB — all households on shared deploy |
+| Application files in ZIP | **No** | All `files/public/` and `files/private/` entries, not filtered by household |
+| `activity_log` on wipe | **No** | Danger Zone deletes entire activity log, not per household |
+
+Household-scoped ZIP create/restore is **MH-009** remaining work (blocked until **MH-008** is Verified). See the register verification note for acceptance criteria.
+
 ## Related
 
+- Multi-household phase register: [multi-household-change-checklist.md](multi-household-change-checklist.md)
 - Isolated backup/wipe runtime: [sandbox-testing.md](sandbox-testing.md)
 - Spatie schedule / disks: `config/backup.php`, `docs/system-architecture.md` §7.4
 - Modal blur: [ui-modal-overlay.md](ui-modal-overlay.md)

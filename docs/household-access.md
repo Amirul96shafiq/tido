@@ -1,6 +1,8 @@
 # Household access (attribution + family login)
 
-Single-tenant hub with **household roles** today: one **Primary** user owns settings; optional **Family Members** can send WhatsApp receipts and (when enabled) sign in to `/admin` with limited Finances access. Multi-household isolation (`household_id`) is the tenancy-phase boundary — see [multi-household-change-checklist.md](multi-household-change-checklist.md). This document covers **in-household** ACL only.
+**In-household roles:** one **Primary** user owns settings; optional **Family Members** can send WhatsApp receipts and (when enabled) sign in to `/admin` with limited Finances access.
+
+**Multi-household isolation** (`household_id`) is a separate boundary — unrelated households must not read each other's data. See [multi-household-change-checklist.md](multi-household-change-checklist.md). **This document covers in-household ACL only** (Primary vs Family Member inside one household).
 
 ## Source of truth
 

@@ -10,9 +10,9 @@ Product name remains **tido**. Expense tags remain **Label** / **Labels** (never
 
 ## 1. Problem
 
-Today tido is a **single-tenant personal hub**: one install, one household (Primary + optional Family Members), one Evolution connection, one Ollama settings row. That model fits a private deploy for one family.
+**Today (tenancy kernel shipped):** tido supports **many households on one deploy** via `household_id` isolation (MH-001–MH-007 **Verified** in [multi-household-change-checklist.md](multi-household-change-checklist.md)). Inside each household: Primary + optional Family Members, per-household Labels/Payment Methods/Ollama prefs, and household-scoped panel data. Evolution/WhatsApp per-household isolation (**MH-008**) and household-scoped backup ZIPs (**MH-009**) remain in progress.
 
-Revenue via public **Free / Pro** signups needs **many households on one deploy** without mixing books, WhatsApp sessions, or settings. This document describes that future product. It does **not** authorize building it yet.
+**Future (this PRD):** public **Free / Pro** signups, billing, and quotas. That revenue layer is **not** authorized yet. The tenancy **kernel** is authorized only through the phased `MH-*` register — implement the active row only.
 
 ---
 
@@ -47,14 +47,14 @@ If every query were `where user_id = auth()->id()`:
 
 | Concern | Today (live) | SaaS target (future) |
 |---------|--------------|----------------------|
-| Deploy | One household per install | Many households per deploy |
-| Expenses / budgets / recurrings | One household books; family ACL inside | Same ACL **inside** each household; no cross-household reads |
-| Labels / payment methods | Shared for the install | Per household |
-| `OllamaSetting` | Singleton (`id = 1`) | Per household (shared **process/GPU** OK) |
-| Evolution API | One URL / key / webhook secret / instance | Per household instance + secrets |
-| WhatsApp allowlist | Profile + Family Members for that install | Per household |
-| Backups / Danger Zone | Household operator | Per household |
-| Registration | None (login + invite only) | Register → **new** household + Primary |
+| Deploy | Many households per deploy (`household_id`) | Same + public Register UI + billing |
+| Expenses / budgets / recurrings | Per household; family ACL inside | Same; no cross-household reads |
+| Labels / payment methods | Per household | Same |
+| `OllamaSetting` | Per household row (shared **process/GPU** OK) | Same + per-household quotas |
+| Evolution API | Per-household settings row; HH#1 env fallback; HH#2 E2E in MH-008 | Fully isolated instances + secrets per household |
+| WhatsApp allowlist | Per household | Same |
+| Backups / Danger Zone | Catalog + wipe scoped; ZIP still full-DB (MH-009) | Per-household ZIP create/restore |
+| Registration | `HouseholdRegistrationService` (no public Filament Register yet) | Public Register → **new** household + Primary |
 | Plans | None | Free / Pro on the **household** (matrix TBD) |
 
 ---
@@ -65,7 +65,7 @@ If every query were `where user_id = auth()->id()`:
 |-------|----------|
 | **Stranger** | Register → creates a **new household** and becomes its Primary. Never joins an existing household by accident. |
 | **Invited family** | Family Member on **that** household: shared lists, own mutate ACL, same product rules as today. Not a second tenant. |
-| **Operator (you)** | First household on a private deploy until SaaS ships; still one household until the tenancy phase lands. |
+| **Operator (you)** | Primary of household #1 on a private deploy; pre-migration data backfilled to household #1 (MH-004). |
 
 ---
 
@@ -102,16 +102,18 @@ Defer: billing vendor, price, currency, trial length, and upgrade UX. Plans atta
 
 ## 8. Phased delivery (doc-only roadmap)
 
-Order matters. Do **not** skip ahead.
+Implementation order is the `MH-*` register — not this section. Status summary:
 
-1. **Kernel quality** — Finish single-tenant security and integration work ([security-audit.md](security-audit.md), Evolution / Ollama setup). The SaaS kernel is a copy of this household product.
-2. **Household / account scope** — Add the grouping key and global scopes with **one** live household in production. Prove isolation in tests before Register.
-3. **Register** — Signup creates a new household + Primary (not a second user on household 1).
-4. **Plans / billing** — Free/Pro flags and payment after isolation is proven.
+1. **Kernel quality** — Ongoing via [security-audit.md](security-audit.md); Evolution / Ollama setup.
+2. **Household / account scope** — **Verified** (MH-004–MH-006): `household_id`, scopes, isolation tests.
+3. **Register** — **Verified** at service layer (MH-007): `HouseholdRegistrationService`; public Filament Register deferred.
+4. **Evolution / WhatsApp** — **In progress** (MH-008): per-household instances and HH#2 E2E.
+5. **Backups** — **Implemented** partial (MH-009): catalog + wipe scoped; ZIP still full-DB.
+6. **Plans / billing** — **Deferred** until an explicit later phase.
 
-**Not first:**
+**Not authorized yet:**
 
-- Filament `->registration()` on the current single-tenant panel
+- Filament `->registration()` without an explicit follow-up request
 - Scoping only by `auth()->id()`
 - Per-login Evolution API keys
 - Plan feature checks without an account/household column

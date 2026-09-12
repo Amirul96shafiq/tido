@@ -8,7 +8,7 @@ The register records evidence, impact, the required end state, and the verificat
 
 - Select exactly one `SEC-*` item for a change unless one item is an unavoidable prerequisite of the selected item.
 - Re-read the current source at the linked location before editing; line numbers are audit-time pointers and may move.
-- Preserve the single-tenant household model and the existing `BackupService`, `HouseholdAccess`, `ExpensePolicy`, queue, and local Evolution/Ollama architecture.
+- Preserve the existing `BackupService`, `HouseholdAccess`, `ExpensePolicy`, queue, and local Evolution/Ollama architecture. Cross-household isolation (`household_id`) is governed by [multi-household-change-checklist.md](multi-household-change-checklist.md) — treat cross-household IDOR as in scope for SEC work on shared deploys.
 - Update the selected row only after the implementation and its verification are complete.
 - Do not mark a row `Verified` based only on a unit test when the control also depends on production environment, reverse-proxy, storage, firewall, or service configuration.
 - Never place real secrets, restore tokens, session identifiers, raw receipt content, full webhook payloads, or unredacted upstream responses in this document, tests, or logs.
@@ -17,7 +17,7 @@ The implementation procedure is in [security-hardening-playbook.md](security-har
 
 ## Audit scope and threat model
 
-tido is a single-tenant Laravel 12 / Filament v5 household application. The Primary user has full panel access. Login-enabled Family Members have limited Finances access and may mutate only expenses attributed to their own `family_member_id`. This is not a multi-tenant or Spatie Permission design; authorization must continue to use `HouseholdAccess` and `ExpensePolicy`.
+tido is a Laravel 12 / Filament v5 personal hub with **multi-household isolation** via `household_id` (no Spatie tenancy package). Inside each household: the Primary user has full panel access; login-enabled Family Members have limited Finances access and may mutate only expenses attributed to their own `family_member_id`. Authorization must continue to use `HouseholdAccess`, resource policies, and `ExpensePolicy`. Tenancy phase register: [multi-household-change-checklist.md](multi-household-change-checklist.md).
 
 The reviewed security boundaries are:
 

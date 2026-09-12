@@ -40,7 +40,7 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 1. This file
 2. Active agent workflow: root `AGENTS.md` + `.codex/CODEX_WORKFLOW.md` (Codex), `.cursorrules` (Cursor), or `.agents/AGENTS.md` (Antigravity)
 3. `docs/system-architecture.md` — product blueprint (note: some version numbers are outdated; trust Laravel 12 / PG 17 / stack in `AGENTS.md`)
-4. Multi-household: `docs/saas-prd.md` (product intent) and `docs/multi-household-change-checklist.md` (phased `MH-*` register — one item at a time). Architecture tenancy phase is authorized; implement only the top Open `MH-*` row. Billing / Free/Pro remains unauthorized until an explicit later phase
+4. Multi-household: `docs/saas-prd.md` (product intent) and `docs/multi-household-change-checklist.md` (phased `MH-*` register — one item at a time). Architecture tenancy phase is authorized; implement only the top **Open or In progress** `MH-*` row. Billing / Free/Pro remains unauthorized until an explicit later phase
 5. Dashboard modules (Finances / Training / Health / Task): `docs/dashboard-views.md`. Parked Training design (do not implement until requested): `docs/training.md`
 6. Domain skill: activate the `tido-domain` skill surfaced by the active agent (+ its `pipeline.md` when touching OCR/webhooks) — Finances domain
 7. Framework skills surfaced by the active agent: `laravel-best-practices`, `pest-testing`, `configuring-horizon`, `tailwindcss-development`
@@ -58,19 +58,19 @@ For authentication, sessions, webhooks, uploads, backups, signed downloads, Hori
 19. Count Up numeric values (stats, widgets, tables): `docs/ui-count-up.md`
 20. Reduce Motion accessibility preference: `docs/ui-reduce-motion.md`
 21. Mobile Nav bottom bar (Profile opt-in): `docs/ui-mobile-nav.md`
-21. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
-22. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
-23. Field character limits (`current/max` counters): `docs/ui-field-character-limits.md`
-24. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md` (includes JS date pickers + `DateOfBirthPicker`)
-25. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
-26. Resource edit audit (latest editor, username display, table recency): `docs/resource-edit-audit.md`
-27. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
-28. Local sandbox (port 2001) for backup/wipe browser tests: `docs/sandbox-testing.md`
-29. Service Status (health probes, uptime UI): `docs/service-status.md`
-30. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
-31. Household access (attribution, family login, expense ACL): `docs/household-access.md`
-32. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
-33. Integration pages (Ollama / Evolution API page structure, conventions, new-integration checklist): `docs/integration-pages.md`
+22. Form draft auto-save / crash recovery: `docs/content-draft-recovery.md`
+23. Notes rich editor (`notes` fields): `docs/ui-notes-rich-editor.md`
+24. Field character limits (`current/max` counters): `docs/ui-field-character-limits.md`
+25. Resource form empty placeholders / defaults: `docs/ui-form-empty-defaults.md` (includes JS date pickers + `DateOfBirthPicker`)
+26. Custom Blade toggles (color classes + inlineLabel layout): `docs/ui-custom-toggles.md`
+27. Resource edit audit (latest editor, username display, table recency): `docs/resource-edit-audit.md`
+28. Backups catalog, restore tokens, Danger Zone: `docs/backups-and-danger-zone.md`
+29. Local sandbox (port 2001) for backup/wipe browser tests: `docs/sandbox-testing.md`
+30. Service Status (health probes, uptime UI): `docs/service-status.md`
+31. Profile Active Sessions (list, revoke, device parsing): `docs/active-sessions.md`
+32. Household access (attribution, family login, expense ACL): `docs/household-access.md`
+33. Git workflow (feature branches, PRs, staging/production): `docs/git-workflow.md`
+34. Integration pages (Ollama / Evolution API page structure, conventions, new-integration checklist): `docs/integration-pages.md`
 
 Root [`README.md`](../README.md) is the GitHub landing doc (setup, stack, usage). This file and the rest of `docs/` are the deep product and agent map.
 
@@ -119,7 +119,7 @@ docs/               architecture + integration setup + this file
 | Money             | Canonical reporting values are `decimal(12,2)` in `MYR`, cast `decimal:2`, UI `RM`; foreign source currency, original total, rate, effective date, provider, fetch time, and conversion status remain auditable on `Expense` |
 | Duplicate         | `receipt_hash` SHA-256 of number + datetime + total                                                                                                                                                                          |
 | Statuses          | `pending`, `parsed`, `reviewed`, `requires_manual_review`, `failed`                                                                                                                                                          |
-| Auth              | Filament session; household roles (`HouseholdRole`); no Spatie Permission; no tenancy                                                                                                                                        |
+| Auth              | Filament session; household roles (`HouseholdRole`); no Spatie Permission; multi-household isolation via `household_id` (see `multi-household-change-checklist.md`)                                                          |
 | Panel             | `AdminPanelProvider` only — path `admin`; family members get limited Finances access                                                                                                                                         |
 
 Relationships: Expense `hasMany` ExpenseItems; Expense `belongsTo` FamilyMember (optional); ExpenseItem `belongsTo` Label; Budget `belongsTo` Label; Budget `belongsTo` FamilyMember (optional owner; `null` = Primary); Budget `is_shared` spending pool; Recurring `hasMany` RecurringOccurrence; Recurring ownership mirrors Budget (`family_member_id`, `is_shared`); RecurringOccurrence `belongsTo` Expense when completed; FamilyMember `hasMany` Budgets; FamilyMember `hasOne` login User.
