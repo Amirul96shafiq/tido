@@ -9,7 +9,6 @@ use App\Models\User;
 use Filament\Notifications\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
-use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -29,7 +28,7 @@ test('primary user can update expense status inline and receives from-to notific
 
     $this->actingAs($user);
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->assertSeeHtml('fi-ta-col-lightweight-select tido-expense-table-select px-3 py-4')
         ->assertSeeHtml('width: 10.5rem')
         ->assertDontSeeHtml('selectTableColumn(')
@@ -63,7 +62,7 @@ test('family member cannot update status inline on a non-owned expense', functio
 
     $this->actingAs($user);
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->call('updateExpenseInlineSelect', 'status', (string) $primaryExpense->getKey(), 'reviewed')
         ->assertNotNotified('Status Updated');
 
@@ -89,7 +88,7 @@ test('family member can update status inline on an owned expense', function (): 
 
     $this->actingAs($user);
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->call('updateExpenseInlineSelect', 'status', (string) $ownExpense->getKey(), 'reviewed')
         ->assertNotified(
             Notification::make()

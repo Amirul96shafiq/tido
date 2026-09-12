@@ -36,6 +36,7 @@ class FamilyMembersTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->deferLoading()
             ->heading('Family Members')
             ->extraAttributes(['class' => 'tido-family-members-table'])
             ->recordClasses(fn (FamilyMember $record): array => array_values(array_filter([

@@ -20,16 +20,17 @@ beforeEach(function () {
 });
 
 test('payment method form uses notes rich editor for notes', function () {
-    Livewire::test(CreatePaymentMethod::class)
-        ->assertSuccessful()
-        ->assertSchemaComponentExists(
-            'notes',
-            checkComponentUsing: function (NotesRichEditor $component): bool {
-                expect($component->getExtraAttributes()['class'])->toContain(NotesRichEditor::EXTRA_CLASS);
+    loadDeferredFormSchemas(
+        Livewire::test(CreatePaymentMethod::class),
+        'paymentMethodNotes',
+    )->assertSchemaComponentExists(
+        deferredFormComponentKey('paymentMethodNotes', 'notes'),
+        checkComponentUsing: function (NotesRichEditor $component): bool {
+            expect($component->getExtraAttributes()['class'])->toContain(NotesRichEditor::EXTRA_CLASS);
 
-                return true;
-            },
-        );
+            return true;
+        },
+    );
 });
 
 test('payment method name and slug have empty placeholders', function () {

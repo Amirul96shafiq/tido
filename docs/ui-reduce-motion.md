@@ -8,7 +8,7 @@ Profile **Reduce Motion** disables decorative animation across the admin panel. 
 - UI: native `Toggle::make('reduce_motion')` in **Personalize & Appearance → PREFERENCES** on [`EditProfile.php`](../app/Filament/Pages/Auth/EditProfile.php)
 - Helper: [`App\Support\ReduceMotion`](../app/Support/ReduceMotion.php)
 
-When enabled, count-up, marquee, status pulses, notification badge pings, recurring dues title pings, sidebar chrome transitions, notification timer bars, empty-panel entrance, and smooth scroll helpers use static or instant behavior.
+When enabled, count-up, marquee, status pulses, notification badge pings, recurring dues title pings, sidebar chrome transitions, notification timer bars, empty-panel entrance, deferred schema/table loading placeholders, lazy widget placeholders, and smooth scroll helpers use static or instant behavior.
 
 ## How it applies
 
@@ -39,6 +39,10 @@ Connected-state ring pulses use `.tido-status-pulse` in [`app.css`](../resources
 
 Unread notification count badges (topbar avatar + menu item) and the Recurring Payment Dues title indicator use `.tido-ping-pulse` instead of Tailwind `animate-ping`. The static inner dot remains visible when motion is reduced; only the expanding ring is hidden.
 
+## Loading placeholders
+
+Deferred schema (`.fi-sc-loading`), deferred table (`.fi-ta-table-loading-ctn`), and lazy Finance widgets (`.fi-loading-section`, `.fi-wi-loading-section`) share the dashboard widget spinner visual. Pulse and spin freeze under `@media (prefers-reduced-motion: reduce)` and `html.tido-reduce-motion` in [`app.css`](../resources/css/app.css).
+
 ## Sidebar chrome
 
 When motion is reduced, sidebar collapse/expand skips width morph, clip-path, FIN/SET collapsed group labels (`.fi-sidebar-group-collapsed-label`), collapse CTA crossfade (`.fi-sidebar-collapse-morph`, open/close buttons, `.fi-sidebar-collapse-toggle-label`), and `.fi-sidebar-animating` enter keyframes. Open/collapsed visibility snaps instantly with no content delay.
@@ -51,7 +55,7 @@ Overflowing marquee labels stop looping and **wrap** so the full string is reada
 
 ## Agent checklist
 
-1. New decorative animation: respect both `@media (prefers-reduced-motion: reduce)` **and** `html.tido-reduce-motion`
+1. New decorative animation: respect both `@media (prefers-reduced-motion: reduce)` **and** `html.tido-reduce-motion` (including `.fi-sc-loading`, `.fi-ta-table-loading-ctn`, `.fi-loading-section`, `.fi-wi-loading-section`)
 2. JS motion gates: use `window.tidoPrefersReducedMotion()` when available
 3. Do not fork `xplodman/filament-count-up` — rely on the `matchMedia` wrap
 4. Profile toggle: native `Toggle`, not a custom Blade control — see [ui-custom-toggles.md](ui-custom-toggles.md)

@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Labels\Schemas;
 use App\Enums\LabelType;
 use App\Filament\Forms\Components\IconPicker;
 use App\Filament\Forms\Components\NotesRichEditor;
+use App\Filament\Support\FormSchemaDeferral;
 use App\Support\FieldCharacterLimits;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Select;
@@ -81,12 +82,17 @@ class LabelForm
 
                         Section::make('Label Notes')
                             ->id('label-notes')
-                            ->schema([
-                                NotesRichEditor::make('description')
-                                    ->label('Label Notes')
-                                    ->hiddenLabel()
-                                    ->columnSpanFull(),
-                            ]),
+                            ->key('labelNotes')
+                            ->schema(
+                                Schema::make()
+                                    ->components([
+                                        NotesRichEditor::make('description')
+                                            ->label('Label Notes')
+                                            ->hiddenLabel()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->deferLoading(FormSchemaDeferral::unlessViewSlideOver()),
+                            ),
                     ]),
 
                 Grid::make(1)

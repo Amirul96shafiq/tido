@@ -17,7 +17,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
-use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -52,7 +51,7 @@ test('create backup header action registers a manual backup', function () {
             ->andReturn('http://127.0.0.1/backups/signed-download');
     });
 
-    Livewire::test(ListBackups::class)
+    livewireDeferredListPage(ListBackups::class)
         ->callAction('createBackup')
         ->assertNotified('Restore token shown once');
 
@@ -98,7 +97,7 @@ test('create backup inbox alert is skipped when notify_backups is off', function
             ->andReturn('http://127.0.0.1/backups/signed-download');
     });
 
-    Livewire::test(ListBackups::class)
+    livewireDeferredListPage(ListBackups::class)
         ->callAction('createBackup')
         ->assertNotified('Restore token shown once');
 
@@ -127,7 +126,7 @@ test('delete backup stores database notification', function () {
 
     Storage::disk('local')->put($backup->path, 'zip-contents');
 
-    Livewire::test(ListBackups::class)
+    livewireDeferredListPage(ListBackups::class)
         ->callAction(TestAction::make('delete')->table($backup))
         ->assertNotified();
 
@@ -153,7 +152,7 @@ test('delete backup action removes catalog entry via service', function () {
             ->andReturn('http://127.0.0.1/backups/signed-download');
     });
 
-    Livewire::test(ListBackups::class)
+    livewireDeferredListPage(ListBackups::class)
         ->callAction(TestAction::make('delete')->table($backup))
         ->assertNotified();
 });
@@ -171,7 +170,7 @@ test('restore backup action logs user out to login', function () {
             ->andReturn('http://127.0.0.1/backups/signed-download');
     });
 
-    Livewire::test(ListBackups::class)
+    livewireDeferredListPage(ListBackups::class)
         ->callAction(TestAction::make('restore')->table($backup))
         ->assertRedirect('/admin/login');
 
@@ -201,14 +200,14 @@ test('backups table download uses a temporary signed url', function () {
         ['backup' => $backup],
     );
 
-    Livewire::test(ListBackups::class)
+    livewireDeferredListPage(ListBackups::class)
         ->assertActionExists($downloadAction)
         ->assertActionHasUrl($downloadAction, $expectedUrl)
         ->assertActionShouldNotOpenUrlInNewTab($downloadAction);
 
     expect(FilamentView::hasSpaMode($expectedUrl))->toBeFalse();
 
-    $html = Livewire::test(ListBackups::class)->html();
+    $html = livewireDeferredListPage(ListBackups::class)->html();
     $escapedUrl = preg_quote($expectedUrl, '/');
 
     expect($html)->toContain('/backups/'.$backup->getKey().'/download')
@@ -224,7 +223,7 @@ test('backups table can filter by edited date', function () {
         'updated_at' => Carbon::parse('2026-07-01 10:00:00'),
     ]);
 
-    Livewire::test(ListBackups::class)
+    livewireDeferredListPage(ListBackups::class)
         ->filterTable('updated_at', [
             'from' => '2026-07-14',
             'until' => '2026-07-14',

@@ -11,7 +11,6 @@ use App\Models\PaymentMethod;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -182,7 +181,7 @@ test('expenses list listens for echo expense updates without polling', function 
         'image_path' => null,
     ]);
 
-    $component = Livewire::test(ListExpenses::class)
+    $component = livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->assertDontSeeHtml('wire:poll.10s.visible')
         ->assertDontSeeHtml('tido-expense-status-pending')

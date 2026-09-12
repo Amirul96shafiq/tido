@@ -6,7 +6,6 @@ use App\Filament\Resources\Expenses\Pages\ListExpenses;
 use App\Models\Expense;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -20,7 +19,7 @@ beforeEach(function () {
 test('expense list pagination per page uses filament searchable select', function () {
     Expense::factory()->count(12)->create();
 
-    $html = Livewire::test(ListExpenses::class)
+    $html = livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->html();
 
@@ -41,7 +40,7 @@ test('expense list pagination per page uses filament searchable select', functio
 test('expense list can change records per page via livewire property', function () {
     Expense::factory()->count(30)->create();
 
-    $component = Livewire::test(ListExpenses::class)
+    $component = livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful();
 
     expect($component->instance()->getTableRecords()->count())->toBe(10);

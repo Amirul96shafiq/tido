@@ -20,7 +20,7 @@ beforeEach(function () {
 });
 
 test('expenses list shows illustrated empty state', function () {
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->assertSee('No expenses yet')
         ->assertSee('Upload a receipt or add an expense to start tracking spending.')
@@ -28,7 +28,7 @@ test('expenses list shows illustrated empty state', function () {
 });
 
 test('budgets list shows illustrated empty state', function () {
-    Livewire::test(ListBudgets::class)
+    livewireDeferredListPage(ListBudgets::class)
         ->assertSuccessful()
         ->assertSee('No budgets yet')
         ->assertSee('Create a budget to track spending against a limit.')
@@ -36,7 +36,7 @@ test('budgets list shows illustrated empty state', function () {
 });
 
 test('labels list shows illustrated empty state', function () {
-    Livewire::test(ListLabels::class)
+    livewireDeferredListPage(ListLabels::class)
         ->assertSuccessful()
         ->assertSee('No labels yet')
         ->assertSee('Create a label to categorize expenses.')
@@ -44,7 +44,7 @@ test('labels list shows illustrated empty state', function () {
 });
 
 test('backups list shows illustrated empty state', function () {
-    Livewire::test(ListBackups::class)
+    livewireDeferredListPage(ListBackups::class)
         ->assertSuccessful()
         ->assertSee('No backups yet')
         ->assertSee('Create a backup to save a restore point.')

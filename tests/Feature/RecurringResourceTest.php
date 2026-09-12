@@ -92,7 +92,7 @@ test('list page renders for primary', function () {
         'expected_amount' => 84.79,
     ]);
 
-    $component = Livewire::test(ListRecurrings::class)
+    $component = livewireDeferredListPage(ListRecurrings::class)
         ->assertOk()
         ->assertCanSeeTableRecords(Recurring::all())
         ->assertTableColumnExists('type', function (TextColumn $column): bool {
@@ -135,7 +135,7 @@ test('list page shows primary username when assigned to primary', function () {
         'title' => 'Family Recurring',
     ]);
 
-    Livewire::test(ListRecurrings::class)
+    livewireDeferredListPage(ListRecurrings::class)
         ->assertOk()
         ->assertSee('Assigned to')
         ->assertTableColumnStateSet('assigned_to', 'admin', $primaryRecurring)
@@ -168,7 +168,7 @@ test('primary can duplicate a recurring from the list', function () {
 
     $sourceOccurrenceCount = $source->occurrences()->count();
 
-    $page = Livewire::test(ListRecurrings::class)
+    $page = livewireDeferredListPage(ListRecurrings::class)
         ->callAction(TestAction::make('replicate')->table($source))
         ->assertNotified('Recurring duplicated');
 
@@ -201,7 +201,7 @@ test('primary can bulk duplicate recurrings from the list', function () {
 
     expect(Recurring::query()->count())->toBe(2);
 
-    Livewire::test(ListRecurrings::class)
+    livewireDeferredListPage(ListRecurrings::class)
         ->selectTableRecords([$first->getKey(), $second->getKey()])
         ->callAction(TestAction::make('duplicate')->table()->bulk())
         ->assertNotified('2 recurrings duplicated')
@@ -221,7 +221,7 @@ test('recurrings table supports deleted records filter and soft delete actions',
     $trashed = Recurring::factory()->create(['title' => 'Trashed Recurring']);
     $trashed->delete();
 
-    Livewire::test(ListRecurrings::class)
+    livewireDeferredListPage(ListRecurrings::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$active])
         ->assertCanNotSeeTableRecords([$trashed])

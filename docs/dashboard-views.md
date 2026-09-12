@@ -33,7 +33,7 @@ Sidebar nav group **Finances** (Add Receipts, Expenses, Budgets) is the CRUD sur
 3. **Finance** renders month + spender filters + widget section nav + widgets (sticky toolbar — [`ui-sticky-blur.md`](ui-sticky-blur.md), [`ui-section-nav.md`](ui-section-nav.md)). Spender scope (`DashboardSpenderScope`: All / Primary / Family Member) filters analytics — see [`household-access.md`](household-access.md).
 4. Non-finances views that return meta from `comingSoonDashboardContent()` render the shared coming-soon partial (no finance widgets).
 5. Invalid `?view=` values fall back to Finance in `booted()`.
-6. Lazy Finance widgets render a centered, accessible loading spinner while their Livewire component hydrates. New lazy dashboard widgets should use `HasDashboardWidgetPlaceholder`; intentionally eager widgets do not need the concern.
+6. Lazy Finance widgets render a centered, accessible loading spinner while their Livewire component hydrates. New lazy dashboard widgets should use `HasDashboardWidgetPlaceholder`; intentionally eager widgets do not need the concern. Deferred schema (`->deferLoading()`) and table placeholders reuse the same visual — `size-6` primary spinner + loading-section pulse — via shared rules in [`resources/css/app.css`](../resources/css/app.css).
 
 ## Adding a dashboard module
 

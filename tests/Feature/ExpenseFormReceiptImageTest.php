@@ -63,16 +63,17 @@ test('expense form uses rich editor for notes', function () {
         'image_path' => null,
     ]);
 
-    Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()])
-        ->assertSuccessful()
-        ->assertSchemaComponentExists(
-            'notes',
-            checkComponentUsing: function (NotesRichEditor $component): bool {
-                expect($component->getExtraAttributes()['class'])->toContain(NotesRichEditor::EXTRA_CLASS);
+    loadDeferredFormSchemas(
+        Livewire::test(EditExpense::class, ['record' => $expense->getRouteKey()]),
+        'expenseNotes',
+    )->assertSchemaComponentExists(
+        deferredFormComponentKey('expenseNotes', 'notes'),
+        checkComponentUsing: function (NotesRichEditor $component): bool {
+            expect($component->getExtraAttributes()['class'])->toContain(NotesRichEditor::EXTRA_CLASS);
 
-                return true;
-            },
-        );
+            return true;
+        },
+    );
 });
 
 test('expense form uses left right sticky layout', function () {

@@ -11,6 +11,7 @@ use App\Filament\Resources\FamilyMembers\FamilyMemberResource;
 use App\Filament\Resources\Labels\LabelResource;
 use App\Filament\Resources\PaymentMethods\PaymentMethodResource;
 use App\Filament\Resources\Recurrings\RecurringResource;
+use App\Support\HouseholdAccess;
 use Filament\Resources\Resource;
 
 enum GlobalSearchType: string
@@ -106,10 +107,24 @@ enum GlobalSearchType: string
                 continue;
             }
 
+            if (! HouseholdAccess::isPrimary() && self::isPrimaryOnlyResourceType($type)) {
+                continue;
+            }
+
             $options[$type->value] = $type->label();
         }
 
         return $options;
+    }
+
+    public static function isPrimaryOnlyResourceType(self $type): bool
+    {
+        return in_array($type, [
+            self::Labels,
+            self::PaymentMethods,
+            self::FamilyMembers,
+            self::Backups,
+        ], true);
     }
 
     /**

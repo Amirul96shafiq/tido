@@ -36,6 +36,7 @@ class BudgetsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->deferLoading()
             ->columns([
                 TextColumn::make('id')
                     ->label('ID')

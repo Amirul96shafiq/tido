@@ -102,7 +102,7 @@ test('expenses table supports deleted records filter and soft delete actions', f
     $trashed = Expense::factory()->create(['merchant_name' => 'Trashed Merchant']);
     $trashed->delete();
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$active])
         ->assertCanNotSeeTableRecords([$trashed])
@@ -138,7 +138,7 @@ test('expenses table has view slide-over action', function () {
 
     $expense = Expense::factory()->create();
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->assertActionExists(TestAction::make('view')->table($expense));
 });
@@ -155,7 +155,7 @@ test('resource tables show id column', function (string $pageClass) {
         ListBackups::class => Backup::factory()->create(),
     };
 
-    Livewire::test($pageClass)
+    livewireDeferredListPage($pageClass)
         ->assertSuccessful()
         ->toggleAllTableColumns()
         ->assertCanRenderTableColumn('id')
@@ -175,7 +175,7 @@ test('budgets table has view slide-over action', function () {
 
     $budget = Budget::factory()->create();
 
-    Livewire::test(ListBudgets::class)
+    livewireDeferredListPage(ListBudgets::class)
         ->assertSuccessful()
         ->assertActionExists(TestAction::make('view')->table($budget));
 });
@@ -185,7 +185,7 @@ test('labels table has view slide-over action', function () {
 
     $label = Label::factory()->create();
 
-    Livewire::test(ListLabels::class)
+    livewireDeferredListPage(ListLabels::class)
         ->assertSuccessful()
         ->assertActionExists(TestAction::make('view')->table($label));
 });
@@ -195,7 +195,7 @@ test('resource table record actions are icon-only', function () {
 
     Label::factory()->create();
 
-    $table = Livewire::test(ListLabels::class)
+    $table = livewireDeferredListPage(ListLabels::class)
         ->assertSuccessful()
         ->instance()
         ->getTable();
@@ -217,7 +217,7 @@ test('resource table icon actions use filament tooltips', function () {
 
     Label::factory()->create();
 
-    $table = Livewire::test(ListLabels::class)
+    $table = livewireDeferredListPage(ListLabels::class)
         ->assertSuccessful()
         ->instance()
         ->getTable();
@@ -252,7 +252,7 @@ test('expenses table keeps reparse action under record actions group', function 
 
     Expense::factory()->create();
 
-    $table = Livewire::test(ListExpenses::class)
+    $table = livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->instance()
         ->getTable();
@@ -286,17 +286,17 @@ test('resource tables show updated_at as relative time with datetime tooltip', f
     $budget = Budget::factory()->create(['updated_at' => $editedAt]);
     $expense = Expense::factory()->create(['updated_at' => $editedAt]);
 
-    Livewire::test(ListLabels::class)
+    livewireDeferredListPage(ListLabels::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$label])
         ->assertSee($relative);
 
-    Livewire::test(ListBudgets::class)
+    livewireDeferredListPage(ListBudgets::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$budget])
         ->assertSee($relative);
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$expense]);
 
@@ -325,7 +325,7 @@ test('resource tables show the editor username with name fallback', function () 
     $this->admin->update(['display_name' => 'audit-username']);
     $label = Label::factory()->create();
 
-    Livewire::test(ListLabels::class)
+    livewireDeferredListPage(ListLabels::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$label])
         ->assertSee('audit-username')
@@ -334,7 +334,7 @@ test('resource tables show the editor username with name fallback', function () 
     $this->admin->update(['display_name' => null]);
     $fallbackLabel = Label::factory()->create();
 
-    Livewire::test(ListLabels::class)
+    livewireDeferredListPage(ListLabels::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$fallbackLabel])
         ->assertSee($this->admin->name);
@@ -348,13 +348,13 @@ test('expenses table truncates long merchant names with full name in tooltip', f
         'merchant_name' => $longMerchant,
     ]);
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->toggleAllTableColumns()
         ->assertCanSeeTableRecords([$expense])
         ->assertSee('Cosmo Restaurants Sd...');
 
-    $column = Livewire::test(ListExpenses::class)
+    $column = livewireDeferredListPage(ListExpenses::class)
         ->instance()
         ->getTable()
         ->getColumn('merchant_name');
@@ -375,12 +375,12 @@ test('expenses table leaves short merchant names unchanged', function () {
         'merchant_name' => $shortMerchant,
     ]);
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$expense])
         ->assertSee($shortMerchant);
 
-    $column = Livewire::test(ListExpenses::class)
+    $column = livewireDeferredListPage(ListExpenses::class)
         ->instance()
         ->getTable()
         ->getColumn('merchant_name');
@@ -405,7 +405,7 @@ test('expenses table filename links to file in a new tab', function () {
 
     $url = Storage::temporaryUrl($path, now()->addMinutes(30));
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$expense])
         ->assertCanRenderTableColumn('original_filename')
@@ -422,7 +422,7 @@ test('expenses table shows Manual expense plain text without file link', functio
         'image_path' => null,
     ]);
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$expense])
         ->assertSee(FilenameDisplay::MANUAL_EXPENSE_LABEL);
@@ -442,11 +442,11 @@ test('expenses table shows date_time as relative time with datetime tooltip', fu
         'created_at' => now()->subMinutes(5),
     ]);
 
-    Livewire::test(ListExpenses::class)
+    livewireDeferredListPage(ListExpenses::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$expense]);
 
-    $column = Livewire::test(ListExpenses::class)
+    $column = livewireDeferredListPage(ListExpenses::class)
         ->instance()
         ->getTable()
         ->getColumn('date_time');
@@ -467,7 +467,7 @@ test('labels table renders icon as graphic not name', function () {
         'name' => 'Dessert Label',
     ]);
 
-    Livewire::test(ListLabels::class)
+    livewireDeferredListPage(ListLabels::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$label])
         ->assertSeeHtml('<svg')
@@ -482,7 +482,7 @@ test('budgets table renders display icon as graphic not name', function () {
         'title' => 'Heart Budget',
     ]);
 
-    Livewire::test(ListBudgets::class)
+    livewireDeferredListPage(ListBudgets::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$budget])
         ->assertCanRenderTableColumn('display_icon')

@@ -55,7 +55,7 @@ test('active sessions lists current session as this device', function () {
         ],
     );
 
-    Livewire::test(EditProfile::class)
+    Livewire::test(EditProfile::class)->loadTable()
         ->assertSee('Active Sessions')
         ->assertSee('This device')
         ->assertSee('Web')
@@ -83,7 +83,7 @@ test('active sessions distinguishes multiple web sessions', function () {
         'created_at' => now()->subHours(2)->timestamp,
     ]);
 
-    Livewire::test(EditProfile::class)
+    Livewire::test(EditProfile::class)->loadTable()
         ->assertSee('Chrome on Windows')
         ->assertSee('Firefox on Windows')
         ->assertSee('192.168.1.20');
@@ -95,7 +95,7 @@ test('active sessions shows mobile web device class', function () {
         'ip_address' => '10.0.0.5',
     ]);
 
-    Livewire::test(EditProfile::class)
+    Livewire::test(EditProfile::class)->loadTable()
         ->assertSee('Mobile Web')
         ->assertSee('Safari on iOS');
 });
@@ -120,7 +120,7 @@ test('revoke is shown disabled for the current session and enabled for others', 
         'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
     ]);
 
-    Livewire::test(EditProfile::class)
+    Livewire::test(EditProfile::class)->loadTable()
         ->assertActionDisabled(TestAction::make('revoke')->table($currentSessionId))
         ->assertActionEnabled(TestAction::make('revoke')->table('other-session'));
 });
@@ -145,7 +145,7 @@ test('revoke deletes another session but not the current one', function () {
         'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
     ]);
 
-    Livewire::test(EditProfile::class)
+    Livewire::test(EditProfile::class)->loadTable()
         ->assertSee('Firefox on Windows')
         ->assertSee('192.168.1.99')
         ->callAction(TestAction::make('revoke')->table('other-session'))
@@ -194,9 +194,11 @@ test('user agent device parser classifies web and mobile web', function () {
 test('active sessions uses native filament table markup', function () {
     insertActiveSession($this->user, 'wire-click-session');
 
-    $html = Livewire::test(EditProfile::class)->html();
+    $component = Livewire::test(EditProfile::class)->loadTable();
 
-    Livewire::test(EditProfile::class)
+    $html = $component->html();
+
+    $component
         ->assertSee('Current Session')
         ->assertSee('Revoke');
 
@@ -210,7 +212,7 @@ test('active sessions uses native filament table markup', function () {
 test('active sessions hides the actions column header label', function () {
     insertActiveSession($this->user, 'header-session');
 
-    $html = Livewire::test(EditProfile::class)->html();
+    $html = Livewire::test(EditProfile::class)->loadTable()->html();
 
     expect($html)
         ->toContain('fi-ta-actions-header-cell')

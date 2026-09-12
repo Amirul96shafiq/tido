@@ -100,6 +100,8 @@ test('global search type-chosen filters menu reuses table filter padding and a t
 });
 
 test('global search modal toolbar disables filters control for all type', function () {
+    Expense::factory()->create(['merchant_name' => 'Market Street Shop']);
+
     $html = Livewire::test(GlobalSearchModal::class)
         ->set('search', 'market')
         ->set('type', ['all'])

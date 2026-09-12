@@ -28,7 +28,7 @@ test('primary can duplicate a label from the list', function () {
         'description' => '<p>Meals and groceries</p>',
     ]);
 
-    $page = Livewire::test(ListLabels::class)
+    $page = livewireDeferredListPage(ListLabels::class)
         ->callAction(TestAction::make('replicate')->table($source))
         ->assertNotified('Label duplicated');
 
@@ -59,7 +59,7 @@ test('primary can bulk duplicate labels from the list', function () {
         'slug' => 'transport',
     ]);
 
-    Livewire::test(ListLabels::class)
+    livewireDeferredListPage(ListLabels::class)
         ->selectTableRecords([$first->getKey(), $second->getKey()])
         ->callAction(TestAction::make('duplicate')->table()->bulk())
         ->assertNotified('2 labels duplicated')
@@ -83,7 +83,7 @@ test('duplicating a system label creates a user label with a unique slug', funct
         'slug' => 'bills-copy',
     ]);
 
-    Livewire::test(ListLabels::class)
+    livewireDeferredListPage(ListLabels::class)
         ->callAction(TestAction::make('replicate')->table($systemLabel));
 
     $replica = Label::query()
@@ -107,7 +107,7 @@ test('labels table supports deleted records filter and soft delete actions', fun
     $trashed = Label::factory()->create(['name' => 'Trashed Label']);
     $trashed->delete();
 
-    Livewire::test(ListLabels::class)
+    livewireDeferredListPage(ListLabels::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$active])
         ->assertCanNotSeeTableRecords([$trashed])

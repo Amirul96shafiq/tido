@@ -54,19 +54,20 @@ test('text fields expose character limits', function (string $page, string $fiel
     'payment method name' => [CreatePaymentMethod::class, 'name', FieldCharacterLimits::PAYMENT_METHOD_NAME],
 ]);
 
-test('notes fields expose the shared plaintext limit', function (string $page, string $field) {
-    Livewire::test($page)
-        ->assertSuccessful()
-        ->assertSchemaComponentExists(
-            $field,
-            checkComponentUsing: fn (NotesRichEditor $component): bool => $component->getMaxLength() === FieldCharacterLimits::NOTES,
-        );
+test('notes fields expose the shared plaintext limit', function (string $page, string $field, string $schemaKey) {
+    loadDeferredFormSchemas(
+        Livewire::test($page),
+        $schemaKey,
+    )->assertSchemaComponentExists(
+        deferredFormComponentKey($schemaKey, $field),
+        checkComponentUsing: fn (NotesRichEditor $component): bool => $component->getMaxLength() === FieldCharacterLimits::NOTES,
+    );
 })->with([
-    'expense notes' => [CreateExpense::class, 'notes'],
-    'budget notes' => [CreateBudget::class, 'notes'],
-    'recurring notes' => [CreateRecurring::class, 'notes'],
-    'label notes' => [CreateLabel::class, 'description'],
-    'payment method notes' => [CreatePaymentMethod::class, 'notes'],
+    'expense notes' => [CreateExpense::class, 'notes', 'expenseNotes'],
+    'budget notes' => [CreateBudget::class, 'notes', 'budgetNotes'],
+    'recurring notes' => [CreateRecurring::class, 'notes', 'recurringNotes'],
+    'label notes' => [CreateLabel::class, 'description', 'labelNotes'],
+    'payment method notes' => [CreatePaymentMethod::class, 'notes', 'paymentMethodNotes'],
 ]);
 
 test('profile rejects a full name over the character limit', function () {

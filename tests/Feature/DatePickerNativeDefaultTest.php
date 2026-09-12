@@ -12,7 +12,6 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\TimePicker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
-use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -76,7 +75,7 @@ test('date placeholders follow the preferred date format', function (string $for
 ]);
 
 test('backups date filters render the javascript date picker', function (): void {
-    $html = Livewire::test(ListBackups::class)
+    $html = livewireDeferredListPage(ListBackups::class)
         ->assertSuccessful()
         ->html();
 

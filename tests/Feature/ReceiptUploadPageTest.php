@@ -27,7 +27,7 @@ test('receipt upload page lists recent expenses', function () {
         'image_path' => 'receipts/wa_receipt_preview.jpg',
     ]);
 
-    Livewire::test(ReceiptUploadPage::class)
+    livewireDeferredTablePage(ReceiptUploadPage::class)
         ->assertSuccessful()
         ->assertDontSeeHtml('wire:poll.10s.visible')
         ->assertCanSeeTableRecords([$expense])
@@ -64,7 +64,7 @@ test('filename links to file in a new tab', function () {
 
     $url = Storage::temporaryUrl($path, now()->addMinutes(30));
 
-    Livewire::test(ReceiptUploadPage::class)
+    livewireDeferredTablePage(ReceiptUploadPage::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$expense])
         ->assertSeeHtml('target="_blank"')
@@ -77,7 +77,7 @@ test('filename without file path has no link', function () {
         'image_path' => null,
     ]);
 
-    Livewire::test(ReceiptUploadPage::class)
+    livewireDeferredTablePage(ReceiptUploadPage::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$expense])
         ->assertDontSeeHtml('missing_file.jpg</a>');
@@ -89,7 +89,7 @@ test('receipt upload page truncates long merchant names with full name in toolti
         'merchant_name' => $longMerchant,
     ]);
 
-    Livewire::test(ReceiptUploadPage::class)
+    livewireDeferredTablePage(ReceiptUploadPage::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$expense])
         ->assertSee('Cosmo Restaurants Sd...');
@@ -108,7 +108,7 @@ test('receipt upload page truncates long merchant names with full name in toolti
 });
 
 test('upload button shows loading spinner while saving', function () {
-    Livewire::test(ReceiptUploadPage::class)
+    livewireDeferredTablePage(ReceiptUploadPage::class)
         ->assertSuccessful()
         ->assertSeeHtml('wire:target="save"')
         ->assertSeeHtml('wire:loading.delay')
@@ -132,7 +132,7 @@ test('receipt upload page filters recent uploads by from spender', function () {
         'family_member_id' => null,
     ]);
 
-    Livewire::test(ReceiptUploadPage::class)
+    livewireDeferredTablePage(ReceiptUploadPage::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$familyExpense, $primaryExpense])
         ->filterTable('spender', DashboardSpenderScope::familyValue((int) $member->id))
@@ -190,7 +190,7 @@ test('family member sees the recent upload edit action disabled for unsupported 
 
     $this->actingAs($familyUser);
 
-    Livewire::test(ReceiptUploadPage::class)
+    livewireDeferredTablePage(ReceiptUploadPage::class)
         ->assertSuccessful()
         ->assertActionVisible(TestAction::make('edit')->table($ownExpense))
         ->assertActionEnabled(TestAction::make('edit')->table($ownExpense))

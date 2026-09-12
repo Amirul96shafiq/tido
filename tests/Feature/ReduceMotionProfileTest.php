@@ -14,16 +14,17 @@ test('profile personalize preferences section renders reduce motion toggle', fun
 
     $this->actingAs($user);
 
-    $component = Livewire::test(EditProfile::class)
-        ->assertSee('PREFERENCES', false)
-        ->assertSee('Reduce Motion', false)
-        ->assertSee('Disable count-up, marquee, and other decorative animation. Save to keep this preference for future sign-ins.', false)
-        ->assertSee('fi-profile-toggle-field', false)
-        ->assertSchemaComponentExists('personalize-preferences')
+    $component = loadDeferredFormSchemas(
+        Livewire::test(EditProfile::class),
+        'personalizeAppearance',
+    )
+        ->assertSchemaComponentExists(deferredFormComponentKey('personalizeAppearance', 'personalize-preferences'))
+        ->assertSchemaComponentExists(deferredFormComponentKey('personalizeAppearance', 'reduce_motion'))
         ->assertSet('data.reduce_motion', false);
 
-    $fieldset = $component->instance()->form->getComponent('personalize-preferences');
-    $toggle = $component->instance()->form->getComponent('reduce_motion');
+    $flatComponents = $component->instance()->form->getFlatComponents(withHidden: true);
+    $fieldset = $flatComponents[deferredFormComponentKey('personalizeAppearance', 'personalize-preferences')] ?? null;
+    $toggle = $flatComponents[deferredFormComponentKey('personalizeAppearance', 'reduce_motion')] ?? null;
 
     expect($fieldset?->getColumns('lg'))->toBe(1)
         ->and($toggle?->getColumnSpan('default'))->toBe('full');
@@ -108,6 +109,21 @@ test('admin panel reduce motion script syncs preference across spa navigation', 
         ->toContain('snapCountUpsToFinal')
         ->toContain('syncMarqueeMotion')
         ->toContain('scheduleMarqueeSync');
+});
+
+test('reduce motion css disables deferred and widget loading placeholder animations', function (): void {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.fi-sc.fi-sc-loading')
+        ->toContain('.fi-ta-table-loading-ctn')
+        ->toContain('.fi-wi-loading-section')
+        ->toContain('html.tido-reduce-motion .fi-sc.fi-sc-loading')
+        ->toContain('html.tido-reduce-motion .fi-ta-table-loading-ctn')
+        ->toContain('html.tido-reduce-motion .fi-loading-section')
+        ->toContain('html.tido-reduce-motion .fi-wi-loading-section')
+        ->toContain('html.tido-reduce-motion .fi-sc.fi-sc-loading > .fi-loading-indicator')
+        ->toContain('html.tido-reduce-motion .fi-ta-table-loading-ctn > .fi-loading-indicator');
 });
 
 test('reduce motion css disables ping pulse animations', function (): void {

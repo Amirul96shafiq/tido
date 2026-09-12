@@ -8,6 +8,7 @@ use App\Enums\LabelType;
 use App\Enums\RecurringFrequency;
 use App\Enums\RecurringType;
 use App\Filament\Forms\Components\NotesRichEditor;
+use App\Filament\Support\FormSchemaDeferral;
 use App\Helpers\MoneyDisplay;
 use App\Models\FamilyMember;
 use App\Models\Recurring;
@@ -337,12 +338,17 @@ class RecurringForm
 
                         Section::make('Expense Matching')
                             ->id('recurring-matching')
-                            ->schema([
-                                TagsInput::make('merchant_aliases')
-                                    ->label('Merchant aliases')
-                                    ->placeholder('Cursor')
-                                    ->helperText('The recurring title is matched automatically. Add alternative merchant names found on expenses.'),
-                            ]),
+                            ->key('recurringMatching')
+                            ->schema(
+                                Schema::make()
+                                    ->components([
+                                        TagsInput::make('merchant_aliases')
+                                            ->label('Merchant aliases')
+                                            ->placeholder('Cursor')
+                                            ->helperText('The recurring title is matched automatically. Add alternative merchant names found on expenses.'),
+                                    ])
+                                    ->deferLoading(FormSchemaDeferral::unlessViewSlideOver()),
+                            ),
 
                         Section::make('Status and Reminders')
                             ->id('recurring-status-and-reminders')
@@ -382,12 +388,17 @@ class RecurringForm
 
                         Section::make('Recurring Notes')
                             ->id('recurring-notes')
-                            ->schema([
-                                NotesRichEditor::make('notes')
-                                    ->label('Recurring Notes')
-                                    ->hiddenLabel()
-                                    ->columnSpanFull(),
-                            ]),
+                            ->key('recurringNotes')
+                            ->schema(
+                                Schema::make()
+                                    ->components([
+                                        NotesRichEditor::make('notes')
+                                            ->label('Recurring Notes')
+                                            ->hiddenLabel()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->deferLoading(FormSchemaDeferral::unlessViewSlideOver()),
+                            ),
                     ]),
 
                 Grid::make(1)

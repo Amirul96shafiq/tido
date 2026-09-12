@@ -155,6 +155,7 @@ class ReceiptUploadPage extends Page implements HasForms, HasTable
     public function table(Table $table): Table
     {
         return $table
+            ->deferLoading()
             ->query(Expense::query())
             ->defaultSort('created_at', 'desc')
             ->columns([

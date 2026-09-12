@@ -455,11 +455,27 @@ class AdminPanelProvider extends PanelProvider
                                     }
                                 }
 
+                                function hideMobileChromeForSpa() {
+                                    if (typeof Alpine === 'undefined') {
+                                        return;
+                                    }
+
+                                    var chrome = Alpine.store('tidoMobileChrome');
+
+                                    if (chrome && typeof chrome.forceHideForSpa === 'function') {
+                                        chrome.forceHideForSpa();
+                                    }
+                                }
+
                                 document.addEventListener('livewire:navigating', function () {
                                     applyReduceMotionFromStorage();
                                     applyMobileNavFromStorage();
+                                    hideMobileChromeForSpa();
                                 });
-                                document.addEventListener('livewire:navigated', syncReduceMotionAfterNavigation);
+                                document.addEventListener('livewire:navigated', function () {
+                                    syncReduceMotionAfterNavigation();
+                                    hideMobileChromeForSpa();
+                                });
 
                                 document.addEventListener('alpine:init', function () {
                                     Alpine.store('tidoMobileChrome', {
@@ -471,6 +487,7 @@ class AdminPanelProvider extends PanelProvider
                                         _chromeWasOpen: false,
                                         _swapLocked: false,
                                         _swapLockTimer: null,
+                                        _suppressOverlay: false,
 
                                         _isTransitioning: function (element) {
                                             if (! element) {
@@ -512,21 +529,7 @@ class AdminPanelProvider extends PanelProvider
                                         isSidebarOpen: function () {
                                             var sidebarStore = Alpine.store('sidebar');
 
-                                            if (sidebarStore && sidebarStore.isOpen) {
-                                                return true;
-                                            }
-
-                                            var sidebarEl = document.querySelector('.fi-sidebar');
-
-                                            if (! sidebarEl) {
-                                                return false;
-                                            }
-
-                                            if (sidebarEl.classList.contains('fi-sidebar-open')) {
-                                                return true;
-                                            }
-
-                                            return this._isTransitioning(sidebarEl);
+                                            return !!(sidebarStore && sidebarStore.isOpen);
                                         },
 
                                         isMobilenavUserMenuOpen: function () {
@@ -569,6 +572,18 @@ class AdminPanelProvider extends PanelProvider
                                                 || this.isMobilenavUserMenuOpen();
                                         },
 
+                                        _hideSharedOverlayDom: function () {
+                                            document.querySelectorAll('.tido-mobilenav-shared-chrome-overlay').forEach(function (el) {
+                                                el.classList.remove('tido-chrome-overlay-shown');
+                                                el.classList.add('opacity-0');
+                                                el.classList.add('pointer-events-none');
+                                                el.style.display = 'none';
+                                                el.style.setProperty('opacity', '0', 'important');
+                                                el.style.setProperty('visibility', 'hidden', 'important');
+                                                el.style.setProperty('pointer-events', 'none', 'important');
+                                            });
+                                        },
+
                                         overlayVisible: function () {
                                             return this.isChromeOpen()
                                                 || this._swapLocked
@@ -576,13 +591,19 @@ class AdminPanelProvider extends PanelProvider
                                         },
 
                                         _syncOverlayShown: function () {
-                                            if (! this.mobilenavActive) {
+                                            if (! this.mobilenavActive || this._suppressOverlay) {
                                                 this.overlayShown = false;
+                                                this._hideSharedOverlayDom();
 
                                                 return;
                                             }
 
-                                            this.overlayShown = this.isChromeOpen() || this._swapLocked;
+                                            var chromeOpen = this.isChromeOpen();
+                                            this.overlayShown = chromeOpen || this._swapLocked;
+
+                                            if (! this.overlayShown) {
+                                                this._hideSharedOverlayDom();
+                                            }
                                         },
 
                                         _cancelSwapLock: function () {
@@ -618,6 +639,7 @@ class AdminPanelProvider extends PanelProvider
                                             if (! this.isChromeOpen()) {
                                                 this.overlayOpen = false;
                                                 this.overlayShown = false;
+                                                this._hideSharedOverlayDom();
                                             } else {
                                                 this._syncOverlayShown();
                                             }
@@ -628,9 +650,33 @@ class AdminPanelProvider extends PanelProvider
                                                 return;
                                             }
 
+                                            this._suppressOverlay = false;
                                             this._armSwapLock();
                                             this.overlayOpen = true;
                                             this._syncOverlayShown();
+                                        },
+
+                                        forceHideForSpa: function () {
+                                            var sidebar = Alpine.store('sidebar');
+
+                                            this._suppressOverlay = true;
+                                            this._cancelSwapLock();
+                                            this.addOpen = false;
+                                            this.searchOpen = false;
+                                            this.overlayOpen = false;
+                                            this.overlayShown = false;
+                                            this._chromeWasOpen = false;
+                                            this._hideSharedOverlayDom();
+
+                                            if (sidebar && sidebar.isOpen) {
+                                                sidebar.close();
+                                            }
+
+                                            var sidebarEl = document.querySelector('.fi-sidebar');
+
+                                            if (sidebarEl) {
+                                                sidebarEl.classList.remove('fi-sidebar-open');
+                                            }
                                         },
 
                                         syncOverlay: function () {
@@ -790,8 +836,12 @@ class AdminPanelProvider extends PanelProvider
 
                                         chrome.addOpen;
                                         chrome.searchOpen;
+                                        chrome._suppressOverlay;
 
-                                        if (chrome.isChromeOpen()) {
+                                        if (chrome._suppressOverlay) {
+                                            chrome.overlayOpen = false;
+                                            chrome.overlayShown = false;
+                                        } else if (chrome.isChromeOpen()) {
                                             chrome._chromeWasOpen = true;
                                             chrome.overlayOpen = true;
                                         } else {
@@ -915,10 +965,19 @@ class AdminPanelProvider extends PanelProvider
                                     document.documentElement.classList.add('fi-sidebar-is-collapsed');
                                 }
 
+                                var isMobilenavDrawerViewport = function () {
+                                    return document.documentElement.classList.contains('tido-mobilenav')
+                                        && window.innerWidth < desktopBreakpoint;
+                                };
+
                                 var sidebarShouldBeOpen = function () {
                                     var desktop = window.innerWidth >= desktopBreakpoint;
                                     var openDesktop = JSON.parse(localStorage.getItem('isOpenDesktop') ?? 'true');
                                     var openMobile = JSON.parse(localStorage.getItem('isOpen') ?? 'true');
+
+                                    if (isMobilenavDrawerViewport()) {
+                                        return !! openMobile && ! spaNavigating;
+                                    }
 
                                     return desktop ? openDesktop : openMobile;
                                 };

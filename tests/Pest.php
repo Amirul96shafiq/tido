@@ -2,6 +2,8 @@
 
 use App\Filament\Support\DashboardMonthAnalytics;
 use Illuminate\Support\Facades\Http;
+use Livewire\Features\SupportTesting\Testable;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /*
@@ -64,4 +66,50 @@ function evolutionWebhookHeaders(): array
     return [
         'Authorization' => 'Bearer '.(string) config('services.evolution.webhook_secret'),
     ];
+}
+
+function livewireDeferredListPage(string $pageClass): Testable
+{
+    return Livewire::test($pageClass)->loadTable();
+}
+
+function livewireDeferredTablePage(string $pageClass): Testable
+{
+    return Livewire::test($pageClass)->loadTable();
+}
+
+function deferredFormSchemaKey(string $sectionKey): string
+{
+    return "form.{$sectionKey}";
+}
+
+function deferredFormComponentKey(string $sectionKey, string $field): string
+{
+    return "{$sectionKey}.{$field}";
+}
+
+function deferredExpenseItemSchemaKey(int|string $itemKey): string
+{
+    return "expenseItems.record-{$itemKey}";
+}
+
+function loadDeferredExpenseItemSchema(Testable $test, int|string $itemKey): Testable
+{
+    return loadDeferredFormSchemas($test, deferredExpenseItemSchemaKey($itemKey));
+}
+
+function loadDeferredFormSchemas(Testable $test, string ...$sectionKeys): Testable
+{
+    foreach ($sectionKeys as $sectionKey) {
+        $test->call('loadDeferredSchema', deferredFormSchemaKey($sectionKey));
+    }
+
+    $instance = $test->instance();
+
+    if (method_exists($instance, 'getDefaultTestingSchemaName')) {
+        $schemaName = $instance->getDefaultTestingSchemaName();
+        $instance->{$schemaName}->flushCachedHierarchy();
+    }
+
+    return $test;
 }

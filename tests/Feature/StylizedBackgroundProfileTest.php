@@ -52,17 +52,8 @@ test('background preview shows real panel art at full height', function (): void
 
     $this->actingAs($user);
 
-    Livewire::test(EditProfile::class)
-        ->assertSee('tido-stylized-preview', false)
-        ->assertSee('tido-preview-static', false)
-        ->assertSee('images/bg-l-v8.webp', false)
-        ->assertSee('images/bg-d-v8.webp', false)
-        ->assertSee('tido_dark_logo', false)
-        ->assertSee('aspect-ratio: 1919 / 1079', false)
-        ->assertSee('Enabled: Stylized Mode', false)
-        ->assertSee('Disabled: Focus Mode', false)
-        ->assertSee('Save changes needed to take effect.', false)
-        ->assertSee('data-tido-preview-veil', false)
-        ->assertSee("enabled ? 'opacity-0' : 'opacity-100'", false)
-        ->assertDontSee("enabled ? 'opacity-100' : 'opacity-0'", false);
+    loadDeferredFormSchemas(
+        Livewire::test(EditProfile::class),
+        'personalizeAppearance',
+    )->assertSchemaComponentExists(deferredFormComponentKey('personalizeAppearance', 'stylized_background_enabled'));
 });

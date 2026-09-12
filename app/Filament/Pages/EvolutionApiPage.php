@@ -1052,6 +1052,7 @@ class EvolutionApiPage extends Page implements HasTable
     public function table(Table $table): Table
     {
         return $table
+            ->deferLoading()
             ->query(EvolutionApiConnectionLog::query())
             ->defaultSort('created_at', 'desc')
             ->columns([

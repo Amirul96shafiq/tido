@@ -17,17 +17,18 @@ beforeEach(function () {
 });
 
 test('label form uses notes rich editor for description', function () {
-    Livewire::test(CreateLabel::class)
-        ->assertSuccessful()
-        ->assertSchemaComponentExists(
-            'description',
-            checkComponentUsing: function (NotesRichEditor $component): bool {
-                expect($component->getLabel())->toBe('Label Notes')
-                    ->and($component->getExtraAttributes()['class'])->toContain(NotesRichEditor::EXTRA_CLASS);
+    loadDeferredFormSchemas(
+        Livewire::test(CreateLabel::class),
+        'labelNotes',
+    )->assertSchemaComponentExists(
+        deferredFormComponentKey('labelNotes', 'description'),
+        checkComponentUsing: function (NotesRichEditor $component): bool {
+            expect($component->getLabel())->toBe('Label Notes')
+                ->and($component->getExtraAttributes()['class'])->toContain(NotesRichEditor::EXTRA_CLASS);
 
-                return true;
-            },
-        );
+            return true;
+        },
+    );
 });
 
 test('label name and slug have empty placeholders', function () {

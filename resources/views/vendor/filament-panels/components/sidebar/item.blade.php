@@ -300,7 +300,7 @@
     @else
         <a
             {{ \Filament\Support\generate_href_html($url, $shouldOpenUrlInNewTab) }}
-            x-on:click="window.matchMedia(`(max-width: 1024px)`).matches && $store.sidebar.close()"
+            x-on:click="window.matchMedia(`(max-width: 1024px)`).matches && ($store.sidebar.close(), $store.tidoMobileChrome?.forceHideForSpa?.())"
             @if ($sidebarCollapsible && (! $subNavigation))
                 x-data="{ tooltip: false }"
                 x-effect="

@@ -42,14 +42,14 @@ test('family members resource is under settings navigation', function () {
 });
 
 test('authenticated user can list family members', function () {
-    FamilyMember::factory()->create([
+    $member = FamilyMember::factory()->create([
         'name' => 'Full Name',
         'display_name' => 'Spouse',
     ]);
 
-    $this->get(FamilyMemberResource::getUrl('index'))
+    livewireDeferredListPage(ListFamilyMembers::class)
         ->assertSuccessful()
-        ->assertSee('Spouse');
+        ->assertCanSeeTableRecords([$member]);
 });
 
 test('user can create a family member on the allowlist', function () {
@@ -273,7 +273,7 @@ test('disabled family member is excluded from allowlist', function () {
 test('family members table has view slide-over action', function () {
     $member = FamilyMember::factory()->create();
 
-    Livewire::test(ListFamilyMembers::class)
+    livewireDeferredListPage(ListFamilyMembers::class)
         ->assertSuccessful()
         ->assertActionExists(TestAction::make('view')->table($member));
 });
@@ -291,8 +291,7 @@ test('family members list shows primary member table above family members table'
         ->assertSee('Primary Member')
         ->assertSee('Family Members')
         ->assertSeeHtml('tido-primary-member-table')
-        ->assertSeeHtml('tido-family-members-table')
-        ->assertSee('Household Lead');
+        ->assertSeeHtml('tido-family-members-table');
 
     expect($css)->toContain('.tido-primary-member-table .fi-ta-table > tbody > tr > td.fi-ta-cell')
         ->toContain('.tido-primary-member-table .fi-ta-cell-avatar-url img');
@@ -309,6 +308,7 @@ test('primary member table lists household primary without search filters or pag
 
     $component = Livewire::test(PrimaryMemberTableWidget::class)
         ->assertSuccessful()
+        ->loadTable()
         ->assertCanSeeTableRecords([$this->admin])
         ->assertSee('Household Lead')
         ->assertSee('60198765432')
@@ -348,6 +348,7 @@ test('primary member table lists household primary for a family member session',
 
     Livewire::test(PrimaryMemberTableWidget::class)
         ->assertSuccessful()
+        ->loadTable()
         ->assertCanSeeTableRecords([$this->admin])
         ->assertCanNotSeeTableRecords([$familyUser])
         ->assertSee('Household Lead')
@@ -368,7 +369,7 @@ test('family member own row edit action links to profile', function () {
     $ownEditAction = TestAction::make('edit')->table($member);
     $otherEditAction = TestAction::make('edit')->table($otherMember);
 
-    $component = Livewire::test(ListFamilyMembers::class)
+    $component = livewireDeferredListPage(ListFamilyMembers::class)
         ->assertSuccessful()
         ->assertActionVisible($ownEditAction)
         ->assertActionEnabled($ownEditAction)
@@ -387,7 +388,7 @@ test('primary user family members table edit links to family member edit page', 
 
     $editAction = TestAction::make('edit')->table($member);
 
-    $component = Livewire::test(ListFamilyMembers::class)
+    $component = livewireDeferredListPage(ListFamilyMembers::class)
         ->assertSuccessful()
         ->assertActionVisible($editAction)
         ->assertActionEnabled($editAction)
@@ -402,7 +403,7 @@ test('primary user family members table edit links to family member edit page', 
 test('family members table configures columns, row padding, and fixed pagination', function () {
     FamilyMember::factory()->count(6)->create();
 
-    $component = Livewire::test(ListFamilyMembers::class)
+    $component = livewireDeferredListPage(ListFamilyMembers::class)
         ->assertSuccessful()
         ->assertTableColumnExists('name', fn (Column $column): bool => $column->isToggleable()
             && $column->isToggledHiddenByDefault())
@@ -431,7 +432,7 @@ test('family members table filters by contact allowlist and panel login status',
     $trashed = FamilyMember::factory()->create(['name' => 'Trashed']);
     $trashed->delete();
 
-    $component = Livewire::test(ListFamilyMembers::class)
+    $component = livewireDeferredListPage(ListFamilyMembers::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$allowlisted, $notAllowlisted, $loginEnabled, $loginDisabled])
         ->assertCanNotSeeTableRecords([$trashed])
@@ -447,7 +448,7 @@ test('family members table filters by contact allowlist and panel login status',
         ->assertCanSeeTableRecords([$loginEnabled])
         ->assertCanNotSeeTableRecords([$allowlisted, $notAllowlisted, $loginDisabled]);
 
-    Livewire::test(ListFamilyMembers::class)
+    livewireDeferredListPage(ListFamilyMembers::class)
         ->filterTable('trashed', true)
         ->assertCanSeeTableRecords([$allowlisted, $notAllowlisted, $loginEnabled, $loginDisabled, $trashed])
         ->filterTable('trashed', false)
@@ -534,7 +535,7 @@ test('primary can duplicate a family member with a new WhatsApp number', functio
     ]);
     $sourceLoginUser = $source->loginUser()->first();
 
-    $page = Livewire::test(ListFamilyMembers::class)
+    $page = livewireDeferredListPage(ListFamilyMembers::class)
         ->callAction(TestAction::make('duplicate')->table($source), data: [
             'phone' => '+60122222222',
             'allowlist_enabled' => false,
@@ -568,7 +569,7 @@ test('family member duplicate can explicitly enable a new panel login', function
         'phone' => '60113333333',
     ]);
 
-    Livewire::test(ListFamilyMembers::class)
+    livewireDeferredListPage(ListFamilyMembers::class)
         ->callAction(TestAction::make('duplicate')->table($source), data: [
             'phone' => '60114444444',
             'allowlist_enabled' => true,
@@ -594,7 +595,7 @@ test('family member duplicate rejects existing and soft-deleted WhatsApp numbers
     ]);
     $existing->delete();
 
-    Livewire::test(ListFamilyMembers::class)
+    livewireDeferredListPage(ListFamilyMembers::class)
         ->callAction(TestAction::make('duplicate')->table($source), data: [
             'phone' => '+60116666666',
             'allowlist_enabled' => false,
@@ -623,6 +624,7 @@ test('primary member table applies profile banner row background and overlay whe
 
     $component = Livewire::test(PrimaryMemberTableWidget::class)
         ->assertSuccessful()
+        ->loadTable()
         ->assertSee('Banner Primary');
 
     $html = $component->html();
@@ -658,7 +660,7 @@ test('family members table applies profile banner row background and overlay for
         'profile_banner' => null,
     ]);
 
-    $component = Livewire::test(ListFamilyMembers::class)
+    $component = livewireDeferredListPage(ListFamilyMembers::class)
         ->assertSuccessful()
         ->assertSee('BannerMember')
         ->assertSee('PlainMember');

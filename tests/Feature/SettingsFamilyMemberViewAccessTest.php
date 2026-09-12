@@ -49,7 +49,7 @@ test('family member can list labels and view but cannot create or edit', functio
     $this->get(LabelResource::getUrl('index'))
         ->assertSuccessful();
 
-    Livewire::test(ListLabels::class)
+    livewireDeferredListPage(ListLabels::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$label])
         ->assertActionVisible('create')
@@ -73,7 +73,7 @@ test('family member can list payment methods and view but cannot create or edit'
     $this->get(PaymentMethodResource::getUrl('index'))
         ->assertSuccessful();
 
-    Livewire::test(ListPaymentMethods::class)
+    livewireDeferredListPage(ListPaymentMethods::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$paymentMethod])
         ->assertActionVisible('create')
@@ -97,7 +97,7 @@ test('family member can list family members and view but cannot create', functio
     $this->get(FamilyMemberResource::getUrl('index'))
         ->assertSuccessful();
 
-    Livewire::test(ListFamilyMembers::class)
+    livewireDeferredListPage(ListFamilyMembers::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$fixtures['member'], $otherMember])
         ->assertActionVisible('create')
@@ -131,7 +131,7 @@ test('family member can list backups but cannot create backup', function () {
     $this->get(BackupResource::getUrl('index'))
         ->assertSuccessful();
 
-    Livewire::test(ListBackups::class)
+    livewireDeferredListPage(ListBackups::class)
         ->assertSuccessful()
         ->assertCanSeeTableRecords([$backup])
         ->assertActionVisible('createBackup')
