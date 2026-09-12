@@ -298,6 +298,26 @@ test('family members list shows primary member table above family members table'
         ->assertDontSeeHtml('<h3 class="fi-ta-header-heading">Primary Member</h3>')
         ->assertDontSeeHtml('<h3 class="fi-ta-header-heading">Family Members</h3>');
 
+    $html = Livewire::test(ListFamilyMembers::class)->html();
+    $familyMembersTablePos = strpos($html, 'tido-family-members-table');
+
+    expect($familyMembersTablePos)->not->toBeFalse();
+
+    $familyMembersHeadingPos = strrpos(
+        substr($html, 0, $familyMembersTablePos),
+        'tido-table-section-heading',
+    );
+
+    expect($familyMembersHeadingPos)->not->toBeFalse();
+
+    $betweenHeadingAndTable = substr(
+        $html,
+        $familyMembersHeadingPos,
+        $familyMembersTablePos - $familyMembersHeadingPos,
+    );
+
+    expect($betweenHeadingAndTable)->not->toContain('fi-sc-has-gap');
+
     expect($css)->toContain('.tido-primary-member-table .fi-ta-table > tbody > tr > td.fi-ta-cell')
         ->toContain('.tido-primary-member-table .fi-ta-cell-avatar-url img');
 });

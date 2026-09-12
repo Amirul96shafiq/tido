@@ -10,6 +10,7 @@ use App\Filament\Resources\FamilyMembers\Widgets\PrimaryMemberTableWidget;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\EmbeddedTable;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\RenderHook;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
@@ -44,14 +45,16 @@ class ListFamilyMembers extends ListRecords
         return $schema
             ->components([
                 $this->getTabsContentComponent(),
-                View::make('components.filament.table-section-heading')
-                    ->viewData([
-                        'heading' => 'Family Members',
-                        'class' => 'mt-6',
-                    ]),
-                RenderHook::make(PanelsRenderHook::RESOURCE_PAGES_LIST_RECORDS_TABLE_BEFORE),
-                EmbeddedTable::make(),
-                RenderHook::make(PanelsRenderHook::RESOURCE_PAGES_LIST_RECORDS_TABLE_AFTER),
+                Group::make([
+                    View::make('components.filament.table-section-heading')
+                        ->viewData([
+                            'heading' => 'Family Members',
+                            'class' => 'mt-6',
+                        ]),
+                    RenderHook::make(PanelsRenderHook::RESOURCE_PAGES_LIST_RECORDS_TABLE_BEFORE),
+                    EmbeddedTable::make(),
+                    RenderHook::make(PanelsRenderHook::RESOURCE_PAGES_LIST_RECORDS_TABLE_AFTER),
+                ])->gap(false),
             ]);
     }
 }
