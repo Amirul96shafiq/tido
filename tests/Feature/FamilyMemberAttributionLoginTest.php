@@ -15,6 +15,7 @@ use App\Models\FamilyMember;
 use App\Models\User;
 use App\Services\FamilyMemberLoginService;
 use App\Services\WhatsAppLoginOtpService;
+use App\Support\CurrentHousehold;
 use App\Support\DashboardSpenderScope;
 use Database\Seeders\FamilyMemberLoginTestSeeder;
 use Filament\Facades\Filament;
@@ -29,6 +30,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     Cache::flush();
+    CurrentHousehold::clear();
 
     config([
         'services.evolution.api_key' => 'test-evolution-api-key-0123456789abcdef0123456789abcdef',
@@ -37,6 +39,10 @@ beforeEach(function () {
         'services.evolution.login_dev_otp' => '123456',
         'services.evolution.login_dev_phones' => FamilyMemberLoginTestSeeder::SAMPLE_PHONE,
     ]);
+});
+
+afterEach(function (): void {
+    CurrentHousehold::clear();
 });
 
 test('whatsapp media job attributes expense to allowlisted family member', function () {
@@ -54,11 +60,17 @@ test('whatsapp media job attributes expense to allowlisted family member', funct
         ]),
     ]);
 
+    CurrentHousehold::set(1);
+
     $job = new ProcessWhatsAppMediaJob(
         '60111111111',
         '60111111111@s.whatsapp.net',
         'MSG-FAMILY',
         false,
+        'image',
+        'image/jpeg',
+        null,
+        1,
     );
     app()->call([$job, 'handle']);
 
@@ -81,11 +93,17 @@ test('whatsapp media job leaves family member null for primary sender', function
         ]),
     ]);
 
+    CurrentHousehold::set(1);
+
     $job = new ProcessWhatsAppMediaJob(
         '60123456789',
         '60123456789@s.whatsapp.net',
         'MSG-PRIMARY',
         false,
+        'image',
+        'image/jpeg',
+        null,
+        1,
     );
     app()->call([$job, 'handle']);
 

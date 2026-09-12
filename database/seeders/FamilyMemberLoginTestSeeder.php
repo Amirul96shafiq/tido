@@ -23,6 +23,7 @@ class FamilyMemberLoginTestSeeder extends Seeder
         $member = FamilyMember::query()->updateOrCreate(
             ['phone' => self::SAMPLE_PHONE],
             [
+                'household_id' => 1,
                 'name' => 'Sample Spouse',
                 'display_name' => 'Spouse',
                 'relationship' => FamilyRelationship::Spouse,

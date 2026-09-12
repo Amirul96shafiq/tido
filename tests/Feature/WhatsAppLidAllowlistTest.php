@@ -6,6 +6,7 @@ use App\Jobs\ProcessWhatsAppTextReplyJob;
 use App\Models\FamilyMember;
 use App\Models\User;
 use App\Services\WhatsAppNotificationService;
+use App\Support\CurrentHousehold;
 use App\Support\PhoneNumber;
 use App\Support\WhatsAppLid;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,6 +28,7 @@ beforeEach(function () {
     Cache::flush();
     RateLimiter::clear('whatsapp-webhook:ip:127.0.0.1');
     RateLimiter::clear('whatsapp-webhook:global');
+    CurrentHousehold::set(1);
 
     User::factory()->create([
         'phone' => '60123456789',

@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Enums\HouseholdRole;
 use App\Models\FamilyMember;
 use App\Models\User;
+use App\Support\CurrentHousehold;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -24,14 +25,22 @@ class FamilyMemberLoginService
             return null;
         }
 
+        $householdId = $this->householdIdForMember($member);
+
+        if ($householdId === null) {
+            return null;
+        }
+
         $existingUser = User::query()
+            ->withoutGlobalScope('household')
             ->where('family_member_id', $member->id)
             ->first();
 
         if ($existingUser instanceof User) {
             $email = $this->syntheticEmail($member);
 
-            $existingUser->update([
+            $existingUser->forceFill([
+                'household_id' => $householdId,
                 'name' => $member->name,
                 'display_name' => $member->display_name,
                 'phone' => $member->phone,
@@ -42,12 +51,13 @@ class FamilyMemberLoginService
                 'email_verified_at' => $existingUser->email === $email
                     ? $existingUser->email_verified_at
                     : now(),
-            ]);
+            ])->save();
 
             return $existingUser->fresh();
         }
 
         $phoneConflict = User::query()
+            ->withoutGlobalScope('household')
             ->where('phone', $member->phone)
             ->where('family_member_id', '!=', $member->id)
             ->exists();
@@ -56,7 +66,9 @@ class FamilyMemberLoginService
             return null;
         }
 
-        return User::query()->create([
+        $user = new User;
+        $user->forceFill([
+            'household_id' => $householdId,
             'name' => $member->name,
             'display_name' => $member->display_name,
             'email' => $this->syntheticEmail($member),
@@ -80,12 +92,15 @@ class FamilyMemberLoginService
             'notify_backups' => false,
             'recurring_reminder_lead_days' => 7,
             'recurring_reminder_time' => '08:00:00',
-        ]);
+        ])->save();
+
+        return $user->fresh();
     }
 
     public function revokeLoginAccess(FamilyMember $member): void
     {
         User::query()
+            ->withoutGlobalScope('household')
             ->where('family_member_id', $member->id)
             ->where('household_role', HouseholdRole::FamilyMember)
             ->delete();
@@ -120,6 +135,24 @@ class FamilyMemberLoginService
         }
 
         return $member->fresh();
+    }
+
+    private function householdIdForMember(FamilyMember $member): ?int
+    {
+        $householdId = $member->household_id;
+
+        if ($householdId === null) {
+            $member->refresh();
+            $householdId = $member->household_id;
+        }
+
+        if ($householdId === null) {
+            $householdId = CurrentHousehold::id();
+        }
+
+        $householdId = $householdId !== null ? (int) $householdId : null;
+
+        return $householdId !== null && $householdId > 0 ? $householdId : null;
     }
 
     private function syntheticEmail(FamilyMember $member): string
