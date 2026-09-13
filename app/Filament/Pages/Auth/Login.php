@@ -46,6 +46,11 @@ use SensitiveParameter;
 class Login extends BaseLogin
 {
     /**
+     * sign-in | sign-up
+     */
+    public string $authPanel = 'sign-in';
+
+    /**
      * phone | otp | password
      */
     public string $loginMode = 'phone';
@@ -375,7 +380,30 @@ class Login extends BaseLogin
             ->dense()
             ->extraAttributes(['class' => 'tido-auth-use-different-number'])
             ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
+                && $this->isSignInPanel()
                 && $this->loginMode === 'otp');
+    }
+
+    public function selectSignInTab(): void
+    {
+        if ($this->authPanel === 'sign-in') {
+            return;
+        }
+
+        $this->authPanel = 'sign-in';
+        $this->resetErrorBag();
+        $this->dispatch('$refresh');
+    }
+
+    public function selectSignUpTab(): void
+    {
+        if ($this->authPanel === 'sign-up') {
+            return;
+        }
+
+        $this->authPanel = 'sign-up';
+        $this->resetErrorBag();
+        $this->dispatch('$refresh');
     }
 
     public function selectOtpLoginTab(): void
@@ -400,6 +428,22 @@ class Login extends BaseLogin
         }
     }
 
+    protected function isSignInPanel(): bool
+    {
+        return $this->authPanel === 'sign-in';
+    }
+
+    protected function getAuthPanelSwitchComponent(): Component
+    {
+        return Html::make(fn (): HtmlString => new HtmlString(
+            Blade::render(
+                '<x-auth-panel-switch :auth-panel="$authPanel" />',
+                ['authPanel' => $this->authPanel],
+            )
+        ))
+            ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication));
+    }
+
     protected function getLoginModeTabsComponent(): Component
     {
         return Html::make(fn (): HtmlString => new HtmlString(
@@ -408,7 +452,17 @@ class Login extends BaseLogin
                 ['loginMode' => $this->loginMode],
             )
         ))
-            ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication));
+            ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
+                && $this->isSignInPanel());
+    }
+
+    protected function getSignUpComingSoonComponent(): Component
+    {
+        return Html::make(fn (): HtmlString => new HtmlString(
+            Blade::render('<x-auth-sign-up-coming-soon />'),
+        ))
+            ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
+                && ! $this->isSignInPanel());
     }
 
     public function getFormContentComponent(): Component
@@ -426,7 +480,8 @@ class Login extends BaseLogin
                     ->fullWidth($this->hasFullWidthFormActions())
                     ->key('form-actions-'.$this->loginMode),
             ])
-            ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication));
+            ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
+                && $this->isSignInPanel());
     }
 
     protected function getGoogleSignInComponent(): Component
@@ -452,6 +507,7 @@ class Login extends BaseLogin
             )
         ))
             ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
+                && $this->isSignInPanel()
                 && $this->googleSignInAvailable());
     }
 
@@ -463,6 +519,8 @@ class Login extends BaseLogin
                 $this->getLoginModeTabsComponent(),
                 $this->getFormContentComponent(),
                 $this->getGoogleSignInComponent(),
+                $this->getSignUpComingSoonComponent(),
+                $this->getAuthPanelSwitchComponent(),
                 $this->getMultiFactorChallengeFormContentComponent(),
                 $this->getUseDifferentNumberComponent(),
                 RenderHook::make(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER),

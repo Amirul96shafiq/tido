@@ -1009,6 +1009,14 @@ html.tido-is-scrolling
     border-radius: 0 !important;
 }
 
+.tido-auth-sign-up-coming-soon {
+    width: 100%;
+}
+
+.tido-auth-panel-switch {
+    @apply mt-4 w-full;
+}
+
 /* Login mode tabs — Filament native tabs, full width on auth */
 .tido-auth-login-tabs-wrap {
     width: 100%;
