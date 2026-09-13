@@ -584,7 +584,7 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->and($profileAvatarMobileBlock)
         ->toContain('.fi-user-menu-profile-preview-avatar {')
         ->toContain('-mt-12')
-        ->toContain('size-24')
+        ->toContain('size-18')
         ->and($css)
         ->toContain('.fi-user-menu-profile-preview-user-id {')
         ->toContain('right-2.5')
@@ -643,4 +643,31 @@ test('topbar user menu chrome matches collapsed sidebar square with left border'
         ->toContain('background-color: var(--gray-50);')
         ->toContain('.dark .fi-account-switcher-section {')
         ->toContain('var(--color-slate-700) 60%');
+});
+
+test('user menu wraps theme switcher and menu items in scrollable container with sticky footer', function () {
+    $userMenu = (string) file_get_contents(
+        resource_path('views/vendor/filament-panels/components/user-menu.blade.php'),
+    );
+
+    expect($userMenu)
+        ->toContain('class="fi-user-menu-scroll custom-scrollbar"')
+        ->toContain('fi-user-menu-version-footer');
+
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('.fi-user-menu .fi-dropdown-panel {')
+        ->toContain('max-height: min(42rem, calc(100dvh - 4rem));')
+        ->toContain('.fi-dropdown.fi-user-menu > .fi-dropdown-panel[style*="display: block"]')
+        ->toContain('display: flex !important;')
+        ->toContain('.fi-user-menu-scroll {')
+        ->toContain('flex: 1 1 0%;')
+        ->toContain('overflow-y: auto;')
+        ->toContain('overflow-x: hidden;')
+        ->toContain('overscroll-behavior: contain;')
+        ->toContain('.fi-user-menu-version-footer {')
+        ->toContain('position: sticky;')
+        ->toContain('bottom: 0;')
+        ->toContain('margin-top: auto;');
 });

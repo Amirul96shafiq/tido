@@ -296,47 +296,49 @@
 
     @livewire(\App\Filament\Livewire\AccountSwitcher::class, key('account-switcher-'.$userMenuInstanceKey))
 
-    @if (filament()->hasDarkMode() && (! filament()->hasDarkModeForced()))
-        <x-filament::dropdown.list>
-            <x-filament-panels::theme-switcher />
-        </x-filament::dropdown.list>
-    @endif
+    <div class="fi-user-menu-scroll custom-scrollbar">
+        @if (filament()->hasDarkMode() && (! filament()->hasDarkModeForced()))
+            <x-filament::dropdown.list>
+                <x-filament-panels::theme-switcher />
+            </x-filament::dropdown.list>
+        @endif
 
-    @if ($itemsAfterThemeSwitcher->isNotEmpty())
-        <x-filament::dropdown.list>
-            @foreach ($itemsAfterThemeSwitcher as $key => $item)
-                @if ($key === 'profile')
-                    {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::USER_MENU_PROFILE_BEFORE) }}
+        @if ($itemsAfterThemeSwitcher->isNotEmpty())
+            <x-filament::dropdown.list>
+                @foreach ($itemsAfterThemeSwitcher as $key => $item)
+                    @if ($key === 'profile')
+                        {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::USER_MENU_PROFILE_BEFORE) }}
 
-                    {{ $item }}
-
-                    {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::USER_MENU_PROFILE_AFTER) }}
-                @elseif ($key === 'notifications')
-                    <div class="fi-user-menu-notifications-wrap">
                         {{ $item }}
 
-                        <span
-                            x-cloak
-                            x-show="$store.tidoNotifications.unread > 0 && $store.tidoNotifications.menuOpen"
-                            x-bind:class="{
-                                'h-4 min-w-4': $store.tidoNotifications.unread < 10,
-                                'h-4 min-w-[1.125rem] px-0.5': $store.tidoNotifications.unread >= 10,
-                            }"
-                            class="fi-user-menu-item-notifications-badge flex items-center justify-center"
-                        >
-                            <span class="tido-ping-pulse absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::USER_MENU_PROFILE_AFTER) }}
+                    @elseif ($key === 'notifications')
+                        <div class="fi-user-menu-notifications-wrap">
+                            {{ $item }}
+
                             <span
-                                class="relative inline-flex h-full min-w-full items-center justify-center rounded-full bg-amber-500 px-0.5 text-[9px] font-semibold leading-none text-zinc-900"
-                                x-text="$store.tidoNotifications.unread > 99 ? '99+' : $store.tidoNotifications.unread"
-                            ></span>
-                        </span>
-                    </div>
-                @else
-                    {{ $item }}
-                @endif
-            @endforeach
-        </x-filament::dropdown.list>
-    @endif
+                                x-cloak
+                                x-show="$store.tidoNotifications.unread > 0 && $store.tidoNotifications.menuOpen"
+                                x-bind:class="{
+                                    'h-4 min-w-4': $store.tidoNotifications.unread < 10,
+                                    'h-4 min-w-[1.125rem] px-0.5': $store.tidoNotifications.unread >= 10,
+                                }"
+                                class="fi-user-menu-item-notifications-badge flex items-center justify-center"
+                            >
+                                <span class="tido-ping-pulse absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                <span
+                                    class="relative inline-flex h-full min-w-full items-center justify-center rounded-full bg-amber-500 px-0.5 text-[9px] font-semibold leading-none text-zinc-900"
+                                    x-text="$store.tidoNotifications.unread > 99 ? '99+' : $store.tidoNotifications.unread"
+                                ></span>
+                            </span>
+                        </div>
+                    @else
+                        {{ $item }}
+                    @endif
+                @endforeach
+            </x-filament::dropdown.list>
+        @endif
+    </div>
 
     <div class="fi-user-menu-version-footer">
         <span class="fi-user-menu-version-footer-label"> - tido App - </span>
