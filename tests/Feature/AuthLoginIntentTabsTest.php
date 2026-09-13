@@ -17,6 +17,8 @@ test('login page renders sign up cta at bottom without sign in via label', funct
         ->toContain("Don't have an account?")
         ->toContain('Sign up')
         ->toContain('text-primary-600')
+        ->toContain('wire:key="auth-panel-switch-sign-in"')
+        ->toContain('wire:key="auth-cta-sign-up"')
         ->toContain('Sign in via')
         ->not->toContain('tido-auth-intent-tabs')
         ->not->toContain('data-tippy-always');
@@ -43,6 +45,7 @@ test('sign up panel shows coming soon and hides sign in form', function () {
         ->assertSee('Account registration is not available yet', false)
         ->assertSee('Already have an Account?')
         ->assertSee('Sign in')
+        ->assertSee('wire:key="auth-cta-sign-in"', false)
         ->assertDontSee('tido-auth-login-tabs', false)
         ->assertDontSee('WhatsApp number')
         ->assertDontSee('Continue with Google')
