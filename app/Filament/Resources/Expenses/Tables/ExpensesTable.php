@@ -84,6 +84,14 @@ class ExpensesTable
                 TextColumn::make('invoice_number')
                     ->searchable()
                     ->sortable()
+                    ->limit(20)
+                    ->tooltip(function (TextColumn $column, ?string $state): ?string {
+                        if (blank($state) || mb_strlen((string) $state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+
+                        return (string) $state;
+                    })
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('date_time')
