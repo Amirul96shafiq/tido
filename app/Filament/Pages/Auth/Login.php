@@ -59,6 +59,12 @@ class Login extends BaseLogin
 
     public function mount(): void
     {
+        parent::mount();
+
+        if (Filament::auth()->check()) {
+            return;
+        }
+
         if (session()->pull('google_oauth_error')) {
             Notification::make()
                 ->title('Google sign-in failed')
