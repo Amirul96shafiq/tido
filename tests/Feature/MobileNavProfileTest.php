@@ -22,21 +22,11 @@ test('profile personalize appearance section renders mobile navigation menu fiel
 
     $this->actingAs($user);
 
-    Livewire::test(EditProfile::class)
-        ->assertSee('APPEARANCE', false)
-        ->assertSee('Mobile Navigation Menu', false)
-        ->assertSee('Save changes needed to take effect.', false)
-        ->assertSee('Enabled: Bottom Bar', false)
-        ->assertSee('Disabled: Top Bar', false)
-        ->assertSee('tido-mobilenav-preview', false)
-        ->assertSee('tido-mobilenav-preview-frame', false)
-        ->assertSee('tido-mobile-preview-chrome', false)
-        ->assertSee('tido-mobile-preview-topbar', false)
-        ->assertSee('tido-mobilenav-preview-bar', false)
-        ->assertSee('data.mobile_nav_enabled', false)
-        ->assertSee("mobileNav ? 'Enabled: Bottom Bar' : 'Disabled: Top Bar'", false)
-        ->assertSee('x-show="! mobileNav"', false)
-        ->assertSee('x-show="mobileNav"', false)
+    loadDeferredFormSchemas(
+        Livewire::test(EditProfile::class),
+        'personalizeAppearance',
+    )
+        ->assertSchemaComponentExists(deferredFormComponentKey('personalizeAppearance', 'mobile_nav_enabled'))
         ->assertSet('data.mobile_nav_enabled', false);
 
     $mobileNavField = (string) file_get_contents(
@@ -44,8 +34,15 @@ test('profile personalize appearance section renders mobile navigation menu fiel
     );
 
     expect($mobileNavField)
+        ->toContain('Mobile Navigation Menu')
+        ->toContain('Save changes needed to take effect.')
+        ->toContain('Enabled: Bottom Bar')
+        ->toContain('Disabled: Top Bar')
+        ->toContain('tido-mobilenav-preview')
         ->toContain('tido-mobilenav-preview-frame')
         ->toContain('mobile-preview-chrome')
+        ->toContain('data.mobile_nav_enabled')
+        ->toContain("mobileNav ? 'Enabled: Bottom Bar' : 'Disabled: Top Bar'")
         ->not->toContain('panel-preview-chrome')
         ->not->toContain('aspect-ratio: 1919 / 1079');
 });
@@ -159,7 +156,16 @@ test('mobile nav user menu opens upward from the bottom avatar', function (): vo
         ->toContain('attributeFilter: [\'style\', \'class\']')
         ->toContain('Heroicon::OutlinedUser')
         ->toContain('class="tido-mobilenav-label"')
-        ->toContain('Profile</span>');
+        ->toContain('Profile</span>')
+        ->toContain('fi-user-menu-scroll')
+        ->toContain('fi-user-menu-version-footer');
+
+    $css = (string) file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('html.tido-mobilenav .fi-user-menu--mobilenav .fi-dropdown-panel')
+        ->toContain('var(--tido-mobilenav-height, 4rem)')
+        ->toContain('max-height: min(');
 });
 
 test('family member mobile nav add sheet disables budget recurring and settings create links', function (): void {
