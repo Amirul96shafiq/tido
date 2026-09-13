@@ -7,7 +7,7 @@
     wire:key="auth-panel-switch-{{ $authPanel }}"
 >
     @if ($authPanel === 'sign-in')
-        <p class="text-center text-sm text-gray-500 dark:text-gray-400">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
             <span>Don't have an account?</span>
             <button
                 type="button"
@@ -24,7 +24,7 @@
             </button>
         </p>
     @else
-        <p class="text-center text-sm text-gray-500 dark:text-gray-400">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
             <span>Already have an Account?</span>
             <button
                 type="button"
