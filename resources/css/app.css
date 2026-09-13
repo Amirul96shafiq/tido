@@ -518,7 +518,7 @@ html.dark::-webkit-scrollbar-thumb:hover,
         --tido-auth-bg-pos-y: calc(72% - 30px);
     }
 
-    /* Lock auth to the viewport — no page scroll; fixed 80/20 */
+    /* Lock auth to the viewport — page locked; form pane scrolls; fixed 80/20 */
     .fi-body:has(.fi-simple-layout) {
         overflow: hidden !important;
         height: 100dvh;
@@ -535,14 +535,21 @@ html.dark::-webkit-scrollbar-thumb:hover,
     .fi-body:has(.fi-simple-layout) .fi-simple-main-ctn {
         height: 80%;
         max-height: 80%;
+        min-height: 0;
         flex-grow: 0;
-        overflow: hidden;
-        padding-block-end: 0;
+        align-items: flex-start;
+        justify-content: flex-start;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        padding-block: 1rem 1.25rem;
+        scroll-padding-block: 1rem 1.25rem;
     }
 
     .fi-body:has(.fi-simple-layout) .fi-simple-main {
-        margin-block: 0.75rem !important;
-        padding-block: 0.75rem !important;
+        margin-block: 0 !important;
+        padding-block: 0 !important;
     }
 }
 
