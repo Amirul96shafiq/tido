@@ -666,6 +666,7 @@ test('user menu wraps theme switcher and menu items in scrollable container with
         ->toContain('overflow-y: auto;')
         ->toContain('overflow-x: hidden;')
         ->toContain('overscroll-behavior: contain;')
+        ->toContain('divide-y divide-gray-100 dark:divide-white/5')
         ->toContain('.fi-user-menu-version-footer {')
         ->toContain('position: sticky;')
         ->toContain('bottom: 0;')

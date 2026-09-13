@@ -3376,6 +3376,9 @@ body:has([id="global-search-modal::plugin"].fi-modal-open) [data-tippy-root] {
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior: contain;
+
+    /* Match .fi-dropdown-panel divide-y now that lists scroll together. */
+    @apply divide-y divide-gray-100 dark:divide-white/5;
 }
 
 .fi-user-menu .fi-account-switcher-expanded {
