@@ -44,6 +44,10 @@ test('sign up panel shows registration form and hides sign in form', function ()
         ->assertSee('Email address')
         ->assertSee('Confirm password')
         ->assertSee('Start Sign Up')
+        ->assertSee('Hello!')
+        ->assertSee('tido-signup-greeting-heading', false)
+        ->assertSee('tido-signup-greeting-heading__caret', false)
+        ->assertSee('tidoSignupGreeting', false)
         ->assertDontSee('tido-auth-google-sign-in-btn--disabled', false)
         ->assertSee('Already have an Account?')
         ->assertSee('Sign in')
@@ -52,6 +56,13 @@ test('sign up panel shows registration form and hides sign in form', function ()
         ->assertDontSee('WhatsApp number')
         ->assertDontSee('tido-auth-sign-up-coming-soon', false)
         ->assertDontSee("Don't have an account?");
+});
+
+test('sign in panel keeps brand headline with tidy and done underlines', function () {
+    Livewire::test(Login::class)
+        ->assertSet('authPanel', 'sign-in')
+        ->assertSeeHtml('Keep it <span class="underline">ti</span>dy. Get it <span class="underline">do</span>ne.')
+        ->assertDontSee('tido-signup-greeting-heading', false);
 });
 
 test('switching back to sign in restores login method tabs and form', function () {

@@ -47,6 +47,8 @@ test('sign up sends email code and moves to otp step', function (): void {
         ->call('sendSignupOtp')
         ->assertSet('signupMode', 'otp')
         ->assertSet('pendingSignupEmail', 'dev-signup@example.com')
+        ->assertSee('Enter The Code')
+        ->assertDontSee('tido-signup-greeting-heading', false)
         ->assertSee('Confirmation code');
 
     Notification::assertNothingSent();

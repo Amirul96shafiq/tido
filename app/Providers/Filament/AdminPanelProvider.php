@@ -137,6 +137,10 @@ class AdminPanelProvider extends PanelProvider
                     'clipboard-copy',
                     Vite::asset('resources/js/clipboard-copy.js'),
                 )->module(),
+                Js::make(
+                    'signup-greeting-typewriter',
+                    Vite::asset('resources/js/signup-greeting-typewriter.js'),
+                )->module(),
             ])
             ->renderHook(
                 PanelsRenderHook::PAGE_HEADER_ACTIONS_BEFORE,

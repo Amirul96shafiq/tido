@@ -611,6 +611,59 @@ html.dark::-webkit-scrollbar-thumb:hover,
     text-align: start !important;
 }
 
+.tido-signup-greeting-heading {
+    position: relative;
+    display: inline-block;
+}
+
+.tido-signup-greeting-heading__spacer {
+    visibility: hidden;
+    display: block;
+    white-space: nowrap;
+}
+
+.tido-signup-greeting-heading__text {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    white-space: nowrap;
+}
+
+.tido-signup-greeting-heading__caret {
+    display: inline-block;
+    width: 0.15em;
+    min-width: 3px;
+    height: 0.9em;
+    margin-inline-start: 0.1em;
+    vertical-align: baseline;
+    translate: 0 0.08em;
+    background-color: currentColor;
+    animation: tido-signup-greeting-caret-blink 1s step-end infinite;
+}
+
+@keyframes tido-signup-greeting-caret-blink {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tido-signup-greeting-heading__caret {
+        animation: none;
+        opacity: 0;
+    }
+}
+
+html.tido-reduce-motion .tido-signup-greeting-heading__caret {
+    animation: none;
+    opacity: 0;
+}
+
 .fi-simple-header-subheading {
     text-align: start !important;
     margin-top: 0.5rem !important;

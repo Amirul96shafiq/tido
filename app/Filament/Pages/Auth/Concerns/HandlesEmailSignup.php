@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Auth\Concerns;
 
+use App\Filament\Support\SignupGreetingHeading;
 use App\Services\EmailSignupOtpService;
 use App\Services\GoogleOAuth\GoogleOAuthSettings;
 use App\Services\GoogleOAuth\GoogleOAuthSignupPendingService;
@@ -69,6 +70,10 @@ trait HandlesEmailSignup
     {
         if ($this->isSignupOtpStep()) {
             return 'Enter The Code';
+        }
+
+        if ($this->isSignupFormStep()) {
+            return SignupGreetingHeading::html();
         }
 
         return null;

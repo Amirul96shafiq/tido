@@ -135,4 +135,11 @@ return [
         'dev_addresses' => env('EMAIL_SIGNUP_DEV_ADDRESSES'),
     ],
 
+    'signup_greeting' => [
+        'geoip_base_url' => env('SIGNUP_GREETING_GEOIP_BASE_URL', 'https://ipwho.is'),
+        'timeout' => (float) env('SIGNUP_GREETING_GEOIP_TIMEOUT', 1.5),
+        'connect_timeout' => (float) env('SIGNUP_GREETING_GEOIP_CONNECT_TIMEOUT', 1),
+        'cache_ttl' => (int) env('SIGNUP_GREETING_GEOIP_CACHE_TTL', 86400),
+    ],
+
 ];

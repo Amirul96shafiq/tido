@@ -24,8 +24,9 @@ Preferred voice for user-facing text in tido — headings, descriptions, notific
 
 Login brand copy (headline + tagline) may stay conversational when it is product voice, not instructional UI:
 
-- Heading: *Keep it tidy. Get it done.*
-- Subheading: *Where tidy preparation meets finished work, then "tido" (sleep).*
+- **Sign In** heading: *Keep it tidy. Get it done.*
+- **Sign In** subheading: *Where tidy preparation meets finished work, then "tido" (sleep).*
+- **Sign Up** form heading: *Hello!* with an optional localized greeting loop (e.g. *Hai!* for Malaysia) — see Sign Up greeting in [ui-reduce-motion.md](ui-reduce-motion.md)
 
 Instructional text under headings (forms, OTP steps, password reset) must follow the impersonal rules above.
 
