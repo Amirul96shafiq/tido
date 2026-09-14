@@ -38,7 +38,7 @@ Repository workflow, branch, approval, and verification rules remain authoritati
 | **MH-004** | Critical | Verified    | MH-003 Verified | Schema + scopes + backfill   | `Household` model; `household_id` on domain tables; composite uniques; `BelongsToHousehold`; all existing rows → household #1; user id 1 stays Primary |
 | **MH-005** | Critical | Verified    | MH-004 Verified | User id 1 smoke + isolation  | Login as user id 1; pre-migration data visible; two-household Pest isolation green                                                                     |
 | **MH-006** | Critical | Verified    | MH-005 Verified | Panel / policies / broadcast | Cross-household deny; widgets/analytics scoped; `household.{id}.expenses` channel                                                                      |
-| **MH-007** | High     | Verified    | MH-006 Verified | Register                     | `HouseholdRegistrationService` creates **new** Household + Primary; seeds Labels/Payment Methods; public Filament Register deferred                    |
+| **MH-007** | High     | Verified    | MH-006 Verified | Register                     | `HouseholdRegistrationService` creates **new** Household + Primary; seeds Labels/Payment Methods; public Sign Up on login panel (email OTP; Google sign up coming soon) |
 | **MH-008** | High     | Implemented | MH-007 Verified | Evolution / WhatsApp         | Each household may enable and connect its own WhatsApp instance; credentials, instance identity, and webhook routing stay household-scoped             |
 | **MH-009** | High     | Implemented | MH-008 Verified | Backups / Danger Zone        | Catalog + Danger Zone wipe scoped to household; ZIP create/restore still full-DB until verified                                                        |
 
@@ -122,7 +122,8 @@ Use these checklists inside the active `MH-*` item. Tick boxes when the owning `
 
 - [x] Register creates new `Household` + Primary (never joins household #1 by accident) — via `HouseholdRegistrationService`
 - [x] Per-household Label / PaymentMethod seed on Register
-- [ ] Email/password + optional Google: Primary of that household — public Filament Register deferred
+- [x] Email/password sign up: Primary of that household — Sign Up tab on `/admin/login` with email OTP
+- [ ] Google sign up: coming soon on Sign Up tab (login-only Google remains for linked Primaries)
 - [x] WhatsApp OTP: login-enabled Family Members of that household only — household-scoped keys/instance; HH#2 Pest isolation green
 
 ### WhatsApp / Evolution / Ollama
@@ -295,7 +296,7 @@ Use these checklists inside the active `MH-*` item. Tick boxes when the owning `
 
 - `HouseholdRegistrationService` creates new household + Primary, provisions `EvolutionApiSetting`, and seeds Labels/Payment Methods under `CurrentHousehold`.
 - `HouseholdRegistrationTest` passed (labels asserted; payment methods seeded but not yet asserted in Pest).
-- Filament public Register UI (`->registration()`) not wired — deferred until explicitly requested; call the service from a dedicated Register page when needed.
+- Public Sign Up lives on the login panel Sign Up tab (email/password + email OTP); uses `HouseholdRegistrationService`. Filament `->registration()` is not wired. Google sign up on that tab is coming soon.
 
 ### MH-008 — Evolution / WhatsApp
 

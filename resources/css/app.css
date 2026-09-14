@@ -1098,6 +1098,11 @@ html.tido-is-scrolling
     text-decoration: none;
 }
 
+.tido-auth-google-sign-in-btn--disabled {
+    cursor: not-allowed;
+    pointer-events: auto;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .tido-auth-login-tabs .fi-tabs-item,
     .tido-auth-login-tabs .fi-tabs-item .fi-tabs-item-label,

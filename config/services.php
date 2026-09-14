@@ -130,4 +130,9 @@ return [
         'login_dev_phones' => env('WHATSAPP_LOGIN_DEV_PHONES'),
     ],
 
+    'email_signup' => [
+        'dev_otp' => env('EMAIL_SIGNUP_DEV_OTP'),
+        'dev_addresses' => env('EMAIL_SIGNUP_DEV_ADDRESSES'),
+    ],
+
 ];

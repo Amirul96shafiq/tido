@@ -23,6 +23,11 @@ final class FilamentAuthLogin
         self::sendSignedInNotification('Signed in successfully, via Google Account');
     }
 
+    public static function sendSignedInViaEmailSignUp(): void
+    {
+        self::sendSignedInNotification('Signed in successfully, via Email Sign Up');
+    }
+
     private static function sendSignedInNotification(string $title): void
     {
         Notification::make()

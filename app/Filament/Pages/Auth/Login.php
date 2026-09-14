@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Auth;
 
+use App\Filament\Pages\Auth\Concerns\HandlesEmailSignup;
 use App\Models\User;
 use App\Services\ActiveSessionService;
 use App\Services\GoogleOAuth\GoogleOAuthSettings;
@@ -45,6 +46,8 @@ use SensitiveParameter;
 
 class Login extends BaseLogin
 {
+    use HandlesEmailSignup;
+
     /**
      * sign-in | sign-up
      */
@@ -108,6 +111,10 @@ class Login extends BaseLogin
             return parent::getHeading();
         }
 
+        if ($this->isSignUpPanel()) {
+            return $this->signupHeading() ?? TidoBrandCopy::loginHeadingHtml();
+        }
+
         return match ($this->loginMode) {
             'otp' => 'Enter the code',
             default => TidoBrandCopy::loginHeadingHtml(),
@@ -118,6 +125,10 @@ class Login extends BaseLogin
     {
         if (filled($this->userUndertakingMultiFactorAuthentication)) {
             return parent::getSubheading();
+        }
+
+        if ($this->isSignUpPanel()) {
+            return $this->signupSubheading();
         }
 
         return match ($this->loginMode) {
@@ -151,6 +162,9 @@ class Login extends BaseLogin
                 $this->getOtpFormComponent(),
                 $this->getEmailFormComponent(),
                 $this->getPasswordFormComponent(),
+                $this->getSignupEmailFormComponent(),
+                $this->getSignupPasswordFormComponent(),
+                $this->getSignupPasswordConfirmationFormComponent(),
                 $this->getRememberFormComponent(),
             ]);
     }
@@ -162,8 +176,8 @@ class Login extends BaseLogin
             ->tel()
             ->placeholder('0123456789 or +60123456789')
             ->autocomplete('tel')
-            ->required(fn (): bool => $this->loginMode === 'phone')
-            ->visible(fn (): bool => $this->loginMode === 'phone')
+            ->required(fn (): bool => $this->loginMode === 'phone' && $this->isSignInPanel())
+            ->visible(fn (): bool => $this->loginMode === 'phone' && $this->isSignInPanel())
             ->rule(fn (): \Closure => function (string $attribute, mixed $value, \Closure $fail): void {
                 if (PhoneNumber::normalize(is_string($value) ? $value : null) === null) {
                     $fail('Enter a valid Malaysian WhatsApp number (e.g. +60123456789 or 0123456789).');
@@ -174,10 +188,10 @@ class Login extends BaseLogin
     protected function getOtpFormComponent(): Component
     {
         return OneTimeCodeInput::make('otp')
-            ->label('WhatsApp code')
+            ->label(fn (): string => $this->isSignupOtpStep() ? 'Confirmation code' : 'WhatsApp code')
             ->length(6)
-            ->required(fn (): bool => $this->loginMode === 'otp')
-            ->visible(fn (): bool => $this->loginMode === 'otp')
+            ->required(fn (): bool => $this->loginMode === 'otp' || $this->isSignupOtpStep())
+            ->visible(fn (): bool => ($this->loginMode === 'otp' && $this->isSignInPanel()) || $this->isSignupOtpStep())
             // Filament 5.7+ uses six real digit inputs; do not paint/overlay or force transparent text.
             // Container-level sync keeps Verify enabled without ->live() remorph.
             ->extraAttributes([
@@ -231,8 +245,8 @@ class Login extends BaseLogin
             ->email()
             ->autocomplete('username')
             ->live(debounce: 400)
-            ->required(fn (): bool => $this->loginMode === 'password')
-            ->visible(fn (): bool => $this->loginMode === 'password');
+            ->required(fn (): bool => $this->loginMode === 'password' && $this->isSignInPanel())
+            ->visible(fn (): bool => $this->loginMode === 'password' && $this->isSignInPanel());
     }
 
     protected function getPasswordFormComponent(): Component
@@ -243,14 +257,14 @@ class Login extends BaseLogin
             ->password()
             ->revealable(filament()->arePasswordsRevealable())
             ->autocomplete('current-password')
-            ->required(fn (): bool => $this->loginMode === 'password')
-            ->visible(fn (): bool => $this->loginMode === 'password');
+            ->required(fn (): bool => $this->loginMode === 'password' && $this->isSignInPanel())
+            ->visible(fn (): bool => $this->loginMode === 'password' && $this->isSignInPanel());
     }
 
     protected function getRememberFormComponent(): Component
     {
         return parent::getRememberFormComponent()
-            ->visible(fn (): bool => in_array($this->loginMode, ['otp', 'password'], true));
+            ->visible(fn (): bool => $this->isSignInPanel() && in_array($this->loginMode, ['otp', 'password'], true));
     }
 
     /**
@@ -276,7 +290,7 @@ class Login extends BaseLogin
                 : 'Send WhatsApp code')
             ->disabled(fn (): bool => $this->isPhoneSendOnCooldown())
             ->submit('sendOtp')
-            ->visible(fn (): bool => $this->loginMode === 'phone');
+            ->visible(fn (): bool => $this->loginMode === 'phone' && $this->isSignInPanel());
     }
 
     protected function getResendOtpFormAction(): Action
@@ -290,7 +304,7 @@ class Login extends BaseLogin
             ->action(function (): void {
                 $this->resendOtp();
             })
-            ->visible(fn (): bool => $this->loginMode === 'otp');
+            ->visible(fn (): bool => $this->loginMode === 'otp' && $this->isSignInPanel());
     }
 
     protected function getVerifyOtpFormAction(): Action
@@ -319,7 +333,7 @@ class Login extends BaseLogin
                 // Client-side enablement without OTP ->live() remorph (keeps painted digits visible).
                 'x-bind:disabled' => '(typeof isProcessing !== \'undefined\' && isProcessing) || ! window.Alpine || ! $store.tidoLoginOtp || $store.tidoLoginOtp.len < 6',
             ])
-            ->visible(fn (): bool => $this->loginMode === 'otp');
+            ->visible(fn (): bool => $this->loginMode === 'otp' && $this->isSignInPanel());
     }
 
     protected function isOtpCodeComplete(): bool
@@ -334,7 +348,7 @@ class Login extends BaseLogin
         return Action::make('passwordSignIn')
             ->label(__('filament-panels::auth/pages/login.form.actions.authenticate.label'))
             ->submit('authenticate')
-            ->visible(fn (): bool => $this->loginMode === 'password');
+            ->visible(fn (): bool => $this->loginMode === 'password' && $this->isSignInPanel());
     }
 
     protected function getAuthenticateFormAction(): Action
@@ -391,6 +405,7 @@ class Login extends BaseLogin
         }
 
         $this->authPanel = 'sign-in';
+        $this->resetSignupState();
         $this->resetErrorBag();
         $this->dispatch('$refresh');
     }
@@ -402,6 +417,8 @@ class Login extends BaseLogin
         }
 
         $this->authPanel = 'sign-up';
+        $this->signupMode = 'form';
+        $this->data['otp'] = null;
         $this->resetErrorBag();
         $this->dispatch('$refresh');
     }
@@ -454,15 +471,6 @@ class Login extends BaseLogin
         ))
             ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
                 && $this->isSignInPanel());
-    }
-
-    protected function getSignUpComingSoonComponent(): Component
-    {
-        return Html::make(fn (): HtmlString => new HtmlString(
-            Blade::render('<x-auth-sign-up-coming-soon />'),
-        ))
-            ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
-                && ! $this->isSignInPanel());
     }
 
     public function getFormContentComponent(): Component
@@ -519,10 +527,12 @@ class Login extends BaseLogin
                 $this->getLoginModeTabsComponent(),
                 $this->getFormContentComponent(),
                 $this->getGoogleSignInComponent(),
-                $this->getSignUpComingSoonComponent(),
+                $this->getSignUpFormContentComponent(),
+                $this->getGoogleSignUpComingSoonComponent(),
                 $this->getAuthPanelSwitchComponent(),
                 $this->getMultiFactorChallengeFormContentComponent(),
                 $this->getUseDifferentNumberComponent(),
+                $this->getUseDifferentEmailComponent(),
                 RenderHook::make(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER),
             ]);
     }

@@ -54,7 +54,7 @@ If every query were `where user_id = auth()->id()`:
 | Evolution API | Per-household settings row; HH#1 env fallback; HH#2 Pest isolation (MH-008 Implemented) | Fully isolated instances + secrets per household |
 | WhatsApp allowlist | Per household | Same |
 | Backups / Danger Zone | Catalog + wipe scoped; ZIP still full-DB (MH-009) | Per-household ZIP create/restore |
-| Registration | `HouseholdRegistrationService` (no public Filament Register yet) | Public Register → **new** household + Primary |
+| Registration | `HouseholdRegistrationService` + login panel Sign Up (email OTP) | Public Register → **new** household + Primary |
 | Plans | None | Free / Pro on the **household** (matrix TBD) |
 
 ---
@@ -106,7 +106,7 @@ Implementation order is the `MH-*` register — not this section. Status summary
 
 1. **Kernel quality** — Ongoing via [security-audit.md](security-audit.md); Evolution / Ollama setup.
 2. **Household / account scope** — **Verified** (MH-004–MH-006): `household_id`, scopes, isolation tests.
-3. **Register** — **Verified** at service layer (MH-007): `HouseholdRegistrationService`; public Filament Register deferred.
+3. **Register** — **Verified** (MH-007): `HouseholdRegistrationService`; public Sign Up on login panel (email OTP). Google sign up coming soon.
 4. **Evolution / WhatsApp** — **Implemented** (MH-008): per-household instances and HH#2 Pest isolation; live second-phone connect is owner smoke.
 5. **Backups** — **Implemented** partial (MH-009): catalog + wipe scoped; ZIP still full-DB.
 6. **Plans / billing** — **Deferred** until an explicit later phase.

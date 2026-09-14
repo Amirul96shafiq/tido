@@ -36,19 +36,22 @@ test('sign in panel shows login method tabs and form by default', function () {
         ->assertDontSee('tido-auth-sign-up-coming-soon', false);
 });
 
-test('sign up panel shows coming soon and hides sign in form', function () {
+test('sign up panel shows registration form and hides sign in form', function () {
     Livewire::test(Login::class)
         ->call('selectSignUpTab')
         ->assertSet('authPanel', 'sign-up')
-        ->assertSee('tido-auth-sign-up-coming-soon', false)
-        ->assertSee('Coming Soon', false)
-        ->assertSee('Account registration is not available yet', false)
+        ->assertSet('signupMode', 'form')
+        ->assertSee('Email address')
+        ->assertSee('Confirm password')
+        ->assertSee('Send Email Code')
+        ->assertSee('Continue with Google')
+        ->assertSee('tido-auth-google-sign-in-btn--disabled', false)
         ->assertSee('Already have an Account?')
         ->assertSee('Sign in')
         ->assertSee('wire:key="auth-cta-sign-in"', false)
         ->assertDontSee('tido-auth-login-tabs', false)
         ->assertDontSee('WhatsApp number')
-        ->assertDontSee('Continue with Google')
+        ->assertDontSee('tido-auth-sign-up-coming-soon', false)
         ->assertDontSee("Don't have an account?");
 });
 
