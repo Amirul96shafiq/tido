@@ -1,6 +1,6 @@
 # Google OAuth setup
 
-One shared Google Cloud OAuth client for the install. Each household Primary links their Gmail (`users.google_id`) while authenticated. **Continue with Google** on the login page appears when platform credentials exist, and succeeds only for already-linked Primaries. Family Members continue to use WhatsApp OTP only.
+One shared Google Cloud OAuth client for the install. Each household Primary links their Gmail (`users.google_id`) while authenticated, or links automatically on first **Continue with Google** when the verified Gmail matches an existing Primary email. **Continue with Google** on the Sign In and Sign Up tabs appears when platform credentials exist. Family Members continue to use WhatsApp OTP only.
 
 ## Filament configuration
 
@@ -10,7 +10,7 @@ One shared Google Cloud OAuth client for the install. Each household Primary lin
 2. Click **Start Configure** / **Edit Google OAuth**.
 3. Complete the Google Cloud steps and paste the Web client credentials.
 4. Save. The login page shows **Continue with Google** once Client ID and Secret are present.
-5. Use **Link Google account** on this page to attach the Primary’s Gmail (`google_id`).
+5. Use **Link Google account** on this page to attach the Primary’s Gmail (`google_id`) without signing in through Google first.
 
 ### Other households
 
@@ -43,7 +43,7 @@ Register that exact URI in Google Cloud. **Continue with Google** starts OAuth o
 
 ### Testing mode pitfall
 
-While the consent screen is in **Testing** mode, only Google accounts listed as test users can sign in. Add each Primary Gmail that will link as a test user, or publish the app when ready for production.
+While the consent screen is in **Testing** mode, only Google accounts listed as test users can sign in. Add each Primary Gmail that will link or sign up as a test user, or publish the app when ready for production.
 
 ### `org_internal` (Access blocked: can only be used within its organisation)
 
@@ -54,12 +54,19 @@ For tido (Primaries often use personal Gmail):
 1. Open [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent).
 2. Click **Edit app** (or **Get started** if not configured).
 3. Set **User type** to **External** (not Internal). Save and continue through the wizard.
-4. While **Publishing status** is **Testing**, open **Audience** → **Test users** → **Add users** → add each Primary Gmail that will link.
-5. Link while authenticated on the Google OAuth page, then retry **Continue with Google** on the login page.
+4. While **Publishing status** is **Testing**, open **Audience** → **Test users** → **Add users** → add each Primary Gmail that will link or sign up.
+5. Link while authenticated on the Google OAuth page, or use **Continue with Google** on the login page.
 
 **Internal** is only appropriate when every Primary account is a Workspace user in the same org as the Cloud project. You cannot switch Internal → External on an existing consent screen in some cases; Google may require creating a new Cloud project with External from the start.
 
-Identity is the Google `sub` stored as `users.google_id` after an authenticated **Link**. Login does **not** auto-link by email match.
+Identity is the Google `sub` stored as `users.google_id`. Resolution order on **Continue with Google**:
+
+1. Match an existing Primary by `google_id` (source of truth).
+2. Else match a Primary by verified Gmail, link `google_id`, then sign in.
+3. On the **Sign Up** tab only: verified Gmail with no account → return to Sign Up with a locked **Verified** email field; complete password + confirm password to create the household (Google linked on registration).
+4. **Sign In** tab with an unknown Gmail → fail closed (no account provisioning).
+
+Manual **Link Google account** on the integration page still requires an authenticated Primary session.
 
 ## Environment variables
 
@@ -75,11 +82,14 @@ Saved Filament settings (household #1 platform row) override `.env` values. The 
 
 ## Security notes
 
-- Google sign-in matches **Primary** users already linked by `google_id` only.
-- No new users are created from Google profiles.
-- No auto-link on the login callback; first link is authenticated-only.
-- Google access tokens are not stored.
+- **Primary only.** Family Members cannot sign in or sign up with Google.
+- Require Google `email_verified` before login, link, or Sign Up pending state.
+- `google_id` takes precedence over OAuth email when both match different rows.
+- Verified-email auto-link runs only after Google proves mailbox control; `google_id` + `google_linked_at` are saved in the same request.
+- Sign Up pending state lives in cache/session (~15 minutes). No `User` or household is created until password + confirm password succeed.
+- No Google access tokens are stored.
 - Only household #1 can edit or reset shared credentials. Other households can unlink their own Primary.
+- Residual accepted risk: whoever controls the linked Google account can sign in (standard Google SSO).
 
 ## Windows SSL (local dev)
 

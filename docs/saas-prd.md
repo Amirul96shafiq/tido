@@ -18,12 +18,12 @@ Product name remains **tido**. Expense tags remain **Label** / **Labels** (never
 
 ## 2. Terms
 
-| Term | Meaning |
-|------|---------|
+| Term                                | Meaning                                                                                                                    |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | **Multi-user (inside a household)** | Primary and login-enabled Family Members share one books today. Keep this. See [household-access.md](household-access.md). |
-| **Isolation between signups** | Unrelated people who Register must not see each other’s data. That is the SaaS boundary. |
-| **Household / account** | The isolation unit: the registering Primary’s books, plus invited family logins **inside** that unit. |
-| **Logged-in user** | Who is using the panel (`users.id`). Not the isolation key. |
+| **Isolation between signups**       | Unrelated people who Register must not see each other’s data. That is the SaaS boundary.                                   |
+| **Household / account**             | The isolation unit: the registering Primary’s books, plus invited family logins **inside** that unit.                      |
+| **Logged-in user**                  | Who is using the panel (`users.id`). Not the isolation key.                                                                |
 
 Avoid calling per-login `user_id` scoping “multi-user instead of multi-tenant.” Isolation between strangers still needs a **household/account** grouping column (name TBD in implementation: e.g. `household_id` or `owner_user_id`). The PRD specifies **behavior**, not the column name.
 
@@ -45,27 +45,27 @@ If every query were `where user_id = auth()->id()`:
 
 ## 4. Current vs target
 
-| Concern | Today (live) | SaaS target (future) |
-|---------|--------------|----------------------|
-| Deploy | Many households per deploy (`household_id`) | Same + public Register UI + billing |
-| Expenses / budgets / recurrings | Per household; family ACL inside | Same; no cross-household reads |
-| Labels / payment methods | Per household | Same |
-| `OllamaSetting` | Per household row (shared **process/GPU** OK) | Same + per-household quotas |
-| Evolution API | Per-household settings row; HH#1 env fallback; HH#2 Pest isolation (MH-008 Implemented) | Fully isolated instances + secrets per household |
-| WhatsApp allowlist | Per household | Same |
-| Backups / Danger Zone | Catalog + wipe scoped; ZIP still full-DB (MH-009) | Per-household ZIP create/restore |
-| Registration | `HouseholdRegistrationService` + login panel Sign Up (email OTP) | Public Register → **new** household + Primary |
-| Plans | None | Free / Pro on the **household** (matrix TBD) |
+| Concern                         | Today (live)                                                                            | SaaS target (future)                             |
+| ------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Deploy                          | Many households per deploy (`household_id`)                                             | Same + public Register UI + billing              |
+| Expenses / budgets / recurrings | Per household; family ACL inside                                                        | Same; no cross-household reads                   |
+| Labels / payment methods        | Per household                                                                           | Same                                             |
+| `OllamaSetting`                 | Per household row (shared **process/GPU** OK)                                           | Same + per-household quotas                      |
+| Evolution API                   | Per-household settings row; HH#1 env fallback; HH#2 Pest isolation (MH-008 Implemented) | Fully isolated instances + secrets per household |
+| WhatsApp allowlist              | Per household                                                                           | Same                                             |
+| Backups / Danger Zone           | Catalog + wipe scoped; ZIP still full-DB (MH-009)                                       | Per-household ZIP create/restore                 |
+| Registration                    | `HouseholdRegistrationService` + login panel Sign Up (email OTP)                        | Public Register → **new** household + Primary    |
+| Plans                           | None                                                                                    | Free / Pro on the **household** (matrix TBD)     |
 
 ---
 
 ## 5. Actors
 
-| Actor | Behavior |
-|-------|----------|
-| **Stranger** | Register → creates a **new household** and becomes its Primary. Never joins an existing household by accident. |
+| Actor              | Behavior                                                                                                             |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| **Stranger**       | Register → creates a **new household** and becomes its Primary. Never joins an existing household by accident.       |
 | **Invited family** | Family Member on **that** household: shared lists, own mutate ACL, same product rules as today. Not a second tenant. |
-| **Operator (you)** | Primary of household #1 on a private deploy; pre-migration data backfilled to household #1 (MH-004). |
+| **Operator (you)** | Primary of household #1 on a private deploy; pre-migration data backfilled to household #1 (MH-004).                 |
 
 ---
 
@@ -85,16 +85,16 @@ If every query were `where user_id = auth()->id()`:
 
 Every row is **TBD** until product lock. Recommended default for discussion only:
 
-| Capability | Free (recommended) | Pro (recommended) | Status |
-|------------|--------------------|-------------------|--------|
-| Register + own household | Yes | Yes | TBD |
-| Finances UI (upload, expenses, budgets, labels) | Yes | Yes | TBD |
-| Household Family Members (panel invite) | Yes | Yes | TBD |
-| Ollama / AI parsing | Yes, within quota | Higher quota | TBD |
-| WhatsApp / Evolution (own instance + webhook) | No | Yes | TBD |
-| Family WhatsApp OTP login | No / limited | Yes | TBD |
-| Upload / parse limits | Lower | Higher | TBD |
-| Training / Health / Task modules | Not plan differentiators yet | Same | TBD |
+| Capability                                      | Free (recommended)           | Pro (recommended) | Status |
+| ----------------------------------------------- | ---------------------------- | ----------------- | ------ |
+| Register + own household                        | Yes                          | Yes               | TBD    |
+| Finances UI (upload, expenses, budgets, labels) | Yes                          | Yes               | TBD    |
+| Household Family Members (panel invite)         | Yes                          | Yes               | TBD    |
+| Ollama / AI parsing                             | Yes, within quota            | Higher quota      | TBD    |
+| WhatsApp / Evolution (own instance + webhook)   | No                           | Yes               | TBD    |
+| Family WhatsApp OTP login                       | No / limited                 | Yes               | TBD    |
+| Upload / parse limits                           | Lower                        | Higher            | TBD    |
+| Training / Health / Task modules                | Not plan differentiators yet | Same              | TBD    |
 
 Defer: billing vendor, price, currency, trial length, and upgrade UX. Plans attach to the **household**, not to each family login.
 
@@ -106,7 +106,7 @@ Implementation order is the `MH-*` register — not this section. Status summary
 
 1. **Kernel quality** — Ongoing via [security-audit.md](security-audit.md); Evolution / Ollama setup.
 2. **Household / account scope** — **Verified** (MH-004–MH-006): `household_id`, scopes, isolation tests.
-3. **Register** — **Verified** (MH-007): `HouseholdRegistrationService`; public Sign Up on login panel (email OTP). Google sign up coming soon.
+3. **Register** — **Verified** (MH-007): `HouseholdRegistrationService`; public Sign Up on login panel (email OTP or Google verified pending).
 4. **Evolution / WhatsApp** — **Implemented** (MH-008): per-household instances and HH#2 Pest isolation; live second-phone connect is owner smoke.
 5. **Backups** — **Implemented** partial (MH-009): catalog + wipe scoped; ZIP still full-DB.
 6. **Plans / billing** — **Deferred** until an explicit later phase.
@@ -151,11 +151,11 @@ When implementing: follow [system-architecture.md](system-architecture.md) and t
 
 ## Related docs
 
-| Doc | Role |
-|-----|------|
-| [system-architecture.md](system-architecture.md) | **Live** product blueprint (tenancy phase authorized; implement via MH-*) |
-| [multi-household-change-checklist.md](multi-household-change-checklist.md) | Phased `MH-*` implementation register |
-| [household-access.md](household-access.md) | Family ACL inside a household |
-| [security-audit.md](security-audit.md) | Pre-public security register |
-| [security-hardening-playbook.md](security-hardening-playbook.md) | How to close SEC-* items |
-| [agent-onboarding.md](agent-onboarding.md) | Agent read order |
+| Doc                                                                        | Role                                                                      |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| [system-architecture.md](system-architecture.md)                           | **Live** product blueprint (tenancy phase authorized; implement via MH-*) |
+| [multi-household-change-checklist.md](multi-household-change-checklist.md) | Phased `MH-*` implementation register                                     |
+| [household-access.md](household-access.md)                                 | Family ACL inside a household                                             |
+| [security-audit.md](security-audit.md)                                     | Pre-public security register                                              |
+| [security-hardening-playbook.md](security-hardening-playbook.md)           | How to close SEC-* items                                                  |
+| [agent-onboarding.md](agent-onboarding.md)                                 | Agent read order                                                          |

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Pages\Auth\Concerns;
 
 use App\Services\EmailSignupOtpService;
+use App\Services\GoogleOAuth\GoogleOAuthSettings;
+use App\Services\GoogleOAuth\GoogleOAuthSignupPendingService;
 use App\Services\HouseholdRegistrationService;
 use App\Support\EmailSignupDevOtp;
 use App\Support\FilamentAuthLogin;
@@ -40,6 +42,9 @@ trait HandlesEmailSignup
 
     #[Locked]
     public ?string $pendingSignupEmail = null;
+
+    #[Locked]
+    public ?string $googleVerifiedSignupEmail = null;
 
     public ?int $signupOtpCooldownEndsAt = null;
 
@@ -102,7 +107,15 @@ trait HandlesEmailSignup
             ->email()
             ->autocomplete('email')
             ->required(fn (): bool => $this->isSignupFormStep())
-            ->visible(fn (): bool => $this->isSignupFormStep());
+            ->visible(fn (): bool => $this->isSignupFormStep())
+            ->disabled(fn (): bool => $this->hasGoogleVerifiedSignup())
+            ->dehydrated(true)
+            ->suffix(fn (): ?HtmlString => $this->hasGoogleVerifiedSignup()
+                ? new HtmlString('<span class="tido-auth-email-verified text-primary-600 dark:text-primary-400">Verified</span>')
+                : null)
+            ->helperText(fn (): ?string => $this->hasGoogleVerifiedSignup()
+                ? 'Email address verified with Google.'
+                : null);
     }
 
     protected function getSignupPasswordFormComponent(): Component
@@ -237,7 +250,11 @@ trait HandlesEmailSignup
             ->extraAttributes([
                 'class' => 'tido-login-auth-panel',
             ])
-            ->livewireSubmitHandler(fn (): string => $this->isSignupFormStep() ? 'sendSignupOtp' : 'completeSignup')
+            ->livewireSubmitHandler(fn (): string => match (true) {
+                ! $this->isSignupFormStep() => 'completeSignup',
+                $this->hasGoogleVerifiedSignup() => 'completeGoogleSignup',
+                default => 'sendSignupOtp',
+            })
             ->footer([
                 Actions::make($this->getSignupFormActions())
                     ->alignment(Alignment::Start)
@@ -248,13 +265,136 @@ trait HandlesEmailSignup
                 && $this->isSignUpPanel());
     }
 
-    protected function getGoogleSignUpComingSoonComponent(): Component
+    protected function getGoogleSignUpComponent(): Component
     {
         return Html::make(fn (): HtmlString => new HtmlString(
-            Blade::render('<x-auth-google-sign-up-coming-soon />'),
+            Blade::render(
+                <<<'BLADE'
+                <div class="tido-auth-google-sign-in-wrap">
+                    <div class="tido-auth-google-divider" aria-hidden="true">
+                        <span>or</span>
+                    </div>
+
+                    <button
+                        type="button"
+                        wire:click="continueWithGoogle"
+                        class="tido-auth-google-sign-in-btn fi-btn fi-size-md fi-color-gray"
+                    >
+                        <x-filament::icon icon="icon-google-oauth" class="h-5 w-5 shrink-0" />
+                        <span>Continue with Google</span>
+                    </button>
+                </div>
+                BLADE
+            )
         ))
             ->visible(fn (): bool => blank($this->userUndertakingMultiFactorAuthentication)
-                && $this->isSignUpPanel());
+                && $this->isSignUpPanel()
+                && $this->isSignupFormStep()
+                && GoogleOAuthSettings::platform()->isSignInAvailable());
+    }
+
+    protected function hasGoogleVerifiedSignup(): bool
+    {
+        return filled($this->googleVerifiedSignupEmail)
+            && app(GoogleOAuthSignupPendingService::class)->fromSession() !== null;
+    }
+
+    protected function restoreGoogleSignupPendingFromSession(): void
+    {
+        $pending = app(GoogleOAuthSignupPendingService::class)->fromSession();
+
+        if ($pending === null) {
+            $this->googleVerifiedSignupEmail = null;
+
+            return;
+        }
+
+        $this->googleVerifiedSignupEmail = $pending['email'];
+        $this->data['email'] = $pending['email'];
+    }
+
+    protected function clearGoogleSignupPending(): void
+    {
+        app(GoogleOAuthSignupPendingService::class)->forgetSession();
+        $this->googleVerifiedSignupEmail = null;
+    }
+
+    public function completeGoogleSignup(): ?LoginResponse
+    {
+        try {
+            $this->rateLimit(5);
+        } catch (TooManyRequestsException $exception) {
+            $this->getRateLimitedNotification($exception)?->send();
+
+            return null;
+        }
+
+        if (! $this->isSignupFormStep() || ! $this->hasGoogleVerifiedSignup()) {
+            if (session()->pull('google_signup_pending_expired')) {
+                Notification::make()
+                    ->title('Google verification expired')
+                    ->body('Continue with Google again.')
+                    ->warning()
+                    ->send();
+            }
+
+            $this->clearGoogleSignupPending();
+            $this->showSignupFormStep();
+
+            throw ValidationException::withMessages([
+                'data.email' => 'Continue with Google again to verify the email address.',
+            ]);
+        }
+
+        $pending = app(GoogleOAuthSignupPendingService::class)->fromSession();
+
+        if ($pending === null) {
+            $this->clearGoogleSignupPending();
+            $this->showSignupFormStep();
+
+            throw ValidationException::withMessages([
+                'data.email' => 'Continue with Google again to verify the email address.',
+            ]);
+        }
+
+        $this->validate([
+            'data.password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $password = (string) ($this->data['password'] ?? '');
+
+        app(GoogleOAuthSignupPendingService::class)->forgetEmailOtpPending($pending['email']);
+
+        try {
+            $user = app(HouseholdRegistrationService::class)->register([
+                'name' => $pending['name'],
+                'email' => $pending['email'],
+                'password' => $password,
+                'google_id' => $pending['google_id'],
+            ]);
+        } catch (\Throwable) {
+            throw ValidationException::withMessages([
+                'data.email' => 'Unable to complete sign up for this email address.',
+            ]);
+        }
+
+        if ($user instanceof FilamentUser && ! $user->canAccessPanel(Filament::getCurrentOrDefaultPanel())) {
+            throw ValidationException::withMessages([
+                'data.email' => 'Unable to complete sign up for this email address.',
+            ]);
+        }
+
+        $this->clearGoogleSignupPending();
+        $this->resetSignupState();
+
+        Filament::auth()->login($user, true);
+
+        session()->regenerate();
+
+        $this->scheduleSessionCreatedAtStamp();
+        FilamentAuthLogin::sendSignedInViaEmailSignUp();
+
+        return app(LoginResponse::class);
     }
 
     public function signupOtpCooldownRemainingSeconds(): int
@@ -307,7 +447,9 @@ trait HandlesEmailSignup
         $this->pendingSignupEmail = null;
         $this->data['otp'] = null;
 
-        if (filled($this->lastSignupEmail)) {
+        if ($this->hasGoogleVerifiedSignup()) {
+            $this->restoreGoogleSignupPendingFromSession();
+        } elseif (filled($this->lastSignupEmail)) {
             $this->data['email'] = $this->lastSignupEmail;
         }
 
@@ -334,6 +476,10 @@ trait HandlesEmailSignup
         $this->signupOtpCooldownEndsAt = null;
         $this->lastSignupEmail = null;
         $this->data['password_confirmation'] = null;
+
+        if (! app(GoogleOAuthSignupPendingService::class)->fromSession()) {
+            $this->googleVerifiedSignupEmail = null;
+        }
     }
 
     public function sendSignupOtp(): void
@@ -352,6 +498,12 @@ trait HandlesEmailSignup
         ]);
 
         $email = EmailSignupDevOtp::normalizeEmail((string) ($this->data['email'] ?? ''));
+
+        if ($this->hasGoogleVerifiedSignup()) {
+            $pending = app(GoogleOAuthSignupPendingService::class)->fromSession();
+            $email = $pending['email'] ?? $email;
+        }
+
         $password = (string) ($this->data['password'] ?? '');
 
         if ($email === null) {

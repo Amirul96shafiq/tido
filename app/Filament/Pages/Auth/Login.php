@@ -80,6 +80,13 @@ class Login extends BaseLogin
                 ->danger()
                 ->send();
         }
+
+        if (session()->pull('google_oauth_signup_panel')) {
+            $this->authPanel = 'sign-up';
+            $this->signupMode = 'form';
+        }
+
+        $this->restoreGoogleSignupPendingFromSession();
     }
 
     public function googleSignInAvailable(): bool
@@ -102,7 +109,14 @@ class Login extends BaseLogin
             return;
         }
 
-        $this->redirect($settings->authorizeUrl());
+        $url = $settings->authorizeUrl();
+
+        if ($this->isSignUpPanel()) {
+            $url .= str_contains($url, '?') ? '&' : '?';
+            $url .= 'intent=signup';
+        }
+
+        $this->redirect($url);
     }
 
     public function getHeading(): string|Htmlable|null
@@ -419,6 +433,7 @@ class Login extends BaseLogin
         $this->authPanel = 'sign-up';
         $this->signupMode = 'form';
         $this->data['otp'] = null;
+        $this->restoreGoogleSignupPendingFromSession();
         $this->resetErrorBag();
         $this->dispatch('$refresh');
     }
@@ -528,7 +543,7 @@ class Login extends BaseLogin
                 $this->getFormContentComponent(),
                 $this->getGoogleSignInComponent(),
                 $this->getSignUpFormContentComponent(),
-                $this->getGoogleSignUpComingSoonComponent(),
+                $this->getGoogleSignUpComponent(),
                 $this->getAuthPanelSwitchComponent(),
                 $this->getMultiFactorChallengeFormContentComponent(),
                 $this->getUseDifferentNumberComponent(),

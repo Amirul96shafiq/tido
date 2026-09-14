@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\Auth\Login;
+use App\Models\GoogleOAuthSetting;
 use App\Models\Household;
 use App\Models\User;
 use App\Notifications\EmailSignupOtpNotification;
+use App\Services\GoogleOAuth\GoogleOAuthSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
@@ -133,14 +135,29 @@ test('switching back to sign in resets signup state', function (): void {
         ->assertSee('WhatsApp number');
 });
 
-test('sign up google button is disabled with coming soon tooltip', function (): void {
+test('sign up shows disabled continue with google when credentials missing', function (): void {
     $html = Livewire::test(Login::class)
         ->call('selectSignUpTab')
         ->html();
 
     expect($html)
-        ->toContain('tido-auth-google-sign-in-btn--disabled')
-        ->toContain('opacity-50')
-        ->toContain('Coming Soon')
         ->not->toContain('wire:click="continueWithGoogle"');
+});
+
+test('sign up shows enabled continue with google when credentials exist', function (): void {
+    GoogleOAuthSetting::platform()->update([
+        'client_id' => 'test-google-client-id',
+        'client_secret' => 'test-google-client-secret',
+        'enabled' => true,
+        'setup_completed_at' => now(),
+    ]);
+    GoogleOAuthSettings::platform()->forgetCache();
+
+    $html = Livewire::test(Login::class)
+        ->call('selectSignUpTab')
+        ->html();
+
+    expect($html)
+        ->toContain('wire:click="continueWithGoogle"')
+        ->not->toContain('tido-auth-google-sign-in-btn--disabled');
 });

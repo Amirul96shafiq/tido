@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Filament\Pages\Auth\Login;
 use App\Models\FamilyMember;
-use App\Models\GoogleOAuthLoginLog;
 use App\Models\GoogleOAuthSetting;
 use App\Models\Household;
 use App\Models\User;
@@ -120,10 +119,10 @@ test('google callback signs in primary already linked by google id', function ()
     Notification::assertNotified('Signed in successfully, via Google Account');
 });
 
-test('google callback rejects unlinked primary even when email matches', function (): void {
+test('google callback signs in unlinked primary when verified email matches and links google id', function (): void {
     enablePlatformGoogleOAuth();
 
-    User::factory()->create([
+    $user = User::factory()->create([
         'email' => 'admin@tido.local',
         'google_id' => null,
         'household_id' => 1,
@@ -132,11 +131,13 @@ test('google callback rejects unlinked primary even when email matches', functio
     Socialite::fake('google', fakeGoogleSocialiteUser('google-sub-100', 'admin@tido.local'));
 
     $this->get(route('filament.admin.auth.google.callback'))
-        ->assertRedirect(route('filament.admin.auth.login'));
+        ->assertRedirect('/admin');
 
-    $this->assertGuest();
+    $this->assertAuthenticatedAs($user);
 
-    expect(GoogleOAuthLoginLog::query()->where('status', 'failed')->count())->toBe(1);
+    expect($user->fresh())
+        ->google_id->toBe('google-sub-100')
+        ->google_linked_at->not->toBeNull();
 });
 
 test('google callback rejects unknown google identity', function (): void {

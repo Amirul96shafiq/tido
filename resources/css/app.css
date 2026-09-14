@@ -1103,6 +1103,13 @@ html.tido-is-scrolling
     pointer-events: auto;
 }
 
+.tido-auth-email-verified {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .tido-auth-login-tabs .fi-tabs-item,
     .tido-auth-login-tabs .fi-tabs-item .fi-tabs-item-label,
