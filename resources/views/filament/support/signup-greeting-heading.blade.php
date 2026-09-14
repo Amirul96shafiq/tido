@@ -5,8 +5,8 @@
 @endphp
 
 <span
-    wire:ignore
     class="tido-signup-greeting-heading"
+    wire:key="tido-signup-greeting"
     aria-label="{{ SignupGreetingCopy::ENGLISH }}"
     x-data="tidoSignupGreeting({ phrases: @js($phrases), holdMs: {{ (int) $holdMs }} })"
 >

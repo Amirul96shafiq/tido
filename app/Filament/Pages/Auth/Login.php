@@ -125,14 +125,18 @@ class Login extends BaseLogin
             return parent::getHeading();
         }
 
-        if ($this->isSignUpPanel()) {
-            return $this->signupHeading() ?? TidoBrandCopy::loginHeadingHtml();
-        }
+        $heading = $this->isSignUpPanel()
+            ? ($this->signupHeading() ?? TidoBrandCopy::loginHeadingHtml())
+            : match ($this->loginMode) {
+                'otp' => new HtmlString('<span wire:key="tido-signin-otp-heading">Enter the code</span>'),
+                default => new HtmlString(
+                    '<span wire:key="tido-signin-heading">'
+                    .(string) TidoBrandCopy::loginHeadingHtml()
+                    .'</span>'
+                ),
+            };
 
-        return match ($this->loginMode) {
-            'otp' => 'Enter the code',
-            default => TidoBrandCopy::loginHeadingHtml(),
-        };
+        return $heading;
     }
 
     public function getSubheading(): string|Htmlable|null

@@ -62,6 +62,11 @@ document.addEventListener("alpine:init", () => {
             },
 
             tick() {
+                if (!this.$el?.isConnected) {
+                    this.clearTimer();
+                    return;
+                }
+
                 if (this.phrases.length <= 1) {
                     return;
                 }

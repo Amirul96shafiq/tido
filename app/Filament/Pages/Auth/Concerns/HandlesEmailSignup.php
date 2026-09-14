@@ -69,7 +69,7 @@ trait HandlesEmailSignup
     protected function signupHeading(): string|Htmlable|null
     {
         if ($this->isSignupOtpStep()) {
-            return 'Enter The Code';
+            return new HtmlString('<span wire:key="tido-signup-otp-heading">Enter The Code</span>');
         }
 
         if ($this->isSignupFormStep()) {

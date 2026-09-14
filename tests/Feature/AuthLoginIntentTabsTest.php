@@ -69,11 +69,16 @@ test('switching back to sign in restores login method tabs and form', function (
     Livewire::test(Login::class)
         ->call('selectSignUpTab')
         ->assertSet('authPanel', 'sign-up')
+        ->assertSee('tido-signup-greeting-heading', false)
         ->call('selectSignInTab')
         ->assertSet('authPanel', 'sign-in')
         ->assertSee('tido-auth-login-tabs', false)
         ->assertSee('WhatsApp number')
-        ->assertSee("Don't have an account?", false);
+        ->assertSee("Don't have an account?", false)
+        ->assertSeeHtml('wire:key="tido-signin-heading"')
+        ->assertSeeHtml('Keep it <span class="underline">ti</span>dy. Get it <span class="underline">do</span>ne.')
+        ->assertDontSee('tido-signup-greeting-heading', false)
+        ->assertDontSee('tidoSignupGreeting', false);
 });
 
 test('login mode tabs still switch between otp and password on sign in panel', function () {
