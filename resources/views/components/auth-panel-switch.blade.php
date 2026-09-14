@@ -9,36 +9,26 @@
     @if ($authPanel === 'sign-in')
         <p class="text-sm text-gray-500 dark:text-gray-400">
             <span>Don't have an account?</span>
-            <button
-                type="button"
+            <a
+                href="{{ filament()->getRegistrationUrl() }}"
+                wire:navigate
                 wire:key="auth-cta-sign-up"
-                wire:click="selectSignUpTab"
                 class="tido-auth-panel-switch__cta ms-1 font-medium text-primary-600 hover:underline dark:text-primary-400"
             >
-                <span wire:loading.remove wire:target="selectSignUpTab">Sign up</span>
-                <x-filament::loading-indicator
-                    class="inline-block h-4 w-4 align-[-0.125em]"
-                    wire:loading
-                    wire:target="selectSignUpTab"
-                />
-            </button>
+                Sign up
+            </a>
         </p>
     @else
         <p class="text-sm text-gray-500 dark:text-gray-400">
             <span>Already have an Account?</span>
-            <button
-                type="button"
+            <a
+                href="{{ filament()->getLoginUrl() }}"
+                wire:navigate
                 wire:key="auth-cta-sign-in"
-                wire:click="selectSignInTab"
                 class="tido-auth-panel-switch__cta ms-1 font-medium text-primary-600 hover:underline dark:text-primary-400"
             >
-                <span wire:loading.remove wire:target="selectSignInTab">Sign in</span>
-                <x-filament::loading-indicator
-                    class="inline-block h-4 w-4 align-[-0.125em]"
-                    wire:loading
-                    wire:target="selectSignInTab"
-                />
-            </button>
+                Sign in
+            </a>
         </p>
     @endif
 </div>

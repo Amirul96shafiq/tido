@@ -30,17 +30,17 @@ Repository workflow, branch, approval, and verification rules remain authoritati
 
 ## Phase register
 
-| ID         | Severity | Status      | Prerequisite    | Surface                      | Required end state                                                                                                                                                    |
-| ---------- | -------- | ----------- | --------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **MH-001** | Critical | Verified    | —               | Register MD                  | This checklist exists with How to use, status vocabulary, full inventory, and Data safety                                                                             |
-| **MH-002** | Critical | Verified    | MH-001 Verified | Architecture unlock          | `system-architecture.md` + agent rules / saas-prd / onboarding authorize phased tenancy                                                                               |
-| **MH-003** | Critical | Verified    | MH-002 Verified | Pre-migration backup         | Catalog BackupService ZIP + raw SQLite copy; restore token off-host; row-count snapshot for user id 1                                                                 |
-| **MH-004** | Critical | Verified    | MH-003 Verified | Schema + scopes + backfill   | `Household` model; `household_id` on domain tables; composite uniques; `BelongsToHousehold`; all existing rows → household #1; user id 1 stays Primary                |
-| **MH-005** | Critical | Verified    | MH-004 Verified | User id 1 smoke + isolation  | Login as user id 1; pre-migration data visible; two-household Pest isolation green                                                                                    |
-| **MH-006** | Critical | Verified    | MH-005 Verified | Panel / policies / broadcast | Cross-household deny; widgets/analytics scoped; `household.{id}.expenses` channel                                                                                     |
-| **MH-007** | High     | Verified    | MH-006 Verified | Register                     | `HouseholdRegistrationService` creates **new** Household + Primary; seeds Labels/Payment Methods; public Sign Up on login panel (email OTP + Google verified pending) |
-| **MH-008** | High     | Implemented | MH-007 Verified | Evolution / WhatsApp         | Each household may enable and connect its own WhatsApp instance; credentials, instance identity, and webhook routing stay household-scoped                            |
-| **MH-009** | High     | Implemented | MH-008 Verified | Backups / Danger Zone        | Catalog + Danger Zone wipe scoped to household; ZIP create/restore still full-DB until verified                                                                       |
+| ID         | Severity | Status      | Prerequisite    | Surface                      | Required end state                                                                                                                                                          |
+| ---------- | -------- | ----------- | --------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **MH-001** | Critical | Verified    | —               | Register MD                  | This checklist exists with How to use, status vocabulary, full inventory, and Data safety                                                                                   |
+| **MH-002** | Critical | Verified    | MH-001 Verified | Architecture unlock          | `system-architecture.md` + agent rules / saas-prd / onboarding authorize phased tenancy                                                                                     |
+| **MH-003** | Critical | Verified    | MH-002 Verified | Pre-migration backup         | Catalog BackupService ZIP + raw SQLite copy; restore token off-host; row-count snapshot for user id 1                                                                       |
+| **MH-004** | Critical | Verified    | MH-003 Verified | Schema + scopes + backfill   | `Household` model; `household_id` on domain tables; composite uniques; `BelongsToHousehold`; all existing rows → household #1; user id 1 stays Primary                      |
+| **MH-005** | Critical | Verified    | MH-004 Verified | User id 1 smoke + isolation  | Login as user id 1; pre-migration data visible; two-household Pest isolation green                                                                                          |
+| **MH-006** | Critical | Verified    | MH-005 Verified | Panel / policies / broadcast | Cross-household deny; widgets/analytics scoped; `household.{id}.expenses` channel                                                                                           |
+| **MH-007** | High     | Verified    | MH-006 Verified | Register                     | `HouseholdRegistrationService` creates **new** Household + Primary; seeds Labels/Payment Methods; public Sign Up at `/admin/register` (email OTP + Google verified pending) |
+| **MH-008** | High     | Implemented | MH-007 Verified | Evolution / WhatsApp         | Each household may enable and connect its own WhatsApp instance; credentials, instance identity, and webhook routing stay household-scoped                                  |
+| **MH-009** | High     | Implemented | MH-008 Verified | Backups / Danger Zone        | Catalog + Danger Zone wipe scoped to household; ZIP create/restore still full-DB until verified                                                                             |
 
 **Deferred (not `MH-*` until requested):** Free/Pro billing, quotas, Stripe, Training / Health / Task schemas, new multi-tenancy Composer packages.
 
@@ -122,8 +122,8 @@ Use these checklists inside the active `MH-*` item. Tick boxes when the owning `
 
 - [x] Register creates new `Household` + Primary (never joins household #1 by accident) — via `HouseholdRegistrationService`
 - [x] Per-household Label / PaymentMethod seed on Register
-- [x] Email/password sign up: Primary of that household — Sign Up tab on `/admin/login` with email OTP
-- [x] Google sign up: **Continue with Google** on Sign Up tab (verified Gmail pending → password; existing Primary Gmail signs in and links)
+- [x] Email/password sign up: Primary of that household — `/admin/register` with email OTP
+- [x] Google sign up: **Continue with Google** on `/admin/register` (verified Gmail pending → password; existing Primary Gmail signs in and links)
 - [x] WhatsApp OTP: login-enabled Family Members of that household only — household-scoped keys/instance; HH#2 Pest isolation green
 
 ### WhatsApp / Evolution / Ollama
@@ -296,7 +296,7 @@ Use these checklists inside the active `MH-*` item. Tick boxes when the owning `
 
 - `HouseholdRegistrationService` creates new household + Primary, provisions `EvolutionApiSetting`, and seeds Labels/Payment Methods under `CurrentHousehold`.
 - `HouseholdRegistrationTest` passed (labels asserted; payment methods seeded but not yet asserted in Pest).
-- Public Sign Up lives on the login panel Sign Up tab (email/password + email OTP, or **Continue with Google** with verified Gmail pending). Uses `HouseholdRegistrationService`. Filament `->registration()` is not wired.
+- Public Sign Up lives at `/admin/register` via custom `App\Filament\Pages\Auth\Register` (extends login UI; email/password + email OTP, or **Continue with Google** with verified Gmail pending). Uses `HouseholdRegistrationService` — not Filament stock `User::create()` registration.
 
 ### MH-008 — Evolution / WhatsApp
 

@@ -8,6 +8,7 @@ use App\Filament\Pages\Auth\Concerns\HandlesEmailSignup;
 use App\Models\User;
 use App\Services\ActiveSessionService;
 use App\Services\GoogleOAuth\GoogleOAuthSettings;
+use App\Services\GoogleOAuth\GoogleOAuthSignupPendingService;
 use App\Services\WhatsAppLoginOtpService;
 use App\Support\FilamentAuthLogin;
 use App\Support\PhoneNumber;
@@ -82,11 +83,16 @@ class Login extends BaseLogin
         }
 
         if (session()->pull('google_oauth_signup_panel')) {
-            $this->authPanel = 'sign-up';
-            $this->signupMode = 'form';
+            $this->redirect(Filament::getRegistrationUrl(), navigate: true);
+
+            return;
         }
 
-        $this->restoreGoogleSignupPendingFromSession();
+        if (app(GoogleOAuthSignupPendingService::class)->fromSession() !== null) {
+            $this->redirect(Filament::getRegistrationUrl(), navigate: true);
+
+            return;
+        }
     }
 
     public function googleSignInAvailable(): bool
@@ -430,16 +436,7 @@ class Login extends BaseLogin
 
     public function selectSignUpTab(): void
     {
-        if ($this->authPanel === 'sign-up') {
-            return;
-        }
-
-        $this->authPanel = 'sign-up';
-        $this->signupMode = 'form';
-        $this->data['otp'] = null;
-        $this->restoreGoogleSignupPendingFromSession();
-        $this->resetErrorBag();
-        $this->dispatch('$refresh');
+        $this->redirect(Filament::getRegistrationUrl(), navigate: true);
     }
 
     public function selectOtpLoginTab(): void

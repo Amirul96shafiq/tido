@@ -12,6 +12,7 @@ use App\Filament\Pages\Auth\Forbidden;
 use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Auth\NotFound;
 use App\Filament\Pages\Auth\PasswordResetLinkExpired;
+use App\Filament\Pages\Auth\Register;
 use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Auth\ResetPassword;
 use App\Filament\Pages\CalendarPage;
@@ -75,6 +76,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(Login::class)
+            ->registration(Register::class)
             ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
             ->profile(EditProfile::class, isSimple: false)
             ->emailChangeVerification()
@@ -163,6 +165,7 @@ class AdminPanelProvider extends PanelProvider
                 fn (): string => Blade::render('<x-auth-menu />'),
                 scopes: [
                     Login::class,
+                    Register::class,
                     RequestPasswordReset::class,
                     ResetPassword::class,
                     PasswordResetLinkExpired::class,

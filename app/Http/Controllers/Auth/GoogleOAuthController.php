@@ -204,7 +204,7 @@ class GoogleOAuthController extends Controller
                 $authenticator->logFailure();
 
                 return redirect()
-                    ->to(Filament::getLoginUrl())
+                    ->to($this->registrationUrl())
                     ->with('google_oauth_error', true);
             }
 
@@ -214,7 +214,7 @@ class GoogleOAuthController extends Controller
                 'name' => (string) $payload['name'],
             ]);
 
-            return redirect()->to(Filament::getLoginUrl());
+            return redirect()->to($this->registrationUrl());
         }
 
         if ($payload['type'] !== 'login' || ! isset($payload['user_id'], $payload['household_id'])) {
@@ -255,7 +255,7 @@ class GoogleOAuthController extends Controller
 
         $signupPendingService->bindToSession($pending);
 
-        return redirect()->to(Filament::getLoginUrl());
+        return redirect()->to($this->registrationUrl());
     }
 
     private function completeLogin(
@@ -386,9 +386,18 @@ class GoogleOAuthController extends Controller
             return $this->redirectToGoogleOAuthPage(linked: false, error: true);
         }
 
+        $url = $intent === self::INTENT_SIGNUP
+            ? $this->registrationUrl()
+            : Filament::getLoginUrl();
+
         return redirect()
-            ->to(Filament::getLoginUrl())
+            ->to($url)
             ->with('google_oauth_error', true);
+    }
+
+    private function registrationUrl(): string
+    {
+        return Filament::getRegistrationUrl() ?? url('/admin/register');
     }
 
     private function loginUser(User $user, ActiveSessionService $activeSessionService): void

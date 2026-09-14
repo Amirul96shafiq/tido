@@ -3,23 +3,26 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\Auth\Login;
+use App\Filament\Pages\Auth\Register;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-test('login page renders sign up cta at bottom without sign in via label', function () {
+test('login page renders sign up cta linking to register without sign in via label', function () {
     $html = Livewire::test(Login::class)->html();
 
     expect($html)
         ->toContain('tido-auth-panel-switch')
-        ->toContain('wire:target="selectSignUpTab"')
+        ->toContain('/admin/register')
+        ->toContain('wire:navigate')
         ->toContain("Don't have an account?")
         ->toContain('Sign up')
         ->toContain('text-primary-600')
         ->toContain('wire:key="auth-panel-switch-sign-in"')
         ->toContain('wire:key="auth-cta-sign-up"')
         ->toContain('Sign in via')
+        ->not->toContain('wire:target="selectSignUpTab"')
         ->not->toContain('tido-auth-intent-tabs')
         ->not->toContain('data-tippy-always');
 });
@@ -36,9 +39,8 @@ test('sign in panel shows login method tabs and form by default', function () {
         ->assertDontSee('tido-auth-sign-up-coming-soon', false);
 });
 
-test('sign up panel shows registration form and hides sign in form', function () {
-    Livewire::test(Login::class)
-        ->call('selectSignUpTab')
+test('register page shows registration form and hides sign in form', function () {
+    Livewire::test(Register::class)
         ->assertSet('authPanel', 'sign-up')
         ->assertSet('signupMode', 'form')
         ->assertSee('Email address')
@@ -65,20 +67,16 @@ test('sign in panel keeps brand headline with tidy and done underlines', functio
         ->assertDontSee('tido-signup-greeting-heading', false);
 });
 
-test('switching back to sign in restores login method tabs and form', function () {
+test('select sign up tab redirects to register page', function () {
     Livewire::test(Login::class)
         ->call('selectSignUpTab')
-        ->assertSet('authPanel', 'sign-up')
-        ->assertSee('tido-signup-greeting-heading', false)
+        ->assertRedirect(route('filament.admin.auth.register'));
+});
+
+test('select sign in tab on register redirects to login page', function () {
+    Livewire::test(Register::class)
         ->call('selectSignInTab')
-        ->assertSet('authPanel', 'sign-in')
-        ->assertSee('tido-auth-login-tabs', false)
-        ->assertSee('WhatsApp number')
-        ->assertSee("Don't have an account?", false)
-        ->assertSeeHtml('wire:key="tido-signin-heading"')
-        ->assertSeeHtml('Keep it <span class="underline">ti</span>dy. Get it <span class="underline">do</span>ne.')
-        ->assertDontSee('tido-signup-greeting-heading', false)
-        ->assertDontSee('tidoSignupGreeting', false);
+        ->assertRedirect(route('filament.admin.auth.login'));
 });
 
 test('login mode tabs still switch between otp and password on sign in panel', function () {
@@ -87,4 +85,12 @@ test('login mode tabs still switch between otp and password on sign in panel', f
         ->assertSet('loginMode', 'password')
         ->call('selectOtpLoginTab')
         ->assertSet('loginMode', 'phone');
+});
+
+test('guest can open register page', function (): void {
+    $this->get('/admin/register')
+        ->assertSuccessful()
+        ->assertSee('Email address')
+        ->assertSee('Start Sign Up')
+        ->assertSee('tido-signup-greeting-heading', false);
 });

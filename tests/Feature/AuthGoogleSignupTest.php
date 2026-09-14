@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\Auth\Login;
+use App\Filament\Pages\Auth\Register;
 use App\Http\Controllers\Auth\GoogleOAuthController;
 use App\Models\GoogleOAuthSetting;
 use App\Models\Household;
@@ -49,19 +50,17 @@ function fakeGoogleUser(string $id, string $email, bool $emailVerified = true): 
     });
 }
 
-test('sign up tab shows enabled continue with google when platform credentials exist', function (): void {
+test('register page shows enabled continue with google when platform credentials exist', function (): void {
     enableGoogleSignupOAuth();
 
-    Livewire::test(Login::class)
-        ->call('selectSignUpTab')
+    Livewire::test(Register::class)
         ->assertSee('Continue with Google')
         ->assertSee('wire:click="continueWithGoogle"', false)
         ->assertDontSee('tido-auth-google-sign-in-btn--disabled', false);
 });
 
-test('sign up tab hides continue with google when credentials missing', function (): void {
-    Livewire::test(Login::class)
-        ->call('selectSignUpTab')
+test('register page hides continue with google when credentials missing', function (): void {
+    Livewire::test(Register::class)
         ->assertDontSee('Continue with Google');
 });
 
@@ -75,13 +74,13 @@ test('google signup callback stores pending signup for new email', function (): 
     Socialite::fake('google', fakeGoogleUser('google-sub-new-signup', 'newgoogle@example.com'));
 
     $this->get(route('filament.admin.auth.google.callback'))
-        ->assertRedirect(route('filament.admin.auth.login'));
+        ->assertRedirect(route('filament.admin.auth.register'));
 
     expect(User::query()->where('email', 'newgoogle@example.com')->exists())->toBeFalse();
 
     $this->assertGuest();
 
-    Livewire::test(Login::class)
+    Livewire::test(Register::class)
         ->assertSet('authPanel', 'sign-up')
         ->assertSet('googleVerifiedSignupEmail', 'newgoogle@example.com')
         ->assertSee('Verified');
@@ -101,7 +100,7 @@ test('google verified signup completes registration with linked google id', func
         'google_oauth_signup_panel' => true,
     ]);
 
-    Livewire::test(Login::class)
+    Livewire::test(Register::class)
         ->assertSet('googleVerifiedSignupEmail', 'complete-google@example.com')
         ->set('data.password', 'password-password')
         ->set('data.password_confirmation', 'password-password')
@@ -133,7 +132,7 @@ test('google verified signup uses pending email even when form email is tampered
         'google_oauth_signup_panel' => true,
     ]);
 
-    Livewire::test(Login::class)
+    Livewire::test(Register::class)
         ->set('data.email', 'tampered@example.com')
         ->set('data.password', 'password-password')
         ->set('data.password_confirmation', 'password-password')
@@ -147,8 +146,7 @@ test('google verified signup uses pending email even when form email is tampered
 test('google verified signup fails when pending session expired', function (): void {
     enableGoogleSignupOAuth();
 
-    Livewire::test(Login::class)
-        ->call('selectSignUpTab')
+    Livewire::test(Register::class)
         ->set('data.password', 'password-password')
         ->set('data.password_confirmation', 'password-password')
         ->call('completeGoogleSignup')
@@ -242,10 +240,24 @@ test('google signup callback hands off pending signup to app url when redirect h
     expect($redirectUrl)->toStartWith('http://tido.local/admin/auth/google/complete?token=');
 
     $this->get($redirectUrl)
-        ->assertRedirect(route('filament.admin.auth.login'));
+        ->assertRedirect(route('filament.admin.auth.register'));
 
-    Livewire::test(Login::class)
+    Livewire::test(Register::class)
         ->assertSet('authPanel', 'sign-up')
         ->assertSet('googleVerifiedSignupEmail', 'cross-host@example.com')
         ->assertSee('Verified');
+});
+
+test('login page redirects to register when google signup pending session exists', function (): void {
+    session([
+        GoogleOAuthSignupPendingService::SESSION_KEY => [
+            'google_id' => 'google-sub-redirect',
+            'email' => 'pending@example.com',
+            'name' => 'Pending Google',
+        ],
+        'google_oauth_signup_panel' => true,
+    ]);
+
+    Livewire::test(Login::class)
+        ->assertRedirect(route('filament.admin.auth.register'));
 });
