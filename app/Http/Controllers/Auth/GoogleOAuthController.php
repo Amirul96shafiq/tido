@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\ActiveSessionService;
 use App\Services\GoogleOAuth\GoogleOAuthAuthenticator;
 use App\Services\GoogleOAuth\GoogleOAuthSettings;
+use App\Services\GoogleOAuth\GoogleOAuthSignupPendingService;
 use App\Services\GoogleOAuth\GoogleOAuthSocialite;
 use App\Support\FilamentAuthLogin;
 use Filament\Facades\Filament;
@@ -18,6 +19,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Laravel\Socialite\Contracts\User as SocialiteUser;
 use Throwable;
 
 class GoogleOAuthController extends Controller
@@ -26,9 +28,12 @@ class GoogleOAuthController extends Controller
 
     public const INTENT_LOGIN = 'login';
 
+    public const INTENT_SIGNUP = 'signup';
+
     public const INTENT_LINK = 'link';
 
     public function redirect(
+        Request $request,
         GoogleOAuthSocialite $socialite,
         GoogleOAuthAuthenticator $authenticator,
     ): RedirectResponse {
@@ -40,7 +45,11 @@ class GoogleOAuthController extends Controller
                 ->with('google_oauth_error', true);
         }
 
-        session([self::SESSION_INTENT_KEY => self::INTENT_LOGIN]);
+        $intent = $request->query('intent') === self::INTENT_SIGNUP
+            ? self::INTENT_SIGNUP
+            : self::INTENT_LOGIN;
+
+        session([self::SESSION_INTENT_KEY => $intent]);
 
         try {
             return $socialite->driver($settings)->redirect();
@@ -95,6 +104,7 @@ class GoogleOAuthController extends Controller
         Request $request,
         GoogleOAuthSocialite $socialite,
         GoogleOAuthAuthenticator $authenticator,
+        GoogleOAuthSignupPendingService $signupPendingService,
         ActiveSessionService $activeSessionService,
     ): RedirectResponse {
         $settings = GoogleOAuthSettings::platform();
@@ -126,37 +136,37 @@ class GoogleOAuthController extends Controller
 
         $user = $authenticator->resolveUser($googleUser);
 
-        if ($user === null) {
-            $authenticator->logFailure();
+        if ($user instanceof User) {
+            session()->forget(self::SESSION_INTENT_KEY);
 
-            return redirect()
-                ->to(Filament::getLoginUrl())
-                ->with('google_oauth_error', true);
+            return $this->completeLogin($user, $settings, $authenticator, $activeSessionService);
         }
 
-        session()->forget(self::SESSION_INTENT_KEY);
+        if ($intent === self::INTENT_SIGNUP) {
+            $pending = $authenticator->buildSignupPending($googleUser);
 
-        if ($settings->usesCrossHostRedirect()) {
-            $token = Str::random(64);
-            Cache::put($this->handoffCacheKey($token), [
-                'user_id' => $user->getKey(),
-                'household_id' => $user->household_id,
-            ], now()->addMinutes(2));
+            if ($pending === null) {
+                $authenticator->logFailure();
 
-            $completeUrl = rtrim((string) config('app.url'), '/').'/admin/auth/google/complete?token='.$token;
+                return $this->failRedirect($intent);
+            }
 
-            return redirect()->away($completeUrl);
+            session()->forget(self::SESSION_INTENT_KEY);
+
+            return $this->completeSignupPending($pending, $settings, $signupPendingService);
         }
 
-        $this->loginUser($user, $activeSessionService);
-        $authenticator->logSuccess($user);
+        $authenticator->logFailure();
 
-        return redirect()->to(Filament::getUrl());
+        return redirect()
+            ->to(Filament::getLoginUrl())
+            ->with('google_oauth_error', true);
     }
 
     public function complete(
         Request $request,
         GoogleOAuthAuthenticator $authenticator,
+        GoogleOAuthSignupPendingService $signupPendingService,
         ActiveSessionService $activeSessionService,
     ): RedirectResponse {
         $settings = GoogleOAuthSettings::platform();
@@ -181,7 +191,33 @@ class GoogleOAuthController extends Controller
 
         $payload = Cache::pull($this->handoffCacheKey($token));
 
-        if (! is_array($payload) || ! isset($payload['user_id'], $payload['household_id'])) {
+        if (! is_array($payload) || ! isset($payload['type'])) {
+            $authenticator->logFailure();
+
+            return redirect()
+                ->to(Filament::getLoginUrl())
+                ->with('google_oauth_error', true);
+        }
+
+        if ($payload['type'] === 'signup_pending') {
+            if (! isset($payload['google_id'], $payload['email'], $payload['name'])) {
+                $authenticator->logFailure();
+
+                return redirect()
+                    ->to(Filament::getLoginUrl())
+                    ->with('google_oauth_error', true);
+            }
+
+            $signupPendingService->bindToSession([
+                'google_id' => (string) $payload['google_id'],
+                'email' => (string) $payload['email'],
+                'name' => (string) $payload['name'],
+            ]);
+
+            return redirect()->to(Filament::getLoginUrl());
+        }
+
+        if ($payload['type'] !== 'login' || ! isset($payload['user_id'], $payload['household_id'])) {
             $authenticator->logFailure();
 
             return redirect()
@@ -199,14 +235,69 @@ class GoogleOAuthController extends Controller
                 ->with('google_oauth_error', true);
         }
 
+        return $this->finishLoginRedirect($user, $authenticator, $activeSessionService);
+    }
+
+    /**
+     * @param  array{google_id: string, email: string, name: string}  $pending
+     */
+    private function completeSignupPending(
+        array $pending,
+        GoogleOAuthSettings $settings,
+        GoogleOAuthSignupPendingService $signupPendingService,
+    ): RedirectResponse {
+        if ($settings->usesCrossHostRedirect()) {
+            $token = $signupPendingService->storeHandoff($pending);
+            $completeUrl = rtrim((string) config('app.url'), '/').'/admin/auth/google/complete?token='.$token;
+
+            return redirect()->away($completeUrl);
+        }
+
+        $signupPendingService->bindToSession($pending);
+
+        return redirect()->to(Filament::getLoginUrl());
+    }
+
+    private function completeLogin(
+        User $user,
+        GoogleOAuthSettings $settings,
+        GoogleOAuthAuthenticator $authenticator,
+        ActiveSessionService $activeSessionService,
+    ): RedirectResponse {
+        if ($settings->usesCrossHostRedirect()) {
+            $token = Str::random(64);
+            Cache::put($this->handoffCacheKey($token), [
+                'type' => 'login',
+                'user_id' => $user->getKey(),
+                'household_id' => $user->household_id,
+            ], now()->addMinutes(2));
+
+            $completeUrl = rtrim((string) config('app.url'), '/').'/admin/auth/google/complete?token='.$token;
+
+            return redirect()->away($completeUrl);
+        }
+
+        return $this->finishLoginRedirect($user, $authenticator, $activeSessionService);
+    }
+
+    private function finishLoginRedirect(
+        User $user,
+        GoogleOAuthAuthenticator $authenticator,
+        ActiveSessionService $activeSessionService,
+    ): RedirectResponse {
         $this->loginUser($user, $activeSessionService);
-        $authenticator->logSuccess($user);
+
+        if (filled($user->google_linked_at) && $user->google_linked_at->greaterThan(now()->subMinute())) {
+            $authenticator->logLinked($user);
+        } else {
+            $authenticator->logSuccess($user);
+        }
 
         return redirect()->to(Filament::getUrl());
     }
 
     private function handleLinkCallback(
-        \Laravel\Socialite\Contracts\User $googleUser,
+        SocialiteUser $googleUser,
         GoogleOAuthAuthenticator $authenticator,
     ): RedirectResponse {
         $user = Auth::guard(Filament::getAuthGuard())->user();
@@ -315,7 +406,7 @@ class GoogleOAuthController extends Controller
 
     private function handoffCacheKey(string $token): string
     {
-        return 'google_oauth_handoff:'.$token;
+        return GoogleOAuthSignupPendingService::handoffCacheKey($token);
     }
 
     private function linkHandoffCacheKey(string $token): string

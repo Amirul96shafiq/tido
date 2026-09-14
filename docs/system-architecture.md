@@ -10,7 +10,7 @@ This document defines the architectural blueprint for **tido**, a localized pers
 
 **Live contract (tenancy phase):** isolation unit = **household** (`households` + `household_id`). Many households may share one deploy. Inside each household, Primary vs Family Member ACL remains as in [household-access.md](household-access.md). Implement only via the phased `MH-*` register in [multi-household-change-checklist.md](multi-household-change-checklist.md) (one item at a time). Product intent and Free/Pro discussion: [saas-prd.md](saas-prd.md). **Billing / Free/Pro is not authorized** until a later explicit phase. Do not skip `MH-*` order (docs → backup → schema/backfill → smoke → panel → Register → WhatsApp → household-scoped backups).
 
-On databases where **MH-004** is Verified, all pre-migration rows live in household #1. New households are created via `HouseholdRegistrationService` (**MH-007**); public Filament Register UI is deferred. Active tenancy work: see the top **Open or In progress** row in [multi-household-change-checklist.md](multi-household-change-checklist.md).
+On databases where **MH-004** is Verified, all pre-migration rows live in household #1. New households are created via `HouseholdRegistrationService` (**MH-007**); public Sign Up is on the `/admin/login` Sign Up tab (email/password + email OTP, or **Continue with Google** with verified Gmail pending). Active tenancy work: see the top **Open or In progress** row in [multi-household-change-checklist.md](multi-household-change-checklist.md).
 
 ---
 

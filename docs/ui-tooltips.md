@@ -10,12 +10,12 @@ Filament’s `<x-filament::icon-button>` / `Action::iconButton()` falls back to 
 
 Configured in [`app/Providers/AppServiceProvider.php`](../app/Providers/AppServiceProvider.php) via `Table::configureUsing`:
 
-| Trigger | Method | Tooltip source |
-|---------|--------|----------------|
-| Ungrouped record actions (typically View) | `modifyUngroupedRecordActionsUsing` | `->iconButton()->tooltip(fn (Action $action) => $action->getLabel())` |
+| Trigger                                             | Method                                            | Tooltip source                                                        |
+| --------------------------------------------------- | ------------------------------------------------- | --------------------------------------------------------------------- |
+| Ungrouped record actions (typically View)           | `modifyUngroupedRecordActionsUsing`               | `->iconButton()->tooltip(fn (Action $action) => $action->getLabel())` |
 | Resource table Actions kebab (`RecordActionsGroup`) | `App\Filament\Support\RecordActionsGroup::make()` | `->tooltip('Actions')` on the vertical-ellipsis `ActionGroup` trigger |
-| Filters toggle | `filtersTriggerAction` | `->tooltip(fn (Action $action) => $action->getLabel())` |
-| Column manager | `columnManagerTriggerAction` | `->tooltip(fn (Action $action) => $action->getLabel())` |
+| Filters toggle                                      | `filtersTriggerAction`                            | `->tooltip(fn (Action $action) => $action->getLabel())`               |
+| Column manager                                      | `columnManagerTriggerAction`                      | `->tooltip(fn (Action $action) => $action->getLabel())`               |
 
 Do **not** re-declare `->tooltip()` on every resource table unless the label must differ from the action label. Do **not** configure `ActionGroup` globally — Evolution API header menus use their own group styling.
 
@@ -49,11 +49,11 @@ Keep `aria-label` for accessibility. Do **not** also set `title=` (double toolti
 
 Filament Tippy is **disabled** below Tailwind `sm` (`max-width: 639px`):
 
-| Layer | File |
-|-------|------|
-| Cancel show + `touch: false` | [`resources/js/disable-mobile-tippy.js`](../resources/js/disable-mobile-tippy.js) |
-| Hide any mounted Tippy root | [`resources/css/app.css`](../resources/css/app.css) (`[data-tippy-root]`) |
-| Asset registration | [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php) (`Vite::asset` — see [`vite-assets.md`](vite-assets.md)) |
+| Layer                        | File                                                                                                                              |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Cancel show + `touch: false` | [`resources/js/disable-mobile-tippy.js`](../resources/js/disable-mobile-tippy.js)                                                 |
+| Hide any mounted Tippy root  | [`resources/css/app.css`](../resources/css/app.css) (`[data-tippy-root]`)                                                         |
+| Asset registration           | [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php) (`Vite::asset` — see [`vite-assets.md`](vite-assets.md)) |
 
 **Keep** `aria-label` (or Action labels) so icon CTAs stay accessible when Tippy is off.
 
@@ -79,16 +79,16 @@ Without this, Tippy mounts and is “visible” in the DOM but renders **behind*
 
 ## Published / custom triggers already covered
 
-| CTA | Location |
-|-----|----------|
-| Profile menu | `resources/views/vendor/filament-panels/components/user-menu.blade.php` |
-| Guest auth menu | `resources/views/components/auth-menu.blade.php` |
-| Notifications bell | `resources/views/vendor/filament-panels/components/topbar/database-notifications-trigger.blade.php` |
-| Notifications Filter | `resources/views/filament/livewire/database-notifications.blade.php` |
-| Filament modal Close | `resources/views/vendor/filament/components/modal/index.blade.php` (`:tooltip` on icon-button) |
-| Changelog CTAs | `resources/views/components/changelog-modal.blade.php` |
-| Restore backup | `resources/views/components/restore-backup-modal.blade.php` (`<x-filament::modal>` + icon-button tooltips) |
-| Service Status bars | `resources/views/filament/pages/service-status.blade.php` (`data-tippy-mobile`) |
+| CTA                  | Location                                                                                                   |
+| -------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Profile menu         | `resources/views/vendor/filament-panels/components/user-menu.blade.php`                                    |
+| Guest auth menu      | `resources/views/components/auth-menu.blade.php`                                                           |
+| Notifications bell   | `resources/views/vendor/filament-panels/components/topbar/database-notifications-trigger.blade.php`        |
+| Notifications Filter | `resources/views/filament/livewire/database-notifications.blade.php`                                       |
+| Filament modal Close | `resources/views/vendor/filament/components/modal/index.blade.php` (`:tooltip` on icon-button)             |
+| Changelog CTAs       | `resources/views/components/changelog-modal.blade.php`                                                     |
+| Restore backup       | `resources/views/components/restore-backup-modal.blade.php` (`<x-filament::modal>` + icon-button tooltips) |
+| Service Status bars  | `resources/views/filament/pages/service-status.blade.php` (`data-tippy-mobile`)                            |
 
 When publishing more Filament views for tooltip-only tweaks, keep the override set **minimal** (only the files that differ from vendor).
 

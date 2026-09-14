@@ -28,8 +28,10 @@ test('forgot password page shows back to login link below the form', function ()
         ->assertSee('back to login');
 });
 
-test('login page shows mode tabs without the info toast', function () {
+test('login page shows mode tabs and sign up cta without the info toast', function () {
     Livewire::test(Login::class)
+        ->assertSee("Don't have an account?", false)
+        ->assertSee('Sign up')
         ->assertSee('Sign in via')
         ->assertSee('One-Time Password (OTP)')
         ->assertSee('Email & Password')

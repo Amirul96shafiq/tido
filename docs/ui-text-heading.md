@@ -39,7 +39,8 @@ Descriptions, helper text, notifications, validation messages, and button labels
 | **tido** | Product name stays lowercase in prose and in headings |
 | **MYR**, **API**, **OCR**, **PDF**, **OTP**, **URL** | Established acronyms stay uppercase |
 | Record names / merchant strings | Do not Title-Case live data (`Starbucks`, `qwen2.5vl:7b`) |
-| Login brand headline | Conversational product voice on the login split (`Keep it tidy. Get it done.`) — see [ui-copy-style.md](ui-copy-style.md) |
+| Sign In brand headline | Conversational product voice on the Sign In tab (`Keep it tidy. Get it done.`) — see [ui-copy-style.md](ui-copy-style.md) |
+| Sign Up greeting headline | Conversational `Hello!` / localized greeting on the Sign Up form step (not OTP) |
 
 Hyphens: capitalize each segment (`Active Sessions`, `WhatsApp Official API`).
 

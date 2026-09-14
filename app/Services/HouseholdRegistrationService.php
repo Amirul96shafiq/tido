@@ -20,7 +20,7 @@ use Illuminate\Support\Str;
 final class HouseholdRegistrationService
 {
     /**
-     * @param  array{name: string, email: string, password: string}  $attributes
+     * @param  array{name: string, email: string, password: string, google_id?: string|null}  $attributes
      */
     public function register(array $attributes): User
     {
@@ -34,8 +34,7 @@ final class HouseholdRegistrationService
             try {
                 app(EvolutionSettingsService::class)->forHousehold((int) $household->id);
 
-                $user = new User;
-                $user->forceFill([
+                $userAttributes = [
                     'household_id' => $household->id,
                     'name' => $attributes['name'],
                     'display_name' => $attributes['name'],
@@ -47,7 +46,15 @@ final class HouseholdRegistrationService
                     'timezone' => 'Asia/Kuala_Lumpur',
                     'locale' => 'en',
                     'date_format' => 'd/m/Y',
-                ])->save();
+                ];
+
+                if (filled($attributes['google_id'] ?? null)) {
+                    $userAttributes['google_id'] = $attributes['google_id'];
+                    $userAttributes['google_linked_at'] = now();
+                }
+
+                $user = new User;
+                $user->forceFill($userAttributes)->save();
 
                 (new LabelSeeder)->run();
                 (new PaymentMethodSeeder)->run();
