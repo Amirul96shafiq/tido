@@ -8,20 +8,20 @@ Profile **Reduce Motion** disables decorative animation across the admin panel. 
 - UI: native `Toggle::make('reduce_motion')` in **Personalize & Appearance → PREFERENCES** on [`EditProfile.php`](../app/Filament/Pages/Auth/EditProfile.php)
 - Helper: [`App\Support\ReduceMotion`](../app/Support/ReduceMotion.php)
 
-When enabled, count-up, marquee, Sign Up greeting typewriter, status pulses, notification badge pings, recurring dues title pings, sidebar chrome transitions, notification timer bars, empty-panel entrance, deferred schema/table loading placeholders, lazy widget placeholders, and smooth scroll helpers use static or instant behavior.
+When enabled, count-up, marquee, Sign Up greeting typewriter, Sign In welcome typewriter, status pulses, notification badge pings, recurring dues title pings, sidebar chrome transitions, notification timer bars, empty-panel entrance, deferred schema/table loading placeholders, lazy widget placeholders, and smooth scroll helpers use static or instant behavior.
 
 ## How it applies
 
-| Layer          | Mechanism                                                                                                                                                                                            |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Server         | [`ReduceMotion::enabled()`](../app/Support/ReduceMotion.php) in [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php) `HEAD_START` hook                                           |
-| HTML class     | `html.tido-reduce-motion` on `document.documentElement`                                                                                                                                              |
-| CSS            | Mirror every `@media (prefers-reduced-motion: reduce)` rule with `html.tido-reduce-motion …` selectors in [`app.css`](../resources/css/app.css)                                                      |
-| Count-up       | `window.matchMedia('(prefers-reduced-motion: reduce)')` is wrapped so `.matches` is true when the html class is present (vendor package checks media only)                                           |
-| Marquee        | [`x-tido.text-marquee`](../resources/views/components/tido/text-marquee.blade.php) and [`select-value-marquee.js`](../resources/js/select-value-marquee.js) call `window.tidoPrefersReducedMotion()` |
-| Sign Up greeting | [`signup-greeting-typewriter.js`](../resources/js/signup-greeting-typewriter.js) swaps phrases instantly (no caret / type-delete) when reduced |
-| Smooth scroll  | Section nav, hash scroll, go-to-top/bottom use `behavior: 'auto'` when reduced                                                                                                                       |
-| SPA navigation | `sessionStorage` + `livewire:navigating` / `livewire:navigated` restore `html.tido-reduce-motion` and re-snap count-up / marquee via `syncMarqueeMotion()`                                           |
+| Layer                              | Mechanism                                                                                                                                                                                            |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Server                             | [`ReduceMotion::enabled()`](../app/Support/ReduceMotion.php) in [`AdminPanelProvider`](../app/Providers/Filament/AdminPanelProvider.php) `HEAD_START` hook                                           |
+| HTML class                         | `html.tido-reduce-motion` on `document.documentElement`                                                                                                                                              |
+| CSS                                | Mirror every `@media (prefers-reduced-motion: reduce)` rule with `html.tido-reduce-motion …` selectors in [`app.css`](../resources/css/app.css)                                                      |
+| Count-up                           | `window.matchMedia('(prefers-reduced-motion: reduce)')` is wrapped so `.matches` is true when the html class is present (vendor package checks media only)                                           |
+| Marquee                            | [`x-tido.text-marquee`](../resources/views/components/tido/text-marquee.blade.php) and [`select-value-marquee.js`](../resources/js/select-value-marquee.js) call `window.tidoPrefersReducedMotion()` |
+| Sign Up greeting / Sign In welcome | [`signup-greeting-typewriter.js`](../resources/js/signup-greeting-typewriter.js) swaps phrases instantly (no caret / type-delete) when reduced                                                       |
+| Smooth scroll                      | Section nav, hash scroll, go-to-top/bottom use `behavior: 'auto'` when reduced                                                                                                                       |
+| SPA navigation                     | `sessionStorage` + `livewire:navigating` / `livewire:navigated` restore `html.tido-reduce-motion` and re-snap count-up / marquee via `syncMarqueeMotion()`                                           |
 
 ### Client API
 

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Pages\Auth;
 
 use App\Filament\Pages\Auth\Concerns\HandlesEmailSignup;
+use App\Filament\Support\SignInWelcomeHeading;
+use App\Filament\Support\SignupGreetingHeading;
 use App\Models\User;
 use App\Services\ActiveSessionService;
 use App\Services\GoogleOAuth\GoogleOAuthSettings;
@@ -132,14 +134,10 @@ class Login extends BaseLogin
         }
 
         $heading = $this->isSignUpPanel()
-            ? ($this->signupHeading() ?? TidoBrandCopy::loginHeadingHtml())
+            ? ($this->signupHeading() ?? SignupGreetingHeading::html())
             : match ($this->loginMode) {
                 'otp' => new HtmlString('<span wire:key="tido-signin-otp-heading">Enter the code</span>'),
-                default => new HtmlString(
-                    '<span wire:key="tido-signin-heading">'
-                    .(string) TidoBrandCopy::loginHeadingHtml()
-                    .'</span>'
-                ),
+                default => SignInWelcomeHeading::html(),
             };
 
         return $heading;

@@ -2,19 +2,19 @@
 
 **Always write user-visible headings in Title Case:** capitalize the first letter of every word.
 
-| Correct | Incorrect |
-|---------|-----------|
-| **Text Heading** | Text heading |
-| **Text Heading** | text heading |
-| **Pipeline Readiness** | Pipeline readiness |
+| Correct                        | Incorrect                  |
+| ------------------------------ | -------------------------- |
+| **Text Heading**               | Text heading               |
+| **Text Heading**               | text heading               |
+| **Pipeline Readiness**         | Pipeline readiness         |
 | **Receipt & Parsing Activity** | Receipt & parsing activity |
-| **Swap Account** | Swap account |
-| **Restore Backup** | Restore backup |
-| **Service Status** | Service status |
+| **Swap Account**               | Swap account               |
+| **Restore Backup**             | Restore backup             |
+| **Service Status**             | Service status             |
 
 Sentence case and all-lowercase headings are not allowed.
 
-Voice still follows [ui-copy-style.md](ui-copy-style.md) (impersonal; no *we* / *you*). This doc only governs **capitalization**.
+Voice still follows [ui-copy-style.md](ui-copy-style.md) (impersonal; no _we_ / _you_). This doc only governs **capitalization**.
 
 ## Applies to
 
@@ -30,17 +30,17 @@ Any short title shown as a heading, not body copy:
 - Global-search destination titles for pages and sections
 - Auth page headings (`getHeading()`)
 
-Descriptions, helper text, notifications, validation messages, and button labels are **not** headings. Keep those in sentence case unless they are already an imperative CTA (*Send Email* is a button, not a heading).
+Descriptions, helper text, notifications, validation messages, and button labels are **not** headings. Keep those in sentence case unless they are already an imperative CTA (_Send Email_ is a button, not a heading).
 
 ## Exceptions
 
-| Keep as-is | Why |
-|------------|-----|
-| **tido** | Product name stays lowercase in prose and in headings |
-| **MYR**, **API**, **OCR**, **PDF**, **OTP**, **URL** | Established acronyms stay uppercase |
-| Record names / merchant strings | Do not Title-Case live data (`Starbucks`, `qwen2.5vl:7b`) |
-| Sign In brand headline | Conversational product voice on the Sign In tab (`Keep it tidy. Get it done.`) — see [ui-copy-style.md](ui-copy-style.md) |
-| Sign Up greeting headline | Conversational `Hello!` / localized greeting on the Sign Up form step (not OTP) |
+| Keep as-is                                           | Why                                                                                                                        |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **tido**                                             | Product name stays lowercase in prose and in headings                                                                      |
+| **MYR**, **API**, **OCR**, **PDF**, **OTP**, **URL** | Established acronyms stay uppercase                                                                                        |
+| Record names / merchant strings                      | Do not Title-Case live data (`Starbucks`, `qwen2.5vl:7b`)                                                                  |
+| Sign In welcome headline                             | Conversational `Welcome Back!` / localized welcome on the Sign In tab (not OTP) — see [ui-copy-style.md](ui-copy-style.md) |
+| Sign Up greeting headline                            | Conversational `Hello!` / localized greeting on the Sign Up form step (not OTP)                                            |
 
 Hyphens: capitalize each segment (`Active Sessions`, `WhatsApp Official API`).
 
