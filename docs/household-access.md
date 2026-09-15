@@ -141,7 +141,7 @@ Finance Home filter `spender` (`DashboardSpenderScope`):
 
 ## Login
 
-**Public Sign Up** (login panel Sign Up tab): email, password, and a 6-digit email confirmation code—or **Continue with Google** with a verified Gmail pending state—create a **new household** and Primary via `HouseholdRegistrationService`. An existing Primary Gmail signs in and links Google instead of creating a second household.
+**Public Sign Up** (`/admin/register`): email, password, and a 6-digit email confirmation code—or **Continue with Google** with a verified Gmail pending state—create a **new household** and Primary via `HouseholdRegistrationService`. An existing Primary Gmail signs in and links Google instead of creating a second household.
 
 1. Primary enables **Allow panel login via WhatsApp OTP** on the Family Member.
 2. Member opens `/admin/login`, enters their WhatsApp number, receives OTP (Evolution).

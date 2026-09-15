@@ -1,6 +1,6 @@
 # Google OAuth setup
 
-One shared Google Cloud OAuth client for the install. Each household Primary links their Gmail (`users.google_id`) while authenticated, or links automatically on first **Continue with Google** when the verified Gmail matches an existing Primary email. **Continue with Google** on the Sign In and Sign Up tabs appears when platform credentials exist. Family Members continue to use WhatsApp OTP only.
+One shared Google Cloud OAuth client for the install. Each household Primary links their Gmail (`users.google_id`) while authenticated, or links automatically on first **Continue with Google** when the verified Gmail matches an existing Primary email. **Continue with Google** on `/admin/login` and `/admin/register` appears when platform credentials exist. Family Members continue to use WhatsApp OTP only.
 
 ## Filament configuration
 

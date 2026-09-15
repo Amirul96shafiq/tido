@@ -13,6 +13,18 @@ test('guest can open login page', function (): void {
     $this->get('/admin/login')->assertSuccessful();
 });
 
+test('guest can open register page', function (): void {
+    $this->get('/admin/register')->assertSuccessful();
+});
+
+test('signed in primary user visiting register page is redirected to dashboard', function (): void {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get('/admin/register')
+        ->assertRedirect('/admin');
+});
+
 test('signed in primary user visiting login page is redirected to dashboard', function (): void {
     $user = User::factory()->create();
 

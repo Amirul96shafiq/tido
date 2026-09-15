@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Filament\Pages\Auth\Login;
+use App\Filament\Pages\Auth\Register;
 use App\Models\GoogleOAuthSetting;
 use App\Models\Household;
 use App\Models\User;
@@ -26,8 +26,7 @@ beforeEach(function (): void {
 });
 
 test('sign up validates email password and confirmation', function (): void {
-    Livewire::test(Login::class)
-        ->call('selectSignUpTab')
+    Livewire::test(Register::class)
         ->set('data.email', 'not-an-email')
         ->set('data.password', 'short')
         ->set('data.password_confirmation', 'mismatch')
@@ -39,8 +38,7 @@ test('sign up validates email password and confirmation', function (): void {
 });
 
 test('sign up sends email code and moves to otp step', function (): void {
-    Livewire::test(Login::class)
-        ->call('selectSignUpTab')
+    Livewire::test(Register::class)
         ->set('data.email', 'dev-signup@example.com')
         ->set('data.password', 'password-password')
         ->set('data.password_confirmation', 'password-password')
@@ -57,8 +55,7 @@ test('sign up sends email code and moves to otp step', function (): void {
 test('sign up rejects emails that already belong to a user', function (): void {
     User::factory()->create(['email' => 'taken@example.com']);
 
-    Livewire::test(Login::class)
-        ->call('selectSignUpTab')
+    Livewire::test(Register::class)
         ->set('data.email', 'taken@example.com')
         ->set('data.password', 'password-password')
         ->set('data.password_confirmation', 'password-password')
@@ -67,8 +64,7 @@ test('sign up rejects emails that already belong to a user', function (): void {
 });
 
 test('sign up queues otp mail for non dev addresses', function (): void {
-    Livewire::test(Login::class)
-        ->call('selectSignUpTab')
+    Livewire::test(Register::class)
         ->set('data.email', 'brand-new@example.com')
         ->set('data.password', 'password-password')
         ->set('data.password_confirmation', 'password-password')
@@ -81,8 +77,7 @@ test('sign up queues otp mail for non dev addresses', function (): void {
 test('sign up creates a new household primary after otp verification', function (): void {
     $existing = User::factory()->create(['household_id' => 1]);
 
-    Livewire::test(Login::class)
-        ->call('selectSignUpTab')
+    Livewire::test(Register::class)
         ->set('data.email', 'dev-signup@example.com')
         ->set('data.password', 'password-password')
         ->set('data.password_confirmation', 'password-password')
@@ -101,8 +96,7 @@ test('sign up creates a new household primary after otp verification', function 
 });
 
 test('sign up rejects invalid otp codes', function (): void {
-    Livewire::test(Login::class)
-        ->call('selectSignUpTab')
+    Livewire::test(Register::class)
         ->set('data.email', 'dev-signup@example.com')
         ->set('data.password', 'password-password')
         ->set('data.password_confirmation', 'password-password')
@@ -113,8 +107,7 @@ test('sign up rejects invalid otp codes', function (): void {
 });
 
 test('sign up resend is blocked during cooldown', function (): void {
-    Livewire::test(Login::class)
-        ->call('selectSignUpTab')
+    Livewire::test(Register::class)
         ->set('data.email', 'dev-signup@example.com')
         ->set('data.password', 'password-password')
         ->set('data.password_confirmation', 'password-password')
@@ -124,23 +117,18 @@ test('sign up resend is blocked during cooldown', function (): void {
 });
 
 test('switching back to sign in resets signup state', function (): void {
-    Livewire::test(Login::class)
-        ->call('selectSignUpTab')
+    Livewire::test(Register::class)
         ->set('data.email', 'dev-signup@example.com')
         ->set('data.password', 'password-password')
         ->set('data.password_confirmation', 'password-password')
         ->call('sendSignupOtp')
         ->assertSet('signupMode', 'otp')
         ->call('selectSignInTab')
-        ->assertSet('authPanel', 'sign-in')
-        ->assertSet('signupMode', 'form')
-        ->assertSee('WhatsApp number');
+        ->assertRedirect(route('filament.admin.auth.login'));
 });
 
 test('sign up shows disabled continue with google when credentials missing', function (): void {
-    $html = Livewire::test(Login::class)
-        ->call('selectSignUpTab')
-        ->html();
+    $html = Livewire::test(Register::class)->html();
 
     expect($html)
         ->not->toContain('wire:click="continueWithGoogle"');
@@ -155,9 +143,7 @@ test('sign up shows enabled continue with google when credentials exist', functi
     ]);
     GoogleOAuthSettings::platform()->forgetCache();
 
-    $html = Livewire::test(Login::class)
-        ->call('selectSignUpTab')
-        ->html();
+    $html = Livewire::test(Register::class)->html();
 
     expect($html)
         ->toContain('wire:click="continueWithGoogle"')
