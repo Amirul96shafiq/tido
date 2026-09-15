@@ -8,16 +8,6 @@ use Illuminate\Support\HtmlString;
 
 final class TidoBrandCopy
 {
-    public static function loginHeading(): string
-    {
-        return 'Keep it tidy. Get it done.';
-    }
-
-    public static function loginHeadingHtml(): HtmlString
-    {
-        return new HtmlString('Keep it <span class="underline">ti</span>dy. Get it <span class="underline">do</span>ne.');
-    }
-
     public static function loginSubheading(): string
     {
         return 'Where tidy preparation meets done work, then "tido" (sleep).';

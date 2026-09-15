@@ -60,11 +60,31 @@ test('register page shows registration form and hides sign in form', function ()
         ->assertDontSee("Don't have an account?");
 });
 
-test('sign in panel keeps brand headline with tidy and done underlines', function () {
+test('sign in panel shows welcome back typewriter heading for localized visitors', function () {
     Livewire::test(Login::class)
         ->assertSet('authPanel', 'sign-in')
-        ->assertSeeHtml('Keep it <span class="underline">ti</span>dy. Get it <span class="underline">do</span>ne.')
-        ->assertDontSee('tido-signup-greeting-heading', false);
+        ->assertSee('Welcome Back!')
+        ->assertSee('Selamat kembali!', false)
+        ->assertSee('wire:key="tido-signin-welcome"', false)
+        ->assertSee('tido-signup-greeting-heading', false)
+        ->assertSee('tidoSignupGreeting', false);
+});
+
+test('sign in panel shows static welcome back for english only visitors', function (): void {
+    $this->withHeaders(['CF-IPCountry' => 'US'])
+        ->get('/admin/login')
+        ->assertSuccessful()
+        ->assertSee('Welcome Back!')
+        ->assertDontSee('wire:key="tido-signin-welcome"', false)
+        ->assertDontSee('tidoSignupGreeting', false);
+});
+
+test('sign in otp step hides welcome typewriter heading', function (): void {
+    Livewire::test(Login::class)
+        ->set('loginMode', 'otp')
+        ->assertSee('Enter the code')
+        ->assertDontSee('wire:key="tido-signin-welcome"', false)
+        ->assertDontSee('tidoSignupGreeting', false);
 });
 
 test('select sign up tab redirects to register page', function () {

@@ -1,13 +1,11 @@
 @php
-    use App\Support\SignupGreetingCopy;
-
-    $longestPhrase = collect($phrases)->sortByDesc(static fn (string $phrase): int => strlen($phrase))->first() ?? SignupGreetingCopy::ENGLISH;
+    $longestPhrase = collect($phrases)->sortByDesc(static fn (string $phrase): int => strlen($phrase))->first() ?? $englishPhrase;
 @endphp
 
 <span
     class="tido-signup-greeting-heading"
-    wire:key="tido-signup-greeting"
-    aria-label="{{ SignupGreetingCopy::ENGLISH }}"
+    wire:key="{{ $wireKey }}"
+    aria-label="{{ $englishPhrase }}"
     x-data="tidoSignupGreeting({ phrases: @js($phrases), holdMs: {{ (int) $holdMs }} })"
 >
     <span class="tido-signup-greeting-heading__spacer" aria-hidden="true">{{ $longestPhrase }}</span>
